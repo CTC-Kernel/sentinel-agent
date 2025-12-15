@@ -344,7 +344,7 @@ export const Dashboard: React.FC = () => {
             };
             saveStats();
         }
-    }, [loading, historyStats, user?.organizationId, allRisks.length, complianceScore, activeIncidentsCount]);
+    }, [loading, historyStats, user?.organizationId, allRisks.length, complianceScore, activeIncidentsCount, radarData]);
 
     const copyRules = () => { navigator.clipboard.writeText(`rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if request.auth != null;\n    }\n  }\n}`); addToast(t('dashboard.rulesCopied'), "success"); };
 

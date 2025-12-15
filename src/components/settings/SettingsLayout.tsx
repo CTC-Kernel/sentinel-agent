@@ -1,9 +1,10 @@
 import React from 'react';
-import { User, Shield, Building, Link, Server } from '../ui/Icons';
+import { User, Shield, Building, Link, Server, ChevronRight } from '../ui/Icons';
 import { cn } from '../../lib/utils';
 import { useStore } from '../../store';
 import { hasPermission } from '../../utils/permissions';
-
+import { motion, AnimatePresence } from 'framer-motion';
+import { ResourceType, ActionType } from '../../types';
 
 interface SettingsLayoutProps {
     currentTab: string;
@@ -14,7 +15,6 @@ interface SettingsLayoutProps {
 export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTabChange, children }) => {
     const { t, user } = useStore();
 
-
     const tabs = [
         { id: 'profile', label: t('settings.profile'), icon: User },
         { id: 'security', label: t('settings.security'), icon: Shield },
@@ -23,62 +23,100 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
         { id: 'system', label: t('settings.systemAndLogs'), icon: Server, requiredPermission: { resource: 'Settings', action: 'read' } },
     ];
 
-    const visibleTabs = tabs.filter(tab => !tab.requiredPermission || hasPermission(user, tab.requiredPermission.resource as any, tab.requiredPermission.action as any));
+    const visibleTabs = tabs.filter(tab => !tab.requiredPermission || hasPermission(user, tab.requiredPermission.resource as ResourceType, tab.requiredPermission.action as ActionType));
 
     return (
-        <div className="flex flex-col lg:flex-row gap-8 min-h-[calc(100vh-8rem)]">
+        <div className="flex flex-col lg:flex-row gap-8 min-h-[calc(100vh-12rem)] relative">
             {/* Sidebar Navigation */}
-            <aside className="w-full lg:w-64 flex-shrink-0">
-                <nav className="sticky top-24 space-y-1">
-                    {/* Mobile: Horizontal scrollable tabs */}
-                    <div className="lg:hidden flex overflow-x-auto pb-4 gap-2 no-scrollbar">
-                        {visibleTabs.map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => onTabChange(tab.id)}
-                                className={cn(
-                                    "flex items-center whitespace-nowrap px-4 py-2.5 rounded-xl font-bold text-sm transition-all",
-                                    currentTab === tab.id
-                                        ? "bg-brand-600 text-white shadow-lg shadow-brand-500/20"
-                                        : "bg-white/50 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10"
-                                )}
-                            >
-                                <tab.icon className={cn("w-4 h-4 mr-2", currentTab === tab.id ? "text-white" : "text-slate-500")} />
-                                {tab.label}
-                            </button>
-                        ))}
+            <aside className="w-full lg:w-72 flex-shrink-0 z-30">
+                <nav className="sticky top-24 space-y-4">
+
+                    {/* Mobile: Glass Sticky Nav */}
+                    <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 sticky top-[4.5rem] z-50 overflow-hidden pb-4 pt-2 custom-gradient-mask">
+                        <div className="glass-panel p-1.5 rounded-xl flex overflow-x-auto no-scrollbar gap-1 border border-white/20 dark:border-white/10 shadow-lg backdrop-blur-xl">
+                            {visibleTabs.map(tab => {
+                                const isActive = currentTab === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => onTabChange(tab.id)}
+                                        className={cn(
+                                            "relative flex items-center whitespace-nowrap px-4 py-2 rounded-lg font-medium text-sm transition-all flex-shrink-0 select-none",
+                                            isActive ? "text-white" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                                        )}
+                                    >
+                                        {isActive && (
+                                            <motion.div
+                                                layoutId="activeTabMobile"
+                                                className="absolute inset-0 bg-brand-600 rounded-lg shadow-sm"
+                                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                            />
+                                        )}
+                                        <span className="relative z-10 flex items-center">
+                                            <tab.icon className={cn("w-4 h-4 mr-2", isActive ? "text-white" : "text-current opacity-70")} />
+                                            {tab.label}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     {/* Desktop: Vertical list */}
                     <div className="hidden lg:flex flex-col gap-2">
-                        {visibleTabs.map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => onTabChange(tab.id)}
-                                className={cn(
-                                    "flex items-center w-full px-4 py-3 rounded-2xl font-bold text-sm transition-all text-left group relative overflow-hidden",
-                                    currentTab === tab.id
-                                        ? "bg-white dark:bg-white/10 text-brand-600 dark:text-white shadow-sm ring-1 ring-border"
-                                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"
-                                )}
-                            >
-                                {currentTab === tab.id && (
-                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-600 rounded-l-2xl" />
-                                )}
-                                <tab.icon className={cn(
-                                    "w-5 h-5 mr-3 transition-colors",
-                                    currentTab === tab.id ? "text-brand-600 dark:text-brand-400" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"
-                                )} />
-                                {tab.label}
-                            </button>
-                        ))}
+                        <div className="glass-panel p-2 rounded-2xl border border-white/20 dark:border-white/10 bg-white/50 dark:bg-slate-900/50">
+                            {visibleTabs.map(tab => {
+                                const isActive = currentTab === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => onTabChange(tab.id)}
+                                        className={cn(
+                                            "group flex items-center w-full px-4 py-3.5 rounded-xl font-medium text-sm transition-all text-left relative overflow-hidden",
+                                            isActive
+                                                ? "bg-brand-50/50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 shadow-sm"
+                                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"
+                                        )}
+                                    >
+                                        <tab.icon className={cn(
+                                            "w-5 h-5 mr-3 transition-colors",
+                                            isActive
+                                                ? "text-brand-600 dark:text-brand-400"
+                                                : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"
+                                        )} />
+                                        <span className="flex-1">{tab.label}</span>
+                                        {isActive && (
+                                            <motion.div
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                className="bg-brand-600 w-1.5 h-1.5 rounded-full"
+                                            />
+                                        )}
+                                        {!isActive && (
+                                            <ChevronRight className="w-4 h-4 text-slate-300 -ml-4 opacity-0 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300" />
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </nav>
             </aside>
 
             {/* Content Area */}
             <main className="flex-1 min-w-0">
-                {children}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={currentTab}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="w-full"
+                    >
+                        {children}
+                    </motion.div>
+                </AnimatePresence>
             </main>
         </div>
     );

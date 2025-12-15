@@ -5,6 +5,7 @@ import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema, ProfileFormData } from '../../schemas/settingsSchema';
 import { CustomSelect } from '../ui/CustomSelect';
+import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { Button } from '../ui/button';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { updateDoc, doc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -138,86 +139,171 @@ export const ProfileSettings: React.FC = () => {
     };
 
     return (
-        <div className="glass-panel rounded-[2.5rem] p-4 sm:p-8 relative overflow-hidden shadow-sm animate-fade-in-up">
-            <div className="flex flex-col items-center mb-8">
-                <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                    <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-border shadow-2xl bg-accent flex items-center justify-center transition-transform group-hover:scale-105">
-                        {uploadingPhoto ? (
-                            <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                        ) : user?.photoURL ? (
-                            <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
-                        ) : (
-                            <span className="text-4xl font-bold text-muted-foreground">{user?.displayName?.charAt(0).toUpperCase() || 'U'}</span>
-                        )}
+        <div className="space-y-8 animate-fade-in-up">
+            <div className="glass-panel p-8 rounded-2xl border border-white/20 dark:border-white/10 shadow-xl bg-white/50 dark:bg-slate-900/50">
+                <div className="flex flex-col md:flex-row gap-8 items-start">
+                    {/* Avatar Section */}
+                    <div className="flex-shrink-0 w-full md:w-auto flex flex-col items-center space-y-4">
+                        <div className="relative group mx-auto">
+                            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl ring-4 ring-slate-100 dark:ring-white/5">
+                                {user?.photoURL ? (
+                                    <img src={user.photoURL} alt={user?.displayName || 'User'} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-linear-to-br from-brand-100 to-brand-50 dark:from-brand-900/50 dark:to-brand-800/30 flex items-center justify-center text-4xl font-bold text-brand-600 dark:text-brand-400">
+                                        {(user?.displayName || 'U').charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                    <Camera className="w-8 h-8 text-white" />
+                                </div>
+                            </div>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handlePhotoUpload}
+                            />
+                            {uploadingPhoto && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="text-center">
+                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('settings.profilePhoto')}</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-500">JPG, PNG, GIF max 5MB</p>
+                        </div>
                     </div>
-                    <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Camera className="text-white h-8 w-8" />
-                    </div>
-                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
-                </div>
-                <h2 className="text-2xl font-bold text-foreground mt-4">{user?.displayName}</h2>
-                <span className="px-3 py-1 rounded-full bg-accent text-muted-foreground text-xs font-bold uppercase tracking-wide mt-2 border border-border">
-                    {user?.role}
-                </span>
-                <div className="flex items-center gap-2 mt-2">
-                    <p className="text-sm text-muted-foreground">{user?.email}</p>
-                    <button
-                        onClick={handleCheckBreach}
-                        disabled={breachCheckLoading}
-                        className="p-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
-                        title="Vérifier si cet email a été compromis (Have I Been Pwned)"
-                    >
-                        {breachCheckLoading ? <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : <ShieldAlert className="w-3 h-3" />}
-                    </button>
+
+                    {/* Form Section */}
+                    <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="flex-1 w-full space-y-8">
+                        {/* Personal Info */}
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('settings.personalInfo')}</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">{t('settings.personalInfoDesc')}</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FloatingLabelInput
+                                    label={t('settings.displayName')}
+                                    {...profileForm.register('displayName')}
+                                    error={profileForm.formState.errors.displayName?.message}
+                                />
+                                <FloatingLabelInput
+                                    label={t('settings.email')}
+                                    value={user?.email || ''}
+                                    disabled
+                                    readOnly
+                                    className="opacity-70 bg-slate-50/50 dark:bg-white/5"
+                                />
+                                <div className="md:col-span-2">
+                                    <Controller
+                                        name="role"
+                                        control={profileForm.control}
+                                        render={({ field }) => (
+                                            <CustomSelect
+                                                label={t('settings.role')}
+                                                options={[
+                                                    { value: 'admin', label: 'Admin (Full Access)' },
+                                                    { value: 'user', label: 'User (Standard Access)' },
+                                                    { value: 'manager', label: 'Manager' },
+                                                    { value: 'auditor', label: 'Auditor (Read Only)' },
+                                                    { value: 'project_manager', label: 'Project Manager' },
+                                                    { value: 'rssi', label: 'RSSI / CISO' },
+                                                    { value: 'direction', label: 'Direction / Executive' },
+                                                    { value: 'dpo', label: 'DPO' },
+                                                ]}
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                disabled={!hasPermission(user, 'User', 'manage')}
+                                            />
+                                        )}
+                                    />
+                                </div>
+                                <FloatingLabelInput
+                                    label={t('settings.department')}
+                                    {...profileForm.register('department')}
+                                    error={profileForm.formState.errors.department?.message}
+                                    className="md:col-span-2"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="border-t border-slate-200 dark:border-white/10 my-6"></div>
+
+                        {/* API Keys */}
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+                                    Api Keys
+                                    <span className="px-2 py-0.5 rounded text-xs font-medium bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+                                        Private
+                                    </span>
+                                </h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">{t('settings.apiKeysDesc')}</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4">
+                                <FloatingLabelInput
+                                    label="Gemini API Key (Google AI)"
+                                    type="password"
+                                    {...profileForm.register('geminiApiKey')}
+                                    placeholder="sk-..."
+                                />
+                                <FloatingLabelInput
+                                    label="Shodan API Key (Threat Intel)"
+                                    type="password"
+                                    {...profileForm.register('shodanApiKey')}
+                                    placeholder="..."
+                                />
+                                <div className="flex gap-2 items-end">
+                                    <FloatingLabelInput
+                                        label="HIBP API Key (Have I Been Pwned)"
+                                        type="password"
+                                        {...profileForm.register('hibpApiKey')}
+                                        placeholder="..."
+                                        className="col-span-2"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={handleCheckBreach}
+                                        disabled={breachCheckLoading || !user?.hasHibpKey}
+                                        className="h-[52px] px-6"
+                                    >
+                                        {breachCheckLoading ? (
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                                        ) : (
+                                            <ShieldAlert className="h-4 w-4 text-amber-500" />
+                                        )}
+                                    </Button>
+                                </div>
+                                <FloatingLabelInput
+                                    label="Google Safe Browsing API Key"
+                                    type="password"
+                                    {...profileForm.register('safeBrowsingApiKey')}
+                                    placeholder="..."
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end pt-4">
+                            <Button type="submit" disabled={savingProfile} className="min-w-[140px] h-12 text-base shadow-lg shadow-brand-500/20">
+                                {savingProfile ? (
+                                    <div className="flex items-center gap-2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        {t('common.saving')}
+                                    </div>
+                                ) : (
+                                    t('common.save')
+                                )}
+                            </Button>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <form onSubmit={profileForm.handleSubmit(handleUpdateProfile)} className="space-y-5 max-w-sm mx-auto">
-                <div>
-                    <label htmlFor="settings-displayName" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 ml-1">{t('settings.displayName')}</label>
-                    <input id="settings-displayName" autoComplete="name" type="text" className="w-full px-4 py-3.5 bg-background/60 border border-border rounded-2xl focus:ring-2 focus:ring-brand-500 text-foreground transition-all outline-none font-medium"
-                        {...profileForm.register('displayName')} />
-                    {profileForm.formState.errors.displayName && <p className="text-red-500 text-xs mt-1">{profileForm.formState.errors.displayName.message}</p>}
-                </div>
-                <div>
-                    <label htmlFor="settings-department" className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 ml-1">{t('settings.department')}</label>
-                    <input id="settings-department" autoComplete="organization" type="text" className="w-full px-4 py-3.5 bg-background/60 border border-border rounded-2xl focus:ring-2 focus:ring-brand-500 text-foreground transition-all outline-none font-medium"
-                        {...profileForm.register('department')} />
-                </div>
-
-                <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 ml-1">{t('settings.role')}</label>
-                    <div className="relative">
-                        <Controller
-                            control={profileForm.control}
-                            name="role"
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label=""
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    options={[
-                                        { value: 'admin', label: 'Administrateur' },
-                                        { value: 'rssi', label: 'RSSI / CISO' },
-                                        { value: 'direction', label: 'Direction / DPO' },
-                                        { value: 'project_manager', label: 'Chef de Projet' },
-                                        { value: 'auditor', label: 'Auditeur' },
-                                        { value: 'user', label: 'Utilisateur' }
-                                    ]}
-                                    className={!hasPermission(user, 'User', 'manage') ? 'opacity-50 pointer-events-none' : ''}
-                                />
-                            )}
-                        />
-                    </div>
-                    {!hasPermission(user, 'User', 'manage') && (
-                        <p className="text-[10px] text-muted-foreground mt-1.5 ml-1">{t('settings.contactAdmin')}</p>
-                    )}
-                </div>
-
-                <Button type="submit" isLoading={savingProfile} className="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-brand-500/20 mt-4">
-                    {t('settings.saveProfile')}
-                </Button>
-            </form>
         </div>
     );
 };

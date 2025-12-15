@@ -273,6 +273,7 @@ export const translations = {
             noNews: 'Aucune actualité disponible.',
             metaTitle: 'Tableau de Bord - Sentinel GRC',
             metaDescription: 'Vue d\'ensemble de votre posture de sécurité, conformité ISO 27001 et risques critiques.',
+
             icsAudit: 'Audit',
             icsProject: 'Projet',
             icsAuditor: 'Auditeur',
@@ -840,6 +841,14 @@ export const translations = {
             icsProject: 'Project',
             icsAuditor: 'Auditor',
             icsManager: 'Manager',
+            stepOrg: 'Créer votre organisation',
+            stepTeam: 'Inviter votre équipe',
+            stepAsset: 'Inventorier vos actifs',
+            stepRisk: 'Analyser les risques',
+            stepControls: 'Sélectionner les mesures (SoA)',
+            stepPolicies: 'Rédiger les politiques',
+            stepAudit: 'Planifier un audit',
+
             reportFilename: 'executive-report.pdf'
         }
     }

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useStore } from '../../store';
-import { Server, Users, Star, RefreshCw, Trash2, Loader2, FileSpreadsheet } from '../ui/Icons';
+import { Building, Users, Star, RefreshCw, Trash2, Loader2, FileSpreadsheet } from '../ui/Icons';
+
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { organizationSchema, OrganizationFormData } from '../../schemas/settingsSchema';
 import { Button } from '../ui/button';
+import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { updateDoc, doc, collection, query, where, getDocs, writeBatch, getDoc } from 'firebase/firestore';
 import { db, functions } from '../../firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -198,7 +200,9 @@ export const OrganizationSettings: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8 animate-fade-in-up">
+        <div className="space-y-6 animate-fade-in-up">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">{t('settings.organization')}</h2>
+
             <ConfirmModal
                 isOpen={confirmTransferData.isOpen}
                 onClose={() => setConfirmTransferData({ ...confirmTransferData, isOpen: false })}
@@ -217,77 +221,76 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* Subscription */}
             {user?.organizationId && (
-                <div className="glass-panel rounded-[2rem] p-6 bg-card/40 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4 min-w-0">
-                        <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                            <FileSpreadsheet className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-bold text-foreground">{t('settings.subscription')} {currentOrg?.subscription?.planId === 'professional' ? 'Professional' : currentOrg?.subscription?.planId === 'enterprise' ? 'Enterprise' : 'Discovery'}</h4>
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-accent text-muted-foreground border-border'}`}>
-                                    {currentOrg?.subscription?.status === 'active' ? t('settings.active') : t('settings.free')}
-                                </span>
+                <div className="bg-linear-to-r from-indigo-900 via-indigo-800 to-indigo-900 rounded-2xl p-6 sm:p-8 shadow-xl text-white relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-32 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors"></div>
+
+                    <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                        <div className="flex items-center gap-5">
+                            <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20 shadow-inner">
+                                <FileSpreadsheet className="h-7 w-7 text-white" />
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-3">
+                                    <h4 className="text-xl font-bold">{currentOrg?.subscription?.planId === 'professional' ? 'Professional' : currentOrg?.subscription?.planId === 'enterprise' ? 'Enterprise' : 'Discovery'} Plan</h4>
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-white/10 text-white/70 border-white/20'}`}>
+                                        {currentOrg?.subscription?.status === 'active' ? t('settings.active') : t('settings.free')}
+                                    </span>
+                                </div>
                                 {currentOrg?.subscription?.currentPeriodEnd && (
-                                    <span className="text-xs text-muted-foreground">{t('settings.renewalDate').replace('{date}', new Date((currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds ? (currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds * 1000 : (currentOrg.subscription.currentPeriodEnd as string | number)).toLocaleDateString())}</span>
+                                    <p className="text-sm text-indigo-200 mt-1">
+                                        {t('settings.renewalDate').replace('{date}', new Date((currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds ? (currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds * 1000 : (currentOrg.subscription.currentPeriodEnd as string | number)).toLocaleDateString())}
+                                    </p>
                                 )}
                             </div>
                         </div>
+                        <Button
+                            onClick={handleManageSubscription}
+                            isLoading={subLoading}
+                            className="bg-white text-indigo-900 hover:bg-indigo-50 font-semibold border-none shadow-none"
+                        >
+                            {currentOrg?.subscription?.planId === 'discovery' ? t('settings.upgradeSub') : t('settings.manage')}
+                        </Button>
                     </div>
-                    <Button
-                        onClick={handleManageSubscription}
-                        isLoading={subLoading}
-                        variant="outline"
-                        className="bg-background text-foreground hover:bg-accent"
-                    >
-                        {currentOrg?.subscription?.planId === 'discovery' ? t('settings.upgradeSub') : t('settings.manage')}
-                    </Button>
                 </div>
             )}
 
             {/* Admin Details */}
             {hasPermission(user, 'Settings', 'manage') && (
-                <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm">
-                    <div className="p-6 border-b border-gray-100 dark:border-white/5 flex items-center gap-4 bg-slate-50/50 dark:bg-white/5">
-                        <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg">
-                            <Server className="h-5 w-5" />
-                        </div>
-                        <div>
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-brand-100 dark:bg-brand-900/30 rounded-lg text-brand-600 dark:text-brand-400">
+                                <Building className="w-5 h-5" />
+                            </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.admin')}</h3>
-                            <p className="text-xs text-slate-600 font-medium">{t('settings.orgAdmin')} {orgForm.watch('orgName')}</p>
                         </div>
                     </div>
 
-                    <div className="p-8 border-b border-gray-100 dark:border-white/5">
-                        <form onSubmit={orgForm.handleSubmit(handleUpdateOrg)} className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.orgName')}</label>
-                                    <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
-                                        {...orgForm.register('orgName')} />
-                                    {orgForm.formState.errors.orgName && <p className="text-red-500 text-xs mt-1">{orgForm.formState.errors.orgName.message}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.contactEmail')}</label>
-                                    <input type="email" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
-                                        {...orgForm.register('contactEmail')} />
-                                    {orgForm.formState.errors.contactEmail && <p className="text-red-500 text-xs mt-1">{orgForm.formState.errors.contactEmail.message}</p>}
-                                </div>
+                    <div className="p-6">
+                        <form onSubmit={orgForm.handleSubmit(handleUpdateOrg)} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FloatingLabelInput
+                                    label={t('settings.orgName')}
+                                    {...orgForm.register('orgName')}
+                                    error={orgForm.formState.errors.orgName?.message}
+                                />
+                                <FloatingLabelInput
+                                    label={t('settings.contactEmail')}
+                                    type="email"
+                                    {...orgForm.register('contactEmail')}
+                                    error={orgForm.formState.errors.contactEmail?.message}
+                                />
+                                <FloatingLabelInput
+                                    label={t('common.address')}
+                                    {...orgForm.register('address')}
+                                />
+                                <FloatingLabelInput
+                                    label={t('settings.vatNumber')}
+                                    {...orgForm.register('vatNumber')}
+                                />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('common.address')}</label>
-                                    <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
-                                        {...orgForm.register('address')} />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.vatNumber')}</label>
-                                    <input type="text" className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white"
-                                        {...orgForm.register('vatNumber')} />
-                                </div>
-                            </div>
-                            <div className="flex justify-end">
-                                <Button type="submit" isLoading={savingOrg} className="px-6 py-3 bg-brand-600 text-white font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg">
+                            <div className="flex justify-end pt-2">
+                                <Button type="submit" isLoading={savingOrg} className="min-w-[140px]">
                                     {t('settings.saveChanges')}
                                 </Button>
                             </div>
@@ -298,64 +301,71 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* User Management */}
             {user && hasPermission(user, 'User', 'manage') && (
-                <div className="glass-panel rounded-[2.5rem] p-8 border border-white/50 dark:border-white/5 shadow-sm">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg">
-                            <Users className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.users')}</h3>
-                            <p className="text-xs text-slate-600 font-medium">{t('settings.accessManagement')} ({usersList.length} membres)</p>
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
+                                <Users className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.users')}</h3>
+                                <p className="text-xs text-slate-500">{usersList.length} members</p>
+                            </div>
                         </div>
                     </div>
-                    <div className="space-y-4">
+
+                    <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
                         {usersList.map(u => (
-                            <div key={u.uid} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 card-hover transition-all">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 font-bold">
-                                        {u.photoURL ? <img src={u.photoURL} className="w-full h-full rounded-full object-cover" /> : u.displayName?.charAt(0)}
+                            <div key={u.uid} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex-shrink-0 flex items-center justify-center text-slate-500 font-bold border border-slate-200 dark:border-slate-600">
+                                        {u.photoURL ? <img src={u.photoURL} className="w-full h-full rounded-full object-cover" /> : (u.displayName?.charAt(0) || 'U')}
                                     </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <p className="font-medium text-slate-900 dark:text-white">
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <p className="font-semibold text-slate-900 dark:text-white truncate">
                                                 {u.displayName}
                                             </p>
                                             {currentOrg?.ownerId === u.uid && (
-                                                <span className="px-2 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full flex items-center gap-1">
+                                                <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full flex items-center gap-1">
                                                     <Star size={10} />
                                                     {t('settings.owner')}
                                                 </span>
                                             )}
                                             {u.uid === user?.uid && (
-                                                <span className="text-xs text-slate-600 dark:text-slate-400">{t('settings.you')}</span>
+                                                <span className="px-2 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 rounded-full">
+                                                    {t('settings.you')}
+                                                </span>
                                             )}
                                         </div>
-                                        <p className="text-xs text-slate-600">{u.email}</p>
+                                        <p className="text-xs text-slate-500 truncate">{u.email}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3">
+
+                                <div className="flex items-center gap-3 self-end sm:self-auto">
                                     <select
                                         value={u.role}
                                         onChange={(e) => handleUpdateUserRole(u.uid, e.target.value as UserProfile['role'])}
                                         disabled={u.uid === user.uid || currentOrg?.ownerId === u.uid || updatingUserIds.has(u.uid)}
-                                        className={`text-xs font-bold bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500 ${updatingUserIds.has(u.uid) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500/20 cursor-pointer ${updatingUserIds.has(u.uid) ? 'opacity-50 cursor-wait' : ''}`}
                                     >
                                         <option value="admin">Admin</option>
                                         <option value="rssi">RSSI</option>
-                                        <option value="auditor">Auditeur</option>
-                                        <option value="project_manager">Chef de Projet</option>
-                                        <option value="direction">Direction</option>
-                                        <option value="user">Utilisateur</option>
+                                        <option value="auditor">Auditor</option>
+                                        <option value="project_manager">Manager</option>
+                                        <option value="direction">Director</option>
+                                        <option value="user">User</option>
                                     </select>
-                                    <div className="flex items-center gap-2">
+
+                                    <div className="flex items-center border-l border-slate-200 dark:border-slate-700 pl-3 gap-1">
                                         {/* Transfer Ownership Button (Only for Owner) */}
                                         {currentOrg?.ownerId === user?.uid && u.uid !== user?.uid && (
                                             <button
                                                 onClick={() => initiateTransfer(u.uid)}
-                                                className="p-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
+                                                className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors"
                                                 title={t('settings.transferOwnership')}
                                             >
-                                                <RefreshCw size={18} />
+                                                <RefreshCw size={16} />
                                             </button>
                                         )}
 
@@ -364,10 +374,10 @@ export const OrganizationSettings: React.FC = () => {
                                             <button
                                                 onClick={() => initiateRemoveUser(u.uid)}
                                                 disabled={updatingUserIds.has(u.uid)}
-                                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
+                                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
                                                 title={t('settings.removeMember')}
                                             >
-                                                {updatingUserIds.has(u.uid) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 size={18} />}
+                                                {updatingUserIds.has(u.uid) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 size={16} />}
                                             </button>
                                         )}
                                     </div>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store';
-import { History, Trash2, Download } from '../ui/Icons';
+import { History, Trash2, Download, AlertTriangle } from '../ui/Icons';
 import { Button } from '../ui/button';
-import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
 import { hasPermission } from '../../utils/permissions';
@@ -11,7 +11,7 @@ import { fr } from 'date-fns/locale';
 import { SystemLog } from '../../types';
 
 export const SystemSettings: React.FC = () => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const [auditLogs, setAuditLogs] = useState<SystemLog[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
 
@@ -40,11 +40,25 @@ export const SystemSettings: React.FC = () => {
 
         fetchLogs();
     }, [user]);
+
+    const formatDate = (timestamp: string | Timestamp | undefined | null) => {
+        if (!timestamp) return '-';
+        let date: Date;
+        if (typeof timestamp === 'object' && 'seconds' in timestamp) {
+            date = new Date(timestamp.seconds * 1000);
+        } else if (typeof timestamp === 'string') {
+            date = new Date(timestamp);
+        } else {
+            return '-';
+        }
+        return format(date, 'dd/MM/yyyy HH:mm', { locale: fr });
+    };
+
     const handleExportLogs = () => {
         const csvContent = "data:text/csv;charset=utf-8,"
             + "Date,Action,Details\n"
             + auditLogs.map(log => {
-                const date = log.timestamp ? format(new Date((log.timestamp as any).seconds * 1000), 'dd/MM/yyyy HH:mm', { locale: fr }) : '-';
+                const date = formatDate(log.timestamp as unknown as Timestamp);
                 return `${date},${log.action},"${typeof log.details === 'string' ? log.details : JSON.stringify(log.details).replace(/"/g, '""')}"`;
             }).join("\n");
         const encodedUri = encodeURI(csvContent);
@@ -62,28 +76,36 @@ export const SystemSettings: React.FC = () => {
 
     return (
         <div className="space-y-8 animate-fade-in-up">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">{t('settings.system')}</h2>
+
             {hasPermission(user, 'Settings', 'read') && (
-                <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm">
-                    <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
-                            <History className="h-5 w-5 mr-3 text-slate-500" />
-                            Historique des activités
-                        </h3>
-                        <Button variant="ghost" size="sm" onClick={handleExportLogs} className="text-xs">
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col">
+                    <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400">
+                                <History className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Historique des activités</h3>
+                                <p className="text-xs text-slate-500">Activités récentes de l'organisation</p>
+                            </div>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={handleExportLogs} className="bg-white dark:bg-slate-900">
                             <Download className="h-4 w-4 mr-2" />
                             Export CSV
                         </Button>
                     </div>
-                    <div className="p-0 overflow-x-auto">
+
+                    <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs">
-                            <thead className="bg-slate-50 dark:bg-white/5 text-slate-500 border-b border-gray-100 dark:border-white/5">
+                            <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
                                 <tr>
-                                    <th className="px-6 py-3 font-semibold uppercase tracking-wider">Date</th>
-                                    <th className="px-6 py-3 font-semibold uppercase tracking-wider">Action</th>
-                                    <th className="px-6 py-3 font-semibold uppercase tracking-wider">Détails</th>
+                                    <th className="px-6 py-4">Date</th>
+                                    <th className="px-6 py-4">Action</th>
+                                    <th className="px-6 py-4">Détails</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
                                 {loadingLogs ? (
                                     <tr>
                                         <td colSpan={3} className="px-6 py-8 text-center text-slate-400">
@@ -98,14 +120,14 @@ export const SystemSettings: React.FC = () => {
                                     </tr>
                                 ) : (
                                     auditLogs.map(log => (
-                                        <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                        <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                                             <td className="px-6 py-4 text-slate-500 font-medium whitespace-nowrap">
-                                                {log.timestamp ? format(new Date((log.timestamp as any).seconds * 1000), 'dd MMM HH:mm', { locale: fr }) : '-'}
+                                                {formatDate(log.timestamp as unknown as Timestamp)}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className="font-bold text-slate-700 dark:text-slate-200">{log.action}</span>
+                                                <span className="font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">{log.action}</span>
                                             </td>
-                                            <td className="px-6 py-4 text-slate-500 truncate max-w-xs" title={JSON.stringify(log.details)}>
+                                            <td className="px-6 py-4 text-slate-500 truncate max-w-xs font-mono" title={JSON.stringify(log.details)}>
                                                 {typeof log.details === 'string' ? log.details : JSON.stringify(log.details)}
                                             </td>
                                         </tr>
@@ -118,19 +140,24 @@ export const SystemSettings: React.FC = () => {
             )}
 
             {/* Danger Zone */}
-            <div className="glass-panel rounded-[2.5rem] p-8 border border-red-200 dark:border-red-900/30 bg-red-50/30 dark:bg-red-900/5">
-                <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-2">Zone Danger</h3>
-                <p className="text-sm text-red-600/70 dark:text-red-400/70 mb-6">
-                    La suppression de votre compte est irréversible. Toutes vos données personnelles seront effacées.
-                </p>
-                <div className="flex justify-end">
-                    <button
-                        onClick={handleDeleteAccount}
-                        className="px-4 py-2 bg-white dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 font-bold rounded-xl hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors flex items-center text-sm"
-                    >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Supprimer mon compte
-                    </button>
+            <div className="bg-red-50 dark:bg-red-900/10 rounded-3xl p-8 border border-red-100 dark:border-red-900/20">
+                <div className="flex items-start gap-4">
+                    <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl text-red-600 dark:text-red-400 shrink-0">
+                        <AlertTriangle className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-red-900 dark:text-red-400 mb-2">Zone Danger</h3>
+                        <p className="text-sm text-red-700/80 dark:text-red-300/70 mb-6 leading-relaxed">
+                            La suppression de votre compte est une action irréversible. Toutes vos données personnelles, ainsi que l'accès à l'organisation, seront définitivement effacés.
+                        </p>
+                        <Button
+                            onClick={handleDeleteAccount}
+                            className="bg-red-600 hover:bg-red-700 text-white border-none shadow-lg shadow-red-500/20"
+                        >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Supprimer mon compte
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>

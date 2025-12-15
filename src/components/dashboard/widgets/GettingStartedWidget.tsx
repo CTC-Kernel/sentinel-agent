@@ -3,9 +3,9 @@ import { CheckCircle2, Circle, ArrowRight, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../../store';
 
- let lastStatusFetchAt = 0;
- let lastStatusOrgId: string | null = null;
- let lastStatusValue: { hasTeam: boolean; hasAssets: boolean; hasRisks: boolean } | null = null;
+let lastStatusFetchAt = 0;
+let lastStatusOrgId: string | null = null;
+let lastStatusValue: { hasTeam: boolean; hasAssets: boolean; hasRisks: boolean; hasControls: boolean; hasPolicies: boolean; hasAudits: boolean } | null = null;
 
 interface Step {
     id: string;
@@ -16,14 +16,17 @@ interface Step {
 
 export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const navigate = useNavigate();
-    const { user } = useStore();
+    const { user, t } = useStore();
 
     const inFlightKeyRef = React.useRef(false);
 
     const [status, setStatus] = React.useState({
         hasTeam: false,
         hasAssets: false,
-        hasRisks: false
+        hasRisks: false,
+        hasControls: false,
+        hasPolicies: false,
+        hasAudits: false
     });
 
     React.useEffect(() => {
@@ -57,21 +60,34 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                 const usersColl = collection(db, 'users');
                 const assetsColl = collection(db, 'assets');
                 const risksColl = collection(db, 'risks');
+                const controlsColl = collection(db, 'controls');
+                const docsColl = collection(db, 'documents');
+                const auditsColl = collection(db, 'audits');
 
                 const qUsers = query(usersColl, where('organizationId', '==', user.organizationId));
                 const qAssets = query(assetsColl, where('organizationId', '==', user.organizationId));
                 const qRisks = query(risksColl, where('organizationId', '==', user.organizationId));
+                // Controls that are implemented or in progress (not "Non commencé")
+                const qControls = query(controlsColl, where('organizationId', '==', user.organizationId), where('status', 'in', ['Implémenté', 'Partiel', 'En cours']));
+                const qDocs = query(docsColl, where('organizationId', '==', user.organizationId));
+                const qAudits = query(auditsColl, where('organizationId', '==', user.organizationId));
 
-                const [usersSnap, assetsSnap, risksSnap] = await Promise.all([
+                const [usersSnap, assetsSnap, risksSnap, controlsSnap, docsSnap, auditsSnap] = await Promise.all([
                     getCountFromServer(qUsers),
                     getCountFromServer(qAssets),
-                    getCountFromServer(qRisks)
+                    getCountFromServer(qRisks),
+                    getCountFromServer(qControls),
+                    getCountFromServer(qDocs),
+                    getCountFromServer(qAudits)
                 ]);
 
                 const next = {
                     hasTeam: usersSnap.data().count > 1,
                     hasAssets: assetsSnap.data().count > 0,
-                    hasRisks: risksSnap.data().count > 0
+                    hasRisks: risksSnap.data().count > 0,
+                    hasControls: controlsSnap.data().count > 0,
+                    hasPolicies: docsSnap.data().count > 0,
+                    hasAudits: auditsSnap.data().count > 0
                 };
 
                 lastStatusValue = next;
@@ -101,27 +117,45 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
     const steps: Step[] = [
         {
             id: 'org',
-            label: 'Créer votre organisation',
+            label: t('dashboard.stepOrg'),
             path: '/settings',
             isCompleted: !!user?.organizationId
         },
         {
             id: 'team',
-            label: 'Inviter votre équipe',
-            path: '/team',
+            label: t('dashboard.stepTeam'),
+            path: '/settings', // Assuming team invite is under settings/users
             isCompleted: status.hasTeam
         },
         {
             id: 'asset',
-            label: 'Ajouter votre premier actif',
+            label: t('dashboard.stepAsset'),
             path: '/assets',
             isCompleted: status.hasAssets
         },
         {
             id: 'risk',
-            label: 'Identifier un risque',
+            label: t('dashboard.stepRisk'),
             path: '/risks',
             isCompleted: status.hasRisks
+        },
+        {
+            id: 'controls',
+            label: t('dashboard.stepControls'),
+            path: '/compliance',
+            isCompleted: status.hasControls
+        },
+        {
+            id: 'policies',
+            label: t('dashboard.stepPolicies'),
+            path: '/documents',
+            isCompleted: status.hasPolicies
+        },
+        {
+            id: 'audit',
+            label: t('dashboard.stepAudit'),
+            path: '/audits',
+            isCompleted: status.hasAudits
         }
     ];
 
@@ -135,6 +169,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
             <button
                 onClick={onClose}
                 className="absolute top-4 right-4 p-1 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Close"
             >
                 <X className="h-5 w-5" />
             </button>
@@ -145,7 +180,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                         Bienvenue sur Sentinel GRC ! 🚀
                     </h3>
                     <p className="text-muted-foreground mb-6 max-w-lg">
-                        Suivez ces étapes pour configurer votre espace et sécuriser votre entreprise.
+                        Suivez ces étapes pour configurer votre espace et garantir votre conformité.
                     </p>
 
                     <div className="space-y-3">
@@ -205,7 +240,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                             </div>
                         </div>
                         <p className="text-sm font-medium text-muted-foreground">
-                            Configuration
+                            Progression
                         </p>
                     </div>
                 </div>

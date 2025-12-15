@@ -84,7 +84,9 @@ class ErrorLoggerService {
    */
   info(message: string, context?: string, additionalContext?: ErrorContext): void {
     if (this.isDevelopment) {
-      console.log(`ℹ️ INFO [${context || 'General'}]:`, message, additionalContext || '');
+      if (import.meta.env.DEV) {
+        console.log(`ℹ️ INFO [${context || 'General'}]:`, message, additionalContext || '');
+      }
     }
 
     this.logToExternal('info', {
