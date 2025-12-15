@@ -666,27 +666,32 @@ const VoxelMesh: React.FC<{
 
     useFrame(() => {
       if (meshRef.current) {
+        // Constant rotation: consider disabling if performance is critical or too many nodes
         meshRef.current.rotation.y += 0.005;
 
-        // Smooth interpolation for scale
-        currentScale.current += (targetScale - currentScale.current) * 0.1;
-        meshRef.current.scale.setScalar(currentScale.current);
+        // Optimization: Only update scale if significant change
+        if (Math.abs(targetScale - currentScale.current) > 0.001) {
+          currentScale.current += (targetScale - currentScale.current) * 0.1;
+          meshRef.current.scale.setScalar(currentScale.current);
+        }
 
-        // Smooth interpolation for glow
-        currentGlow.current += (targetGlow - currentGlow.current) * 0.1;
+        // Optimization: Only update glow if significant change
+        if (Math.abs(targetGlow - currentGlow.current) > 0.001) {
+          currentGlow.current += (targetGlow - currentGlow.current) * 0.1;
 
-        // Update material emissive intensity directly if possible to avoid re-render
-        meshRef.current.traverse((child) => {
-          if ((child as Mesh).isMesh) {
-            const mesh = child as Mesh;
-            const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-            materials.forEach((mat: Material) => {
-              if (mat && 'emissiveIntensity' in mat) {
-                (mat as MeshPhysicalMaterial).emissiveIntensity = 0.35 + currentGlow.current * 0.4;
-              }
-            });
-          }
-        });
+          // Update material emissive intensity directly
+          meshRef.current.traverse((child) => {
+            if ((child as Mesh).isMesh) {
+              const mesh = child as Mesh;
+              const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+              materials.forEach((mat: Material) => {
+                if (mat && 'emissiveIntensity' in mat) {
+                  (mat as MeshPhysicalMaterial).emissiveIntensity = 0.35 + currentGlow.current * 0.4;
+                }
+              });
+            }
+          });
+        }
       }
     });
 
@@ -973,22 +978,23 @@ const VoxelMesh: React.FC<{
           </mesh>
         )}
 
-        {/* Label */}
-        {labelVisible && (
-          <Text
-            position={[0, node.size + 0.8, 0]}
-            fontSize={0.55}
-            color="white"
-            anchorX="center"
-            anchorY="middle"
-            outlineWidth={0.08}
-            outlineColor="black"
-            maxWidth={3.5}
-            lineHeight={1.1}
-          >
-            {safeLabel}
-          </Text>
-        )}
+        {/* Label */
+          labelVisible && (
+            <Text
+              position={[0, node.size + 0.8, 0]}
+              fontSize={0.55}
+              color="white"
+              anchorX="center"
+              anchorY="middle"
+              outlineWidth={0.08}
+              outlineColor="black"
+              maxWidth={3.5}
+              lineHeight={1.1}
+              font="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
+            >
+              {safeLabel}
+            </Text>
+          )}
 
         {isSelected && overlayProps && (
           <group>
@@ -1054,45 +1060,47 @@ const EmptyState3DContent: React.FC = () => {
 
   return (
     <>
-    <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
-      <Billboard
-        position={[0, 1.2, 0]}
-        follow
-        lockX={false}
-        lockY={false}
-        lockZ={false}
-      >
-        <Text
-          fontSize={1.2}
-          color="white"
-          anchorX="center"
-          anchorY="middle"
-          maxWidth={8}
-          textAlign="center"
+      <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
+        <Billboard
+          position={[0, 1.2, 0]}
+          follow
+          lockX={false}
+          lockY={false}
+          lockZ={false}
         >
-          Système Sécurisé
-        </Text>
-        <Text
-          fontSize={0.5}
-          color={muted}
-          anchorX="center"
-          anchorY="top"
-          position={[0, -0.9, 0]}
-          maxWidth={6}
-          textAlign="center"
-        >
-          Commencez par ajouter des actifs ou des risques pour visualiser votre écosystème 3D.
-        </Text>
-      </Billboard>
-    </Float>
-    <mesh position={[0, -2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <ringGeometry args={[3, 3.05, 64]} />
-      <meshBasicMaterial color={primary} transparent opacity={0.2} blending={AdditiveBlending} />
-    </mesh>
-    <mesh position={[0, -2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <ringGeometry args={[4.5, 4.52, 64]} />
-      <meshBasicMaterial color={ring} transparent opacity={0.1} blending={AdditiveBlending} />
-    </mesh>
+          <Text
+            fontSize={1.2}
+            color="white"
+            anchorX="center"
+            anchorY="middle"
+            maxWidth={8}
+            textAlign="center"
+            font="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
+          >
+            Système Sécurisé
+          </Text>
+          <Text
+            fontSize={0.5}
+            color={muted}
+            anchorX="center"
+            anchorY="top"
+            position={[0, -0.9, 0]}
+            maxWidth={6}
+            textAlign="center"
+            font="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
+          >
+            Commencez par ajouter des actifs ou des risques pour visualiser votre écosystème 3D.
+          </Text>
+        </Billboard>
+      </Float>
+      <mesh position={[0, -2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[3, 3.05, 64]} />
+        <meshBasicMaterial color={primary} transparent opacity={0.2} blending={AdditiveBlending} />
+      </mesh>
+      <mesh position={[0, -2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[4.5, 4.52, 64]} />
+        <meshBasicMaterial color={ring} transparent opacity={0.1} blending={AdditiveBlending} />
+      </mesh>
     </>
   );
 };
@@ -1594,9 +1602,10 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
               <pointLight position={[-14, -12, -8]} intensity={0.7} color="#4ecdc4" />
 
               <OrbitControls
-                enablePan
-                enableZoom
-                enableRotate
+                ref={controlsRef}
+                makeDefault
+                enablePan={true}
+                enableZoom={true}
                 enableDamping
                 autoRotate={autoRotate}
                 autoRotateSpeed={0.35}
@@ -1604,7 +1613,6 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
                 maxDistance={55}
                 zoomSpeed={0.6}
                 dampingFactor={0.05}
-                ref={controlsRef}
               />
 
               {voxelNodes.length > 0 && (

@@ -100,11 +100,21 @@ export const IntegrationSettings: React.FC = () => {
                         <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                             {t('settings.aiDescription')}
                         </p>
-                        <div>
+                        <form onSubmit={handleSubmit(handleUpdateKeys)}>
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('settings.geminiApiKey')}</label>
                             <div className="relative">
+                                {/* Accessibility: hidden username field for password managers */}
+                                <input
+                                    type="text"
+                                    name="username"
+                                    autoComplete="username"
+                                    className="hidden"
+                                    aria-hidden="true"
+                                    readOnly
+                                />
                                 <input
                                     type="password"
+                                    autoComplete="new-password"
                                     className="w-full px-4 py-3 bg-slate-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-sm dark:text-white pr-10"
                                     placeholder="AIzaSy..."
                                     {...register('geminiApiKey')}
@@ -116,16 +126,15 @@ export const IntegrationSettings: React.FC = () => {
                             <p className="text-[10px] text-slate-500 mt-1.5 ml-1">
                                 {t('settings.geminiPlaceholder')}
                             </p>
-                        </div>
+                            <button
+                                type="submit"
+                                disabled={savingKeys}
+                                className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-slate-900/10 dark:shadow-white/10 flex items-center justify-center mt-4"
+                            >
+                                {savingKeys ? '...' : t('settings.saveProfile')}
+                            </button>
+                        </form>
                     </div>
-                    <button
-                        type="button"
-                        onClick={handleSubmit(handleUpdateKeys)}
-                        disabled={savingKeys}
-                        className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-slate-900/10 dark:shadow-white/10 flex items-center justify-center mt-4"
-                    >
-                        {savingKeys ? '...' : t('settings.saveProfile')}
-                    </button>
                 </div>
             </div>
 

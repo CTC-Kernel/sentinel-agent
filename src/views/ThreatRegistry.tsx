@@ -35,6 +35,9 @@ export const ThreatRegistry: React.FC = () => {
             const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ThreatTemplate));
             setThreats(items);
             setLoading(false);
+        }, (err) => {
+            console.error("ThreatRegistry subscription error:", err);
+            setLoading(false);
         });
 
         return () => unsubscribe();

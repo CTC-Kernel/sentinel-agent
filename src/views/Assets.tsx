@@ -211,7 +211,7 @@ export const Assets: React.FC = () => {
             } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Assets.openInspector', 'FETCH_FAILED'); }
 
             const maintQ = query(collection(db, 'assets', asset.id, 'maintenance'), orderBy('date', 'desc'));
-            const unsubMaint = onSnapshot(maintQ, (snap) => { setMaintenanceRecords(snap.docs.map(d => ({ id: d.id, ...d.data() } as MaintenanceRecord))); });
+            const unsubMaint = onSnapshot(maintQ, (snap) => { setMaintenanceRecords(snap.docs.map(d => ({ id: d.id, ...d.data() } as MaintenanceRecord))); }, (err) => ErrorLogger.handleErrorWithToast(err, 'Assets.inspector.maintenance'));
 
             const risksQ = query(collection(db, 'risks'), where('organizationId', '==', user?.organizationId), where('assetId', '==', asset.id));
             getDocs(risksQ).then(snap => { setLinkedRisks(snap.docs.map(d => ({ id: d.id, ...d.data() } as Risk))); });

@@ -189,7 +189,7 @@ export const Documents: React.FC = () => {
         );
         const unsubscribeLogs = onSnapshot(qLogs, (snapshot) => {
             setDocHistory(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog)));
-        });
+        }, (err) => ErrorLogger.handleErrorWithToast(err, 'Documents.inspector.logs'));
 
         // Fetch Versions
         const qVersions = query(
@@ -199,7 +199,7 @@ export const Documents: React.FC = () => {
         );
         const unsubscribeVersions = onSnapshot(qVersions, (snapshot) => {
             setVersions(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as DocumentVersion)));
-        });
+        }, (err) => ErrorLogger.handleErrorWithToast(err, 'Documents.inspector.versions'));
 
         return () => {
             unsubscribeLogs();

@@ -169,11 +169,14 @@ export const useFirestoreCollection = <T = DocumentData>(
                 const code = (errorObj as { code?: string }).code;
                 const isPermissionError = code === 'permission-denied' || errorObj.message.includes('permission-denied');
 
-                if (isPermissionError && !auth.currentUser) {
+                if (isPermissionError) {
                     // Gracefully handle logout race condition
-                    setRealtimeFailed(true);
-                    setRealtimeLoading(false);
-                    return;
+                    // If auth.currentUser is null, OR we are in a transition state, suppress.
+                    if (!auth.currentUser) {
+                        setRealtimeLoading(false);
+                        return;
+                    }
+                    // Optional: could add a check for 'isBlocked' from store if available, but hooks are decoupled.
                 }
 
                 setRealtimeError(errorObj);
@@ -329,9 +332,11 @@ export const useFirestoreDocument = <T extends { id: string }>(
                     const code = (errorObj as { code?: string }).code;
                     const isPermissionError = code === 'permission-denied' || errorObj.message.includes('permission-denied');
 
-                    if (isPermissionError && !auth.currentUser) {
-                        setRealtimeLoading(false);
-                        return;
+                    if (isPermissionError) {
+                        if (!auth.currentUser) {
+                            setRealtimeLoading(false);
+                            return;
+                        }
                     }
 
                     setRealtimeError(errorObj);

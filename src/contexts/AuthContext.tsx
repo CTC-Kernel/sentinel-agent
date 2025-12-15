@@ -236,6 +236,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 } else {
                                     setOrganization(null);
                                 }
+                            }, (err) => {
+                                ErrorLogger.warn('Failed to subscribe to organization updates', 'AuthContext.onSnapshot.org', { metadata: { error: err } });
+                                setOrganization(null); // Fallback
                             });
                         } else {
                             setOrganization(null);

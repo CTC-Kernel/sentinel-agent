@@ -160,6 +160,8 @@ export const GeminiAssistant: React.FC = () => {
                     updatedAt: serverTimestamp()
                 }, { merge: true });
             }
+        }, (error) => {
+            console.warn("GeminiAssistant: Local conversation sync error (likely permission or offline)", error);
         });
 
         return () => unsubscribe();
