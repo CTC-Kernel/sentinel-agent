@@ -91,12 +91,14 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
 
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                        <label htmlFor="contact-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                             Nom complet
                                         </label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                             <input
+                                                id="contact-name"
+                                                name="name"
                                                 type="text"
                                                 required
                                                 value={formData.name}
@@ -108,12 +110,14 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                        <label htmlFor="contact-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                             Email
                                         </label>
                                         <div className="relative">
                                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                             <input
+                                                id="contact-email"
+                                                name="email"
                                                 type="email"
                                                 required
                                                 value={formData.email}
@@ -125,12 +129,14 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                        <label htmlFor="contact-subject" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                             Sujet
                                         </label>
                                         <div className="relative">
                                             <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                             <input
+                                                id="contact-subject"
+                                                name="subject"
                                                 type="text"
                                                 required
                                                 value={formData.subject}
@@ -142,10 +148,12 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                        <label htmlFor="contact-message" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                             Message
                                         </label>
                                         <textarea
+                                            id="contact-message"
+                                            name="message"
                                             required
                                             rows={4}
                                             value={formData.message}
