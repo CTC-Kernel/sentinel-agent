@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
     collection,
     query,
@@ -45,8 +45,26 @@ export const useFirestoreCollection = <T = DocumentData>(
     const [realtimeFailed, setRealtimeFailed] = useState(false);
 
     const queryClient = useQueryClient();
-    const constraintsKey = useMemo(() => JSON.stringify(constraints), [constraints]);
-    const constraintsByKey = useMemo(() => constraints, [constraints]);
+    const constraintsKey = useMemo(() => {
+        // JSON.stringify is unreliable for Firestore QueryConstraint objects.
+        // Use their string representation (and type if available) to build a stable key.
+        return constraints
+            .map((c) => {
+                const type = (c as unknown as { type?: string })?.type;
+                const repr = String(c);
+                return type ? `${type}:${repr}` : repr;
+            })
+            .join('|');
+    }, [constraints]);
+
+    // Keep a stable constraints array reference as long as constraintsKey doesn't change.
+    const constraintsRef = useRef<{ key: string; value: QueryConstraint[] }>({ key: '', value: [] });
+    useEffect(() => {
+        if (constraintsRef.current.key !== constraintsKey) {
+            constraintsRef.current = { key: constraintsKey, value: constraints };
+        }
+    }, [constraintsKey, constraints]);
+
     const { realtime, logError, enabled } = options;
     const isEnabled = enabled !== false;
     const shouldUseRealtime = realtime && !realtimeFailed;
@@ -95,7 +113,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             setRealtimeLoading(false);
         }, 12000);
 
-        const q = query(collection(db, collectionName), ...constraintsByKey);
+        const q = query(collection(db, collectionName), ...constraintsRef.current.value);
         const unsubscribe = onSnapshot(q,
             (snapshot) => {
                 const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
@@ -130,7 +148,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (timeoutId !== null) window.clearTimeout(timeoutId);
             unsubscribe();
         };
-    }, [collectionName, constraintsKey, constraintsByKey, shouldUseRealtime, isEnabled, logError]);
+    }, [collectionName, constraintsKey, shouldUseRealtime, isEnabled, logError]);
 
     const add = useCallback(async (newData: WithFieldValue<DocumentData>) => {
         try {
