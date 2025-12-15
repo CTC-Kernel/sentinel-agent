@@ -3,6 +3,8 @@ import { MyWorkspaceWidget } from '../widgets/MyWorkspaceWidget';
 import { ComplianceEvolutionWidget } from '../widgets/ComplianceEvolutionWidget';
 import { RecentActivityWidget } from '../widgets/RecentActivityWidget';
 import { HealthCheckWidget } from '../widgets/HealthCheckWidget';
+import { motion } from 'framer-motion';
+import { slideUpVariants, staggerContainerVariants } from '../../ui/animationVariants';
 
 type ActionItemList = React.ComponentProps<typeof MyWorkspaceWidget>['myActionItems'];
 type HistoryData = React.ComponentProps<typeof ComplianceEvolutionWidget>['historyData'];
@@ -24,19 +26,28 @@ export const AuditorDashboardView: React.FC<AuditorDashboardViewProps> = ({
     loading, navigate, t, theme, myActionItems, historyData, recentActivity, healthIssues
 }) => {
     return (
-        <>
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="animate"
+            className="space-y-6"
+        >
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
+                <motion.div variants={slideUpVariants} className="lg:col-span-2">
                     <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
-                </div>
-                <div className="lg:col-span-1">
+                </motion.div>
+                <motion.div variants={slideUpVariants} className="lg:col-span-1">
                     <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
-                </div>
+                </motion.div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
-                <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
+                <motion.div variants={slideUpVariants}>
+                    <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
+                </motion.div>
+                <motion.div variants={slideUpVariants}>
+                    <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
+                </motion.div>
             </div>
-        </>
+        </motion.div>
     );
 };
