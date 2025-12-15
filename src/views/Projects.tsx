@@ -576,14 +576,17 @@ export const Projects: React.FC = () => {
             const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
             const canWhiteLabel = limits.features.whiteLabelReports;
 
+            const reportOptions = {
+                title: 'Rapport de Projet',
+                subtitle: `Projet: ${selectedProject.name} | ${new Date().toLocaleDateString()}`,
+                filename: `Projet_${selectedProject.name}_Report.pdf`,
+                organizationName: canWhiteLabel ? organization?.name : undefined,
+                organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
+                footerText: 'Sentinel GRC - Rapport Projet'
+            };
+
             PdfService.generateCustomReport(
-                {
-                    title: 'Rapport de Projet',
-                    subtitle: `Projet: ${selectedProject.name} | ${new Date().toLocaleDateString()}`,
-                    filename: `Projet_${selectedProject.name}_Report.pdf`,
-                    organizationName: canWhiteLabel ? organization?.name : undefined,
-                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
-                },
+                reportOptions,
                 (doc, startY) => {
                     let y = startY;
 
@@ -607,7 +610,34 @@ export const Projects: React.FC = () => {
                         columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
                     });
 
-                    y = doc.lastAutoTable.finalY + 15;
+                    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+
+                    // Task Stats Chart
+                    if (selectedProject.tasks.length > 0) {
+                        const pending = selectedProject.tasks.filter(t => t.status === 'A faire').length;
+                        const inProgress = selectedProject.tasks.filter(t => t.status === 'En cours').length;
+                        const done = selectedProject.tasks.filter(t => t.status === 'Terminé').length;
+
+                        doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
+                        doc.text("Avancement des Tâches", 14, y);
+
+                        // Draw Chart (Right aligned)
+                        PdfService.drawDonutChart(
+                            doc,
+                            120, // x position (right side)
+                            y - 10, // y position
+                            20, // radius
+                            [
+                                { label: 'A faire', value: pending, color: '#94a3b8' }, // Slate 400
+                                { label: 'En cours', value: inProgress, color: '#3b82f6' }, // Blue 500
+                                { label: 'Terminé', value: done, color: '#10b981' } // Emerald 500
+                            ],
+                            `${Math.round((done / selectedProject.tasks.length) * 100)}%`
+                        );
+
+                        y += 40; // Space for chart
+                    }
+
 
                     // Description
                     doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
@@ -615,9 +645,20 @@ export const Projects: React.FC = () => {
                     y += 6;
                     doc.setFontSize(10); doc.setTextColor(80); doc.setFont('helvetica', 'normal');
 
-                    const splitDesc = doc.splitTextToSize(selectedProject.description, 180);
-                    doc.text(splitDesc, 14, y);
-                    y += (splitDesc.length * 5) + 15;
+                    // Use Safe Text with Page Breaks
+                    y = PdfService.addSafeText(
+                        doc,
+                        selectedProject.description || "Aucune description.",
+                        14,
+                        y,
+                        180,
+                        5,
+                        doc.internal.pageSize.height,
+                        20,
+                        reportOptions
+                    );
+
+                    y += 10;
 
                     // Tasks
                     doc.setFontSize(12); doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');

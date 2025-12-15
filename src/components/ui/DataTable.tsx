@@ -169,19 +169,19 @@ export function DataTable<TData extends { id: string }, TValue>({
             </div>
 
             {/* Table */}
-            <div className="w-full overflow-x-auto rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900">
+            <div className="w-full overflow-x-auto rounded-[2rem] glass-panel bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
                 <table className="w-full">
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <tr key={headerGroup.id} className="border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50">
+                            <tr key={headerGroup.id} className="border-b border-white/20 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/50">
                                 {headerGroup.headers.map((header) => {
                                     return (
                                         <th
                                             key={header.id}
                                             onClick={header.column.getToggleSortingHandler()}
                                             className={cn(
-                                                "px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 whitespace-nowrap",
-                                                header.column.getCanSort() && "cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800",
+                                                "px-6 py-5 text-left text-xs font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap",
+                                                header.column.getCanSort() && "cursor-pointer hover:bg-white/40 dark:hover:bg-white/5 transition-colors",
                                                 header.id === 'select' && "w-[50px] px-4"
                                             )}
                                             style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
@@ -189,8 +189,8 @@ export function DataTable<TData extends { id: string }, TValue>({
                                             <div className="flex items-center gap-2">
                                                 {flexRender(header.column.columnDef.header, header.getContext())}
                                                 {{
-                                                    asc: <ChevronUp className="h-4 w-4" />,
-                                                    desc: <ChevronDown className="h-4 w-4" />,
+                                                    asc: <ChevronUp className="h-3 w-3" />,
+                                                    desc: <ChevronDown className="h-3 w-3" />,
                                                 }[header.column.getIsSorted() as string] ?? null}
                                             </div>
                                         </th>
@@ -199,7 +199,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                             </tr>
                         ))}
                     </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-white/10">
+                    <tbody className="divide-y divide-white/20 dark:divide-white/5">
                         {loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
                                 <tr key={i}>
@@ -220,13 +220,13 @@ export function DataTable<TData extends { id: string }, TValue>({
                                         onRowClick?.(row.original);
                                     }}
                                     className={cn(
-                                        "transition-colors",
-                                        onRowClick && "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50",
-                                        row.getIsSelected() && "bg-brand-50/50 dark:bg-brand-900/10"
+                                        "transition-all duration-200 border-l-2 border-l-transparent",
+                                        onRowClick && "cursor-pointer hover:bg-white/40 dark:hover:bg-white/5 hover:border-l-brand-500",
+                                        row.getIsSelected() && "bg-brand-50/50 dark:bg-brand-900/20 border-l-brand-500"
                                     )}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <td key={cell.id} className="px-6 py-4 text-sm text-slate-900 dark:text-white">
+                                        <td key={cell.id} className="px-6 py-4 text-sm text-foreground font-medium">
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </td>
                                     ))}
@@ -234,8 +234,11 @@ export function DataTable<TData extends { id: string }, TValue>({
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={tableColumns.length} className="text-center py-12 text-slate-600 dark:text-slate-400">
-                                    Aucune donnée à afficher
+                                <td colSpan={tableColumns.length} className="text-center py-16 text-muted-foreground">
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                        <Search className="h-8 w-8 opacity-20" />
+                                        <p>Aucune donnée à afficher</p>
+                                    </div>
                                 </td>
                             </tr>
                         )}

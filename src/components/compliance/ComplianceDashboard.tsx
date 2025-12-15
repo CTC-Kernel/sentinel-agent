@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Control } from '../../types';
-import { Clock, AlertTriangle, TrendingUp, ShieldAlert } from '../ui/Icons';
+import { Clock, AlertTriangle, TrendingUp, ShieldAlert, PieChart as PieChartIcon, BarChart3 as BarChartIcon, Target } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import { StatsService } from '../../services/statsService';
 import { useStore } from '../../store';
@@ -13,24 +13,20 @@ interface ComplianceDashboardProps {
 }
 
 export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ controls }) => {
-    const { user, theme } = useStore();
+    const { user } = useStore();
     const [trend, setTrend] = useState<number | undefined>(undefined);
 
     // Chart Theme Configuration
     const chartTheme = {
-        grid: theme === 'dark' ? 'hsl(var(--border) / 0.35)' : 'hsl(var(--border) / 0.6)',
-        text: 'hsl(var(--muted-foreground))',
-        tooltip: {
-            bg: 'hsl(var(--background))',
-            border: 'hsl(var(--border))',
-            text: 'hsl(var(--foreground))'
-        },
+        grid: 'hsl(var(--border) / 0.4)',
+        text: 'hsl(var(--muted-foreground) / 0.8)',
+        cursor: 'hsl(var(--muted-foreground) / 0.1)',
         colors: {
-            implemented: '#10b981', // Emerald 500 - Softer than green
-            partial: '#f59e0b',     // Amber 500 - Warmer than yellow
-            notStarted: '#f43f5e',  // Rose 500 - Less harsh than red
+            implemented: '#22c55e', // green-500
+            partial: '#f59e0b',     // amber-500
+            notStarted: '#ef4444',  // red-500
             notApplicable: 'hsl(var(--muted-foreground) / 0.55)',
-            primary: '#6366f1'      // Indigo 500 - More premium than blue
+            primary: '#3b82f6'      // blue-500
         }
     };
 
@@ -106,11 +102,14 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
         implemented: data.implemented
     }));
 
-    // Radar chart data for domains
-    const radarData = Object.entries(domainData).map(([domain, data]) => ({
-        domain: domain,
-        score: (data.implemented / data.total * 100)
-    }));
+    // Radar chart data for domains (Normalize to 0-100 scale properly and filter empty domains if needed)
+    const radarData = Object.entries(domainData)
+        .map(([domain, data]) => ({
+            domain: domain,
+            score: (data.implemented / data.total * 100)
+        }))
+        // Optional: you might want to slice if too many domains
+        .slice(0, 8);
 
     // Critical controls (high priority)
     const criticalControls = controls.filter(c =>
@@ -121,16 +120,30 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
     return (
         <div className="space-y-6">
+            {/* SVG Definitions for Gradients */}
+            <svg style={{ height: 0, width: 0, position: 'absolute' }}>
+                <defs>
+                    <linearGradient id="barGradientPrimary" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#2563eb" stopOpacity={0.8} />
+                    </linearGradient>
+                    <linearGradient id="barGradientSuccess" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#22c55e" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#16a34a" stopOpacity={0.8} />
+                    </linearGradient>
+                </defs>
+            </svg>
+
             {/* Summary Card */}
             {/* Compact Summary Card */}
-            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-lg flex flex-col xl:flex-row gap-8 relative overflow-hidden group">
+            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-lg flex flex-col xl:flex-row gap-8 relative overflow-hidden group hover:shadow-apple transition-all duration-500 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+                <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
 
                 {/* Left: Global Score */}
-                <div className="flex items-center gap-5 min-w-[240px] z-10">
-                    <div className="relative flex-shrink-0">
-                        <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 96 96">
+                <div className="flex items-center gap-6 min-w-[240px] z-10">
+                    <div className="relative flex-shrink-0 group/ring">
+                        <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
                             <circle className="text-muted-foreground/10" strokeWidth="6" stroke="currentColor" fill="transparent" r="42" cx="48" cy="48" />
                             <circle
                                 className="text-brand-600 transition-all duration-1000 ease-out"
@@ -143,18 +156,19 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                 r="42"
                                 cx="48"
                                 cy="48"
+                                style={{ filter: 'drop-shadow(0 0 4px currentColor)' }}
                             />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-lg font-black text-foreground">{globalScore.toFixed(0)}%</span>
+                            <span className="text-2xl font-black text-foreground">{globalScore.toFixed(0)}%</span>
                         </div>
                     </div>
                     <div>
-                        <h3 className="text-base font-bold text-foreground">Score Global</h3>
-                        <p className="text-xs text-muted-foreground mt-0.5">Conformité moyenne</p>
+                        <h3 className="text-lg font-bold text-foreground">Score Global</h3>
+                        <p className="text-sm text-muted-foreground mt-0.5">Conformité moyenne</p>
                         {trend !== undefined && (
-                            <div className={`text-[10px] font-bold mt-1.5 px-2 py-0.5 rounded-md w-fit inline-flex items-center gap-1 ${trend >= 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-rose-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
-                                <TrendingUp className="w-3 h-3" />
+                            <div className={`text-xs font-bold mt-2 px-2.5 py-1 rounded-lg w-fit inline-flex items-center gap-1 ${trend >= 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-rose-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                                <TrendingUp className="w-3.5 h-3.5" />
                                 {trend > 0 ? '+' : ''}{trend}% vs 30j
                             </div>
                         )}
@@ -162,62 +176,66 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 </div>
 
                 {/* Middle: Frameworks Mini-Cards */}
-                <div className="flex-1 grid grid-cols-3 gap-3">
-                    <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-3 border border-slate-100 dark:border-white/5 flex flex-col justify-between">
-                        <div className="flex justify-between items-start mb-2">
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase">ISO 27001</span>
-                            <span className="text-xs font-black text-blue-600 dark:text-blue-400">{Math.round(isoScore)}%</span>
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
+                        <div className="flex justify-between items-start mb-3">
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">ISO 27001</span>
+                            <span className="text-sm font-black text-blue-600 dark:text-blue-400">{Math.round(isoScore)}%</span>
                         </div>
-                        <div className="h-1.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${isoScore}%` }}></div>
-                        </div>
-                    </div>
-                    <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-3 border border-slate-100 dark:border-white/5 flex flex-col justify-between">
-                        <div className="flex justify-between items-start mb-2">
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase">RGPD</span>
-                            <span className="text-xs font-black text-purple-600 dark:text-purple-400">{Math.round(rgpdScore)}%</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-purple-500 rounded-full" style={{ width: `${rgpdScore}%` }}></div>
+                        <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                            <div className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${isoScore}%` }}></div>
                         </div>
                     </div>
-                    <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-3 border border-slate-100 dark:border-white/5 flex flex-col justify-between">
-                        <div className="flex justify-between items-start mb-2">
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase">DORA</span>
-                            <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">{Math.round(doraScore)}%</span>
+                    <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
+                        <div className="flex justify-between items-start mb-3">
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">RGPD</span>
+                            <span className="text-sm font-black text-purple-600 dark:text-purple-400">{Math.round(rgpdScore)}%</span>
                         </div>
-                        <div className="h-1.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${doraScore}%` }}></div>
+                        <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                            <div className="h-full bg-purple-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${rgpdScore}%` }}></div>
+                        </div>
+                    </div>
+                    <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
+                        <div className="flex justify-between items-start mb-3">
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">DORA</span>
+                            <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{Math.round(doraScore)}%</span>
+                        </div>
+                        <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                            <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${doraScore}%` }}></div>
                         </div>
                     </div>
                 </div>
 
                 {/* Right: Quick Stats */}
-                <div className="flex xl:flex-col gap-3 min-w-[140px]">
-                    <div className="flex-1 flex items-center justify-between px-3 py-2 bg-red-50/50 dark:bg-red-900/10 rounded-lg border border-red-100/50 dark:border-red-900/20">
+                <div className="flex xl:flex-col gap-3 min-w-[160px]">
+                    <div className="flex-1 flex items-center justify-between px-4 py-3 bg-red-50/80 dark:bg-red-900/10 rounded-xl border border-red-100/50 dark:border-red-900/20">
                         <div className="flex items-center gap-2">
-                            <ShieldAlert className="h-3.5 w-3.5 text-red-600/70" />
+                            <ShieldAlert className="h-4 w-4 text-red-600/70" />
                             <span className="text-xs font-bold text-red-700/70 dark:text-red-400/70">Alertes</span>
                         </div>
-                        <span className="text-sm font-black text-red-700 dark:text-red-400">{alertsCount}</span>
+                        <span className="text-lg font-black text-red-700 dark:text-red-400">{alertsCount}</span>
                     </div>
-                    <div className="flex-1 flex items-center justify-between px-3 py-2 bg-amber-50/50 dark:bg-amber-900/10 rounded-lg border border-amber-100/50 dark:border-amber-900/20">
+                    <div className="flex-1 flex items-center justify-between px-4 py-3 bg-amber-50/80 dark:bg-amber-900/10 rounded-xl border border-amber-100/50 dark:border-amber-900/20">
                         <div className="flex items-center gap-2">
-                            <Clock className="h-3.5 w-3.5 text-amber-600/70" />
+                            <Clock className="h-4 w-4 text-amber-600/70" />
                             <span className="text-xs font-bold text-amber-700/70 dark:text-amber-400/70">En cours</span>
                         </div>
-                        <span className="text-sm font-black text-amber-700 dark:text-amber-400">{inProgressCount}</span>
+                        <span className="text-lg font-black text-amber-700 dark:text-amber-400">{inProgressCount}</span>
                     </div>
                 </div>
             </div>
 
             {/* Charts */}
+            {/* Charts */}
             {totalControls > 0 ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {/* Status Distribution */}
-                    <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm min-w-0 relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-2xl" />
-                        <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-6 uppercase tracking-wider relative z-10">Distribution par Statut</h4>
+                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
+                        <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
+                            <PieChartIcon className="w-4 h-4 text-brand-500" />
+                            Distribution par Statut
+                        </h4>
                         <div className="h-[250px] w-full relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -225,14 +243,14 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         data={statusData}
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius={60}
-                                        outerRadius={80}
-                                        paddingAngle={5}
+                                        innerRadius={65}
+                                        outerRadius={85}
+                                        paddingAngle={4}
                                         dataKey="value"
                                         stroke="none"
                                     >
                                         {statusData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                            <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
                                         ))}
                                     </Pie>
                                     <Tooltip content={<ChartTooltip />} cursor={false} />
@@ -240,7 +258,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         verticalAlign="bottom"
                                         height={36}
                                         iconType="circle"
-                                        formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                                        formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
@@ -248,17 +266,20 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
 
                     {/* Domain Progress */}
-                    <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm min-w-0 relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-2xl" />
-                        <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-6 uppercase tracking-wider relative z-10">Conformité par Domaine (Annexe A)</h4>
+                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
+                        <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
+                            <BarChartIcon className="w-4 h-4 text-brand-500" />
+                            Conformité par Domaine (Annexe A)
+                        </h4>
                         <div className="h-[250px] w-full relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={domainChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} opacity={0.5} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
                                     <XAxis
                                         dataKey="domain"
                                         stroke={chartTheme.text}
-                                        fontSize={11}
+                                        fontSize={10}
                                         tickLine={false}
                                         axisLine={false}
                                         dy={10}
@@ -269,10 +290,10 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         tickLine={false}
                                         axisLine={false}
                                     />
-                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.12)' }} />
-                                    <Bar dataKey="rate" name="Taux %" fill={chartTheme.colors.primary} radius={[4, 4, 0, 0]} barSize={30}>
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor, radius: 4 }} />
+                                    <Bar dataKey="rate" name="Taux %" fill={chartTheme.colors.primary} radius={[6, 6, 0, 0]} barSize={24} animationDuration={1000}>
                                         {domainChartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={parseInt(entry.rate) >= 80 ? chartTheme.colors.implemented : parseInt(entry.rate) >= 50 ? chartTheme.colors.partial : chartTheme.colors.primary} />
+                                            <Cell key={`cell-${index}`} fill={parseInt(entry.rate) >= 80 ? 'url(#barGradientSuccess)' : parseInt(entry.rate) >= 50 ? chartTheme.colors.partial : 'url(#barGradientPrimary)'} />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -281,15 +302,18 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
 
                     {/* Radar Chart */}
-                    <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 lg:col-span-2 shadow-sm min-w-0 relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-2xl" />
-                        <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-6 uppercase tracking-wider relative z-10">Vue Radar - Maturité par Domaine</h4>
-                        <div className="h-[350px] w-full relative z-10">
+                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 lg:col-span-2 xl:col-span-1 shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
+                        <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
+                            <Target className="w-4 h-4 text-brand-500" />
+                            Vue Radar - Maturité par Domaine
+                        </h4>
+                        <div className="h-[250px] w-full relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
-                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                                     <PolarGrid stroke={chartTheme.grid} strokeDasharray="3 3" />
-                                    <PolarAngleAxis dataKey="domain" tick={{ fill: chartTheme.text, fontSize: 12, fontWeight: 500 }} />
-                                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: chartTheme.text, fontSize: 10 }} axisLine={false} />
+                                    <PolarAngleAxis dataKey="domain" tick={{ fill: chartTheme.text, fontSize: 10, fontWeight: 600 }} />
+                                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: chartTheme.text, fontSize: 9 }} axisLine={false} />
                                     <Radar
                                         name="Conformité %"
                                         dataKey="score"
@@ -297,21 +321,22 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         strokeWidth={3}
                                         fill={chartTheme.colors.primary}
                                         fillOpacity={0.2}
+                                        isAnimationActive={true}
                                     />
                                     <Tooltip content={<ChartTooltip />} />
-                                    <Legend formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>} />
+                                    <Legend formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>} />
                                 </RadarChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center p-12 glass-panel rounded-2xl border border-white/60 dark:border-white/10 border-dashed">
+                <div className="flex flex-col items-center justify-center p-12 glass-panel rounded-[2rem] border border-white/60 dark:border-white/10 border-dashed">
                     <div className="p-4 bg-slate-100 dark:bg-white/5 rounded-full mb-4">
                         <TrendingUp className="h-8 w-8 text-slate-400" />
                     </div>
-                    <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">Aucune donnée de conformité</h3>
-                    <p className="text-slate-500 text-center max-w-md">
+                    <h3 className="text-lg font-medium text-foreground mb-1">Aucune donnée de conformité</h3>
+                    <p className="text-muted-foreground text-center max-w-md">
                         Commencez par importer ou créer des contrôles pour visualiser les graphiques de conformité.
                     </p>
                 </div>
@@ -319,18 +344,18 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
             {/* Critical Controls Not Implemented */}
             {criticalControls.length > 0 && (
-                <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-2xl" />
-                    <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2 relative z-10">
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 relative group hover:shadow-apple overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
+                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 relative z-10">
                         <AlertTriangle className="h-4 w-4 text-orange-500" />
                         Contrôles Critiques à Implémenter ({criticalControls.length})
                     </h4>
                     <div className="space-y-3 relative z-10">
                         {criticalControls.slice(0, 5).map((control, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10">
+                            <div key={index} className="flex items-center justify-between p-3 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10 hover:bg-white/70 dark:hover:bg-white/10 transition-colors">
                                 <div className="flex-1">
-                                    <p className="font-bold text-sm text-slate-800 dark:text-white">{control.code} - {control.name}</p>
-                                    <p className="text-xs text-slate-500 mt-1 line-clamp-1">{control.description}</p>
+                                    <p className="font-bold text-sm text-foreground">{control.code} - {control.name}</p>
+                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{control.description}</p>
                                 </div>
                                 <div className={`px-3 py-1 rounded-lg text-xs font-bold ${control.status === 'Partiel' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400' :
                                     'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
@@ -344,28 +369,31 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
             )}
 
             {/* Domain Details */}
-            <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-2xl" />
-                <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-4 relative z-10">Détail par Domaine ISO 27001</h4>
+            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 relative group hover:shadow-apple transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
+                <h4 className="text-sm font-bold text-foreground mb-4 relative z-10 flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 text-brand-500" />
+                    Détail par Domaine ISO 27001
+                </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
                     {Object.entries(domainData).map(([domain, data]) => {
                         const rate = (data.implemented / data.total * 100);
                         return (
-                            <div key={domain} className="p-4 bg-white/40 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10 backdrop-blur-sm">
+                            <div key={domain} className="p-4 bg-white/40 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10 backdrop-blur-sm hover:scale-[1.02] transition-transform duration-200">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="font-bold text-slate-800 dark:text-white">{domain}</span>
-                                    <span className="text-xs font-bold text-slate-500">{data.implemented}/{data.total}</span>
+                                    <span className="font-bold text-foreground text-sm">{domain}</span>
+                                    <span className="text-xs font-bold text-muted-foreground">{data.implemented}/{data.total}</span>
                                 </div>
-                                <div className="w-full bg-slate-200 dark:bg-white/10 rounded-full h-2 mb-2">
+                                <div className="w-full bg-slate-200 dark:bg-white/10 rounded-full h-2 mb-2 overflow-hidden">
                                     <div
-                                        className="h-2 rounded-full transition-all duration-500"
+                                        className="h-2 rounded-full transition-all duration-1000 ease-out"
                                         style={{
                                             width: `${rate}%`,
-                                            backgroundColor: rate >= 80 ? chartTheme.colors.implemented : rate >= 50 ? chartTheme.colors.partial : chartTheme.colors.notStarted
+                                            background: rate >= 80 ? 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)' : rate >= 50 ? '#f59e0b' : '#ef4444'
                                         }}
                                     ></div>
                                 </div>
-                                <div className="text-xs text-slate-500">
+                                <div className="text-xs text-muted-foreground font-medium">
                                     {rate.toFixed(0)}% conformité
                                 </div>
                             </div>

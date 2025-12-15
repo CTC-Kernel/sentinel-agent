@@ -741,6 +741,21 @@ export const Risks: React.FC = () => {
                 (doc, startY) => {
                     let y = startY;
 
+                    // Risk Matrix Section
+                    doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                    doc.text("Cartographie des Risques", 14, y);
+                    y += 10;
+
+                    // Draw Matrix centered
+                    const matrixSize = 80;
+                    const matrixX = (doc.internal.pageSize.width - matrixSize) / 2;
+
+                    // Pass filteredRisks directly as expected by drawRiskMatrix signature
+                    PdfService.drawRiskMatrix(doc, matrixX, y, matrixSize, matrixSize, filteredRisks);
+
+                    y += matrixSize + 20;
+
+
                     doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
                     doc.text("Tableau de Traitement", 14, y);
                     y += 8;
@@ -1486,12 +1501,12 @@ export const Risks: React.FC = () => {
                                     {inspectorTab === 'details' && (
                                         <div className="space-y-8">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                                <div className="p-6 bg-red-50/80 dark:bg-red-900/10 rounded-3xl border border-red-100 dark:border-red-900/30 shadow-sm">
+                                                <div className="p-6 bg-red-50/80 dark:bg-red-900/10 rounded-[2rem] border border-red-100 dark:border-red-900/30 shadow-sm">
                                                     <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4">Risque Brut</h4>
                                                     <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{selectedRisk.score}</div>
                                                     <div className="text-xs font-medium text-slate-600">Prob: {selectedRisk.probability} × Impact: {selectedRisk.impact}</div>
                                                 </div>
-                                                <div className="p-6 bg-emerald-50/80 dark:bg-emerald-900/10 rounded-3xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
+                                                <div className="p-6 bg-emerald-50/80 dark:bg-emerald-900/10 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
                                                     <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4">Risque Résiduel</h4>
                                                     <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{selectedRisk.residualScore || selectedRisk.score}</div>
                                                     <div className="text-xs font-medium text-slate-600">Prob: {selectedRisk.residualProbability || selectedRisk.probability} × Impact: {selectedRisk.residualImpact || selectedRisk.impact}</div>
@@ -1503,15 +1518,15 @@ export const Risks: React.FC = () => {
                                                 onUpdate={(updates) => handleUpdate({ ...selectedRisk, ...updates } as unknown as RiskFormData)}
                                             />
 
-                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
                                                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Stratégie de Traitement</h4>
                                                 <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{selectedRisk.strategy}</div>
                                             </div>
-                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
                                                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Propriétaire</h4>
                                                 <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{selectedRisk.owner || 'Non assigné'}</div>
                                             </div>
-                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
                                                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Statut Actuel</h4>
                                                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                                                     {canEdit ? (
@@ -1551,7 +1566,7 @@ export const Risks: React.FC = () => {
                                                 <span className="text-xs font-medium bg-brand-50 dark:bg-brand-900/20 text-brand-600 px-2.5 py-1 rounded-full">{selectedRisk.mitigationControlIds?.length || 0} mesures</span>
                                             </div>
 
-                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm space-y-8">
+                                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm space-y-8 transition-all duration-300 hover:shadow-apple">
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <div className="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-lg text-brand-600 dark:text-brand-400">
                                                         <Network className="h-5 w-5" />
@@ -1801,7 +1816,7 @@ export const Risks: React.FC = () => {
                                                     })}
                                                 </div>
                                             ) : (
-                                                <div className="text-center py-12 text-slate-500 bg-white dark:bg-slate-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-white/10">
+                                                <div className="text-center py-12 text-slate-500 bg-white dark:bg-slate-800/30 rounded-[2rem] border border-dashed border-gray-200 dark:border-white/10">
                                                     <ShieldAlert className="h-10 w-10 mx-auto mb-3 opacity-30" />
                                                     Aucun contrôle d'atténuation lié.
                                                 </div>
@@ -1834,11 +1849,11 @@ export const Risks: React.FC = () => {
                                                 )}
                                             </div>
                                             {linkedProjects.length === 0 ? (
-                                                <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé à ce risque.</p>
+                                                <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-[2rem] border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé à ce risque.</p>
                                             ) : (
                                                 <div className="grid gap-4">
                                                     {linkedProjects.map(proj => (
-                                                        <div key={proj.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                                                        <div key={proj.id} className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm hover:shadow-apple transition-all duration-300">
                                                             <div className="flex justify-between items-start mb-2">
                                                                 <span className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</span>
                                                                 <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{proj.status}</span>
@@ -1875,11 +1890,11 @@ export const Risks: React.FC = () => {
                                                 )}
                                             </div>
                                             {linkedAudits.length === 0 ? (
-                                                <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé à ce risque.</p>
+                                                <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-[2rem] border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé à ce risque.</p>
                                             ) : (
                                                 <div className="grid gap-4">
                                                     {linkedAudits.map(audit => (
-                                                        <div key={audit.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                                                        <div key={audit.id} className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm hover:shadow-apple transition-all duration-300">
                                                             <div className="flex justify-between items-start mb-2">
                                                                 <span className="text-sm font-bold text-slate-900 dark:text-white">{audit.name}</span>
                                                                 <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${audit.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>{audit.status}</span>
@@ -1950,7 +1965,7 @@ export const Risks: React.FC = () => {
                                     {inspectorTab === 'threats' && (
                                         <div className="space-y-6">
                                             {/* Linked Techniques */}
-                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
                                                 <h3 className="text-sm font-bold uppercase tracking-widest text-slate-600 mb-4 flex items-center">
                                                     Techniques Liées ({selectedRisk.mitreTechniques?.length || 0})
                                                 </h3>
@@ -1993,7 +2008,7 @@ export const Risks: React.FC = () => {
                                             </div>
 
                                             {/* Search & Add */}
-                                            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5">
+                                            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-white/5">
                                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center">
                                                     <ShieldAlert className="w-5 h-5 mr-2 text-red-500" />
                                                     Rechercher MITRE ATT&CK

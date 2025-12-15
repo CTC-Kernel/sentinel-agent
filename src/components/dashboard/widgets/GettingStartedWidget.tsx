@@ -165,21 +165,23 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
     if (completedCount === steps.length) return null;
 
     return (
-        <div className="mb-8 glass-panel p-6 rounded-2xl border border-brand-500/20 bg-gradient-to-r from-brand-50/50 to-background/50 dark:from-brand-900/10 dark:to-background/50 relative overflow-hidden">
+        <div className="mb-8 glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/10 bg-gradient-to-br from-brand-50/50 via-white/40 to-white/10 dark:from-brand-900/10 dark:via-slate-900/40 dark:to-slate-900/10 relative overflow-hidden shadow-sm hover:shadow-apple transition-all duration-500 group">
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent skew-x-12 translate-x-[-100%] group-hover:animate-shine pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
             <button
                 onClick={onClose}
-                className="absolute top-4 right-4 p-1 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all duration-200 z-10"
                 aria-label="Close"
             >
                 <X className="h-5 w-5" />
             </button>
 
-            <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
+            <div className="flex flex-col md:flex-row gap-8 items-start md:items-center relative z-10">
                 <div className="flex-1">
-                    <h3 className="text-xl font-bold text-foreground mb-2">
+                    <h3 className="text-2xl font-bold text-foreground mb-3 tracking-tight">
                         Bienvenue sur Sentinel GRC ! 🚀
                     </h3>
-                    <p className="text-muted-foreground mb-6 max-w-lg">
+                    <p className="text-muted-foreground mb-8 max-w-lg text-base leading-relaxed">
                         Suivez ces étapes pour configurer votre espace et garantir votre conformité.
                     </p>
 
@@ -188,9 +190,9 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                             <div
                                 key={step.id}
                                 onClick={() => !step.isCompleted && navigate(step.path)}
-                                className={`flex items-center gap-3 p-3 rounded-xl transition-all ${step.isCompleted
-                                    ? 'opacity-60'
-                                    : 'bg-background/60 hover:bg-accent cursor-pointer shadow-sm'
+                                className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 border border-transparent ${step.isCompleted
+                                    ? 'opacity-60 bg-transparent'
+                                    : 'bg-white/40 dark:bg-black/20 hover:bg-white/60 dark:hover:bg-black/30 cursor-pointer shadow-sm hover:translate-x-1 hover:border-white/20'
                                     }`}
                             >
                                 {step.isCompleted ? (
@@ -198,48 +200,54 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                                 ) : (
                                     <Circle className="h-5 w-5 text-muted-foreground/40 flex-shrink-0" />
                                 )}
-                                <span className={`font-medium ${step.isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+                                <span className={`font-medium flex-1 ${step.isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
                                     {step.label}
                                 </span>
                                 {!step.isCompleted && (
-                                    <ArrowRight className="h-4 w-4 text-brand-500 ml-auto" />
+                                    <ArrowRight className="h-4 w-4 text-brand-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 )}
                             </div>
                         ))}
                     </div>
                 </div>
 
-                <div className="w-full md:w-64 flex-shrink-0">
-                    <div className="bg-card text-card-foreground rounded-2xl p-6 shadow-lg text-center border border-border">
-                        <div className="relative w-32 h-32 mx-auto mb-4 flex items-center justify-center">
+                <div className="w-full md:w-72 flex-shrink-0">
+                    <div className="glass-panel text-card-foreground rounded-[2rem] p-8 shadow-xl text-center border border-white/20 dark:border-white/5 bg-white/30 dark:bg-black/20">
+                        <div className="relative w-40 h-40 mx-auto mb-6 flex items-center justify-center">
                             <svg className="w-full h-full transform -rotate-90 overflow-visible" viewBox="0 0 128 128">
+                                <defs>
+                                    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#3b82f6" />
+                                        <stop offset="100%" stopColor="#8b5cf6" />
+                                    </linearGradient>
+                                </defs>
                                 <circle
                                     cx="64"
                                     cy="64"
-                                    r="56"
+                                    r="58"
                                     stroke="currentColor"
-                                    strokeWidth="12"
+                                    strokeWidth="10"
                                     fill="transparent"
-                                    className="text-muted-foreground/20"
+                                    className="text-slate-200 dark:text-slate-800"
                                 />
                                 <circle
                                     cx="64"
                                     cy="64"
-                                    r="56"
-                                    stroke="currentColor"
-                                    strokeWidth="12"
+                                    r="58"
+                                    stroke="url(#progressGradient)"
+                                    strokeWidth="10"
                                     fill="transparent"
-                                    strokeDasharray={351.86}
-                                    strokeDashoffset={351.86 - (351.86 * progress) / 100}
-                                    className="text-brand-500 transition-all duration-1000 ease-out"
+                                    strokeDasharray={364.4}
+                                    strokeDashoffset={364.4 - (364.4 * progress) / 100}
+                                    className="transition-all duration-1000 ease-out"
                                     strokeLinecap="round"
                                 />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                <span className="text-xl font-bold text-foreground">{Math.round(progress)}%</span>
+                                <span className="text-3xl font-black text-foreground tracking-tighter">{Math.round(progress)}%</span>
                             </div>
                         </div>
-                        <p className="text-sm font-medium text-muted-foreground">
+                        <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
                             Progression
                         </p>
                     </div>

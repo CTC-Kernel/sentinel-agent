@@ -26,7 +26,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
 }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const [hasContent, setHasContent] = useState(false);
-    const hasValue = (value !== undefined && value !== '') || (defaultValue !== undefined && defaultValue !== '') || hasContent || props.type === 'date' || props.type === 'time' || props.type === 'datetime-local';
+    const hasValue = (value !== undefined && value !== null && value !== '') || (defaultValue !== undefined && defaultValue !== null && defaultValue !== '') || hasContent || props.type === 'date' || props.type === 'time' || props.type === 'datetime-local';
 
     const autoId = React.useId();
     const fieldId = props.id || `floating-input-${autoId}`;

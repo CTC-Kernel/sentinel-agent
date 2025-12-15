@@ -375,10 +375,19 @@ export class PdfService {
             doc.setTextColor(this.TEXT_PRIMARY);
             doc.setFont('helvetica', 'normal');
 
-            const splitSummary = doc.splitTextToSize(options.summary, pageWidth - 38);
-            doc.text(splitSummary, 19, 70);
-
-            let currentY = 70 + (splitSummary.length * 5) + 15;
+            let currentY = 70;
+            currentY = this.addSafeText(
+                doc,
+                options.summary,
+                19,
+                currentY,
+                pageWidth - 38,
+                5,
+                pageHeight,
+                20,
+                options
+            );
+            currentY += 15;
 
             // --- METRICS ROW ---
             if (options.metrics && options.metrics.length > 0) {
@@ -529,6 +538,40 @@ export class PdfService {
     }
 
     /**
+     * Helper to add text with automatic page breaks
+     */
+    static addSafeText(
+        doc: jsPDF,
+        text: string,
+        x: number,
+        y: number,
+        maxWidth: number,
+        lineHeight: number = 7,
+        pageHeight: number,
+        bottomMargin: number = 20,
+        options?: ReportOptions
+    ): number {
+        const splitText = doc.splitTextToSize(text, maxWidth);
+        let currentY = y;
+
+        for (const line of splitText) {
+            if (currentY + lineHeight > pageHeight - bottomMargin) {
+                doc.addPage();
+                currentY = 35; // Reset to top margin
+                if (options) {
+                    this.addHeader(doc, options.title, options.subtitle, options);
+                    if (options.watermark) this.addWatermark(doc);
+                    this.addFooter(doc, options.footerText);
+                }
+            }
+            doc.text(line, x, currentY);
+            currentY += lineHeight;
+        }
+
+        return currentY;
+    }
+
+    /**
      * Draw a modern Metric Card
      */
     static drawMetricCard(
@@ -570,5 +613,146 @@ export class PdfService {
             doc.setFont('helvetica', 'normal');
             doc.text(subtext, x + 6, y + 30);
         }
+    }
+
+    /**
+     * Draw a modern Donut Chart
+     */
+    static drawDonutChart(
+        doc: jsPDF,
+        x: number,
+        y: number,
+        radius: number,
+        data: { label: string; value: number; color: string }[],
+        centerText?: string
+    ) {
+        let total = data.reduce((sum, item) => sum + item.value, 0);
+        if (total === 0) total = 1;
+
+        let startAngle = 0;
+        const centerX = x + radius;
+        const centerY = y + radius;
+
+        // Draw segments
+        data.forEach(item => {
+            if (item.value === 0) return;
+            const sliceAngle = (item.value / total) * 360;
+            const endAngle = startAngle + sliceAngle;
+
+            doc.setFillColor(item.color);
+            this.drawArc(doc, centerX, centerY, radius, startAngle, endAngle);
+            startAngle = endAngle;
+        });
+
+        // Draw inner circle (White) to create Donut
+        doc.setFillColor(255, 255, 255);
+        doc.circle(centerX, centerY, radius * 0.6, 'F');
+
+        // Center Text
+        if (centerText) {
+            doc.setFontSize(12);
+            doc.setTextColor(this.TEXT_PRIMARY);
+            doc.setFont('helvetica', 'bold');
+            doc.text(centerText, centerX, centerY + 1, { align: 'center', baseline: 'middle' });
+        }
+
+        // Legend
+        let legendY = y + 5;
+        const legendX = x + (radius * 2) + 10;
+
+        data.forEach(item => {
+            if (item.value === 0) return;
+            doc.setFillColor(item.color);
+            doc.circle(legendX, legendY, 2, 'F');
+
+            doc.setFontSize(9);
+            doc.setTextColor(this.TEXT_SECONDARY);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`${item.label} (${Math.round((item.value / total) * 100)}%)`, legendX + 5, legendY + 1);
+
+            legendY += 6;
+        });
+    }
+
+    /**
+     * Helper to draw a filled arc segment (simulated with triangles/polygons for PDF)
+     * Simplified approach for jsPDF
+     */
+    private static drawArc(doc: jsPDF, cx: number, cy: number, r: number, startAngle: number, endAngle: number) {
+        const startRad = (startAngle * Math.PI) / 180;
+        const endRad = (endAngle * Math.PI) / 180;
+
+        const step = 2 * Math.PI / 180; // 2 degree steps
+
+        // Draw fan of triangles to simulate filled arc
+        for (let theta = startRad; theta < endRad; theta += step) {
+            let nextTheta = theta + step;
+            if (nextTheta > endRad) nextTheta = endRad;
+
+            const x1 = cx + r * Math.cos(theta);
+            const y1 = cy + r * Math.sin(theta);
+            const x2 = cx + r * Math.cos(nextTheta);
+            const y2 = cy + r * Math.sin(nextTheta);
+
+            doc.triangle(cx, cy, x1, y1, x2, y2, 'F');
+        }
+    }
+
+    /**
+     * Draw a 5x5 Risk Heatmap Matrix
+     */
+    static drawRiskMatrix(
+        doc: jsPDF,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        risks: { probability: number; impact: number }[]
+    ) {
+        const cellSize = width / 5;
+        const gridColors = [
+            ['#ecfdf5', '#d1fae5', '#fef3c7', '#fcd34d', '#fca5a5'],
+            ['#d1fae5', '#fef3c7', '#fcd34d', '#fca5a5', '#f87171'],
+            ['#fef3c7', '#fcd34d', '#fca5a5', '#f87171', '#ef4444'],
+            ['#fcd34d', '#fca5a5', '#f87171', '#ef4444', '#dc2626'],
+            ['#fca5a5', '#f87171', '#ef4444', '#dc2626', '#b91c1c']
+        ];
+
+        doc.setFontSize(8);
+        doc.setTextColor(this.TEXT_SECONDARY);
+        doc.setFont('helvetica', 'bold');
+
+        doc.text("Probabilité", x - 5, y + height / 2, { angle: 90, align: 'center' });
+        doc.text("Impact (Gravité)", x + width / 2, y + height + 8, { align: 'center' });
+
+        for (let row = 0; row < 5; row++) {
+            for (let col = 0; col < 5; col++) {
+                const cellX = x + (col * cellSize);
+                const cellY = y + ((4 - row) * cellSize);
+
+                const prob = row + 1;
+                const imp = col + 1;
+                const count = risks.filter(r => r.probability === prob && r.impact === imp).length;
+
+                doc.setFillColor(gridColors[row][col]);
+                doc.setDrawColor(255, 255, 255);
+                doc.setLineWidth(0.5);
+                doc.rect(cellX, cellY, cellSize, cellSize, 'FD');
+
+                if (count > 0) {
+                    doc.setFontSize(10);
+                    doc.setTextColor(this.TEXT_PRIMARY);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(count.toString(), cellX + cellSize / 2, cellY + cellSize / 2, { align: 'center', baseline: 'middle' });
+                }
+            }
+        }
+
+        doc.setFontSize(7);
+        doc.setTextColor(this.TEXT_SECONDARY);
+        ['Faible', 'Moyen', 'Fort', 'Critique', 'Catastrophique'].forEach((_, i) => {
+            doc.text((i + 1).toString(), x + (i * cellSize) + cellSize / 2, y + height + 3, { align: 'center' });
+            doc.text((i + 1).toString(), x - 2, y + height - (i * cellSize) - cellSize / 2, { align: 'right', baseline: 'middle' });
+        });
     }
 }

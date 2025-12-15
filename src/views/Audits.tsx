@@ -771,10 +771,58 @@ export const Audits: React.FC = () => {
                     // Audit Details Section
                     doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
                     doc.text("1. Détails de l'Audit", 14, y);
-                    y += 8;
+                    y += 10;
 
+                    // Details Content
+                    doc.setFontSize(10);
+                    doc.setTextColor(50);
+                    doc.setFont('helvetica', 'normal');
+
+                    const details = [
+                        { label: "Date de planification", value: selectedAudit.dateScheduled ? new Date(selectedAudit.dateScheduled).toLocaleDateString() : "Non planifié" },
+                        { label: "Type d'Audit", value: selectedAudit.type },
+                        { label: "Auditeur", value: selectedAudit.auditor || "Non assigné" },
+                        { label: "Périmètre", value: selectedAudit.scope || "Non défini" },
+                        { label: "Référentiel", value: selectedAudit.framework || "Non défini" }
+                    ];
+
+                    let detailY = y;
+                    details.forEach(detail => {
+                        doc.setFont('helvetica', 'bold');
+                        doc.text(`${detail.label}:`, 14, detailY);
+                        doc.setFont('helvetica', 'normal');
+                        doc.text(detail.value, 60, detailY);
+                        detailY += 6;
+                    });
+
+                    // Add Status Donut Chart (Right side)
+                    if (findingsForReport.length > 0) {
+                        const closedFindings = findingsForReport.length - openFindings;
+                        const statusData = [
+                            { label: 'Ouvert', value: openFindings, color: '#EF4444' }, // Red
+                            { label: 'Fermé/Traité', value: closedFindings, color: '#10B981' } // Green
+                        ];
+
+                        // Draw chart at x=130, y=startY
+                        PdfService.drawDonutChart(
+                            doc,
+                            130,
+                            startY + 5,
+                            20,
+                            statusData,
+                            `${Math.round((closedFindings / findingsForReport.length) * 100)}%`
+                        );
+
+                        // Add title for chart
+                        doc.setFontSize(10); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
+                        doc.text("État des Constats", 140, startY, { align: 'center' });
+                    }
+
+                    y = Math.max(detailY + 10, startY + 60); // Ensure stats don't overlap with next section if details are short
+
+                    doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
                     doc.text("2. Constats d'Audit", 14, y);
-                    y += 8;
+                    y += 10;
 
                     if (findings.length > 0) {
                         const findingsData = findings.map(f => [
@@ -790,7 +838,8 @@ export const Audits: React.FC = () => {
                             body: findingsData,
                             theme: 'striped',
                             headStyles: { fillColor: [79, 70, 229] },
-                            styles: { fontSize: 9 }
+                            styles: { fontSize: 9 },
+                            margin: { left: 14, right: 14 }
                         });
                         y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
                     } else {

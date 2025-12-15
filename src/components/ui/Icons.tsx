@@ -124,7 +124,8 @@ import {
   MoreVertical,
   Edit2,
   Plug,
-  EyeOff
+  EyeOff,
+  PieChart
 } from 'lucide-react';
 
 export {
@@ -252,5 +253,6 @@ export {
   MoreVertical,
   Edit2,
   Plug,
-  EyeOff
+  EyeOff,
+  PieChart
 };

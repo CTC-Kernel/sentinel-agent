@@ -1,37 +1,34 @@
 import React from 'react';
 
-interface TooltipPayload {
-    name: string;
-    value: number | string;
-    color?: string;
-    fill?: string;
-    payload?: unknown;
-}
-
 interface ChartTooltipProps {
     active?: boolean;
-    payload?: TooltipPayload[];
+    payload?: any[];
     label?: string;
-    valueFormatter?: (value: number) => string;
+    formatter?: (value: number) => string;
+    hideLabel?: boolean;
 }
 
-export const ChartTooltip: React.FC<ChartTooltipProps> = ({ active, payload, label, valueFormatter }) => {
+export const ChartTooltip: React.FC<ChartTooltipProps> = ({ active, payload, label, formatter, hideLabel }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 shadow-xl rounded-xl p-3 animate-in fade-in zoom-in-95 duration-200">
-                {label && <p className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 uppercase tracking-wider">{label}</p>}
+            <div className="glass-panel p-3 rounded-xl border border-white/60 dark:border-white/10 shadow-apple bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl animate-scale-in">
+                {!hideLabel && label && (
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide border-b border-slate-200 dark:border-white/10 pb-1">
+                        {label}
+                    </p>
+                )}
                 <div className="space-y-1">
-                    {payload.map((entry: TooltipPayload, index: number) => (
-                        <div key={index} className="flex items-center gap-2 text-sm">
+                    {payload.map((entry: any, index: number) => (
+                        <div key={index} className="flex items-center gap-2 text-sm font-medium">
                             <div
-                                className="w-2 h-2 rounded-full shadow-sm"
-                                style={{ backgroundColor: entry.color || entry.fill }}
+                                className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.3)]"
+                                style={{ backgroundColor: entry.color, boxShadow: `0 0 10px ${entry.color}` }}
                             />
-                            <span className="font-medium text-slate-700 dark:text-slate-200">
+                            <span className="text-slate-700 dark:text-slate-200">
                                 {entry.name}:
                             </span>
                             <span className="font-bold text-slate-900 dark:text-white">
-                                {valueFormatter ? valueFormatter(Number(entry.value)) : entry.value}
+                                {formatter ? formatter(entry.value) : entry.value}
                             </span>
                         </div>
                     ))}

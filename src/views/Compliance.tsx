@@ -909,7 +909,7 @@ export const Compliance: React.FC = () => {
             initial="initial"
             animate="in"
             exit="out"
-            className="max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen pt-4 sm:pt-8 px-4 md:px-8"
+            className="max-w-[1600px] mx-auto space-y-6 animate-fade-in pb-20 relative min-h-screen pt-4 sm:pt-8 px-4 md:px-8"
         >
             <div className="fixed inset-0 pointer-events-none -z-10">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[100px] animate-pulse-slow" />
@@ -1079,7 +1079,7 @@ export const Compliance: React.FC = () => {
                                             const isExpanded = expandedDomains.includes(domain.id) || filter.length > 0;
 
                                             return (
-                                                <div key={domain.id} className="glass-panel rounded-[2.5rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg border border-white/60 dark:border-white/10 group">
+                                                <div key={domain.id} className="glass-panel rounded-[2rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple border border-white/60 dark:border-white/10 group">
                                                     <div
                                                         onClick={() => toggleDomain(domain.id)}
                                                         className={`p-6 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
@@ -1110,31 +1110,82 @@ export const Compliance: React.FC = () => {
                                                     </div>
 
                                                     {isExpanded && (
-                                                        <div className="border-t border-slate-200 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5">
-                                                            {domainControls.map(control => {
-                                                                const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
-                                                                const findingsCount = findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;
-                                                                return (
-                                                                    <CustomTooltip key={control.id} content={`Cliquez pour voir les détails de ${control.code}`} position="top" className="w-full">
-                                                                        <div onClick={() => openInspector(control)} className="p-4 sm:p-5 hover:bg-gray-50/80 dark:hover:bg-white/5 transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-4 pl-4 sm:pl-8 active:scale-[0.99] duration-200">
-                                                                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 flex-1 min-w-0">
-                                                                                <div className="min-w-[50px]"><span className="text-xs font-black text-slate-500 group-hover:text-brand-600 transition-colors">{control.code}</span></div>
-                                                                                <div className="flex-1 min-w-0"><h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">{control.name}</h4>
-                                                                                    <div className="flex flex-wrap items-center mt-2 gap-2 text-xs">
-                                                                                        {control.evidenceIds && control.evidenceIds.length > 0 ? (<span className="flex items-center text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-md text-[11px]"><Paperclip className="h-3 w-3 mr-1.5" /> {control.evidenceIds.length} preuve(s)</span>) : (control.status === 'Implémenté') ? (<span className="flex items-center text-orange-500 font-medium bg-orange-50 dark:bg-orange-900/10 px-2.5 py-1 rounded-md text-[11px]"><AlertTriangle className="h-3 w-3 mr-1.5" /> Preuve manquante</span>) : null}
-                                                                                        {riskCount > 0 && (<span className="flex items-center text-blue-500 font-medium bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1 rounded-md text-[11px]"><ShieldAlert className="h-3 w-3 mr-1.5" /> {riskCount} risques</span>)}
-                                                                                        {findingsCount > 0 && (<span className="flex items-center text-red-500 font-medium bg-red-50 dark:bg-red-900/20 px-2.5 py-1 rounded-md text-[11px]"><AlertOctagon className="h-3 w-3 mr-1.5" /> {findingsCount} écarts</span>)}
+                                                        <div className="p-4 bg-slate-50/40 dark:bg-black/10 border-t border-slate-100 dark:border-white/5">
+                                                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                                                                {domainControls.map(control => {
+                                                                    const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
+                                                                    const findingsCount = findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').length;
+                                                                    const isActive = selectedControl?.id === control.id;
+
+                                                                    return (
+                                                                        <div
+                                                                            key={control.id}
+                                                                            onClick={() => openInspector(control)}
+                                                                            className={`group relative p-4 rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden hover:shadow-md ${isActive
+                                                                                ? 'bg-brand-50/50 border-brand-200 dark:bg-brand-900/20 dark:border-brand-800'
+                                                                                : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/5 hover:border-brand-200 dark:hover:border-brand-700/50'
+                                                                                }`}
+                                                                        >
+                                                                            <div className="flex items-start justify-between gap-4">
+                                                                                <div className="flex items-start gap-3 min-w-0">
+                                                                                    <div className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-xl text-xs font-black transition-colors ${isActive ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300' : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 group-hover:bg-brand-50 group-hover:text-brand-600'}`}>
+                                                                                        {control.code.split('.').slice(1).join('.')}
+                                                                                    </div>
+                                                                                    <div className="min-w-0 pt-0.5">
+                                                                                        <h4 className={`text-sm font-bold truncate pr-2 leading-tight ${isActive ? 'text-brand-900 dark:text-brand-100' : 'text-slate-900 dark:text-white'}`}>
+                                                                                            {control.name}
+                                                                                        </h4>
+                                                                                        <p className="text-[11px] text-slate-500 font-mono mt-0.5 uppercase tracking-wider">{control.code}</p>
                                                                                     </div>
                                                                                 </div>
+                                                                                <div className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border shadow-sm whitespace-nowrap ${control.status === 'Implémenté' ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800' :
+                                                                                    control.status === 'Partiel' ? 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800' :
+                                                                                        control.status === 'Non applicable' ? 'text-slate-500 bg-slate-100 border-slate-200 dark:bg-slate-800/50 dark:text-slate-400 dark:border-slate-700' :
+                                                                                            'text-slate-600 bg-white border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                                                                                    }`}>
+                                                                                    {control.status}
+                                                                                </div>
                                                                             </div>
-                                                                            <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto mt-2 sm:mt-0">
-                                                                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm whitespace-nowrap ${control.status === 'Implémenté' ? 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800' : control.status === 'Partiel' ? 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800' : 'text-slate-600 bg-slate-100 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'}`}>{control.status}</span>
-                                                                                <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-600 transition-colors hidden sm:block" />
+
+                                                                            <div className="flex items-center gap-2 mt-4 pl-[3.25rem]">
+                                                                                {control.evidenceIds && control.evidenceIds.length > 0 ? (
+                                                                                    <span className="flex items-center text-emerald-600 bg-emerald-50/80 dark:bg-emerald-900/20 px-2 py-1 rounded-md text-[10px] font-bold border border-emerald-100 dark:border-emerald-900/30">
+                                                                                        <Paperclip className="h-3 w-3 mr-1.5" />
+                                                                                        {control.evidenceIds.length}
+                                                                                    </span>
+                                                                                ) : (control.status === 'Implémenté') ? (
+                                                                                    <CustomTooltip content="Preuve obligatoire manquante">
+                                                                                        <span className="flex items-center text-orange-600 bg-orange-50/80 dark:bg-orange-900/20 px-2 py-1 rounded-md text-[10px] font-bold border border-orange-100 dark:border-orange-900/30">
+                                                                                            <AlertTriangle className="h-3 w-3 mr-1.5" />
+                                                                                            Manquante
+                                                                                        </span>
+                                                                                    </CustomTooltip>
+                                                                                ) : null}
+
+                                                                                {riskCount > 0 && (
+                                                                                    <span className="flex items-center text-blue-600 bg-blue-50/80 dark:bg-blue-900/20 px-2 py-1 rounded-md text-[10px] font-bold border border-blue-100 dark:border-blue-900/30">
+                                                                                        <ShieldAlert className="h-3 w-3 mr-1.5" />
+                                                                                        {riskCount}
+                                                                                    </span>
+                                                                                )}
+
+                                                                                {findingsCount > 0 && (
+                                                                                    <span className="flex items-center text-red-600 bg-red-50/80 dark:bg-red-900/20 px-2 py-1 rounded-md text-[10px] font-bold border border-red-100 dark:border-red-900/30">
+                                                                                        <AlertOctagon className="h-3 w-3 mr-1.5" />
+                                                                                        {findingsCount}
+                                                                                    </span>
+                                                                                )}
+
+                                                                                <div className="flex-1" />
+
+                                                                                <div className={`text-slate-300 dark:text-slate-600 transition-transform duration-300 group-hover:translate-x-1 ${isActive ? 'text-brand-300 dark:text-brand-700' : ''}`}>
+                                                                                    <ChevronRight className="h-4 w-4" />
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    </CustomTooltip>
-                                                                );
-                                                            })}
+                                                                    );
+                                                                })}
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
@@ -1152,7 +1203,7 @@ export const Compliance: React.FC = () => {
             {
                 viewMode === 'watch' && (
                     <div className="space-y-6 animate-fade-in">
-                        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/5 text-center">
+                        <div className="glass-panel p-4 sm:p-8 rounded-[2rem] border border-white/60 dark:border-white/10 text-center shadow-sm">
                             <div className="w-16 h-16 bg-blue-100 dark:bg-slate-900/20 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                                 <Globe className="w-8 h-8" />
                             </div>
@@ -1186,7 +1237,7 @@ export const Compliance: React.FC = () => {
                         </div>
 
                         {eurLexResult && (
-                            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
+                            <div className="glass-panel rounded-[2rem] border border-white/60 dark:border-white/10 overflow-hidden shadow-sm">
                                 <div className="p-4 border-b border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 flex justify-between items-center">
                                     <h3 className="font-bold text-slate-900 dark:text-white flex items-center">
                                         <Globe className="w-4 h-4 mr-2 text-blue-500" />
@@ -1231,7 +1282,7 @@ export const Compliance: React.FC = () => {
                 title={creationMode ? (creationMode === 'risk' ? 'Nouveau Risque' : creationMode === 'project' ? 'Nouveau Projet' : 'Nouvel Audit') : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : '')}
                 breadcrumbs={getBreadcrumbs()}
                 subtitle={creationMode ? 'Création' : (selectedControl?.framework || currentFramework)}
-                width={creationMode ? "max-w-4xl" : "max-w-6xl"}
+                width={creationMode ? "max-w-4xl" : "max-w-4xl"}
             >
                 {creationMode ? (
                     <div className="h-full bg-slate-50 dark:bg-slate-900/50">
@@ -1313,7 +1364,7 @@ export const Compliance: React.FC = () => {
 
                                     {/* Status & Assignment */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
                                             <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Statut d'implémentation</h3>
                                             {canEdit ? (
                                                 <div className="grid grid-cols-2 gap-2">
@@ -1337,7 +1388,7 @@ export const Compliance: React.FC = () => {
                                             )}
                                         </div>
 
-                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
                                             <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Responsable</h3>
                                             {canEdit ? (
                                                 <CustomSelect
@@ -1363,7 +1414,7 @@ export const Compliance: React.FC = () => {
 
                                     {/* Linked Resources */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
                                             <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Actifs Liés</h3>
                                             <div className="space-y-2 mb-4">
                                                 {selectedControl.relatedAssetIds?.map(assetId => {
@@ -1388,7 +1439,7 @@ export const Compliance: React.FC = () => {
                                                 />
                                             )}
                                         </div>
-                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
                                             <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Fournisseurs Liés</h3>
                                             <div className="space-y-2 mb-4">
                                                 {selectedControl.relatedSupplierIds?.map(supplierId => {
@@ -1440,7 +1491,7 @@ export const Compliance: React.FC = () => {
                                                 </button>
                                             </div>
                                         ) : (
-                                            <div className="p-5 bg-white dark:bg-slate-800/80 rounded-3xl border border-gray-200 dark:border-white/10 shadow-sm">
+                                            <div className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                                                 <p className="text-sm text-slate-600 dark:text-slate-300 italic font-medium leading-relaxed">{selectedControl.justification || "Aucune justification saisie."}</p>
                                             </div>
                                         )}
@@ -1451,7 +1502,7 @@ export const Compliance: React.FC = () => {
                                 inspectorTab === 'evidence' && (
                                     <div className="space-y-6 max-w-3xl mx-auto">
                                         {/* Automated Evidence Section */}
-                                        <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 p-6 shadow-sm">
+                                        <div className="glass-panel rounded-[2rem] border border-white/60 dark:border-white/10 p-6 shadow-sm transition-all duration-300 hover:shadow-apple">
                                             <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 flex items-center tracking-widest"><Plug className="h-3.5 w-3.5 mr-2" /> Preuves Automatisées</h3>
 
                                             <div className="space-y-3 mb-6">
@@ -1499,7 +1550,7 @@ export const Compliance: React.FC = () => {
                                             </div>
 
                                             {canEdit && (
-                                                <div className="bg-slate-50 dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
+                                                <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-200/50 dark:border-white/5">
                                                     <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3">Ajouter une source</h4>
                                                     <div className="flex flex-col sm:flex-row gap-3">
                                                         <select
@@ -1537,7 +1588,7 @@ export const Compliance: React.FC = () => {
                                             )}
                                         </div>
 
-                                        <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 p-6 shadow-sm">
+                                        <div className="glass-panel rounded-[2rem] border border-white/60 dark:border-white/10 p-6 shadow-sm transition-all duration-300 hover:shadow-apple">
                                             <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 flex items-center tracking-widest"><Link className="h-3.5 w-3.5 mr-2" /> Preuves Documentaires</h3>
                                             <div className="space-y-2 mb-4">
                                                 {selectedControl.evidenceIds && selectedControl.evidenceIds.length > 0 ? selectedControl.evidenceIds.map(docId => {
@@ -1581,7 +1632,7 @@ export const Compliance: React.FC = () => {
                             {inspectorTab === 'linkedItems' && (
                                 <div className="space-y-6 max-w-3xl mx-auto">
                                     {/* Linked Risks */}
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
                                         <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
                                             <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><ShieldAlert className="h-3.5 w-3.5 mr-2" /> Risques Atténués</h3>
                                             <div className="flex gap-2">
@@ -1621,7 +1672,7 @@ export const Compliance: React.FC = () => {
                                     </div>
 
                                     {/* Linked Projects (New) */}
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
                                         <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
                                             <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets de Mise en Conformité</h3>
                                         </div>
@@ -1644,7 +1695,7 @@ export const Compliance: React.FC = () => {
                                     </div>
 
                                     {/* Linked Projects */}
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
                                         <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
                                             <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets Liés</h3>
                                             <div className="flex gap-2">
@@ -1682,7 +1733,7 @@ export const Compliance: React.FC = () => {
                                     </div>
 
                                     {/* Linked Audits */}
-                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
                                         <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
                                             <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> Audits Liés</h3>
                                             <div className="flex gap-2">

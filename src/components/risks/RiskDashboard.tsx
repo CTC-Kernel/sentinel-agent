@@ -11,9 +11,9 @@ interface RiskDashboardProps {
 
 export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterChange }) => {
     const chartColors = {
-        grid: 'hsl(var(--border) / 0.6)',
-        text: 'hsl(var(--muted-foreground))',
-        cursor: 'hsl(var(--muted-foreground) / 0.12)'
+        grid: 'hsl(var(--border) / 0.4)',
+        text: 'hsl(var(--muted-foreground) / 0.8)',
+        cursor: 'hsl(var(--muted-foreground) / 0.1)'
     };
 
     // Calculate metrics
@@ -30,10 +30,10 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
 
     // Risk distribution by level
     const distributionData = [
-        { name: 'Critique', value: criticalRisks, color: '#ef4444' },
-        { name: 'Élevé', value: highRisks, color: '#f97316' },
-        { name: 'Moyen', value: mediumRisks, color: '#eab308' },
-        { name: 'Faible', value: lowRisks, color: '#22c55e' }
+        { name: 'Critique', value: criticalRisks, color: '#ef4444' }, // red-500
+        { name: 'Élevé', value: highRisks, color: '#f97316' }, // orange-500
+        { name: 'Moyen', value: mediumRisks, color: '#eab308' }, // yellow-500
+        { name: 'Faible', value: lowRisks, color: '#22c55e' } // green-500
     ];
 
     // Risk distribution by category
@@ -66,28 +66,10 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
     const evolutionData = React.useMemo(() => {
         if (!risks.length) return [];
 
-
-        // No, we must use real data. 
-
-        // Let's simplified approach:
-        // Get all unique dates from all histories + createdAt
-        // Sort them.
-        // Sample at specific intervals (e.g. monthly)
-
-        const allDates = new Set<string>();
-        risks.forEach(r => {
-            if (r.createdAt) allDates.add(r.createdAt.split('T')[0]);
-            r.history?.forEach(h => allDates.add(h.date.split('T')[0]));
-        });
-
-        const sortedDates = Array.from(allDates).sort();
-        if (sortedDates.length === 0) return [];
-
-        // Pick last 12 months or all if shorter
-
         const timelines = risks.map(r => {
             const points: { date: number, score: number }[] = [];
-            // Start with creation
+
+            // Initial assumption: risk started at 0 score or creation score
             const currentScore = r.history && r.history.length > 0 ? r.history[0].previousScore || r.score : r.score;
 
             if (r.createdAt) {
@@ -100,8 +82,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                     points.push({ date: new Date(h.date).getTime(), score: h.newScore });
                 });
             }
-
-            // Add "now"
+            // Current state
             points.push({ date: new Date().getTime(), score: r.score });
 
             return { id: r.id, points };
@@ -114,22 +95,16 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const timestamp = d.getTime();
 
-            // Calculate avg score at this timestamp
             let totalScore = 0;
             let count = 0;
-            let criticalCount = 0;
 
             timelines.forEach(t => {
-                // Find status at timestamp
-                // If timestamp < first point, risk didn't exist (unless we assume it existed? No, creation date matters)
                 if (t.points.length > 0 && timestamp >= t.points[0].date) {
-                    // Find the last point <= timestamp
                     const validPoints = t.points.filter(p => p.date <= timestamp);
                     if (validPoints.length > 0) {
                         const lastPoint = validPoints[validPoints.length - 1];
                         totalScore += lastPoint.score;
                         count++;
-                        if (lastPoint.score >= 15) criticalCount++;
                     }
                 }
             });
@@ -138,7 +113,6 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 chartData.push({
                     date: d.toLocaleDateString('fr-FR', { month: 'short' }),
                     avgScore: parseFloat((totalScore / count).toFixed(1)),
-                    criticalRaw: criticalCount // Optional
                 });
             }
         }
@@ -148,15 +122,33 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
 
     return (
         <div className="space-y-6">
+            {/* SVG Definitions for Gradients */}
+            <svg style={{ height: 0, width: 0, position: 'absolute' }}>
+                <defs>
+                    <linearGradient id="gridGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="rgba(255, 255, 255, 0.1)" />
+                        <stop offset="100%" stopColor="rgba(255, 255, 255, 0.02)" />
+                    </linearGradient>
+                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.5} />
+                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="barGradientBlue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#60a5fa" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.8} />
+                    </linearGradient>
+                </defs>
+            </svg>
+
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden shadow-lg">
+            <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden shadow-sm hover:shadow-apple transition-all duration-500 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
                 <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
                 </div>
 
-                {/* Global Score */}
+                {/* Global Score Metric */}
                 <div className="flex items-center gap-6 relative z-10">
-                    <div className="relative">
+                    <div className="relative group/ring">
                         <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
                             <circle
                                 className="text-slate-100 dark:text-slate-800"
@@ -178,6 +170,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                 r="40"
                                 cx="48"
                                 cy="48"
+                                style={{ filter: 'drop-shadow(0 0 4px currentColor)' }}
                             />
                         </svg>
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
@@ -240,7 +233,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 {/* Evolution Chart (NEW) */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 lg:col-span-2 relative overflow-hidden group">
+                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 lg:col-span-2 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10">
                         <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
@@ -249,25 +242,39 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                         </h4>
                         <ResponsiveContainer width="100%" height={250}>
                             <AreaChart data={evolutionData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                <defs>
-                                    <linearGradient id="colorAvg" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                                <XAxis dataKey="date" stroke={chartColors.text} fontSize={11} tickLine={false} axisLine={false} />
-                                <YAxis stroke={chartColors.text} fontSize={11} tickLine={false} axisLine={false} />
-                                <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-                                <Area type="monotone" dataKey="avgScore" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorAvg)" strokeWidth={3} name="Score Moyen" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} />
+                                <XAxis
+                                    dataKey="date"
+                                    stroke={chartColors.text}
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickMargin={10}
+                                />
+                                <YAxis
+                                    stroke={chartColors.text}
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                />
+                                <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3', stroke: chartColors.cursor }} />
+                                <Area
+                                    type="monotone"
+                                    dataKey="avgScore"
+                                    stroke="#8b5cf6"
+                                    fillOpacity={1}
+                                    fill="url(#areaGradient)"
+                                    strokeWidth={3}
+                                    name="Score Moyen"
+                                    activeDot={{ r: 6, strokeWidth: 0, fill: '#fff' }}
+                                />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
-
                 {/* Risk Distribution */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 relative overflow-hidden group">
+                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10">
                         <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Niveau</h4>
@@ -277,14 +284,14 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                     data={distributionData}
                                     cx="50%"
                                     cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={5}
+                                    innerRadius={65}
+                                    outerRadius={85}
+                                    paddingAngle={4}
                                     dataKey="value"
                                     stroke="none"
                                 >
                                     {distributionData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                        <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<ChartTooltip />} cursor={false} />
@@ -292,7 +299,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                     verticalAlign="bottom"
                                     height={36}
                                     iconType="circle"
-                                    formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
+                                    formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>}
                                 />
                             </PieChart>
                         </ResponsiveContainer>
@@ -300,21 +307,22 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 </div>
 
                 {/* Category Distribution */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 relative overflow-hidden group">
+                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10">
                         <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Catégorie</h4>
                         <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={categoryChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} opacity={0.5} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
                                 <XAxis
                                     dataKey="name"
                                     stroke={chartColors.text}
-                                    fontSize={11}
+                                    fontSize={10}
                                     tickLine={false}
                                     axisLine={false}
                                     dy={10}
-                                    tickFormatter={(value) => value.length > 10 ? `${value.substring(0, 10)}...` : value}
+                                    interval={0}
+                                    tickFormatter={(value) => value.length > 8 ? `${value.substring(0, 8)}..` : value}
                                 />
                                 <YAxis
                                     stroke={chartColors.text}
@@ -323,21 +331,21 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                     axisLine={false}
                                     dx={-10}
                                 />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: chartColors.cursor, opacity: 1 }} />
-                                <Bar dataKey="value" fill="#3b82f6" name="Nombre de risques" radius={[4, 4, 0, 0]} barSize={30} />
+                                <Tooltip content={<ChartTooltip />} cursor={{ fill: chartColors.cursor, radius: 4 }} />
+                                <Bar dataKey="value" fill="url(#barGradientBlue)" name="Nombre de risques" radius={[6, 6, 0, 0]} barSize={24} animationDuration={1000} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
                 {/* Risk Matrix */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 lg:col-span-2 relative overflow-hidden group">
+                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 lg:col-span-2 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10">
                         <h4 className="text-sm font-bold text-foreground mb-4">Matrice des Risques (Probabilité × Impact)</h4>
                         <ResponsiveContainer width="100%" height={300}>
                             <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} opacity={0.5} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
                                 <XAxis
                                     type="number"
                                     dataKey="likelihood"
@@ -368,7 +376,9 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                             entry.score >= 15 ? '#ef4444' :
                                                 entry.score >= 10 ? '#f97316' :
                                                     entry.score >= 5 ? '#eab308' : '#22c55e'
-                                        } />
+                                        }
+                                            style={{ filter: `drop-shadow(0 0 6px ${entry.score >= 15 ? 'rgba(239,68,68,0.5)' : 'rgba(0,0,0,0.1)'})` }}
+                                        />
                                     ))}
                                 </Scatter>
                             </ScatterChart>
@@ -377,13 +387,13 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 </div>
 
                 {/* Treatment Distribution */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 lg:col-span-2 relative overflow-hidden group">
+                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 lg:col-span-2 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10">
                         <h4 className="text-sm font-bold text-foreground mb-4">Stratégies de Traitement</h4>
                         <ResponsiveContainer width="100%" height={200}>
                             <BarChart data={treatmentData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} horizontal={false} opacity={0.5} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} horizontal={false} />
                                 <XAxis type="number" stroke={chartColors.text} fontSize={11} tickLine={false} axisLine={false} />
                                 <YAxis
                                     dataKey="name"
@@ -394,8 +404,8 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                     axisLine={false}
                                     width={80}
                                 />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: chartColors.cursor, opacity: 1 }} />
-                                <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={20}>
+                                <Tooltip content={<ChartTooltip />} cursor={{ fill: chartColors.cursor, radius: 4 }} />
+                                <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={20} animationDuration={1000}>
                                     {treatmentData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={
                                             entry.name === 'Atténuer' ? '#3b82f6' :
@@ -412,7 +422,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
 
             {/* Top Critical Risks */}
             {criticalRisks > 0 && (
-                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 relative overflow-hidden group">
+                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/10 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10">
                         <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
@@ -425,7 +435,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                 .sort((a, b) => b.score - a.score)
                                 .slice(0, 5)
                                 .map((risk, index) => (
-                                    <div key={index} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-800">
+                                    <div key={index} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors cursor-default">
                                         <div className="flex-1">
                                             <p className="font-bold text-sm text-foreground">{risk.threat}</p>
                                             <p className="text-xs text-muted-foreground mt-1">{risk.category || 'Non catégorisé'}</p>
@@ -452,3 +462,4 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
         </div>
     );
 };
+

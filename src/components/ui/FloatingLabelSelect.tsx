@@ -25,8 +25,8 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
 }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const [hasContent, setHasContent] = useState(false);
-    const isOptionSelected = options.some(opt => opt.value === value || opt.value === defaultValue);
-    const hasValue = (value !== undefined && value !== '' && value !== null) || (defaultValue !== undefined && defaultValue !== '' && defaultValue !== null) || hasContent || isOptionSelected;
+
+    const hasValue = (value !== undefined && value !== '' && value !== null) || (defaultValue !== undefined && defaultValue !== '' && defaultValue !== null) || hasContent; // Removed strict option check to prevent overlap
 
     const autoId = React.useId();
     const fieldId = props.id || `floating-select-${autoId}`;

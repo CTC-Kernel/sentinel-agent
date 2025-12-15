@@ -92,29 +92,29 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
   return (
     <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 min-w-0 ${className}`}>
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 animate-in fade-in slide-in-from-left-4 duration-500">
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center gap-2 mb-4 min-w-0" aria-label="Breadcrumb">
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors group"
+            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
             aria-label="Retour à l'accueil"
           >
-            <Home className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
+            <Home className="h-4 w-4 group-hover:scale-110 transition-transform" />
           </button>
 
           {items.map((crumb, index) => (
             <React.Fragment key={index}>
-              <ChevronRight className="h-3.5 w-3.5 text-slate-300 dark:text-slate-600" />
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
               {crumb.path ? (
                 <button
                   onClick={() => navigate(crumb.path!)}
-                  className="text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors capitalize"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors capitalize hover:underline underline-offset-4"
                 >
                   {crumb.label}
                 </button>
               ) : (
-                <span className="text-sm font-semibold text-slate-900 dark:text-white capitalize">
+                <span className="text-sm font-semibold text-foreground capitalize">
                   {crumb.label}
                 </span>
               )}
@@ -123,21 +123,21 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         </nav>
 
         {/* Title Section with Icon */}
-        <div className="flex items-center gap-4 min-w-0">
+        <div className="flex items-center gap-5 min-w-0">
           {icon && (
-            <div className="flex shrink-0 items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/25 ring-1 ring-black/5 dark:ring-white/10">
+            <div className="flex shrink-0 items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/25 ring-1 ring-black/5 dark:ring-white/10 group-hover:scale-105 transition-transform duration-300">
               {icon}
             </div>
           )}
-          <div className="min-w-0">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl sm:text-4xl font-bold font-display text-slate-900 dark:text-white tracking-tight animate-blur-in break-words">
+          <div className="min-w-0 flex flex-col gap-1">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-3xl sm:text-4xl font-bold font-display text-foreground tracking-tight break-words">
                 {title}
               </h1>
               {trustType && <SecurityBadge feature={trustType} />}
             </div>
             {subtitle && (
-              <p className="text-base font-medium font-sans text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+              <p className="text-base font-medium text-muted-foreground leading-relaxed max-w-2xl">
                 {subtitle}
               </p>
             )}
