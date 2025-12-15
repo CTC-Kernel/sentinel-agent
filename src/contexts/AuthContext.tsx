@@ -28,7 +28,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
     const [profileError, setProfileError] = useState<Error | null>(null);
-    const { setUser, setOrganization, setTheme } = useStore();
+    const setUser = useStore(s => s.setUser);
+    const setOrganization = useStore(s => s.setOrganization);
+    const setTheme = useStore(s => s.setTheme);
 
     const [isBlocked, setIsBlocked] = useState(isAppCheckFailed);
 
