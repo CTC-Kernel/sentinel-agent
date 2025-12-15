@@ -6,7 +6,6 @@ import { SparklesCore } from '../components/ui/aceternity/Sparkles';
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
-    signInWithPopup,
     signInWithRedirect,
     signInWithCredential,
     getRedirectResult,
@@ -227,24 +226,13 @@ export const Login: React.FC = () => {
                 }
             } else {
                 // Web Google Sign In
-                // Try Popup first (works best with COOP: unsafe-none)
-                // Fallback to Redirect if blocked.
+                // Now that authDomain is Same-Origin, Redirect is the most robust method.
                 const provider = new GoogleAuthProvider();
                 try {
-                    console.log("Login: Attempting signInWithPopup...");
-                    console.log("Login: Auth Domain:", auth.app.options.authDomain);
-                    console.log("Login: Current Origin:", window.location.origin);
-
-                    await signInWithPopup(auth, provider);
-
-                    console.log("Login: Popup Success!");
-                    addToast("Connexion réussie", "success");
-                    window.location.hash = '#/';
-                } catch (popupError: unknown) {
-                    console.error("Login: Popup failed, details:", popupError);
-                    console.log("Login: Falling back to redirect...");
-                    // Fallback for environments where popups are blocked
                     await signInWithRedirect(auth, provider);
+                } catch (error) {
+                    console.error("Redirect login failed", error);
+                    throw error;
                 }
             }
         } catch (error: unknown) {

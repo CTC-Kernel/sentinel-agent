@@ -15,7 +15,11 @@ import { ErrorLogger } from './services/errorLogger';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  // CRITICAL: Use current hostname as authDomain in production to prevent Cross-Origin issues (COOP/ITP)
+  // This allows signInWithRedirect to share session cookies correctly.
+  authDomain: (typeof window !== 'undefined' && window.location.hostname.includes('cyber-threat-consulting.com'))
+    ? window.location.hostname
+    : import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
