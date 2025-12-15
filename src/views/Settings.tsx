@@ -26,7 +26,7 @@ const Settings: React.FC = () => {
     };
 
     return (
-        <div className="pt-24 px-4 sm:px-6 lg:px-8 pb-16 max-w-8xl mx-auto space-y-8">
+        <div className="max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen pt-4 sm:pt-8 px-4 md:px-8 overflow-x-hidden">
             <Helmet>
                 <title>{t('settings.title')} | Sentinel GRC</title>
             </Helmet>
