@@ -457,8 +457,9 @@ export const Login: React.FC = () => {
                             {!resetSent ? (
                                 <form onSubmit={resetForm.handleSubmit(handlePasswordReset)} className="space-y-6">
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Email</label>
+                                        <label htmlFor="reset-email" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Email</label>
                                         <input
+                                            id="reset-email"
                                             type="email"
                                             className={`w-full px-4 py-3.5 bg-slate-50 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium dark:text-white ${resetForm.formState.errors.email ? 'border-red-500' : 'border-slate-200 dark:border-white/10'}`}
                                             placeholder="nom@entreprise.com"
@@ -497,24 +498,37 @@ export const Login: React.FC = () => {
                                     <Lock className="h-7 w-7" />
                                 </div>
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Authentification MFA</h3>
-                                <p className="text-sm text-slate-600 mt-2">Entrez le code de votre application d'authentification.</p>
+                                <p className="text-sm text-slate-600 mt-2">Saisissez votre code de vérification.</p>
                             </div>
+
+                            {mfaError && (
+                                <div className="w-full mb-4 p-3 bg-red-50 border border-red-100 rounded-2xl text-xs font-bold text-red-600 text-center">
+                                    {mfaError}
+                                </div>
+                            )}
 
                             <form onSubmit={handleMfaVerification} className="space-y-6">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Code de vérification</label>
+                                    <label htmlFor="mfa-code" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Code de vérification</label>
                                     <input
+                                        id="mfa-code"
+                                        name="mfaCode"
                                         type="text"
                                         value={mfaCode}
                                         onChange={(e) => setMfaCode(e.target.value)}
-                                        className={`w-full px-4 py-3.5 bg-slate-50 dark:bg-black/20 border rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none font-medium dark:text-white text-center tracking-[0.5em] text-xl ${mfaError ? 'border-red-500' : 'border-slate-200 dark:border-white/10'}`}
+                                        className="w-full px-4 py-3.5 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-medium tracking-widest text-center text-lg dark:text-white"
                                         placeholder="000000"
                                         maxLength={6}
-                                        autoFocus
+                                        autoComplete="one-time-code"
+                                        inputMode="numeric"
                                     />
-                                    {mfaError && <p className="text-red-500 text-xs ml-1 font-bold mt-1">{mfaError}</p>}
                                 </div>
-                                <Button type="submit" isLoading={mfaLoading} className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] shadow-lg">
+
+                                <Button
+                                    type="submit"
+                                    isLoading={mfaLoading}
+                                    className="w-full py-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl hover:scale-[1.02] shadow-lg"
+                                >
                                     {mfaLoading ? 'Vérification...' : 'Vérifier'}
                                 </Button>
                             </form>
