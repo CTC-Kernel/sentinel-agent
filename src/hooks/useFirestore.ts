@@ -14,7 +14,7 @@ import {
     WithFieldValue,
     UpdateData
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -105,6 +105,17 @@ export const useFirestoreCollection = <T = DocumentData>(
             },
             (err: unknown) => {
                 const errorObj = err instanceof Error ? err : new Error(String(err));
+
+                // Suppress 'permission-denied' errors if user is logged out (race condition on signout)
+                const isPermissionError = (errorObj as any).code === 'permission-denied' || errorObj.message.includes('permission-denied');
+
+                if (isPermissionError && !auth.currentUser) {
+                    // Gracefully handle logout race condition
+                    setRealtimeFailed(true);
+                    setRealtimeLoading(false);
+                    return;
+                }
+
                 setRealtimeError(errorObj);
                 if (logError) {
                     ErrorLogger.error(errorObj, `useFirestoreCollection.onSnapshot.${collectionName}`);
@@ -253,6 +264,15 @@ export const useFirestoreDocument = <T extends { id: string }>(
                 },
                 (err: unknown) => {
                     const errorObj = err instanceof Error ? err : new Error(String(err));
+
+                    // Suppress 'permission-denied' errors if user is logged out (race condition on signout)
+                    const isPermissionError = (errorObj as any).code === 'permission-denied' || errorObj.message.includes('permission-denied');
+
+                    if (isPermissionError && !auth.currentUser) {
+                        setRealtimeLoading(false);
+                        return;
+                    }
+
                     setRealtimeError(errorObj);
                     if (logError) {
                         ErrorLogger.error(errorObj, `useFirestoreDocument.onSnapshot.${collectionName}.${docId}`);

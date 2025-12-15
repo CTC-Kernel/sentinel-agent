@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
     User,
     onIdTokenChanged,
@@ -119,13 +119,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [firebaseUser, logout]);
 
     // Gestionnaire principal d'état d'authentification
+    // Use refs to track subscriptions across async executions and avoid leaks
+    const unsubscribeProfileRef = useRef<(() => void) | undefined>(undefined);
+    const unsubscribeOrgRef = useRef<(() => void) | undefined>(undefined);
+
     useEffect(() => {
-
-
-        let unsubscribeProfile: (() => void) | undefined;
-        let unsubscribeOrg: (() => void) | undefined;
-
-
         // Sécurité : Timeout pour éviter le chargement infini
         const safetyTimeout = setTimeout(() => {
             if (loading) {
@@ -133,36 +131,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setProfileError(new Error("Délai d'attente dépassé (Connexion lente)"));
                 setLoading(false);
             }
-        }, 12000); // Increased to 12s for slow Long Polling connections
+        }, 12000);
 
         const handleUser = async (u: User | null) => {
+            // IMMEDIATE CLEANUP: Stop any existing listeners before doing anything else
+            if (unsubscribeProfileRef.current) {
+                unsubscribeProfileRef.current();
+                unsubscribeProfileRef.current = undefined;
+            }
+            if (unsubscribeOrgRef.current) {
+                unsubscribeOrgRef.current();
+                unsubscribeOrgRef.current = undefined;
+            }
+
             setFirebaseUser(u);
 
             if (!u) {
                 setUser(null);
+                setOrganization(null); // Ensure org is cleared
                 setLoading(false);
-                if (unsubscribeProfile) unsubscribeProfile();
                 return;
             }
 
-            // FIX: Ensure loading is true while we fetch the profile to prevent AuthGuard from redirecting prematurely
             setLoading(true);
 
             try {
-                // 1. Mettre à jour le dernier login (Throttled: Max 1x per hour per session)
+                // 1. Mettre à jour le dernier login
                 const lastLoginKey = `last_login_update_${u.uid}`;
                 const lastUpdate = sessionStorage.getItem(lastLoginKey);
                 const now = Date.now();
 
                 if (!lastUpdate || now - parseInt(lastUpdate) > 3600000) {
                     const userRef = doc(db, 'users', u.uid);
+                    // Fire and forget - don't await this to block profile loading
                     updateDoc(userRef, {
                         lastLogin: new Date().toISOString(),
                         lastActive: serverTimestamp()
                     }).then(() => {
                         sessionStorage.setItem(lastLoginKey, now.toString());
                     }).catch((e: unknown) => {
-                        // Ignore "not found" errors
                         const err = e as { code?: string };
                         if (err.code !== 'not-found') {
                             ErrorLogger.warn("Failed to update lastLogin", 'AuthContext.handleUser', { metadata: { error: e } });
@@ -172,7 +179,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 // 2. Écouter les changements du profil utilisateur en temps réel
                 const userRef = doc(db, 'users', u.uid);
-                unsubscribeProfile = onSnapshot(userRef, async (snapshot) => {
+                unsubscribeProfileRef.current = onSnapshot(userRef, async (snapshot) => {
                     clearTimeout(safetyTimeout);
                     setIsBlocked(false);
                     setProfileError(null);
@@ -180,7 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     if (snapshot.exists()) {
                         const userData = snapshot.data() as UserProfile;
 
-                        // SELF-HEALING: Vérifier la cohérence des données
+                        // SELF-HEALING
                         if (!userData.role) {
                             userData.role = 'user';
                             setDoc(userRef, { role: 'user' }, { merge: true }).catch(console.error);
@@ -195,9 +202,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         if (userData.theme) setTheme(userData.theme);
 
                         if (userData.organizationId) {
-                            if (unsubscribeOrg) unsubscribeOrg();
+                            // Clean up previous org listener if any (just in case org changed)
+                            if (unsubscribeOrgRef.current) unsubscribeOrgRef.current();
+
                             const orgRef = doc(db, 'organizations', userData.organizationId);
-                            unsubscribeOrg = onSnapshot(orgRef, (orgSnap) => {
+                            unsubscribeOrgRef.current = onSnapshot(orgRef, (orgSnap) => {
                                 if (orgSnap.exists()) {
                                     setOrganization({ id: orgSnap.id, ...orgSnap.data() } as Organization);
                                 } else {
@@ -231,22 +240,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         }
                     }
                 }, async (err) => {
+                    // ERROR HANDLER
                     ErrorLogger.error(err, 'AuthContext.onSnapshot');
                     clearTimeout(safetyTimeout);
 
-                    // HANDLE ERRORS IMMEDIATELY - DO NOT HANG
+                    // Stop listener if it crashed (though usually onSnapshot stops itself, this is double safety)
+                    if (unsubscribeProfileRef.current) {
+                        // Don't call it if it's already dead, but clearing ref is important
+                        unsubscribeProfileRef.current = undefined;
+                    }
+
                     if (err.code === 'permission-denied') {
+                        // Critical: Stop the infinite loop of retries/reloads
+                        // If we don't have permission to read our own profile, we should block.
                         ErrorLogger.warn('Permission denied. Likely App Check or Rules.', 'AuthContext.onSnapshot');
                         setIsBlocked(true);
                     } else if (err.code === 'unavailable' || err.code === 'failed-precondition') {
-                        // Offline/Network issue
-                        ErrorLogger.warn('Firestore unavailable.', 'AuthContext.onSnapshot');
                         setProfileError(new Error("Connexion Firestore impossible."));
                     } else {
                         setError(err as Error);
                     }
 
-                    // ALWAYS STOP LOADING ON ERROR to allow UI to show error state
                     setLoading(false);
                 });
 
@@ -257,15 +271,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         };
 
-        // Écouter les changements d'authentification et de token
         const unsubscribeAuth = onIdTokenChanged(auth, async (user) => {
-            // onIdTokenChanged est déclenché à la connexion, déconnexion, et rafraîchissement de token
             await handleUser(user);
         });
 
-        // Gestion de la connectivité (Optionnel mais bonne pratique SaaS)
         const handleOnline = () => enableNetwork(db);
-        const handleOffline = () => disableNetwork(db); // Ou laisser Firebase gérer le cache
+        const handleOffline = () => disableNetwork(db);
 
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
@@ -273,12 +284,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return () => {
             clearTimeout(safetyTimeout);
             unsubscribeAuth();
-            if (unsubscribeProfile) unsubscribeProfile();
-            if (unsubscribeOrg) unsubscribeOrg();
+            if (unsubscribeProfileRef.current) unsubscribeProfileRef.current();
+            if (unsubscribeOrgRef.current) unsubscribeOrgRef.current();
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
         };
-    }, [setUser, setTheme, logout]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [setUser, setTheme, logout, setOrganization]);
 
     // MFA State
     const [mfaSecret, setMfaSecret] = useState<TotpSecret | null>(null);
