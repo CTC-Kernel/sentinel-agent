@@ -19,8 +19,8 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
         { id: 'profile', label: t('settings.profile'), icon: User },
         { id: 'security', label: t('settings.security'), icon: Shield },
         { id: 'organization', label: t('settings.organization'), icon: Building, requiredPermission: { resource: 'Settings', action: 'manage' } },
-        { id: 'integrations', label: 'Intégrations', icon: Link },
-        { id: 'system', label: 'Système & Logs', icon: Server, requiredPermission: { resource: 'Settings', action: 'read' } },
+        { id: 'integrations', label: t('settings.integrations'), icon: Link },
+        { id: 'system', label: t('settings.systemAndLogs'), icon: Server, requiredPermission: { resource: 'Settings', action: 'read' } },
     ];
 
     const visibleTabs = tabs.filter(tab => !tab.requiredPermission || hasPermission(user, tab.requiredPermission.resource as any, tab.requiredPermission.action as any));

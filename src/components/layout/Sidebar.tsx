@@ -60,7 +60,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       items: [
         { key: 'team', name: t('sidebar.team'), to: '/team', icon: Users },
         { key: 'backup', name: t('common.backup'), to: '/backup', icon: Database },
-        ...(isSuperAdmin ? [{ key: 'super_admin', name: 'Super Admin', to: '/admin_management', icon: Shield }] : [])
+        ...(isSuperAdmin ? [{ key: 'super_admin', name: t('sidebar.superAdmin'), to: '/admin_management', icon: Shield }] : [])
       ]
     }
   ];
