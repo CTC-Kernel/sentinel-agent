@@ -909,7 +909,7 @@ export const Compliance: React.FC = () => {
             initial="initial"
             animate="in"
             exit="out"
-            className="max-w-[1600px] mx-auto space-y-6 animate-fade-in pb-20 relative min-h-screen pt-4 sm:pt-8 px-4 md:px-8"
+            className="max-w-[1920px] mx-auto space-y-6 animate-fade-in pb-20 relative min-h-screen pt-4 sm:pt-8 px-4 md:px-8"
         >
             <div className="fixed inset-0 pointer-events-none -z-10">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[100px] animate-pulse-slow" />
