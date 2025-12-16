@@ -33,6 +33,15 @@ import { useAuth } from './hooks/useAuth';
 const Login = React.lazy(() => import('./views/Login').then(module => ({ default: module.Login })));
 const Onboarding = React.lazy(() => import('./views/Onboarding').then(module => ({ default: module.Onboarding })));
 const VerifyEmail = React.lazy(() => import('./views/VerifyEmail').then(module => ({ default: module.VerifyEmail })));
+const LandingPage = React.lazy(() => import('./views/LandingPage').then(module => ({ default: module.LandingPage })));
+
+// Route wrapper that decides whether to show Landing Page or App logic
+const LandingOrAppRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { user, loading } = useAuth();
+    if (loading) return <LoadingScreen />;
+    if (user) return <>{children}</>;
+    return <LandingPage />; // Authenticated users see dashboard (via AppLayout), visitors see Landing
+};
 
 // Wrapper to activate global shortcuts inside Router context
 const GlobalShortcutsWrapper: React.FC = () => {
@@ -204,6 +213,14 @@ const AppInner: React.FC = () => {
                                 <VerifyEmail />
                             </AuthGuard>
                         } />
+                        {/* Landing Page Route: Shows LandingPage for visitors, AppLayout (Dashboard) for users */}
+                        <Route path="/" element={
+                            <LandingOrAppRoute>
+                                <AppLayout />
+                            </LandingOrAppRoute>
+                        } />
+
+                        {/* Catch-all for sub-routes (e.g. /risks, /assets) protected by AuthGuard */}
                         <Route path="/*" element={
                             <AuthGuard>
                                 <AppLayout />
