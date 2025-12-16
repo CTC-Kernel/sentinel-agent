@@ -44,7 +44,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
     const CardContent = (
         <>
             {/* Header */}
-            <div className={`px-6 py-5 border-b border-white/10 flex justify-between items-center backdrop-blur-md transition-colors duration-300 ${isExpanded ? 'bg-background/80' : 'bg-white/5 dark:bg-black/5'}`}>
+            <div className={`px-4 py-4 md:px-6 md:py-5 border-b border-white/10 flex justify-between items-center backdrop-blur-md transition-colors duration-300 ${isExpanded ? 'bg-background/80' : 'bg-white/5 dark:bg-black/5'}`}>
                 <div className="flex items-center gap-3">
                     {icon && (
                         <div className="p-2 rounded-xl bg-gradient-to-br from-white/80 to-white/40 dark:from-white/10 dark:to-white/5 shadow-sm ring-1 ring-white/20 text-brand-600 dark:text-brand-400">
@@ -78,7 +78,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
             </div>
 
             {/* Content */}
-            <div className={`flex-1 relative transition-all duration-300 ${isExpanded ? 'overflow-auto p-6 custom-scrollbar bg-background/50' : 'overflow-hidden'}`}>
+            <div className={`flex-1 relative transition-all duration-300 ${isExpanded ? 'overflow-auto p-4 md:p-6 custom-scrollbar bg-background/50' : 'overflow-hidden'}`}>
                 <div className={`h-full ${!isExpanded ? 'bg-transparent' : ''}`}>
                     {loading ? (
                         <div className="p-6 h-full">

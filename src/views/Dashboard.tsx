@@ -477,11 +477,7 @@ export const Dashboard: React.FC = () => {
                 keywords="Pilotage SSI, Tableau de bord CISO, KPI Cyber, Conformité, Risques, Gouvernance"
             />
 
-            {/* Background Gradients */}
-            <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-                <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[100px] animate-blob" />
-                <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] animate-blob animation-delay-2000" />
-            </div>
+
 
             <DashboardHeader
                 user={user}

@@ -115,9 +115,8 @@ const AppLayout: React.FC = () => {
     return (
         <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300 pb-safe">
             <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-                <div className="absolute top-[-10%] left-[-20%] w-[70rem] h-[70rem] bg-indigo-100/40 dark:bg-indigo-950/20 rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-float"></div>
-                <div className="absolute top-[10%] right-[-20%] w-[60rem] h-[60rem] bg-blue-100/40 dark:bg-blue-950/20 rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-float" style={{ animationDelay: '2s' }}></div>
-                <div className="absolute bottom-[-20%] left-[20%] w-[60rem] h-[60rem] bg-purple-100/40 dark:bg-purple-950/20 rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-float" style={{ animationDelay: '4s' }}></div>
+                <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[100px] animate-blob" />
+                <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] animate-blob animation-delay-2000" />
             </div>
 
             <div>
@@ -145,7 +144,7 @@ const AppLayout: React.FC = () => {
                 <SmoothScroll
                     id="main-content"
                     enabled={location.pathname !== '/ctc-engine'}
-                    className={`flex-1 min-w-0 overflow-y-auto overflow-x-auto scroll-smooth bg-background ${location.pathname === '/ctc-engine' ? 'p-0 overflow-hidden' : 'p-4 md:p-8'}`}
+                    className={`flex-1 min-w-0 overflow-y-auto overflow-x-auto scroll-smooth ${location.pathname === '/ctc-engine' || location.pathname === '/' ? 'p-0 overflow-hidden' : 'p-4 md:p-8'}`}
                 >
                     <div className={`${location.pathname === '/ctc-engine' ? 'w-full flex-1 animate-fade-in flex flex-col' : 'w-full animate-fade-in min-h-full pb-10'}`}>
                         <Suspense fallback={<LoadingScreen />}>

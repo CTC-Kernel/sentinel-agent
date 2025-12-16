@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 type FloatingLabelIconComponent = React.ElementType<{ className?: string }>;
 
@@ -24,43 +24,23 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
     defaultValue,
     ...props
 }, ref) => {
-    const [isFocused, setIsFocused] = useState(false);
-    const [hasContent, setHasContent] = useState(false);
-    const hasValue = (value !== undefined && value !== null && value !== '') || (defaultValue !== undefined && defaultValue !== null && defaultValue !== '') || hasContent || props.type === 'date' || props.type === 'time' || props.type === 'datetime-local';
-
     const autoId = React.useId();
     const fieldId = props.id || `floating-input-${autoId}`;
     const errorId = `${fieldId}-error`;
     const describedBy = [props['aria-describedby'], error ? errorId : null].filter(Boolean).join(' ') || undefined;
 
-    const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setIsFocused(true);
-        onFocus?.(e as React.FocusEvent<HTMLInputElement>);
-    };
-
-    const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setIsFocused(false);
-        onBlur?.(e as React.FocusEvent<HTMLInputElement>);
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setHasContent(e.target.value !== '');
-        onChange?.(e as React.ChangeEvent<HTMLInputElement>);
-    };
 
     return (
         <div className={`relative ${className}`}>
             <div className={`
-                relative flex items-center w-full rounded-2xl border transition-all duration-300
+                relative flex items-center w-full rounded-2xl border transition-all duration-300 group
                 ${error
                     ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10'
-                    : isFocused
-                        ? 'border-brand-500/50 ring-4 ring-brand-500/10 bg-white/80 dark:bg-slate-900/80 shadow-lg shadow-brand-500/5 backdrop-blur-xl'
-                        : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-500/30 hover:bg-white/80 dark:hover:bg-white/10 backdrop-blur-md'
+                    : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-white/5 focus-within:border-brand-500/50 focus-within:ring-4 focus-within:ring-brand-500/10 focus-within:bg-white/80 dark:focus-within:bg-slate-900/80 focus-within:shadow-lg focus-within:shadow-brand-500/5 hover:border-brand-500/30 hover:bg-white/80 dark:hover:bg-white/10 backdrop-blur-md'
                 }
             `}>
                 {Icon && (
-                    <div className={`pl-4 ${error ? 'text-red-500' : isFocused ? 'text-brand-500' : 'text-slate-500'} ${textarea ? 'self-start mt-3.5' : ''}`}>
+                    <div className={`pl-4 transition-colors duration-200 ${error ? 'text-red-500' : 'text-slate-500 group-focus-within:text-brand-500'} ${textarea ? 'self-start mt-3.5' : ''}`}>
                         <Icon className="h-5 w-5" />
                     </div>
                 )}
@@ -71,18 +51,15 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         {...props as React.TextareaHTMLAttributes<HTMLTextAreaElement>}
                         id={fieldId}
                         value={value}
-                        onFocus={handleFocus}
-                        onBlur={handleBlur}
-                        onChange={handleChange}
                         aria-invalid={!!error}
                         aria-describedby={describedBy}
                         rows={rows}
                         className={`
-                            w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
+                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
                             placeholder-transparent rounded-2xl resize-none
                             ${Icon ? 'pl-2' : ''}
                         `}
-                        placeholder=""
+                        placeholder=" "
                     />
                 ) : (
                     <input
@@ -90,17 +67,14 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         {...props}
                         id={fieldId}
                         value={value}
-                        onFocus={handleFocus}
-                        onBlur={handleBlur}
-                        onChange={handleChange}
                         aria-invalid={!!error}
                         aria-describedby={describedBy}
                         className={`
-                            w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
+                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
                             placeholder-transparent rounded-2xl
                             ${Icon ? 'pl-2' : ''}
                         `}
-                        placeholder=""
+                        placeholder=" "
                     />
                 )}
 
@@ -108,17 +82,14 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                     htmlFor={fieldId}
                     className={`
                         absolute left-4 transition-all duration-200 pointer-events-none
-                        ${(isFocused || hasValue)
-                            ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-900 px-1 rounded'
-                            : 'top-3.5 text-sm font-medium'
-                        }
+                        peer-focus:-top-2.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:tracking-widest peer-focus:bg-white dark:peer-focus:bg-slate-900 peer-focus:px-1 peer-focus:rounded
+                        peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:font-bold peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-widest peer-[:not(:placeholder-shown)]:bg-white dark:peer-[:not(:placeholder-shown)]:bg-slate-900 peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:rounded
+                        top-3.5 text-sm font-medium
                         ${error
                             ? 'text-red-500'
-                            : isFocused
-                                ? 'text-brand-600 font-semibold'
-                                : 'text-slate-500 dark:text-slate-400'
+                            : 'text-slate-500 dark:text-slate-400 peer-focus:text-brand-600'
                         }
-                        ${Icon && !(isFocused || hasValue) ? 'ml-7' : ''}
+                        ${Icon ? 'ml-7 peer-focus:ml-0 peer-[:not(:placeholder-shown)]:ml-0' : ''}
                     `}
                 >
                     {label}

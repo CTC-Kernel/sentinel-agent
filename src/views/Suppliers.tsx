@@ -825,7 +825,7 @@ export const Suppliers: React.FC = () => {
             >
                 {selectedSupplier && (
                     <>
-                        <div className="px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
+                        <div className="px-4 md:px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
                             <ScrollableTabs
                                 tabs={[
                                     { id: 'profile', label: 'Profil', icon: Building },
@@ -838,7 +838,7 @@ export const Suppliers: React.FC = () => {
                                 onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
                             />
                         </div>
-                        <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
                             {inspectorTab === 'profile' && (
                                 <div className="space-y-8">
                                     {isEditing ? (

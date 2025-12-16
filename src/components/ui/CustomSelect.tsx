@@ -49,7 +49,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                         {label && (
                             <ListboxLabel className={`
                                 absolute left-4 transition-all duration-200 pointer-events-none z-10
-                                ${(open || selectedOptions.length > 0)
+                                ${(open || (Array.isArray(value) ? value.length > 0 : !!value))
                                     ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-900 px-1 rounded text-brand-600'
                                     : 'top-3.5 text-sm font-medium text-slate-600'
                                 }
@@ -84,7 +84,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                             <ListboxOptions
                                 anchor="bottom start"
                                 transition
-                                className="z-[100] w-[var(--button-width)] mt-2 max-h-60 overflow-auto rounded-2xl bg-white/90 dark:bg-slate-900/90 py-2 text-base shadow-xl shadow-slate-900/10 ring-1 ring-black/5 focus:outline-none sm:text-sm custom-scrollbar border border-white/20 dark:border-white/10 backdrop-blur-xl transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
+                                className="z-[9999] w-[var(--button-width)] mt-2 max-h-60 overflow-auto rounded-2xl bg-white/90 dark:bg-slate-900/90 py-2 text-base shadow-xl shadow-slate-900/10 ring-1 ring-black/5 focus:outline-none sm:text-sm custom-scrollbar border border-white/20 dark:border-white/10 backdrop-blur-xl transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
                             >
                                 {options.map((option, optionIdx) => (
                                     <ListboxOption

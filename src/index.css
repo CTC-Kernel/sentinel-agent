@@ -72,10 +72,10 @@
   --info-text: #2563eb;
   --info-border: #bfdbfe;
 
-  /* Glassmorphism - Premium */
-  --glass-bg: rgba(255, 255, 255, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+  /* Glassmorphism - Premium - Refined */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 }
 
 .dark {
@@ -117,12 +117,11 @@
   --info-text: #60a5fa;
   --info-border: rgba(37, 99, 235, 0.2);
 
-  /* Glassmorphism Dark - Aligned to Zinc (Neutral) */
-  --glass-bg: rgba(24, 24, 27, 0.6);
-  /* Zinc 900 with opacity */
+  /* Glassmorphism Dark - Refined for depth */
+  --glass-bg: rgba(18, 18, 21, 0.65);
+  /* Slightly darker/richer */
   --glass-border: rgba(255, 255, 255, 0.08);
-  /* White with low opacity for consistent border */
-  --glass-shadow: 0 18px 45px 0 rgba(0, 0, 0, 0.4);
+  --glass-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
 }
 
 html,
@@ -130,7 +129,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: geometricPrecision;
-  background-color: #fafafa;
+  background-color: #f8fafc;
+  /* Slate-50 - cleaner than fafafa */
   font-size: 14px;
   /* Reduced from default 16px for more compact UI */
 }
@@ -175,7 +175,8 @@ h6 {
 
 .dark html,
 .dark body {
-  background-color: #0f172a;
+  background-color: #020617;
+  /* Slate-950 - deeper blacks */
   /* slate-900 */
 }
 
@@ -193,19 +194,19 @@ h6 {
 /* * { -ms-overflow-style: none; scrollbar-width: none; } */
 
 /* Ceramic/Glass Panel - Enhanced contrast */
-/* Ceramic/Glass Panel - Enhanced contrast */
 .glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .dark .glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
 }

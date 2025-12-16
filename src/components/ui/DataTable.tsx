@@ -180,9 +180,9 @@ export function DataTable<TData extends { id: string }, TValue>({
                                             key={header.id}
                                             onClick={header.column.getToggleSortingHandler()}
                                             className={cn(
-                                                "px-6 py-5 text-left text-xs font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap",
+                                                "px-3 py-3 sm:px-6 sm:py-5 text-left text-xs font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap",
                                                 header.column.getCanSort() && "cursor-pointer hover:bg-white/40 dark:hover:bg-white/5 transition-colors",
-                                                header.id === 'select' && "w-[50px] px-4"
+                                                header.id === 'select' && "w-[50px] px-2 sm:px-4"
                                             )}
                                             style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
                                         >
@@ -204,7 +204,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                             Array.from({ length: 5 }).map((_, i) => (
                                 <tr key={i}>
                                     {tableColumns.map((_, j) => (
-                                        <td key={j} className="px-6 py-4">
+                                        <td key={j} className="px-3 py-3 sm:px-6 sm:py-4">
                                             <Skeleton className="h-4 w-full" />
                                         </td>
                                     ))}
@@ -226,7 +226,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                                     )}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <td key={cell.id} className="px-6 py-4 text-sm text-foreground font-medium">
+                                        <td key={cell.id} className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-foreground font-medium">
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </td>
                                     ))}

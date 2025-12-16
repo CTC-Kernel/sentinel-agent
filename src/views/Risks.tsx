@@ -1479,7 +1479,7 @@ export const Risks: React.FC = () => {
                             </div>
                         ) : (
                             <>
-                                <div className="px-8 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-transparent">
+                                <div className="px-4 md:px-8 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-transparent">
                                     <ScrollableTabs
                                         tabs={[
                                             { id: 'details', label: 'Détails', icon: ShieldAlert },
@@ -1497,7 +1497,7 @@ export const Risks: React.FC = () => {
                                     />
                                 </div>
 
-                                <div className="p-8 space-y-8">
+                                <div className="p-4 md:p-8 space-y-8">
                                     {inspectorTab === 'details' && (
                                         <div className="space-y-8">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
