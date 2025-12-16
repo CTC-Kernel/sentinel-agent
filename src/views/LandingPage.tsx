@@ -56,7 +56,7 @@ export const LandingPage: React.FC = () => {
                 }}
             />
 
-            <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+            <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill={theme === 'dark' ? "white" : "#60a5fa"} />
 
             <div className="fixed inset-0 w-full h-full pointer-events-none z-0">
                 <SparklesCore
@@ -66,7 +66,7 @@ export const LandingPage: React.FC = () => {
                     maxSize={1.4}
                     particleDensity={40}
                     className="w-full h-full absolute inset-0"
-                    particleColor="#FFFFFF"
+                    particleColor={theme === 'dark' ? "#FFFFFF" : "#3b82f6"}
                 />
             </div>
 
