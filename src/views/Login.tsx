@@ -273,7 +273,7 @@ export const Login: React.FC = () => {
     };
 
     return (
-        <AuroraBackground className="min-h-screen py-10 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/80 dark:bg-none bg-background relative font-sans selection:bg-brand-500 selection:text-white">
+        <AuroraBackground className="min-h-screen py-4 sm:py-0 px-4 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/80 dark:bg-none bg-background relative font-sans selection:bg-brand-500 selection:text-white overflow-hidden">
             <SEO
                 title="Connexion"
                 description="Connectez-vous à votre espace sécurisé Sentinel GRC."
@@ -304,10 +304,10 @@ export const Login: React.FC = () => {
             </div>
 
             <div className="w-full max-w-[440px] p-6 relative z-10 animate-scale-in flex-1 flex flex-col justify-center mx-auto px-4 sm:px-6 min-w-0">
-                <div className="glass-panel rounded-[2.5rem] p-10 flex flex-col items-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:shadow-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-black/60 backdrop-blur-xl">
+                <div className="glass-panel rounded-[2rem] p-8 flex flex-col items-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:shadow-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-black/60 backdrop-blur-xl">
 
                     {/* Logo */}
-                    <div className="mb-10 flex flex-col items-center">
+                    <div className="mb-6 flex flex-col items-center">
                         <div className="w-16 h-16 rounded-3xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shadow-xl mb-5 ring-1 ring-black/5 transform rotate-3 hover:rotate-0 transition-transform duration-500">
                             <Lock className="h-8 w-8" strokeWidth={2.5} />
                         </div>
@@ -324,7 +324,7 @@ export const Login: React.FC = () => {
                         </div>
                     )}
 
-                    <div className="w-full space-y-5">
+                    <div className="w-full space-y-4">
                         <Button
                             onClick={handleGoogleLogin}
                             isLoading={loading}
