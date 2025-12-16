@@ -226,9 +226,9 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full bg-slate-50 dark:bg-slate-900/50">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full bg-slate-50 dark:bg-black/20">
             {/* Header Tabs */}
-            <div className="flex border-b border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 px-6 pt-4">
+            <div className="flex border-b border-slate-200 dark:border-white/10 bg-white dark:bg-transparent px-6 pt-4">
                 {TABS.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -264,7 +264,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
                 {/* TAB: CONTEXT */}
                 {activeTab === 'context' && (
-                    <div className="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                    <div className="space-y-6 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <LayoutGrid className="h-5 w-5 text-brand-500" /> Le Contexte du Risque
                         </h3>
@@ -345,7 +345,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
                 {/* TAB: IDENTIFICATION */}
                 {activeTab === 'identification' && (
-                    <div className="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                    <div className="space-y-6 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <FileText className="h-5 w-5 text-brand-500" /> Identification de la Menace
                         </h3>
@@ -417,7 +417,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
                 {/* TAB: ASSESSMENT */}
                 {activeTab === 'assessment' && (
-                    <div className="space-y-8 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                    <div className="space-y-8 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <Activity className="h-5 w-5 text-brand-500" /> Évaluation par Matrices
                         </h3>
@@ -455,7 +455,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
                 {/* TAB: TREATMENT */}
                 {activeTab === 'treatment' && (
-                    <div className="space-y-8 bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                    <div className="space-y-8 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <Layers className="h-5 w-5 text-brand-500" /> Décision & Plan de Traitement
                         </h3>
@@ -544,7 +544,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             </div>
 
             {/* Footer Buttons */}
-            <div className="border-t border-slate-200 dark:border-white/10 p-6 bg-white dark:bg-slate-800 flex justify-between items-center">
+            <div className="border-t border-slate-200 dark:border-white/10 p-6 bg-white dark:bg-black/40 backdrop-blur-md flex justify-between items-center">
                 <Button type="button" onClick={onCancel} variant="ghost">Annuler</Button>
                 <div className="flex gap-3">
                     {/* Navigation Buttons */}

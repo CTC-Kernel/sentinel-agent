@@ -33,14 +33,14 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
     return (
         <div className={`relative ${className}`}>
             <div className={`
-                relative flex items-center w-full rounded-2xl border transition-all duration-300 group
+                relative flex items-center w-full rounded-xl border transition-all duration-300 group
                 ${error
                     ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10'
-                    : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-white/5 focus-within:border-brand-500/50 focus-within:ring-4 focus-within:ring-brand-500/10 focus-within:bg-white/80 dark:focus-within:bg-slate-900/80 focus-within:shadow-lg focus-within:shadow-brand-500/5 hover:border-brand-500/30 hover:bg-white/80 dark:hover:bg-white/10 backdrop-blur-md'
+                    : 'border-input bg-background/50 hover:bg-accent/50 dark:hover:bg-white/5 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:bg-background focus-within:shadow-lg focus-within:shadow-brand-500/10 backdrop-blur-sm'
                 }
             `}>
                 {Icon && (
-                    <div className={`pl-4 transition-colors duration-200 ${error ? 'text-red-500' : 'text-slate-500 group-focus-within:text-brand-500'} ${textarea ? 'self-start mt-3.5' : ''}`}>
+                    <div className={`pl-4 transition-colors duration-200 ${error ? 'text-red-500' : 'text-muted-foreground group-focus-within:text-brand-500'} ${textarea ? 'self-start mt-3.5' : ''}`}>
                         <Icon className="h-5 w-5" />
                     </div>
                 )}

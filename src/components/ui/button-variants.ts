@@ -5,17 +5,17 @@ export const buttonVariants = cva(
     {
         variants: {
             variant: {
-                default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg shadow-primary/20",
+                default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0",
                 destructive:
-                    "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md shadow-destructive/20",
+                    "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md shadow-destructive/20 hover:shadow-destructive/30 hover:-translate-y-0.5",
                 outline:
-                    "border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200",
+                    "border border-input bg-background/50 hover:bg-accent hover:text-accent-foreground backdrop-blur-sm",
                 secondary:
-                    "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-                ghost: "hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white",
+                    "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm",
+                ghost: "hover:bg-accent hover:text-accent-foreground",
                 link: "text-primary underline-offset-4 hover:underline",
-                glass: "glass-panel hover:bg-white/40 dark:hover:bg-white/10 text-foreground shadow-sm backdrop-blur-md border border-white/20 dark:border-white/10",
-                premium: "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.02] border border-blue-500/20 active:scale-[0.98]",
+                glass: "glass-panel hover:bg-white/40 dark:hover:bg-white/10 text-foreground shadow-sm backdrop-blur-md border border-white/50 dark:border-white/10 hover:-translate-y-0.5",
+                premium: "relative overflow-hidden bg-gradient-to-r from-brand-600 to-blue-600 text-white shadow-lg shadow-brand-500/30 hover:shadow-brand-500/50 hover:scale-[1.02] active:scale-[0.98] border border-brand-500/20 after:absolute after:inset-0 after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent after:translate-x-[-200%] hover:after:translate-x-[200%] after:transition-transform after:duration-[1.5s] after:ease-in-out",
             },
             size: {
                 default: "h-10 px-4 py-2",

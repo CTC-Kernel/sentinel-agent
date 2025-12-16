@@ -61,13 +61,13 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 
                         <div className="relative mt-1">
                             <ListboxButton className={`
-                                relative w-full cursor-pointer rounded-2xl py-3.5 pl-4 pr-10 text-left 
+                                relative w-full cursor-pointer rounded-xl py-3.5 pl-4 pr-10 text-left 
                                 border transition-all duration-300 outline-none min-h-[50px]
                                 ${error
-                                    ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10 text-red-900 dark:text-red-100'
+                                    ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10 text-destructive'
                                     : open
-                                        ? 'border-brand-500/50 ring-4 ring-brand-500/10 bg-white/80 dark:bg-slate-900/80 shadow-lg shadow-brand-500/5 backdrop-blur-xl'
-                                        : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-500/30 hover:bg-white/80 dark:hover:bg-white/10 backdrop-blur-md'
+                                        ? 'border-brand-500 ring-2 ring-brand-500/20 bg-background shadow-lg shadow-brand-500/10 backdrop-blur-xl'
+                                        : 'border-input bg-background/50 hover:bg-accent/50 dark:hover:bg-white/5 hover:border-brand-500/50 backdrop-blur-sm'
                                 }
                             `}>
                                 <span className={`block truncate font-medium ${selectedOptions.length === 0 ? 'text-slate-500' : 'text-slate-900 dark:text-white'}`}>

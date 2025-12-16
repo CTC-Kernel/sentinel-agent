@@ -169,7 +169,7 @@ export function DataTable<TData extends { id: string }, TValue>({
             </div>
 
             {/* Table */}
-            <div className="w-full overflow-x-auto rounded-[2rem] glass-panel bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
+            <div className="w-full overflow-x-auto rounded-xl border border-white/20 dark:border-white/10 glass-panel shadow-sm">
                 <table className="w-full">
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (

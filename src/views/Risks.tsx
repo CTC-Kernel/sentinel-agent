@@ -1032,7 +1032,7 @@ export const Risks: React.FC = () => {
             {/* Stats */}
             {/* Insight Card (Summary) */}
             <motion.div variants={slideUpVariants}>
-                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-lg relative overflow-hidden group">
+                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-transparent dark:border-white/5 shadow-lg relative overflow-hidden group">
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative z-10">
                         <div className="space-y-2">
@@ -1046,7 +1046,7 @@ export const Risks: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="h-px w-full md:w-px md:h-20 bg-gradient-to-b from-transparent via-slate-200 dark:via-white/10 to-transparent" />
+                        <div className="h-px w-full md:w-px md:h-20 bg-gradient-to-b from-transparent via-slate-200 dark:via-white/5 to-transparent" />
 
                         <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-8">
                             <div>
@@ -1092,7 +1092,7 @@ export const Risks: React.FC = () => {
 
             <motion.div variants={slideUpVariants}>
                 <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div className="flex flex-wrap items-center gap-4 glass-panel p-2 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 min-w-0 border border-white/60 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
+                    <div className="flex flex-wrap items-center gap-4 glass-panel p-2 pl-4 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all flex-1 min-w-0 border border-transparent dark:border-white/5 bg-white/40 dark:bg-black/20 backdrop-blur-md">
                         <Search className="h-5 w-5 text-slate-500" />
                         <input type="text" placeholder="Rechercher une menace ou une vulnérabilité..." className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2 font-medium placeholder-slate-400" value={filter} onChange={e => setFilter(e.target.value)} />
                         {filter && (
@@ -1376,7 +1376,7 @@ export const Risks: React.FC = () => {
                                             <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
                                         </div>
                                         <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">{risk.threat}</h4>
-                                        <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50/80 dark:bg-slate-900/50 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
+                                        <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50/80 dark:bg-black/20 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
                                             <span className="font-bold text-xs uppercase text-slate-500 block mb-1">Vulnérabilité</span>
                                             <SafeHTML content={risk.vulnerability} className="line-clamp-3" />
                                         </div>

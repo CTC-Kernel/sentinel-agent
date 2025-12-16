@@ -144,7 +144,7 @@ const AppLayout: React.FC = () => {
                 <SmoothScroll
                     id="main-content"
                     enabled={location.pathname !== '/ctc-engine'}
-                    className={`flex-1 min-w-0 overflow-y-auto overflow-x-auto scroll-smooth ${location.pathname === '/ctc-engine' || location.pathname === '/' ? 'p-0 overflow-hidden' : 'p-4 md:p-8'}`}
+                    className={`flex-1 min-w-0 overflow-y-auto overflow-x-auto scroll-smooth ${location.pathname === '/ctc-engine' || location.pathname === '/' || location.pathname === '/assets' ? 'p-0' : 'p-4 md:p-8'}`}
                 >
                     <div className={`${location.pathname === '/ctc-engine' ? 'w-full flex-1 animate-fade-in flex flex-col' : 'w-full animate-fade-in min-h-full pb-10'}`}>
                         <Suspense fallback={<LoadingScreen />}>

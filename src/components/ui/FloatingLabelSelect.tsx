@@ -51,12 +51,12 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
     return (
         <div className={`relative ${className}`}>
             <div className={`
-                relative flex items-center w-full rounded-2xl border transition-all duration-200
+                relative flex items-center w-full rounded-xl border transition-all duration-200
                 ${error
                     ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10'
                     : isFocused
-                        ? 'border-brand-500 ring-2 ring-brand-500/20 bg-white dark:bg-black/20'
-                        : 'border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 hover:border-gray-300 dark:hover:border-white/20'
+                        ? 'border-brand-500 ring-2 ring-brand-500/20 bg-background'
+                        : 'border-input bg-background/50 hover:bg-accent/50 dark:hover:bg-white/5 hover:border-brand-500/50'
                 }
             `}>
                 {Icon && (

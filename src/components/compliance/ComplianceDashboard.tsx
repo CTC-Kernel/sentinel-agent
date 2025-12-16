@@ -136,7 +136,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
             {/* Summary Card */}
             {/* Compact Summary Card */}
-            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-lg flex flex-col xl:flex-row gap-8 relative overflow-hidden group hover:shadow-apple transition-all duration-500 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
+            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 shadow-lg flex flex-col xl:flex-row gap-8 relative overflow-hidden group hover:shadow-apple transition-all duration-500 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
 
@@ -230,7 +230,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
             {totalControls > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {/* Status Distribution */}
-                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
+                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
                         <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
                             <PieChartIcon className="w-4 h-4 text-brand-500" />
@@ -266,7 +266,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
 
                     {/* Domain Progress */}
-                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
+                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
                         <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
                             <BarChartIcon className="w-4 h-4 text-brand-500" />
@@ -302,7 +302,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
 
                     {/* Radar Chart */}
-                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 lg:col-span-2 xl:col-span-1 shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
+                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 lg:col-span-2 xl:col-span-1 shadow-sm min-w-0 relative group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
                         <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
                             <Target className="w-4 h-4 text-brand-500" />
@@ -331,7 +331,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center p-12 glass-panel rounded-[2rem] border border-white/60 dark:border-white/10 border-dashed">
+                <div className="flex flex-col items-center justify-center p-12 glass-panel rounded-[2rem] border border-white/60 dark:border-white/5 border-dashed">
                     <div className="p-4 bg-slate-100 dark:bg-white/5 rounded-full mb-4">
                         <TrendingUp className="h-8 w-8 text-slate-400" />
                     </div>
@@ -344,7 +344,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
             {/* Critical Controls Not Implemented */}
             {criticalControls.length > 0 && (
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 relative group hover:shadow-apple overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative group hover:shadow-apple overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
                     <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 relative z-10">
                         <AlertTriangle className="h-4 w-4 text-orange-500" />
@@ -369,7 +369,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
             )}
 
             {/* Domain Details */}
-            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 relative group hover:shadow-apple transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20">
+            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative group hover:shadow-apple transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
                 <h4 className="text-sm font-bold text-foreground mb-4 relative z-10 flex items-center gap-2">
                     <ShieldAlert className="w-4 h-4 text-brand-500" />

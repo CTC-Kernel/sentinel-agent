@@ -112,12 +112,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <motion.div
             initial={{ opacity: 0, scale: 0.98, filter: 'blur(10px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-            className="glass-panel relative rounded-[2rem] p-1 border border-white/60 dark:border-white/10 shadow-lg overflow-hidden group"
+            className="glass-panel relative rounded-3xl p-1 border border-white/60 dark:border-white/10 shadow-lg overflow-hidden group"
         >
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
             {/* Inner Content Container */}
-            <div className="relative z-10 rounded-[1.8rem] bg-white/40 dark:bg-slate-900/40 backdrop-blur-md p-6 md:p-8 transition-all duration-500 group-hover:bg-white/50 dark:group-hover:bg-slate-900/50">
+            <div className="relative z-10 rounded-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-md p-6 md:p-8 transition-all duration-500 group-hover:bg-white/50 dark:group-hover:bg-slate-900/50">
 
                 <div className="relative z-10 px-6 py-5">
                     <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
