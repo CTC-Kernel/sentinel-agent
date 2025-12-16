@@ -339,7 +339,7 @@ export const Incidents: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen"
+            className="w-full max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-10 relative min-h-screen"
         >
             <div className="fixed inset-0 pointer-events-none -z-10">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-500/10 rounded-full blur-[100px] animate-pulse-slow" />
