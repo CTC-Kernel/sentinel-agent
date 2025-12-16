@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, X, Filter, LayoutGrid, List, Loader2 } from 'lucide-react';
+import { Search, X, Filter, LayoutGrid, List, Loader2, Grid3X3 } from 'lucide-react';
 
 
 interface PageControlsProps {
@@ -17,8 +17,8 @@ interface PageControlsProps {
     activeFiltersCount?: number;
 
     // View Mode
-    viewMode?: 'grid' | 'list';
-    onViewModeChange?: (mode: 'grid' | 'list') => void;
+    viewMode?: 'grid' | 'list' | 'matrix';
+    onViewModeChange?: (mode: 'grid' | 'list' | 'matrix') => void;
 
     // Actions
     primaryAction?: React.ReactNode;
@@ -124,6 +124,15 @@ export const PageControls: React.FC<PageControlsProps> = ({
                             title="Vue Liste"
                         >
                             <List className="h-4 w-4" />
+                        </button>
+                        <button
+                            onClick={() => onViewModeChange('matrix')}
+                            className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'matrix'
+                                ? 'bg-white dark:bg-slate-800 text-brand-600 shadow-sm scale-100'
+                                : 'text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5'}`}
+                            title="Vue Matrice"
+                        >
+                            <Grid3X3 className="h-4 w-4" />
                         </button>
                     </div>
                 )}

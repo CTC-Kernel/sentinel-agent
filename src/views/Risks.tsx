@@ -8,7 +8,7 @@ import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, l
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment, Criticality, Incident, MitreTechnique } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, Search, Server, Trash2, History, Copy, BrainCircuit, TrendingUp, ArrowRight, CheckCircle2, FileSpreadsheet, Loader2, Filter, ShieldAlert } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, History, Copy, BrainCircuit, TrendingUp, ArrowRight, CheckCircle2, FileSpreadsheet, Loader2, Filter, ShieldAlert, Download, FileText, TrendingDown, RefreshCw, Clock, Edit, LayoutDashboard, FolderKanban, MessageSquare, Network, CalendarDays } from '../components/ui/Icons';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 import { Badge } from '../components/ui/Badge';
@@ -959,6 +959,26 @@ export const Risks: React.FC = () => {
                 isLoading={analyzing}
             />
 
+            {showAdvancedSearch && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <AdvancedSearch
+                        onSearch={(filters) => {
+                            setActiveFilters(filters);
+                            setShowAdvancedSearch(false);
+                        }}
+                        onClose={() => setShowAdvancedSearch(false)}
+                    />
+                </div>
+            )}
+
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept=".csv"
+                onChange={handleFileUpload}
+            />
+
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
@@ -1102,6 +1122,14 @@ export const Risks: React.FC = () => {
                         canEdit && (
                             <div className="flex gap-2">
                                 <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={importing}
+                                    className="hidden sm:flex items-center px-4 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-sm font-bold rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800"
+                                >
+                                    {importing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSpreadsheet className="h-4 w-4 mr-2" />}
+                                    Import CSV
+                                </button>
+                                <button
                                     onClick={() => setShowTemplateModal(true)}
                                     className="flex items-center px-4 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 text-sm font-bold rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all border border-indigo-200 dark:border-indigo-800"
                                 >
@@ -1117,7 +1145,14 @@ export const Risks: React.FC = () => {
                         )
                     }
                     secondaryActions={
-                        <>
+                        <div className="flex items-center gap-2">
+                            <div className="w-40 hidden lg:block">
+                                <CustomSelect
+                                    options={[{ label: 'Toutes les normes', value: 'Toutes les normes' }, ...FRAMEWORK_OPTIONS]}
+                                    value={frameworkFilter || 'Toutes les normes'}
+                                    onChange={(val) => setFrameworkFilter(val === 'Toutes les normes' ? '' : val as string)}
+                                />
+                            </div>
                             <button
                                 onClick={handleAIAnalysis}
                                 disabled={analyzing}
@@ -1134,7 +1169,7 @@ export const Risks: React.FC = () => {
                             >
                                 {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
                             </button>
-                        </>
+                        </div>
                     }
                 />
             </motion.div>
@@ -1337,9 +1372,9 @@ export const Risks: React.FC = () => {
                                 <EmptyState
                                     icon={ShieldAlert}
                                     title="Aucun risque identifié"
-                                    description={filter ? "Aucun risque ne correspond à votre recherche." : "Identifiez et évaluez les risques pour protéger votre organisation."}
-                                    actionLabel={filter || !canEdit ? undefined : "Nouveau Risque"}
-                                    onAction={filter || !canEdit ? undefined : openCreationDrawer}
+                                    description={activeFilters.query ? "Aucun risque ne correspond à votre recherche." : "Identifiez et évaluez les risques pour protéger votre organisation."}
+                                    actionLabel={activeFilters.query || !canEdit ? undefined : "Nouveau Risque"}
+                                    onAction={activeFilters.query || !canEdit ? undefined : openCreationDrawer}
                                 />
                             </div>
                         ) : filteredRisks.map(risk => {
