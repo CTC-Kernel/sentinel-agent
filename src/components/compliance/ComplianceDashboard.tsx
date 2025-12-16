@@ -97,7 +97,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
     const domainChartData = Object.entries(domainData).map(([domain, data]) => ({
         domain,
-        rate: (data.implemented / data.total * 100).toFixed(0),
+        rate: Math.round((data.implemented / data.total) * 100),
         total: data.total,
         implemented: data.implemented
     }));
@@ -291,7 +291,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor, radius: 4 }} />
                                     <Bar dataKey="rate" name="Taux %" fill={chartTheme.colors.primary} radius={[6, 6, 0, 0]} barSize={24} animationDuration={1000}>
                                         {domainChartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={parseInt(entry.rate) >= 80 ? `url(#${barGradientSuccessId})` : parseInt(entry.rate) >= 50 ? chartTheme.colors.partial : `url(#${barGradientPrimaryId})`} />
+                                            <Cell key={`cell-${index}`} fill={entry.rate >= 80 ? `url(#${barGradientSuccessId})` : entry.rate >= 50 ? chartTheme.colors.partial : `url(#${barGradientPrimaryId})`} />
                                         ))}
                                     </Bar>
                                 </BarChart>
