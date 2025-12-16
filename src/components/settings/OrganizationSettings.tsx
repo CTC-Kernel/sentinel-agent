@@ -351,12 +351,12 @@ export const OrganizationSettings: React.FC = () => {
                                         disabled={u.uid === user.uid || currentOrg?.ownerId === u.uid || updatingUserIds.has(u.uid)}
                                         className={`text-xs font-semibold bg-white/50 dark:bg-slate-900/50 border border-white/40 dark:border-white/10 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500/20 cursor-pointer backdrop-blur-sm ${updatingUserIds.has(u.uid) ? 'opacity-50 cursor-wait' : ''}`}
                                     >
-                                        <option value="admin">Admin</option>
+                                        <option value="admin">Administrateur</option>
                                         <option value="rssi">RSSI</option>
-                                        <option value="auditor">Auditor</option>
-                                        <option value="project_manager">Manager</option>
-                                        <option value="direction">Director</option>
-                                        <option value="user">User</option>
+                                        <option value="auditor">Auditeur</option>
+                                        <option value="project_manager">Chef de Projet</option>
+                                        <option value="direction">Direction</option>
+                                        <option value="user">Utilisateur</option>
                                     </select>
 
                                     <div className="flex items-center border-l border-white/20 dark:border-white/10 pl-3 gap-1">

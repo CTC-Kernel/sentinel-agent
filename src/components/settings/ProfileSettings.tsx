@@ -207,14 +207,12 @@ export const ProfileSettings: React.FC = () => {
                                             <CustomSelect
                                                 label={t('settings.role')}
                                                 options={[
-                                                    { value: 'admin', label: 'Admin (Full Access)' },
-                                                    { value: 'user', label: 'User (Standard Access)' },
-                                                    { value: 'manager', label: 'Manager' },
-                                                    { value: 'auditor', label: 'Auditor (Read Only)' },
-                                                    { value: 'project_manager', label: 'Project Manager' },
-                                                    { value: 'rssi', label: 'RSSI / CISO' },
-                                                    { value: 'direction', label: 'Direction / Executive' },
-                                                    { value: 'dpo', label: 'DPO' },
+                                                    { value: 'admin', label: 'Administrateur' },
+                                                    { value: 'rssi', label: 'RSSI' },
+                                                    { value: 'auditor', label: 'Auditeur' },
+                                                    { value: 'project_manager', label: 'Chef de Projet' },
+                                                    { value: 'direction', label: 'Direction' },
+                                                    { value: 'user', label: 'Utilisateur' },
                                                 ]}
                                                 value={field.value}
                                                 onChange={field.onChange}
