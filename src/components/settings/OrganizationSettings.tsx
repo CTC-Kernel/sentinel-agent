@@ -227,7 +227,7 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* Subscription */}
             {user?.organizationId && (
-                <div className="bg-linear-to-r from-indigo-900 via-indigo-800 to-indigo-900 rounded-2xl p-6 sm:p-8 shadow-xl text-white relative overflow-hidden group">
+                <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-900 rounded-2xl p-6 sm:p-8 shadow-xl text-white relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-32 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors"></div>
 
                     <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">

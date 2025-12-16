@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
-import { Menu, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command, Shield } from '../ui/Icons';
+import { Menu, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command, Shield, MessageSquare } from '../ui/Icons';
 import { NotificationCenter } from '../ui/NotificationCenter';
 import { signOut } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
+import { FeedbackModal } from '../ui/FeedbackModal';
 
 interface TopBarProps {
     setMobileOpen: (open: boolean) => void;
@@ -15,6 +16,7 @@ interface TopBarProps {
 export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
     const { theme, toggleTheme, user, t } = useStore();
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [showFeedback, setShowFeedback] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
 
     // Handle click outside for user menu
@@ -178,6 +180,13 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                         <span className="w-4 h-4 mr-3 flex items-center justify-center font-serif italic font-black border border-current rounded-full text-[10px]">€</span>
                                         {t('settings.plansAndBilling')}
                                     </Link>
+                                    <button
+                                        onClick={() => { setShowUserMenu(false); setShowFeedback(true); }}
+                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                    >
+                                        <MessageSquare className="h-4 w-4 mr-3 text-slate-500" />
+                                        Donner un avis
+                                    </button>
                                 </div>
                                 <div className="h-px bg-slate-100 dark:bg-white/5 mx-2"></div>
                                 <div className="p-2">
@@ -194,6 +203,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                     </div>
                 </div>
             </div>
+            <FeedbackModal isOpen={showFeedback} onClose={() => setShowFeedback(false)} />
         </header>
     );
 };
