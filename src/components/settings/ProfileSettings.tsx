@@ -173,7 +173,7 @@ export const ProfileSettings: React.FC = () => {
                         </div>
                         <div className="text-center">
                             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('settings.profilePhoto')}</p>
-                            <p className="text-xs text-slate-400 dark:text-slate-500">JPG, PNG, GIF max 5MB</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-500">{t('settings.photoRequirements')}</p>
                         </div>
                     </div>
 
@@ -207,12 +207,12 @@ export const ProfileSettings: React.FC = () => {
                                             <CustomSelect
                                                 label={t('settings.role')}
                                                 options={[
-                                                    { value: 'admin', label: 'Administrateur' },
-                                                    { value: 'rssi', label: 'RSSI' },
-                                                    { value: 'auditor', label: 'Auditeur' },
-                                                    { value: 'project_manager', label: 'Chef de Projet' },
-                                                    { value: 'direction', label: 'Direction' },
-                                                    { value: 'user', label: 'Utilisateur' },
+                                                    { value: 'admin', label: t('settings.roles.admin') },
+                                                    { value: 'rssi', label: t('settings.roles.rssi') },
+                                                    { value: 'auditor', label: t('settings.roles.auditor') },
+                                                    { value: 'project_manager', label: t('settings.roles.project_manager') },
+                                                    { value: 'direction', label: t('settings.roles.direction') },
+                                                    { value: 'user', label: t('settings.roles.user') },
                                                 ]}
                                                 value={field.value}
                                                 onChange={field.onChange}
@@ -236,9 +236,9 @@ export const ProfileSettings: React.FC = () => {
                         <div className="space-y-6">
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
-                                    Api Keys
+                                    {t('settings.apiKeys')}
                                     <span className="px-2 py-0.5 rounded text-xs font-medium bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
-                                        Private
+                                        {t('settings.private')}
                                     </span>
                                 </h3>
                                 <p className="text-sm text-slate-500 dark:text-slate-400">{t('settings.apiKeysDesc')}</p>

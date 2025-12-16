@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useStore } from '../../store';
-import { Building, Users, Star, RefreshCw, Trash2, Loader2, FileSpreadsheet } from '../ui/Icons';
+import { Building, Users, Star, RefreshCw, Trash2, Loader2, FileSpreadsheet, Search } from '../ui/Icons';
 
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,6 +23,7 @@ export const OrganizationSettings: React.FC = () => {
     const [savingOrg, setSavingOrg] = useState(false);
     const [subLoading, setSubLoading] = useState(false);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [updatingUserIds, setUpdatingUserIds] = useState<Set<string>>(new Set());
 
     // Transfer Modal
@@ -199,6 +200,11 @@ export const OrganizationSettings: React.FC = () => {
         });
     };
 
+    const filteredUsers = usersList.filter(u =>
+        u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="space-y-6 animate-fade-in-up">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">{t('settings.organization')}</h2>
@@ -231,7 +237,11 @@ export const OrganizationSettings: React.FC = () => {
                             </div>
                             <div>
                                 <div className="flex items-center gap-3">
-                                    <h4 className="text-xl font-bold">{currentOrg?.subscription?.planId === 'professional' ? 'Professional' : currentOrg?.subscription?.planId === 'enterprise' ? 'Enterprise' : 'Discovery'} Plan</h4>
+                                    <h4 className="text-xl font-bold">
+                                        {currentOrg?.subscription?.planId === 'professional' ? t('settings.plans.professional') :
+                                            currentOrg?.subscription?.planId === 'enterprise' ? t('settings.plans.enterprise') :
+                                                t('settings.plans.discovery')}
+                                    </h4>
                                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-white/10 text-white/70 border-white/20'}`}>
                                         {currentOrg?.subscription?.status === 'active' ? t('settings.active') : t('settings.free')}
                                     </span>
@@ -311,13 +321,23 @@ export const OrganizationSettings: React.FC = () => {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.users')}</h3>
-                                <p className="text-xs text-slate-500 font-medium">{usersList.length} members</p>
+                                <p className="text-xs text-slate-500 font-medium">{t('settings.membersCount').replace('{count}', usersList.length.toString())}</p>
                             </div>
+                        </div>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <input
+                                type="text"
+                                placeholder={t('settings.searchMembers')}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-9 pr-4 py-2 bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500/20 w-48 transition-all focus:w-64"
+                            />
                         </div>
                     </div>
 
                     <div className="relative z-10 divide-y divide-white/20 dark:divide-white/5">
-                        {usersList.map(u => (
+                        {filteredUsers.map(u => (
                             <div key={u.uid} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/40 dark:hover:bg-white/5 transition-colors">
                                 <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700/50 flex-shrink-0 flex items-center justify-center text-slate-500 font-bold border border-white/40 dark:border-white/10 shadow-sm">
@@ -351,12 +371,12 @@ export const OrganizationSettings: React.FC = () => {
                                         disabled={u.uid === user.uid || currentOrg?.ownerId === u.uid || updatingUserIds.has(u.uid)}
                                         className={`text-xs font-semibold bg-white/50 dark:bg-slate-900/50 border border-white/40 dark:border-white/10 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500/20 cursor-pointer backdrop-blur-sm ${updatingUserIds.has(u.uid) ? 'opacity-50 cursor-wait' : ''}`}
                                     >
-                                        <option value="admin">Administrateur</option>
-                                        <option value="rssi">RSSI</option>
-                                        <option value="auditor">Auditeur</option>
-                                        <option value="project_manager">Chef de Projet</option>
-                                        <option value="direction">Direction</option>
-                                        <option value="user">Utilisateur</option>
+                                        <option value="admin">{t('settings.roles.admin')}</option>
+                                        <option value="rssi">{t('settings.roles.rssi')}</option>
+                                        <option value="auditor">{t('settings.roles.auditor')}</option>
+                                        <option value="project_manager">{t('settings.roles.project_manager')}</option>
+                                        <option value="direction">{t('settings.roles.direction')}</option>
+                                        <option value="user">{t('settings.roles.user')}</option>
                                     </select>
 
                                     <div className="flex items-center border-l border-white/20 dark:border-white/10 pl-3 gap-1">

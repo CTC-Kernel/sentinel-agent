@@ -26,7 +26,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
     const visibleTabs = tabs.filter(tab => !tab.requiredPermission || hasPermission(user, tab.requiredPermission.resource as ResourceType, tab.requiredPermission.action as ActionType));
 
     return (
-        <div className="flex flex-col lg:flex-row gap-8 min-h-[calc(100vh-12rem)] relative">
+        <div className="flex flex-col lg:flex-row gap-8 relative min-h-[calc(100vh-8rem)]">
             {/* Sidebar Navigation */}
             <aside className="w-full lg:w-72 flex-shrink-0 z-30">
                 <nav className="sticky top-24 space-y-4">

@@ -404,6 +404,28 @@ export const translations = {
             contactEmail: 'Email de contact',
             saveChanges: 'Enregistrer les modifications',
             destroy: 'Détruire',
+            // New Keys
+            roles: {
+                admin: 'Administrateur',
+                rssi: 'RSSI',
+                auditor: 'Auditeur',
+                project_manager: 'Chef de Projet',
+                direction: 'Direction',
+                user: 'Utilisateur',
+            },
+            private: 'Privé',
+            apiKeys: 'Clés API',
+            apiKeysDesc: 'Gérez vos clés d\'API pour les services tiers.',
+            photoRequirements: 'JPG, PNG, GIF max 5MB',
+            personalInfo: 'Informations Personnelles',
+            personalInfoDesc: 'Gérez vos informations de profil.',
+            plans: {
+                professional: 'Plan Professionnel',
+                enterprise: 'Plan Entreprise',
+                discovery: 'Plan Découverte',
+            },
+            membersCount: '{count} membres',
+            searchMembers: 'Rechercher un membre...',
         }
     },
     en: {
@@ -735,6 +757,28 @@ export const translations = {
             demoModeDesc: 'Generate dummy data to test the application.',
             generateDemoDataTitle: 'Generate demo data?',
             generateDemoDataMessage: 'This will add a complete set of dummy data (Assets, Risks, Projects, etc.) to your current organization. This action is irreversible (unless manually deleted).',
+            // New Keys
+            roles: {
+                admin: 'Administrator',
+                rssi: 'CISO',
+                auditor: 'Auditor',
+                project_manager: 'Project Manager',
+                direction: 'Executive',
+                user: 'User',
+            },
+            private: 'Private',
+            apiKeys: 'API Keys',
+            apiKeysDesc: 'Manage your API keys for third-party services.',
+            photoRequirements: 'JPG, PNG, GIF max 5MB',
+            personalInfo: 'Personal Information',
+            personalInfoDesc: 'Manage your profile information.',
+            plans: {
+                professional: 'Professional Plan',
+                enterprise: 'Enterprise Plan',
+                discovery: 'Discovery Plan',
+            },
+            membersCount: '{count} members',
+            searchMembers: 'Search for a member...',
         },
         dashboard: {
             demoOrgName: 'Cyber Threat Consulting (Démo)',

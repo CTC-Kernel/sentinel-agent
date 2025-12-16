@@ -395,77 +395,78 @@ export const Team: React.FC = () => {
             />
 
             {/* Summary Card */}
-            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8">
-                <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden shadow-sm hover:shadow-apple transition-all duration-500 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+                <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
                 </div>
 
                 {/* Global Score */}
-                <div className="flex items-center gap-6 relative z-10">
-                    <div className="relative">
-                        <svg className="w-24 h-24 transform -rotate-90" style={{ overflow: 'visible' }}>
+                <div className="flex items-center gap-6 relative z-decorator">
+                    <div className="relative group/ring">
+                        <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
                             <circle
                                 className="text-slate-100 dark:text-slate-800"
                                 strokeWidth="8"
                                 stroke="currentColor"
                                 fill="transparent"
-                                r="44"
+                                r="40"
                                 cx="48"
                                 cy="48"
                             />
                             <circle
                                 className={`${activityRate >= 80 ? 'text-emerald-500' : activityRate >= 50 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
                                 strokeWidth="8"
-                                strokeDasharray={276}
-                                strokeDashoffset={276 - (276 * activityRate) / 100}
+                                strokeDasharray={251.2}
+                                strokeDashoffset={251.2 - (251.2 * activityRate) / 100}
                                 strokeLinecap="round"
                                 stroke="currentColor"
                                 fill="transparent"
-                                r="44"
+                                r="40"
                                 cx="48"
                                 cy="48"
+                                style={{ filter: 'drop-shadow(0 0 4px currentColor)' }}
                             />
                         </svg>
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                            <span className="text-xl font-black text-slate-900 dark:text-white">{Math.round(activityRate)}%</span>
+                            <span className="text-xl font-black text-foreground">{Math.round(activityRate)}%</span>
                         </div>
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Taux d'Activité</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
+                        <h3 className="text-lg font-bold text-foreground mb-1">Taux d'Activité</h3>
+                        <p className="text-sm text-muted-foreground max-w-[200px]">
                             Utilisateurs actifs au cours des 30 derniers jours.
                         </p>
                     </div>
                 </div>
 
                 {/* Key Metrics Breakdown */}
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:border-l sm:border-r border-slate-200 dark:border-white/10 sm:px-6 sm:mx-2">
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border px-6 mx-2">
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <Users className="h-4 w-4 text-slate-500" />
                             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</div>
                         </div>
-                        <div className="text-xl font-black text-slate-900 dark:text-white">{totalUsers}</div>
+                        <div className="text-xl font-black text-foreground">{totalUsers}</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <User className="h-4 w-4 text-slate-500" />
                             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Admins</div>
                         </div>
-                        <div className="text-xl font-black text-slate-900 dark:text-white">{admins}</div>
+                        <div className="text-xl font-black text-foreground">{admins}</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <Mail className="h-4 w-4 text-slate-500" />
                             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Invités</div>
                         </div>
-                        <div className="text-xl font-black text-slate-900 dark:text-white">{pendingInvites}</div>
+                        <div className="text-xl font-black text-foreground">{pendingInvites}</div>
                     </div>
                 </div>
 
                 {/* Alerts/Status */}
-                <div className="flex flex-col gap-3 w-full md:min-w-[180px]">
-                    <div className="flex items-center justify-between p-2.5 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                <div className="flex flex-col gap-3 min-w-[180px]">
+                    <div className="flex items-center justify-between p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
                         <div className="flex items-center gap-2">
                             <UserPlus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                             <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Demandes</span>
