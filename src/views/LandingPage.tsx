@@ -181,19 +181,21 @@ export const LandingPage: React.FC = () => {
                             Accéder à Sentinel GRC
                         </Button>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 flex flex-col justify-center items-center text-center h-32">
-                            <span className="text-3xl font-bold text-slate-900 dark:text-white mb-1">500+</span>
-                            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Audits Réussis</span>
-                        </div>
-                        <div className="p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 flex flex-col justify-center items-center text-center h-32">
-                            <span className="text-3xl font-bold text-slate-900 dark:text-white mb-1">10k+</span>
-                            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Risques Traités</span>
-                        </div>
-                        <div className="col-span-2 p-6 bg-brand-600 rounded-2xl shadow-lg border border-brand-500 flex flex-col justify-center items-center text-center h-32 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-r from-brand-600 to-indigo-600"></div>
-                            <span className="relative z-10 text-3xl font-bold text-white mb-1">100%</span>
-                            <span className="relative z-10 text-xs font-bold uppercase tracking-wider text-brand-100">Satisfaction Client</span>
+                    <div className="relative group">
+                        <div className="absolute inset-0 bg-brand-500/20 blur-[100px] rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-1000 pointer-events-none"></div>
+                        <div className="relative glass-panel rounded-[2rem] p-8 border border-white/10 bg-white/5 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-8 divide-y sm:divide-y-0 sm:divide-x divide-white/10 hover:bg-white/10 transition-colors duration-500">
+                            <div className="flex flex-col items-center text-center px-4 w-full">
+                                <span className="text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 tracking-tight mb-2">500+</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Audits Réussis</span>
+                            </div>
+                            <div className="flex flex-col items-center text-center px-4 w-full">
+                                <span className="text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 tracking-tight mb-2">10k+</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Risques Traités</span>
+                            </div>
+                            <div className="flex flex-col items-center text-center px-4 w-full">
+                                <span className="text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-brand-400 to-indigo-500 tracking-tight mb-2">100%</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-500/80">Satisfaction</span>
+                            </div>
                         </div>
                     </div>
                 </div>

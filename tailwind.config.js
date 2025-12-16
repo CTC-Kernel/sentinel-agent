@@ -29,11 +29,11 @@ export default {
       },
       fontFamily: {
         sans: [
-          'Outfit',
-          'Inter',
           '-apple-system',
           'BlinkMacSystemFont',
           '"SF Pro Text"',
+          'Inter',
+          'Outfit',
           'system-ui',
           'sans-serif',
           '"Apple Color Emoji"',
