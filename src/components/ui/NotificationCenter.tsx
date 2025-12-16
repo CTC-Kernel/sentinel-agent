@@ -96,9 +96,9 @@ export const NotificationCenter: React.FC = () => {
                     />
 
                     {/* Panel */}
-                    <div className="absolute right-0 top-12 z-tooltip w-96 max-h-[600px] bg-white/90 dark:bg-[#0B1120]/95 backdrop-blur-2xl rounded-2xl shadow-2xl dark:shadow-black/50 border border-slate-200/60 dark:border-white/10 overflow-hidden animate-slide-up origin-top-right">
+                    <div className="absolute right-0 top-12 z-tooltip w-96 max-h-[600px] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl dark:shadow-black/50 border border-slate-200 dark:border-slate-800 overflow-hidden animate-slide-up origin-top-right">
                         {/* Header */}
-                        <div className="p-4 border-b border-slate-200/60 dark:border-white/5 flex items-center justify-between shrink-0">
+                        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                                     Notifications
