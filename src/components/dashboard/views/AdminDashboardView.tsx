@@ -53,9 +53,11 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
                         <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
                     </motion.div>
 
-                    <motion.div variants={slideUpVariants}>
+                    {/* DEBUG: Removed animation to check visibility */}
+                    <div>
+                        <div className="text-red-500 font-bold bg-yellow-100 p-2 text-center border border-red-500 mb-2">COMPLIANCE WIDGET HERE (ADMIN)</div>
                         <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
-                    </motion.div>
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <motion.div variants={slideUpVariants}>

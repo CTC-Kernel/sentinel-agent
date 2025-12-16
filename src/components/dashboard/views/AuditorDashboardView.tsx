@@ -36,9 +36,10 @@ export const AuditorDashboardView: React.FC<AuditorDashboardViewProps> = ({
                 <motion.div variants={slideUpVariants} className="lg:col-span-2">
                     <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
                 </motion.div>
-                <motion.div variants={slideUpVariants} className="lg:col-span-1">
+                <div className="lg:col-span-1">
+                    <div className="text-red-500 font-bold bg-yellow-100 p-2 text-center border border-red-500 mb-2">COMPLIANCE WIDGET HERE (AUDITOR)</div>
                     <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
-                </motion.div>
+                </div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <motion.div variants={slideUpVariants}>

@@ -28,7 +28,10 @@ export const DirectionDashboardView: React.FC<DirectionDashboardViewProps> = ({
         <>
             <StatsOverview stats={stats} loading={loading} navigate={navigate} t={t} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
+                <div>
+                    <div className="text-red-500 font-bold bg-yellow-100 p-2 text-center border border-red-500 mb-2">COMPLIANCE WIDGET HERE (DIRECTION)</div>
+                    <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
+                </div>
                 <PriorityRisksWidget topRisks={topRisks} loading={loading} navigate={navigate} t={t} />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
