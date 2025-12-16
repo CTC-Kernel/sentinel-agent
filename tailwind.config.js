@@ -166,6 +166,8 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        '4xl': '2rem', // 32px - For large cards
+        '5xl': '2.5rem', // 40px - For very large containers
       },
       boxShadow: {
         'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.04)',
