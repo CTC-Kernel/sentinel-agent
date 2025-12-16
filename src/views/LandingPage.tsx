@@ -65,7 +65,7 @@ export const LandingPage: React.FC = () => {
                     particleColor={theme === 'dark' ? "#FFFFFF" : "#0ea5e9"}
                     minSize={theme === 'dark' ? 0.6 : 0.4}
                     maxSize={theme === 'dark' ? 1.4 : 1.0}
-                    particleDensity={theme === 'dark' ? 50 : 30}
+                    particleDensity={theme === 'dark' ? 20 : 15}
                 />
             </div>
 
@@ -230,7 +230,7 @@ export const LandingPage: React.FC = () => {
                     </div>
 
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                        © {new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.{' '}
+                        © 2022 Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.{' '}
                         <a
                             href="https://www.cyber-threat-consulting.com"
                             target="_blank"
