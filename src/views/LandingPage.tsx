@@ -56,16 +56,16 @@ export const LandingPage: React.FC = () => {
                 }}
             />
 
-            <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill={theme === 'dark' ? "white" : "#4338ca"} />
+            <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill={theme === 'dark' ? "white" : "#3b82f6"} />
 
             <div className="fixed inset-0 w-full h-full pointer-events-none z-0">
                 <SparklesCore
                     id="tsparticleslanding"
                     background="transparent"
-                    particleColor={theme === 'dark' ? "#FFFFFF" : "#4f46e5"}
-                    minSize={theme === 'dark' ? 0.6 : 1}
-                    maxSize={theme === 'dark' ? 1.4 : 3}
-                    particleDensity={theme === 'dark' ? 40 : 60}
+                    particleColor={theme === 'dark' ? "#FFFFFF" : "#2563eb"}
+                    minSize={0.6}
+                    maxSize={1.4}
+                    particleDensity={50}
                 />
             </div>
 
