@@ -97,7 +97,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             </div>
 
             {isOpen && (
-                <div className="absolute z-50 mt-2 p-2 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 w-auto min-w-[300px] animate-fade-in">
+                <div className="absolute z-tooltip mt-2 p-2 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 w-auto min-w-[300px] animate-fade-in">
                     <Calendar
                         mode="single"
                         selected={selectedDate}

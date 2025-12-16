@@ -40,7 +40,7 @@ export const CookieConsent: React.FC = () => {
 
     return (
         <>
-            <div className="fixed bottom-0 left-0 right-0 z-[100] p-4 animate-slide-up">
+            <div className="fixed bottom-0 left-0 right-0 z-max p-4 animate-slide-up">
                 <div className="max-w-4xl mx-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-start gap-4">
                         <div className="p-3 bg-brand-50 dark:bg-brand-900/20 rounded-xl text-brand-600 shrink-0">

@@ -47,7 +47,7 @@ export const Modal: React.FC<ModalProps> = ({
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in overflow-y-auto">
+        <div className="fixed inset-0 z-max flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in overflow-y-auto">
             <div role="dialog" aria-modal="true" aria-labelledby={title ? titleId : undefined} className={`glass-panel rounded-[2rem] shadow-2xl w-full ${maxWidth} border border-glass-border overflow-hidden animate-scale-in mx-4 sm:mx-0 relative my-8 text-left`}>
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-border bg-background/50">

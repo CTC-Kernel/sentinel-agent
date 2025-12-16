@@ -51,7 +51,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
 
     return (
         <Transition appear show={isOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-50" onClose={onClose}>
+            <Dialog as="div" className="relative z-modal" onClose={onClose}>
                 <Transition.Child
                     as={Fragment}
                     enter="ease-out duration-300"

@@ -95,12 +95,12 @@ export const NotificationCenter: React.FC = () => {
                 <>
                     {/* Backdrop */}
                     <div
-                        className="fixed inset-0 z-40"
+                        className="fixed inset-0 z-header"
                         onClick={() => setIsOpen(false)}
                     />
 
                     {/* Panel */}
-                    <div className="absolute right-0 top-12 z-50 w-96 max-h-[600px] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden animate-slide-up">
+                    <div className="absolute right-0 top-12 z-tooltip w-96 max-h-[600px] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden animate-slide-up">
                         {/* Header */}
                         <div className="p-4 border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
                             <div>

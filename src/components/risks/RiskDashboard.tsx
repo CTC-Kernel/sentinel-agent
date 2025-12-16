@@ -147,7 +147,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 </div>
 
                 {/* Global Score Metric */}
-                <div className="flex items-center gap-6 relative z-10">
+                <div className="flex items-center gap-6 relative z-decorator">
                     <div className="relative group/ring">
                         <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
                             <circle
@@ -235,7 +235,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 {/* Evolution Chart (NEW) */}
                 <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 lg:col-span-2 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-10">
+                    <div className="relative z-decorator">
                         <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                             <Target className="h-4 w-4 text-brand-500" />
                             Évolution du Score Moyen (12 derniers mois)
@@ -276,7 +276,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 {/* Risk Distribution */}
                 <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-10">
+                    <div className="relative z-decorator">
                         <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Niveau</h4>
                         <ResponsiveContainer width="100%" height={250}>
                             <PieChart>
@@ -309,7 +309,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 {/* Category Distribution */}
                 <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-10">
+                    <div className="relative z-decorator">
                         <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Catégorie</h4>
                         <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={categoryChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -341,7 +341,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 {/* Risk Matrix */}
                 <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 lg:col-span-2 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-10">
+                    <div className="relative z-decorator">
                         <h4 className="text-sm font-bold text-foreground mb-4">Matrice des Risques (Probabilité × Impact)</h4>
                         <ResponsiveContainer width="100%" height={300}>
                             <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
@@ -389,7 +389,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 {/* Treatment Distribution */}
                 <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 lg:col-span-2 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-10">
+                    <div className="relative z-decorator">
                         <h4 className="text-sm font-bold text-foreground mb-4">Stratégies de Traitement</h4>
                         <ResponsiveContainer width="100%" height={200}>
                             <BarChart data={treatmentData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -424,7 +424,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
             {criticalRisks > 0 && (
                 <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-10">
+                    <div className="relative z-decorator">
                         <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                             <AlertTriangle className="h-4 w-4 text-red-500" />
                             Top 5 Risques Critiques

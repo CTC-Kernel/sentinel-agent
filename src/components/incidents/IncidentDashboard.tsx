@@ -167,7 +167,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
                 {/* Global Score */}
-                <div className="flex items-center gap-6 relative z-10">
+                <div className="flex items-center gap-6 relative z-decorator">
                     <div className="relative">
                         <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
                             <defs>
@@ -211,7 +211,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 </div>
 
                 {/* Key Metrics Breakdown */}
-                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2 relative z-10">
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2 relative z-decorator">
                     <div>
                         <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Total</div>
                         <div className="text-2xl font-black text-slate-900 dark:text-white">{totalIncidents}</div>
@@ -231,7 +231,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 </div>
 
                 {/* Alerts/Status */}
-                <div className="flex flex-col gap-3 min-w-[200px] relative z-10">
+                <div className="flex flex-col gap-3 min-w-[200px] relative z-decorator">
                     {criticalIncidents > 0 && (
                         <div className="flex items-center gap-3 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50/80 dark:bg-red-900/20 px-4 py-2.5 rounded-xl border border-red-100 dark:border-red-800/30 backdrop-blur-sm">
                             <ShieldAlert className="h-4 w-4 shrink-0" />

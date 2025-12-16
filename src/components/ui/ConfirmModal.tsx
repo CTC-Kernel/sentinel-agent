@@ -67,7 +67,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       'text-blue-600 hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-blue-900/20';
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+    <div className="fixed inset-0 z-max flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
       <div role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" className="bg-popover backdrop-blur-2xl rounded-[2rem] shadow-2xl w-full max-w-md border border-border overflow-hidden animate-scale-in mx-4 sm:mx-0">
         <div className="p-6 text-center">
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg ${colorClass}`}>

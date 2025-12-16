@@ -82,7 +82,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
             {children}
             {isVisible && createPortal(
                 <div
-                    className="fixed z-[9999] px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-xl shadow-xl whitespace-nowrap animate-fade-in pointer-events-none"
+                    className="fixed z-tooltip px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-xl shadow-xl whitespace-nowrap animate-fade-in pointer-events-none"
                     style={{
                         top: coords.top,
                         left: coords.left,

@@ -114,7 +114,7 @@ const AppLayout: React.FC = () => {
 
     return (
         <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300 pb-safe">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
                 <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[100px] animate-blob" />
                 <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] animate-blob animation-delay-2000" />
             </div>
@@ -132,13 +132,13 @@ const AppLayout: React.FC = () => {
             <GeminiAssistant />
 
             {!isOnline && (
-                <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[100] glass-panel px-4 py-2 rounded-full flex items-center text-xs font-medium text-slate-600 shadow-lg animate-slide-up border border-slate-200">
+                <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-tooltip glass-panel px-4 py-2 rounded-full flex items-center text-xs font-medium text-slate-600 shadow-lg animate-slide-up border border-slate-200">
                     <WifiOff className="h-3 w-3 mr-2 text-red-500" />
                     Mode hors ligne
                 </div>
             )}
 
-            <div className="flex-1 min-w-0 flex flex-col overflow-hidden relative">
+            <div className="flex-1 min-w-0 flex flex-col overflow-hidden relative z-decorator">
                 <TopBar setMobileOpen={setMobileOpen} />
 
                 <SmoothScroll

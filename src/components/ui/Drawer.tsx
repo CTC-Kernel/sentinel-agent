@@ -69,7 +69,7 @@ export const Drawer: React.FC<DrawerProps> = ({
 
     return createPortal(
         <div
-            className={`fixed inset-0 z-[9999] overflow-hidden ${!isOpen ? 'pointer-events-none' : ''}`}
+            className={`fixed inset-0 z-max overflow-hidden ${!isOpen ? 'pointer-events-none' : ''}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="drawer-title"

@@ -102,7 +102,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 </div>
 
                 {/* Global Score */}
-                <div className="flex items-center gap-6 relative z-10">
+                <div className="flex items-center gap-6 relative z-decorator">
                     <div className="relative">
                         <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
                             <circle

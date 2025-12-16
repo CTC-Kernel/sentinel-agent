@@ -11,7 +11,7 @@ export const SkipLink: React.FC = () => {
       href="#main-content"
       className="
         sr-only focus:not-sr-only
-        fixed top-4 left-4 z-[9999]
+        fixed top-4 left-4 z-max
         px-6 py-3
         bg-brand-600 text-white
         font-bold text-sm
@@ -54,7 +54,7 @@ export const SkipLinks: React.FC<SkipLinksProps> = ({ links }) => {
           key={index}
           href={link.href}
           className="
-            fixed top-4 z-[9999]
+            fixed top-4 z-max
             px-6 py-3 mr-2
             bg-brand-600 text-white
             font-bold text-sm

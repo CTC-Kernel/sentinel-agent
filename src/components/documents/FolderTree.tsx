@@ -148,7 +148,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
 
             {/* Create Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm" onClick={() => setShowCreateModal(false)}>
+                <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/20 backdrop-blur-sm" onClick={() => setShowCreateModal(false)}>
                     <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-xl w-80 border border-white/10" onClick={e => e.stopPropagation()}>
                         <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white">Nouveau Dossier</h3>
                         <form onSubmit={handleCreateSubmit}>
@@ -174,9 +174,9 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
             {/* Context Menu */}
             {contextMenu && (
                 <>
-                    <div className="fixed inset-0 z-40" onClick={() => setContextMenu(null)} />
+                    <div className="fixed inset-0 z-header" onClick={() => setContextMenu(null)} />
                     <div
-                        className="fixed z-50 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-white/5 py-1 w-48 animate-scale-in"
+                        className="fixed z-modal bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-white/5 py-1 w-48 animate-scale-in"
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                     >
                         <button

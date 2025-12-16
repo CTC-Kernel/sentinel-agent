@@ -349,7 +349,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 {/* Trend Chart */}
                 <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group" data-tour="analytics-trends">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
-                    <div className="relative z-10">
+                    <div className="relative z-decorator">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 font-display">
                             Évolution des Risques et Incidents
                         </h3>
@@ -424,7 +424,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 {/* Compliance Progress */}
                 <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
-                    <div className="relative z-10">
+                    <div className="relative z-decorator">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 font-display">
                             Taux de Conformité ISO 27001
                         </h3>
@@ -458,7 +458,7 @@ export const AnalyticsDashboard: React.FC = () => {
             {/* Risk Distribution */}
             <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
-                <div className="relative z-10">
+                <div className="relative z-decorator">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 font-display">
                         Distribution des Risques par Catégorie
                     </h3>
@@ -499,7 +499,7 @@ export const AnalyticsDashboard: React.FC = () => {
             {/* Top Risks Table */}
             <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
-                <div className="relative z-10">
+                <div className="relative z-decorator">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                         <div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white font-display">

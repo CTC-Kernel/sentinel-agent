@@ -10,7 +10,7 @@ interface OnboardingBannerProps {
 
 export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onDismiss }) => {
     return (
-        <div className="fixed bottom-6 right-6 z-50 max-w-md animate-slide-up">
+        <div className="fixed bottom-6 right-6 z-modal max-w-md animate-slide-up">
             <div className="bg-gradient-to-r from-brand-600 to-purple-600 rounded-2xl shadow-2xl p-6 text-white">
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">

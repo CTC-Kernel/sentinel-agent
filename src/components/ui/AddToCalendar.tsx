@@ -40,7 +40,7 @@ export const AddToCalendar: React.FC<AddToCalendarProps> = ({ event, className }
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-white/5 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-white/5 z-tooltip overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                     <div className="p-1">
                         <a
                             href={CalendarService.google(event)}

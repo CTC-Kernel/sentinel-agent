@@ -236,7 +236,7 @@ export const CommandPalette: React.FC = () => {
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] px-4">
+        <div className="fixed inset-0 z-max flex items-start justify-center pt-[15vh] px-4">
             <div
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300"
                 onClick={() => setIsOpen(false)}

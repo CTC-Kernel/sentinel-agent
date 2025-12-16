@@ -259,7 +259,7 @@ export const GeminiAssistant: React.FC = () => {
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-6 right-6 p-4 bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-full shadow-2xl hover:shadow-indigo-500/40 hover:scale-110 transition-all duration-300 z-50 group border border-white/20"
+                className="fixed bottom-6 right-6 p-4 bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-full shadow-2xl hover:shadow-indigo-500/40 hover:scale-110 transition-all duration-300 z-modal group border border-white/20"
                 aria-label="Ouvrir l'assistant IA"
             >
                 <Sparkles className="h-6 w-6 animate-pulse" />
@@ -272,7 +272,7 @@ export const GeminiAssistant: React.FC = () => {
 
     return (
         <div className={cn(
-            "fixed bottom-6 right-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/20 dark:border-white/10 flex flex-col transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) z-50 overflow-hidden",
+            "fixed bottom-6 right-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/20 dark:border-white/10 flex flex-col transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) z-modal overflow-hidden",
             isExpanded ? "w-[90vw] h-[85vh] md:w-[800px] md:h-[800px]" : "w-[90vw] h-[600px] md:w-[420px]"
         )}>
             {/* Header */}

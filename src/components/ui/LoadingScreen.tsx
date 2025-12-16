@@ -16,7 +16,7 @@ export const LoadingScreen: React.FC = () => {
     if (typeof document === 'undefined') return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] h-[100dvh] w-screen grid place-items-center bg-background transition-colors overflow-hidden">
+        <div className="fixed inset-0 z-max h-[100dvh] w-screen grid place-items-center bg-background transition-colors overflow-hidden">
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] bg-brand-200/40 dark:bg-slate-900/20 rounded-full mix-blend-multiply filter blur-[100px] animate-float"></div>
             </div>

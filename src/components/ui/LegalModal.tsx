@@ -20,7 +20,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
     ] as const;
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-max flex items-center justify-center p-4 sm:p-6">
             <div
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
