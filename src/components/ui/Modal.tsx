@@ -47,15 +47,28 @@ export const Modal: React.FC<ModalProps> = ({
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-max flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in overflow-y-auto">
-            <div role="dialog" aria-modal="true" aria-labelledby={title ? titleId : undefined} className={`glass-panel rounded-[2rem] shadow-2xl w-full ${maxWidth} border border-glass-border overflow-hidden animate-scale-in mx-4 sm:mx-0 relative my-8 text-left`}>
+        <div className="fixed inset-0 z-max flex items-center justify-center overflow-y-auto overflow-x-hidden p-4 sm:p-6 md:p-8">
+            {/* Backdrop */}
+            <div
+                className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity animate-fade-in"
+                onClick={onClose}
+                aria-hidden="true"
+            />
+
+            {/* Modal Panel */}
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={title ? titleId : undefined}
+                className={`relative w-full ${maxWidth} bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-2xl rounded-[2rem] shadow-2xl dark:shadow-black/50 border border-slate-200/60 dark:border-white/10 overflow-hidden animate-scale-in flex flex-col max-h-[90vh]`}
+            >
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-border bg-background/50">
-                    <h3 id={titleId} className="text-xl font-bold text-foreground">{title}</h3>
+                <div className="flex items-center justify-between p-6 border-b border-slate-200/60 dark:border-white/5 shrink-0 transition-colors">
+                    <h3 id={titleId} className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{title}</h3>
                     <button
                         ref={closeButtonRef}
                         onClick={onClose}
-                        className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors"
+                        className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
                         aria-label="Fermer"
                     >
                         <X className="w-5 h-5" />
@@ -63,7 +76,7 @@ export const Modal: React.FC<ModalProps> = ({
                 </div>
 
                 {/* Content */}
-                <div className="max-h-[80vh] overflow-y-auto custom-scrollbar">
+                <div className="overflow-y-auto custom-scrollbar p-0">
                     {children}
                 </div>
             </div>

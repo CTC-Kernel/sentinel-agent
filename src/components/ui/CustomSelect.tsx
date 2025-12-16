@@ -50,8 +50,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                             <ListboxLabel className={`
                                 absolute left-4 transition-all duration-200 pointer-events-none z-10
                                 ${(open || (Array.isArray(value) ? value.length > 0 : !!value))
-                                    ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-slate-900 px-1 rounded text-brand-600'
-                                    : 'top-3.5 text-sm font-medium text-slate-600'
+                                    ? '-top-2.5 text-[10px] font-bold uppercase tracking-widest bg-white dark:bg-[#0B1120] px-1 rounded text-brand-600 dark:text-brand-400'
+                                    : 'top-3.5 text-sm font-medium text-slate-500 dark:text-slate-400'
                                 }
                                 ${error ? '!text-red-500' : ''}
                             `}>
@@ -66,16 +66,16 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                 ${error
                                     ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10 text-destructive'
                                     : open
-                                        ? 'border-brand-500 ring-2 ring-brand-500/20 bg-background shadow-lg shadow-brand-500/10 backdrop-blur-xl'
-                                        : 'border-input bg-background/50 hover:bg-accent/50 dark:hover:bg-white/5 hover:border-brand-500/50 backdrop-blur-sm'
+                                        ? 'border-brand-500 ring-2 ring-brand-500/20 bg-white dark:bg-[#0B1120] shadow-lg shadow-brand-500/10'
+                                        : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-[#0B1120]/40 hover:bg-white/80 dark:hover:bg-[#0B1120]/60 hover:border-brand-500/50 backdrop-blur-sm'
                                 }
                             `}>
-                                <span className={`block truncate font-medium ${selectedOptions.length === 0 ? 'text-slate-500' : 'text-slate-900 dark:text-white'}`}>
+                                <span className={`block truncate font-medium ${selectedOptions.length === 0 ? 'text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
                                     {displayValue}
                                 </span>
                                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
                                     <ChevronDown
-                                        className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+                                        className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180 text-brand-500' : ''}`}
                                         aria-hidden="true"
                                     />
                                 </span>
@@ -85,13 +85,13 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                 anchor="bottom start"
                                 transition
                                 portal={true}
-                                className="z-[10000] w-[var(--button-width)] mt-2 max-h-60 overflow-auto rounded-2xl bg-white/90 dark:bg-slate-900/90 py-2 text-base shadow-xl shadow-slate-900/10 ring-1 ring-black/5 focus:outline-none sm:text-sm custom-scrollbar border border-white/20 dark:border-white/10 backdrop-blur-xl transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
+                                className="z-[10000] w-[var(--button-width)] mt-2 max-h-60 overflow-auto rounded-2xl bg-white/95 dark:bg-[#0B1120]/95 py-2 text-base shadow-2xl dark:shadow-black/50 ring-1 ring-black/5 focus:outline-none sm:text-sm custom-scrollbar border border-slate-200/60 dark:border-white/10 backdrop-blur-2xl transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
                             >
                                 {options.map((option, optionIdx) => (
                                     <ListboxOption
                                         key={optionIdx}
                                         className={({ focus }) =>
-                                            `relative cursor-pointer select-none py-3 pl-10 pr-4 transition-colors ${focus ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-900 dark:text-brand-100' : 'text-slate-900 dark:text-slate-100'
+                                            `relative cursor-pointer select-none py-3 pl-10 pr-4 transition-colors ${focus ? 'bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
                                             }`
                                         }
                                         value={option.value}

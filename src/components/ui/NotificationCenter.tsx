@@ -12,8 +12,6 @@ export const NotificationCenter: React.FC = () => {
     const navigate = useNavigate();
 
     // Use the hook for fetching notifications
-    // Note: We need to memoize constraints or they will trigger re-renders if passed inline
-    // But useFirestoreCollection handles constraint memoization internally now.
     const { data: notifications, update, refresh } = useFirestoreCollection<Notification>(
         'notifications',
         [
@@ -32,9 +30,6 @@ export const NotificationCenter: React.FC = () => {
 
     const handleMarkAllAsRead = async () => {
         if (!user?.uid) return;
-
-
-
         await NotificationService.markAllAsRead(user.uid);
         refresh(); // Refresh to get updated state
     };
@@ -81,6 +76,7 @@ export const NotificationCenter: React.FC = () => {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="relative p-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                aria-label="Notifications"
             >
                 <Bell className="h-5 w-5" />
                 {unreadCount > 0 && (
@@ -100,14 +96,14 @@ export const NotificationCenter: React.FC = () => {
                     />
 
                     {/* Panel */}
-                    <div className="absolute right-0 top-12 z-tooltip w-96 max-h-[600px] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden animate-slide-up">
+                    <div className="absolute right-0 top-12 z-tooltip w-96 max-h-[600px] bg-white/90 dark:bg-[#0B1120]/95 backdrop-blur-2xl rounded-2xl shadow-2xl dark:shadow-black/50 border border-slate-200/60 dark:border-white/10 overflow-hidden animate-slide-up origin-top-right">
                         {/* Header */}
-                        <div className="p-4 border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
+                        <div className="p-4 border-b border-slate-200/60 dark:border-white/5 flex items-center justify-between shrink-0">
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                                     Notifications
                                 </h3>
-                                <p className="text-xs text-slate-600 mt-0.5">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                     {unreadCount} non lue{unreadCount > 1 ? 's' : ''}
                                 </p>
                             </div>
@@ -122,17 +118,12 @@ export const NotificationCenter: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Notifications List */}
+                        {/* List */}
                         <div className="overflow-y-auto max-h-[500px] custom-scrollbar">
                             {notifications.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                                    <Bell className="h-12 w-12 text-slate-300 dark:text-slate-600 mb-3 opacity-50" />
-                                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                                        Aucune notification
-                                    </p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
-                                        Vous êtes à jour !
-                                    </p>
+                                <div className="p-8 text-center text-slate-500 dark:text-slate-400">
+                                    <Bell className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                                    <p>Aucune notification</p>
                                 </div>
                             ) : (
                                 <div className="divide-y divide-slate-100 dark:divide-white/5">
@@ -140,56 +131,36 @@ export const NotificationCenter: React.FC = () => {
                                         <div
                                             key={notification.id}
                                             onClick={() => handleNotificationClick(notification)}
-                                            className={`p-4 transition-all cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 ${!notification.read ? 'bg-blue-50/30 dark:bg-slate-900/5' : ''
+                                            className={`p-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer ${!notification.read ? 'bg-brand-50/30 dark:bg-brand-900/10' : ''
                                                 }`}
                                         >
-                                            <div className="flex items-start gap-3">
-                                                {/* Icon */}
-                                                <div className={`p-2 rounded-xl border ${getTypeColor(notification.type)} flex-shrink-0`}>
+                                            <div className="flex gap-4">
+                                                <div className={`mt-1 h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${getTypeColor(notification.type)}`}>
                                                     {getIcon(notification.type)}
                                                 </div>
-
-                                                {/* Content */}
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-start justify-between gap-2 mb-1">
-                                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <p className={`text-sm font-medium ${!notification.read ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
                                                             {notification.title}
-                                                        </h4>
-                                                        {!notification.read && (
-                                                            <span className="w-2 h-2 rounded-full bg-brand-500 flex-shrink-0 mt-1.5" />
-                                                        )}
+                                                        </p>
+                                                        <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                                                            {new Date(notification.createdAt).toLocaleDateString()}
+                                                        </span>
                                                     </div>
-                                                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-2">
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                                                         {notification.message}
                                                     </p>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
-                                                            {new Date(notification.createdAt).toLocaleDateString('fr-FR', {
-                                                                day: 'numeric',
-                                                                month: 'short',
-                                                                hour: '2-digit',
-                                                                minute: '2-digit',
-                                                            })}
-                                                        </span>
-                                                        {!notification.read && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleMarkAsRead(notification.id);
-                                                                }}
-                                                                className="text-[10px] font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 flex items-center gap-1 px-2 py-1 rounded-md hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
-                                                            >
-                                                                <Check className="h-3 w-3" />
-                                                                Marquer comme lu
-                                                            </button>
-                                                        )}
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             )}
+                            <div className="p-2 text-center border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+                                <span className="text-[10px] text-slate-400">
+                                    Seules les 50 dernières notifications sont affichées
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </>

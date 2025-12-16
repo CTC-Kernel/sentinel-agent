@@ -169,19 +169,19 @@ export function DataTable<TData extends { id: string }, TValue>({
             </div>
 
             {/* Table */}
-            <div className="w-full overflow-x-auto rounded-xl border border-glass-border glass-panel shadow-sm">
+            <div className="w-full overflow-x-auto rounded-[1.5rem] border border-slate-200/60 dark:border-white/10 bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-2xl shadow-xl dark:shadow-black/50 overflow-hidden">
                 <table className="w-full">
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <tr key={headerGroup.id} className="border-b border-glass-border bg-slate-50/50 dark:bg-slate-900/50">
+                            <tr key={headerGroup.id} className="border-b border-slate-200/60 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
                                 {headerGroup.headers.map((header) => {
                                     return (
                                         <th
                                             key={header.id}
                                             onClick={header.column.getToggleSortingHandler()}
                                             className={cn(
-                                                "px-3 py-3 sm:px-6 sm:py-5 text-left text-xs font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap",
-                                                header.column.getCanSort() && "cursor-pointer hover:bg-white/40 dark:hover:bg-white/5 transition-colors",
+                                                "px-3 py-4 sm:px-6 sm:py-5 text-left text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap transition-colors",
+                                                header.column.getCanSort() && "cursor-pointer hover:bg-white/40 dark:hover:bg-white/5 hover:text-brand-600 dark:hover:text-brand-400",
                                                 header.id === 'select' && "w-[50px] px-2 sm:px-4"
                                             )}
                                             style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
@@ -189,8 +189,8 @@ export function DataTable<TData extends { id: string }, TValue>({
                                             <div className="flex items-center gap-2">
                                                 {flexRender(header.column.columnDef.header, header.getContext())}
                                                 {{
-                                                    asc: <ChevronUp className="h-3 w-3" />,
-                                                    desc: <ChevronDown className="h-3 w-3" />,
+                                                    asc: <ChevronUp className="h-3 w-3 text-brand-600" />,
+                                                    desc: <ChevronDown className="h-3 w-3 text-brand-600" />,
                                                 }[header.column.getIsSorted() as string] ?? null}
                                             </div>
                                         </th>
@@ -199,7 +199,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                             </tr>
                         ))}
                     </thead>
-                    <tbody className="divide-y divide-white/20 dark:divide-white/5">
+                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                         {loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
                                 <tr key={i}>
@@ -221,12 +221,12 @@ export function DataTable<TData extends { id: string }, TValue>({
                                     }}
                                     className={cn(
                                         "transition-all duration-200 border-l-2 border-l-transparent",
-                                        onRowClick && "cursor-pointer hover:bg-white/40 dark:hover:bg-white/5 hover:border-l-brand-500",
-                                        row.getIsSelected() && "bg-brand-50/50 dark:bg-brand-900/20 border-l-brand-500"
+                                        onRowClick && "cursor-pointer hover:bg-slate-50/80 dark:hover:bg-white/5 hover:border-l-brand-600 dark:hover:border-l-brand-500",
+                                        row.getIsSelected() && "bg-brand-50/50 dark:bg-brand-900/20 border-l-brand-600 dark:border-l-brand-500"
                                     )}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <td key={cell.id} className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-foreground font-medium">
+                                        <td key={cell.id} className="px-3 py-4 sm:px-6 sm:py-4 text-sm text-slate-700 dark:text-slate-300 font-medium">
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </td>
                                     ))}
@@ -234,7 +234,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={tableColumns.length} className="text-center py-16 text-muted-foreground">
+                                <td colSpan={tableColumns.length} className="text-center py-16 text-slate-500 dark:text-slate-400">
                                     <div className="flex flex-col items-center justify-center gap-2">
                                         <Search className="h-8 w-8 opacity-20" />
                                         <p>Aucune donnée à afficher</p>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useId } from 'react';
 import { TrendingUp } from '../../ui/Icons';
 import { Skeleton } from '../../ui/Skeleton';
 import { AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -15,6 +15,7 @@ interface ComplianceEvolutionWidgetProps {
 export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps> = ({ historyData, loading, t, theme }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [timeRange, setTimeRange] = useState<'30d' | '90d' | '1y' | 'all'>('30d');
+    const gradientId = useId();
 
     const chartColors = {
         grid: theme === 'dark' ? 'hsl(var(--border) / 0.35)' : 'hsl(var(--border) / 0.6)',
@@ -84,37 +85,39 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                         <p className="text-sm font-medium">{t('dashboard.noDataAvailable')}</p>
                     </div>
                 ) : (
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={filteredData}>
-                            <defs>
-                                <linearGradient id="colorCompliance" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} opacity={0.5} />
-                            <XAxis
-                                dataKey="date"
-                                tick={{ fontSize: 11, fill: chartColors.text, fontWeight: 600 }}
-                                axisLine={false}
-                                tickLine={false}
-                                dy={10}
-                                tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                            />
-                            <YAxis hide={!isExpanded} domain={[0, 100]} tick={{ fontSize: 11, fill: chartColors.text }} axisLine={false} tickLine={false} />
-                            <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#10b981', strokeWidth: 1, strokeDasharray: '4 4', fill: chartColors.cursor }} />
-                            <Area
-                                type="monotone"
-                                dataKey="compliance"
-                                name={t('dashboard.compliance')}
-                                stroke="#10b981"
-                                strokeWidth={3}
-                                fillOpacity={1}
-                                fill="url(#colorCompliance)"
-                                animationDuration={1500}
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                    <div className="w-full h-full min-h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={filteredData}>
+                                <defs>
+                                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} opacity={0.5} />
+                                <XAxis
+                                    dataKey="date"
+                                    tick={{ fontSize: 11, fill: chartColors.text, fontWeight: 600 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    dy={10}
+                                    tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                                />
+                                <YAxis hide={!isExpanded} domain={[0, 100]} tick={{ fontSize: 11, fill: chartColors.text }} axisLine={false} tickLine={false} />
+                                <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#10b981', strokeWidth: 1, strokeDasharray: '4 4', fill: chartColors.cursor }} />
+                                <Area
+                                    type="monotone"
+                                    dataKey="compliance"
+                                    name={t('dashboard.compliance')}
+                                    stroke="#10b981"
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill={`url(#${gradientId})`}
+                                    animationDuration={1500}
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
                 )}
             </div>
         </DashboardCard>

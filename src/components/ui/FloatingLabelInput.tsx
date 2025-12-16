@@ -32,11 +32,11 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                 relative flex items-center w-full rounded-xl border transition-all duration-300 group
                 ${error
                     ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10'
-                    : 'border-input bg-background/50 hover:bg-accent/50 dark:hover:bg-white/5 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:bg-background focus-within:shadow-lg focus-within:shadow-brand-500/10 backdrop-blur-sm'
+                    : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-[#0B1120]/40 hover:bg-white/80 dark:hover:bg-[#0B1120]/60 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:bg-white dark:focus-within:bg-[#0B1120] focus-within:shadow-lg focus-within:shadow-brand-500/10 backdrop-blur-sm'
                 }
             `}>
                 {Icon && (
-                    <div className={`pl-4 transition-colors duration-200 ${error ? 'text-red-500' : 'text-muted-foreground group-focus-within:text-brand-500'} ${textarea ? 'self-start mt-3.5' : ''}`}>
+                    <div className={`pl-4 transition-colors duration-200 ${error ? 'text-red-500' : 'text-slate-400 group-focus-within:text-brand-500'} ${textarea ? 'self-start mt-3.5' : ''}`}>
                         <Icon className="h-5 w-5" />
                     </div>
                 )}
@@ -51,7 +51,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         aria-describedby={describedBy}
                         rows={rows}
                         className={`
-                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-foreground
+                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
                             placeholder-transparent rounded-2xl resize-none
                             ${Icon ? 'pl-2' : ''}
                         `}
@@ -66,7 +66,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         aria-invalid={!!error}
                         aria-describedby={describedBy}
                         className={`
-                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-foreground
+                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
                             placeholder-transparent rounded-2xl
                             ${Icon ? 'pl-2' : ''}
                         `}
@@ -78,12 +78,12 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                     htmlFor={fieldId}
                     className={`
                         absolute left-4 transition-all duration-200 pointer-events-none
-                        peer-focus:-top-2.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:tracking-widest peer-focus:bg-white dark:peer-focus:bg-slate-900 peer-focus:px-1 peer-focus:rounded
-                        peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:font-bold peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-widest peer-[:not(:placeholder-shown)]:bg-white dark:peer-[:not(:placeholder-shown)]:bg-slate-900 peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:rounded
+                        peer-focus:-top-2.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:tracking-widest peer-focus:bg-white dark:peer-focus:bg-[#0B1120] peer-focus:px-1 peer-focus:rounded
+                        peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:font-bold peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-widest peer-[:not(:placeholder-shown)]:bg-white dark:peer-[:not(:placeholder-shown)]:bg-[#0B1120] peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:rounded
                         top-3.5 text-sm font-medium
                         ${error
                             ? 'text-red-500'
-                            : 'text-muted-foreground peer-focus:text-brand-600'
+                            : 'text-slate-500 dark:text-slate-400 peer-focus:text-brand-600 dark:peer-focus:text-brand-400'
                         }
                         ${Icon ? 'ml-7 peer-focus:ml-0 peer-[:not(:placeholder-shown)]:ml-0' : ''}
                     `}
