@@ -9,6 +9,7 @@ interface SEOProps {
     type?: string;
     image?: string;
     url?: string;
+    structuredData?: Record<string, any>;
 }
 
 export const SEO: React.FC<SEOProps> = ({
@@ -18,7 +19,8 @@ export const SEO: React.FC<SEOProps> = ({
     name = "Sentinel GRC",
     type = "website",
     image = "https://app.cyber-threat-consulting.com/og-image.jpg",
-    url
+    url,
+    structuredData
 }) => {
     const siteUrl = "https://app.cyber-threat-consulting.com";
     const fullUrl = url ? `${siteUrl}${url}` : siteUrl;
@@ -48,6 +50,13 @@ export const SEO: React.FC<SEOProps> = ({
 
             {/* Canonical */}
             <link rel="canonical" href={fullUrl} />
+
+            {/* JSON-LD Structured Data */}
+            {structuredData && (
+                <script type="application/ld+json">
+                    {JSON.stringify(structuredData)}
+                </script>
+            )}
         </Helmet>
     );
 };
