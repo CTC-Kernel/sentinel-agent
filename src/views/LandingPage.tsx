@@ -3,17 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { AuroraBackground } from '../components/ui/AuroraBackground';
 import { Spotlight } from '../components/ui/aceternity/Spotlight';
 import { Button } from '../components/ui/button';
-import { Shield, Lock, FileText, Activity, Layers, ArrowRight, CheckCircle2 } from '../components/ui/Icons';
+import { Shield, Lock, FileText, Activity, Layers, ArrowRight, CheckCircle2, Sun, Moon } from '../components/ui/Icons';
 import { SparklesCore } from '../components/ui/aceternity/Sparkles';
 import { SEO } from '../components/SEO';
+import { LandingDashboardMockup } from '../components/landing/LandingDashboardMockup';
+import { useStore } from '../store';
 
 const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: any, title: string, description: string, delay: string }) => (
-    <div className={`glass-panel p-8 rounded-[2rem] border border-white/20 hover:border-brand-500/50 hover:shadow-glow-sm transition-all duration-500 group animate-slide-up`} style={{ animationDelay: delay }}>
-        <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center mb-6 text-brand-600 group-hover:scale-110 transition-transform duration-500">
-            <Icon className="h-7 w-7" />
+    <div className={`glass-panel p-8 rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-xl hover:bg-white/10 hover:border-brand-500/30 hover:shadow-2xl hover:shadow-brand-500/10 transition-all duration-500 group animate-slide-up flex flex-col items-start`} style={{ animationDelay: delay }}>
+        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-brand-500/20 to-purple-500/20 text-brand-400 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 mb-6 ring-1 ring-white/10">
+            <Icon className="h-8 w-8" />
         </div>
-        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{title}</h3>
-        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{description}</p>
+        <h3 className="text-xl font-bold text-slate-100 mb-3 group-hover:text-brand-300 transition-colors">{title}</h3>
+        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">{description}</p>
     </div>
 );
 
@@ -26,6 +28,7 @@ const BenefitItem = ({ text }: { text: string }) => (
 
 export const LandingPage: React.FC = () => {
     const navigate = useNavigate();
+    const { theme, toggleTheme } = useStore();
 
     return (
         <div className="min-h-screen bg-background relative overflow-hidden font-sans selection:bg-brand-500 selection:text-white">
@@ -44,6 +47,13 @@ export const LandingPage: React.FC = () => {
                         <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Sentinel GRC</span>
                     </div>
                     <div className="flex items-center space-x-4">
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-full text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            aria-label="Toggle theme"
+                        >
+                            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                        </button>
                         <button onClick={() => navigate('/login')} className="text-sm font-bold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors px-4 py-2">
                             Se connecter
                         </button>
@@ -71,23 +81,22 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 <div className="relative z-10 max-w-5xl mx-auto px-6 text-center space-y-8">
-                    <div className="inline-flex items-center px-4 py-2 rounded-full glass-panel border border-brand-500/30 text-brand-600 dark:text-brand-400 text-sm font-bold uppercase tracking-wider mb-4 animate-fade-in">
-                        <span className="relative flex h-2 w-2 mr-3">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 animate-fade-in hover:bg-white/10 transition-colors cursor-default">
+                        <span className="flex h-2 w-2 relative">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
                         </span>
-                        Centre de Commande Unifié GRC
+                        <span className="text-sm font-medium text-slate-300 tracking-wide">Nouvelle Génération GRC</span>
                     </div>
 
-                    <h1 className="text-5xl md:text-7xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight animate-slide-up opacity-0" style={{ animationFillMode: 'forwards' }}>
-                        Ne subissez plus votre conformité.<br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600 dark:from-brand-400 dark:to-indigo-400">Pilotez votre avenir.</span>
+                    <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-200 to-slate-400 tracking-tight mb-8 leading-[1.1] drop-shadow-sm animate-slide-up">
+                        L'Art de la <br />
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-purple-400 to-brand-400 animate-gradient-x pb-2">Gouvernance</span> & <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 animate-gradient-x pb-2">Cybersécurité</span>
                     </h1>
 
-                    <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed animate-slide-up opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
-                        Sentinel GRC réconcilie risques, audits, projets et actifs dans un seul écosystème. L'IA automatise vos registres ISO 27005 et transforme la complexité technique en tableaux de bord limpides pour le COMEX.
+                    <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                        Pilotez votre conformité ISO 27001 et vos risques avec une élégance et une précision inégalées. Une plateforme conçue pour l'excellence.
                     </p>
-
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 animate-slide-up opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
                         <Button onClick={() => navigate('/login')} size="lg" className="h-14 px-8 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black font-bold text-lg hover:scale-105 transition-transform shadow-xl shadow-brand-500/10 w-full sm:w-auto">
                             Créer mon compte
@@ -98,19 +107,13 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 {/* Dashboard Preview Mockup */}
-                <div className="mt-20 relative mx-auto w-full max-w-5xl animate-slide-up opacity-0" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
-                    <div className="relative rounded-[2rem] border border-white/20 bg-white/10 backdrop-blur-md shadow-2xl overflow-hidden aspect-[16/9] group">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-brand-500/10 via-transparent to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                        {/* Placeholder for actual dashboard screenshot */}
-                        <div className="absolute inset-0 flex items-center justify-center text-slate-400 font-medium bg-slate-100/50 dark:bg-slate-900/50">
-                            <div className="text-center space-y-4">
-                                <Activity className="h-16 w-16 mx-auto opacity-50" />
-                                <p>Interface Dashboard Haute Fidélité</p>
-                            </div>
-                        </div>
+                <div className="mt-24 relative mx-auto w-full max-w-6xl animate-slide-up opacity-0 perspective-1000" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
+                    <div className="relative rounded-[1.5rem] border border-white/10 bg-slate-900/40 backdrop-blur-2xl shadow-2xl ring-1 ring-white/5 overflow-hidden aspect-[16/10] group transform transition-all duration-700 hover:scale-[1.01] hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.3)]">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-brand-500/10 via-transparent to-purple-500/10 opacity-50 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-10 mix-blend-overlay"></div>
+                        <LandingDashboardMockup />
                     </div>
                     {/* Decorative glow behind mockup */}
-                    <div className="absolute -inset-4 bg-gradient-to-r from-brand-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-20 -z-10"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-brand-500/20 blur-[100px] -z-10 rounded-full opacity-40"></div>
                 </div>
             </AuroraBackground>
 
