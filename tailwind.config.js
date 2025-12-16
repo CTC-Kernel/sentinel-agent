@@ -19,6 +19,14 @@ export default {
       },
     },
     extend: {
+      zIndex: {
+        'decorator': '10',
+        'sticky': '20',
+        'header': '40',
+        'modal': '50',
+        'tooltip': '60',
+        'max': '9999',
+      },
       fontFamily: {
         sans: [
           'Outfit',
