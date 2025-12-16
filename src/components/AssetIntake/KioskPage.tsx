@@ -108,7 +108,7 @@ export const KioskPage: React.FC = () => {
 
             {/* Footer */}
             <footer className="relative z-10 py-6 text-center text-xs text-slate-500 dark:text-slate-600">
-                &copy; {new Date().getFullYear()} Sentinel GRC. Tous droits réservés.
+                &copy; {new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.
             </footer>
         </div>
     );

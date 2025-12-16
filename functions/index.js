@@ -2217,7 +2217,7 @@ const Templates = {
             </div>
           </div>
           <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
-            <p>&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
+            <p>&copy; ${new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.</p>
             <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
           </div>
         </div>
@@ -2247,7 +2247,7 @@ const Templates = {
             </div>
           </div>
           <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
-            <p>&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
+            <p>&copy; ${new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.</p>
             <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
           </div>
         </div>
@@ -2276,7 +2276,7 @@ const Templates = {
             </div>
           </div>
           <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
-            <p>&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
+            <p>&copy; ${new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.</p>
             <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
           </div>
         </div>
@@ -2308,7 +2308,7 @@ const Templates = {
             </div>
           </div>
           <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
-            <p>&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
+            <p>&copy; ${new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.</p>
             <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
           </div>
         </div>
@@ -2337,7 +2337,7 @@ const Templates = {
             </div>
           </div>
           <div style="text-align: center; padding: 24px 0; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; margin-top: 32px;">
-            <p>&copy; ${new Date().getFullYear()} Sentinel GRC by Cyber Threat Consulting. Tous droits réservés.</p>
+            <p>&copy; ${new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.</p>
             <p>Cet email est une notification automatique liée à votre conformité ISO 27001.</p>
           </div>
         </div>

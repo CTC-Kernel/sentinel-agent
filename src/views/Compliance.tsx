@@ -836,7 +836,7 @@ export const Compliance: React.FC = () => {
                     subtitle: `${currentFramework} | Généré le ${new Date().toLocaleDateString()} | ${user?.organizationName || 'Organisation'}`,
                     filename: `SoA_${currentFramework}_${new Date().toISOString().split('T')[0]}.pdf`,
                     headerText: `${currentFramework} Compliance Report`,
-                    footerText: 'Sentinel GRC by Cyber Threat Consulting - Document Confidentiel',
+                    footerText: 'Cyber Threat Consulting. Sentinel GRC - Document Confidentiel',
                     organizationName: canWhiteLabel ? organization?.name : undefined,
                     organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
                 },

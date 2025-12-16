@@ -249,7 +249,7 @@ export const EmailTemplateService = {
       <tr>
         <td class="footer">
           <p class="footer-text">
-            &copy; ${year} Sentinel GRC by Cyber Threat Consulting.<br>
+            &copy; ${year} Cyber Threat Consulting. Sentinel GRC.<br>
             Tous droits réservés.
           </p>
           <p class="footer-text" style="margin-top: 12px;">
