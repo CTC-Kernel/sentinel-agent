@@ -56,17 +56,16 @@ export const LandingPage: React.FC = () => {
                 }}
             />
 
-            <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill={theme === 'dark' ? "white" : "#60a5fa"} />
+            <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill={theme === 'dark' ? "white" : "#4338ca"} />
 
             <div className="fixed inset-0 w-full h-full pointer-events-none z-0">
                 <SparklesCore
                     id="tsparticleslanding"
                     background="transparent"
-                    minSize={0.6}
-                    maxSize={1.4}
-                    particleDensity={40}
-                    className="w-full h-full absolute inset-0"
-                    particleColor={theme === 'dark' ? "#FFFFFF" : "#3b82f6"}
+                    particleColor={theme === 'dark' ? "#FFFFFF" : "#4f46e5"}
+                    minSize={theme === 'dark' ? 0.6 : 1}
+                    maxSize={theme === 'dark' ? 1.4 : 3}
+                    particleDensity={theme === 'dark' ? 40 : 60}
                 />
             </div>
 
@@ -98,7 +97,7 @@ export const LandingPage: React.FC = () => {
             </nav>
 
             {/* Hero Section */}
-            <header className="min-h-screen relative flex flex-col items-center justify-center pt-20">
+            <header className="min-h-screen relative flex flex-col items-center justify-center pt-36 pb-20">
                 <div className="relative z-10 max-w-5xl mx-auto px-6 text-center space-y-8">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50/50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 backdrop-blur-md mb-8 animate-fade-in hover:bg-slate-100/50 dark:hover:bg-white/10 transition-colors cursor-default shadow-sm shadow-brand-500/5">
                         <span className="flex h-2 w-2 relative">
