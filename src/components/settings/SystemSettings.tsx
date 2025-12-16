@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
 import { Activity, Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/button';
-import { collection, query, where, getDocs, limit, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
 import { hasPermission } from '../../utils/permissions';
@@ -26,15 +26,20 @@ export const SystemSettings: React.FC = () => {
             setLoadingLogs(true);
             try {
                 // Fetch last 50 logs for the user's org
-                const logsRef = collection(db, 'auditLogs');
+                const logsRef = collection(db, 'system_logs');
                 const q = query(
                     logsRef,
-                    where('organizationId', '==', user?.organizationId),
-                    orderBy('timestamp', 'desc'),
-                    limit(20)
+                    where('organizationId', '==', user?.organizationId)
                 );
                 const snapshot = await getDocs(q);
-                setAuditLogs(snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as SystemLog[]);
+                // Sort on client side to avoid index issues
+                const logs = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as SystemLog[];
+                logs.sort((a, b) => {
+                    const tA = typeof a.timestamp === 'string' ? new Date(a.timestamp).getTime() : (a.timestamp as Timestamp)?.toMillis?.() || 0;
+                    const tB = typeof b.timestamp === 'string' ? new Date(b.timestamp).getTime() : (b.timestamp as Timestamp)?.toMillis?.() || 0;
+                    return tB - tA;
+                });
+                setAuditLogs(logs.slice(0, 50));
             } catch (error) {
                 ErrorLogger.handleErrorWithToast(error, 'SystemSettings.fetchLogs', 'FETCH_FAILED');
             } finally {
