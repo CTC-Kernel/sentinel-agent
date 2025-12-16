@@ -17,6 +17,10 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
     const [timeRange, setTimeRange] = useState<'30d' | '90d' | '1y' | 'all'>('30d');
     const gradientId = useId();
 
+    // DEBUG: Force visible border and logs
+    console.log('ComplianceWidget Render:', { historyDataLen: historyData?.length, loading });
+
+
     const chartColors = {
         grid: theme === 'dark' ? 'hsl(var(--border) / 0.35)' : 'hsl(var(--border) / 0.6)',
         text: 'hsl(var(--muted-foreground))',
@@ -78,11 +82,12 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                 {loading ? (
                     <Skeleton className="h-full w-full rounded-2xl" />
                 ) : !filteredData || filteredData.length === 0 ? (
-                    <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 animate-fade-in">
+                    <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 animate-fade-in border-2 border-dashed border-red-500 m-2 rounded-lg p-4">
                         <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-full mb-3 ring-1 ring-slate-100 dark:ring-white/5">
                             <TrendingUp className="w-6 h-6 opacity-40" />
                         </div>
                         <p className="text-sm font-medium">{t('dashboard.noDataAvailable')}</p>
+                        <p className="text-xs text-red-500 mt-2 font-mono">DEBUG: DataLen={historyData?.length || 0}</p>
                     </div>
                 ) : (
                     <div className="w-full h-full min-h-[300px]">
