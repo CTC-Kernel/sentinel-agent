@@ -84,7 +84,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                             <ListboxOptions
                                 anchor="bottom start"
                                 transition
-                                className="z-tooltip w-[var(--button-width)] mt-2 max-h-60 overflow-auto rounded-2xl bg-white/90 dark:bg-slate-900/90 py-2 text-base shadow-xl shadow-slate-900/10 ring-1 ring-black/5 focus:outline-none sm:text-sm custom-scrollbar border border-white/20 dark:border-white/10 backdrop-blur-xl transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
+                                portal={true}
+                                className="z-[10000] w-[var(--button-width)] mt-2 max-h-60 overflow-auto rounded-2xl bg-white/90 dark:bg-slate-900/90 py-2 text-base shadow-xl shadow-slate-900/10 ring-1 ring-black/5 focus:outline-none sm:text-sm custom-scrollbar border border-white/20 dark:border-white/10 backdrop-blur-xl transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
                             >
                                 {options.map((option, optionIdx) => (
                                     <ListboxOption

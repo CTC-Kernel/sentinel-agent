@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
 import { Activity, Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/button';
-import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
 import { hasPermission } from '../../utils/permissions';
@@ -61,9 +61,17 @@ export const SystemSettings: React.FC = () => {
             header: t('common.date'),
             cell: ({ row }) => {
                 const val = row.original.timestamp;
-                // Handle Firestore Timestamp or Date string
                 if (!val) return '-';
-                const date = (val as any).toDate ? (val as any).toDate() : new Date(val as any);
+
+                let date: Date;
+                if (typeof val === 'object' && val !== null && 'toDate' in val) {
+                    date = (val as Timestamp).toDate();
+                } else if (typeof val === 'string' || typeof val === 'number') {
+                    date = new Date(val);
+                } else {
+                    return '-';
+                }
+
                 return format(date, 'Pp', { locale: fr });
             }
         },
@@ -82,10 +90,12 @@ export const SystemSettings: React.FC = () => {
             )
         },
         {
-            accessorKey: 'details', // Assuming key is 'details' or similar, implied from previous code
+            accessorKey: 'details',
             header: 'Détails',
             cell: ({ row }) => {
-                const details = (row.original as any).details || (row.original as any).message; // Fallback if needed
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore - details might not exist in generic type
+                const details = row.original.details || (row.original as Record<string, unknown>).message;
                 const str = typeof details === 'string' ? details : JSON.stringify(details);
                 return (
                     <span className="text-slate-500 dark:text-slate-400 text-xs truncate max-w-[200px] block" title={str}>

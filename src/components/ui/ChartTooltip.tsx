@@ -1,8 +1,17 @@
 import React from 'react';
 
+interface ChartTooltipPayload {
+    name: string;
+    value: number | string;
+    color: string;
+    payload?: Record<string, unknown>;
+    dataKey?: string;
+    [key: string]: unknown;
+}
+
 interface ChartTooltipProps {
     active?: boolean;
-    payload?: any[];
+    payload?: ChartTooltipPayload[];
     label?: string;
     formatter?: (value: number) => string;
     hideLabel?: boolean;
@@ -18,7 +27,7 @@ export const ChartTooltip: React.FC<ChartTooltipProps> = ({ active, payload, lab
                     </p>
                 )}
                 <div className="space-y-1">
-                    {payload.map((entry: any, index: number) => (
+                    {payload.map((entry, index) => (
                         <div key={index} className="flex items-center gap-2 text-sm font-medium">
                             <div
                                 className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.3)]"
@@ -28,7 +37,7 @@ export const ChartTooltip: React.FC<ChartTooltipProps> = ({ active, payload, lab
                                 {entry.name}:
                             </span>
                             <span className="font-bold text-slate-900 dark:text-white">
-                                {formatter ? formatter(entry.value) : entry.value}
+                                {formatter && typeof entry.value === 'number' ? formatter(entry.value) : entry.value}
                             </span>
                         </div>
                     ))}

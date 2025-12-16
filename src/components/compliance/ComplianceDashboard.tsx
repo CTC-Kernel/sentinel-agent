@@ -119,7 +119,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
     );
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 w-full min-w-0">
             {/* SVG Definitions for Gradients */}
             <svg style={{ height: 0, width: 0, position: 'absolute' }}>
                 <defs>
@@ -180,7 +180,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 </div>
 
                 {/* Middle: Frameworks Mini-Cards */}
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 min-w-0">
                     <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
                         <div className="flex justify-between items-start mb-3">
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">ISO 27001</span>

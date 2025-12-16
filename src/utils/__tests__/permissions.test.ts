@@ -12,10 +12,11 @@ vi.mock('../../store', () => ({
 describe('RBAC Permissions System', () => {
     beforeEach(() => {
         vi.resetAllMocks();
-        // Default store state
+        // Default store state - using casting to unknown then to expected shape to bypass lint "no-explicit-any" 
+        // while mocking partial state
         vi.mocked(useStore.getState).mockReturnValue({
             customRoles: [],
-        } as any);
+        } as unknown as ReturnType<typeof useStore.getState>);
     });
 
     const createMockUser = (role: Role, uid = 'user-123', orgId = 'org-123') => ({
@@ -111,7 +112,7 @@ describe('RBAC Permissions System', () => {
                         'Asset': ['read']
                     }
                 }],
-            } as any);
+            } as unknown as ReturnType<typeof useStore.getState>);
 
             expect(hasPermission(customRoleUser, 'Risk', 'delete')).toBe(true); // manage -> delete
             expect(hasPermission(customRoleUser, 'Asset', 'read')).toBe(true);
