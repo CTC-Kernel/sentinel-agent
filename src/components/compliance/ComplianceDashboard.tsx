@@ -118,28 +118,13 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
         (c.code.includes('A.5.') || c.code.includes('A.8.') || c.code.includes('A.12.'))
     );
 
+    const barGradientPrimaryId = React.useId();
+    const barGradientSuccessId = React.useId();
+    const radarGradientId = React.useId();
+
     return (
         <div className="space-y-6 w-full min-w-0">
-            {/* SVG Definitions for Gradients */}
-            <svg style={{ height: 0, width: 0, position: 'absolute' }}>
-                <defs>
-                    <linearGradient id="barGradientPrimary" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
-                        <stop offset="100%" stopColor="#2563eb" stopOpacity={0.8} />
-                    </linearGradient>
-                    <linearGradient id="barGradientSuccess" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#22c55e" stopOpacity={1} />
-                        <stop offset="100%" stopColor="#16a34a" stopOpacity={0.8} />
-                    </linearGradient>
-                    <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.6} />
-                        <stop offset="100%" stopColor="#2563eb" stopOpacity={0.1} />
-                    </linearGradient>
-                </defs>
-            </svg>
-
             {/* Summary Card */}
-            {/* Compact Summary Card */}
             <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 shadow-lg flex flex-col xl:flex-row gap-8 relative overflow-hidden group hover:shadow-apple transition-all duration-500 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
@@ -230,7 +215,6 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
             </div>
 
             {/* Charts */}
-            {/* Charts */}
             {totalControls > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {/* Status Distribution */}
@@ -240,7 +224,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                             <PieChartIcon className="w-4 h-4 text-brand-500" />
                             Distribution par Statut
                         </h4>
-                        <div className="h-[250px] w-full relative z-10">
+                        <div className="h-[250px] w-full min-h-[250px] relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
@@ -276,9 +260,19 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                             <BarChartIcon className="w-4 h-4 text-brand-500" />
                             Conformité par Domaine (Annexe A)
                         </h4>
-                        <div className="h-[250px] w-full relative z-10">
+                        <div className="h-[250px] w-full min-h-[250px] relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={domainChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
+                                    <defs>
+                                        <linearGradient id={barGradientPrimaryId} x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
+                                            <stop offset="100%" stopColor="#2563eb" stopOpacity={0.8} />
+                                        </linearGradient>
+                                        <linearGradient id={barGradientSuccessId} x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#22c55e" stopOpacity={1} />
+                                            <stop offset="100%" stopColor="#16a34a" stopOpacity={0.8} />
+                                        </linearGradient>
+                                    </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
                                     <XAxis
                                         dataKey="domain"
@@ -297,7 +291,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor, radius: 4 }} />
                                     <Bar dataKey="rate" name="Taux %" fill={chartTheme.colors.primary} radius={[6, 6, 0, 0]} barSize={24} animationDuration={1000}>
                                         {domainChartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={parseInt(entry.rate) >= 80 ? 'url(#barGradientSuccess)' : parseInt(entry.rate) >= 50 ? chartTheme.colors.partial : 'url(#barGradientPrimary)'} />
+                                            <Cell key={`cell-${index}`} fill={parseInt(entry.rate) >= 80 ? `url(#${barGradientSuccessId})` : parseInt(entry.rate) >= 50 ? chartTheme.colors.partial : `url(#${barGradientPrimaryId})`} />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -312,9 +306,15 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                             <Target className="w-4 h-4 text-brand-500" />
                             Vue Radar - Maturité par Domaine
                         </h4>
-                        <div className="h-[250px] w-full relative z-10">
+                        <div className="h-[250px] w-full min-h-[250px] relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
                                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                                    <defs>
+                                        <linearGradient id={radarGradientId} x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.6} />
+                                            <stop offset="100%" stopColor="#2563eb" stopOpacity={0.1} />
+                                        </linearGradient>
+                                    </defs>
                                     <PolarGrid stroke={chartTheme.grid} strokeDasharray="3 3" />
                                     <PolarAngleAxis dataKey="domain" tick={{ fill: chartTheme.text, fontSize: 10, fontWeight: 600 }} />
                                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: chartTheme.text, fontSize: 9 }} axisLine={false} />
@@ -323,7 +323,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         dataKey="score"
                                         stroke={chartTheme.colors.primary}
                                         strokeWidth={3}
-                                        fill="url(#radarGradient)"
+                                        fill={`url(#${radarGradientId})`}
                                         fillOpacity={1}
                                         isAnimationActive={true}
                                         style={{ filter: 'drop-shadow(0 0 4px rgba(59, 130, 246, 0.5))' }}
