@@ -47,8 +47,8 @@ export const ValidatedInput: React.FC<ValidatedInputProps> = ({
                 disabled={disabled}
                 className={`w-full px-4 py-3.5 rounded-2xl border ${hasError
                     ? 'border-red-300 dark:border-red-700 bg-red-50/30 dark:bg-red-900/10'
-                    : 'border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20'
-                    } text-slate-900 dark:text-white focus:ring-2 ${hasError ? 'focus:ring-red-500' : 'focus:ring-brand-500'
+                    : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-[#0B1120]/40 hover:bg-white/80 dark:hover:bg-[#0B1120]/60 backdrop-blur-sm shadow-sm'
+                    } text-slate-900 dark:text-white focus:ring-2 ${hasError ? 'focus:ring-red-500' : 'focus:ring-brand-500/20 focus:border-brand-500'
                     } outline-none font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
             />
             {hasError && (

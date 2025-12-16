@@ -32,7 +32,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                 relative flex items-center w-full rounded-xl border transition-all duration-300 group
                 ${error
                     ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10'
-                    : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-[#0B1120]/40 hover:bg-white/80 dark:hover:bg-[#0B1120]/60 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:bg-white dark:focus-within:bg-[#0B1120] focus-within:shadow-lg focus-within:shadow-brand-500/10 backdrop-blur-sm'
+                    : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-[#0B1120]/40 hover:bg-white/80 dark:hover:bg-[#0B1120]/60 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:bg-white dark:focus-within:bg-[#0B1120] focus-within:shadow-lg focus-within:shadow-brand-500/10 backdrop-blur-sm shadow-sm'
                 }
             `}>
                 {Icon && (

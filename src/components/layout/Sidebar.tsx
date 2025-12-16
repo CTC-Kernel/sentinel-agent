@@ -156,7 +156,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                       className={({ isActive }) => `
                          group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
                          ${isActive
-                          ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20 dark:bg-white dark:text-slate-950 font-semibold ring-1 ring-black/5 dark:ring-white/20'
+                          ? 'bg-gradient-to-r from-brand-600 to-blue-600 text-white shadow-lg shadow-brand-500/25 dark:text-white font-bold'
                           : 'text-slate-600 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white hover:shadow-sm'}
                        `}
                     >
@@ -166,7 +166,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                             <item.icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                           </span>
                           <span className="flex-1 truncate">{item.name}</span>
-                          {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-brand-500 rounded-r-full opacity-0 lg:opacity-100" />}
+                          {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white/30 rounded-r-full opacity-0 lg:opacity-100" />}
                         </>
                       )}
                     </NavLink>

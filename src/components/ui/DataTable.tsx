@@ -139,7 +139,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                             placeholder="Rechercher..."
                             value={globalFilter ?? ''}
                             onChange={(e) => setGlobalFilter(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                            className="w-full pl-10 pr-4 py-2 bg-white/50 dark:bg-[#0B1120]/40 border border-slate-200/60 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none backdrop-blur-sm transition-all"
                         />
                     </div>
                 )}
@@ -169,7 +169,7 @@ export function DataTable<TData extends { id: string }, TValue>({
             </div>
 
             {/* Table */}
-            <div className="w-full overflow-x-auto rounded-[1.5rem] border border-slate-200/60 dark:border-white/10 bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-2xl shadow-xl dark:shadow-black/50 overflow-hidden">
+            <div className="w-full overflow-x-auto rounded-[1.5rem] glass-panel overflow-hidden">
                 <table className="w-full">
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -257,7 +257,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                         <button
                             onClick={() => table.previousPage()}
                             disabled={!table.getCanPreviousPage()}
-                            className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                            className="p-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-white/10 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors backdrop-blur-sm"
                         >
                             <ChevronLeft className="h-4 w-4" />
                         </button>
@@ -298,7 +298,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                         <button
                             onClick={() => table.nextPage()}
                             disabled={!table.getCanNextPage()}
-                            className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                            className="p-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-white/10 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors backdrop-blur-sm"
                         >
                             <ChevronRight className="h-4 w-4" />
                         </button>
