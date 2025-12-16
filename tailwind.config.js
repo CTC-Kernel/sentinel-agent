@@ -152,13 +152,20 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
-        'glass-dark': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-        'glow': '0 0 20px rgba(59, 130, 246, 0.5)',
-        'apple': '0 8px 30px rgba(0,0,0,0.08)',
-        'apple-xl': '0 20px 40px rgba(0,0,0,0.12)',
-        'card': '0 2px 10px rgba(0,0,0,0.03)',
-        'float': '0 20px 40px -10px rgba(0,0,0,0.15)',
+        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.04)',
+        'glass-sm': '0 4px 16px 0 rgba(0, 0, 0, 0.04)',
+        'glass-md': '0 8px 32px 0 rgba(0, 0, 0, 0.04)',
+        'glass-lg': '0 12px 48px 0 rgba(0, 0, 0, 0.08)',
+        'glass-dark': '0 8px 32px 0 rgba(0, 0, 0, 0.45)', // Deeper shadow for dark mode
+        'glow': '0 0 20px rgba(59, 130, 246, 0.4)',
+        'glow-sm': '0 0 10px rgba(59, 130, 246, 0.3)',
+        'glow-lg': '0 0 30px rgba(59, 130, 246, 0.5)',
+        'apple': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', // Softer default
+        'apple-md': '0 8px 30px rgba(0,0,0,0.08)',
+        'apple-xl': '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+        'card': '0 2px 10px rgba(0,0,0,0.02)',
+        'float': '0 10px 30px -5px rgba(0,0,0,0.1)',
+        'neon': '0 0 5px theme("colors.primary.400"), 0 0 20px theme("colors.primary.600")',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
