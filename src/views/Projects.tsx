@@ -8,7 +8,7 @@ import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, Pro
 import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
 import { z } from 'zod';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, Search, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, LayoutGrid, List, BrainCircuit, Target, ShieldAlert, Loader2, Server, ClipboardCheck, X } from '../components/ui/Icons';
+import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, BrainCircuit, Target, ShieldAlert, Loader2, Server, ClipboardCheck } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 
 import { Drawer } from '../components/ui/Drawer';
@@ -44,6 +44,7 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
+import { PageControls } from '../components/ui/PageControls';
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { usePersistedState } from '../hooks/usePersistedState';
@@ -1077,47 +1078,35 @@ export const Projects: React.FC = () => {
                 </div>
             </motion.div>
 
-            <motion.div variants={slideUpVariants} className="flex items-center flex-wrap gap-3 bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm min-w-0">
-                <Search className="h-5 w-5 text-slate-500" />
-                <input
-                    type="text"
-                    placeholder="Rechercher un projet..."
-                    className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white"
-                    value={filter} onChange={e => setFilter(e.target.value)}
+            <motion.div variants={slideUpVariants}>
+                <PageControls
+                    searchQuery={filter}
+                    onSearchChange={setFilter}
+                    searchPlaceholder="Rechercher un projet..."
+                    totalItems={filteredProjects.length}
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
+                    secondaryActions={
+                        <>
+                            <button
+                                onClick={handleExportCSV}
+                                disabled={isExportingCSV}
+                                className="p-2 bg-white dark:bg-slate-800 rounded-lg text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-sm"
+                                title="Exporter CSV"
+                            >
+                                {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                            </button>
+                            <button
+                                onClick={exportPDF}
+                                disabled={isExportingPDF}
+                                className="p-2 bg-white dark:bg-slate-800 rounded-lg text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-sm"
+                                title="Exporter PDF"
+                            >
+                                {isExportingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                            </button>
+                        </>
+                    }
                 />
-                {filter && (
-                    <button
-                        type="button"
-                        onClick={() => setFilter('')}
-                        className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-600 hover:text-slate-900 dark:hover:text-white"
-                        title="Effacer la recherche"
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
-                )}
-                <div className="px-3 py-2 bg-gray-100 dark:bg-slate-800 rounded text-xs font-bold text-slate-600 dark:text-slate-300">
-                    {filteredProjects.length}
-                </div>
-                <button
-                    onClick={handleExportCSV}
-                    disabled={isExportingCSV}
-                    className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-600 hover:text-slate-900 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Exporter CSV"
-                >
-                    {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-                </button>
-                <button
-                    onClick={exportPDF}
-                    disabled={isExportingPDF}
-                    className="p-2 bg-gray-100 dark:bg-slate-800 rounded text-slate-600 hover:text-slate-900 dark:hover:text-white ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Exporter PDF"
-                >
-                    {isExportingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                </button>
-                <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm ml-2">
-                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
-                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
-                </div>
             </motion.div>
 
             {viewMode === 'list' ? (

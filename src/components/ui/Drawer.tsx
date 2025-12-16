@@ -76,7 +76,7 @@ export const Drawer: React.FC<DrawerProps> = ({
         >
             {/* Backdrop */}
             <div
-                className={`absolute inset-0 bg-slate-900/20 backdrop-blur-[2px] transition-opacity duration-500 ease-out ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+                className={`absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity duration-500 ease-out ${isOpen ? 'opacity-100' : 'opacity-0'}`}
                 onClick={onClose}
                 aria-hidden="true"
             />
@@ -87,7 +87,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                     className={`w-full ${width} pointer-events-auto transform transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
                     style={{ transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)' }}
                 >
-                    <div className="h-full flex flex-col bg-white/90 dark:bg-[#0B1120]/95 backdrop-blur-2xl shadow-2xl dark:shadow-black/50 border-l border-slate-200/60 dark:border-white/10">
+                    <div className="h-full flex flex-col glass-panel border-t-0 border-b-0 border-r-0 rounded-l-2xl">
 
                         {/* Header */}
                         <div className="px-6 py-5 border-b border-slate-200/60 dark:border-white/5 flex flex-wrap items-start justify-between gap-y-4 shrink-0 transition-colors duration-300">

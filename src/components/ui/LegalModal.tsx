@@ -22,11 +22,11 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
     return createPortal(
         <div className="fixed inset-0 z-max flex items-center justify-center p-4 sm:p-6">
             <div
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity"
                 onClick={onClose}
             />
 
-            <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-white/20 overflow-hidden flex flex-col max-h-[85vh] animate-scale-in">
+            <div className="relative w-full max-w-4xl glass-panel rounded-[2.5rem] overflow-hidden flex flex-col max-h-[85vh] animate-scale-in">
                 {/* Header */}
                 <div className="px-8 py-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
                     <div>

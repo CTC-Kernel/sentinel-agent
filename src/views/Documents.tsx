@@ -7,7 +7,8 @@ import { db } from '../firebase';
 import { Document, UserProfile, SystemLog, Control, Asset, Audit, DocumentFolder, DocumentVersion, Risk } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
-import { Plus, Search, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, X, History, MessageSquare, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, LayoutGrid, List, Loader2 } from '../components/ui/Icons';
+import { Plus, X, List, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, History, MessageSquare, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, Loader2 } from '../components/ui/Icons';
+import { PageControls } from '../components/ui/PageControls';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { sendEmail } from '../services/emailService';
@@ -794,60 +795,35 @@ export const Documents: React.FC = () => {
 
                 {/* Main Content */}
                 <div className="flex-1 min-w-0 flex flex-col gap-6 overflow-hidden">
-                    <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-                        {/* Search & Filters */}
-                        <div className="flex-1 w-full glass-panel p-1.5 pl-4 rounded-2xl flex flex-wrap items-center gap-3 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 transition-all border border-slate-200 dark:border-white/5 min-w-0">
-                            <Search className="h-5 w-5 text-slate-500" />
-                            <input type="text" placeholder="Rechercher un document..." className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
-                                value={filter} onChange={e => setFilter(e.target.value)} />
-                            {filter && (
-                                <button
-                                    type="button"
-                                    onClick={() => setFilter('')}
-                                    className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
-                                    title="Effacer la recherche"
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
-                            )}
-                            <div className="px-3 py-2 bg-gray-50 dark:bg-white/5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300">
-                                {filteredDocuments.length}
-                            </div>
-                            <button
-                                onClick={handleExportCSV}
-                                disabled={isExportingCSV}
-                                className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Exporter CSV"
-                            >
-                                {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-                            </button>
-                        </div>
-
-                        {/* View Toggles & Digital Safe */}
-                        <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                            <button
-                                onClick={() => setIsDigitalSafeMode(!isDigitalSafeMode)}
-                                className={`flex items-center px-3 py-2 rounded-xl text-sm font-bold transition-all ${isDigitalSafeMode ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5'}`}
-                            >
-                                <ShieldCheck className={`h-4 w-4 mr-2 ${isDigitalSafeMode ? 'text-emerald-600' : ''}`} />
-                                Coffre-fort
-                            </button>
-                            <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1" />
-                            <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
-                                <button
-                                    onClick={() => setViewMode('grid')}
-                                    className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}
-                                >
-                                    <LayoutGrid className="h-4 w-4" />
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('list')}
-                                    className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}
-                                >
-                                    <List className="h-4 w-4" />
-                                </button>
-                            </div>
-                        </div>
+                    <div className="mb-6">
+                        <PageControls
+                            searchQuery={filter}
+                            onSearchChange={setFilter}
+                            searchPlaceholder="Rechercher un document..."
+                            totalItems={filteredDocuments.length}
+                            isLoading={loadingDocuments}
+                            viewMode={viewMode}
+                            onViewModeChange={setViewMode}
+                            secondaryActions={
+                                <>
+                                    <button
+                                        onClick={handleExportCSV}
+                                        disabled={isExportingCSV}
+                                        className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Exporter CSV"
+                                    >
+                                        {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                                    </button>
+                                    <button
+                                        onClick={() => setIsDigitalSafeMode(!isDigitalSafeMode)}
+                                        className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${isDigitalSafeMode ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 hover:bg-slate-50 dark:hover:bg-white/10'}`}
+                                    >
+                                        <ShieldCheck className={`h-4 w-4 mr-2 ${isDigitalSafeMode ? 'text-emerald-600' : ''}`} />
+                                        Coffre-fort
+                                    </button>
+                                </>
+                            }
+                        />
                     </div>
 
                     {/* Categories Tabs */}

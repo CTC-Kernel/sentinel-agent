@@ -74,9 +74,9 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                     {/* Modern Search Bar Trigger */}
                     <button
                         onClick={openCommandPalette}
-                        className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl text-sm text-slate-600 dark:text-slate-400 transition-all duration-200 group w-full max-w-md shadow-sm hover:shadow-md"
+                        className="hidden md:flex items-center gap-3 px-4 py-2.5 bg-white/40 dark:bg-slate-900/40 hover:bg-white/60 dark:hover:bg-slate-900/60 border border-white/60 dark:border-white/10 rounded-2xl text-sm text-slate-600 dark:text-slate-400 transition-all duration-200 group w-full max-w-md shadow-sm hover:shadow-md backdrop-blur-md"
                     >
-                        <Search className="h-4 w-4 text-slate-500 group-hover:text-brand-500 transition-colors" />
+                        <Search className="h-5 w-5 text-slate-500 group-hover:text-brand-500 transition-colors" />
                         <span className="flex-1 text-left font-medium">{t('common.search')}</span>
                         <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white dark:bg-white/10 border border-slate-200 dark:border-white/5 text-[10px] font-bold text-slate-500 shadow-sm">
                             <Command className="h-3 w-3" />
@@ -150,7 +150,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
 
                         {/* Dropdown Menu */}
                         {showUserMenu && (
-                            <div className="absolute right-0 mt-3 w-64 glass-panel rounded-2xl shadow-xl overflow-hidden z-50 animate-scale-in origin-top-right">
+                            <div className="absolute right-0 mt-3 w-64 glass-panel rounded-2xl overflow-hidden z-50 animate-scale-in origin-top-right">
                                 <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
                                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.displayName}</p>
                                     <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5">{user?.email}</p>

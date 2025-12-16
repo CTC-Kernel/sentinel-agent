@@ -60,7 +60,7 @@ export const Modal: React.FC<ModalProps> = ({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={title ? titleId : undefined}
-                className={`relative w-full ${maxWidth} bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-2xl rounded-[2rem] shadow-2xl dark:shadow-black/50 border border-slate-200/60 dark:border-white/10 overflow-hidden animate-scale-in flex flex-col max-h-[90vh]`}
+                className={`relative w-full ${maxWidth} glass-panel rounded-[2rem] overflow-hidden animate-scale-in flex flex-col max-h-[90vh]`}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-200/60 dark:border-white/5 shrink-0 transition-colors">

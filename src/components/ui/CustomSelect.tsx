@@ -66,8 +66,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                 ${error
                                     ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10 text-destructive'
                                     : open
-                                        ? 'border-brand-500 ring-2 ring-brand-500/20 bg-white dark:bg-[#0B1120] shadow-lg shadow-brand-500/10'
-                                        : 'border-slate-200/60 dark:border-white/10 bg-white/50 dark:bg-[#0B1120]/40 hover:bg-white/80 dark:hover:bg-[#0B1120]/60 hover:border-brand-500/50 backdrop-blur-sm'
+                                        ? 'border-brand-500 ring-2 ring-brand-500/20 bg-white/90 dark:bg-slate-900/90 shadow-lg shadow-brand-500/10'
+                                        : 'border-white/60 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 hover:bg-white/60 dark:hover:bg-slate-900/60 hover:border-brand-500/30 backdrop-blur-md'
                                 }
                             `}>
                                 <span className={`block truncate font-medium ${selectedOptions.length === 0 ? 'text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
@@ -85,7 +85,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                 anchor="bottom start"
                                 transition
                                 portal={true}
-                                className="z-[10000] w-[var(--button-width)] mt-2 max-h-60 overflow-auto rounded-2xl bg-white/95 dark:bg-[#0B1120]/95 py-2 text-base shadow-2xl dark:shadow-black/50 ring-1 ring-black/5 focus:outline-none sm:text-sm custom-scrollbar border border-slate-200/60 dark:border-white/10 backdrop-blur-2xl transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
+                                className="z-[10000] w-[var(--button-width)] mt-2 max-h-60 overflow-auto rounded-2xl glass-panel py-2 text-base ring-1 ring-black/5 focus:outline-none sm:text-sm custom-scrollbar transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
                             >
                                 {options.map((option, optionIdx) => (
                                     <ListboxOption

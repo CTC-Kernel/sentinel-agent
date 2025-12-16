@@ -6,7 +6,8 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
-import { Plus, Search, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, LayoutGrid, List, BrainCircuit, Loader2, X } from '../components/ui/Icons';
+import { Plus, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, BrainCircuit, Loader2 } from '../components/ui/Icons';
+import { PageControls } from '../components/ui/PageControls';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { logAction } from '../services/logger';
@@ -676,43 +677,36 @@ export const Suppliers: React.FC = () => {
                 />
             </motion.div>
 
-            <motion.div variants={slideUpVariants} className="glass-panel p-1.5 pl-4 rounded-2xl flex flex-wrap items-center gap-3 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all border border-slate-200 dark:border-white/5 min-w-0">
-                <Search className="h-5 w-5 text-slate-500" />
-                <input type="text" placeholder="Rechercher un fournisseur..." className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
-                    value={filter} onChange={e => setFilter(e.target.value)} />
-                {filter && (
-                    <button
-                        type="button"
-                        onClick={() => setFilter('')}
-                        className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
-                        title="Effacer la recherche"
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
-                )}
-                <div className="px-3 py-2 bg-gray-50 dark:bg-white/5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300">
-                    {filteredSuppliers.length}
-                </div>
-                <button
-                    onClick={handleExportCSV}
-                    disabled={isExportingCSV}
-                    className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Exporter CSV"
-                >
-                    {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-                </button>
-                <button
-                    onClick={handleExportDORARegister}
-                    disabled={isExportingDORA}
-                    className="p-2.5 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Exporter Registre DORA"
-                >
-                    {isExportingDORA ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
-                </button>
-                <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm max-w-full overflow-x-auto">
-                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
-                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
-                </div>
+            <motion.div variants={slideUpVariants} className="mb-6">
+                <PageControls
+                    searchQuery={filter}
+                    onSearchChange={setFilter}
+                    searchPlaceholder="Rechercher un fournisseur..."
+                    totalItems={filteredSuppliers.length}
+                    isLoading={loadingSuppliers}
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
+                    secondaryActions={
+                        <>
+                            <button
+                                onClick={handleExportCSV}
+                                disabled={isExportingCSV}
+                                className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Exporter CSV"
+                            >
+                                {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                            </button>
+                            <button
+                                onClick={handleExportDORARegister}
+                                disabled={isExportingDORA}
+                                className="p-2.5 bg-indigo-50 dark:bg-slate-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Exporter Registre DORA"
+                            >
+                                {isExportingDORA ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
+                            </button>
+                        </>
+                    }
+                />
             </motion.div>
 
             {viewMode === 'list' ? (

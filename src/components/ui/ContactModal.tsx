@@ -61,7 +61,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm" />
+                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px]" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 overflow-y-auto">
@@ -75,7 +75,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                             leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-slate-900 p-8 text-left align-middle shadow-xl transition-all border border-slate-200 dark:border-slate-700">
+                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl glass-panel p-8 text-left align-middle transition-all">
                                 <div className="flex justify-between items-center mb-6">
                                     <Dialog.Title as="h3" className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                         <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />

@@ -9,7 +9,8 @@ import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, BusinessProcess, Supplier, Audit, Vulnerability, AssetHistory, Document as GRCDocument } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse, LayoutGrid, List, BrainCircuit, FileText, ExternalLink, X, Loader2 } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse, BrainCircuit, FileText, ExternalLink, Loader2 } from '../components/ui/Icons';
+import { PageControls } from '../components/ui/PageControls';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
@@ -726,63 +727,42 @@ export const Assets: React.FC = () => {
             )}
 
             <motion.div variants={slideUpVariants}>
-                <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-                    <div className="flex-1 w-full relative z-20 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
-                        <Search className="h-5 w-5 text-slate-500" />
-                        <input
-                            type="text"
-                            placeholder="Rechercher un actif..."
-                            className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-700 dark:text-white py-2.5 font-medium placeholder-slate-400"
-                            value={activeFilters.query}
-                            onChange={e => setActiveFilters({ ...activeFilters, query: e.target.value })}
-                        />
-                        {activeFilters.query && (
+                <PageControls
+                    searchQuery={activeFilters.query}
+                    onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
+                    searchPlaceholder="Rechercher un actif..."
+                    totalItems={filteredAssets.length}
+                    isLoading={loading}
+                    onAdvancedSearch={() => setShowAdvancedSearch(true)}
+                    activeFiltersCount={(activeFilters.status ? 1 : 0) + (activeFilters.owner ? 1 : 0) + (activeFilters.criticality ? 1 : 0) + (activeFilters.type !== 'all' ? 1 : 0)}
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
+                    primaryAction={
+                        canEdit && (
                             <button
-                                type="button"
-                                onClick={() => setActiveFilters({ ...activeFilters, query: '' })}
-                                className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
-                                title="Effacer la recherche"
+                                onClick={() => openInspector(undefined)}
+                                className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                             >
-                                <X className="h-4 w-4" />
+                                <Plus className="h-4 w-4 mr-2" /> Nouvel Actif
                             </button>
-                        )}
-                        <div className="px-3 py-2 bg-gray-50 dark:bg-white/5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300">
-                            {filteredAssets.length}
-                        </div>
-                        <button
-                            onClick={() => setShowAdvancedSearch(true)}
-                            className="px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
-                        >
-                            Filtres Avancés
-                        </button>
-                        <button
-                            onClick={handleExportCSV}
-                            disabled={isExportingCSV}
-                            className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Exporter CSV"
-                        >
-                            {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-                        </button>
-                        <button disabled={isGeneratingLabels} onClick={() => generateLabels()} className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50" title="Imprimer Étiquette">
-                            {isGeneratingLabels ? <span className="animate-spin">⏳</span> : <QrCode className="h-4 w-4" />}
-                        </button>
-                    </div>
-
-                    <div className="flex bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}
-                        >
-                            <LayoutGrid className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}
-                        >
-                            <List className="h-4 w-4" />
-                        </button>
-                    </div>
-                </div>
+                        )
+                    }
+                    secondaryActions={
+                        <>
+                            <button disabled={isGeneratingLabels} onClick={() => generateLabels()} className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 hover:bg-slate-100 dark:hover:bg-white/10" title="Imprimer Étiquette">
+                                {isGeneratingLabels ? <span className="animate-spin">⏳</span> : <QrCode className="h-4 w-4" />}
+                            </button>
+                            <button
+                                onClick={handleExportCSV}
+                                disabled={isExportingCSV}
+                                className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
+                                title="Exporter CSV"
+                            >
+                                {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                            </button>
+                        </>
+                    }
+                />
             </motion.div>
 
             {/* List / Grid */}

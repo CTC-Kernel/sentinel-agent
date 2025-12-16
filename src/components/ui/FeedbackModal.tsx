@@ -76,8 +76,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
     };
 
     return (
-        <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px] animate-fade-in">
+            <div className="glass-panel rounded-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
                 <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <MessageSquare className="w-6 h-6 text-brand-600" />
