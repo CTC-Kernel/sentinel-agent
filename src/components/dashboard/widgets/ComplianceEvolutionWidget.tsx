@@ -1,11 +1,7 @@
-// DIAGNOSTIC PHASE 3: NUCLEAR OPTION
-// import React, { useState, useId } from 'react';
-// import { TrendingUp } from '../../ui/Icons';
-// import { Skeleton } from '../../ui/Skeleton';
-// import { AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-// import { ChartTooltip } from '../../ui/ChartTooltip';
-// import { DashboardCard } from '../DashboardCard';
-import React from 'react';
+// DIAGNOSTIC PHASE 4: CARD RESTORATION
+import React, { useState } from 'react';
+import { TrendingUp } from '../../ui/Icons';
+import { DashboardCard } from '../DashboardCard';
 
 interface ComplianceEvolutionWidgetProps {
     historyData: { date: string; compliance: number }[];
@@ -14,12 +10,24 @@ interface ComplianceEvolutionWidgetProps {
     theme: string;
 }
 
-export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps> = () => {
+export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps> = ({ t }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
     return (
-        <div className="p-10 border-4 border-green-500 bg-green-100 text-green-900 font-bold text-2xl text-center">
-            WIDGET IS ALIVE
-            <br />
-            (If you see this, the component is mounting correctly)
-        </div>
+        <DashboardCard
+            title={t('dashboard.complianceEvolution')}
+            subtitle="DIAGNOSTIC MODE"
+            icon={<TrendingUp className="w-5 h-5 text-emerald-500" />}
+            isExpanded={isExpanded}
+            onToggleExpand={() => setIsExpanded(!isExpanded)}
+            expandable={true}
+            className="lg:col-span-2 min-h-[400px] border-4 border-blue-500"
+        >
+            <div className="p-10 bg-blue-100 text-blue-900 font-bold text-2xl text-center h-full flex items-center justify-center">
+                CARD IS ALIVE
+                <br />
+                (If you see this, the Card component is fine)
+            </div>
+        </DashboardCard>
     );
 };
