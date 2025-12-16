@@ -173,7 +173,21 @@ export const Dashboard: React.FC = () => {
 
     const historyData = React.useMemo(() => {
         return historyStats
-            .filter(d => typeof d.compliance === 'number' && Number.isFinite(d.compliance))
+            .map((d) => {
+                const anyD = d as unknown as { date?: unknown; compliance?: unknown; metrics?: { complianceRate?: unknown } };
+                const compliance =
+                    typeof anyD.compliance === 'number'
+                        ? anyD.compliance
+                        : typeof anyD.metrics?.complianceRate === 'number'
+                            ? anyD.metrics.complianceRate
+                            : undefined;
+
+                return {
+                    date: typeof anyD.date === 'string' ? anyD.date : '',
+                    compliance: typeof compliance === 'number' ? compliance : Number.NaN
+                };
+            })
+            .filter(d => d.date && typeof d.compliance === 'number' && Number.isFinite(d.compliance))
             .sort((a, b) => a.date.localeCompare(b.date));
     }, [historyStats]);
 
