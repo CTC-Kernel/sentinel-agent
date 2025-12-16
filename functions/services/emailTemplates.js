@@ -183,7 +183,7 @@ const generateEmailHtml = ({ title, content, actionLabel, actionUrl, footerText 
         <tr>
           <td style="${styles.footer}">
             <p style="${styles.footerText}">
-              &copy; ${year} Sentinel GRC by Cyber Threat Consulting.<br>
+              &copy; ${year} Cyber Threat Consulting. Sentinel GRC.<br>
               Tous droits réservés.
             </p>
             <p style="${styles.footerText}" style="margin-top: 12px;">
