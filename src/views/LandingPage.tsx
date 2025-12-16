@@ -11,7 +11,7 @@ import { LandingDashboardMockup } from '../components/landing/LandingDashboardMo
 import { useStore } from '../store';
 
 const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: LucideIcon, title: string, description: string, delay: string }) => (
-    <div className={`glass-panel p-8 rounded-[2rem] border border-slate-200/60 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 hover:bg-white/90 dark:hover:bg-white/10 hover:border-brand-500/30 hover:shadow-2xl hover:shadow-brand-500/10 dark:hover:shadow-brand-500/10 transition-all duration-500 group animate-slide-up flex flex-col items-start`} style={{ animationDelay: delay }}>
+    <div className={`glass-panel p-8 rounded-[2rem] border border-slate-200/60 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 hover:bg-white/90 dark:hover:bg-white/10 hover:border-brand-500/30 hover:shadow-2xl hover:shadow-brand-500/10 dark:hover:shadow-brand-500/10 transition-all duration-500 group animate-slide-up flex flex-col items-start relative hover:z-20`} style={{ animationDelay: delay }}>
         <div className="p-3.5 rounded-2xl bg-gradient-to-br from-brand-500/10 to-purple-500/10 dark:from-brand-500/20 dark:to-purple-500/20 text-brand-600 dark:text-brand-400 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 mb-6 ring-1 ring-brand-500/10 dark:ring-white/10">
             <Icon className="h-8 w-8" aria-hidden="true" />
         </div>

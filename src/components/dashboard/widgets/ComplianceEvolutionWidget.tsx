@@ -12,10 +12,21 @@ interface ComplianceEvolutionWidgetProps {
     theme: string;
 }
 
-export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps> = ({ historyData, loading, t, theme }) => {
+export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps> = ({ historyData: _historyData, loading, t, theme }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [timeRange, setTimeRange] = useState<'30d' | '90d' | '1y' | 'all'>('30d');
     const gradientId = useId();
+
+    // DEBUG: MOCK DATA INJECTION
+    const MOCK_DATA = [
+        { date: '2025-01-01', compliance: 20 },
+        { date: '2025-02-01', compliance: 45 },
+        { date: '2025-03-01', compliance: 60 },
+        { date: '2025-04-01', compliance: 75 },
+        { date: '2025-05-01', compliance: 85 },
+        { date: '2025-06-01', compliance: 90 },
+    ];
+    console.log("ComplianceWidget Render. Mock Data Active.", MOCK_DATA);
 
     const chartColors = {
         grid: theme === 'dark' ? 'hsl(var(--border) / 0.35)' : 'hsl(var(--border) / 0.6)',
@@ -26,19 +37,9 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
     };
 
     const filteredData = React.useMemo(() => {
-        if (!historyData) return [];
-        const now = new Date();
-        const cutoff = new Date();
-
-        switch (timeRange) {
-            case '30d': cutoff.setDate(now.getDate() - 30); break;
-            case '90d': cutoff.setDate(now.getDate() - 90); break;
-            case '1y': cutoff.setFullYear(now.getFullYear() - 1); break;
-            case 'all': return historyData;
-        }
-
-        return historyData.filter(d => new Date(d.date) >= cutoff);
-    }, [historyData, timeRange]);
+        // FORCE MOCK DATA FOR DIAGNOSTIC
+        return MOCK_DATA;
+    }, [MOCK_DATA]);
 
     const getSubtitle = () => {
         switch (timeRange) {
@@ -58,7 +59,7 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
             isExpanded={isExpanded}
             onToggleExpand={() => setIsExpanded(!isExpanded)}
             expandable={true}
-            className="lg:col-span-2 min-h-[400px]"
+            className="lg:col-span-2 min-h-[400px] border-4 border-red-500"
             headerAction={
                 <div className="flex bg-slate-100 dark:bg-white/5 rounded-lg p-1 gap-1" onClick={(e) => e.stopPropagation()}>
                     {(['30d', '90d', '1y', 'all'] as const).map(range => (
