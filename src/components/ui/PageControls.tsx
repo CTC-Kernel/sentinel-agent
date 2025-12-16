@@ -43,7 +43,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
             {/* Left Section: Search & Count */}
             <div className="flex-1 w-full md:max-w-xl relative group z-20">
                 <div className="absolute inset-0 bg-brand-500/5 dark:bg-white/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500/30 transition-all duration-300">
+                <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500/30 transition-all duration-300">
                     <Search className="h-5 w-5 text-slate-500 group-focus-within:text-brand-500 transition-colors" />
 
                     <input
@@ -106,7 +106,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
 
                 {/* View Mode Toggle */}
                 {viewMode && onViewModeChange && (
-                    <div className="flex bg-white/40 dark:bg-slate-900/40 backdrop-blur-md p-1 rounded-xl border border-white/60 dark:border-white/10 shadow-sm">
+                    <div className="flex bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                         <button
                             onClick={() => onViewModeChange('grid')}
                             className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'grid'
