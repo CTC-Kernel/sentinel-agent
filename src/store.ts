@@ -38,7 +38,7 @@ export const useStore = create<AppState>((set, get) => ({
   user: null,
   organization: null,
   customRoles: [],
-  theme: (localStorage.getItem('theme') as 'light' | 'dark') || 'light',
+  theme: (localStorage.getItem('theme') as 'light' | 'dark') || 'dark',
   isLoading: true,
   toasts: [],
 
