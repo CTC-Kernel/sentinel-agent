@@ -32,7 +32,7 @@ export const LandingPage: React.FC = () => {
     const { theme, toggleTheme } = useStore();
 
     return (
-        <div className="min-h-screen bg-background relative overflow-hidden font-apple selection:bg-brand-500 selection:text-white">
+        <AuroraBackground className="min-h-screen font-apple selection:bg-brand-500 selection:text-white !block !h-auto">
             <SEO
                 title="Sentinel GRC — Ne subissez plus votre conformité"
                 description="Le centre de commande unifié pour piloter risques, audits, actifs et conformité (ISO 27001 / ISO 27005) avec une sécurité by design."
@@ -55,6 +55,20 @@ export const LandingPage: React.FC = () => {
                     }
                 }}
             />
+
+            <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+
+            <div className="fixed inset-0 w-full h-full pointer-events-none z-0">
+                <SparklesCore
+                    id="tsparticleslanding"
+                    background="transparent"
+                    minSize={0.6}
+                    maxSize={1.4}
+                    particleDensity={40}
+                    className="w-full h-full absolute inset-0"
+                    particleColor="#FFFFFF"
+                />
+            </div>
 
             {/* Navbar */}
             <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-6 transition-all duration-300">
@@ -84,62 +98,46 @@ export const LandingPage: React.FC = () => {
             </nav>
 
             {/* Hero Section */}
-            <header className="min-h-screen relative flex flex-col items-center justify-center">
-                <AuroraBackground className="absolute inset-0 z-0">
-                    <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
-
-                    <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
-                        <SparklesCore
-                            id="tsparticleslanding"
-                            background="transparent"
-                            minSize={0.6}
-                            maxSize={1.4}
-                            particleDensity={40}
-                            className="w-full h-full absolute inset-0"
-                            particleColor="#FFFFFF"
-                        />
+            <header className="min-h-screen relative flex flex-col items-center justify-center pt-20">
+                <div className="relative z-10 max-w-5xl mx-auto px-6 text-center space-y-8">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50/50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 backdrop-blur-md mb-8 animate-fade-in hover:bg-slate-100/50 dark:hover:bg-white/10 transition-colors cursor-default shadow-sm shadow-brand-500/5">
+                        <span className="flex h-2 w-2 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-600 dark:bg-brand-500"></span>
+                        </span>
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-300 tracking-wide">Nouvelle Génération GRC</span>
                     </div>
 
-                    <div className="relative z-10 max-w-5xl mx-auto px-6 text-center space-y-8">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50/50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 backdrop-blur-md mb-8 animate-fade-in hover:bg-slate-100/50 dark:hover:bg-white/10 transition-colors cursor-default shadow-sm shadow-brand-500/5">
-                            <span className="flex h-2 w-2 relative">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-500 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-600 dark:bg-brand-500"></span>
-                            </span>
-                            <span className="text-sm font-medium text-slate-600 dark:text-slate-300 tracking-wide">Nouvelle Génération GRC</span>
-                        </div>
+                    <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-slate-900 via-slate-700 to-slate-500 dark:from-white dark:via-slate-200 dark:to-slate-400 tracking-tight mb-8 leading-[1.1] drop-shadow-sm animate-slide-up">
+                        L'Art de la <br />
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-600 via-purple-600 to-brand-600 dark:from-brand-400 dark:via-purple-400 dark:to-brand-400 animate-gradient-x pb-2">Gouvernance</span> & <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 dark:from-blue-400 dark:via-cyan-400 dark:to-blue-400 animate-gradient-x pb-2">Cybersécurité</span>
+                    </h1>
 
-                        <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-slate-900 via-slate-700 to-slate-500 dark:from-white dark:via-slate-200 dark:to-slate-400 tracking-tight mb-8 leading-[1.1] drop-shadow-sm animate-slide-up">
-                            L'Art de la <br />
-                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-600 via-purple-600 to-brand-600 dark:from-brand-400 dark:via-purple-400 dark:to-brand-400 animate-gradient-x pb-2">Gouvernance</span> & <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 dark:from-blue-400 dark:via-cyan-400 dark:to-blue-400 animate-gradient-x pb-2">Cybersécurité</span>
-                        </h1>
-
-                        <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                            Pilotez votre conformité ISO 27001 et vos risques avec une élégance et une précision inégalées. Une plateforme conçue pour l'excellence.
-                        </p>
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 animate-slide-up opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
-                            <Button onClick={() => navigate('/login')} size="lg" className="h-14 px-8 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black font-bold text-lg hover:scale-105 transition-transform shadow-xl shadow-brand-500/10 w-full sm:w-auto">
-                                Créer mon compte
-                                <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
-                            </Button>
-                        </div>
-
+                    <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                        Pilotez votre conformité ISO 27001 et vos risques avec une élégance et une précision inégalées. Une plateforme conçue pour l'excellence.
+                    </p>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 animate-slide-up opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
+                        <Button onClick={() => navigate('/login')} size="lg" className="h-14 px-8 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-black font-bold text-lg hover:scale-105 transition-transform shadow-xl shadow-brand-500/10 w-full sm:w-auto">
+                            Créer mon compte
+                            <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+                        </Button>
                     </div>
 
-                    {/* Dashboard Preview Mockup */}
-                    <div className="mt-24 relative mx-auto w-full max-w-6xl animate-slide-up opacity-0 perspective-1000" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
-                        <div className="relative rounded-[1.5rem] border border-white/10 bg-slate-900/40 backdrop-blur-2xl shadow-2xl ring-1 ring-white/5 overflow-hidden h-[800px] md:h-auto md:aspect-[16/10] group transform transition-all duration-700 hover:scale-[1.01] hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.3)]">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-brand-500/10 via-transparent to-purple-500/10 opacity-50 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-10 mix-blend-overlay"></div>
-                            <LandingDashboardMockup aria-hidden="true" />
-                        </div>
-                        {/* Decorative glow behind mockup */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-brand-500/20 blur-[100px] -z-10 rounded-full opacity-40"></div>
+                </div>
+
+                {/* Dashboard Preview Mockup */}
+                <div className="mt-24 relative mx-auto w-full max-w-6xl animate-slide-up opacity-0 perspective-1000" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
+                    <div className="relative rounded-[1.5rem] border border-white/10 bg-slate-900/40 backdrop-blur-2xl shadow-2xl ring-1 ring-white/5 overflow-hidden h-[800px] md:h-auto md:aspect-[16/10] group transform transition-all duration-700 hover:scale-[1.01] hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.3)]">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-brand-500/10 via-transparent to-purple-500/10 opacity-50 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-10 mix-blend-overlay"></div>
+                        <LandingDashboardMockup aria-hidden="true" />
                     </div>
-                </AuroraBackground>
+                    {/* Decorative glow behind mockup */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-brand-500/20 blur-[100px] -z-10 rounded-full opacity-40"></div>
+                </div>
             </header>
 
             {/* Features Grid */}
-            <section className="py-32 px-6 relative bg-slate-50/50 dark:bg-background">
+            <section className="relative z-10 py-32 px-6 bg-transparent">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-20 max-w-3xl mx-auto space-y-4">
                         <h2 className="text-4xl font-bold text-slate-900 dark:text-white">La GRC blindée et intelligente</h2>
@@ -188,7 +186,7 @@ export const LandingPage: React.FC = () => {
             </section>
 
             {/* Trust/Social Proof Section */}
-            <section className="py-24 bg-white dark:bg-slate-900/50 border-y border-slate-100 dark:border-white/5">
+            <section className="relative z-10 py-24 bg-white/30 dark:bg-slate-900/30 border-y border-slate-200/60 dark:border-white/5 backdrop-blur-sm">
                 <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                     <div className="space-y-8">
                         <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Pourquoi les RSSI et le COMEX adoptent Sentinel GRC</h2>
@@ -223,7 +221,7 @@ export const LandingPage: React.FC = () => {
             </section>
 
             {/* Footer */}
-            <footer className="bg-white dark:bg-black py-12 border-t border-slate-200 dark:border-white/10">
+            <footer className="relative z-10 bg-white/50 dark:bg-black/50 py-12 border-t border-slate-200/60 dark:border-white/10 backdrop-blur-md">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center space-x-2">
                         <div className="w-8 h-8 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center">
@@ -232,19 +230,19 @@ export const LandingPage: React.FC = () => {
                         <span className="font-bold text-slate-900 dark:text-white">Sentinel GRC</span>
                     </div>
 
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                         © {new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.{' '}
                         <a
                             href="https://www.cyber-threat-consulting.com"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="underline underline-offset-2 hover:text-slate-600 dark:hover:text-slate-300"
+                            className="underline underline-offset-2 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
                         >
                             cyber-threat-consulting.com
                         </a>
                     </p>
                 </div>
             </footer>
-        </div>
+        </AuroraBackground>
     );
 };
