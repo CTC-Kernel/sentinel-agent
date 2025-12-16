@@ -1,4 +1,4 @@
-// DIAGNOSTIC PHASE 5: RESTORE RECHARTS (FIXED HEIGHT)
+// DIAGNOSTIC PHASE 6: FINAL CLEANUP & COMPLETED FIX
 import React, { useState, useId } from 'react';
 import { TrendingUp } from '../../ui/Icons';
 import { Skeleton } from '../../ui/Skeleton';
@@ -13,33 +13,33 @@ interface ComplianceEvolutionWidgetProps {
     theme: string;
 }
 
-export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps> = ({ historyData: _historyData, loading, t, theme }) => {
+export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps> = ({ historyData, loading, t, theme }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [timeRange, setTimeRange] = useState<'30d' | '90d' | '1y' | 'all'>('30d');
     const gradientId = useId();
-
-    // DEBUG: MOCK DATA INJECTION (Keep this to prove rendering works first)
-    const MOCK_DATA = [
-        { date: '2025-01-01', compliance: 20 },
-        { date: '2025-02-01', compliance: 45 },
-        { date: '2025-03-01', compliance: 60 },
-        { date: '2025-04-01', compliance: 75 },
-        { date: '2025-05-01', compliance: 85 },
-        { date: '2025-06-01', compliance: 90 },
-    ];
 
     const chartColors = {
         grid: theme === 'dark' ? 'hsl(var(--border) / 0.35)' : 'hsl(var(--border) / 0.6)',
         text: 'hsl(var(--muted-foreground))',
         cursor: 'hsl(var(--muted-foreground) / 0.15)',
-        stroke: 'hsl(var(--primary))', // Use primary color for better visibility
+        stroke: 'hsl(var(--primary))',
         fill: 'hsl(var(--primary))'
     };
 
     const filteredData = React.useMemo(() => {
-        // FORCE MOCK DATA FOR DIAGNOSTIC
-        return MOCK_DATA;
-    }, []);
+        if (!historyData) return [];
+        const now = new Date();
+        const cutoff = new Date();
+
+        switch (timeRange) {
+            case '30d': cutoff.setDate(now.getDate() - 30); break;
+            case '90d': cutoff.setDate(now.getDate() - 90); break;
+            case '1y': cutoff.setFullYear(now.getFullYear() - 1); break;
+            case 'all': return historyData;
+        }
+
+        return historyData.filter(d => new Date(d.date) >= cutoff);
+    }, [historyData, timeRange]);
 
     const getSubtitle = () => {
         switch (timeRange) {
@@ -80,12 +80,16 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
             <div className="w-full h-full p-6">
                 {loading ? (
                     <Skeleton className="h-full w-full rounded-2xl" />
-                ) : (
-                    /* CRITICAL: Enforce explicit height in PX for diagnosic, remove h-full */
-                    <div className="w-full h-[350px] relative border border-blue-300 border-dashed">
-                        <div className="absolute top-0 right-0 text-xs text-blue-500 bg-blue-100 p-1 z-10">
-                            Target Height: 350px
+                ) : !filteredData || filteredData.length === 0 ? (
+                    <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 animate-fade-in">
+                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-full mb-3 ring-1 ring-slate-100 dark:ring-white/5">
+                            <TrendingUp className="w-6 h-6 opacity-40" />
                         </div>
+                        <p className="text-sm font-medium">{t('dashboard.noDataAvailable')}</p>
+                    </div>
+                ) : (
+                    /* FIXED: Explicit height to prevent collapse */
+                    <div className="w-full h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={filteredData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <defs>
