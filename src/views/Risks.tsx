@@ -931,13 +931,7 @@ export const Risks: React.FC = () => {
     }
 
     return (
-        <motion.div
-            variants={staggerContainerVariants}
-            initial="initial"
-            animate="in"
-            exit="out"
-            className="max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen pt-4 sm:pt-8 px-4 md:px-8"
-        >
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-8 pb-10 relative w-full max-w-[1920px] mx-auto">
             <div className="fixed inset-0 pointer-events-none -z-10">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[100px] animate-pulse-slow" />
                 <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] animate-pulse-slow delay-1000" />

@@ -262,7 +262,7 @@ export const AnalyticsDashboard: React.FC = () => {
     }
 
     return (
-        <div className="p-4 md:p-8 max-w-[1800px] mx-auto space-y-8 animate-fade-in">
+        <div className="w-full max-w-[1920px] mx-auto space-y-8 animate-fade-in relative">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>

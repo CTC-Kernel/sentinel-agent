@@ -656,7 +656,7 @@ export const Documents: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative">
+        <div className="space-y-8 animate-fade-in pb-10 relative w-full max-w-[1920px] mx-auto">
             <Helmet>
                 <title>Gestion Documentaire - Sentinel GRC</title>
                 <meta name="description" content="Centralisez et gérez le cycle de vie de vos politiques et procédures de sécurité." />

@@ -351,7 +351,7 @@ export const Continuity: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 sm:pt-8"
+            className="space-y-8 pb-10 relative w-full max-w-[1920px] mx-auto"
         >
             <ConfirmModal
                 isOpen={confirmData.isOpen}

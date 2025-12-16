@@ -617,7 +617,7 @@ export const Suppliers: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full min-w-0"
+            className="space-y-8 pb-10 relative w-full max-w-[1920px] mx-auto min-w-0"
         >
             <Helmet>
                 <title>Gestion des Fournisseurs - Sentinel GRC</title>

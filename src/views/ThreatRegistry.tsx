@@ -140,7 +140,7 @@ export const ThreatRegistry: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="space-y-8 w-full max-w-[1920px] mx-auto"
         >
             <Helmet>
                 <title>Bibliothèque de Menaces | Sentinel GRC</title>

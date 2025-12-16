@@ -871,7 +871,7 @@ export const Projects: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full max-w-[1920px] mx-auto"
+            className="space-y-8 pb-10 relative w-full max-w-[1920px] mx-auto"
         >
             <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-500/5 rounded-full blur-[120px] animate-blob" />
