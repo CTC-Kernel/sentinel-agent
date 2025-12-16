@@ -158,8 +158,8 @@ export const LandingDashboardMockup: React.FC = () => {
                     </div>
 
                     {/* Main Chart Area Mockup */}
-                    <div className="grid grid-cols-3 gap-6 h-64">
-                        <div className="col-span-2 bg-white/5 rounded-2xl border border-white/10 p-6 flex flex-col relative overflow-hidden">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-fr">
+                        <div className="lg:col-span-2 bg-white/5 rounded-2xl border border-white/10 p-6 flex flex-col relative overflow-hidden min-h-[250px]">
                             {/* Grid lines background */}
                             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
 
@@ -187,7 +187,7 @@ export const LandingDashboardMockup: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="col-span-1 bg-white/5 rounded-2xl border border-white/10 p-6 flex flex-col relative overflow-hidden">
+                        <div className="lg:col-span-1 bg-white/5 rounded-2xl border border-white/10 p-6 flex flex-col relative overflow-hidden min-h-[250px]">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 blur-[50px] rounded-full pointer-events-none"></div>
 
                             <h3 className="font-bold text-white mb-6 relative z-10">Répartition</h3>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { LucideIcon } from 'lucide-react';
 import { AuroraBackground } from '../components/ui/AuroraBackground';
 import { Spotlight } from '../components/ui/aceternity/Spotlight';
 import { Button } from '../components/ui/button';
@@ -9,7 +10,7 @@ import { SEO } from '../components/SEO';
 import { LandingDashboardMockup } from '../components/landing/LandingDashboardMockup';
 import { useStore } from '../store';
 
-const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: any, title: string, description: string, delay: string }) => (
+const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: LucideIcon, title: string, description: string, delay: string }) => (
     <div className={`glass-panel p-8 rounded-[2rem] border border-slate-200/60 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 hover:bg-white/90 dark:hover:bg-white/10 hover:border-brand-500/30 hover:shadow-2xl hover:shadow-brand-500/10 dark:hover:shadow-brand-500/10 transition-all duration-500 group animate-slide-up flex flex-col items-start`} style={{ animationDelay: delay }}>
         <div className="p-3.5 rounded-2xl bg-gradient-to-br from-brand-500/10 to-purple-500/10 dark:from-brand-500/20 dark:to-purple-500/20 text-brand-600 dark:text-brand-400 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 mb-6 ring-1 ring-brand-500/10 dark:ring-white/10">
             <Icon className="h-8 w-8" aria-hidden="true" />
@@ -31,7 +32,7 @@ export const LandingPage: React.FC = () => {
     const { theme, toggleTheme } = useStore();
 
     return (
-        <div className="min-h-screen bg-background relative overflow-hidden font-sans selection:bg-brand-500 selection:text-white">
+        <div className="min-h-screen bg-background relative overflow-hidden font-apple selection:bg-brand-500 selection:text-white">
             <SEO
                 title="Sentinel GRC — Ne subissez plus votre conformité"
                 description="Le centre de commande unifié pour piloter risques, audits, actifs et conformité (ISO 27001 / ISO 27005) avec une sécurité by design."
@@ -127,7 +128,7 @@ export const LandingPage: React.FC = () => {
 
                     {/* Dashboard Preview Mockup */}
                     <div className="mt-24 relative mx-auto w-full max-w-6xl animate-slide-up opacity-0 perspective-1000" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
-                        <div className="relative rounded-[1.5rem] border border-white/10 bg-slate-900/40 backdrop-blur-2xl shadow-2xl ring-1 ring-white/5 overflow-hidden aspect-[16/10] group transform transition-all duration-700 hover:scale-[1.01] hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.3)]">
+                        <div className="relative rounded-[1.5rem] border border-white/10 bg-slate-900/40 backdrop-blur-2xl shadow-2xl ring-1 ring-white/5 overflow-hidden h-[800px] md:h-auto md:aspect-[16/10] group transform transition-all duration-700 hover:scale-[1.01] hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.3)]">
                             <div className="absolute inset-0 bg-gradient-to-tr from-brand-500/10 via-transparent to-purple-500/10 opacity-50 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-10 mix-blend-overlay"></div>
                             <LandingDashboardMockup aria-hidden="true" />
                         </div>
