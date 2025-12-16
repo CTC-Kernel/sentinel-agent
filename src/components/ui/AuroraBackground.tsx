@@ -13,13 +13,13 @@ export const AuroraBackground = ({
 }: AuroraBackgroundProps) => {
   return (
     <div
-      className={`relative flex flex-col items-center justify-center bg-slate-50 dark:bg-zinc-900 overflow-x-hidden transition-bg ${className}`}
+      className={`relative flex flex-col items-center justify-center bg-slate-100 dark:bg-zinc-900 overflow-x-hidden transition-bg ${className}`}
       {...props}
     >
       <div className="absolute inset-0 overflow-hidden">
         <div
           className={`
-            [--white-gradient:repeating-linear-gradient(100deg,var(--slate-50)_0%,var(--slate-50)_7%,var(--transparent)_10%,var(--transparent)_12%,var(--slate-50)_16%)]
+            [--white-gradient:repeating-linear-gradient(100deg,var(--slate-100)_0%,var(--slate-100)_7%,var(--transparent)_10%,var(--transparent)_12%,var(--slate-100)_16%)]
             [--dark-gradient:repeating-linear-gradient(100deg,var(--black)_0%,var(--black)_7%,var(--transparent)_10%,var(--transparent)_12%,var(--black)_16%)]
             [--aurora:repeating-linear-gradient(100deg,var(--blue-600)_10%,var(--indigo-500)_15%,var(--blue-500)_20%,var(--violet-500)_25%,var(--blue-600)_30%)]
             [background-image:var(--white-gradient),var(--aurora)]
