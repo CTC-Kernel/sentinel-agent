@@ -21,8 +21,8 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
         grid: theme === 'dark' ? 'hsl(var(--border) / 0.35)' : 'hsl(var(--border) / 0.6)',
         text: 'hsl(var(--muted-foreground))',
         cursor: 'hsl(var(--muted-foreground) / 0.15)',
-        stroke: 'var(--success-text)', // Use CSS var for generic success color
-        fill: 'var(--success-text)'
+        stroke: 'hsl(var(--primary))', // Use primary color for better visibility
+        fill: 'hsl(var(--primary))'
     };
 
     const filteredData = React.useMemo(() => {
@@ -87,9 +87,15 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                         <p className="text-sm font-medium">{t('dashboard.noDataAvailable')}</p>
                     </div>
                 ) : (
-                    <div className="w-full h-full min-h-[300px]">
+                    <div className="w-full h-full min-h-[300px] relative">
+                        {/* Debug info - hidden in production if needed, or remove later */}
+                        {filteredData.length > 0 && false && (
+                            <div className="absolute top-0 left-0 text-xs bg-red-100 z-50">
+                                Data Points: {filteredData.length}
+                            </div>
+                        )}
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={filteredData}>
+                            <AreaChart data={filteredData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor={chartColors.stroke} stopOpacity={0.3} />

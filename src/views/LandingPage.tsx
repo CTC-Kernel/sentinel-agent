@@ -10,12 +10,12 @@ import { LandingDashboardMockup } from '../components/landing/LandingDashboardMo
 import { useStore } from '../store';
 
 const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: any, title: string, description: string, delay: string }) => (
-    <div className={`glass-panel p-8 rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-xl hover:bg-white/10 hover:border-brand-500/30 hover:shadow-2xl hover:shadow-brand-500/10 transition-all duration-500 group animate-slide-up flex flex-col items-start`} style={{ animationDelay: delay }}>
-        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-brand-500/20 to-purple-500/20 text-brand-400 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 mb-6 ring-1 ring-white/10">
+    <div className={`glass-panel p-8 rounded-[2rem] border border-slate-200 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-white/10 hover:border-brand-500/30 hover:shadow-2xl hover:shadow-brand-500/10 transition-all duration-500 group animate-slide-up flex flex-col items-start`} style={{ animationDelay: delay }}>
+        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-brand-500/20 to-purple-500/20 text-brand-500 dark:text-brand-400 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 mb-6 ring-1 ring-brand-500/10 dark:ring-white/10">
             <Icon className="h-8 w-8" />
         </div>
-        <h3 className="text-xl font-bold text-slate-100 mb-3 group-hover:text-brand-300 transition-colors">{title}</h3>
-        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">{description}</p>
+        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3 group-hover:text-brand-600 dark:group-hover:text-brand-300 transition-colors">{title}</h3>
+        <p className="text-slate-600 dark:text-slate-400 leading-relaxed group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">{description}</p>
     </div>
 );
 
@@ -81,20 +81,20 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 <div className="relative z-10 max-w-5xl mx-auto px-6 text-center space-y-8">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 animate-fade-in hover:bg-white/10 transition-colors cursor-default">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/5 dark:bg-white/5 border border-slate-200 dark:border-white/10 backdrop-blur-md mb-8 animate-fade-in hover:bg-slate-900/10 dark:hover:bg-white/10 transition-colors cursor-default">
                         <span className="flex h-2 w-2 relative">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-600 dark:bg-brand-500"></span>
                         </span>
-                        <span className="text-sm font-medium text-slate-300 tracking-wide">Nouvelle Génération GRC</span>
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-300 tracking-wide">Nouvelle Génération GRC</span>
                     </div>
 
-                    <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-200 to-slate-400 tracking-tight mb-8 leading-[1.1] drop-shadow-sm animate-slide-up">
+                    <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-slate-900 via-slate-700 to-slate-500 dark:from-white dark:via-slate-200 dark:to-slate-400 tracking-tight mb-8 leading-[1.1] drop-shadow-sm animate-slide-up">
                         L'Art de la <br />
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-purple-400 to-brand-400 animate-gradient-x pb-2">Gouvernance</span> & <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 animate-gradient-x pb-2">Cybersécurité</span>
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-600 via-purple-600 to-brand-600 dark:from-brand-400 dark:via-purple-400 dark:to-brand-400 animate-gradient-x pb-2">Gouvernance</span> & <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 dark:from-blue-400 dark:via-cyan-400 dark:to-blue-400 animate-gradient-x pb-2">Cybersécurité</span>
                     </h1>
 
-                    <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                    <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
                         Pilotez votre conformité ISO 27001 et vos risques avec une élégance et une précision inégalées. Une plateforme conçue pour l'excellence.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 animate-slide-up opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
@@ -183,18 +183,18 @@ export const LandingPage: React.FC = () => {
                     </div>
                     <div className="relative group">
                         <div className="absolute inset-0 bg-brand-500/20 blur-[100px] rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-1000 pointer-events-none"></div>
-                        <div className="relative glass-panel rounded-[2rem] p-8 border border-white/10 bg-white/5 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-8 divide-y sm:divide-y-0 sm:divide-x divide-white/10 hover:bg-white/10 transition-colors duration-500">
+                        <div className="relative glass-panel rounded-[2rem] p-8 border border-slate-200 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-8 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 dark:divide-white/10 hover:bg-white/80 dark:hover:bg-white/10 transition-colors duration-500">
                             <div className="flex flex-col items-center text-center px-4 w-full">
-                                <span className="text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 tracking-tight mb-2">500+</span>
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Audits Réussis</span>
+                                <span className="text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-slate-900 to-slate-500 dark:from-white dark:to-slate-400 tracking-tight mb-2">500+</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-500">Audits Réussis</span>
                             </div>
                             <div className="flex flex-col items-center text-center px-4 w-full">
-                                <span className="text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 tracking-tight mb-2">10k+</span>
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Risques Traités</span>
+                                <span className="text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-slate-900 to-slate-500 dark:from-white dark:to-slate-400 tracking-tight mb-2">10k+</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-500">Risques Traités</span>
                             </div>
                             <div className="flex flex-col items-center text-center px-4 w-full">
-                                <span className="text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-brand-400 to-indigo-500 tracking-tight mb-2">100%</span>
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-500/80">Satisfaction</span>
+                                <span className="text-4xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-brand-600 to-indigo-600 dark:from-brand-400 dark:to-indigo-500 tracking-tight mb-2">100%</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-600/80 dark:text-brand-500/80">Satisfaction</span>
                             </div>
                         </div>
                     </div>

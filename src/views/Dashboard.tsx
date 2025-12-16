@@ -175,19 +175,24 @@ export const Dashboard: React.FC = () => {
         return historyStats
             .map((d) => {
                 const anyD = d as unknown as { date?: unknown; compliance?: unknown; metrics?: { complianceRate?: unknown } };
-                const compliance =
-                    typeof anyD.metrics?.complianceRate === 'number'
-                        ? anyD.metrics.complianceRate
-                        : typeof anyD.compliance === 'number'
-                            ? anyD.compliance
-                            : undefined;
+
+                let complianceVal: number | undefined = undefined;
+
+                if (anyD.metrics && typeof anyD.metrics.complianceRate !== 'undefined') {
+                    const val = anyD.metrics.complianceRate;
+                    complianceVal = typeof val === 'string' ? parseFloat(val) : typeof val === 'number' ? val : undefined;
+                } else if (typeof anyD.compliance !== 'undefined') {
+                    const val = anyD.compliance;
+                    complianceVal = typeof val === 'string' ? parseFloat(val) : typeof val === 'number' ? val : undefined;
+                }
 
                 return {
                     date: typeof anyD.date === 'string' ? anyD.date : '',
-                    compliance: typeof compliance === 'number' ? compliance : Number.NaN
+                    compliance: typeof complianceVal === 'number' && Number.isFinite(complianceVal) ? complianceVal : 0
                 };
             })
-            .filter(d => d.date && typeof d.compliance === 'number' && Number.isFinite(d.compliance))
+            // Filter out entries with invalid dates or where compliance couldn't be resolved
+            .filter(d => d.date && d.date.length > 0)
             .sort((a, b) => a.date.localeCompare(b.date));
     }, [historyStats]);
 
