@@ -206,7 +206,17 @@ export const LandingPage: React.FC = () => {
                         <span className="font-bold text-slate-900 dark:text-white">Sentinel GRC</span>
                     </div>
 
-                    <p className="text-xs text-slate-400">© {new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.</p>
+                    <p className="text-xs text-slate-400">
+                        © {new Date().getFullYear()} Cyber Threat Consulting. Sentinel GRC. Tous droits réservés.{' '}
+                        <a
+                            href="https://www.cyber-threat-consulting.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline underline-offset-2 hover:text-slate-600 dark:hover:text-slate-300"
+                        >
+                            cyber-threat-consulting.com
+                        </a>
+                    </p>
                 </div>
             </footer>
         </div>
