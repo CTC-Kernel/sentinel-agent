@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { Risk } from '../../types';
-import { ShieldAlert, AlertTriangle, Target, Clock } from '../ui/Icons';
+import { ShieldAlert, AlertTriangle, Target, Clock, TrendingUp } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, ZAxis, AreaChart, Area } from 'recharts';
 
 interface RiskDashboardProps {
@@ -10,10 +10,20 @@ interface RiskDashboardProps {
 }
 
 export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterChange }) => {
-    const chartColors = {
-        grid: 'hsl(var(--border) / 0.4)',
-        text: 'hsl(var(--muted-foreground) / 0.8)',
-        cursor: 'hsl(var(--muted-foreground) / 0.1)'
+    // Premium Chart Theme
+    const chartTheme = {
+        grid: 'hsl(var(--border) / 0.2)', // Ultra subtle grid
+        text: 'hsl(var(--muted-foreground) / 0.7)',
+        cursor: 'hsl(var(--muted-foreground) / 0.1)',
+        colors: {
+            critical: '#ef4444', // red-500
+            high: '#f97316',     // orange-500
+            medium: '#eab308',   // yellow-500
+            low: '#22c55e',      // green-500
+            primary: '#3b82f6',  // blue-500
+            purple: '#8b5cf6',   // violet-500
+            cyan: '#06b6d4',     // cyan-500
+        }
     };
 
     // Calculate metrics
@@ -30,10 +40,10 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
 
     // Risk distribution by level
     const distributionData = [
-        { name: 'Critique', value: criticalRisks, color: '#ef4444' }, // red-500
-        { name: 'Élevé', value: highRisks, color: '#f97316' }, // orange-500
-        { name: 'Moyen', value: mediumRisks, color: '#eab308' }, // yellow-500
-        { name: 'Faible', value: lowRisks, color: '#22c55e' } // green-500
+        { name: 'Critique', value: criticalRisks, color: chartTheme.colors.critical },
+        { name: 'Élevé', value: highRisks, color: chartTheme.colors.high },
+        { name: 'Moyen', value: mediumRisks, color: chartTheme.colors.medium },
+        { name: 'Faible', value: lowRisks, color: chartTheme.colors.low }
     ];
 
     // Risk distribution by category
@@ -120,7 +130,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
     }, [risks]);
 
 
-
+    // Unique IDs for gradients
     const areaGradientId = React.useId();
     const barGradientBlueId = React.useId();
 
@@ -221,44 +231,45 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 {/* Evolution Chart (NEW) */}
                 <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 lg:col-span-2 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-decorator h-[250px] w-full min-h-[250px]">
+                    <div className="relative z-decorator h-[280px] w-full min-h-[280px]">
                         <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                            <Target className="h-4 w-4 text-brand-500" />
+                            <TrendingUp className="h-4 w-4 text-brand-500" />
                             Évolution du Score Moyen (12 derniers mois)
                         </h4>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={evolutionData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id={areaGradientId} x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.5} />
-                                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                        <stop offset="5%" stopColor={chartTheme.colors.purple} stopOpacity={0.4} />
+                                        <stop offset="95%" stopColor={chartTheme.colors.purple} stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.grid} />
                                 <XAxis
                                     dataKey="date"
-                                    stroke={chartColors.text}
+                                    stroke={chartTheme.text}
                                     fontSize={11}
                                     tickLine={false}
                                     axisLine={false}
                                     tickMargin={10}
                                 />
                                 <YAxis
-                                    stroke={chartColors.text}
+                                    stroke={chartTheme.text}
                                     fontSize={11}
                                     tickLine={false}
                                     axisLine={false}
                                 />
-                                <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3', stroke: chartColors.cursor }} />
+                                <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3', stroke: chartTheme.cursor }} />
                                 <Area
                                     type="monotone"
                                     dataKey="avgScore"
-                                    stroke="#8b5cf6"
+                                    stroke={chartTheme.colors.purple}
                                     fillOpacity={1}
                                     fill={`url(#${areaGradientId})`}
                                     strokeWidth={3}
                                     name="Score Moyen"
                                     activeDot={{ r: 6, strokeWidth: 0, fill: '#fff' }}
+                                    animationDuration={1500}
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
@@ -268,22 +279,30 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 {/* Risk Distribution */}
                 <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-decorator h-[250px] w-full min-h-[250px]">
+                    <div className="relative z-decorator h-[280px] w-full min-h-[280px]">
                         <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Niveau</h4>
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
+                                <defs>
+                                    {distributionData.map((entry, index) => (
+                                        <linearGradient key={`grad-${index}`} id={`pieGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
+                                            <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
+                                        </linearGradient>
+                                    ))}
+                                </defs>
                                 <Pie
                                     data={distributionData}
                                     cx="50%"
                                     cy="50%"
-                                    innerRadius={65}
-                                    outerRadius={85}
+                                    innerRadius={70}
+                                    outerRadius={90}
                                     paddingAngle={4}
                                     dataKey="value"
                                     stroke="none"
                                 >
-                                    {distributionData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
+                                    {distributionData.map((_, index) => (
+                                        <Cell key={`cell-${index}`} fill={`url(#pieGradient-${index})`} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<ChartTooltip />} cursor={false} />
@@ -301,20 +320,20 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 {/* Category Distribution */}
                 <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-decorator h-[250px] w-full min-h-[250px]">
+                    <div className="relative z-decorator h-[280px] w-full min-h-[280px]">
                         <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Catégorie</h4>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={categoryChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id={barGradientBlueId} x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#60a5fa" stopOpacity={1} />
-                                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.8} />
+                                        <stop offset="0%" stopColor={chartTheme.colors.primary} stopOpacity={1} />
+                                        <stop offset="100%" stopColor={chartTheme.colors.cyan} stopOpacity={0.8} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
                                 <XAxis
                                     dataKey="name"
-                                    stroke={chartColors.text}
+                                    stroke={chartTheme.text}
                                     fontSize={10}
                                     tickLine={false}
                                     axisLine={false}
@@ -323,13 +342,13 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                     tickFormatter={(value) => value.length > 8 ? `${value.substring(0, 8)}..` : value}
                                 />
                                 <YAxis
-                                    stroke={chartColors.text}
+                                    stroke={chartTheme.text}
                                     fontSize={11}
                                     tickLine={false}
                                     axisLine={false}
                                     dx={-10}
                                 />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: chartColors.cursor, radius: 4 }} />
+                                <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor, radius: 4 }} />
                                 <Bar dataKey="value" fill={`url(#${barGradientBlueId})`} name="Nombre de risques" radius={[6, 6, 0, 0]} barSize={24} animationDuration={1000} />
                             </BarChart>
                         </ResponsiveContainer>
@@ -339,20 +358,20 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 {/* Risk Matrix */}
                 <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 lg:col-span-2 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-decorator h-[300px] w-full min-h-[300px]">
+                    <div className="relative z-decorator h-[350px] w-full min-h-[350px]">
                         <h4 className="text-sm font-bold text-foreground mb-4">Matrice des Risques (Probabilité × Impact)</h4>
                         <ResponsiveContainer width="100%" height="100%">
                             <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                                 <XAxis
                                     type="number"
                                     dataKey="likelihood"
                                     name="Probabilité"
                                     domain={[0, 5]}
-                                    stroke={chartColors.text}
+                                    stroke={chartTheme.text}
                                     fontSize={11}
                                     tickLine={false}
-                                    axisLine={{ stroke: chartColors.grid }}
+                                    axisLine={{ stroke: chartTheme.grid }}
                                     dy={10}
                                 />
                                 <YAxis
@@ -360,20 +379,20 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                     dataKey="impact"
                                     name="Impact"
                                     domain={[0, 5]}
-                                    stroke={chartColors.text}
+                                    stroke={chartTheme.text}
                                     fontSize={11}
                                     tickLine={false}
-                                    axisLine={{ stroke: chartColors.grid }}
+                                    axisLine={{ stroke: chartTheme.grid }}
                                     dx={-10}
                                 />
                                 <ZAxis type="number" dataKey="score" range={[100, 600]} />
                                 <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-                                <Scatter name="Risques" data={matrixData} fill="#3b82f6" shape="circle">
+                                <Scatter name="Risques" data={matrixData} shape="circle">
                                     {matrixData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={
-                                            entry.score >= 15 ? '#ef4444' :
-                                                entry.score >= 10 ? '#f97316' :
-                                                    entry.score >= 5 ? '#eab308' : '#22c55e'
+                                            entry.score >= 15 ? chartTheme.colors.critical :
+                                                entry.score >= 10 ? chartTheme.colors.high :
+                                                    entry.score >= 5 ? chartTheme.colors.medium : chartTheme.colors.low
                                         }
                                             style={{ filter: `drop-shadow(0 0 6px ${entry.score >= 15 ? 'rgba(239,68,68,0.5)' : 'rgba(0,0,0,0.1)'})` }}
                                         />
@@ -387,28 +406,28 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                 {/* Treatment Distribution */}
                 <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 lg:col-span-2 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-decorator h-[200px] w-full min-h-[200px]">
+                    <div className="relative z-decorator h-[250px] w-full min-h-[250px]">
                         <h4 className="text-sm font-bold text-foreground mb-4">Stratégies de Traitement</h4>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={treatmentData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} horizontal={false} />
-                                <XAxis type="number" stroke={chartColors.text} fontSize={11} tickLine={false} axisLine={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} horizontal={false} />
+                                <XAxis type="number" stroke={chartTheme.text} fontSize={11} tickLine={false} axisLine={false} />
                                 <YAxis
                                     dataKey="name"
                                     type="category"
-                                    stroke={chartColors.text}
+                                    stroke={chartTheme.text}
                                     fontSize={11}
                                     tickLine={false}
                                     axisLine={false}
                                     width={80}
                                 />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: chartColors.cursor, radius: 4 }} />
-                                <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={20} animationDuration={1000}>
+                                <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor, radius: 4 }} />
+                                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20} animationDuration={1000}>
                                     {treatmentData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={
-                                            entry.name === 'Atténuer' ? '#3b82f6' :
-                                                entry.name === 'Transférer' ? '#8b5cf6' :
-                                                    entry.name === 'Éviter' ? '#22c55e' : '#f97316'
+                                            entry.name === 'Atténuer' ? chartTheme.colors.primary :
+                                                entry.name === 'Transférer' ? chartTheme.colors.purple :
+                                                    entry.name === 'Éviter' ? chartTheme.colors.low : chartTheme.colors.high
                                         } />
                                     ))}
                                 </Bar>
@@ -460,4 +479,3 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
         </div>
     );
 };
-

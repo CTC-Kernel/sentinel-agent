@@ -18,15 +18,16 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
     // Chart Theme Configuration
     const chartTheme = {
-        grid: 'hsl(var(--border) / 0.4)',
-        text: 'hsl(var(--muted-foreground) / 0.8)',
+        grid: 'hsl(var(--border) / 0.2)',
+        text: 'hsl(var(--muted-foreground) / 0.7)',
         cursor: 'hsl(var(--muted-foreground) / 0.1)',
         colors: {
             implemented: '#22c55e', // green-500
             partial: '#f59e0b',     // amber-500
             notStarted: '#ef4444',  // red-500
             notApplicable: 'hsl(var(--muted-foreground) / 0.55)',
-            primary: '#3b82f6'      // blue-500
+            primary: '#3b82f6',     // blue-500
+            primaryDark: '#2563eb'
         }
     };
 
@@ -224,21 +225,29 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                             <PieChartIcon className="w-4 h-4 text-brand-500" />
                             Distribution par Statut
                         </h4>
-                        <div className="h-[250px] w-full min-h-[250px] relative z-10">
+                        <div className="h-[280px] w-full min-h-[280px] relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
+                                    <defs>
+                                        {statusData.map((entry, index) => (
+                                            <linearGradient key={`grad-${index}`} id={`pieStatusGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
+                                                <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
+                                            </linearGradient>
+                                        ))}
+                                    </defs>
                                     <Pie
                                         data={statusData}
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius={65}
-                                        outerRadius={85}
+                                        innerRadius={70}
+                                        outerRadius={90}
                                         paddingAngle={4}
                                         dataKey="value"
                                         stroke="none"
                                     >
-                                        {statusData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
+                                        {statusData.map((_, index) => (
+                                            <Cell key={`cell-${index}`} fill={`url(#pieStatusGradient-${index})`} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
                                         ))}
                                     </Pie>
                                     <Tooltip content={<ChartTooltip />} cursor={false} />
@@ -260,13 +269,13 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                             <BarChartIcon className="w-4 h-4 text-brand-500" />
                             Conformité par Domaine (Annexe A)
                         </h4>
-                        <div className="h-[250px] w-full min-h-[250px] relative z-10">
+                        <div className="h-[280px] w-full min-h-[280px] relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={domainChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
                                     <defs>
                                         <linearGradient id={barGradientPrimaryId} x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
-                                            <stop offset="100%" stopColor="#2563eb" stopOpacity={0.8} />
+                                            <stop offset="0%" stopColor={chartTheme.colors.primary} stopOpacity={1} />
+                                            <stop offset="100%" stopColor={chartTheme.colors.primaryDark} stopOpacity={0.8} />
                                         </linearGradient>
                                         <linearGradient id={barGradientSuccessId} x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="0%" stopColor="#22c55e" stopOpacity={1} />
@@ -306,13 +315,13 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                             <Target className="w-4 h-4 text-brand-500" />
                             Vue Radar - Maturité par Domaine
                         </h4>
-                        <div className="h-[250px] w-full min-h-[250px] relative z-10">
+                        <div className="h-[280px] w-full min-h-[280px] relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
                                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                                     <defs>
                                         <linearGradient id={radarGradientId} x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.6} />
-                                            <stop offset="100%" stopColor="#2563eb" stopOpacity={0.1} />
+                                            <stop offset="0%" stopColor={chartTheme.colors.primary} stopOpacity={0.6} />
+                                            <stop offset="100%" stopColor={chartTheme.colors.primaryDark} stopOpacity={0.1} />
                                         </linearGradient>
                                     </defs>
                                     <PolarGrid stroke={chartTheme.grid} strokeDasharray="3 3" />

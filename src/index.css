@@ -133,6 +133,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: geometricPrecision;
+  font-family: theme('fontFamily.sans');
   background-color: #f8fafc;
   /* Slate-50 - cleaner than fafafa */
   font-size: 14px;
