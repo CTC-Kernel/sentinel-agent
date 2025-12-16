@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { SEO } from '../components/SEO';
 import { db } from '../firebase';
 import { collection, getDocs, query, where, doc, setDoc, limit, getCountFromServer, getDoc, orderBy } from 'firebase/firestore';
-import { Risk, Control, Audit, Project, DailyStat, Document, Asset, SystemLog, Supplier, Incident } from '../types';
+import { Risk, Control, Audit, Project, StatsHistoryEntry, Document, Asset, SystemLog, Supplier, Incident } from '../types';
 import { PdfService } from '../services/PdfService';
 import { aiService } from '../services/aiService';
 import { useStore } from '../store';
@@ -65,7 +65,7 @@ export const Dashboard: React.FC = () => {
     // Hooks - Conditional Fetching
     const { data: controls, loading: controlsLoading } = useFirestoreCollection<Control>('controls', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: needsGlobalStats });
     const { data: recentActivity, loading: logsLoading } = useFirestoreCollection<SystemLog>('system_logs', [where('organizationId', '==', user?.organizationId || 'ignore'), orderBy('timestamp', 'desc'), limit(10)], { logError: true, realtime: true, enabled: needsLogs });
-    const { data: historyStats, loading: historyLoading } = useFirestoreCollection<DailyStat>('stats_history', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: needsGlobalStats || isAuditor });
+    const { data: historyStats, loading: historyLoading } = useFirestoreCollection<StatsHistoryEntry>('stats_history', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: needsGlobalStats || isAuditor });
     const { data: allRisks, loading: risksLoading } = useFirestoreCollection<Risk>('risks', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true }); // Risks usually needed for context or relation in most views
     const { data: allAssets, loading: assetsLoading } = useFirestoreCollection<Asset>('assets', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: needsAssets });
     const { data: allSuppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>('suppliers', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: needsSuppliers });
@@ -176,10 +176,10 @@ export const Dashboard: React.FC = () => {
             .map((d) => {
                 const anyD = d as unknown as { date?: unknown; compliance?: unknown; metrics?: { complianceRate?: unknown } };
                 const compliance =
-                    typeof anyD.compliance === 'number'
-                        ? anyD.compliance
-                        : typeof anyD.metrics?.complianceRate === 'number'
-                            ? anyD.metrics.complianceRate
+                    typeof anyD.metrics?.complianceRate === 'number'
+                        ? anyD.metrics.complianceRate
+                        : typeof anyD.compliance === 'number'
+                            ? anyD.compliance
                             : undefined;
 
                 return {

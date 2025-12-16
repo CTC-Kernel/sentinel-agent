@@ -691,6 +691,22 @@ export interface DailyStat {
   timestamp: string;
 }
 
+export interface StatsHistoryEntry {
+  id: string;
+  organizationId: string;
+  date: string;
+  timestamp: number;
+  metrics: {
+    totalRisks: number;
+    criticalRisks: number;
+    highRisks: number;
+    openIncidents: number;
+    complianceRate: number;
+    totalAssets: number;
+    activeProjects: number;
+  };
+}
+
 export interface SystemLog {
   id: string;
   organizationId: string;
