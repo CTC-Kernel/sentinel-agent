@@ -59,6 +59,14 @@ export default {
           '"Courier New"',
           'monospace'
         ],
+        apple: [
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"SF Pro Display"',
+          '"SF Pro Text"',
+          'system-ui',
+          'sans-serif'
+        ],
       },
       colors: {
         border: "hsl(var(--border))",
