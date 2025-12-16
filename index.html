@@ -49,6 +49,17 @@
   <!-- Firebase App Check - reCAPTCHA Enterprise -->
 
 
+
+  <script>
+    (function () {
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme === 'dark' || !storedTheme) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+  </script>
 </head>
 
 <body
