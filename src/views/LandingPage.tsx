@@ -12,7 +12,7 @@ import { useStore } from '../store';
 
 const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: LucideIcon, title: string, description: string, delay: string }) => (
     <div className={`glass-panel p-8 rounded-[2rem] border border-slate-200/60 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 hover:bg-white/90 dark:hover:bg-white/10 hover:border-brand-500/30 hover:shadow-2xl hover:shadow-brand-500/10 dark:hover:shadow-brand-500/10 transition-all duration-500 group animate-slide-up flex flex-col items-start relative hover:z-20`} style={{ animationDelay: delay }}>
-        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-brand-500/10 to-purple-500/10 dark:from-brand-500/20 dark:to-purple-500/20 text-brand-600 dark:text-brand-400 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 mb-6 ring-1 ring-brand-500/10 dark:ring-white/10">
+        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-brand-500/10 to-blue-500/10 dark:from-brand-500/20 dark:to-purple-500/20 text-brand-600 dark:text-brand-400 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 mb-6 ring-1 ring-brand-500/10 dark:ring-white/10">
             <Icon className="h-8 w-8" aria-hidden="true" />
         </div>
         <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-3 group-hover:text-brand-600 dark:group-hover:text-brand-300 transition-colors">{title}</h3>
@@ -62,10 +62,10 @@ export const LandingPage: React.FC = () => {
                 <SparklesCore
                     id="tsparticleslanding"
                     background="transparent"
-                    particleColor={theme === 'dark' ? "#FFFFFF" : "#2563eb"}
-                    minSize={0.6}
-                    maxSize={1.4}
-                    particleDensity={50}
+                    particleColor={theme === 'dark' ? "#FFFFFF" : "#0ea5e9"}
+                    minSize={theme === 'dark' ? 0.6 : 0.4}
+                    maxSize={theme === 'dark' ? 1.4 : 1.0}
+                    particleDensity={theme === 'dark' ? 50 : 30}
                 />
             </div>
 
@@ -109,7 +109,7 @@ export const LandingPage: React.FC = () => {
 
                     <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-slate-900 via-slate-700 to-slate-500 dark:from-white dark:via-slate-200 dark:to-slate-400 tracking-tight mb-8 leading-[1.1] drop-shadow-sm animate-slide-up">
                         L'Art de la <br />
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-600 via-purple-600 to-brand-600 dark:from-brand-400 dark:via-purple-400 dark:to-brand-400 animate-gradient-x pb-2">Gouvernance</span> & <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 dark:from-blue-400 dark:via-cyan-400 dark:to-blue-400 animate-gradient-x pb-2">Cybersécurité</span>
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-600 via-blue-500 to-brand-600 dark:from-brand-400 dark:via-blue-400 dark:to-brand-400 animate-gradient-x pb-2">Gouvernance</span> & <span className="bg-clip-text text-transparent bg-gradient-to-r from-sky-600 via-cyan-500 to-sky-600 dark:from-blue-400 dark:via-cyan-400 dark:to-blue-400 animate-gradient-x pb-2">Cybersécurité</span>
                     </h1>
 
                     <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
