@@ -76,7 +76,6 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
                             <MaturityRadarWidget
                                 radarData={radarData}
                                 t={t}
-                                theme={theme}
                                 navigate={navigate}
                             />
                         </div>

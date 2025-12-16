@@ -135,8 +135,16 @@ export const VoxelView: React.FC = () => {
     localStorage.setItem('voxel_detailMinimized', JSON.stringify(isDetailMinimized));
   }, [isDetailMinimized]);
   const [presentationMode, setPresentationMode] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
+  const [showGuide, setShowGuide] = useState(() => {
+    const saved = localStorage.getItem('voxel_guide_seen');
+    return saved === null; // Show if not set (first visit)
+  });
   const isInitialized = useRef(false);
+
+  const handleCloseGuide = () => {
+    setShowGuide(false);
+    localStorage.setItem('voxel_guide_seen', 'true');
+  };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showLayerMenu, setShowLayerMenu] = useState(false);
@@ -1307,7 +1315,7 @@ export const VoxelView: React.FC = () => {
           )}
         </div>
       </div>
-      <VoxelGuide isOpen={showGuide} onClose={() => setShowGuide(false)} />
+      <VoxelGuide isOpen={showGuide} onClose={handleCloseGuide} />
     </div >
   );
 };

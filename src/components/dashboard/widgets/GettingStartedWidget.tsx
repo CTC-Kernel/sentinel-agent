@@ -179,10 +179,10 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
             <div className="flex flex-col md:flex-row gap-8 items-start md:items-center relative z-10">
                 <div className="flex-1">
                     <h3 className="text-2xl font-bold text-foreground mb-3 tracking-tight">
-                        Bienvenue sur Sentinel GRC ! 🚀
+                        {t('dashboard.gettingStartedTitle')}
                     </h3>
                     <p className="text-muted-foreground mb-8 max-w-lg text-base leading-relaxed">
-                        Suivez ces étapes pour configurer votre espace et garantir votre conformité.
+                        {t('dashboard.gettingStartedSubtitle')}
                     </p>
 
                     <div className="space-y-3">
@@ -196,7 +196,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                                     }`}
                             >
                                 {step.isCompleted ? (
-                                    <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
+                                    <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
                                 ) : (
                                     <Circle className="h-5 w-5 text-muted-foreground/40 flex-shrink-0" />
                                 )}
@@ -217,8 +217,8 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                             <svg className="w-full h-full transform -rotate-90 overflow-visible" viewBox="0 0 128 128">
                                 <defs>
                                     <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#3b82f6" />
-                                        <stop offset="100%" stopColor="#8b5cf6" />
+                                        <stop offset="0%" stopColor="hsl(var(--primary))" />
+                                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
                                     </linearGradient>
                                 </defs>
                                 <circle
@@ -248,7 +248,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                             </div>
                         </div>
                         <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
-                            Progression
+                            {t('dashboard.progression')}
                         </p>
                     </div>
                 </div>

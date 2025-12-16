@@ -17,14 +17,12 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
     const [timeRange, setTimeRange] = useState<'30d' | '90d' | '1y' | 'all'>('30d');
     const gradientId = useId();
 
-    // DEBUG: Force visible border and logs
-    console.log('ComplianceWidget Render:', { historyDataLen: historyData?.length, loading });
-
-
     const chartColors = {
         grid: theme === 'dark' ? 'hsl(var(--border) / 0.35)' : 'hsl(var(--border) / 0.6)',
         text: 'hsl(var(--muted-foreground))',
-        cursor: 'hsl(var(--muted-foreground) / 0.15)'
+        cursor: 'hsl(var(--muted-foreground) / 0.15)',
+        stroke: 'var(--success-text)', // Use CSS var for generic success color
+        fill: 'var(--success-text)'
     };
 
     const filteredData = React.useMemo(() => {
@@ -82,12 +80,11 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                 {loading ? (
                     <Skeleton className="h-full w-full rounded-2xl" />
                 ) : !filteredData || filteredData.length === 0 ? (
-                    <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 animate-fade-in border-2 border-dashed border-red-500 m-2 rounded-lg p-4">
+                    <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 animate-fade-in">
                         <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-full mb-3 ring-1 ring-slate-100 dark:ring-white/5">
                             <TrendingUp className="w-6 h-6 opacity-40" />
                         </div>
                         <p className="text-sm font-medium">{t('dashboard.noDataAvailable')}</p>
-                        <p className="text-xs text-red-500 mt-2 font-mono">DEBUG: DataLen={historyData?.length || 0}</p>
                     </div>
                 ) : (
                     <div className="w-full h-full min-h-[300px]">
@@ -95,8 +92,8 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                             <AreaChart data={filteredData}>
                                 <defs>
                                     <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                        <stop offset="5%" stopColor={chartColors.stroke} stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor={chartColors.stroke} stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} opacity={0.5} />
@@ -109,12 +106,12 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                                     tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
                                 />
                                 <YAxis hide={!isExpanded} domain={[0, 100]} tick={{ fontSize: 11, fill: chartColors.text }} axisLine={false} tickLine={false} />
-                                <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#10b981', strokeWidth: 1, strokeDasharray: '4 4', fill: chartColors.cursor }} />
+                                <Tooltip content={<ChartTooltip />} cursor={{ stroke: chartColors.stroke, strokeWidth: 1, strokeDasharray: '4 4', fill: chartColors.cursor }} />
                                 <Area
                                     type="monotone"
                                     dataKey="compliance"
                                     name={t('dashboard.compliance')}
-                                    stroke="#10b981"
+                                    stroke={chartColors.stroke}
                                     strokeWidth={3}
                                     fillOpacity={1}
                                     fill={`url(#${gradientId})`}

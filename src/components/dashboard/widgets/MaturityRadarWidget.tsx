@@ -5,16 +5,23 @@ import { ChartTooltip } from '../../ui/ChartTooltip';
 interface MaturityRadarWidgetProps {
     radarData: { subject: string; A: number; fullMark?: number }[];
     t: (key: string) => string;
-    theme: string;
     navigate: (path: string) => void;
 }
 
-export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarData, t, theme, navigate }) => {
+export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarData, t, navigate }) => {
     const radarGradientId = React.useId();
+
+    const chartColors = {
+        stroke: 'hsl(var(--primary))',
+        fill: 'hsl(var(--primary))',
+        grid: 'hsl(var(--border) / 0.3)',
+        text: 'hsl(var(--muted-foreground))',
+        cursor: 'hsl(var(--muted-foreground) / 0.1)'
+    };
 
     return (
         <div className="relative group/chart flex items-center justify-center w-full h-full min-h-[320px]">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-2xl opacity-0 group-hover/chart:opacity-100 transition-opacity duration-700"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-purple-500/5 rounded-full blur-2xl opacity-0 group-hover/chart:opacity-100 transition-opacity duration-700"></div>
             <div
                 className="relative w-[260px] h-[260px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-500 hover:scale-[1.02] bg-card/40 backdrop-blur-sm rounded-full border border-border shadow-inner p-4 flex items-center justify-center"
                 onClick={() => navigate('/compliance')}
@@ -24,18 +31,18 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                         <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                             <defs>
                                 <linearGradient id={radarGradientId} x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor={theme === 'dark' ? '#3b82f6' : '#0f172a'} stopOpacity={0.5} />
-                                    <stop offset="95%" stopColor={theme === 'dark' ? '#3b82f6' : '#0f172a'} stopOpacity={0.05} />
+                                    <stop offset="5%" stopColor={chartColors.fill} stopOpacity={0.5} />
+                                    <stop offset="95%" stopColor={chartColors.fill} stopOpacity={0.05} />
                                 </linearGradient>
                             </defs>
                             <PolarGrid
-                                stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(15,23,42,0.08)'}
+                                stroke={chartColors.grid}
                                 strokeDasharray="4 4"
                             />
                             <PolarAngleAxis
                                 dataKey="subject"
                                 tick={{
-                                    fill: theme === 'dark' ? 'rgba(255,255,255,0.9)' : 'rgba(15,23,42,0.9)',
+                                    fill: chartColors.text,
                                     fontSize: 11,
                                     fontWeight: 700,
                                     fontFamily: 'var(--font-sans)'
@@ -45,7 +52,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                             <RechartsRadar
                                 name={t('dashboard.maturity')}
                                 dataKey="A"
-                                stroke={theme === 'dark' ? '#60a5fa' : '#0f172a'}
+                                stroke={chartColors.stroke}
                                 strokeWidth={3}
                                 fill={`url(#${radarGradientId})`}
                                 fillOpacity={1}
@@ -53,7 +60,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                             />
                             <Tooltip
                                 content={<ChartTooltip />}
-                                cursor={{ stroke: theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(15,23,42,0.2)', strokeWidth: 1 }}
+                                cursor={{ stroke: chartColors.cursor, strokeWidth: 1 }}
                             />
                         </RadarChart>
                     </ResponsiveContainer>
