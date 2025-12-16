@@ -16,8 +16,8 @@ export const SystemSettings: React.FC = () => {
     const { user, addToast, t } = useStore();
     const [auditLogs, setAuditLogs] = useState<SystemLog[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
+    // const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    // const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         if (!hasPermission(user, 'Settings', 'read')) return;
@@ -45,15 +45,15 @@ export const SystemSettings: React.FC = () => {
         fetchLogs();
     }, [user]);
 
-    const handleDeleteAccount = () => {
-        setIsDeleting(true);
-        // Simulate delete for now or implement real logic
-        setTimeout(() => {
-            addToast("Veuillez contacter votre administrateur pour supprimer votre compte.", "info");
-            setIsDeleting(false);
-            setIsDeleteModalOpen(false);
-        }, 1000);
-    };
+    // const handleDeleteAccount = () => {
+    //     setIsDeleting(true);
+    //     // Simulate delete for now or implement real logic
+    //     setTimeout(() => {
+    //         addToast("Veuillez contacter votre administrateur pour supprimer votre compte.", "info");
+    //         setIsDeleting(false);
+    //         setIsDeleteModalOpen(false);
+    //     }, 1000);
+    // };
 
     const columns = useMemo<ColumnDef<SystemLog>[]>(() => [
         {
@@ -146,8 +146,8 @@ export const SystemSettings: React.FC = () => {
                             </p>
                             <Button
                                 variant="destructive"
-                                isLoading={isDeleting}
-                                onClick={() => setIsDeleteModalOpen(true)}
+                                isLoading={false}
+                                onClick={() => addToast("Fonctionnalité à venir pour la suppression de compte", "info")}
                                 className="w-full sm:w-auto shadow-lg shadow-red-500/20 rounded-xl"
                             >
                                 <Trash2 className="h-4 w-4 mr-2" />

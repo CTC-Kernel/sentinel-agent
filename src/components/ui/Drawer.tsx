@@ -84,7 +84,7 @@ export const Drawer: React.FC<DrawerProps> = ({
             {/* Drawer Panel */}
             <div className="absolute inset-y-0 right-0 left-0 sm:left-auto sm:pl-10 max-w-full flex pointer-events-none min-w-0">
                 <div className={`w-full ${width} pointer-events-auto transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                    <div className="h-full flex flex-col bg-popover backdrop-blur-xl shadow-2xl border-l border-border">
+                    <div className="h-full flex flex-col bg-background/80 dark:bg-slate-900/90 backdrop-blur-2xl shadow-apple-xl border-l border-white/20 dark:border-white/10">
 
                         {/* Header */}
                         <div className="px-4 sm:px-8 py-6 border-b border-border flex flex-wrap items-start justify-between gap-y-4 bg-background/50 shrink-0">

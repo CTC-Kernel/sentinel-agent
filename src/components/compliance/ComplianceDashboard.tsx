@@ -131,6 +131,10 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                         <stop offset="0%" stopColor="#22c55e" stopOpacity={1} />
                         <stop offset="100%" stopColor="#16a34a" stopOpacity={0.8} />
                     </linearGradient>
+                    <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.6} />
+                        <stop offset="100%" stopColor="#2563eb" stopOpacity={0.1} />
+                    </linearGradient>
                 </defs>
             </svg>
 
@@ -319,9 +323,10 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         dataKey="score"
                                         stroke={chartTheme.colors.primary}
                                         strokeWidth={3}
-                                        fill={chartTheme.colors.primary}
-                                        fillOpacity={0.2}
+                                        fill="url(#radarGradient)"
+                                        fillOpacity={1}
                                         isAnimationActive={true}
+                                        style={{ filter: 'drop-shadow(0 0 4px rgba(59, 130, 246, 0.5))' }}
                                     />
                                     <Tooltip content={<ChartTooltip />} />
                                     <Legend formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>} />

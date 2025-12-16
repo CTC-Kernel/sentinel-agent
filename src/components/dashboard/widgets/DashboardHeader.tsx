@@ -112,7 +112,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <motion.div
             initial={{ opacity: 0, scale: 0.98, filter: 'blur(10px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-            className="glass-panel relative rounded-3xl p-1 border border-white/60 dark:border-white/10 shadow-lg overflow-hidden group"
+            className="glass-panel relative rounded-3xl p-1 border border-glass-border shadow-lg overflow-hidden group"
         >
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 

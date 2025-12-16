@@ -69,7 +69,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
 
                 {/* Right Context Column (1/3) */}
                 <div className="space-y-8">
-                    <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-[2rem] border border-transparent dark:border-white/5 shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300">
+                    <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-[2rem] border border-glass-border shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-6 text-center">Niveau de Maturité</h3>
                         <div className="min-h-[250px] flex items-center justify-center -ml-2">

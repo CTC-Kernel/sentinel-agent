@@ -43,7 +43,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, na
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-panel flex flex-col md:flex-row items-center justify-between p-4 md:px-8 border border-transparent dark:border-white/5 rounded-[1.5rem] shadow-sm gap-6 md:gap-12 relative overflow-hidden"
+            className="glass-panel flex flex-col md:flex-row items-center justify-between p-4 md:px-8 border border-glass-border rounded-[1.5rem] shadow-sm gap-6 md:gap-12 relative overflow-hidden"
         >
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
             {/* Health Score - Compact */}

@@ -49,7 +49,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                 in: { opacity: 1, y: 0, filter: 'blur(0px)' }
             }}
             onClick={onClick}
-            className={`relative group glass-panel p-6 rounded-3xl hover:shadow-apple-xl transition-all duration-500 hover:-translate-y-1.5 overflow-hidden border border-white/60 dark:border-white/5 ${onClick ? 'cursor-pointer' : ''}`}
+            className={`relative group glass-panel p-6 rounded-3xl hover:shadow-apple-xl transition-all duration-500 hover:-translate-y-1.5 overflow-hidden border border-glass-border ${onClick ? 'cursor-pointer' : ''}`}
         >
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
@@ -74,11 +74,11 @@ export const StatCard: React.FC<StatCardProps> = ({
                     {loading ? (
                         <div className="h-10 w-24 bg-slate-200 dark:bg-slate-700 rounded-xl animate-pulse mb-2"></div>
                     ) : (
-                        <h3 className="text-4xl font-bold tracking-tighter text-slate-900 dark:text-white font-display">
+                        <h3 className="text-4xl font-bold tracking-tighter text-foreground font-display">
                             {value}
                         </h3>
                     )}
-                    <p className="text-[13px] font-semibold text-slate-600 dark:text-slate-400 mt-1 tracking-wide">
+                    <p className="text-[13px] font-semibold text-muted-foreground mt-1 tracking-wide">
                         {title}
                     </p>
                 </div>

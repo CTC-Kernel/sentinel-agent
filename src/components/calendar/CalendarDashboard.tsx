@@ -329,7 +329,7 @@ export const CalendarDashboard: React.FC = () => {
             </div>
 
             {/* Calendar */}
-            <div className="flex-1 relative overflow-hidden rounded-[2rem] bg-white/80 dark:bg-slate-900/80 backdrop-blur-3xl shadow-2xl border border-white/20 dark:border-white/5 p-4 md:p-8 h-[85vh] min-h-[600px] group isolation-auto">
+            <div className="flex-1 relative overflow-hidden glass-panel p-4 md:p-8 h-[85vh] min-h-[600px] group isolation-auto">
                 {/* Subtle premium background effects */}
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/5 dark:bg-brand-400/5 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none mix-blend-multiply dark:mix-blend-screen"></div>
                 <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-500/5 dark:bg-indigo-400/5 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none mix-blend-multiply dark:mix-blend-screen"></div>

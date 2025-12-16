@@ -169,11 +169,11 @@ export function DataTable<TData extends { id: string }, TValue>({
             </div>
 
             {/* Table */}
-            <div className="w-full overflow-x-auto rounded-xl border border-white/20 dark:border-white/10 glass-panel shadow-sm">
+            <div className="w-full overflow-x-auto rounded-xl border border-glass-border glass-panel shadow-sm">
                 <table className="w-full">
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <tr key={headerGroup.id} className="border-b border-white/20 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/50">
+                            <tr key={headerGroup.id} className="border-b border-glass-border bg-slate-50/50 dark:bg-slate-900/50">
                                 {headerGroup.headers.map((header) => {
                                     return (
                                         <th

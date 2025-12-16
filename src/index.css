@@ -16,29 +16,31 @@
 
 :root {
   /* Shadcn UI Variables */
-  --background: 0 0% 100%;
+  --background: 210 40% 98%;
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
   --card-foreground: 222.2 84% 4.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
-  --primary: 222.2 47.4% 11.2%;
+  --primary: 221.2 83.2% 53.3%;
+  /* A more vibrant, Apple-like blue */
   --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 94%;
+  --secondary: 210 40% 96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 94%;
-  --muted-foreground: 215.4 16.3% 40%;
-  --accent: 210 40% 94%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
   --accent-foreground: 222.2 47.4% 11.2%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
-  --border: 220 13% 80%;
-  --input: 220 13% 80%;
-  --ring: 222.2 84% 4.9%;
-  --radius: 0.5rem;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221.2 83.2% 53.3%;
+  --radius: 0.75rem;
+  /* Slightly larger radius for modern feel */
 
   /* Premium Color Palette - Semantic Variables */
-  /* Primary Brand Colors */
+  /* Primary Brand Colors - Blue refined */
   --primary-50: #eff6ff;
   --primary-100: #dbeafe;
   --primary-200: #bfdbfe;
@@ -52,43 +54,43 @@
   --primary-950: #172554;
 
   /* Semantic Status Colors (Non-aggressive) */
-  /* Success */
+  /* Success - Emerald */
   --success-bg: #ecfdf5;
   --success-text: #059669;
   --success-border: #a7f3d0;
 
-  /* Warning */
+  /* Warning - Amber */
   --warning-bg: #fffbeb;
   --warning-text: #d97706;
   --warning-border: #fde68a;
 
-  /* Error */
-  --error-bg: #fef2f2;
+  /* Error - Rose */
+  --error-bg: #fff1f2;
   --error-text: #e11d48;
   --error-border: #fecdd3;
 
-  /* Info */
-  --info-bg: #eff6ff;
-  --info-text: #2563eb;
-  --info-border: #bfdbfe;
+  /* Info - Sky */
+  --info-bg: #f0f9ff;
+  --info-text: #0284c7;
+  --info-border: #bae6fd;
 
   /* Glassmorphism - Premium - Refined (Light Mode) */
-  --glass-bg: rgba(255, 255, 255, 0.65);
-  /* White border for highlight, rely on shadow for contrast */
-  --glass-border: rgba(255, 255, 255, 0.8);
-  /* Neutral grey shadow, no blue tint */
-  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
 }
 
 .dark {
-  /* Shadcn UI Dark Mode Variables */
+  /* Shadcn UI Dark Mode Variables - Deep Blue/Slate Tone */
   --background: 222.2 84% 4.9%;
+  /* #020617 */
   --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
+  --card: 222.2 84% 6.9%;
+  /* Slightly lighter than bg */
   --card-foreground: 210 40% 98%;
   --popover: 222.2 84% 4.9%;
   --popover-foreground: 210 40% 98%;
-  --primary: 210 40% 98%;
+  --primary: 217.2 91.2% 59.8%;
   --primary-foreground: 222.2 47.4% 11.2%;
   --secondary: 217.2 32.6% 17.5%;
   --secondary-foreground: 210 40% 98%;
@@ -103,27 +105,27 @@
   --ring: 212.7 26.8% 83.9%;
 
   /* Semantic Status Colors (Dark Mode) */
-  --success-bg: rgba(5, 150, 105, 0.1);
-  --success-text: #34d399;
-  --success-border: rgba(5, 150, 105, 0.2);
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --success-text: #6ee7b7;
+  --success-border: rgba(16, 185, 129, 0.25);
 
-  --warning-bg: rgba(217, 119, 6, 0.1);
-  --warning-text: #fbbf24;
-  --warning-border: rgba(217, 119, 6, 0.2);
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --warning-text: #fcd34d;
+  --warning-border: rgba(245, 158, 11, 0.25);
 
-  --error-bg: rgba(225, 29, 72, 0.1);
-  --error-text: #fb7185;
-  --error-border: rgba(225, 29, 72, 0.2);
+  --error-bg: rgba(244, 63, 94, 0.15);
+  --error-text: #fda4af;
+  --error-border: rgba(244, 63, 94, 0.25);
 
-  --info-bg: rgba(37, 99, 235, 0.1);
-  --info-text: #60a5fa;
-  --info-border: rgba(37, 99, 235, 0.2);
+  --info-bg: rgba(14, 165, 233, 0.15);
+  --info-text: #7dd3fc;
+  --info-border: rgba(14, 165, 233, 0.25);
 
   /* Glassmorphism Dark - Refined for depth */
-  --glass-bg: rgba(18, 18, 21, 0.65);
-  /* Slightly darker/richer */
+  --glass-bg: rgba(15, 23, 42, 0.65);
+  /* Slate 900 base with opacity */
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 html,
@@ -354,6 +356,10 @@ body {
 
 .hover\:shadow-apple:hover {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.hover\:shadow-apple-xl:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 30px 40px -10px rgba(0, 0, 0, 0.15);
 }
 
 @keyframes slideInRight {

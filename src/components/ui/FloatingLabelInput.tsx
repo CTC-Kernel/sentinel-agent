@@ -16,12 +16,8 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
     icon: Icon,
     className = '',
     value,
-    onFocus,
-    onBlur,
-    onChange,
     textarea,
     rows = 3,
-    defaultValue,
     ...props
 }, ref) => {
     const autoId = React.useId();
@@ -55,7 +51,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         aria-describedby={describedBy}
                         rows={rows}
                         className={`
-                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
+                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-foreground
                             placeholder-transparent rounded-2xl resize-none
                             ${Icon ? 'pl-2' : ''}
                         `}
@@ -70,7 +66,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         aria-invalid={!!error}
                         aria-describedby={describedBy}
                         className={`
-                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
+                            peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-foreground
                             placeholder-transparent rounded-2xl
                             ${Icon ? 'pl-2' : ''}
                         `}
@@ -87,7 +83,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         top-3.5 text-sm font-medium
                         ${error
                             ? 'text-red-500'
-                            : 'text-slate-500 dark:text-slate-400 peer-focus:text-brand-600'
+                            : 'text-muted-foreground peer-focus:text-brand-600'
                         }
                         ${Icon ? 'ml-7 peer-focus:ml-0 peer-[:not(:placeholder-shown)]:ml-0' : ''}
                     `}
