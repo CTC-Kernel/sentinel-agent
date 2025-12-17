@@ -717,7 +717,10 @@ export const Audits: React.FC = () => {
                     filename: 'SoA.pdf',
                     footerText: 'Sentinel GRC - Document Confidentiel',
                     organizationName: canWhiteLabel ? organization?.name : undefined,
-                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
+                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
+                    coverImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2015&auto=format&fit=crop', // Analytics/Matrix
+                    includeCover: true,
+                    author: user?.displayName || 'Auditeur'
                 },
                 ['Contrôle', 'Statut', 'Justification', 'Preuves'],
                 data,
@@ -1078,6 +1081,7 @@ export const Audits: React.FC = () => {
                 filename: `Non_Conformites_${selectedAudit.name.replace(/\s+/g, '_')}.pdf`,
                 organizationName: user?.email?.split('@')[1] || 'Sentinel GRC',
                 author: selectedAudit.auditor,
+                coverImage: 'https://images.unsplash.com/photo-1590856029826-c7a73142bbf1?q=80&w=2073&auto=format&fit=crop', // Shield/Alert
                 summary: `Ce rapport liste les ${nc.length} non-conformités identifiées lors de l'audit "${selectedAudit.name}". Une attention immédiate est requise pour les non-conformités majeures.`
             },
             (doc: jsPDF, startY: number) => {
@@ -1128,7 +1132,10 @@ export const Audits: React.FC = () => {
                     filename: 'Rapport_Audit.pdf',
                     save: false,
                     organizationName: canWhiteLabel ? organization?.name : undefined,
-                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
+                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
+                    coverImage: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop', // Business
+                    includeCover: true,
+                    author: selectedAudit.auditor
                 },
                 ['Type', 'Description', 'Contrôle', 'Statut'],
                 findingsData

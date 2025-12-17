@@ -724,7 +724,10 @@ export const Risks: React.FC = () => {
                     subtitle: `Exporté le ${new Date().toLocaleDateString()}`,
                     filename: 'risques.pdf',
                     organizationName: canWhiteLabel ? organization?.name : undefined,
-                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined
+                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
+                    coverImage: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2070&auto=format&fit=crop', // Business/Analytics (Same as Executive to stay consistent)
+                    includeCover: true,
+                    author: user?.displayName || 'Risk Manager'
                 },
                 ['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel'],
                 data

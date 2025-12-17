@@ -17,6 +17,7 @@ interface ReportOptions {
     save?: boolean;
     organizationName?: string;
     organizationLogo?: string; // Base64 or URL
+    author?: string;
 }
 
 export class PdfService {
@@ -155,100 +156,12 @@ export class PdfService {
     }
 
     /**
-     * Generate a standard table report
+     * Add Premium Cover Page
      */
-    static generateTableReport(
-        options: ReportOptions,
-        columns: string[],
-        data: (string | number)[][],
-        columnStyles: Record<string, unknown> = {}
-    ): jsPDF {
-        const doc = this.createDoc(options.orientation);
-        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
-
-        this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options);
-
-        doc.autoTable({
-            startY: 35,
-            head: [columns],
-            body: data,
-            theme: 'grid',
-            styles: {
-                font: 'helvetica',
-                fontSize: 9,
-                cellPadding: 4,
-                textColor: this.TEXT_PRIMARY,
-                lineColor: [226, 232, 240],
-                lineWidth: 0.1,
-            },
-            headStyles: {
-                fillColor: this.BRAND_PRIMARY,
-                textColor: '#FFFFFF',
-                fontStyle: 'bold',
-                halign: 'left',
-                cellPadding: 4,
-            },
-            alternateRowStyles: {
-                fillColor: this.ACCENT_COLOR,
-            },
-            columnStyles: columnStyles,
-            margin: { top: 35, bottom: 20, left: 14, right: 14 },
-            didDrawPage: () => {
-                if (options.watermark) {
-                    this.addWatermark(doc);
-                }
-            }
-        });
-
-        this.addFooter(doc, options.footerText);
-
-        if (options.save !== false) {
-            doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
-        }
-        return doc;
-    }
-
-    /**
-     * Generate a complex report with custom content (callback)
-     */
-    static generateCustomReport(
-        options: ReportOptions,
-        renderContent: (doc: jsPDF, startY: number) => void
-    ): jsPDF {
-        const doc = this.createDoc(options.orientation);
-        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
-
-        this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options);
-
-        renderContent(doc, 35);
-
-        this.addFooter(doc, options.footerText);
-
-        if (options.save !== false) {
-            doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
-        }
-        return doc;
-    }
-
-    /**
-     * Generate a generic Executive Report with Premium Cover Page
-     */
-    static generateExecutiveReport(
-        options: ReportOptions & {
-            organizationName?: string;
-            author?: string;
-            summary?: string;
-            stats?: { label: string; value: number; color?: string }[];
-            metrics?: { label: string; value: string | number; subtext?: string }[];
-        },
-        renderContent: (doc: jsPDF, startY: number) => void
-    ): jsPDF {
-        const doc = this.createDoc(options.orientation);
+    private static addCoverPage(doc: jsPDF, options: ReportOptions & { author?: string, organizationName?: string }) {
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
         const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
-
-        // --- PREMIUM COVER PAGE ---
 
         // 1. Background Gradient (Simulated with Rects)
         // Main dark side bar
@@ -354,6 +267,113 @@ export class PdfService {
         doc.setTextColor(this.BRAND_PRIMARY);
         doc.setFont('helvetica', 'bold');
         doc.text("DOCUMENT CONFIDENTIEL", contentStartX + 30, pageHeight - 32, { align: 'center' });
+    }
+
+    /**
+     * Generate a standard table report
+     */
+    static generateTableReport(
+        options: ReportOptions,
+        columns: string[],
+        data: (string | number)[][],
+        columnStyles: Record<string, unknown> = {}
+    ): jsPDF {
+        const doc = this.createDoc(options.orientation);
+
+        // Add Cover Page if requested or if image provided
+        if (options.includeCover || options.coverImage) {
+            this.addCoverPage(doc, options);
+            doc.addPage();
+        }
+
+        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
+        this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options);
+
+        doc.autoTable({
+            startY: 35,
+            head: [columns],
+            body: data,
+            theme: 'grid',
+            styles: {
+                font: 'helvetica',
+                fontSize: 9,
+                cellPadding: 4,
+                textColor: this.TEXT_PRIMARY,
+                lineColor: [226, 232, 240],
+                lineWidth: 0.1,
+            },
+            headStyles: {
+                fillColor: this.BRAND_PRIMARY,
+                textColor: '#FFFFFF',
+                fontStyle: 'bold',
+                halign: 'left',
+                cellPadding: 4,
+            },
+            alternateRowStyles: {
+                fillColor: this.ACCENT_COLOR,
+            },
+            columnStyles: columnStyles,
+            margin: { top: 35, bottom: 20, left: 14, right: 14 },
+            didDrawPage: () => {
+                if (options.watermark) {
+                    this.addWatermark(doc);
+                }
+            }
+        });
+
+        this.addFooter(doc, options.footerText);
+
+        if (options.save !== false) {
+            doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+        }
+        return doc;
+    }
+
+    /**
+     * Generate a complex report with custom content (callback)
+     */
+    static generateCustomReport(
+        options: ReportOptions,
+        renderContent: (doc: jsPDF, startY: number) => void
+    ): jsPDF {
+        const doc = this.createDoc(options.orientation);
+        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
+
+        this.addHeader(doc, options.title, options.subtitle || `Généré le ${dateStr}`, options);
+
+        renderContent(doc, 35);
+
+        this.addFooter(doc, options.footerText);
+
+        if (options.save !== false) {
+            doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+        }
+        return doc;
+    }
+
+    /**
+     * Generate a generic Executive Report with Premium Cover Page
+     */
+    /**
+     * Generate a generic Executive Report with Premium Cover Page
+     */
+    static generateExecutiveReport(
+        options: ReportOptions & {
+            organizationName?: string;
+            author?: string;
+            summary?: string;
+            stats?: { label: string; value: number; color?: string }[];
+            metrics?: { label: string; value: string | number; subtext?: string }[];
+        },
+        renderContent: (doc: jsPDF, startY: number) => void
+    ): jsPDF {
+        const doc = this.createDoc(options.orientation);
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
+
+        // --- PREMIUM COVER PAGE ---
+        this.addCoverPage(doc, options);
 
         // --- EXECUTIVE SUMMARY PAGE (If provided) ---
         if (options.summary) {
