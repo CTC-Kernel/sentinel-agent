@@ -116,8 +116,8 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
 
       <aside className={`
         fixed inset-y-0 left-0 lg:inset-y-auto lg:sticky lg:top-0 z-modal w-[82vw] max-w-[320px] lg:w-[260px]
-        bg-gradient-to-b from-white/95 via-white/92 to-white/90 dark:from-slate-900/95 dark:via-slate-900/93 dark:to-slate-900/92
-        backdrop-blur-2xl border-r border-border
+        bg-white/80 dark:bg-slate-900/80
+        backdrop-blur-3xl border-r border-white/20 dark:border-white/5
         shadow-[0_20px_60px_rgba(15,23,42,0.15)] lg:shadow-none
         transform transition-transform duration-500 cubic-bezier(0.19, 1, 0.22, 1)
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -156,7 +156,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                       className={({ isActive }) => `
                          group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
                          ${isActive
-                          ? 'bg-gradient-to-r from-brand-600 to-blue-600 text-white shadow-lg shadow-brand-500/25 dark:text-white font-bold'
+                          ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-lg shadow-brand-500/25 dark:text-white font-bold'
                           : 'text-slate-600 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white hover:shadow-sm'}
                        `}
                     >
@@ -201,18 +201,18 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         </nav>
 
         {/* User Settings & Logout */}
-        <div className="mt-auto pt-5 px-4 border-t border-slate-200/60 dark:border-white/8 mx-2 space-y-2">
+        <div className="mt-auto pt-4 px-3 mx-3 mb-2 bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-white/20 dark:border-white/5 space-y-1">
           <NavLink
             to="/settings"
             className={({ isActive }) => `
-                group flex items-center gap-3 px-4 py-3 text-[14px] font-semibold rounded-2xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
-                ${isActive ? 'bg-slate-100 text-slate-900 dark:bg-white/10 dark:text-white shadow-inner shadow-white/50' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
+                group flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
+                ${isActive ? 'bg-white/60 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}
               `}
           >
             {({ isActive }) => (
               <>
-                <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${isActive ? 'bg-slate-900/90 text-white dark:bg-white/20 dark:text-white' : 'bg-slate-100/80 text-slate-600 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
-                  <Settings className="h-4.5 w-4.5" strokeWidth={2} />
+                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${isActive ? 'bg-brand-500/10 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400' : 'bg-slate-100/80 text-slate-500 dark:bg-white/5 dark:text-slate-400 group-hover:bg-white/80 group-hover:text-slate-900 dark:group-hover:bg-white/15 dark:group-hover:text-white'}`}>
+                  <Settings className="h-4 w-4" strokeWidth={2} />
                 </span>
                 <span className="flex-1">{t('sidebar.settings')}</span>
                 <ChevronRight className={`h-3.5 w-3.5 transition-opacity duration-200 ${isActive ? 'opacity-80 text-slate-900 dark:text-white' : 'opacity-0 text-slate-500 dark:text-slate-500 group-hover:opacity-70'}`} />
@@ -223,21 +223,23 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             variant="ghost"
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full justify-start px-3 py-2 h-auto text-[14px] font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 rounded-xl"
+            className="w-full justify-start px-3 py-2.5 h-auto text-[13px] font-medium text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 rounded-xl"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg text-red-500 dark:text-red-400/80 mr-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg text-red-500 dark:text-red-400/80 mr-3 bg-red-50 dark:bg-red-900/20">
               {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" strokeWidth={2} />}
             </span>
             <span className="flex-1 text-left">{t('common.logout')}</span>
           </Button>
 
-          <button
-            onClick={() => setShowLegalModal(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 mt-2 text-[10px] font-medium text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-          >
-            <Scale className="h-3 w-3" />
-            <span>{t('settings.mentionsLegales')}</span>
-          </button>
+          <div className="pt-2 border-t border-slate-200/50 dark:border-white/5 mt-2">
+            <button
+              onClick={() => setShowLegalModal(true)}
+              className="w-full flex items-center justify-center gap-2 px-2 py-1.5 text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            >
+              <Scale className="h-3 w-3" />
+              <span>{t('settings.mentionsLegales')}</span>
+            </button>
+          </div>
         </div>
       </aside>
 

@@ -227,8 +227,8 @@ export const OrganizationSettings: React.FC = () => {
 
             {/* Subscription */}
             {user?.organizationId && (
-                <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-900 rounded-2xl p-6 sm:p-8 shadow-xl text-white relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-32 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors"></div>
+                <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-900 rounded-[2rem] p-6 sm:p-8 shadow-2xl text-white relative overflow-hidden group border border-white/10">
+                    <div className="absolute top-0 right-0 p-32 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-white/15 transition-colors duration-500"></div>
 
                     <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
                         <div className="flex items-center gap-5">
@@ -338,7 +338,7 @@ export const OrganizationSettings: React.FC = () => {
 
                     <div className="relative z-10 divide-y divide-white/20 dark:divide-white/5">
                         {filteredUsers.map(u => (
-                            <div key={u.uid} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/40 dark:hover:bg-white/5 transition-colors">
+                            <div key={u.uid} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/60 dark:hover:bg-white/10 transition-colors backdrop-blur-[2px]">
                                 <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700/50 flex-shrink-0 flex items-center justify-center text-slate-500 font-bold border border-white/40 dark:border-white/10 shadow-sm">
                                         {u.photoURL ? <img src={u.photoURL} className="w-full h-full rounded-full object-cover" /> : (u.displayName?.charAt(0) || 'U')}

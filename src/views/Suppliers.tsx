@@ -1,4 +1,5 @@
 import React, { useDeferredValue, useEffect, useMemo, useState, useRef } from 'react';
+import { Menu, Transition } from '@headlessui/react';
 import { Helmet } from 'react-helmet-async';
 import { canEditResource } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -6,7 +7,7 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
-import { Plus, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, BrainCircuit, Loader2 } from '../components/ui/Icons';
+import { Plus, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, BrainCircuit, Loader2, MoreVertical, Download } from '../components/ui/Icons';
 import { PageControls } from '../components/ui/PageControls';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
@@ -649,21 +650,80 @@ export const Suppliers: React.FC = () => {
                     actions={canEdit && (
                         <>
                             <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                            <CustomTooltip content="Importer des fournisseurs depuis un CSV">
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={isImporting}
-                                    className="hidden sm:flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white disabled:opacity-50"
+                            <Menu as="div" className="relative inline-block text-left">
+                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                    <MoreVertical className="h-5 w-5" />
+                                </Menu.Button>
+                                <Transition
+                                    as={React.Fragment}
+                                    enter="transition ease-out duration-100"
+                                    enterFrom="transform opacity-0 scale-95"
+                                    enterTo="transform opacity-100 scale-100"
+                                    leave="transition ease-in duration-75"
+                                    leaveFrom="transform opacity-100 scale-100"
+                                    leaveTo="transform opacity-0 scale-95"
                                 >
-                                    {isImporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />} Importer
-                                </button>
-                            </CustomTooltip>
+                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                        <div className="p-1">
+                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                Outils
+                                            </div>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button
+                                                        onClick={() => fileInputRef.current?.click()}
+                                                        disabled={isImporting}
+                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
+                                                    >
+                                                        {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
+                                                        Importer CSV
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                        </div>
+                                        <div className="p-1">
+                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                Rapports & Exports
+                                            </div>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button
+                                                        onClick={handleExportCSV}
+                                                        disabled={isExportingCSV}
+                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
+                                                    >
+                                                        {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
+                                                        Export CSV
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button
+                                                        onClick={handleExportDORARegister}
+                                                        disabled={isExportingDORA}
+                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
+                                                    >
+                                                        {isExportingDORA ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldAlert className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
+                                                        Export DORA
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                        </div>
+                                    </Menu.Items>
+                                </Transition>
+                            </Menu>
+
                             <CustomTooltip content="Ajouter un nouveau fournisseur">
                                 <button
                                     onClick={() => openCreationDrawer()}
                                     className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                 >
-                                    <Plus className="h-4 w-4 mr-2" /> Nouveau Fournisseur
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    <span className="hidden sm:inline">Nouveau Fournisseur</span>
                                 </button>
                             </CustomTooltip>
                         </>
@@ -694,28 +754,7 @@ export const Suppliers: React.FC = () => {
                     isLoading={loadingSuppliers}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
-                    secondaryActions={
-                        <>
-                            <CustomTooltip content="Exporter la liste en CSV">
-                                <button
-                                    onClick={handleExportCSV}
-                                    disabled={isExportingCSV}
-                                    className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-                                </button>
-                            </CustomTooltip>
-                            <CustomTooltip content="Exporter le registre DORA">
-                                <button
-                                    onClick={handleExportDORARegister}
-                                    disabled={isExportingDORA}
-                                    className="p-2.5 bg-indigo-50 dark:bg-slate-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isExportingDORA ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
-                                </button>
-                            </CustomTooltip>
-                        </>
-                    }
+                    secondaryActions={null}
                 />
             </motion.div>
 

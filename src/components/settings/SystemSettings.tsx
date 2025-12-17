@@ -116,7 +116,7 @@ export const SystemSettings: React.FC = () => {
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 animate-slide-in-left">{t('settings.system')}</h2>
 
             {hasPermission(user, 'Settings', 'read') && (
-                <div className="glass-panel p-0 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-md">
+                <div className="glass-panel p-0 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5 bg-white/40 dark:bg-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-3">
@@ -146,7 +146,7 @@ export const SystemSettings: React.FC = () => {
 
             {/* Danger Zone */}
             <div className="glass-panel p-8 rounded-[2.5rem] border border-red-500/30 dark:border-red-500/20 shadow-sm relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-50" />
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
                 <div className="relative z-10">
                     <div className="flex items-start gap-4">
                         <div className="p-3 bg-red-500/10 dark:bg-red-500/20 rounded-2xl text-red-600 dark:text-red-400 shrink-0 backdrop-blur-md">

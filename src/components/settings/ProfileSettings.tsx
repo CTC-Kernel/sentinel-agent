@@ -150,7 +150,7 @@ export const ProfileSettings: React.FC = () => {
                                 {user?.photoURL ? (
                                     <img src={user.photoURL} alt={user?.displayName || 'User'} className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full bg-linear-to-br from-brand-100 to-brand-50 dark:from-brand-900/50 dark:to-brand-800/30 flex items-center justify-center text-4xl font-bold text-brand-600 dark:text-brand-400">
+                                    <div className="w-full h-full bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/50 dark:to-brand-800/30 flex items-center justify-center text-4xl font-bold text-brand-600 dark:text-brand-400">
                                         {(user?.displayName || 'U').charAt(0).toUpperCase()}
                                     </div>
                                 )}
@@ -197,7 +197,7 @@ export const ProfileSettings: React.FC = () => {
                                     value={user?.email || ''}
                                     disabled
                                     readOnly
-                                    className="opacity-70 bg-slate-50/50 dark:bg-white/5"
+                                    className="opacity-70 bg-white/50 dark:bg-white/5 backdrop-blur-sm"
                                 />
                                 <div className="md:col-span-2">
                                     <Controller

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { Menu, Transition } from '@headlessui/react';
 // import { Helmet } from 'react-helmet-async'; // Replaced by SEO component
 import { useNavigate, useLocation } from 'react-router-dom';
 import { collection, getDocs, doc, updateDoc, writeBatch, arrayUnion, query, where, limit, addDoc } from 'firebase/firestore';
@@ -9,7 +10,7 @@ import { db } from '../firebase';
 import { toast } from 'sonner';
 import { analyticsService } from '../services/analyticsService';
 import { Control, Document, Risk, Finding, UserProfile, SystemLog, Asset, Supplier, Project, Audit, BusinessProcess, AutomatedEvidence, Framework } from '../types';
-import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User, FolderKanban, FileSpreadsheet, RefreshCw, Loader2, CheckCircle2, XCircle, Plug, MessageSquare, Sparkles } from '../components/ui/Icons';
+import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User, FolderKanban, FileSpreadsheet, RefreshCw, Loader2, CheckCircle2, XCircle, Plug, MessageSquare, Sparkles, MoreVertical } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { ComplianceService } from '../services/ComplianceService';
 import { logAction } from '../services/logger';
@@ -1022,16 +1023,6 @@ export const Compliance: React.FC = () => {
                     trustType="general"
                     actions={
                         <div className="flex flex-wrap items-center gap-3">
-                            <CustomTooltip content="Générer un rapport exécutif PDF">
-                                <button
-                                    onClick={handleExportExecutiveReport}
-                                    disabled={isExportingPDF}
-                                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-300 font-bold text-sm"
-                                >
-                                    {isExportingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-                                    <span>Rapport Exécutif</span>
-                                </button>
-                            </CustomTooltip>
                             {/* View Switcher */}
                             <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10">
                                 <CustomTooltip content="Vue Conformité">
@@ -1053,26 +1044,66 @@ export const Compliance: React.FC = () => {
                             </div>
 
                             {viewMode === 'compliance' && (
-                                <>
-                                    <CustomTooltip content="Suggestions automatiques par IA">
-                                        <button
-                                            onClick={handleAutoMapEvidence}
-                                            className="hidden md:flex items-center space-x-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-300 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors border border-purple-200 dark:border-purple-800"
-                                        >
-                                            <Sparkles className="w-4 h-4" />
-                                            <span className="text-xs font-bold">Suggestions (IA)</span>
-                                        </button>
-                                    </CustomTooltip>
-                                    <CustomTooltip content="Générer Rapport SoA">
-                                        <button
-                                            onClick={generateSoAReport}
-                                            className="hidden md:flex p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 hover:text-slate-600 transition-colors"
-                                        >
-                                            <Download className="h-5 w-5" />
-                                        </button>
-                                    </CustomTooltip>
-                                </>
+                                <CustomTooltip content="Suggestions automatiques par IA">
+                                    <button
+                                        onClick={handleAutoMapEvidence}
+                                        className="hidden md:flex items-center space-x-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-300 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors border border-purple-200 dark:border-purple-800"
+                                    >
+                                        <Sparkles className="w-4 h-4" />
+                                        <span className="text-xs font-bold">Suggestions (IA)</span>
+                                    </button>
+                                </CustomTooltip>
                             )}
+
+                            <Menu as="div" className="relative inline-block text-left">
+                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                    <MoreVertical className="h-5 w-5" />
+                                </Menu.Button>
+                                <Transition
+                                    as={React.Fragment}
+                                    enter="transition ease-out duration-100"
+                                    enterFrom="transform opacity-0 scale-95"
+                                    enterTo="transform opacity-100 scale-100"
+                                    leave="transition ease-in duration-75"
+                                    leaveFrom="transform opacity-100 scale-100"
+                                    leaveTo="transform opacity-0 scale-95"
+                                >
+                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                        <div className="p-1">
+                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                Rapports & Exports
+                                            </div>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button
+                                                        onClick={handleExportExecutiveReport}
+                                                        disabled={isExportingPDF}
+                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
+                                                    >
+                                                        {isExportingPDF ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
+                                                        Rapport Exécutif
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                            {viewMode === 'compliance' && (
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button
+                                                            onClick={generateSoAReport}
+                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                        >
+                                                            <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                            Export SoA
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                            )}
+                                        </div>
+                                    </Menu.Items>
+                                </Transition>
+                            </Menu>
                         </div>
                     }
                 />
@@ -1137,7 +1168,7 @@ export const Compliance: React.FC = () => {
                             {loading ? (
                                 <div className="space-y-4">
                                     {[1, 2, 3, 4].map(i => (
-                                        <div key={i} className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-white/10 flex items-center gap-4">
+                                        <div key={i} className="glass-panel p-6 flex items-center gap-4 rounded-xl border border-white/20">
                                             <Skeleton className="w-12 h-12 rounded-xl" />
                                             <div className="space-y-2 flex-1">
                                                 <Skeleton className="h-5 w-48" />
@@ -1196,7 +1227,7 @@ export const Compliance: React.FC = () => {
                                                                     <span className="text-slate-900 dark:text-white">{stats.progress}%</span>
                                                                 </div>
                                                                 <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-                                                                    <div className={`h-full rounded-full transition-all duration-500 ${stats.progress === 100 ? 'bg-emerald-500' : 'bg-brand-500'}`} style={{ width: `${stats.progress}%` }}></div>
+                                                                    <div className={`h-full rounded-full transition-all duration-500 ${stats.progress === 100 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-indigo-500 to-purple-500'}`} style={{ width: `${stats.progress}%` }}></div>
                                                                 </div>
                                                             </div>
                                                             <div className={`p-2 rounded-full transition-all duration-300 shrink-0 ${isExpanded ? 'bg-white dark:bg-white/10 shadow-sm rotate-180 text-slate-900 dark:text-white' : 'text-slate-500'}`}>
@@ -1206,7 +1237,7 @@ export const Compliance: React.FC = () => {
                                                     </div>
 
                                                     {isExpanded && (
-                                                        <div className="p-4 bg-slate-50/40 dark:bg-black/10 border-t border-slate-100 dark:border-white/5 relative z-10">
+                                                        <div className="p-4 bg-slate-50/50 dark:bg-black/20 backdrop-blur-sm border-t border-slate-100 dark:border-white/5 relative z-10">
                                                             <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
                                                                 {domainControls.map(control => {
                                                                     const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
@@ -1312,12 +1343,13 @@ export const Compliance: React.FC = () => {
 
 
                                 <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3">
-                                    <div className="relative flex-1 text-left">
-                                        <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
+                                    <div className="relative flex-1 text-left glass-panel rounded-xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden">
+                                        <div className="absolute inset-0 bg-white/40 dark:bg-white/5 pointer-events-none" />
+                                        <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500 relative z-10" />
                                         <input
                                             type="text"
                                             placeholder="Ex: Intelligence Artificielle, DORA, NIS2..."
-                                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm"
+                                            className="w-full pl-12 pr-4 py-3 bg-transparent border-none focus:ring-0 outline-none text-slate-700 dark:text-white font-medium relative z-10 placeholder:text-slate-400"
                                             value={eurLexQuery}
                                             onChange={(e) => setEurLexQuery(e.target.value)}
                                             onKeyDown={(e) => e.key === 'Enter' && handleEurLexSearch()}
@@ -1530,7 +1562,7 @@ export const Compliance: React.FC = () => {
                                                     {selectedControl.relatedAssetIds?.map(assetId => {
                                                         const asset = assets.find(a => a.id === assetId);
                                                         return asset ? (
-                                                            <div key={assetId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-lg text-sm">
+                                                            <div key={assetId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
                                                                 <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
                                                                 {canEdit && <button onClick={() => handleUnlinkAsset(assetId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
                                                             </div>
@@ -1558,7 +1590,7 @@ export const Compliance: React.FC = () => {
                                                     {selectedControl.relatedSupplierIds?.map(supplierId => {
                                                         const supplier = suppliers.find(s => s.id === supplierId);
                                                         return supplier ? (
-                                                            <div key={supplierId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-lg text-sm">
+                                                            <div key={supplierId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
                                                                 <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{supplier.name}</span>
                                                                 {canEdit && <button onClick={() => handleUnlinkSupplier(supplierId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
                                                             </div>
@@ -1600,7 +1632,7 @@ export const Compliance: React.FC = () => {
                                         {canEdit ? (
                                             <div className="relative group">
                                                 <textarea
-                                                    className="w-full p-5 text-sm bg-white dark:bg-slate-800/80 border border-gray-200 dark:border-white/10 rounded-3xl text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm font-medium leading-relaxed"
+                                                    className="w-full p-5 text-sm bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-3xl text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm font-medium leading-relaxed resize-none"
                                                     rows={6}
                                                     placeholder="Décrivez comment ce contrôle est implémenté, ou justifiez son exclusion..."
                                                     value={editJustification}
@@ -1638,7 +1670,7 @@ export const Compliance: React.FC = () => {
                                                         selectedControl.automatedEvidence.map(evidence => {
                                                             const provider = providers.find(p => p.id === evidence.providerId) || { name: evidence.providerId, icon: 'default' };
                                                             return (
-                                                                <div key={evidence.id} className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                                <div key={evidence.id} className="flex items-center justify-between p-4 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-white/5 shadow-sm hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
                                                                     <div className="flex items-center gap-4">
                                                                         <div className={`p-2 rounded-xl ${evidence.status === 'pass' ? 'bg-emerald-100 text-emerald-600' : evidence.status === 'fail' ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'}`}>
                                                                             {evidence.status === 'pass' ? <CheckCircle2 className="h-5 w-5" /> : evidence.status === 'fail' ? <XCircle className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
@@ -1725,7 +1757,7 @@ export const Compliance: React.FC = () => {
                                                     {selectedControl.evidenceIds && selectedControl.evidenceIds.length > 0 ? selectedControl.evidenceIds.map(docId => {
                                                         const docObj = documents.find(d => d.id === docId);
                                                         return docObj ? (
-                                                            <div key={docId} className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm group transition-all hover:bg-white dark:hover:bg-white/5">
+                                                            <div key={docId} className="flex items-center justify-between p-3 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-white/5 shadow-sm group transition-all hover:bg-white/60 dark:hover:bg-white/10">
                                                                 <div className="flex items-center overflow-hidden">
                                                                     <div className="p-2 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-lg mr-3 text-blue-500"><File className="h-4 w-4" /></div>
                                                                     <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[200px]">{docObj.title}</span>
@@ -1789,7 +1821,7 @@ export const Compliance: React.FC = () => {
                                             </div>
                                             <div className="space-y-2">
                                                 {risks.filter(r => r.mitigationControlIds?.includes(selectedControl.id)).map(risk => (
-                                                    <div key={risk.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                    <div key={risk.id} className="flex items-center justify-between p-3 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 dark:border-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
                                                         <div>
                                                             <div className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</div>
                                                             <div className="text-xs text-slate-600">Score: {risk.score}</div>
@@ -1815,7 +1847,7 @@ export const Compliance: React.FC = () => {
                                             </div>
                                             <div className="space-y-2">
                                                 {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).map(proj => (
-                                                    <div key={proj.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 cursor-pointer hover:bg-slate-100 dark:hover:bg-white/10 transition-colors" onClick={() => navigate('/projects', { state: { voxelSelectedId: proj.id, fromVoxel: true } })}>
+                                                    <div key={proj.id} className="flex items-center justify-between p-3 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 dark:border-white/5 cursor-pointer hover:bg-white/60 dark:hover:bg-white/10 transition-colors" onClick={() => navigate('/projects', { state: { voxelSelectedId: proj.id, fromVoxel: true } })}>
                                                         <div>
                                                             <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                                                 {proj.name}
@@ -1858,7 +1890,7 @@ export const Compliance: React.FC = () => {
                                             </div>
                                             <div className="space-y-2">
                                                 {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).map(project => (
-                                                    <div key={project.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                    <div key={project.id} className="flex items-center justify-between p-3 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 dark:border-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
                                                         <div>
                                                             <div className="font-bold text-sm text-slate-700 dark:text-slate-200">{project.name}</div>
                                                             <div className="text-xs text-slate-600 mt-0.5">{project.description?.substring(0, 50)}...</div>
@@ -1899,7 +1931,7 @@ export const Compliance: React.FC = () => {
                                             </div>
                                             <div className="space-y-2">
                                                 {audits.filter(a => a.relatedControlIds?.includes(selectedControl.id)).map(audit => (
-                                                    <div key={audit.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                    <div key={audit.id} className="flex items-center justify-between p-3 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-xl border border-white/20 dark:border-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
                                                         <div>
                                                             <div className="font-bold text-sm text-slate-700 dark:text-slate-200">{audit.name}</div>
                                                             <div className="text-xs text-slate-600 mt-0.5">{new Date(audit.dateScheduled).toLocaleDateString()}</div>

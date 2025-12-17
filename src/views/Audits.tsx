@@ -8,6 +8,7 @@ import { SeveritySelector } from '../components/audits/SeveritySelector';
 import { FileUploader } from '../components/ui/FileUploader';
 import { AIAssistButton } from '../components/ai/AIAssistButton';
 import { collection, addDoc, getDocs, query, doc, deleteDoc, where, updateDoc, arrayUnion, writeBatch } from 'firebase/firestore';
+import { Menu, Transition } from '@headlessui/react';
 import { db } from '../firebase';
 import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk, Project } from '../types';
 import { canEditResource, canDeleteResource, hasPermission } from '../utils/permissions';
@@ -15,7 +16,7 @@ import { EvidenceRequestList } from '../components/audits/EvidenceRequestList';
 import { QuestionnaireList } from '../components/audits/QuestionnaireList';
 import { AuditTeam } from '../components/audits/AuditTeam';
 import { Comments } from '../components/ui/Comments';
-import { Plus, Activity, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare, BrainCircuit, Loader2, ArrowRight } from '../components/ui/Icons';
+import { Plus, Search, Filter, Calendar, ClipboardCheck, AlertTriangle, CheckCircle, Clock, FileText, Trash2, Edit, ChevronRight, User, MoreVertical, X, Sparkles, BrainCircuit, RefreshCw, Upload, Link, MessageSquare, Paperclip, BarChart2, ShieldAlert, ArrowRight, Save, FolderKanban, FileSpreadsheet, Loader2, Download } from '../components/ui/Icons';
 // ...
 import { AuditPlannerService } from '../services/AuditPlannerService';
 
@@ -1324,27 +1325,86 @@ export const Audits: React.FC = () => {
                     actions={canEdit && (
                         hasPermission(user, 'Audit', 'create') && (
                             <>
-                                <CustomTooltip content="Télécharger le pack complet d'audit (ZIP)">
-                                    <button onClick={handleExportPack} className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                        <FolderKanban className="h-4 w-4 text-emerald-600" />
-                                        <span className="hidden sm:inline">Pack</span>
-                                    </button>
-                                </CustomTooltip>
-
-                                <CustomTooltip content="Générer le rapport exécutif global">
-                                    <button onClick={handleExportExecutiveReport} className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-indigo-500/20 transition-all">
-                                        {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-                                        <span className="hidden sm:inline">Rapport Exécutif</span>
-                                    </button>
-                                </CustomTooltip>
+                                <Menu as="div" className="relative inline-block text-left">
+                                    <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                        <MoreVertical className="h-5 w-5" />
+                                    </Menu.Button>
+                                    <Transition
+                                        as={React.Fragment}
+                                        enter="transition ease-out duration-100"
+                                        enterFrom="transform opacity-0 scale-95"
+                                        enterTo="transform opacity-100 scale-100"
+                                        leave="transition ease-in duration-75"
+                                        leaveFrom="transform opacity-100 scale-100"
+                                        leaveTo="transform opacity-0 scale-95"
+                                    >
+                                        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                            <div className="p-1">
+                                                <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                    Rapports & Exports
+                                                </div>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button
+                                                            onClick={handleExportExecutiveReport}
+                                                            disabled={isGeneratingReport}
+                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
+                                                        >
+                                                            {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-indigo-500'}`} />}
+                                                            Rapport Exécutif
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button
+                                                            onClick={handleExportPack}
+                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                        >
+                                                            <FolderKanban className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-600'}`} />
+                                                            Pack Audit (ZIP)
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button
+                                                            onClick={handleExportCalendar}
+                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                        >
+                                                            <Calendar className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
+                                                            Export Calendrier
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button
+                                                            onClick={handleExportCSV}
+                                                            disabled={isExportingCSV}
+                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                        >
+                                                            {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
+                                                            Export CSV
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                            </div>
+                                        </Menu.Items>
+                                    </Transition>
+                                </Menu>
 
                                 <CustomTooltip content="Obtenir des suggestions d'audit par IA">
                                     <button
                                         onClick={handleGeneratePlan}
-                                        className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-bold shadow-lg hover:shadow-pink-500/25 transition-all hover:scale-105"
+                                        className="hidden sm:flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-bold shadow-lg hover:shadow-pink-500/25 transition-all hover:scale-105"
                                     >
                                         <BrainCircuit className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Suggestions IA</span>
+                                        <span className="hidden lg:inline">Suggestions IA</span>
                                     </button>
                                 </CustomTooltip>
 
@@ -1383,27 +1443,7 @@ export const Audits: React.FC = () => {
                     totalItems={filteredAudits.length}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
-                    secondaryActions={
-                        <>
-                            <CustomTooltip content="Exporter en CSV">
-                                <button
-                                    onClick={handleExportCSV}
-                                    disabled={isExportingCSV}
-                                    className="p-2 bg-white dark:bg-slate-800 rounded-lg text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-sm"
-                                >
-                                    {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-                                </button>
-                            </CustomTooltip>
-                            <CustomTooltip content="Ajouter au calendrier">
-                                <button
-                                    onClick={handleExportCalendar}
-                                    className="p-2 bg-white dark:bg-slate-800 rounded-lg text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-sm"
-                                >
-                                    <CalendarDays className="h-4 w-4" />
-                                </button>
-                            </CustomTooltip>
-                        </>
-                    }
+                    secondaryActions={null}
                 />
             </motion.div>
 

@@ -178,10 +178,11 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                className="relative w-full max-w-4xl glass-panel rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-white/20"
             >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 {/* Header */}
-                <div className="px-8 py-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex items-center justify-between">
+                <div className="px-8 py-6 border-b border-white/10 glass-panel backdrop-blur-md relative z-10">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display">Nouveau Document</h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Assistant d'importation et de classification</p>
@@ -206,7 +207,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar relative z-10">
                     <form id="wizard-form" onSubmit={handleSubmit(handleFinalSubmit)}>
 
                         {/* Step 1: File */}
@@ -527,7 +528,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                 </div>
 
                 {/* Footer Buttons */}
-                <div className="px-8 py-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-between items-center">
+                <div className="px-8 py-6 border-t border-white/10 glass-panel backdrop-blur-md relative z-10 flex justify-between items-center">
                     <Button
                         type="button"
                         variant="ghost"

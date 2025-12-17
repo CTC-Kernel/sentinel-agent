@@ -27,7 +27,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
 }) => {
     return (
         <div
-            className={`flex-1 bg-gray-50/50 dark:bg-slate-800/30 rounded-2xl p-4 border border-gray-100 dark:border-white/5 flex flex-col min-h-[400px] transition-colors ${draggedTaskId ? 'border-dashed border-brand-300 dark:border-brand-700' : ''}`}
+            className={`flex-1 glass-panel rounded-[1.5rem] p-4 border border-white/20 flex flex-col min-h-[400px] transition-colors ${draggedTaskId ? 'border-dashed border-brand-300 dark:border-brand-700 bg-brand-50/20' : 'bg-slate-50/30 dark:bg-slate-900/20'}`}
             onDragOver={onDragOver}
             onDrop={(e) => onDrop(e, status)}
         >
@@ -45,8 +45,9 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                             key={task.id}
                             draggable={canEdit}
                             onDragStart={(e) => onDragStart(e, task.id)}
-                            className={`p-3.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm hover:shadow-md transition-all group cursor-grab active:cursor-grabbing ${draggedTaskId === task.id ? 'opacity-50 scale-95' : 'hover:scale-[1.02]'}`}
+                            className={`p-4 glass-panel rounded-xl border border-white/30 dark:border-white/10 shadow-sm hover:shadow-lg transition-all group cursor-grab active:cursor-grabbing relative overflow-hidden ${draggedTaskId === task.id ? 'opacity-50 scale-95' : 'hover:scale-[1.02] hover:bg-white/60 dark:hover:bg-white/10'}`}
                         >
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-sm font-bold text-slate-900 dark:text-white line-clamp-2">{task.title}</span>
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Menu, Transition } from '@headlessui/react';
 // import { Helmet } from 'react-helmet-async'; // Replaced by SEO component
 import { collection, where, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -10,7 +11,7 @@ import { logAction } from '../services/logger';
 import { NotificationService } from '../services/notificationService';
 
 import { PageHeader } from '../components/ui/PageHeader';
-import { Siren, Plus, ShieldAlert, Edit, Trash2, CalendarDays, BookOpen, BrainCircuit, Server, Activity, Clock, AlertTriangle } from '../components/ui/Icons';
+import { Siren, Plus, ShieldAlert, Edit, Trash2, CalendarDays, BookOpen, BrainCircuit, Server, Activity, Clock, AlertTriangle, MoreVertical } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -360,15 +361,41 @@ export const Incidents: React.FC = () => {
                     actions={
                         hasPermission(user, 'Incident', 'create') && (
                             <div className="flex gap-3">
-                                <CustomTooltip content="Importer des événements de sécurité (SIEM/EDR)">
-                                    <button
-                                        onClick={() => setImportModalOpen(true)}
-                                        className="bg-white/50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-200 border border-white/60 dark:border-white/10 px-4 py-2 rounded-xl font-medium hover:bg-white/80 dark:hover:bg-slate-700/80 transition-colors flex items-center shadow-sm backdrop-blur-md"
+                                <Menu as="div" className="relative inline-block text-left">
+                                    <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                        <MoreVertical className="h-5 w-5" />
+                                    </Menu.Button>
+                                    <Transition
+                                        as={React.Fragment}
+                                        enter="transition ease-out duration-100"
+                                        enterFrom="transform opacity-0 scale-95"
+                                        enterTo="transform opacity-100 scale-100"
+                                        leave="transition ease-in duration-75"
+                                        leaveFrom="transform opacity-100 scale-100"
+                                        leaveTo="transform opacity-0 scale-95"
                                     >
-                                        <BrainCircuit className="h-4 w-4 mr-2" />
-                                        Importer SIEM/EDR
-                                    </button>
-                                </CustomTooltip>
+                                        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                            <div className="p-1">
+                                                <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                    Outils
+                                                </div>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button
+                                                            onClick={() => setImportModalOpen(true)}
+                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                        >
+                                                            <BrainCircuit className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                            Importer SIEM/EDR
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                            </div>
+                                        </Menu.Items>
+                                    </Transition>
+                                </Menu>
+
                                 <CustomTooltip content="Déclarer un nouvel incident de sécurité">
                                     <button
                                         onClick={() => setCreationMode(true)}

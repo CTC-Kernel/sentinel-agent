@@ -186,7 +186,7 @@ export const IntegrationSettings: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => loginToGoogle()}
-                                className="w-full py-4 bg-white/50 dark:bg-slate-800/50 border-2 border-white/40 dark:border-white/10 rounded-2xl text-sm font-bold text-slate-700 dark:text-white hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center shadow-sm group backdrop-blur-sm"
+                                className="w-full py-4 bg-white/50 dark:bg-white/5 border-2 border-white/40 dark:border-white/10 rounded-2xl text-sm font-bold text-slate-700 dark:text-white hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center shadow-sm group backdrop-blur-sm"
                             >
                                 <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
                                 {t('settings.connectGoogle')}

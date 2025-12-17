@@ -48,7 +48,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                         {isActive && (
                                             <motion.div
                                                 layoutId="activeTabMobile"
-                                                className="absolute inset-0 bg-brand-600 rounded-lg shadow-sm"
+                                                className="absolute inset-0 bg-gradient-to-r from-brand-600 to-brand-500 rounded-lg shadow-sm"
                                                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                             />
                                         )}
@@ -74,7 +74,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                         className={cn(
                                             "group flex items-center w-full px-4 py-3.5 rounded-xl font-medium text-sm transition-all text-left relative overflow-hidden",
                                             isActive
-                                                ? "bg-brand-500/10 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300 shadow-sm border border-brand-500/10"
+                                                ? "bg-gradient-to-r from-brand-500/10 to-brand-500/5 dark:from-brand-500/20 dark:to-brand-500/10 text-brand-700 dark:text-brand-300 shadow-sm border border-brand-500/10"
                                                 : "text-slate-600 dark:text-slate-400 hover:bg-slate-50/50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200"
                                         )}
                                     >
@@ -118,6 +118,6 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                     </motion.div>
                 </AnimatePresence>
             </main>
-        </div>
+        </div >
     );
 };

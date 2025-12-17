@@ -85,9 +85,11 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
     return createPortal(
         <div className="fixed inset-0 z-max flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-white/10 animate-scale-in">
+            <div className="glass-panel rounded-[2rem] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/20 animate-scale-in relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
                 {/* Header */}
-                <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-white/10 px-8 py-6 flex items-center justify-between z-10">
+                {/* Header */}
+                <div className="sticky top-0 glass-panel border-b border-white/10 px-8 py-6 flex items-center justify-between z-10 backdrop-blur-md">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                             {existingTask ? 'Modifier la tâche' : 'Nouvelle tâche'}
@@ -105,7 +107,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit(onFormSubmit)} className="p-8 space-y-6">
+                <form onSubmit={handleSubmit(onFormSubmit)} className="p-8 space-y-6 relative z-10">
                     {/* Title */}
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">
@@ -322,13 +324,13 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                            className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/10 rounded-xl transition-colors"
                         >
                             Annuler
                         </button>
                         <button
                             type="submit"
-                            className="px-8 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-brand-500/30"
+                            className="px-8 py-3 bg-gradient-to-r from-brand-600 to-brand-500 text-white rounded-xl hover:from-brand-500 hover:to-brand-400 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-brand-500/30"
                         >
                             {existingTask ? 'Mettre à jour' : 'Créer la tâche'}
                         </button>

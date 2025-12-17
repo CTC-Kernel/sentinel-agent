@@ -15,7 +15,10 @@ interface GanttChartProps {
 
 export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewModeChange, onTaskUpdate, onTaskClick, users = [] }) => {
     const ganttRef = useRef<HTMLDivElement>(null);
-    const [showList, setShowList] = useState(true);
+    // Default to hidden on mobile (< 768px)
+    const [showList, setShowList] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
+
+
 
     // Map internal view mode to library ViewMode
     const libraryViewMode = useMemo(() => {
@@ -131,8 +134,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
 
     if (ganttTasks.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-[500px] bg-slate-50/50 dark:bg-slate-900/20 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-slate-500 animate-fade-in">
-                <div className="w-16 h-16 mb-4 rounded-2xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center">
+            <div className="flex flex-col items-center justify-center h-[500px] glass-panel rounded-[2rem] border border-dashed border-white/20 text-slate-500 animate-fade-in">
+                <div className="w-16 h-16 mb-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 shadow-sm flex items-center justify-center border border-white/20">
                     <CalendarDays className="w-8 h-8 text-blue-500" />
                 </div>
                 <p className="font-medium text-slate-600 dark:text-slate-300">Aucune tâche planifiée</p>

@@ -149,8 +149,9 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
             {/* Create Modal */}
             {showCreateModal && (
                 <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/20 backdrop-blur-sm" onClick={() => setShowCreateModal(false)}>
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-xl w-80 border border-white/10" onClick={e => e.stopPropagation()}>
-                        <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white">Nouveau Dossier</h3>
+                    <div className="glass-panel p-6 rounded-[2rem] shadow-2xl w-80 border border-white/20 relative overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
+                        <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white relative z-10">Nouveau Dossier</h3>
                         <form onSubmit={handleCreateSubmit}>
                             <input
                                 type="text"
@@ -160,9 +161,9 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                 className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 mb-4 focus:ring-2 focus:ring-blue-500 outline-none"
                                 autoFocus
                             />
-                            <div className="flex justify-end gap-2">
-                                <button type="button" onClick={() => setShowCreateModal(false)} className="px-3 py-1.5 text-sm font-medium text-slate-600" disabled={isCreatingFolder}>Annuler</button>
-                                <button type="submit" className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center" disabled={isCreatingFolder}>
+                            <div className="flex justify-end gap-2 relative z-10">
+                                <button type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors" disabled={isCreatingFolder}>Annuler</button>
+                                <button type="submit" className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center transition-all hover:scale-105 active:scale-95" disabled={isCreatingFolder}>
                                     {isCreatingFolder && <span className="animate-spin mr-2">⏳</span>} Créer
                                 </button>
                             </div>
@@ -176,7 +177,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 <>
                     <div className="fixed inset-0 z-header" onClick={() => setContextMenu(null)} />
                     <div
-                        className="fixed z-modal bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-white/5 py-1 w-48 animate-scale-in"
+                        className="fixed z-modal glass-panel rounded-xl shadow-2xl border border-white/20 py-1 w-48 animate-scale-in overflow-hidden backdrop-blur-md"
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                     >
                         <button

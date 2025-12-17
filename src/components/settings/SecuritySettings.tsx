@@ -186,7 +186,7 @@ export const SecuritySettings: React.FC = () => {
                                     label="Code de vérification (6 chiffres)"
                                     value={mfaCode}
                                     onChange={(e) => setMfaCode(e.target.value)}
-                                    className="text-center tracking-[0.5em] font-mono text-lg bg-white/50 dark:bg-slate-900/50"
+                                    className="text-center tracking-[0.5em] font-mono text-lg bg-white/50 dark:bg-black/20 backdrop-blur-sm border-white/20"
                                     maxLength={6}
                                 />
                             </div>

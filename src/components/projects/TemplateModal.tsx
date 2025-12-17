@@ -56,10 +56,11 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-max flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-slate-200 dark:border-white/10">
+        <div className="fixed inset-0 z-max flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+            <div className="glass-panel rounded-[2rem] shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-white/20 animate-scale-in relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/10">
+                <div className="flex items-center justify-between p-6 border-b border-white/10 relative z-10 glass-panel backdrop-blur-md">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                             Créer depuis un Template
@@ -76,7 +77,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                     </button>
                 </div>
 
-                <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
+                <div className="overflow-y-auto max-h-[calc(90vh-200px)] relative z-10">
                     {!selectedTemplate ? (
                         /* Template Selection */
                         <div className="p-6">
@@ -120,7 +121,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                     ) : (
                         /* Template Configuration */
                         <form onSubmit={handleSubmit(onFormSubmit)} className="p-6 space-y-6">
-                            <div className="bg-brand-50 dark:bg-brand-900/10 p-4 rounded-xl border border-brand-200 dark:border-brand-800">
+                            <div className="glass-panel p-4 rounded-xl border border-brand-200/50 dark:border-brand-800/50 bg-brand-50/50 dark:bg-brand-900/10">
                                 <div className="flex items-center gap-3">
                                     <span className="text-3xl">{selectedTemplate.icon}</span>
                                     <div>
