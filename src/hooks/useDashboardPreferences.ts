@@ -36,9 +36,16 @@ export const useDashboardPreferences = (userId: string | undefined, role: string
         return { layout: defaultLayout };
     });
 
+    const [hasLoaded, setHasLoaded] = useState<boolean>(() => !userId);
+
     // Reload preferences if userId or role changes (after mount)
     useEffect(() => {
-        if (!userId) return;
+        if (!userId) {
+            setHasLoaded(true);
+            return;
+        }
+
+        setHasLoaded(false);
 
         const key = `${STORAGE_KEY_PREFIX}${userId}_${role}`;
         const stored = localStorage.getItem(key);
@@ -52,22 +59,26 @@ export const useDashboardPreferences = (userId: string | undefined, role: string
                     // Wrap in setTimeout to avoid "setting state synchronously in effect" warning
                     setTimeout(() => {
                         setPreferences({ layout: [...parsed.layout, ...newWidgets] });
+                        setHasLoaded(true);
                     }, 0);
                 } else {
                     setTimeout(() => {
                         setPreferences({ layout: defaultLayout });
+                        setHasLoaded(true);
                     }, 0);
                 }
             } catch (e) {
                 console.error("Failed to parse dashboard preferences", e);
                 setTimeout(() => {
                     setPreferences({ layout: defaultLayout });
+                    setHasLoaded(true);
                 }, 0);
             }
         } else {
             // Only reset if key changed and nothing stored
             setTimeout(() => {
                 setPreferences({ layout: defaultLayout });
+                setHasLoaded(true);
             }, 0);
         }
     }, [userId, role, defaultLayout]);
