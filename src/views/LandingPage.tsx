@@ -70,15 +70,15 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Navbar */}
-            <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-6 transition-all duration-300">
-                <div className="max-w-7xl mx-auto flex items-center justify-between glass-panel px-8 py-4 rounded-full border border-white/20 shadow-glass-sm mt-4">
-                    <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg">
-                            <Lock className="h-5 w-5" aria-hidden="true" />
+            <nav className="fixed top-0 left-0 right-0 z-50 px-4 py-4 md:px-6 md:py-6 transition-all duration-300">
+                <div className="max-w-7xl mx-auto flex items-center justify-between glass-panel px-5 py-3 md:px-8 md:py-4 rounded-full border border-white/20 shadow-glass-sm mt-2 md:mt-4">
+                    <div className="flex items-center space-x-2 md:space-x-3">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg">
+                            <Lock className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
                         </div>
-                        <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Sentinel GRC</span>
+                        <span className="text-lg md:text-xl font-bold tracking-tight text-slate-900 dark:text-white">Sentinel GRC</span>
                     </div>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 md:space-x-4">
                         <button
                             onClick={toggleTheme}
                             className="p-2 rounded-full text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -86,10 +86,10 @@ export const LandingPage: React.FC = () => {
                         >
                             {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                         </button>
-                        <button onClick={() => navigate('/login')} className="text-sm font-bold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors px-4 py-2">
+                        <button onClick={() => navigate('/login')} className="hidden md:block text-sm font-bold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors px-4 py-2">
                             Se connecter
                         </button>
-                        <Button onClick={() => navigate('/login')} className="rounded-full px-6 bg-brand-600 hover:bg-brand-700 text-white font-bold shadow-lg shadow-brand-500/20">
+                        <Button onClick={() => navigate('/login')} className="rounded-full px-4 md:px-6 bg-brand-600 hover:bg-brand-700 text-white font-bold shadow-lg shadow-brand-500/20 text-sm md:text-base">
                             Commencer
                         </Button>
                     </div>
@@ -126,7 +126,7 @@ export const LandingPage: React.FC = () => {
 
                 {/* Dashboard Preview Mockup */}
                 <div className="mt-24 relative mx-auto w-full max-w-6xl animate-slide-up opacity-0 perspective-1000" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
-                    <div className="relative rounded-[1.5rem] border border-white/10 bg-slate-900/40 backdrop-blur-2xl shadow-2xl ring-1 ring-white/5 overflow-hidden h-[800px] md:h-auto md:aspect-[16/10] group transform transition-all duration-700 hover:scale-[1.01] hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.3)]">
+                    <div className="relative rounded-[1.5rem] border border-white/10 bg-slate-900/40 backdrop-blur-2xl shadow-2xl ring-1 ring-white/5 overflow-hidden h-auto min-h-[600px] md:aspect-[16/10] group transform transition-all duration-700 hover:scale-[1.01] hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.3)]">
                         <div className="absolute inset-0 bg-gradient-to-tr from-brand-500/10 via-transparent to-purple-500/10 opacity-50 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-10 mix-blend-overlay"></div>
                         <LandingDashboardMockup aria-hidden="true" />
                     </div>

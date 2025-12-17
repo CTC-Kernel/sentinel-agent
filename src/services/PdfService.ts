@@ -249,14 +249,15 @@ export class PdfService {
 
         // Split title if too long
         const splitTitle = doc.splitTextToSize(options.title.toUpperCase(), contentWidth);
-        doc.text(splitTitle, contentStartX, 100);
+        const titleY = 120; // Moved down to avoid overlap with image (which ends at Y=100)
+        doc.text(splitTitle, contentStartX, titleY);
 
         if (options.subtitle) {
             doc.setFontSize(18);
             doc.setTextColor(this.TEXT_SECONDARY);
             doc.setFont('helvetica', 'normal');
             const splitSubtitle = doc.splitTextToSize(options.subtitle, contentWidth);
-            doc.text(splitSubtitle, contentStartX, 100 + (splitTitle.length * 15) + 5);
+            doc.text(splitSubtitle, contentStartX, titleY + (splitTitle.length * 15) + 5);
         }
 
         // Confidentiality Badge
@@ -351,9 +352,6 @@ export class PdfService {
         return doc;
     }
 
-    /**
-     * Generate a generic Executive Report with Premium Cover Page
-     */
     /**
      * Generate a generic Executive Report with Premium Cover Page
      */

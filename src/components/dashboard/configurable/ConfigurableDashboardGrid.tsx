@@ -28,16 +28,17 @@ const SortableWidget = ({ widget, isEditing, children, onRemove }: SortableWidge
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        gridColumn: `span ${widget.colSpan || 1}`,
         zIndex: isDragging ? 50 : 'auto',
         opacity: isDragging ? 0.3 : 1,
     };
+
+    const colSpanClass = widget.colSpan === 2 ? 'md:col-span-2' : widget.colSpan === 3 ? 'md:col-span-3' : 'md:col-span-1';
 
     return (
         <div
             ref={setNodeRef}
             style={style}
-            className={`relative group/widget h-full ${isEditing ? 'ring-2 ring-dashed ring-slate-300 dark:ring-slate-700 rounded-[2rem] p-1' : ''}`}
+            className={`relative group/widget h-full ${colSpanClass} ${isEditing ? 'ring-2 ring-dashed ring-slate-300 dark:ring-slate-700 rounded-[2rem] p-1' : ''}`}
         >
             {/* Widget Content */}
             <div className={`h-full ${isEditing ? 'pointer-events-none' : ''}`}>

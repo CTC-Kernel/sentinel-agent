@@ -259,11 +259,11 @@ export const GeminiAssistant: React.FC = () => {
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-6 right-6 p-4 bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-full shadow-2xl hover:shadow-indigo-500/40 hover:scale-110 transition-all duration-300 z-modal group border border-white/20"
+                className="fixed bottom-4 right-4 md:bottom-6 md:right-6 p-4 bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-full shadow-2xl hover:shadow-indigo-500/40 hover:scale-110 transition-all duration-300 z-50 group border border-white/20"
                 aria-label="Ouvrir l'assistant IA"
             >
                 <Sparkles className="h-6 w-6 animate-pulse" />
-                <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap pointer-events-none translate-x-2 group-hover:translate-x-0 shadow-lg">
+                <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap pointer-events-none translate-x-2 group-hover:translate-x-0 shadow-lg hidden md:block">
                     Assistant IA
                 </span>
             </button>
@@ -272,8 +272,13 @@ export const GeminiAssistant: React.FC = () => {
 
     return (
         <div className={cn(
-            "fixed bottom-6 right-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/20 dark:border-white/10 flex flex-col transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) z-modal overflow-hidden",
-            isExpanded ? "w-[90vw] h-[85vh] md:w-[800px] md:h-[800px]" : "w-[90vw] h-[600px] md:w-[420px]"
+            "fixed z-[100] flex flex-col overflow-hidden transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-2xl",
+            // Mobile: Full screen, white background for readability
+            "inset-0 w-full h-full rounded-none bg-white dark:bg-slate-900",
+            // Desktop: Floating glassmorphism card
+            "md:inset-auto md:bottom-6 md:right-6 md:rounded-[2rem] md:bg-white/95 md:dark:bg-slate-900/95 md:backdrop-blur-xl md:border md:border-white/20 md:dark:border-white/10",
+            // Desktop Sizing based on expansion
+            isExpanded ? "md:w-[800px] md:h-[800px]" : "md:w-[420px] md:h-[600px]"
         )}>
             {/* Header */}
             <div className="p-4 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-gradient-to-r from-indigo-50/50 to-violet-50/50 dark:from-indigo-900/20 dark:to-violet-900/20">
@@ -295,7 +300,7 @@ export const GeminiAssistant: React.FC = () => {
                 <div className="flex items-center gap-1">
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="p-2 hover:bg-slate-200/50 dark:hover:bg-white/10 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
+                        className="hidden md:block p-2 hover:bg-slate-200/50 dark:hover:bg-white/10 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
                         title={isExpanded ? "Réduire" : "Agrandir"}
                     >
                         {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
