@@ -123,21 +123,21 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         </nav>
 
         {/* Title Section with Icon */}
-        <div className="flex items-center gap-5 min-w-0">
+        <div className="flex items-start gap-4 sm:gap-5 min-w-0">
           {icon && (
-            <div className="flex shrink-0 items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/25 ring-1 ring-black/5 dark:ring-white/10 group-hover:scale-105 transition-transform duration-300">
+            <div className="flex shrink-0 items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-500/25 ring-1 ring-black/5 dark:ring-white/10 group-hover:scale-105 transition-transform duration-300 mt-1">
               {icon}
             </div>
           )}
-          <div className="min-w-0 flex flex-col gap-1">
+          <div className="min-w-0 flex flex-col gap-1.5 pt-0.5">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-3xl sm:text-4xl font-bold font-display text-foreground tracking-tight break-words">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-display text-foreground tracking-tight break-words leading-tight">
                 {title}
               </h1>
-              {trustType && <SecurityBadge feature={trustType} />}
+              {trustType && <SecurityBadge feature={trustType} className="translate-y-[1px]" />}
             </div>
             {subtitle && (
-              <p className="text-base font-medium text-muted-foreground leading-relaxed max-w-2xl">
+              <p className="text-sm sm:text-base font-medium text-muted-foreground leading-relaxed max-w-3xl">
                 {subtitle}
               </p>
             )}

@@ -40,7 +40,7 @@ const BADGE_CONFIG: Record<SecurityFeature, {
     },
     integrity: {
         icon: FileCheck,
-        label: "Intégrité Garanties",
+        label: "Intégrité Garantie",
         detail: "Traçabilité inaltérable des actions",
         subDetail: "Conforme aux normes d'audit",
         color: "purple"
