@@ -8,7 +8,8 @@ import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, l
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment, Criticality, Incident, MitreTechnique } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, Search, Filter, Download, Clock, TrendingUp, FileText, BrainCircuit, FileCode, TrendingDown, RefreshCw, Loader2, FileSpreadsheet, Copy, Edit, Trash2, FolderKanban, MessageSquare, Network, CalendarDays, Server, ShieldAlert, ArrowRight, CheckCircle2, LayoutDashboard, History } from 'lucide-react';
+import { Plus, Search, Filter, Download, Clock, TrendingUp, FileText, BrainCircuit, FileCode, TrendingDown, RefreshCw, Loader2, FileSpreadsheet, Copy, Edit, Trash2, FolderKanban, MessageSquare, Network, CalendarDays, Server, ShieldAlert, ArrowRight, CheckCircle2, LayoutDashboard, History, MoreVertical } from 'lucide-react';
+import { Menu, Transition } from '@headlessui/react';
 import { ObsidianService } from '../services/ObsidianService';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
@@ -933,7 +934,8 @@ export const Risks: React.FC = () => {
 
     const getRisksForCell = (prob: number, impact: number) => risks.filter(r => r.probability === prob && r.impact === impact && (!frameworkFilter || r.framework === frameworkFilter));
 
-    const getCellColor = (prob: number, impact: number) => { const score = prob * impact; if (score >= 15) return 'bg-rose-500 shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]'; if (score >= 10) return 'bg-orange-500 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)]'; if (score >= 5) return 'bg-amber-400'; return 'bg-emerald-500'; };
+
+
 
     const getRiskLevel = (score: number) => {
         if (score >= 15) return { label: 'Critique', status: 'error' as const };
@@ -1080,82 +1082,125 @@ export const Risks: React.FC = () => {
                 trustType="integrity"
                 actions={
                     <>
-                        {canEdit && (
-                            <>
-                                <CustomTooltip content="Importer des risques depuis un CSV">
-                                    <button
-                                        onClick={() => fileInputRef.current?.click()}
-                                        disabled={importing}
-                                        className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
-                                    >
-                                        {importing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400 mr-2" />}
-                                        <span>Import CSV</span>
-                                    </button>
-                                </CustomTooltip>
-                                <CustomTooltip content="Gérer les modèles de risques">
-                                    <button
-                                        onClick={() => setShowTemplateModal(true)}
-                                        className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
-                                    >
-                                        <Copy className="h-4 w-4 mr-2" />
-                                        <span>Templates</span>
-                                    </button>
-                                </CustomTooltip>
-                            </>
-                        )}
-
-                        <CustomTooltip content="Générer le rapport PDF RTP">
-                            <button
-                                onClick={handleExportRTP}
-                                disabled={isGeneratingReport}
-                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm disabled:opacity-50"
+                        <Menu as="div" className="relative inline-block text-left">
+                            <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                <MoreVertical className="h-5 w-5" />
+                            </Menu.Button>
+                            <Transition
+                                as={React.Fragment}
+                                enter="transition ease-out duration-100"
+                                enterFrom="transform opacity-0 scale-95"
+                                enterTo="transform opacity-100 scale-100"
+                                leave="transition ease-in duration-75"
+                                leaveFrom="transform opacity-100 scale-100"
+                                leaveTo="transform opacity-0 scale-95"
                             >
-                                {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4 text-red-500" />}
-                                <span>RTP (PDF)</span>
-                            </button>
-                        </CustomTooltip>
-
-                        <CustomTooltip content="Générer le rapport exécutif">
-                            <button
-                                onClick={handleExportRiskExecutiveReport}
-                                disabled={isGeneratingReport}
-                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm disabled:opacity-50"
-                            >
-                                {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4 text-indigo-500" />}
-                                <span>Rapport Exécutif</span>
-                            </button>
-                        </CustomTooltip>
-
-                        <CustomTooltip content="Exporter vers Obsidian">
-                            <button
-                                onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)}
-                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
-                            >
-                                <FileCode className="h-4 w-4 text-emerald-500" />
-                                <span>Obsidian</span>
-                            </button>
-                        </CustomTooltip>
-
-                        <CustomTooltip content="Télécharger le registre PDF">
-                            <button
-                                onClick={handleExportPDF}
-                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
-                            >
-                                <Download className="h-4 w-4 mr-2" />
-                                <span>Registre (PDF)</span>
-                            </button>
-                        </CustomTooltip>
-
-                        <CustomTooltip content="Exporter en CSV">
-                            <button
-                                onClick={handleExportCSV}
-                                disabled={isExportingCSV}
-                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm disabled:opacity-50"
-                            >
-                                {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 text-slate-500" />}
-                                <span>Export CSV</span>
-                            </button>
-                        </CustomTooltip>
+                                <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                    <div className="p-1">
+                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                            Rapports & Exports
+                                        </div>
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button
+                                                    onClick={handleExportRTP}
+                                                    disabled={isGeneratingReport}
+                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
+                                                >
+                                                    {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} />}
+                                                    RTP (PDF)
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button
+                                                    onClick={handleExportRiskExecutiveReport}
+                                                    disabled={isGeneratingReport}
+                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
+                                                >
+                                                    {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-indigo-500'}`} />}
+                                                    Rapport Exécutif
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button
+                                                    onClick={handleExportPDF}
+                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                >
+                                                    <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                    Registre (PDF)
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button
+                                                    onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)}
+                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                >
+                                                    <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />
+                                                    Obsidian
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button
+                                                    onClick={handleExportCSV}
+                                                    disabled={isExportingCSV}
+                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                >
+                                                    {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
+                                                    Export CSV
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                    </div>
+                                    <div className="p-1">
+                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                            Données
+                                        </div>
+                                        {canEdit && (
+                                            <>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button
+                                                            onClick={() => fileInputRef.current?.click()}
+                                                            disabled={importing}
+                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                        >
+                                                            {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />}
+                                                            Import CSV
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button
+                                                            onClick={() => setShowTemplateModal(true)}
+                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                        >
+                                                            <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
+                                                            Templates
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                            </>
+                                        )}
+                                    </div>
+                                </Menu.Items>
+                            </Transition>
+                        </Menu>
 
                         {canEdit && (
                             <>
@@ -1165,16 +1210,16 @@ export const Risks: React.FC = () => {
                                         className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-medium text-sm"
                                     >
                                         <BrainCircuit className="h-4 w-4 mr-2" />
-                                        <span>Analyse IA</span>
+                                        <span className="hidden md:inline">Analyse IA</span>
                                     </button>
                                 </CustomTooltip>
                                 <CustomTooltip content="Créer un nouveau risque">
                                     <button
-                                        onClick={() => setCreationMode(true)}
+                                        onClick={openCreationDrawer}
                                         className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-lg shadow-brand-500/25 transition-all hover:scale-105 active:scale-95 font-medium text-sm"
                                     >
                                         <Plus className="h-4 w-4" />
-                                        <span>Nouveau Risque</span>
+                                        <span className="hidden sm:inline">Nouveau Risque</span>
                                     </button>
                                 </CustomTooltip>
                             </>
@@ -1259,21 +1304,6 @@ export const Risks: React.FC = () => {
                         canEdit && (
                             <div className="flex gap-2">
                                 <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={importing}
-                                    className="hidden sm:flex items-center px-4 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-sm font-bold rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800"
-                                >
-                                    {importing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSpreadsheet className="h-4 w-4 mr-2" />}
-                                    <span className="hidden xl:inline">Import CSV</span>
-                                </button>
-                                <button
-                                    onClick={() => setShowTemplateModal(true)}
-                                    className="flex items-center px-4 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 text-sm font-bold rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all border border-indigo-200 dark:border-indigo-800"
-                                >
-                                    <Copy className="h-4 w-4 mr-2" />
-                                    <span className="hidden xl:inline">Templates</span>
-                                </button>
-                                <button
                                     onClick={openCreationDrawer}
                                     className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                 >
@@ -1315,56 +1345,89 @@ export const Risks: React.FC = () => {
 
             {
                 viewMode === 'matrix' ? (
-                    <div className="glass-panel p-4 sm:p-8 rounded-[2.5rem] shadow-lg overflow-x-auto animate-fade-in border border-white/60 dark:border-white/10 relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                        <div className="min-w-[700px] relative z-10">
-                            <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Matrice de Criticité</h3>
-                                <div className="flex flex-wrap gap-2 text-xs font-medium">
-                                    <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-rose-500 mr-2"></span>Critique</span>
-                                    <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-orange-500 mr-2"></span>Élevé</span>
-                                    <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-amber-400 mr-2"></span>Moyen</span>
-                                    <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-emerald-500 mr-2"></span>Faible</span>
+                    <div className="glass-panel p-4 sm:p-8 rounded-[2.5rem] shadow-lg overflow-x-auto animate-fade-in border border-white/60 dark:border-white/10 relative backdrop-blur-xl bg-white/40 dark:bg-black/40">
+                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 dark:from-indigo-500/10 dark:to-purple-500/10 pointer-events-none rounded-[2.5rem]" />
+                        <div className="min-w-[700px] relative z-10 flex flex-col items-center">
+                            <div className="w-full flex justify-between items-center mb-8 flex-wrap gap-4 px-4">
+                                <div>
+                                    <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 tracking-tight">Matrice des Risques</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">Distribution selon la probabilité et l'impact</p>
+                                </div>
+                                <div className="flex flex-wrap gap-3 text-xs font-medium bg-white/50 dark:bg-white/5 p-2 rounded-xl backdrop-blur-md border border-white/20 dark:border-white/5">
+                                    <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 mr-2 shadow-[0_0_8px_rgba(244,63,94,0.5)]"></span>Critique (15-25)</span>
+                                    <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-orange-500 mr-2 shadow-[0_0_8px_rgba(249,115,22,0.5)]"></span>Élevé (10-14)</span>
+                                    <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 mr-2 shadow-[0_0_8px_rgba(251,191,36,0.5)]"></span>Moyen (5-9)</span>
+                                    <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>Faible (1-4)</span>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-[auto_1fr] gap-6">
-                                <div className="flex items-center justify-center -rotate-90 font-bold text-xs text-slate-500 uppercase tracking-widest h-[500px] w-8">Probabilité</div>
-                                <div className="grid grid-rows-5 grid-cols-5 gap-3 h-[500px]">
-                                    {[5, 4, 3, 2, 1].map(prob => (
-                                        <React.Fragment key={prob}>
-                                            {[1, 2, 3, 4, 5].map(impact => {
-                                                const cellRisks = getRisksForCell(prob, impact);
-                                                const hasRisks = cellRisks.length > 0;
-                                                const isSelected = matrixFilter?.p === prob && matrixFilter?.i === impact;
 
-                                                return (
-                                                    <CustomTooltip key={`${prob}-${impact}`} content={`Prob: ${prob}, Impact: ${impact}, Risques: ${cellRisks.length}`} position="top">
-                                                        <div
-                                                            onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: prob, i: impact })}
-                                                            className={`
-                                                  relative rounded-2xl flex items-center justify-center transition-all duration-300 border cursor-pointer border-white/20 dark:border-black/10 group
-                                                  ${getCellColor(prob, impact)}
-                                                  ${hasRisks ? 'hover:scale-[1.02] hover:z-10 hover:shadow-xl cursor-pointer' : 'opacity-40 scale-95 grayscale cursor-default'}
-                                                  ${isSelected ? 'ring-4 ring-slate-900 dark:ring-white scale-[1.05] z-20 shadow-2xl opacity-100 animate-pulse' : matrixFilter && hasRisks ? 'opacity-40' : ''}
-                                              `}
-                                                        >
-                                                            {hasRisks && (
-                                                                <>
-                                                                    <span className="text-3xl font-black text-white drop-shadow-md">{cellRisks.length}</span>
-                                                                    <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    </CustomTooltip>
-                                                )
-                                            })}
-                                        </React.Fragment>
-                                    ))}
+                            <div className="relative p-8 bg-slate-50/50 dark:bg-black/20 rounded-[2rem] border border-slate-200/50 dark:border-white/5 shadow-inner">
+                                <div className="grid grid-cols-[auto_1fr] gap-6">
+                                    <div className="flex items-center justify-center">
+                                        <div className="-rotate-90 font-bold text-xs text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Probabilité</div>
+                                    </div>
+                                    <div className="grid grid-rows-5 grid-cols-5 gap-4 h-[500px] w-[600px]">
+                                        {[5, 4, 3, 2, 1].map(prob => (
+                                            <React.Fragment key={prob}>
+                                                {[1, 2, 3, 4, 5].map(impact => {
+                                                    const cellRisks = getRisksForCell(prob, impact);
+                                                    const hasRisks = cellRisks.length > 0;
+                                                    const isSelected = matrixFilter?.p === prob && matrixFilter?.i === impact;
+                                                    const score = prob * impact;
+
+                                                    // Determine styles based on score
+                                                    let bgClass = 'bg-slate-100 dark:bg-white/5';
+                                                    let borderClass = 'border-slate-200 dark:border-white/10';
+
+                                                    if (score >= 15) { bgClass = 'bg-rose-500/10 dark:bg-rose-500/20'; borderClass = 'border-rose-500/30'; }
+                                                    else if (score >= 10) { bgClass = 'bg-orange-500/10 dark:bg-orange-500/20'; borderClass = 'border-orange-500/30'; }
+                                                    else if (score >= 5) { bgClass = 'bg-amber-400/10 dark:bg-amber-400/20'; borderClass = 'border-amber-400/30'; }
+                                                    else if (hasRisks) { bgClass = 'bg-emerald-500/10 dark:bg-emerald-500/20'; borderClass = 'border-emerald-500/30'; }
+
+                                                    return (
+                                                        <CustomTooltip key={`${prob}-${impact}`} content={`Prob: ${prob}, Impact: ${impact}, ${cellRisks.length} Risques (Score: ${score})`} position="top">
+                                                            <div
+                                                                onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: prob, i: impact })}
+                                                                className={`
+                                                                    relative rounded-2xl flex items-center justify-center transition-all duration-300 border cursor-pointer
+                                                                    ${bgClass} ${borderClass}
+                                                                    ${hasRisks ? 'hover:scale-105 hover:z-10 hover:shadow-lg cursor-pointer' : 'opacity-60 cursor-default grayscale'}
+                                                                    ${isSelected ? 'ring-2 ring-brand-500 scale-105 z-20 shadow-xl opacity-100' : matrixFilter && hasRisks ? 'opacity-40' : ''}
+                                                                `}
+                                                            >
+                                                                {hasRisks && (
+                                                                    <>
+                                                                        <div className="flex flex-col items-center">
+                                                                            <span className={`text-2xl font-black drop-shadow-sm
+                                                                                ${score >= 15 ? 'text-rose-600 dark:text-rose-400' :
+                                                                                    score >= 10 ? 'text-orange-600 dark:text-orange-400' :
+                                                                                        score >= 5 ? 'text-amber-600 dark:text-amber-400' :
+                                                                                            'text-emerald-600 dark:text-emerald-400'
+                                                                                }
+                                                                            `}>{cellRisks.length}</span>
+                                                                        </div>
+                                                                        {/* Corner Indicator */}
+                                                                        <div className={`absolute top-2 right-2 w-2 h-2 rounded-full
+                                                                             ${score >= 15 ? 'bg-rose-500 animate-pulse' :
+                                                                                score >= 10 ? 'bg-orange-500' :
+                                                                                    score >= 5 ? 'bg-amber-500' :
+                                                                                        'bg-emerald-500'
+                                                                            }
+                                                                        `}></div>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </CustomTooltip>
+                                                    )
+                                                })}
+                                            </React.Fragment>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="grid grid-cols-[auto_1fr] gap-6 mt-4">
-                                <div className="w-8"></div>
-                                <div className="text-center font-bold text-xs text-slate-500 uppercase tracking-widest">Impact</div>
+                                <div className="grid grid-cols-[auto_1fr] gap-6 mt-4">
+                                    <div className="w-8"></div>
+                                    <div className="text-center font-bold text-xs text-slate-500 uppercase tracking-[0.2em]">Impact</div>
+                                </div>
                             </div>
                         </div>
                     </div>

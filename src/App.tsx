@@ -48,9 +48,10 @@ const GlobalShortcutsWrapper: React.FC = () => {
     const navigate = useNavigate();
     const { showHelp, setShowHelp } = useGlobalShortcuts() || { showHelp: false, setShowHelp: () => { } };
 
-    useHotkeys('ctrl+k', () => {
-        navigate('/search');
-    });
+    // usage of ctrl+k is now handled by CommandPalette component purely for toggling the modal
+    // useHotkeys('ctrl+k', () => {
+    //     navigate('/search');
+    // });
 
     useHotkeys('ctrl+/', () => {
         navigate('/help');
