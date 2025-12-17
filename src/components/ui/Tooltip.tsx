@@ -27,28 +27,27 @@ export const Tooltip: React.FC<TooltipProps> = ({
     const updatePosition = React.useCallback(() => {
         if (triggerRef.current) {
             const rect = triggerRef.current.getBoundingClientRect();
-            const scrollX = window.scrollX;
-            const scrollY = window.scrollY;
+            // Since we use position: fixed, we use viewport coordinates directly (no scroll addition)
 
             let top = 0;
             let left = 0;
 
             switch (position) {
                 case 'top':
-                    top = rect.top + scrollY - sideOffset;
-                    left = rect.left + scrollX + rect.width / 2;
+                    top = rect.top - sideOffset;
+                    left = rect.left + rect.width / 2;
                     break;
                 case 'bottom':
-                    top = rect.bottom + scrollY + sideOffset;
-                    left = rect.left + scrollX + rect.width / 2;
+                    top = rect.bottom + sideOffset;
+                    left = rect.left + rect.width / 2;
                     break;
                 case 'left':
-                    top = rect.top + scrollY + rect.height / 2;
-                    left = rect.left + scrollX - sideOffset;
+                    top = rect.top + rect.height / 2;
+                    left = rect.left - sideOffset;
                     break;
                 case 'right':
-                    top = rect.top + scrollY + rect.height / 2;
-                    left = rect.right + scrollX + sideOffset;
+                    top = rect.top + rect.height / 2;
+                    left = rect.right + sideOffset;
                     break;
             }
             setCoords({ top, left });
@@ -68,12 +67,44 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
     useEffect(() => {
         window.addEventListener('resize', updatePosition);
-        window.addEventListener('scroll', updatePosition);
+        window.addEventListener('scroll', updatePosition, true); // true for capturing scroll in sub-elements
         return () => {
             window.removeEventListener('resize', updatePosition);
-            window.removeEventListener('scroll', updatePosition);
+            window.removeEventListener('scroll', updatePosition, true);
         };
     }, [updatePosition]);
+
+    // Animation variants based on position
+    const getVariants = () => {
+        switch (position) {
+            case 'top':
+                return {
+                    initial: { opacity: 0, scale: 0.9, x: '-50%', y: 'calc(-100% + 4px)' },
+                    animate: { opacity: 1, scale: 1, x: '-50%', y: '-100%' },
+                    exit: { opacity: 0, scale: 0.95, x: '-50%', y: '-100%' }
+                };
+            case 'bottom':
+                return {
+                    initial: { opacity: 0, scale: 0.9, x: '-50%', y: -4 },
+                    animate: { opacity: 1, scale: 1, x: '-50%', y: 0 },
+                    exit: { opacity: 0, scale: 0.95, x: '-50%', y: 0 }
+                };
+            case 'left':
+                return {
+                    initial: { opacity: 0, scale: 0.9, x: 'calc(-100% + 4px)', y: '-50%' },
+                    animate: { opacity: 1, scale: 1, x: '-100%', y: '-50%' },
+                    exit: { opacity: 0, scale: 0.95, x: '-100%', y: '-50%' }
+                };
+            case 'right':
+                return {
+                    initial: { opacity: 0, scale: 0.9, x: -4, y: '-50%' },
+                    animate: { opacity: 1, scale: 1, x: 0, y: '-50%' },
+                    exit: { opacity: 0, scale: 0.95, x: 0, y: '-50%' }
+                };
+        }
+    };
+
+    const variants = getVariants();
 
     return (
         <div
@@ -89,15 +120,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
                 {isVisible && (
                     createPortal(
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: position === 'top' ? 2 : -2 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
+                            initial={variants.initial}
+                            animate={variants.animate}
+                            exit={variants.exit}
                             transition={{ duration: 0.15, ease: 'easeOut' }}
                             className="fixed z-[9999] px-3 py-1.5 text-xs font-semibold text-white bg-slate-900/90 dark:bg-white/95 dark:text-slate-900 backdrop-blur-md border border-white/10 dark:border-slate-900/10 rounded-lg shadow-xl shadow-black/20 whitespace-normal max-w-[250px] pointer-events-none"
                             style={{
                                 top: coords.top,
                                 left: coords.left,
-                                transform: `translate(${position === 'left' || position === 'right' ? (position === 'left' ? '-100%' : '0') : '-50%'}, ${position === 'top' || position === 'bottom' ? (position === 'top' ? '-100%' : '0') : '-50%'})`
                             }}
                         >
                             {content}
