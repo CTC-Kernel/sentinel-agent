@@ -47,7 +47,7 @@ export const IntegrationSettings: React.FC = () => {
 
     const loginToGoogle = useGoogleLogin({
         onSuccess: tokenResponse => {
-            localStorage.setItem('google_access_token', tokenResponse.access_token);
+            sessionStorage.setItem('google_access_token', tokenResponse.access_token);
             addToast(t('settings.googleCalendarConnected'), "success");
             window.location.reload(); // Quick way to refresh UI state for this demo
         },
@@ -161,7 +161,7 @@ export const IntegrationSettings: React.FC = () => {
                             {t('settings.googleCalendarDescription')}
                         </p>
 
-                        {localStorage.getItem('google_access_token') ? (
+                        {sessionStorage.getItem('google_access_token') ? (
                             <div className="flex items-center justify-between p-4 bg-green-500/10 dark:bg-green-500/20 rounded-xl border border-green-500/20 backdrop-blur-sm">
                                 <span className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center">
                                     <CheckCircle2 className="h-5 w-5 mr-2" />
@@ -170,7 +170,7 @@ export const IntegrationSettings: React.FC = () => {
                                 <Button
                                     type="button"
                                     onClick={() => {
-                                        localStorage.removeItem('google_access_token');
+                                        sessionStorage.removeItem('google_access_token');
                                         addToast(t('settings.disconnectGoogle'), "info");
                                         window.location.reload();
                                     }}

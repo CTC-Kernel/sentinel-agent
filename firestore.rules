@@ -80,7 +80,8 @@ service cloud.firestore {
       // Create: Authenticated users (Onboarding)
       allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
       // Update: Owner or Admin of that org
-      allow update: if belongsToOrganization(orgId) && (isAdmin() || resource.data.ownerId == request.auth.uid);
+      allow update: if belongsToOrganization(orgId) && (isAdmin() || resource.data.ownerId == request.auth.uid)
+        && (!('subscription' in request.resource.data) || request.resource.data.subscription == resource.data.subscription);
       // Delete: Owner ONLY (via special process usually, but allowed here for consistency)
       allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
 
@@ -142,7 +143,10 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.userEmail == request.auth.token.email &&
         (!('status' in request.resource.data) || request.resource.data.status == 'pending');
-      allow update: if belongsToOrganization(resource.data.organizationId) && (isAdmin() || isOrgOwner(resource.data.organizationId));
+      allow update: if belongsToOrganization(resource.data.organizationId) && (isAdmin() || isOrgOwner(resource.data.organizationId))
+        && (!('status' in request.resource.data) || request.resource.data.status == resource.data.status)
+        && (!('approvedBy' in request.resource.data) || request.resource.data.approvedBy == resource.data.approvedBy)
+        && (!('rejectedBy' in request.resource.data) || request.resource.data.rejectedBy == resource.data.rejectedBy);
       allow delete: if belongsToOrganization(resource.data.organizationId) && (isAdmin() || isOrgOwner(resource.data.organizationId));
     }
 

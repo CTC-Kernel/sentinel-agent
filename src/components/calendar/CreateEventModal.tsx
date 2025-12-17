@@ -31,7 +31,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
     const [isGoogleConnected, setIsGoogleConnected] = useState(false);
 
     useEffect(() => {
-        setIsGoogleConnected(!!localStorage.getItem('google_access_token'));
+        setIsGoogleConnected(!!sessionStorage.getItem('google_access_token'));
     }, [isOpen]);
 
     const { register, handleSubmit, control, reset, setValue } = useForm({
@@ -122,7 +122,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
 
             // 2. Sync to Google Calendar (if enabled)
             if (syncToGoogle && isGoogleConnected) {
-                const token = localStorage.getItem('google_access_token');
+                const token = sessionStorage.getItem('google_access_token');
                 if (token) {
                     await GoogleCalendarService.createEvent(token, {
                         title: data.title,

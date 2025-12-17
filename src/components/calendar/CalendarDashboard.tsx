@@ -91,7 +91,7 @@ export const CalendarDashboard: React.FC = () => {
 
                 // 2. Fetch Google Events (if connected)
                 let googleEvents: CalendarEvent[] = [];
-                const googleToken = localStorage.getItem('google_access_token');
+                const googleToken = sessionStorage.getItem('google_access_token');
                 if (googleToken && filters.google) {
                     // Fetch for current view range (approximate)
                     const now = new Date();
