@@ -902,8 +902,17 @@ export const Risks: React.FC = () => {
 
     const deferredQuery = useDeferredValue(activeFilters.query);
     const filteredRisks = useMemo(() => risks.filter(r => {
+        if (!r) return false;
         const needle = (deferredQuery || '').toLowerCase().trim();
-        const matchesSearch = !needle || r.threat.toLowerCase().includes(needle) || r.vulnerability.toLowerCase().includes(needle) || (r.scenario || '').toLowerCase().includes(needle);
+        const threat = r.threat || '';
+        const vul = r.vulnerability || '';
+        const scenario = r.scenario || '';
+
+        const matchesSearch = !needle ||
+            threat.toLowerCase().includes(needle) ||
+            vul.toLowerCase().includes(needle) ||
+            scenario.toLowerCase().includes(needle);
+
         const matchesFramework = frameworkFilter ? r.framework === frameworkFilter : true;
         // Matrix filtering logic: Only show if no filter set OR if matches specific probability AND impact
         const matchesMatrix = matrixFilter ? (r.probability === matrixFilter.p && r.impact === matrixFilter.i) : true;
@@ -1459,7 +1468,7 @@ export const Risks: React.FC = () => {
                                         <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">{risk.threat}</h4>
                                         <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50/80 dark:bg-black/20 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
                                             <span className="font-bold text-xs uppercase text-slate-500 block mb-1">Vulnérabilité</span>
-                                            <SafeHTML content={risk.vulnerability} className="line-clamp-3" />
+                                            <SafeHTML content={risk.vulnerability || ''} className="line-clamp-3" />
                                         </div>
                                     </div>
                                     <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700">
