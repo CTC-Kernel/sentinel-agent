@@ -83,4 +83,19 @@
 
 1.  **Refactor Global CSS**: Mettre à jour `index.css` pour solidifier les classes utilitaires `.glass-panel` et les variables de rayons.
 2.  **Standardisation Composants**: Mettre à jour `StatCard.tsx`, `DataTable.tsx`, `FloatingLabelInput.tsx` pour utiliser les nouvelles variables.
-3.  **Nettoyage**: Remplacer les couleurs hardcodées par des références sémantiques. 
+3.  **Nettoyage**: Remplacer les couleurs hardcodées par des références sémantiques.
+
+---
+
+## 4. 📊 Audit Spécifique Dashboard (Demande Courante)
+
+### A. Structure Actuelle
+- **Role-based**: Le dashboard est divisé en vues par rôle (`AdminDashboardView`, `AuditorDashboardView`, etc.).
+- **Composants**: Utilisation de `DashboardCard` pour les widgets.
+- **Manque de Configurabilité**: Il ne semble pas y avoir de système pour que l'utilisateur choisisse ses widgets ou change l'ordre.
+
+### B. Opportunités "Premium" & "Avancé"
+1.  **Mode Édition / Configurabilité**: Permettre à l'utilisateur d'activer/désactiver des widgets et de réorganiser la grille (Drag & Drop).
+2.  **Filtres Globaux**: Ajouter une barre de filtres globale (Période, Périmètre) affectant tous les widgets.
+3.  **Graphiques Interactifs**: Rendre les graphiques cliquables pour du "Drill-down" vers les pages détaillées.
+4.  **Widgets Intelligents**: Ajouter des "Insights" textuels générés par IA ou des résumés.
