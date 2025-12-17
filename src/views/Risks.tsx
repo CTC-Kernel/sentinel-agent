@@ -20,6 +20,7 @@ import { DataTable } from '../components/ui/DataTable';
 import { PageControls } from '../components/ui/PageControls';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 import { RiskForm } from '../components/risks/RiskForm';
 import { RelationshipGraph } from '../components/RelationshipGraph';
@@ -122,7 +123,7 @@ export const Risks: React.FC = () => {
         };
 
         fetchFromBackend();
-    }, [user?.organizationId]);
+    }, [user?.organizationId, addToast]);
 
     const { data: rawControls, loading: controlsLoading } = useFirestoreCollection<Control>(
         'controls',
@@ -1020,10 +1021,7 @@ export const Risks: React.FC = () => {
 
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-8 pb-10 relative w-full max-w-[1920px] mx-auto">
-            <div className="fixed inset-0 pointer-events-none -z-10">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[100px] animate-pulse-slow" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] animate-pulse-slow delay-1000" />
-            </div>
+            <MasterpieceBackground />
             <SEO
                 title="Gestion des Risques - Sentinel GRC"
                 description="Identifiez, évaluez et traitez les risques de sécurité selon ISO 27005."
@@ -1345,212 +1343,213 @@ export const Risks: React.FC = () => {
 
             {
                 viewMode === 'matrix' ? (
-                    <div className="glass-panel p-4 sm:p-8 rounded-[2.5rem] shadow-lg overflow-x-auto animate-fade-in border border-white/60 dark:border-white/10 relative backdrop-blur-xl bg-white/40 dark:bg-black/40">
-                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 dark:from-indigo-500/10 dark:to-purple-500/10 pointer-events-none rounded-[2.5rem]" />
-                        <div className="min-w-[700px] relative z-10 flex flex-col items-center">
-                            <div className="w-full flex justify-between items-center mb-8 flex-wrap gap-4 px-4">
-                                <div>
-                                    <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 tracking-tight">Matrice des Risques</h3>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">Distribution selon la probabilité et l'impact</p>
-                                </div>
-                                <div className="flex flex-wrap gap-3 text-xs font-medium bg-white/50 dark:bg-white/5 p-2 rounded-xl backdrop-blur-md border border-white/20 dark:border-white/5">
-                                    <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 mr-2 shadow-[0_0_8px_rgba(244,63,94,0.5)]"></span>Critique (15-25)</span>
-                                    <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-orange-500 mr-2 shadow-[0_0_8px_rgba(249,115,22,0.5)]"></span>Élevé (10-14)</span>
-                                    <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 mr-2 shadow-[0_0_8px_rgba(251,191,36,0.5)]"></span>Moyen (5-9)</span>
-                                    <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>Faible (1-4)</span>
-                                </div>
+                    <div className="glass-panel p-4 sm:p-8 rounded-[2.5rem] shadow-lg overflow-x-auto animate-fade-in border border-white/60 dark:border-white/10 relative backdrop-blur-xl bg-white/40 dark:bg-black/40 overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 dark:from-indigo-500/10 dark:to-purple-500/10 pointer-events-none" />
+                        <div className="relative z-10 w-full mb-8">
+                            <div>
+                                <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 tracking-tight">Matrice des Risques</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Distribution selon la probabilité et l'impact</p>
                             </div>
+                            <div className="flex flex-wrap gap-3 text-xs font-medium bg-white/50 dark:bg-white/5 p-2 rounded-xl backdrop-blur-md border border-white/20 dark:border-white/5">
+                                <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 mr-2 shadow-[0_0_8px_rgba(244,63,94,0.5)]"></span>Critique (15-25)</span>
+                                <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-orange-500 mr-2 shadow-[0_0_8px_rgba(249,115,22,0.5)]"></span>Élevé (10-14)</span>
+                                <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 mr-2 shadow-[0_0_8px_rgba(251,191,36,0.5)]"></span>Moyen (5-9)</span>
+                                <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>Faible (1-4)</span>
+                            </div>
+                        </div>
 
-                            <div className="relative p-8 bg-slate-50/50 dark:bg-black/20 rounded-[2rem] border border-slate-200/50 dark:border-white/5 shadow-inner">
-                                <div className="grid grid-cols-[auto_1fr] gap-6">
-                                    <div className="flex items-center justify-center w-8">
-                                        <div className="-rotate-90 font-bold text-xs text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Probabilité</div>
-                                    </div>
-                                    <div className="grid grid-rows-5 grid-cols-5 gap-4 w-full min-w-[600px] aspect-square mx-auto">
-                                        {[5, 4, 3, 2, 1].map(prob => (
-                                            <React.Fragment key={prob}>
-                                                {[1, 2, 3, 4, 5].map(impact => {
-                                                    const cellRisks = getRisksForCell(prob, impact);
-                                                    const hasRisks = cellRisks.length > 0;
-                                                    const isSelected = matrixFilter?.p === prob && matrixFilter?.i === impact;
-                                                    const score = prob * impact;
+                        <div className="relative p-8 bg-slate-50/50 dark:bg-black/20 rounded-[2rem] border border-slate-200/50 dark:border-white/5 shadow-inner">
+                            <div className="grid grid-cols-[auto_1fr] gap-6">
+                                <div className="flex items-center justify-center w-8">
+                                    <div className="-rotate-90 font-bold text-xs text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Probabilité</div>
+                                </div>
+                                <div className="grid grid-rows-5 grid-cols-5 gap-4 w-full min-w-[600px] aspect-square mx-auto">
+                                    {[5, 4, 3, 2, 1].map(prob => (
+                                        <React.Fragment key={prob}>
+                                            {[1, 2, 3, 4, 5].map(impact => {
+                                                const cellRisks = getRisksForCell(prob, impact);
+                                                const hasRisks = cellRisks.length > 0;
+                                                const isSelected = matrixFilter?.p === prob && matrixFilter?.i === impact;
+                                                const score = prob * impact;
 
-                                                    // Determine styles based on score
-                                                    let bgClass = 'bg-slate-100 dark:bg-white/5';
-                                                    let borderClass = 'border-slate-200 dark:border-white/10';
+                                                // Determine styles based on score
+                                                let bgClass = 'bg-slate-100 dark:bg-white/5';
+                                                let borderClass = 'border-slate-200 dark:border-white/10';
 
-                                                    if (score >= 15) { bgClass = 'bg-rose-500/10 dark:bg-rose-500/20'; borderClass = 'border-rose-500/30'; }
-                                                    else if (score >= 10) { bgClass = 'bg-orange-500/10 dark:bg-orange-500/20'; borderClass = 'border-orange-500/30'; }
-                                                    else if (score >= 5) { bgClass = 'bg-amber-400/10 dark:bg-amber-400/20'; borderClass = 'border-amber-400/30'; }
-                                                    else if (hasRisks) { bgClass = 'bg-emerald-500/10 dark:bg-emerald-500/20'; borderClass = 'border-emerald-500/30'; }
+                                                if (score >= 15) { bgClass = 'bg-rose-500/10 dark:bg-rose-500/20'; borderClass = 'border-rose-500/30'; }
+                                                else if (score >= 10) { bgClass = 'bg-orange-500/10 dark:bg-orange-500/20'; borderClass = 'border-orange-500/30'; }
+                                                else if (score >= 5) { bgClass = 'bg-amber-400/10 dark:bg-amber-400/20'; borderClass = 'border-amber-400/30'; }
+                                                else if (hasRisks) { bgClass = 'bg-emerald-500/10 dark:bg-emerald-500/20'; borderClass = 'border-emerald-500/30'; }
 
-                                                    return (
-                                                        <CustomTooltip key={`${prob}-${impact}`} content={`Prob: ${prob}, Impact: ${impact}, ${cellRisks.length} Risques (Score: ${score})`} position="top">
-                                                            <div
-                                                                onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: prob, i: impact })}
-                                                                className={`
+                                                return (
+                                                    <CustomTooltip key={`${prob}-${impact}`} content={`Prob: ${prob}, Impact: ${impact}, ${cellRisks.length} Risques (Score: ${score})`} position="top">
+                                                        <div
+                                                            onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: prob, i: impact })}
+                                                            className={`
                                                                     relative rounded-2xl flex items-center justify-center transition-all duration-300 border cursor-pointer
                                                                     ${bgClass} ${borderClass}
                                                                     ${hasRisks ? 'hover:scale-105 hover:z-10 hover:shadow-lg cursor-pointer' : 'opacity-60 cursor-default grayscale'}
                                                                     ${isSelected ? 'ring-2 ring-brand-500 scale-105 z-20 shadow-xl opacity-100' : matrixFilter && hasRisks ? 'opacity-40' : ''}
                                                                 `}
-                                                            >
-                                                                {hasRisks && (
-                                                                    <>
-                                                                        <div className="flex flex-col items-center">
-                                                                            <span className={`text-2xl font-black drop-shadow-sm
+                                                        >
+                                                            {hasRisks && (
+                                                                <>
+                                                                    <div className="flex flex-col items-center">
+                                                                        <span className={`text-2xl font-black drop-shadow-sm
                                                                                 ${score >= 15 ? 'text-rose-600 dark:text-rose-400' :
-                                                                                    score >= 10 ? 'text-orange-600 dark:text-orange-400' :
-                                                                                        score >= 5 ? 'text-amber-600 dark:text-amber-400' :
-                                                                                            'text-emerald-600 dark:text-emerald-400'
-                                                                                }
-                                                                            `}>{cellRisks.length}</span>
-                                                                        </div>
-                                                                        {/* Corner Indicator */}
-                                                                        <div className={`absolute top-2 right-2 w-2 h-2 rounded-full
-                                                                             ${score >= 15 ? 'bg-rose-500 animate-pulse' :
-                                                                                score >= 10 ? 'bg-orange-500' :
-                                                                                    score >= 5 ? 'bg-amber-500' :
-                                                                                        'bg-emerald-500'
+                                                                                score >= 10 ? 'text-orange-600 dark:text-orange-400' :
+                                                                                    score >= 5 ? 'text-amber-600 dark:text-amber-400' :
+                                                                                        'text-emerald-600 dark:text-emerald-400'
                                                                             }
+                                                                            `}>{cellRisks.length}</span>
+                                                                    </div>
+                                                                    {/* Corner Indicator */}
+                                                                    <div className={`absolute top-2 right-2 w-2 h-2 rounded-full
+                                                                             ${score >= 15 ? 'bg-rose-500 animate-pulse' :
+                                                                            score >= 10 ? 'bg-orange-500' :
+                                                                                score >= 5 ? 'bg-amber-500' :
+                                                                                    'bg-emerald-500'
+                                                                        }
                                                                         `}></div>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        </CustomTooltip>
-                                                    )
-                                                })}
-                                            </React.Fragment>
-                                        ))}
-                                    </div>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </CustomTooltip>
+                                                )
+                                            })}
+                                        </React.Fragment>
+                                    ))}
                                 </div>
-                                <div className="grid grid-cols-[auto_1fr] gap-6 mt-4">
-                                    <div className="w-8"></div>
-                                    <div className="text-center font-bold text-xs text-slate-500 uppercase tracking-[0.2em]">Impact</div>
-                                </div>
+                            </div>
+                            <div className="grid grid-cols-[auto_1fr] gap-6 mt-4">
+                                <div className="w-8"></div>
+                                <div className="text-center font-bold text-xs text-slate-500 uppercase tracking-[0.2em]">Impact</div>
                             </div>
                         </div>
                     </div>
                 ) : viewMode === 'list' ? (
-                    <div className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
-                        <DataTable
-                            columns={[
-                                {
-                                    header: 'Menace',
-                                    accessorKey: 'threat',
-                                    cell: ({ row }) => (
-                                        <div className="flex items-center">
-                                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-600 dark:text-slate-300">
-                                                <ShieldAlert className="h-5 w-5" strokeWidth={1.5} />
+                    <div className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                        <div className="relative z-10">
+                            <DataTable
+                                columns={[
+                                    {
+                                        header: 'Menace',
+                                        accessorKey: 'threat',
+                                        cell: ({ row }) => (
+                                            <div className="flex items-center">
+                                                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-600 dark:text-slate-300">
+                                                    <ShieldAlert className="h-5 w-5" strokeWidth={1.5} />
+                                                </div>
+                                                <div>
+                                                    <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.threat}</div>
+                                                    <div className="text-xs text-slate-600 font-medium">{row.original.owner || 'Non assigné'}</div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.threat}</div>
-                                                <div className="text-xs text-slate-600 font-medium">{row.original.owner || 'Non assigné'}</div>
+                                        ),
+                                    },
+                                    {
+                                        header: 'Vulnérabilité',
+                                        accessorKey: 'vulnerability',
+                                        cell: ({ row }) => (
+                                            <div className="max-w-xs truncate" title={row.original.vulnerability}>
+                                                {row.original.vulnerability}
                                             </div>
-                                        </div>
-                                    ),
-                                },
-                                {
-                                    header: 'Vulnérabilité',
-                                    accessorKey: 'vulnerability',
-                                    cell: ({ row }) => (
-                                        <div className="max-w-xs truncate" title={row.original.vulnerability}>
-                                            {row.original.vulnerability}
-                                        </div>
-                                    ),
-                                },
-                                {
-                                    header: 'Actif',
-                                    accessorFn: (row) => getAssetName(row.assetId),
-                                    cell: ({ row }) => (
-                                        <span className="text-slate-600 dark:text-slate-400 font-medium">
-                                            {getAssetName(row.original.assetId)}
-                                        </span>
-                                    ),
-                                },
-                                {
-                                    header: 'Score',
-                                    accessorKey: 'score',
-                                    cell: ({ row }) => (
-                                        <Badge status={getRiskLevel(row.original.score).status} variant="soft" size="sm">
-                                            {row.original.score}
-                                        </Badge>
-                                    ),
-                                },
-                                {
-                                    header: 'Stratégie',
-                                    accessorKey: 'strategy',
-                                    cell: ({ row }) => (
-                                        <span className="text-slate-600 dark:text-slate-400 font-medium">
-                                            {row.original.strategy}
-                                        </span>
-                                    ),
-                                },
-                                {
-                                    header: 'Statut',
-                                    accessorKey: 'status',
-                                    cell: ({ row }) => (
-                                        <div className="flex flex-col items-start gap-1">
-                                            <Badge status={row.original.status === 'Ouvert' ? 'error' : row.original.status === 'En cours' ? 'warning' : 'success'} variant="outline">
-                                                {row.original.status}
+                                        ),
+                                    },
+                                    {
+                                        header: 'Actif',
+                                        accessorFn: (row) => getAssetName(row.assetId),
+                                        cell: ({ row }) => (
+                                            <span className="text-slate-600 dark:text-slate-400 font-medium">
+                                                {getAssetName(row.original.assetId)}
+                                            </span>
+                                        ),
+                                    },
+                                    {
+                                        header: 'Score',
+                                        accessorKey: 'score',
+                                        cell: ({ row }) => (
+                                            <Badge status={getRiskLevel(row.original.score).status} variant="soft" size="sm">
+                                                {row.original.score}
                                             </Badge>
-                                            {isReviewOverdue(row.original) && (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
-                                                    <Clock className="h-3 w-3 mr-1" /> Revue en retard
-                                                </span>
-                                            )}
-                                        </div>
-                                    ),
-                                },
-                                {
-                                    id: 'actions',
-                                    header: '',
-                                    cell: ({ row }) => (
-                                        <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                                            {canEdit && (
-                                                <>
-                                                    <CustomTooltip content="Modifier le risque">
-                                                        <button onClick={() => { setSelectedRisk(row.original); setIsEditing(true); }} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all">
-                                                            <Edit className="h-4 w-4" />
-                                                        </button>
-                                                    </CustomTooltip>
-                                                    <CustomTooltip content="Supprimer le risque">
-                                                        <button onClick={() => initiateDelete(row.original.id, row.original.threat)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </button>
-                                                    </CustomTooltip>
-                                                </>
-                                            )}
-                                        </div>
-                                    ),
-                                },
-                            ]}
-                            data={filteredRisks}
-                            selectable={canEdit}
-                            onRowClick={(risk) => openInspector(risk)}
-                            searchable={false}
-                            exportable={false}
-                            loading={loading}
-                            onBulkDelete={async (selectedIds) => {
-                                if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} risques ? Cette action est irréversible.`)) {
-                                    return;
-                                }
+                                        ),
+                                    },
+                                    {
+                                        header: 'Stratégie',
+                                        accessorKey: 'strategy',
+                                        cell: ({ row }) => (
+                                            <span className="text-slate-600 dark:text-slate-400 font-medium">
+                                                {row.original.strategy}
+                                            </span>
+                                        ),
+                                    },
+                                    {
+                                        header: 'Statut',
+                                        accessorKey: 'status',
+                                        cell: ({ row }) => (
+                                            <div className="flex flex-col items-start gap-1">
+                                                <Badge status={row.original.status === 'Ouvert' ? 'error' : row.original.status === 'En cours' ? 'warning' : 'success'} variant="outline">
+                                                    {row.original.status}
+                                                </Badge>
+                                                {isReviewOverdue(row.original) && (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
+                                                        <Clock className="h-3 w-3 mr-1" /> Revue en retard
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ),
+                                    },
+                                    {
+                                        id: 'actions',
+                                        header: '',
+                                        cell: ({ row }) => (
+                                            <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                                                {canEdit && (
+                                                    <>
+                                                        <CustomTooltip content="Modifier le risque">
+                                                            <button onClick={() => { setSelectedRisk(row.original); setIsEditing(true); }} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all">
+                                                                <Edit className="h-4 w-4" />
+                                                            </button>
+                                                        </CustomTooltip>
+                                                        <CustomTooltip content="Supprimer le risque">
+                                                            <button onClick={() => initiateDelete(row.original.id, row.original.threat)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all">
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        </CustomTooltip>
+                                                    </>
+                                                )}
+                                            </div>
+                                        ),
+                                    },
+                                ]}
+                                data={filteredRisks}
+                                selectable={canEdit}
+                                onRowClick={(risk) => openInspector(risk)}
+                                searchable={false}
+                                exportable={false}
+                                loading={loading}
+                                onBulkDelete={async (selectedIds) => {
+                                    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} risques ? Cette action est irréversible.`)) {
+                                        return;
+                                    }
 
-                                try {
-                                    const batch = writeBatch(db);
-                                    selectedIds.forEach(id => {
-                                        const ref = doc(db, 'risks', id);
-                                        batch.delete(ref);
-                                    });
-                                    await batch.commit();
+                                    try {
+                                        const batch = writeBatch(db);
+                                        selectedIds.forEach(id => {
+                                            const ref = doc(db, 'risks', id);
+                                            batch.delete(ref);
+                                        });
+                                        await batch.commit();
 
-                                    addToast(`${selectedIds.length} risques supprimés avec succès`, 'success');
-                                    refreshRisks();
-                                } catch (error) {
-                                    ErrorLogger.handleErrorWithToast(error, 'Risks.bulkDelete', 'DELETE_FAILED');
-                                }
-                            }}
-                        />
+                                        addToast(`${selectedIds.length} risques supprimés avec succès`, 'success');
+                                        refreshRisks();
+                                    } catch (error) {
+                                        ErrorLogger.handleErrorWithToast(error, 'Risks.bulkDelete', 'DELETE_FAILED');
+                                    }
+                                }}
+                            />
+                        </div>
                     </div>
                 ) : (
                     <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 animate-fade-in">
@@ -1573,62 +1572,66 @@ export const Risks: React.FC = () => {
                             const trend = risk.previousScore && risk.score > risk.previousScore ? 'up' : risk.previousScore && risk.score < risk.previousScore ? 'down' : 'stable';
 
                             return (
-                                <div key={risk.id} onClick={() => openInspector(risk)} className="group glass-panel p-6 rounded-[2rem] card-hover flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5">
-                                    <div className="flex justify-between items-start mb-5">
-                                        <div className="flex items-center gap-2">
-                                            <Badge status={level.status} variant="soft" size="sm">
-                                                {level.label} {risk.score}
-                                            </Badge>
-                                            {trend === 'up' && <span className="text-red-500" title="En hausse"><TrendingUp className="h-4 w-4" /></span>}
-                                            {trend === 'down' && <span className="text-emerald-500" title="En baisse"><TrendingDown className="h-4 w-4" /></span>}
-                                            {isMitigated && (<><ArrowRight className="w-3 h-3 text-slate-500" /><div className="px-2.5 py-1 text-[10px] font-bold rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
-                                        </div>
-                                    </div>
-                                    <div className="mb-4 flex-1">
-                                        <div className="flex items-center mb-3">
-                                            <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 mr-2.5"><Server className="w-3.5 h-3.5" /></div>
-                                            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
-                                        </div>
-                                        <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">{risk.threat}</h4>
-                                        <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50/80 dark:bg-black/20 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
-                                            <span className="font-bold text-xs uppercase text-slate-500 block mb-1">Vulnérabilité</span>
-                                            <SafeHTML content={risk.vulnerability || ''} className="line-clamp-3" />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs font-medium text-slate-600 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
+                                <div key={risk.id} onClick={() => openInspector(risk)} className="group glass-panel p-6 rounded-[2rem] card-hover flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5 overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                    <div className="relative z-10 flex flex-col h-full">
+                                        <div className="flex justify-between items-start mb-5">
                                             <div className="flex items-center gap-2">
-                                                {risk.treatment?.slaStatus && risk.treatment.status !== 'Terminé' && (
-                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-red-100 text-red-700 border-red-200' :
-                                                        risk.treatment.slaStatus === 'At Risk' ? 'bg-orange-100 text-orange-700 border-orange-200' :
-                                                            'bg-emerald-100 text-emerald-700 border-emerald-200'
-                                                        }`}>
-                                                        SLA: {risk.treatment.slaStatus}
-                                                    </span>
-                                                )}
-                                                <Badge
-                                                    status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : 'success'}
-                                                    variant="outline"
-                                                >
-                                                    {risk.status}
+                                                <Badge status={level.status} variant="soft" size="sm">
+                                                    {level.label} {risk.score}
                                                 </Badge>
+                                                {trend === 'up' && <span className="text-red-500" title="En hausse"><TrendingUp className="h-4 w-4" /></span>}
+                                                {trend === 'down' && <span className="text-emerald-500" title="En baisse"><TrendingDown className="h-4 w-4" /></span>}
+                                                {isMitigated && (<><ArrowRight className="w-3 h-3 text-slate-500" /><div className="px-2.5 py-1 text-[10px] font-bold rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
                                             </div>
                                         </div>
-                                        {isReviewOverdue(risk) && (
-                                            <div className="flex items-center justify-between">
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
-                                                    <Clock className="h-3 w-3 mr-1" /> Revue en retard
-                                                </span>
+                                        <div className="mb-4 flex-1">
+                                            <div className="flex items-center mb-3">
+                                                <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 mr-2.5"><Server className="w-3.5 h-3.5" /></div>
+                                                <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
                                             </div>
-                                        )}
+                                            <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">{risk.threat}</h4>
+                                            <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50/80 dark:bg-black/20 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
+                                                <span className="font-bold text-xs uppercase text-slate-500 block mb-1">Vulnérabilité</span>
+                                                <SafeHTML content={risk.vulnerability || ''} className="line-clamp-3" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-medium text-slate-600 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
+                                                <div className="flex items-center gap-2">
+                                                    {risk.treatment?.slaStatus && risk.treatment.status !== 'Terminé' && (
+                                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-red-100 text-red-700 border-red-200' :
+                                                            risk.treatment.slaStatus === 'At Risk' ? 'bg-orange-100 text-orange-700 border-orange-200' :
+                                                                'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                                            }`}>
+                                                            SLA: {risk.treatment.slaStatus}
+                                                        </span>
+                                                    )}
+                                                    <Badge
+                                                        status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : 'success'}
+                                                        variant="outline"
+                                                    >
+                                                        {risk.status}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                            {isReviewOverdue(risk) && (
+                                                <div className="flex items-center justify-between">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
+                                                        <Clock className="h-3 w-3 mr-1" /> Revue en retard
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>)
-                        })}</div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 )
             }
 
-            {/* Inspector & Creation Drawer */}
             <Drawer
                 isOpen={!!selectedRisk || creationMode}
                 onClose={() => { setSelectedRisk(null); setCreationMode(false); setIsEditing(false); }}
@@ -2307,7 +2310,7 @@ export const Risks: React.FC = () => {
                     </div>
                 )}
             </Drawer>
-        </motion.div>
+        </motion.div >
     );
 };
 

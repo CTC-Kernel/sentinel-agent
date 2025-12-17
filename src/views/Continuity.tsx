@@ -27,6 +27,7 @@ import { ProcessFormModal } from '../components/continuity/ProcessFormModal';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 
 export const Continuity: React.FC = () => {
@@ -354,6 +355,7 @@ export const Continuity: React.FC = () => {
             animate="visible"
             className="space-y-8 pb-10 relative w-full max-w-[1920px] mx-auto"
         >
+            <MasterpieceBackground />
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}

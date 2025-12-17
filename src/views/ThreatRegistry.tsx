@@ -14,6 +14,7 @@ import { logAction } from '../services/logger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 export const ThreatRegistry: React.FC = () => {
     const { user, addToast } = useStore();
@@ -140,8 +141,9 @@ export const ThreatRegistry: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8 w-full max-w-[1920px] mx-auto"
+            className="space-y-8 w-full max-w-[1920px] mx-auto relative min-h-screen pt-4 sm:pt-8 px-4 md:px-8"
         >
+            <MasterpieceBackground />
             <Helmet>
                 <title>Bibliothèque de Menaces | Sentinel GRC</title>
             </Helmet>

@@ -17,6 +17,7 @@ import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -686,10 +687,7 @@ export const Assets: React.FC = () => {
             animate="visible"
             className="space-y-8 pb-10 relative px-4 sm:px-6 lg:px-8 w-full max-w-[1920px] mx-auto"
         >
-            <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-500/5 rounded-full blur-[120px] animate-blob" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px] animate-blob animation-delay-2000" />
-            </div>
+            <MasterpieceBackground />
             <Helmet>
                 <title>{selectedAsset ? `${selectedAsset.name} - Actifs` : 'Inventaire des Actifs - Sentinel GRC'}</title>
             </Helmet>
@@ -808,115 +806,118 @@ export const Assets: React.FC = () => {
 
             {/* List / Grid */}
             {viewMode === 'list' ? (
-                <div className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm">
-                    <DataTable
-                        columns={[
-                            {
-                                header: 'Actif',
-                                accessorKey: 'name',
-                                cell: ({ row }) => {
-                                    const asset = row.original;
-                                    const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
-                                    const maintenanceOverdue = asset.nextMaintenance && new Date(asset.nextMaintenance) < new Date();
-                                    return (
-                                        <div className="flex items-center">
-                                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-600 dark:text-slate-300">
-                                                <Server className="h-5 w-5" strokeWidth={1.5} />
-                                            </div>
-                                            <div>
-                                                <div className="font-bold text-slate-900 dark:text-white text-[15px]">{asset.name}</div>
-                                                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                                    <span className="text-xs text-slate-600 font-medium">{asset.owner}</span>
-                                                    {warrantyExpired && <span className="text-[9px] bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900 px-1.5 py-0.5 rounded font-bold">Garantie Exp.</span>}
-                                                    {maintenanceOverdue && <span className="text-[9px] bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-900 px-1.5 py-0.5 rounded font-bold flex items-center"><Clock className="h-2.5 w-2.5 mr-1" />Maint.</span>}
-                                                    {asset.scope && asset.scope.map(s => <span key={s} className="text-[9px] bg-indigo-50 dark:bg-slate-900 text-indigo-600 border border-indigo-100 dark:bg-slate-900/30 dark:text-indigo-400 dark:border-indigo-900 px-1.5 py-0.5 rounded font-bold">{s}</span>)}
+                <div className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                    <div className="relative z-10">
+                        <DataTable
+                            columns={[
+                                {
+                                    header: 'Actif',
+                                    accessorKey: 'name',
+                                    cell: ({ row }) => {
+                                        const asset = row.original;
+                                        const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
+                                        const maintenanceOverdue = asset.nextMaintenance && new Date(asset.nextMaintenance) < new Date();
+                                        return (
+                                            <div className="flex items-center">
+                                                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-600 dark:text-slate-300">
+                                                    <Server className="h-5 w-5" strokeWidth={1.5} />
+                                                </div>
+                                                <div>
+                                                    <div className="font-bold text-slate-900 dark:text-white text-[15px]">{asset.name}</div>
+                                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                        <span className="text-xs text-slate-600 font-medium">{asset.owner}</span>
+                                                        {warrantyExpired && <span className="text-[9px] bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900 px-1.5 py-0.5 rounded font-bold">Garantie Exp.</span>}
+                                                        {maintenanceOverdue && <span className="text-[9px] bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-900 px-1.5 py-0.5 rounded font-bold flex items-center"><Clock className="h-2.5 w-2.5 mr-1" />Maint.</span>}
+                                                        {asset.scope && asset.scope.map(s => <span key={s} className="text-[9px] bg-indigo-50 dark:bg-slate-900 text-indigo-600 border border-indigo-100 dark:bg-slate-900/30 dark:text-indigo-400 dark:border-indigo-900 px-1.5 py-0.5 rounded font-bold">{s}</span>)}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    );
+                                        );
+                                    },
                                 },
-                            },
-                            {
-                                header: 'Type',
-                                accessorKey: 'type',
-                                cell: ({ row }) => <span className="text-slate-600 dark:text-slate-400 font-medium">{row.original.type}</span>,
-                            },
-                            {
-                                header: 'Classification',
-                                accessorKey: 'confidentiality',
-                                cell: ({ row }) => (
-                                    <span className={`px-3 py-1 rounded-lg text-[11px] font-bold tracking-wide border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>
-                                        {row.original.confidentiality}
-                                    </span>
-                                ),
-                            },
-                            {
-                                header: 'Statut',
-                                accessorKey: 'lifecycleStatus',
-                                cell: ({ row }) => {
-                                    const status = row.original.lifecycleStatus || 'Neuf';
-                                    const isService = status === 'En service';
-                                    return (
-                                        <span className={`flex items-center w-fit px-2.5 py-1 rounded-full text-[11px] font-bold border ${isService ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full mr-2 ${isService ? 'bg-green-500' : 'bg-slate-400'}`}></span>
-                                            {status}
+                                {
+                                    header: 'Type',
+                                    accessorKey: 'type',
+                                    cell: ({ row }) => <span className="text-slate-600 dark:text-slate-400 font-medium">{row.original.type}</span>,
+                                },
+                                {
+                                    header: 'Classification',
+                                    accessorKey: 'confidentiality',
+                                    cell: ({ row }) => (
+                                        <span className={`px-3 py-1 rounded-lg text-[11px] font-bold tracking-wide border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>
+                                            {row.original.confidentiality}
                                         </span>
-                                    );
+                                    ),
                                 },
-                            },
-                            {
-                                header: 'Localisation',
-                                accessorKey: 'location',
-                                cell: ({ row }) => <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">{row.original.location}</span>,
-                            },
-                            {
-                                id: 'actions',
-                                header: '',
-                                cell: ({ row }) => (
-                                    <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                                        <CustomTooltip content="Imprimer Étiquette">
-                                            <button disabled={isGeneratingLabels} onClick={() => generateLabels(row.original)} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all disabled:opacity-50">
-                                                {isGeneratingLabels ? <span className="animate-spin text-xs">⏳</span> : <QrCode className="h-4 w-4" />}
-                                            </button>
-                                        </CustomTooltip>
-                                        {canDeleteResource(user, 'Asset') && (
-                                            <CustomTooltip content="Supprimer">
-                                                <button onClick={() => initiateDelete(row.original.id, row.original.name)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all">
-                                                    <Trash2 className="h-4 w-4" />
+                                {
+                                    header: 'Statut',
+                                    accessorKey: 'lifecycleStatus',
+                                    cell: ({ row }) => {
+                                        const status = row.original.lifecycleStatus || 'Neuf';
+                                        const isService = status === 'En service';
+                                        return (
+                                            <span className={`flex items-center w-fit px-2.5 py-1 rounded-full text-[11px] font-bold border ${isService ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'}`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full mr-2 ${isService ? 'bg-green-500' : 'bg-slate-400'}`}></span>
+                                                {status}
+                                            </span>
+                                        );
+                                    },
+                                },
+                                {
+                                    header: 'Localisation',
+                                    accessorKey: 'location',
+                                    cell: ({ row }) => <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">{row.original.location}</span>,
+                                },
+                                {
+                                    id: 'actions',
+                                    header: '',
+                                    cell: ({ row }) => (
+                                        <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                                            <CustomTooltip content="Imprimer Étiquette">
+                                                <button disabled={isGeneratingLabels} onClick={() => generateLabels(row.original)} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all disabled:opacity-50">
+                                                    {isGeneratingLabels ? <span className="animate-spin text-xs">⏳</span> : <QrCode className="h-4 w-4" />}
                                                 </button>
                                             </CustomTooltip>
-                                        )}
-                                    </div>
-                                ),
-                            },
-                        ]}
-                        data={filteredAssets}
-                        selectable={canDeleteResource(user, 'Asset')}
-                        onRowClick={(asset) => openInspector(asset)}
-                        searchable={false}
-                        exportable={false}
-                        loading={loading}
-                        pageSize={12}
-                        onBulkDelete={async (selectedIds) => {
-                            if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} actifs ? Cette action est irréversible.`)) {
-                                return;
-                            }
+                                            {canDeleteResource(user, 'Asset') && (
+                                                <CustomTooltip content="Supprimer">
+                                                    <button onClick={() => initiateDelete(row.original.id, row.original.name)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </CustomTooltip>
+                                            )}
+                                        </div>
+                                    ),
+                                },
+                            ]}
+                            data={filteredAssets}
+                            selectable={canDeleteResource(user, 'Asset')}
+                            onRowClick={(asset) => openInspector(asset)}
+                            searchable={false}
+                            exportable={false}
+                            loading={loading}
+                            pageSize={12}
+                            onBulkDelete={async (selectedIds) => {
+                                if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} actifs ? Cette action est irréversible.`)) {
+                                    return;
+                                }
 
-                            try {
-                                const batch = writeBatch(db);
-                                selectedIds.forEach(id => {
-                                    const ref = doc(db, 'assets', id);
-                                    batch.delete(ref);
-                                });
-                                await batch.commit();
+                                try {
+                                    const batch = writeBatch(db);
+                                    selectedIds.forEach(id => {
+                                        const ref = doc(db, 'assets', id);
+                                        batch.delete(ref);
+                                    });
+                                    await batch.commit();
 
-                                addToast(`${selectedIds.length} actifs supprimés avec succès`, 'success');
-                                // Refresh logic is usually automatic with Firestore subscription
-                            } catch (error) {
-                                ErrorLogger.handleErrorWithToast(error, 'Assets.bulkDelete', 'DELETE_FAILED');
-                            }
-                        }}
-                    />
+                                    addToast(`${selectedIds.length} actifs supprimés avec succès`, 'success');
+                                    // Refresh logic is usually automatic with Firestore subscription
+                                } catch (error) {
+                                    ErrorLogger.handleErrorWithToast(error, 'Assets.bulkDelete', 'DELETE_FAILED');
+                                }
+                            }}
+                        />
+                    </div>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -937,26 +938,29 @@ export const Assets: React.FC = () => {
                             const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
                             const maintenanceOverdue = asset.nextMaintenance && new Date(asset.nextMaintenance) < new Date();
                             return (
-                                <div key={asset.id} onClick={() => openInspector(asset)} className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300">
-                                            <Server className="h-6 w-6" />
+                                <div key={asset.id} onClick={() => openInspector(asset)} className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                    <div className="relative z-10 flex flex-col h-full">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300">
+                                                <Server className="h-6 w-6" />
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span>
+                                            </div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(asset.confidentiality)}`}>{asset.confidentiality}</span>
-                                        </div>
-                                    </div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{asset.name}</h3>
-                                    <p className="text-xs text-slate-600 font-medium mb-4">{asset.type} • {asset.owner}</p>
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{asset.name}</h3>
+                                        <p className="text-xs text-slate-600 font-medium mb-4">{asset.type} • {asset.owner}</p>
 
-                                    <div className="mt-auto pt-4 border-t border-dashed border-slate-200 dark:border-white/10 flex justify-between items-center">
-                                        <div className="flex items-center gap-2">
-                                            <span className={`w-2 h-2 rounded-full ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>
-                                            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{asset.lifecycleStatus || 'Neuf'}</span>
-                                        </div>
-                                        <div className="flex gap-1">
-                                            {warrantyExpired && <span className="text-[9px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold">Garantie Exp.</span>}
-                                            {maintenanceOverdue && <span className="text-[9px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded font-bold">Maint.</span>}
+                                        <div className="mt-auto pt-4 border-t border-dashed border-slate-200 dark:border-white/10 flex justify-between items-center">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`w-2 h-2 rounded-full ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>
+                                                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{asset.lifecycleStatus || 'Neuf'}</span>
+                                            </div>
+                                            <div className="flex gap-1">
+                                                {warrantyExpired && <span className="text-[9px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold">Garantie Exp.</span>}
+                                                {maintenanceOverdue && <span className="text-[9px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded font-bold">Maint.</span>}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

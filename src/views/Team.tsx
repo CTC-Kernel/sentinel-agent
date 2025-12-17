@@ -28,6 +28,7 @@ import { hasPermission } from '../utils/permissions';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 export const Team: React.FC = () => {
     const navigate = useNavigate();
@@ -360,7 +361,9 @@ export const Team: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8 pb-10 relative w-full max-w-[1920px] mx-auto"        >
+            className="p-4 md:p-8 max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen"
+        >
+            <MasterpieceBackground />
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}

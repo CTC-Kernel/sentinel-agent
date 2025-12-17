@@ -32,6 +32,7 @@ import { usePersistedState } from '../hooks/usePersistedState';
 import { SupplierDashboard } from '../components/suppliers/SupplierDashboard';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { SupplierAIAssistant } from '../components/suppliers/SupplierAIAssistant';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 const getCriticalityColor = (c: Criticality) => {
     switch (c) {
@@ -620,8 +621,9 @@ export const Suppliers: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8 pb-10 relative w-full max-w-[1920px] mx-auto min-w-0"
+            className="p-4 md:p-8 max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen min-w-0"
         >
+            <MasterpieceBackground />
             <Helmet>
                 <title>Gestion des Fournisseurs - Sentinel GRC</title>
                 <meta name="description" content="Gérez vos fournisseurs, évaluez leur conformité DORA et suivez les contrats." />

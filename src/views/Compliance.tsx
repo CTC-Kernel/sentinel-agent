@@ -51,6 +51,7 @@ import { canEditResource, hasPermission } from '../utils/permissions';
 import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 export const Compliance: React.FC = () => {
     const { user, addToast, organization, demoMode } = useStore();
@@ -978,12 +979,10 @@ export const Compliance: React.FC = () => {
             initial="initial"
             animate="in"
             exit="out"
-            className="w-full max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen pt-4 sm:pt-8"
+            className="p-4 md:p-8 max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen"
         >
-            <div className="fixed inset-0 pointer-events-none -z-10">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[100px] animate-pulse-slow" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] animate-pulse-slow delay-1000" />
-            </div>
+            <MasterpieceBackground />
+
             <SEO
                 title={selectedControl ? `${selectedControl.code} - Conformité` : 'Conformité & Standards'}
                 description="Suivez votre conformité aux normes ISO 27001, NIS 2, DORA et gérez vos audits."
@@ -1101,8 +1100,9 @@ export const Compliance: React.FC = () => {
 
                         {/* Filter Bar - Clean Style */}
                         <motion.div variants={slideUpVariants}>
-                            <div className="glass-panel p-2 pl-4 rounded-2xl flex flex-col md:flex-row gap-4 shadow-sm border border-white/60 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
-                                <div className="flex-1 relative group flex items-center">
+                            <div className="glass-panel p-2 pl-4 rounded-2xl flex flex-col md:flex-row gap-4 shadow-sm border border-white/60 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                <div className="flex-1 relative group flex items-center z-10">
                                     <Search className="absolute left-4 top-3 h-5 w-5 text-slate-500 group-focus-within:text-brand-500 transition-colors" />
                                     <input
                                         type="text"
@@ -1113,7 +1113,7 @@ export const Compliance: React.FC = () => {
                                     />
                                 </div>
 
-                                <div className="flex gap-2 p-1.5 md:p-0 overflow-x-auto no-scrollbar items-center">
+                                <div className="flex gap-2 p-1.5 md:p-0 overflow-x-auto no-scrollbar items-center z-10">
                                     {/* Status Filter Badge */}
                                     {statusFilter && (
                                         <button onClick={() => setStatusFilter(null)} className="flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-brand-50 text-brand-700 border border-brand-200 dark:bg-brand-900/20 dark:text-brand-300 dark:border-brand-800 animate-fade-in hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors whitespace-nowrap shrink-0">
@@ -1174,10 +1174,11 @@ export const Compliance: React.FC = () => {
                                             const isExpanded = expandedDomains.includes(domain.id) || filter.length > 0;
 
                                             return (
-                                                <div key={domain.id} className="glass-panel rounded-[2rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple border border-white/60 dark:border-white/10 group">
+                                                <div key={domain.id} className="glass-panel rounded-[2rem] shadow-sm overflow-hidden transition-all duration-300 hover:shadow-apple border border-white/60 dark:border-white/10 group relative">
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                                                     <div
                                                         onClick={() => toggleDomain(domain.id)}
-                                                        className={`p-6 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                                        className={`p-6 flex flex-col md:flex-row md:items-center justify-between cursor-pointer transition-colors gap-4 relative z-10 ${isExpanded ? 'bg-slate-50/80 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
                                                     >
                                                         <div className="flex items-center gap-5 flex-1 min-w-0">
                                                             <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-lg border border-slate-200 dark:border-white/10 shrink-0">
@@ -1205,7 +1206,7 @@ export const Compliance: React.FC = () => {
                                                     </div>
 
                                                     {isExpanded && (
-                                                        <div className="p-4 bg-slate-50/40 dark:bg-black/10 border-t border-slate-100 dark:border-white/5">
+                                                        <div className="p-4 bg-slate-50/40 dark:bg-black/10 border-t border-slate-100 dark:border-white/5 relative z-10">
                                                             <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
                                                                 {domainControls.map(control => {
                                                                     const riskCount = risks.filter(r => r.mitigationControlIds?.includes(control.id)).length;
@@ -1298,71 +1299,77 @@ export const Compliance: React.FC = () => {
             {
                 viewMode === 'watch' && (
                     <div className="space-y-6 animate-fade-in">
-                        <div className="glass-panel p-4 sm:p-8 rounded-[2rem] border border-white/60 dark:border-white/10 text-center shadow-sm">
-                            <div className="w-16 h-16 bg-blue-100 dark:bg-slate-900/20 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                                <Globe className="w-8 h-8" />
-                            </div>
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Veille Réglementaire EUR-Lex</h2>
-                            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-8">
-                                Recherchez les dernières réglementations européennes (Directives, Règlements) directement depuis la source officielle EUR-Lex.
-                            </p>
-
-
-                            <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3">
-                                <div className="relative flex-1 text-left">
-                                    <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                    <input
-                                        type="text"
-                                        placeholder="Ex: Intelligence Artificielle, DORA, NIS2..."
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm"
-                                        value={eurLexQuery}
-                                        onChange={(e) => setEurLexQuery(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleEurLexSearch()}
-                                    />
+                        <div className="glass-panel p-4 sm:p-8 rounded-[2rem] border border-white/60 dark:border-white/10 text-center shadow-sm relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                            <div className="relative z-10">
+                                <div className="w-16 h-16 bg-blue-100 dark:bg-slate-900/20 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                    <Globe className="w-8 h-8" />
                                 </div>
-                                <button
-                                    onClick={handleEurLexSearch}
-                                    disabled={isSearchingEurLex}
-                                    className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20 flex items-center gap-2 disabled:opacity-50"
-                                >
-                                    {isSearchingEurLex ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
-                                    {isSearchingEurLex ? "Recherche..." : "Rechercher"}
-                                </button>
+                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Veille Réglementaire EUR-Lex</h2>
+                                <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-8">
+                                    Recherchez les dernières réglementations européennes (Directives, Règlements) directement depuis la source officielle EUR-Lex.
+                                </p>
+
+
+                                <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3">
+                                    <div className="relative flex-1 text-left">
+                                        <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
+                                        <input
+                                            type="text"
+                                            placeholder="Ex: Intelligence Artificielle, DORA, NIS2..."
+                                            className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm"
+                                            value={eurLexQuery}
+                                            onChange={(e) => setEurLexQuery(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleEurLexSearch()}
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handleEurLexSearch}
+                                        disabled={isSearchingEurLex}
+                                        className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20 flex items-center gap-2 disabled:opacity-50"
+                                    >
+                                        {isSearchingEurLex ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
+                                        {isSearchingEurLex ? "Recherche..." : "Rechercher"}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         {eurLexResult && (
-                            <div className="glass-panel rounded-[2rem] border border-white/60 dark:border-white/10 overflow-hidden shadow-sm">
-                                <div className="p-4 border-b border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 flex justify-between items-center">
-                                    <h3 className="font-bold text-slate-900 dark:text-white flex items-center">
-                                        <Globe className="w-4 h-4 mr-2 text-blue-500" />
-                                        Résultats EUR-Lex
-                                    </h3>
-                                    <a
-                                        href={eurLexResult}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center"
-                                    >
-                                        Ouvrir dans un nouvel onglet <ExternalLink className="w-3 h-3 ml-1" />
-                                    </a>
-                                </div>
-                                <div className="p-12 text-center bg-slate-50 dark:bg-slate-900/50 flex flex-col items-center justify-center min-h-[300px]">
-                                    <div className="bg-blue-100 dark:bg-blue-900/30 p-4 rounded-full mb-4">
-                                        <Globe className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                            <div className="glass-panel rounded-[2rem] border border-white/60 dark:border-white/10 overflow-hidden shadow-sm relative">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                <div className="relative z-10">
+                                    <div className="p-4 border-b border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 flex justify-between items-center">
+                                        <h3 className="font-bold text-slate-900 dark:text-white flex items-center">
+                                            <Globe className="w-4 h-4 mr-2 text-blue-500" />
+                                            Résultats EUR-Lex
+                                        </h3>
+                                        <a
+                                            href={eurLexResult}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center"
+                                        >
+                                            Ouvrir dans un nouvel onglet <ExternalLink className="w-3 h-3 ml-1" />
+                                        </a>
                                     </div>
-                                    <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Résultats disponibles sur EUR-Lex</h4>
-                                    <p className="text-slate-600 dark:text-slate-400 max-w-md mb-6">
-                                        Pour des raisons de sécurité, le portail EUR-Lex ne permet pas l'affichage direct dans cette fenêtre.
-                                    </p>
-                                    <a
-                                        href={eurLexResult}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
-                                    >
-                                        Consulter les résultats <ExternalLink className="w-4 h-4 ml-2" />
-                                    </a>
+                                    <div className="p-12 text-center bg-slate-50 dark:bg-slate-900/50 flex flex-col items-center justify-center min-h-[300px]">
+                                        <div className="bg-blue-100 dark:bg-blue-900/30 p-4 rounded-full mb-4">
+                                            <Globe className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                                        </div>
+                                        <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Résultats disponibles sur EUR-Lex</h4>
+                                        <p className="text-slate-600 dark:text-slate-400 max-w-md mb-6">
+                                            Pour des raisons de sécurité, le portail EUR-Lex ne permet pas l'affichage direct dans cette fenêtre.
+                                        </p>
+                                        <a
+                                            href={eurLexResult}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
+                                        >
+                                            Consulter les résultats <ExternalLink className="w-4 h-4 ml-2" />
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -1459,105 +1466,117 @@ export const Compliance: React.FC = () => {
 
                                     {/* Status & Assignment */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                            <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Statut d'implémentation</h3>
-                                            {canEdit ? (
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    {(['Non commencé', 'Partiel', 'Implémenté', 'En revue', 'Non applicable', 'Exclu'] as Control['status'][]).map((s) => (
-                                                        <button
-                                                            key={s}
-                                                            onClick={() => handleStatusChange(selectedControl, s)}
-                                                            disabled={updating}
-                                                            className={`px-2 py-2 rounded-lg text-[10px] font-bold border transition-all duration-200 flex items-center justify-center ${selectedControl.status === s
-                                                                ? 'bg-brand-600 text-white border-brand-600 shadow-md'
-                                                                : 'bg-slate-50 dark:bg-slate-800/50 border-transparent text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700'
-                                                                } ${updating ? 'opacity-50 cursor-wait' : ''}`}
-                                                        >
-                                                            {updating && selectedControl.status === s ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                                                            {s}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <span className={`px-4 py-2 rounded-xl text-sm font-bold border uppercase tracking-wide inline-block`}>{selectedControl.status}</span>
-                                            )}
+                                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                            <div className="relative z-10">
+                                                <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Statut d'implémentation</h3>
+                                                {canEdit ? (
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        {(['Non commencé', 'Partiel', 'Implémenté', 'En revue', 'Non applicable', 'Exclu'] as Control['status'][]).map((s) => (
+                                                            <button
+                                                                key={s}
+                                                                onClick={() => handleStatusChange(selectedControl, s)}
+                                                                disabled={updating}
+                                                                className={`px-2 py-2 rounded-lg text-[10px] font-bold border transition-all duration-200 flex items-center justify-center ${selectedControl.status === s
+                                                                    ? 'bg-brand-600 text-white border-brand-600 shadow-md'
+                                                                    : 'bg-slate-50 dark:bg-slate-800/50 border-transparent text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700'
+                                                                    } ${updating ? 'opacity-50 cursor-wait' : ''}`}
+                                                            >
+                                                                {updating && selectedControl.status === s ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                                                                {s}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <span className={`px-4 py-2 rounded-xl text-sm font-bold border uppercase tracking-wide inline-block`}>{selectedControl.status}</span>
+                                                )}
+                                            </div>
                                         </div>
 
-                                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                            <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Responsable</h3>
-                                            {canEdit ? (
-                                                <CustomSelect
-                                                    label="Assigné à"
-                                                    value={selectedControl.assigneeId || ''}
-                                                    onChange={(val) => handleAssign(val as string)}
-                                                    options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                                                    placeholder="Sélectionner un responsable..."
-                                                    disabled={updating}
-                                                />
-                                            ) : (
-                                                <div className="flex items-center p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
-                                                    <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 mr-3">
-                                                        <User className="h-4 w-4" />
+                                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                            <div className="relative z-10">
+                                                <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Responsable</h3>
+                                                {canEdit ? (
+                                                    <CustomSelect
+                                                        label="Assigné à"
+                                                        value={selectedControl.assigneeId || ''}
+                                                        onChange={(val) => handleAssign(val as string)}
+                                                        options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
+                                                        placeholder="Sélectionner un responsable..."
+                                                        disabled={updating}
+                                                    />
+                                                ) : (
+                                                    <div className="flex items-center p-3 bg-slate-50 dark:bg-black/20 rounded-xl">
+                                                        <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 mr-3">
+                                                            <User className="h-4 w-4" />
+                                                        </div>
+                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                                            {usersList.find(u => u.uid === selectedControl.assigneeId)?.displayName || 'Non assigné'}
+                                                        </span>
                                                     </div>
-                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                                                        {usersList.find(u => u.uid === selectedControl.assigneeId)?.displayName || 'Non assigné'}
-                                                    </span>
-                                                </div>
-                                            )}
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
 
                                     {/* Linked Resources */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                            <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Actifs Liés</h3>
-                                            <div className="space-y-2 mb-4">
-                                                {selectedControl.relatedAssetIds?.map(assetId => {
-                                                    const asset = assets.find(a => a.id === assetId);
-                                                    return asset ? (
-                                                        <div key={assetId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-lg text-sm">
-                                                            <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
-                                                            {canEdit && <button onClick={() => handleUnlinkAsset(assetId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
-                                                        </div>
-                                                    ) : null;
-                                                })}
-                                                {(!selectedControl.relatedAssetIds || selectedControl.relatedAssetIds.length === 0) && <p className="text-xs text-slate-500 italic">Aucun actif lié.</p>}
+                                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                            <div className="relative z-10">
+                                                <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Actifs Liés</h3>
+                                                <div className="space-y-2 mb-4">
+                                                    {selectedControl.relatedAssetIds?.map(assetId => {
+                                                        const asset = assets.find(a => a.id === assetId);
+                                                        return asset ? (
+                                                            <div key={assetId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-lg text-sm">
+                                                                <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
+                                                                {canEdit && <button onClick={() => handleUnlinkAsset(assetId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
+                                                            </div>
+                                                        ) : null;
+                                                    })}
+                                                    {(!selectedControl.relatedAssetIds || selectedControl.relatedAssetIds.length === 0) && <p className="text-xs text-slate-500 italic">Aucun actif lié.</p>}
+                                                </div>
+                                                {canEdit && (
+                                                    <CustomSelect
+                                                        label=""
+                                                        value=""
+                                                        onChange={(val) => handleLinkAsset(val as string)}
+                                                        options={assets.filter(a => !selectedControl.relatedAssetIds?.includes(a.id)).map(a => ({ value: a.id, label: a.name }))}
+                                                        placeholder="Lier un actif..."
+                                                        disabled={updating}
+                                                    />
+                                                )}
                                             </div>
-                                            {canEdit && (
-                                                <CustomSelect
-                                                    label=""
-                                                    value=""
-                                                    onChange={(val) => handleLinkAsset(val as string)}
-                                                    options={assets.filter(a => !selectedControl.relatedAssetIds?.includes(a.id)).map(a => ({ value: a.id, label: a.name }))}
-                                                    placeholder="Lier un actif..."
-                                                    disabled={updating}
-                                                />
-                                            )}
                                         </div>
-                                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                            <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Fournisseurs Liés</h3>
-                                            <div className="space-y-2 mb-4">
-                                                {selectedControl.relatedSupplierIds?.map(supplierId => {
-                                                    const supplier = suppliers.find(s => s.id === supplierId);
-                                                    return supplier ? (
-                                                        <div key={supplierId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-lg text-sm">
-                                                            <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{supplier.name}</span>
-                                                            {canEdit && <button onClick={() => handleUnlinkSupplier(supplierId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
-                                                        </div>
-                                                    ) : null;
-                                                })}
-                                                {(!selectedControl.relatedSupplierIds || selectedControl.relatedSupplierIds.length === 0) && <p className="text-xs text-slate-500 italic">Aucun fournisseur lié.</p>}
+                                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                            <div className="relative z-10">
+                                                <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Fournisseurs Liés</h3>
+                                                <div className="space-y-2 mb-4">
+                                                    {selectedControl.relatedSupplierIds?.map(supplierId => {
+                                                        const supplier = suppliers.find(s => s.id === supplierId);
+                                                        return supplier ? (
+                                                            <div key={supplierId} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-white/5 rounded-lg text-sm">
+                                                                <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{supplier.name}</span>
+                                                                {canEdit && <button onClick={() => handleUnlinkSupplier(supplierId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
+                                                            </div>
+                                                        ) : null;
+                                                    })}
+                                                    {(!selectedControl.relatedSupplierIds || selectedControl.relatedSupplierIds.length === 0) && <p className="text-xs text-slate-500 italic">Aucun fournisseur lié.</p>}
+                                                </div>
+                                                {canEdit && (
+                                                    <CustomSelect
+                                                        label=""
+                                                        value=""
+                                                        onChange={(val) => handleLinkSupplier(val as string)}
+                                                        options={suppliers.filter(s => !selectedControl.relatedSupplierIds?.includes(s.id)).map(s => ({ value: s.id, label: s.name }))}
+                                                        placeholder="Lier un fournisseur..."
+                                                        disabled={updating}
+                                                    />
+                                                )}
                                             </div>
-                                            {canEdit && (
-                                                <CustomSelect
-                                                    label=""
-                                                    value=""
-                                                    onChange={(val) => handleLinkSupplier(val as string)}
-                                                    options={suppliers.filter(s => !selectedControl.relatedSupplierIds?.includes(s.id)).map(s => ({ value: s.id, label: s.name }))}
-                                                    placeholder="Lier un fournisseur..."
-                                                    disabled={updating}
-                                                />
-                                            )}
                                         </div>
                                     </div>
 
@@ -1597,8 +1616,9 @@ export const Compliance: React.FC = () => {
                                                 </button>
                                             </div>
                                         ) : (
-                                            <div className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
-                                                <p className="text-sm text-slate-600 dark:text-slate-300 italic font-medium leading-relaxed">{selectedControl.justification || "Aucune justification saisie."}</p>
+                                            <div className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                <p className="text-sm text-slate-600 dark:text-slate-300 italic font-medium leading-relaxed relative z-10">{selectedControl.justification || "Aucune justification saisie."}</p>
                                             </div>
                                         )}
                                     </div>
@@ -1608,128 +1628,134 @@ export const Compliance: React.FC = () => {
                                 inspectorTab === 'evidence' && (
                                     <div className="space-y-6 max-w-3xl mx-auto">
                                         {/* Automated Evidence Section */}
-                                        <div className="glass-panel rounded-[2rem] border border-white/60 dark:border-white/10 p-6 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                            <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 flex items-center tracking-widest"><Plug className="h-3.5 w-3.5 mr-2" /> Preuves Automatisées</h3>
+                                        <div className="glass-panel rounded-[2rem] border border-white/60 dark:border-white/10 p-6 shadow-sm transition-all duration-300 hover:shadow-apple relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                            <div className="relative z-10">
+                                                <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 flex items-center tracking-widest"><Plug className="h-3.5 w-3.5 mr-2" /> Preuves Automatisées</h3>
 
-                                            <div className="space-y-3 mb-6">
-                                                {selectedControl.automatedEvidence && selectedControl.automatedEvidence.length > 0 ? (
-                                                    selectedControl.automatedEvidence.map(evidence => {
-                                                        const provider = providers.find(p => p.id === evidence.providerId) || { name: evidence.providerId, icon: 'default' };
-                                                        return (
-                                                            <div key={evidence.id} className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                                <div className="flex items-center gap-4">
-                                                                    <div className={`p-2 rounded-xl ${evidence.status === 'pass' ? 'bg-emerald-100 text-emerald-600' : evidence.status === 'fail' ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'}`}>
-                                                                        {evidence.status === 'pass' ? <CheckCircle2 className="h-5 w-5" /> : evidence.status === 'fail' ? <XCircle className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+                                                <div className="space-y-3 mb-6">
+                                                    {selectedControl.automatedEvidence && selectedControl.automatedEvidence.length > 0 ? (
+                                                        selectedControl.automatedEvidence.map(evidence => {
+                                                            const provider = providers.find(p => p.id === evidence.providerId) || { name: evidence.providerId, icon: 'default' };
+                                                            return (
+                                                                <div key={evidence.id} className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div className={`p-2 rounded-xl ${evidence.status === 'pass' ? 'bg-emerald-100 text-emerald-600' : evidence.status === 'fail' ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'}`}>
+                                                                            {evidence.status === 'pass' ? <CheckCircle2 className="h-5 w-5" /> : evidence.status === 'fail' ? <XCircle className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+                                                                        </div>
+                                                                        <div>
+                                                                            <div className="font-bold text-slate-900 dark:text-white text-sm">{provider.name}</div>
+                                                                            <div className="text-xs text-slate-600 font-medium">{evidence.details}</div>
+                                                                            <div className="text-[10px] text-slate-500 mt-1">Dernière synchro: {new Date(evidence.lastSync).toLocaleString()}</div>
+                                                                        </div>
                                                                     </div>
-                                                                    <div>
-                                                                        <div className="font-bold text-slate-900 dark:text-white text-sm">{provider.name}</div>
-                                                                        <div className="text-xs text-slate-600 font-medium">{evidence.details}</div>
-                                                                        <div className="text-[10px] text-slate-500 mt-1">Dernière synchro: {new Date(evidence.lastSync).toLocaleString()}</div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex items-center gap-2">
-                                                                    <button
-                                                                        onClick={() => handleSyncEvidence(evidence)}
-                                                                        disabled={syncingEvidenceId === evidence.id}
-                                                                        className="p-2 text-slate-500 hover:text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-all"
-                                                                        title="Synchroniser maintenant"
-                                                                    >
-                                                                        {syncingEvidenceId === evidence.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                                                                    </button>
-                                                                    {canEdit && (
+                                                                    <div className="flex items-center gap-2">
                                                                         <button
-                                                                            onClick={() => handleUnlinkAutomatedEvidence(evidence.id)}
-                                                                            className="p-2 text-slate-500 hover:text-red-500 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-all disabled:opacity-50"
-                                                                            title="Délier"
-                                                                            disabled={updating}
+                                                                            onClick={() => handleSyncEvidence(evidence)}
+                                                                            disabled={syncingEvidenceId === evidence.id}
+                                                                            className="p-2 text-slate-500 hover:text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-all"
+                                                                            title="Synchroniser maintenant"
                                                                         >
-                                                                            <X className="h-4 w-4" />
+                                                                            {syncingEvidenceId === evidence.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                                                                         </button>
-                                                                    )}
+                                                                        {canEdit && (
+                                                                            <button
+                                                                                onClick={() => handleUnlinkAutomatedEvidence(evidence.id)}
+                                                                                className="p-2 text-slate-500 hover:text-red-500 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-all disabled:opacity-50"
+                                                                                title="Délier"
+                                                                                disabled={updating}
+                                                                            >
+                                                                                <X className="h-4 w-4" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        );
-                                                    })
-                                                ) : (
-                                                    <p className="text-xs text-slate-500 italic text-center py-4 border border-dashed border-gray-200 dark:border-slate-700 rounded-xl">Aucune preuve automatisée liée.</p>
-                                                )}
-                                            </div>
-
-                                            {canEdit && (
-                                                <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-200/50 dark:border-white/5">
-                                                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3">Ajouter une source</h4>
-                                                    <div className="flex flex-col sm:flex-row gap-3">
-                                                        <select
-                                                            value={selectedProviderId}
-                                                            onChange={(e) => setSelectedProviderId(e.target.value)}
-                                                            className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-500"
-                                                        >
-                                                            <option value="">Sélectionner un fournisseur...</option>
-                                                            {providers.map(p => (
-                                                                <option key={p.id} value={p.id}>{p.name}</option>
-                                                            ))}
-                                                        </select>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="ID de la ressource (ex: bucket-name)"
-                                                            value={selectedResourceId}
-                                                            onChange={(e) => setSelectedResourceId(e.target.value)}
-                                                            className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-500"
-                                                        />
-                                                        <button
-                                                            onClick={handleLinkAutomatedEvidence}
-                                                            disabled={!selectedProviderId || !selectedResourceId || isLinkingEvidence}
-                                                            className="bg-brand-600 text-white font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center min-w-[100px]"
-                                                        >
-                                                            {isLinkingEvidence ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Lier'}
-                                                        </button>
-                                                    </div>
-                                                    {providers.length === 0 && !loadingProviders && (
-                                                        <p className="text-[10px] text-amber-500 mt-2 flex items-center">
-                                                            <AlertTriangle className="h-3 w-3 mr-1" />
-                                                            Aucune intégration connectée. Allez dans "Intégrations" pour en configurer.
-                                                        </p>
+                                                            );
+                                                        })
+                                                    ) : (
+                                                        <p className="text-xs text-slate-500 italic text-center py-4 border border-dashed border-gray-200 dark:border-slate-700 rounded-xl">Aucune preuve automatisée liée.</p>
                                                     )}
                                                 </div>
-                                            )}
+
+                                                {canEdit && (
+                                                    <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-200/50 dark:border-white/5">
+                                                        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3">Ajouter une source</h4>
+                                                        <div className="flex flex-col sm:flex-row gap-3">
+                                                            <select
+                                                                value={selectedProviderId}
+                                                                onChange={(e) => setSelectedProviderId(e.target.value)}
+                                                                className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-500"
+                                                            >
+                                                                <option value="">Sélectionner un fournisseur...</option>
+                                                                {providers.map(p => (
+                                                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                                                ))}
+                                                            </select>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="ID de la ressource (ex: bucket-name)"
+                                                                value={selectedResourceId}
+                                                                onChange={(e) => setSelectedResourceId(e.target.value)}
+                                                                className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-500"
+                                                            />
+                                                            <button
+                                                                onClick={handleLinkAutomatedEvidence}
+                                                                disabled={!selectedProviderId || !selectedResourceId || isLinkingEvidence}
+                                                                className="bg-brand-600 text-white font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center min-w-[100px]"
+                                                            >
+                                                                {isLinkingEvidence ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Lier'}
+                                                            </button>
+                                                        </div>
+                                                        {providers.length === 0 && !loadingProviders && (
+                                                            <p className="text-[10px] text-amber-500 mt-2 flex items-center">
+                                                                <AlertTriangle className="h-3 w-3 mr-1" />
+                                                                Aucune intégration connectée. Allez dans "Intégrations" pour en configurer.
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
 
-                                        <div className="glass-panel rounded-[2rem] border border-white/60 dark:border-white/10 p-6 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                            <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 flex items-center tracking-widest"><Link className="h-3.5 w-3.5 mr-2" /> Preuves Documentaires</h3>
-                                            <div className="space-y-2 mb-4">
-                                                {selectedControl.evidenceIds && selectedControl.evidenceIds.length > 0 ? selectedControl.evidenceIds.map(docId => {
-                                                    const docObj = documents.find(d => d.id === docId);
-                                                    return docObj ? (
-                                                        <div key={docId} className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm group transition-all hover:bg-white dark:hover:bg-white/5">
-                                                            <div className="flex items-center overflow-hidden">
-                                                                <div className="p-2 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-lg mr-3 text-blue-500"><File className="h-4 w-4" /></div>
-                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[200px]">{docObj.title}</span>
+                                        <div className="glass-panel rounded-[2rem] border border-white/60 dark:border-white/10 p-6 shadow-sm transition-all duration-300 hover:shadow-apple relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                            <div className="relative z-10">
+                                                <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 flex items-center tracking-widest"><Link className="h-3.5 w-3.5 mr-2" /> Preuves Documentaires</h3>
+                                                <div className="space-y-2 mb-4">
+                                                    {selectedControl.evidenceIds && selectedControl.evidenceIds.length > 0 ? selectedControl.evidenceIds.map(docId => {
+                                                        const docObj = documents.find(d => d.id === docId);
+                                                        return docObj ? (
+                                                            <div key={docId} className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm group transition-all hover:bg-white dark:hover:bg-white/5">
+                                                                <div className="flex items-center overflow-hidden">
+                                                                    <div className="p-2 bg-blue-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-lg mr-3 text-blue-500"><File className="h-4 w-4" /></div>
+                                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[200px]">{docObj.title}</span>
+                                                                </div>
+                                                                <div className="flex gap-2 items-center">
+                                                                    {docObj.nextReviewDate && new Date(docObj.nextReviewDate) < new Date() && (
+                                                                        <CustomTooltip content="Document expiré / à revoir" position="top">
+                                                                            <div className="text-red-500"><AlertTriangle className="h-4 w-4" /></div>
+                                                                        </CustomTooltip>
+                                                                    )}
+                                                                    {docObj.url && <a href={docObj.url} target="_blank" rel="noreferrer" className="p-2 text-slate-500 hover:text-brand-600 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm"><ExternalLink className="h-3.5 w-3.5" /></a>}
+                                                                    {canEdit && <button onClick={() => initiateUnlinkDocument(docId)} disabled={updating} className="p-2 text-slate-500 hover:text-red-500 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
+                                                                </div>
                                                             </div>
-                                                            <div className="flex gap-2 items-center">
-                                                                {docObj.nextReviewDate && new Date(docObj.nextReviewDate) < new Date() && (
-                                                                    <CustomTooltip content="Document expiré / à revoir" position="top">
-                                                                        <div className="text-red-500"><AlertTriangle className="h-4 w-4" /></div>
-                                                                    </CustomTooltip>
-                                                                )}
-                                                                {docObj.url && <a href={docObj.url} target="_blank" rel="noreferrer" className="p-2 text-slate-500 hover:text-brand-600 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm"><ExternalLink className="h-3.5 w-3.5" /></a>}
-                                                                {canEdit && <button onClick={() => initiateUnlinkDocument(docId)} disabled={updating} className="p-2 text-slate-500 hover:text-red-500 bg-white dark:bg-slate-800 rounded-lg transition-colors shadow-sm disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
-                                                            </div>
-                                                        </div>
-                                                    ) : null;
-                                                }) : <p className="text-xs text-slate-500 italic text-center py-4 border border-dashed border-gray-200 dark:border-slate-700 rounded-xl">Aucune preuve liée.</p>}
-                                            </div>
-                                            {canEdit && (
-                                                <div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/5">
-                                                    <label className="text-[10px] font-bold text-slate-500 mb-3 block uppercase tracking-wide">Ajouter une preuve existante</label>
-                                                    <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-1 bg-gray-50/50 dark:bg-black/20 p-2 rounded-2xl border border-gray-100 dark:border-white/5">
-                                                        {documents.filter(d => !selectedControl.evidenceIds?.includes(d.id)).map(d => (
-                                                            <button key={d.id} onClick={() => linkDocument(d.id)} disabled={updating} className="w-full text-left text-xs p-2.5 hover:bg-white dark:hover:bg-white/10 rounded-xl flex items-center text-slate-600 dark:text-slate-300 transition-all font-medium disabled:opacity-50">
-                                                                {updating ? <Loader2 className="h-3 w-3 mr-2 animate-spin text-brand-500" /> : <Plus className="h-3 w-3 mr-2 text-brand-500" />} {d.title}
-                                                            </button>
-                                                        ))}
-                                                    </div>
+                                                        ) : null;
+                                                    }) : <p className="text-xs text-slate-500 italic text-center py-4 border border-dashed border-gray-200 dark:border-slate-700 rounded-xl">Aucune preuve liée.</p>}
                                                 </div>
-                                            )}
+                                                {canEdit && (
+                                                    <div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/5">
+                                                        <label className="text-[10px] font-bold text-slate-500 mb-3 block uppercase tracking-wide">Ajouter une preuve existante</label>
+                                                        <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-1 bg-gray-50/50 dark:bg-black/20 p-2 rounded-2xl border border-gray-100 dark:border-white/5">
+                                                            {documents.filter(d => !selectedControl.evidenceIds?.includes(d.id)).map(d => (
+                                                                <button key={d.id} onClick={() => linkDocument(d.id)} disabled={updating} className="w-full text-left text-xs p-2.5 hover:bg-white dark:hover:bg-white/10 rounded-xl flex items-center text-slate-600 dark:text-slate-300 transition-all font-medium disabled:opacity-50">
+                                                                    {updating ? <Loader2 className="h-3 w-3 mr-2 animate-spin text-brand-500" /> : <Plus className="h-3 w-3 mr-2 text-brand-500" />} {d.title}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 )
@@ -1738,141 +1764,153 @@ export const Compliance: React.FC = () => {
                             {inspectorTab === 'linkedItems' && (
                                 <div className="space-y-6 max-w-3xl mx-auto">
                                     {/* Linked Risks */}
-                                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                        <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
-                                            <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><ShieldAlert className="h-3.5 w-3.5 mr-2" /> Risques Atténués</h3>
-                                            <div className="flex gap-2">
-                                                {canEditResource(user, 'Risk') && (
-                                                    <CustomSelect
-                                                        options={risks.filter(r => !r.mitigationControlIds?.includes(selectedControl.id)).map(r => ({ value: r.id, label: r.threat }))}
-                                                        value=""
-                                                        onChange={(val) => handleLinkRisk(val as string)}
-                                                        placeholder="Lier existant..."
-                                                        className="w-40"
-                                                        disabled={updating}
-                                                    />
-                                                )}
-                                                {hasPermission(user, 'Risk', 'create') && (
-                                                    <button onClick={() => { setModalInitialData({ mitigationControlIds: [selectedControl.id] }); setCreationMode('risk'); }} className="p-1.5 bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors">
-                                                        <Plus className="h-4 w-4" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            {risks.filter(r => r.mitigationControlIds?.includes(selectedControl.id)).map(risk => (
-                                                <div key={risk.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                                                    <div>
-                                                        <div className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</div>
-                                                        <div className="text-xs text-slate-600">Score: {risk.score}</div>
-                                                    </div>
-                                                    {canEdit && (
-                                                        <button onClick={() => handleUnlinkRisk(risk.id)} disabled={updating} className="p-1 px-2 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded transition-colors">Délier</button>
+                                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                        <div className="relative z-10">
+                                            <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
+                                                <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><ShieldAlert className="h-3.5 w-3.5 mr-2" /> Risques Atténués</h3>
+                                                <div className="flex gap-2">
+                                                    {canEditResource(user, 'Risk') && (
+                                                        <CustomSelect
+                                                            options={risks.filter(r => !r.mitigationControlIds?.includes(selectedControl.id)).map(r => ({ value: r.id, label: r.threat }))}
+                                                            value=""
+                                                            onChange={(val) => handleLinkRisk(val as string)}
+                                                            placeholder="Lier existant..."
+                                                            className="w-40"
+                                                            disabled={updating}
+                                                        />
+                                                    )}
+                                                    {hasPermission(user, 'Risk', 'create') && (
+                                                        <button onClick={() => { setModalInitialData({ mitigationControlIds: [selectedControl.id] }); setCreationMode('risk'); }} className="p-1.5 bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors">
+                                                            <Plus className="h-4 w-4" />
+                                                        </button>
                                                     )}
                                                 </div>
-                                            ))}
-                                            {risks.filter(r => r.mitigationControlIds?.includes(selectedControl.id)).length === 0 && (
-                                                <p className="text-xs text-slate-500 italic text-center py-4">Aucun risque lié via un plan de traitement.</p>
-                                            )}
+                                            </div>
+                                            <div className="space-y-2">
+                                                {risks.filter(r => r.mitigationControlIds?.includes(selectedControl.id)).map(risk => (
+                                                    <div key={risk.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                        <div>
+                                                            <div className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</div>
+                                                            <div className="text-xs text-slate-600">Score: {risk.score}</div>
+                                                        </div>
+                                                        {canEdit && (
+                                                            <button onClick={() => handleUnlinkRisk(risk.id)} disabled={updating} className="p-1 px-2 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded transition-colors">Délier</button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                                {risks.filter(r => r.mitigationControlIds?.includes(selectedControl.id)).length === 0 && (
+                                                    <p className="text-xs text-slate-500 italic text-center py-4">Aucun risque lié via un plan de traitement.</p>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
 
                                     {/* Linked Projects (New) */}
-                                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                        <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
-                                            <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets de Mise en Conformité</h3>
-                                        </div>
-                                        <div className="space-y-2">
-                                            {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).map(proj => (
-                                                <div key={proj.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 cursor-pointer hover:bg-slate-100 dark:hover:bg-white/10 transition-colors" onClick={() => navigate('/projects', { state: { voxelSelectedId: proj.id, fromVoxel: true } })}>
-                                                    <div>
-                                                        <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                                            {proj.name}
-                                                            <Badge status={proj.status === 'Terminé' ? 'success' : proj.status === 'En cours' ? 'info' : 'neutral'} size="sm">{proj.status}</Badge>
+                                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                        <div className="relative z-10">
+                                            <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
+                                                <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets de Mise en Conformité</h3>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).map(proj => (
+                                                    <div key={proj.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 cursor-pointer hover:bg-slate-100 dark:hover:bg-white/10 transition-colors" onClick={() => navigate('/projects', { state: { voxelSelectedId: proj.id, fromVoxel: true } })}>
+                                                        <div>
+                                                            <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                                                {proj.name}
+                                                                <Badge status={proj.status === 'Terminé' ? 'success' : proj.status === 'En cours' ? 'info' : 'neutral'} size="sm">{proj.status}</Badge>
+                                                            </div>
+                                                            <div className="text-xs text-slate-600">Échéance: {proj.dueDate ? new Date(proj.dueDate).toLocaleDateString() : '-'}</div>
                                                         </div>
-                                                        <div className="text-xs text-slate-600">Échéance: {proj.dueDate ? new Date(proj.dueDate).toLocaleDateString() : '-'}</div>
                                                     </div>
-                                                </div>
-                                            ))}
-                                            {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).length === 0 && (
-                                                <p className="text-xs text-slate-500 italic text-center py-4">Aucun projet lié.</p>
-                                            )}
+                                                ))}
+                                                {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).length === 0 && (
+                                                    <p className="text-xs text-slate-500 italic text-center py-4">Aucun projet lié.</p>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
 
                                     {/* Linked Projects */}
-                                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                        <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
-                                            <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets Liés</h3>
-                                            <div className="flex gap-2">
-                                                {canEditResource(user, 'Project') && (
-                                                    <CustomSelect
-                                                        options={projects.filter(p => !p.relatedControlIds?.includes(selectedControl.id)).map(p => ({ value: p.id, label: p.name }))}
-                                                        value=""
-                                                        onChange={(val) => handleLinkProject(val as string)}
-                                                        placeholder="Lier existant..."
-                                                        className="w-40"
-                                                        disabled={updating}
-                                                    />
-                                                )}
-                                                {hasPermission(user, 'Project', 'create') && (
-                                                    <button onClick={() => { setModalInitialData({ relatedControlIds: [selectedControl.id] }); setCreationMode('project'); }} className="p-1.5 bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors">
-                                                        <Plus className="h-4 w-4" />
-                                                    </button>
+                                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                        <div className="relative z-10">
+                                            <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
+                                                <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><FolderKanban className="h-3.5 w-3.5 mr-2" /> Projets Liés</h3>
+                                                <div className="flex gap-2">
+                                                    {canEditResource(user, 'Project') && (
+                                                        <CustomSelect
+                                                            options={projects.filter(p => !p.relatedControlIds?.includes(selectedControl.id)).map(p => ({ value: p.id, label: p.name }))}
+                                                            value=""
+                                                            onChange={(val) => handleLinkProject(val as string)}
+                                                            placeholder="Lier existant..."
+                                                            className="w-40"
+                                                            disabled={updating}
+                                                        />
+                                                    )}
+                                                    {hasPermission(user, 'Project', 'create') && (
+                                                        <button onClick={() => { setModalInitialData({ relatedControlIds: [selectedControl.id] }); setCreationMode('project'); }} className="p-1.5 bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors">
+                                                            <Plus className="h-4 w-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).map(project => (
+                                                    <div key={project.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                        <div>
+                                                            <div className="font-bold text-sm text-slate-700 dark:text-slate-200">{project.name}</div>
+                                                            <div className="text-xs text-slate-600 mt-0.5">{project.description?.substring(0, 50)}...</div>
+                                                        </div>
+                                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${project.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'}`}>{project.status}</span>
+                                                    </div>
+                                                ))}
+                                                {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).length === 0 && (
+                                                    <p className="text-sm text-slate-500 italic">Aucun projet lié.</p>
                                                 )}
                                             </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).map(project => (
-                                                <div key={project.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                                                    <div>
-                                                        <div className="font-bold text-sm text-slate-700 dark:text-slate-200">{project.name}</div>
-                                                        <div className="text-xs text-slate-600 mt-0.5">{project.description?.substring(0, 50)}...</div>
-                                                    </div>
-                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${project.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'}`}>{project.status}</span>
-                                                </div>
-                                            ))}
-                                            {projects.filter(p => p.relatedControlIds?.includes(selectedControl.id)).length === 0 && (
-                                                <p className="text-sm text-slate-500 italic">Aucun projet lié.</p>
-                                            )}
                                         </div>
                                     </div>
 
                                     {/* Linked Audits */}
-                                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                        <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
-                                            <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> Audits Liés</h3>
-                                            <div className="flex gap-2">
-                                                {canEditResource(user, 'Audit') && (
-                                                    <CustomSelect
-                                                        options={audits.filter(a => !a.relatedControlIds?.includes(selectedControl.id)).map(a => ({ value: a.id, label: a.name }))}
-                                                        value=""
-                                                        onChange={(val) => handleLinkAudit(val as string)}
-                                                        placeholder="Lier existant..."
-                                                        className="w-40"
-                                                        disabled={updating}
-                                                    />
-                                                )}
-                                                {hasPermission(user, 'Audit', 'create') && (
-                                                    <button onClick={() => { setModalInitialData({ relatedControlIds: [selectedControl.id] }); setCreationMode('audit'); }} className="p-1.5 bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors">
-                                                        <Plus className="h-4 w-4" />
-                                                    </button>
+                                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                        <div className="relative z-10">
+                                            <div className="flex flex-wrap items-center justify-between mb-4 gap-y-2">
+                                                <h3 className="text-xs font-bold uppercase text-slate-500 tracking-widest flex items-center"><FileSpreadsheet className="h-3.5 w-3.5 mr-2" /> Audits Liés</h3>
+                                                <div className="flex gap-2">
+                                                    {canEditResource(user, 'Audit') && (
+                                                        <CustomSelect
+                                                            options={audits.filter(a => !a.relatedControlIds?.includes(selectedControl.id)).map(a => ({ value: a.id, label: a.name }))}
+                                                            value=""
+                                                            onChange={(val) => handleLinkAudit(val as string)}
+                                                            placeholder="Lier existant..."
+                                                            className="w-40"
+                                                            disabled={updating}
+                                                        />
+                                                    )}
+                                                    {hasPermission(user, 'Audit', 'create') && (
+                                                        <button onClick={() => { setModalInitialData({ relatedControlIds: [selectedControl.id] }); setCreationMode('audit'); }} className="p-1.5 bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors">
+                                                            <Plus className="h-4 w-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {audits.filter(a => a.relatedControlIds?.includes(selectedControl.id)).map(audit => (
+                                                    <div key={audit.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                                        <div>
+                                                            <div className="font-bold text-sm text-slate-700 dark:text-slate-200">{audit.name}</div>
+                                                            <div className="text-xs text-slate-600 mt-0.5">{new Date(audit.dateScheduled).toLocaleDateString()}</div>
+                                                        </div>
+                                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${audit.status === 'Terminé' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{audit.status}</span>
+                                                    </div>
+                                                ))}
+                                                {audits.filter(a => a.relatedControlIds?.includes(selectedControl.id)).length === 0 && (
+                                                    <p className="text-sm text-slate-500 italic">Aucun audit lié.</p>
                                                 )}
                                             </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            {audits.filter(a => a.relatedControlIds?.includes(selectedControl.id)).map(audit => (
-                                                <div key={audit.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                                                    <div>
-                                                        <div className="font-bold text-sm text-slate-700 dark:text-slate-200">{audit.name}</div>
-                                                        <div className="text-xs text-slate-600 mt-0.5">{new Date(audit.dateScheduled).toLocaleDateString()}</div>
-                                                    </div>
-                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${audit.status === 'Terminé' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{audit.status}</span>
-                                                </div>
-                                            ))}
-                                            {audits.filter(a => a.relatedControlIds?.includes(selectedControl.id)).length === 0 && (
-                                                <p className="text-sm text-slate-500 italic">Aucun audit lié.</p>
-                                            )}
                                         </div>
                                     </div>
                                 </div>

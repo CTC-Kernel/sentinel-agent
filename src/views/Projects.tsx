@@ -24,6 +24,7 @@ import { CardSkeleton } from '../components/ui/Skeleton';
 import { DataTable } from '../components/ui/DataTable';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { ColumnDef } from '@tanstack/react-table';
 import { EmptyState } from '../components/ui/EmptyState';
 import { generateICS, downloadICS } from '../utils/calendar';
@@ -907,19 +908,16 @@ export const Projects: React.FC = () => {
                 </div>
             )
         }
-    ], [canEdit, openEditDrawer, initiateDelete]);
+    ], [canEdit, openEditDrawer, initiateDelete, user]);
 
     return (
         <motion.div
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8 pb-10 relative w-full max-w-[1920px] mx-auto"
+            className="p-4 md:p-8 max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen"
         >
-            <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-500/5 rounded-full blur-[120px] animate-blob" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px] animate-blob animation-delay-2000" />
-            </div>
+            <MasterpieceBackground />
             <Helmet>
                 <title>Gestion de Projets - Sentinel GRC</title>
                 <meta name="description" content="Suivez vos projets de mise en conformité et d'amélioration continue." />

@@ -6,6 +6,7 @@ import { Search, ShieldCheck, Cloud, Code, LayoutGrid, Key } from 'lucide-react'
 import { toast } from 'sonner';
 
 import { useStore } from '../store';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 export const Integrations: React.FC = () => {
     const { user, demoMode } = useStore();
@@ -121,7 +122,8 @@ export const Integrations: React.FC = () => {
     });
 
     return (
-        <div className="space-y-8 animate-fade-in px-4 sm:px-6 lg:px-8 w-full pb-10 relative min-w-0">
+        <div className="space-y-8 animate-fade-in px-4 sm:px-6 lg:px-8 w-full pb-10 relative min-w-0 min-h-screen">
+            <MasterpieceBackground />
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0 mb-6">
                 <div className="min-w-0">

@@ -1,83 +1,12 @@
 import React, { useState } from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragOverlay, defaultDropAnimationSideEffects, DropAnimation } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, defaultDropAnimationSideEffects, DropAnimation } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
 import { WidgetLayout } from '../../../hooks/useDashboardPreferences';
 import { WIDGET_REGISTRY } from './WidgetRegistry';
-import { GripVertical, X } from 'lucide-react';
-import { Tooltip } from '../../ui/Tooltip';
 
 
-// --- Sortable Item Component ---
-interface SortableWidgetProps {
-    widget: WidgetLayout;
-    isEditing: boolean;
-    children: React.ReactNode;
-    onRemove?: (id: string) => void;
-}
+import { SortableWidget } from './SortableWidget';
 
-const SortableWidget = ({ widget, isEditing, children, onRemove }: SortableWidgetProps) => {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging
-    } = useSortable({ id: widget.id, disabled: !isEditing });
-
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        zIndex: isDragging ? 50 : 'auto',
-        opacity: isDragging ? 0 : 1, // Completely hide original to show placeholder
-    };
-
-    const colSpanClass = widget.colSpan === 2 ? 'md:col-span-2' : widget.colSpan === 3 ? 'md:col-span-3' : 'md:col-span-1';
-
-    return (
-        <div
-            ref={setNodeRef}
-            style={style}
-            className={`relative group/widget h-full ${colSpanClass} ${isEditing ? 'touch-none' : ''}`}
-        >
-            {/* Widget Content or Placeholder */}
-            {isDragging ? (
-                <div className="h-full w-full rounded-[2rem] border-2 border-dashed border-brand-300 dark:border-brand-700/50 bg-brand-50/50 dark:bg-brand-900/10 backdrop-blur-sm flex items-center justify-center animate-pulse">
-                    <span className="text-sm font-semibold text-brand-500/70">Déplacer ici</span>
-                </div>
-            ) : (
-                <div className={`h-full ring-offset-2 ring-offset-background transition-all duration-200 ${isEditing ? 'ring-2 ring-slate-200 dark:ring-slate-700 rounded-[2rem] hover:ring-brand-400 cursor-grab active:cursor-grabbing' : ''}`}>
-                    {children}
-                </div>
-            )}
-
-            {/* Edit Overlays */}
-            {isEditing && (
-                <>
-                    <div
-                        {...attributes}
-                        {...listeners}
-                        className="absolute top-4 left-1/2 -translate-x-1/2 z-20 cursor-grab active:cursor-grabbing p-2 bg-white dark:bg-slate-800 rounded-full shadow-lg border border-slate-200 dark:border-slate-700 hover:scale-110 transition-transform"
-                    >
-                        <GripVertical className="w-5 h-5 text-slate-500" />
-                    </div>
-
-                    {onRemove && (
-                        <Tooltip content="Supprimer ce widget" position="top">
-                            <button
-                                onClick={(e) => { e.stopPropagation(); onRemove(widget.id); }}
-                                className="absolute -top-2 -right-2 z-20 p-1.5 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-                        </Tooltip>
-                    )}
-                </>
-            )}
-        </div>
-    );
-};
 
 // --- Main Grid Component ---
 
@@ -101,8 +30,8 @@ export const ConfigurableDashboardGrid: React.FC<ConfigurableDashboardGridProps>
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
 
-    const handleDragStart = (event: any) => {
-        setActiveId(event.active.id);
+    const handleDragStart = (event: DragStartEvent) => {
+        setActiveId(event.active.id as string);
     };
 
     const handleDragEnd = (event: DragEndEvent) => {

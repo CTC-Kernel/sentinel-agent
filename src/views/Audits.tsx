@@ -37,6 +37,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { DataTable } from '../components/ui/DataTable';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { sendEmail } from '../services/emailService';
 import { getAuditReminderTemplate } from '../services/emailTemplates';
 import { PdfService } from '../services/PdfService';
@@ -1296,12 +1297,10 @@ export const Audits: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8 pb-10 relative w-full max-w-[1920px] mx-auto"
+            className="p-4 md:p-8 max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen"
         >
-            <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-500/5 rounded-full blur-[120px] animate-blob" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px] animate-blob animation-delay-2000" />
-            </div>
+            <MasterpieceBackground />
+
             <Helmet>
                 <title>Gestion des Audits - Sentinel GRC</title>
                 <meta name="description" content="Planifiez et réalisez vos audits internes et externes ISO 27001." />
@@ -1409,16 +1408,19 @@ export const Audits: React.FC = () => {
             </motion.div>
 
             {viewMode === 'list' ? (
-                <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
-                    <DataTable
-                        columns={columns}
-                        data={filteredAudits}
-                        selectable={true}
-                        onBulkDelete={handleBulkDelete}
-                        onRowClick={handleOpenAudit}
-                        searchable={false}
-                        loading={loading}
-                    />
+                <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                    <div className="relative z-10">
+                        <DataTable
+                            columns={columns}
+                            data={filteredAudits}
+                            selectable={true}
+                            onBulkDelete={handleBulkDelete}
+                            onRowClick={handleOpenAudit}
+                            searchable={false}
+                            loading={loading}
+                        />
+                    </div>
                 </motion.div>
             ) : (
                 <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1436,40 +1438,43 @@ export const Audits: React.FC = () => {
                         </div>
                     ) : (
                         filteredAudits.map(audit => (
-                            <div key={audit.id} onClick={() => handleOpenAudit(audit)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover cursor-pointer group border border-white/50 dark:border-white/5">
-                                <div className="flex justify-between items-start mb-5">
-                                    <div className="p-3 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
-                                        <Activity className="h-6 w-6" />
+                            <div key={audit.id} onClick={() => handleOpenAudit(audit)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover cursor-pointer group border border-white/50 dark:border-white/5 relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                <div className="relative z-10">
+                                    <div className="flex justify-between items-start mb-5">
+                                        <div className="p-3 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
+                                            <Activity className="h-6 w-6" />
+                                        </div>
+                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(audit.status)}`}>
+                                            {audit.status}
+                                        </span>
                                     </div>
-                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(audit.status)}`}>
-                                        {audit.status}
-                                    </span>
-                                </div>
 
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">{audit.name}</h3>
-                                <div className="flex items-center text-sm text-slate-600 dark:text-slate-400 mb-4">
-                                    <User className="h-3.5 w-3.5 mr-2" /> {audit.auditor}
-                                </div>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">{audit.name}</h3>
+                                    <div className="flex items-center text-sm text-slate-600 dark:text-slate-400 mb-4">
+                                        <User className="h-3.5 w-3.5 mr-2" /> {audit.auditor}
+                                    </div>
 
-                                <div className="flex justify-between items-center pt-4 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
-                                    <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-400">
-                                        <CalendarDays className="h-3.5 w-3.5 mr-1.5" /> {audit.dateScheduled ? new Date(audit.dateScheduled).toLocaleDateString() : 'Non planifié'}
+                                    <div className="flex justify-between items-center pt-4 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
+                                        <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-400">
+                                            <CalendarDays className="h-3.5 w-3.5 mr-1.5" /> {audit.dateScheduled ? new Date(audit.dateScheduled).toLocaleDateString() : 'Non planifié'}
+                                        </div>
+                                        <div className="flex items-center text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">
+                                            <AlertOctagon className="h-3.5 w-3.5 mr-1.5" /> {audit.findingsCount || 0} écarts
+                                        </div>
                                     </div>
-                                    <div className="flex items-center text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">
-                                        <AlertOctagon className="h-3.5 w-3.5 mr-1.5" /> {audit.findingsCount || 0} écarts
-                                    </div>
-                                </div>
 
-                                {canEdit && (
-                                    <div className="absolute top-6 right-6 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={(e) => { e.stopPropagation(); openEditDrawer(audit); }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
-                                            <Edit className="h-4 w-4" />
-                                        </button>
-                                        <button onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(audit.id, audit.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                )}
+                                    {canEdit && (
+                                        <div className="absolute top-6 right-6 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={(e) => { e.stopPropagation(); openEditDrawer(audit); }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
+                                                <Edit className="h-4 w-4" />
+                                            </button>
+                                            <button onClick={(e) => { e.stopPropagation(); initiateDeleteAudit(audit.id, audit.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         ))
                     )}

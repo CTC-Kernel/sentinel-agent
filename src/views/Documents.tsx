@@ -35,6 +35,7 @@ import { EncryptionService } from '../services/encryptionService';
 import { PDFDocument, rgb, degrees, StandardFonts } from 'pdf-lib';
 import CryptoJS from 'crypto-js';
 import SignatureCanvas from 'react-signature-canvas';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 
 export const Documents: React.FC = () => {
@@ -658,7 +659,8 @@ export const Documents: React.FC = () => {
     }
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative w-full max-w-[1920px] mx-auto">
+        <div className="p-4 md:p-8 max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen">
+            <MasterpieceBackground />
             <Helmet>
                 <title>Gestion Documentaire - Sentinel GRC</title>
                 <meta name="description" content="Centralisez et gérez le cycle de vie de vos politiques et procédures de sécurité." />

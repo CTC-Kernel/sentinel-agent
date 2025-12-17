@@ -10,20 +10,32 @@ import { WidgetId, WIDGET_REGISTRY } from '../configurable/WidgetRegistry';
 
 
 // Props Interface
+import { Risk, StatsHistoryEntry } from '../../../types';
+
+interface DashboardStats {
+    totalRisks: number;
+    criticalRisks: number;
+    highRisks: number;
+    openIncidents: number;
+    complianceRate: number;
+    totalAssets: number;
+    activeProjects: number;
+}
+
 interface AdminDashboardViewProps {
-    stats: any;
+    stats: DashboardStats;
     loading: boolean;
     navigate: (path: string) => void;
     t: (key: string) => string;
     theme: string;
-    myActionItems: any;
-    historyData: any;
-    healthIssues: any;
-    topRisks: any;
-    recentActivity: any;
-    radarData: any;
-    isEditing?: boolean; // Passed from parent
-    onLayoutUpdate?: (layout: any[]) => void; // Callback to parent if needed
+    myActionItems: unknown[];
+    historyData: StatsHistoryEntry[];
+    healthIssues: unknown[];
+    topRisks: Risk[];
+    recentActivity: unknown[];
+    radarData: unknown[];
+    isEditing?: boolean;
+    onLayoutUpdate?: (layout: any[]) => void;
 }
 
 export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => {

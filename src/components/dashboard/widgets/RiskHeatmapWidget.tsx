@@ -47,38 +47,41 @@ export const RiskHeatmapWidget: React.FC<RiskHeatmapWidgetProps> = ({ navigate, 
     }
 
     return (
-        <div className="h-full flex flex-col p-4 bg-card rounded-2xl border border-border shadow-sm">
-            <h3 className="text-lg font-bold mb-4">{t('dashboard.riskHeatmap')}</h3>
+        <div className="glass-panel h-full flex flex-col p-4 border border-glass-border rounded-2xl shadow-sm relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+            <div className="relative z-10 h-full flex flex-col">
+                <h3 className="text-lg font-bold mb-4">{t('dashboard.riskHeatmap')}</h3>
 
-            <div className="flex-1 flex flex-col justify-center items-center relative gap-2">
-                <div className="grid grid-cols-[auto_1fr] gap-4 w-full h-full max-w-[400px] aspect-square">
-                    {/* Y Axis Label */}
-                    <div className="flex items-center justify-center -rotate-90 w-6">
-                        <span className="text-xs font-bold text-muted-foreground whitespace-nowrap">{t('risks.probability')}</span>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                        {/* Matrix */}
-                        <div className="flex-1 grid grid-cols-5 gap-1">
-                            {matrixData.map((row, rowIndex) => (
-                                <React.Fragment key={rowIndex}>
-                                    {row.map((count, colIndex) => (
-                                        <div
-                                            key={`${rowIndex}-${colIndex}`}
-                                            className={`rounded-md flex items-center justify-center text-xs font-bold transition-transform hover:scale-105 cursor-pointer ${getCellColor(rowIndex, colIndex)} ${count === 0 ? 'opacity-30' : 'shadow-sm'}`}
-                                            onClick={() => navigate && navigate('/risks')}
-                                            title={`Prob: ${5 - rowIndex}, Impact: ${colIndex + 1}`}
-                                        >
-                                            {count > 0 && count}
-                                        </div>
-                                    ))}
-                                </React.Fragment>
-                            ))}
+                <div className="flex-1 flex flex-col justify-center items-center relative gap-2">
+                    <div className="grid grid-cols-[auto_1fr] gap-4 w-full h-full max-w-[400px] aspect-square">
+                        {/* Y Axis Label */}
+                        <div className="flex items-center justify-center -rotate-90 w-6">
+                            <span className="text-xs font-bold text-muted-foreground whitespace-nowrap">{t('risks.probability')}</span>
                         </div>
 
-                        {/* X Axis Label */}
-                        <div className="h-6 flex items-center justify-center">
-                            <span className="text-xs font-bold text-muted-foreground">{t('risks.impact')}</span>
+                        <div className="flex flex-col gap-2">
+                            {/* Matrix */}
+                            <div className="flex-1 grid grid-cols-5 gap-1">
+                                {matrixData.map((row, rowIndex) => (
+                                    <React.Fragment key={rowIndex}>
+                                        {row.map((count, colIndex) => (
+                                            <div
+                                                key={`${rowIndex}-${colIndex}`}
+                                                className={`rounded-md flex items-center justify-center text-xs font-bold transition-transform hover:scale-105 cursor-pointer ${getCellColor(rowIndex, colIndex)} ${count === 0 ? 'opacity-30' : 'shadow-sm'}`}
+                                                onClick={() => navigate && navigate('/risks')}
+                                                title={`Prob: ${5 - rowIndex}, Impact: ${colIndex + 1}`}
+                                            >
+                                                {count > 0 && count}
+                                            </div>
+                                        ))}
+                                    </React.Fragment>
+                                ))}
+                            </div>
+
+                            {/* X Axis Label */}
+                            <div className="h-6 flex items-center justify-center">
+                                <span className="text-xs font-bold text-muted-foreground">{t('risks.impact')}</span>
+                            </div>
                         </div>
                     </div>
                 </div>

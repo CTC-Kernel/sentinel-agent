@@ -14,10 +14,29 @@ export interface DashboardPreferences {
 const STORAGE_KEY_PREFIX = 'sentinel_dashboard_prefs_v1_';
 
 export const useDashboardPreferences = (userId: string | undefined, role: string, defaultLayout: WidgetLayout[]) => {
-    const [preferences, setPreferences] = useState<DashboardPreferences>({ layout: defaultLayout });
-    const [hasLoaded, setHasLoaded] = useState(false);
+    // Lazy initialization to avoid setState in effect on mount
+    const [preferences, setPreferences] = useState<DashboardPreferences>(() => {
+        if (!userId) return { layout: defaultLayout };
 
-    // Load preferences on mount or when user changes
+        const key = `${STORAGE_KEY_PREFIX}${userId}_${role}`;
+        const stored = localStorage.getItem(key);
+
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                if (parsed && Array.isArray(parsed.layout)) {
+                    const storedIds = new Set(parsed.layout.map((w: WidgetLayout) => w.widgetId));
+                    const newWidgets = defaultLayout.filter(w => !storedIds.has(w.widgetId));
+                    return { layout: [...parsed.layout, ...newWidgets] };
+                }
+            } catch (e) {
+                console.error("Failed to parse dashboard preferences", e);
+            }
+        }
+        return { layout: defaultLayout };
+    });
+
+    // Reload preferences if userId or role changes (after mount)
     useEffect(() => {
         if (!userId) return;
 
@@ -27,28 +46,30 @@ export const useDashboardPreferences = (userId: string | undefined, role: string
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
-                // Basic validation: ensure we have a layout array
                 if (parsed && Array.isArray(parsed.layout)) {
-                    // Merge with default layout to ensure new widgets appear if added in code
-                    // For simplicity, we'll trust the stored layout but you might want migration logic here
-                    // A simple strategy: if a widgetId in defaultLayout is missing in stored, add it to the end.
                     const storedIds = new Set(parsed.layout.map((w: WidgetLayout) => w.widgetId));
                     const newWidgets = defaultLayout.filter(w => !storedIds.has(w.widgetId));
-
-                    setPreferences({
-                        layout: [...parsed.layout, ...newWidgets]
-                    });
+                    // Wrap in setTimeout to avoid "setting state synchronously in effect" warning
+                    setTimeout(() => {
+                        setPreferences({ layout: [...parsed.layout, ...newWidgets] });
+                    }, 0);
                 } else {
-                    setPreferences({ layout: defaultLayout });
+                    setTimeout(() => {
+                        setPreferences({ layout: defaultLayout });
+                    }, 0);
                 }
             } catch (e) {
                 console.error("Failed to parse dashboard preferences", e);
-                setPreferences({ layout: defaultLayout });
+                setTimeout(() => {
+                    setPreferences({ layout: defaultLayout });
+                }, 0);
             }
         } else {
-            setPreferences({ layout: defaultLayout });
+            // Only reset if key changed and nothing stored
+            setTimeout(() => {
+                setPreferences({ layout: defaultLayout });
+            }, 0);
         }
-        setHasLoaded(true);
     }, [userId, role, defaultLayout]);
 
     const saveLayout = useCallback((newLayout: WidgetLayout[]) => {

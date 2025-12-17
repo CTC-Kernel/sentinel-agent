@@ -35,6 +35,7 @@ import { SecurityEvent } from '../services/integrationService';
 import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
 export const Incidents: React.FC = () => {
@@ -342,10 +343,7 @@ export const Incidents: React.FC = () => {
             animate="visible"
             className="w-full max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-10 relative min-h-screen"
         >
-            <div className="fixed inset-0 pointer-events-none -z-10">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-500/10 rounded-full blur-[100px] animate-pulse-slow" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[100px] animate-pulse-slow delay-1000" />
-            </div>
+            <MasterpieceBackground />
             <SEO
                 title="Gestion des Incidents"
                 description="Détection, analyse et réponse aux incidents de sécurité (SOC/CSIRT)."
@@ -497,44 +495,59 @@ export const Incidents: React.FC = () => {
                                         <div className="p-4 sm:p-8 space-y-8">
                                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                                 <div className="lg:col-span-2 space-y-8">
-                                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                                                            <BookOpen className="h-5 w-5 text-brand-500" />
-                                                            Description
-                                                        </h3>
-                                                        {selectedIncident.description ? (
-                                                            <SafeHTML content={selectedIncident.description} />
-                                                        ) : (
-                                                            <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-                                                                Aucune description.
-                                                            </p>
-                                                        )}
+                                                    <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                        <div className="relative z-10">
+                                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                                                                <BookOpen className="h-5 w-5 text-brand-500" />
+                                                                Description
+                                                            </h3>
+                                                            {selectedIncident.description ? (
+                                                                <SafeHTML content={selectedIncident.description} />
+                                                            ) : (
+                                                                <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                                                                    Aucune description.
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
 
                                                     {/* Badges & Status */}
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                        <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
-                                                            <span className="text-xs text-slate-500 block mb-1">Sévérité</span>
-                                                            <Badge
-                                                                status={selectedIncident.severity === Criticality.CRITICAL ? 'error' : selectedIncident.severity === Criticality.HIGH ? 'warning' : 'info'}
-                                                                variant="soft"
-                                                            >
-                                                                {selectedIncident.severity}
-                                                            </Badge>
+                                                        <div className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                            <div className="relative z-10">
+                                                                <span className="text-xs text-slate-500 block mb-1">Sévérité</span>
+                                                                <Badge
+                                                                    status={selectedIncident.severity === Criticality.CRITICAL ? 'error' : selectedIncident.severity === Criticality.HIGH ? 'warning' : 'info'}
+                                                                    variant="soft"
+                                                                >
+                                                                    {selectedIncident.severity}
+                                                                </Badge>
+                                                            </div>
                                                         </div>
-                                                        <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
-                                                            <span className="text-xs text-slate-500 block mb-1">Statut</span>
-                                                            <Badge status={selectedIncident.status === 'Résolu' ? 'success' : 'info'} variant="outline">
-                                                                {selectedIncident.status}
-                                                            </Badge>
+                                                        <div className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                            <div className="relative z-10">
+                                                                <span className="text-xs text-slate-500 block mb-1">Statut</span>
+                                                                <Badge status={selectedIncident.status === 'Résolu' ? 'success' : 'info'} variant="outline">
+                                                                    {selectedIncident.status}
+                                                                </Badge>
+                                                            </div>
                                                         </div>
-                                                        <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
-                                                            <span className="text-xs text-slate-500 block mb-1">Impact Financier</span>
-                                                            <span className="font-bold text-slate-900 dark:text-white">{selectedIncident.financialImpact ? `${selectedIncident.financialImpact} €` : '-'}</span>
+                                                        <div className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                            <div className="relative z-10">
+                                                                <span className="text-xs text-slate-500 block mb-1">Impact Financier</span>
+                                                                <span className="font-bold text-slate-900 dark:text-white">{selectedIncident.financialImpact ? `${selectedIncident.financialImpact} €` : '-'}</span>
+                                                            </div>
                                                         </div>
-                                                        <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
-                                                            <span className="text-xs text-slate-500 block mb-1">Reporter</span>
-                                                            <span className="font-bold text-slate-900 dark:text-white">{selectedIncident.reporter}</span>
+                                                        <div className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                            <div className="relative z-10">
+                                                                <span className="text-xs text-slate-500 block mb-1">Reporter</span>
+                                                                <span className="font-bold text-slate-900 dark:text-white">{selectedIncident.reporter}</span>
+                                                            </div>
                                                         </div>
                                                     </div>
 
@@ -542,70 +555,79 @@ export const Incidents: React.FC = () => {
 
                                                     {/* Impact & Assets */}
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
-                                                                <Server className="h-4 w-4" />
-                                                                Actif Impacté
-                                                            </h3>
-                                                            {selectedIncident.affectedAssetId ? (
-                                                                <div className="space-y-2">
-                                                                    {(() => {
-                                                                        const asset = assets.find(a => a.id === selectedIncident.affectedAssetId);
-                                                                        return asset ? (
-                                                                            <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
-                                                                                <span className="font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
-                                                                                <Badge status="neutral" size="sm">{asset.type}</Badge>
-                                                                            </div>
-                                                                        ) : <p className="text-sm text-slate-600 italic">Actif introuvable</p>;
-                                                                    })()}
-                                                                </div>
-                                                            ) : (
-                                                                <p className="text-sm text-slate-600 italic">Aucun actif lié</p>
-                                                            )}
+                                                        <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                            <div className="relative z-10">
+                                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
+                                                                    <Server className="h-4 w-4" />
+                                                                    Actif Impacté
+                                                                </h3>
+                                                                {selectedIncident.affectedAssetId ? (
+                                                                    <div className="space-y-2">
+                                                                        {(() => {
+                                                                            const asset = assets.find(a => a.id === selectedIncident.affectedAssetId);
+                                                                            return asset ? (
+                                                                                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
+                                                                                    <span className="font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
+                                                                                    <Badge status="neutral" size="sm">{asset.type}</Badge>
+                                                                                </div>
+                                                                            ) : <p className="text-sm text-slate-600 italic">Actif introuvable</p>;
+                                                                        })()}
+                                                                    </div>
+                                                                ) : (
+                                                                    <p className="text-sm text-slate-600 italic">Aucun actif lié</p>
+                                                                )}
+                                                            </div>
                                                         </div>
 
-                                                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
-                                                                <Activity className="h-4 w-4" />
-                                                                Service Impacté
-                                                            </h3>
-                                                            {selectedIncident.affectedProcessId ? (
-                                                                <div className="space-y-2">
-                                                                    {(() => {
-                                                                        const proc = rawProcesses.find(p => p.id === selectedIncident.affectedProcessId);
-                                                                        return proc ? (
-                                                                            <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
-                                                                                <span className="font-medium text-slate-700 dark:text-slate-200">{proc.name}</span>
-                                                                            </div>
-                                                                        ) : <p className="text-sm text-slate-600 italic">Processus introuvable</p>;
-                                                                    })()}
-                                                                </div>
-                                                            ) : (
-                                                                <p className="text-sm text-slate-600 italic">Aucun service lié</p>
-                                                            )}
+                                                        <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                            <div className="relative z-10">
+                                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
+                                                                    <Activity className="h-4 w-4" />
+                                                                    Service Impacté
+                                                                </h3>
+                                                                {selectedIncident.affectedProcessId ? (
+                                                                    <div className="space-y-2">
+                                                                        {(() => {
+                                                                            const proc = rawProcesses.find(p => p.id === selectedIncident.affectedProcessId);
+                                                                            return proc ? (
+                                                                                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
+                                                                                    <span className="font-medium text-slate-700 dark:text-slate-200">{proc.name}</span>
+                                                                                </div>
+                                                                            ) : <p className="text-sm text-slate-600 italic">Processus introuvable</p>;
+                                                                        })()}
+                                                                    </div>
+                                                                ) : (
+                                                                    <p className="text-sm text-slate-600 italic">Aucun service lié</p>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <div className="space-y-6">
                                                     {/* Meta Info */}
-                                                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm space-y-4">
-                                                        <div>
-                                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Déclaré le</label>
-                                                            <p className="font-medium text-slate-900 dark:text-white mt-1">
-                                                                {new Date(selectedIncident.dateReported).toLocaleString()}
-                                                            </p>
-                                                        </div>
-                                                        <div>
-                                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Déclaré par</label>
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                <div className="h-6 w-6 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-xs font-bold text-brand-600 dark:text-brand-400">
-                                                                    {selectedIncident.reporter.charAt(0)}
-                                                                </div>
-                                                                <span className="font-medium text-slate-900 dark:text-white">{selectedIncident.reporter}</span>
+                                                    <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm space-y-4 relative overflow-hidden">
+                                                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                        <div className="relative z-10">
+                                                            <div>
+                                                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Déclaré le</label>
+                                                                <p className="font-medium text-slate-900 dark:text-white mt-1">
+                                                                    {new Date(selectedIncident.dateReported).toLocaleString()}
+                                                                </p>
                                                             </div>
+                                                            <div className="mt-4">
+                                                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Déclaré par</label>
+                                                                <div className="flex items-center gap-2 mt-1">
+                                                                    <div className="h-6 w-6 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-xs font-bold text-brand-600 dark:text-brand-400">
+                                                                        {selectedIncident.reporter.charAt(0)}
+                                                                    </div>
+                                                                    <span className="font-medium text-slate-900 dark:text-white">{selectedIncident.reporter}</span>
+                                                                </div>
+                                                            </div>
+                                                            {/* Assignee Removed */}
                                                         </div>
-                                                        {/* Assignee Removed */}
                                                     </div>
 
 

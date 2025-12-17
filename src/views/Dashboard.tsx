@@ -14,6 +14,7 @@ import { DashboardSkeleton } from '../components/skeletons/DashboardSkeleton';
 import { GettingStartedWidget } from '../components/dashboard/widgets/GettingStartedWidget';
 
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 // Widgets
 import { DashboardHeader } from '../components/dashboard/widgets/DashboardHeader';
@@ -492,6 +493,7 @@ export const Dashboard: React.FC = () => {
             animate="visible"
             className="p-4 md:p-8 max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen"
         >
+            <MasterpieceBackground />
             <SEO
                 title="Tableau de bord de Gouvernance"
                 description="Vue d'overview de votre posture de sécurité et conformité."

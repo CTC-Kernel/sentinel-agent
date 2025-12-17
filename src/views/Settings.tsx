@@ -9,6 +9,7 @@ import { IntegrationSettings } from '../components/settings/IntegrationSettings'
 import { SystemSettings } from '../components/settings/SystemSettings';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Helmet } from 'react-helmet-async';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 const Settings: React.FC = () => {
     const { t } = useStore();
@@ -27,6 +28,7 @@ const Settings: React.FC = () => {
 
     return (
         <div className="w-full max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-10 relative min-h-screen pt-4 sm:pt-8 px-4 md:px-8 overflow-x-hidden">
+            <MasterpieceBackground />
             <Helmet>
                 <title>{t('settings.title')} | Sentinel GRC</title>
             </Helmet>
