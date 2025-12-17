@@ -40,7 +40,9 @@ export class ReportEnrichmentService {
         let treated = 0;
 
         risks.forEach(r => {
-            const level = r.probability * r.impact;
+            const prob = r.probability || 0;
+            const imp = r.impact || 0;
+            const level = prob * imp;
             if (level >= 20) critical++;
             else if (level >= 15) high++;
             else if (level >= 9) medium++;
@@ -54,7 +56,7 @@ export class ReportEnrichmentService {
         // Calculate weighted risk score (0-100)
         // Max possible score per risk is 25. 
         // Normalized score = (Sum of levels / (Count * 25)) * 100
-        const sumLevels = risks.reduce((acc, r) => acc + (r.probability * r.impact), 0);
+        const sumLevels = risks.reduce((acc, r) => acc + ((r.probability || 0) * (r.impact || 0)), 0);
         const riskScore = total > 0 ? Math.round((sumLevels / (total * 25)) * 100) : 0;
 
         return {
@@ -96,7 +98,7 @@ export class ReportEnrichmentService {
 
         // Sort risks by severity for "Top Risks"
         const topRisks = [...risks]
-            .sort((a, b) => (b.probability * b.impact) - (a.probability * a.impact))
+            .sort((a, b) => ((b.probability || 0) * (b.impact || 0)) - ((a.probability || 0) * (a.impact || 0)))
             .slice(0, 5);
 
         // Mock trend analysis (would be real if we had historical data)
@@ -152,4 +154,200 @@ export class ReportEnrichmentService {
                 : "Maintain current control effectiveness and continue regular monitoring."}
     `.trim();
     }
+    // --- AUDIT MODULE ENRICHMENT ---
+
+    /**
+     * Calculate metrics for a specific Audit based on its findings
+     */
+    static calculateAuditMetrics(findings: { type: string; status: string }[]): AuditMetrics {
+        const total = findings.length;
+        let major = 0;
+        let minor = 0;
+        let observation = 0;
+        let open = 0;
+        let closed = 0;
+
+        findings.forEach(f => {
+            if (f.type === 'Majeure') major++;
+            else if (f.type === 'Mineure') minor++;
+            else observation++;
+
+            if (f.status === 'Ouvert') open++;
+            else closed++;
+        });
+
+        // Calculate a "Conformity Score" based on findings
+        // Base 100
+        // Major = -20 pts
+        // Minor = -5 pts
+        // Observation = -1 pt
+        const penalty = (major * 20) + (minor * 5) + (observation * 1);
+        const conformityScore = Math.max(0, 100 - penalty);
+
+        return {
+            total_findings: total,
+            major_findings: major,
+            minor_findings: minor,
+            observations: observation,
+            open_findings: open,
+            closed_findings: closed,
+            conformity_score: conformityScore
+        };
+    }
+
+    /**
+     * Generate Executive Summary for an Audit Report
+     */
+    static generateAuditExecutiveSummary(metrics: AuditMetrics, auditName: string): string {
+        const status = metrics.conformity_score > 85 ? "Good" : metrics.conformity_score > 60 ? "Acceptable" : "Critical";
+
+        return `
+      Executive Summary: ${auditName}
+      
+      Conformity Assessment: ${status} (Score: ${metrics.conformity_score}/100)
+      
+      Overview:
+      This audit identified a total of ${metrics.total_findings} findings. The review highlights ${metrics.major_findings} major non-conformities that represent significant deviations from the standard.
+      
+      Key Observations:
+      • Criticality: ${metrics.major_findings} Major, ${metrics.minor_findings} Minor, ${metrics.observations} Observations.
+      • Remediation Status: ${metrics.closed_findings} findings have been addressed, while ${metrics.open_findings} remain open.
+      
+      Strategic Recommendation:
+      ${metrics.major_findings > 0
+                ? "Priority must be given to closing the major non-conformities to ensure certification compliance."
+                : "Focus on continuous improvement by addressing minor findings and observations."}
+    `.trim();
+    }
+    // --- PROJECT MODULE ENRICHMENT ---
+
+    /**
+     * Calculate metrics for a specific Project
+     */
+    static calculateProjectMetrics(project: any): ProjectMetrics {
+        const tasks = project.tasks || [];
+        const total = tasks.length;
+        const done = tasks.filter((t: any) => t.status === 'Terminé').length;
+        const inProgress = tasks.filter((t: any) => t.status === 'En cours').length;
+        const todo = tasks.filter((t: any) => t.status === 'A faire').length;
+
+        // Calculate delay risk
+        let delayRisk = 'Low';
+        if (project.dueDate) {
+            const daysLeft = Math.ceil((new Date(project.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+            if (daysLeft < 0) delayRisk = 'Critical';
+            else if (daysLeft < 7 && project.progress < 90) delayRisk = 'High';
+            else if (daysLeft < 30 && project.progress < 50) delayRisk = 'Medium';
+        }
+
+        return {
+            total_tasks: total,
+            completed_tasks: done,
+            in_progress_tasks: inProgress,
+            pending_tasks: todo,
+            completion_percentage: project.progress || 0,
+            delay_risk: delayRisk,
+            dependencies_count: (project.relatedRiskIds?.length || 0) + (project.relatedControlIds?.length || 0)
+        };
+    }
+
+    /**
+     * Generate Executive Summary for a Project Report
+     */
+    static generateProjectExecutiveSummary(metrics: ProjectMetrics, projectName: string): string {
+        return `
+      Executive Summary: ${projectName}
+      
+      Status Overview:
+      The project is currently at ${metrics.completion_percentage}% completion. Out of ${metrics.total_tasks} total tasks, ${metrics.completed_tasks} have been successfully delivered.
+      
+      Risk Assessment:
+      Schedule Risk is currently evaluated as ${metrics.delay_risk}. ${metrics.delay_risk === 'Critical' ? 'The project is over the due date and requires immediate intervention.' : metrics.delay_risk === 'High' ? 'There is a significant risk of missing the deadline given current progress.' : 'The project is progressing within acceptable parameters.'}
+      
+      Operational Components:
+      The initiative involves ${metrics.in_progress_tasks} active workstreams. It is strategically linked to ${metrics.dependencies_count} other GRC elements (Risks/Controls), ensuring alignment with the broader security posture.
+    `.trim();
+    }
+    // --- COMPLIANCE MODULE ENRICHMENT ---
+
+    /**
+     * Calculate metrics for Compliance (SoA)
+     */
+    static calculateComplianceMetrics(controls: any[]): ComplianceMetrics {
+        const total = controls.length;
+        const implemented = controls.filter(c => c.status === 'Implémenté').length;
+        const planned = controls.filter(c => c.status === 'Planifié' || c.status === 'En cours').length;
+        const notApplicable = controls.filter(c => c.status === 'Non applicable').length;
+        const notStarted = controls.filter(c => c.status === 'Non commencé').length;
+
+        const effectiveTotal = total - notApplicable;
+        const coverage = effectiveTotal > 0 ? Math.round((implemented / effectiveTotal) * 100) : 0;
+        const readiness = effectiveTotal > 0 ? Math.round(((implemented + planned) / effectiveTotal) * 100) : 0;
+
+        return {
+            total_controls: total,
+            implemented_controls: implemented,
+            planned_controls: planned,
+            not_applicable: notApplicable,
+            not_started: notStarted,
+            compliance_coverage: coverage,
+            audit_readiness: readiness
+        };
+    }
+
+    /**
+     * Generate Executive Summary for Compliance Report
+     */
+    static generateComplianceExecutiveSummary(metrics: ComplianceMetrics): string {
+        const status = metrics.compliance_coverage > 80 ? "Optimized" : metrics.compliance_coverage > 50 ? "Developing" : "Initial";
+
+        return `
+      Executive Summary: ISO 27001 Compliance Status
+      
+      Maturity Assessment: ${status} (Coverage: ${metrics.compliance_coverage}%)
+      
+      Overview:
+      The Information Security Management System (ISMS) currently covers ${metrics.compliance_coverage}% of the applicable security controls. A total of ${metrics.implemented_controls} controls have been fully implemented and verified.
+      
+      Gap Analysis:
+      • Implemented: ${metrics.implemented_controls} controls providing active defense.
+      • In Progress: ${metrics.planned_controls} controls are currently being deployed or treated.
+      • Attention Required: ${metrics.not_started} controls have not yet been addressed.
+      
+      Strategic Roadmap:
+      ${metrics.audit_readiness > 80
+                ? "The organization is well-positioned for an external audit. Focus on evidence collection and continuous monitoring."
+                : "Accelerate the implementation of planned controls to reach a minimum viable posture for certification."}
+    `.trim();
+    }
+}
+
+export interface AuditMetrics {
+    total_findings: number;
+    major_findings: number;
+    minor_findings: number;
+    observations: number;
+    open_findings: number;
+    closed_findings: number;
+    conformity_score: number;
+}
+
+export interface ProjectMetrics {
+    total_tasks: number;
+    completed_tasks: number;
+    in_progress_tasks: number;
+    pending_tasks: number;
+    completion_percentage: number;
+    delay_risk: string;
+    dependencies_count: number;
+}
+
+export interface ComplianceMetrics {
+    total_controls: number;
+    implemented_controls: number;
+    planned_controls: number;
+    not_applicable: number;
+    not_started: number;
+    compliance_coverage: number;
+    audit_readiness: number;
 }

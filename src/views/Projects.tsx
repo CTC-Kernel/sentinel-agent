@@ -8,7 +8,7 @@ import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, Pro
 import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
 import { z } from 'zod';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, BrainCircuit, Target, ShieldAlert, Loader2, Server, ClipboardCheck } from '../components/ui/Icons';
+import { Plus, CalendarDays, CheckSquare, Trash2, FolderKanban, FileSpreadsheet, Edit, History, MessageSquare, LayoutDashboard, Download, Copy, Zap, BrainCircuit, Target, ShieldAlert, Loader2, Server, ClipboardCheck, FileText } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 
 import { Drawer } from '../components/ui/Drawer';
@@ -132,7 +132,7 @@ export const Projects: React.FC = () => {
     const [filter, setFilter] = useState('');
     const [isExportingCSV, setIsExportingCSV] = useState(false);
     const [isExportingPDF, setIsExportingPDF] = useState(false);
-    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('projects_view_mode', 'grid');
+    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix'>('projects_view_mode', 'grid');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Inspector State
@@ -568,6 +568,39 @@ export const Projects: React.FC = () => {
         }
     };
 
+    const handleExportExecutiveReport = async () => {
+        if (!selectedProject) return;
+
+        // Prevent concurrent exports
+        if (isExportingPDF) return;
+        setIsExportingPDF(true);
+        addToast("Génération du rapport exécutif de projet...", "info");
+
+        try {
+            const { PdfService } = await import('../services/PdfService');
+            const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+            const canWhiteLabel = limits.features.whiteLabelReports;
+
+            PdfService.generateProjectExecutiveReport(
+                [selectedProject],
+                {
+                    title: "RAPPORT DE PROJET",
+                    orientation: 'portrait',
+                    organizationName: canWhiteLabel ? (organization?.name || user?.email?.split('@')[1] || 'Sentinel GRC') : 'Sentinel GRC',
+                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
+                    author: selectedProject.manager || user?.displayName || 'Chef de Projet',
+                    coverImage: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=2070&auto=format&fit=crop'
+                }
+            );
+
+            addToast("Rapport téléchargé avec succès", "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Projects.handleExportExecutiveReport', 'REPORT_GENERATION_FAILED');
+        } finally {
+            setIsExportingPDF(false);
+        }
+    };
+
     const generateReport = () => {
         if (!selectedProject) return;
 
@@ -708,6 +741,8 @@ export const Projects: React.FC = () => {
             setTimeout(() => setIsExportingPDF(false), 0);
         }
     };
+
+
 
     const handleExportCSV = async () => {
         if (isExportingCSV) return;
@@ -1200,6 +1235,7 @@ export const Projects: React.FC = () => {
                 actions={
                     selectedProject && (
                         <>
+                            <button onClick={handleExportExecutiveReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Rapport Exécutif (IA)"><FileText className="h-5 w-5 text-indigo-500" /></button>
                             <button onClick={generateReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Télécharger Rapport"><Download className="h-5 w-5" /></button>
                             {canEdit && (
                                 <button onClick={handleDuplicate} disabled={isSubmitting} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm disabled:opacity-50" title="Dupliquer">

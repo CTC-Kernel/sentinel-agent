@@ -99,6 +99,7 @@ export const Compliance: React.FC = () => {
     const [linkingToProjectId, setLinkingToProjectId] = useState<string | null>(null);
     const [linkingToProjectName, setLinkingToProjectName] = useState<string | null>(null);
     const location = useLocation();
+    const [isExportingPDF, setIsExportingPDF] = useState(false);
 
     // Filter FRAMEWORKS for Compliance only
     const complianceFrameworks = FRAMEWORKS.filter(f => f.type === 'Compliance').map(f => ({ value: f.id, label: f.label }));
@@ -794,6 +795,36 @@ export const Compliance: React.FC = () => {
         }
     };
 
+    const handleExportExecutiveReport = async () => {
+        if (isExportingPDF || !controls.length) return;
+        setIsExportingPDF(true);
+        addToast("Génération du rapport de conformité...", "info");
+
+        try {
+            const { PdfService } = await import('../services/PdfService');
+            const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+            const canWhiteLabel = limits.features.whiteLabelReports;
+
+            PdfService.generateComplianceExecutiveReport(
+                controls,
+                {
+                    title: "RAPPORT DE CONFORMITÉ",
+                    orientation: 'portrait',
+                    organizationName: canWhiteLabel ? (organization?.name || user?.email?.split('@')[1] || 'Sentinel GRC') : 'Sentinel GRC',
+                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
+                    author: user?.displayName || 'Responsable Conformité',
+                    coverImage: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2070&auto=format&fit=crop'
+                }
+            );
+
+            addToast("Rapport téléchargé avec succès", "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Compliance.handleExportExecutiveReport', 'REPORT_GENERATION_FAILED');
+        } finally {
+            setIsExportingPDF(false);
+        }
+    };
+
     const handleEurLexSearch = async () => {
         if (!eurLexQuery) return;
         setIsSearchingEurLex(true);
@@ -992,6 +1023,14 @@ export const Compliance: React.FC = () => {
                     trustType="general"
                     actions={
                         <div className="flex flex-wrap items-center gap-3">
+                            <button
+                                onClick={handleExportExecutiveReport}
+                                disabled={isExportingPDF}
+                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-300 font-bold text-sm"
+                            >
+                                {isExportingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                                <span>Rapport Exécutif</span>
+                            </button>
                             {/* View Switcher */}
                             <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10">
                                 <button

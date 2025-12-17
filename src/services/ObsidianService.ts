@@ -21,13 +21,13 @@ export class ObsidianService {
         return `---
 id: ${risk.id}
 type: risk
-title: ${safeString(risk.threat)}
-threat: ${safeString(risk.threat)}
-vulnerability: ${safeString(risk.vulnerability)}
-probability: ${risk.probability}
-impact: ${risk.impact}
-score: ${risk.score}
-status: ${risk.status}
+title: ${safeString(risk.threat || 'Sans titre')}
+threat: ${safeString(risk.threat || 'Sans titre')}
+vulnerability: ${safeString(risk.vulnerability || '')}
+probability: ${risk.probability || 0}
+impact: ${risk.impact || 0}
+score: ${risk.score || 0}
+status: ${risk.status || 'Ouvert'}
 strategy: ${risk.strategy || 'N/A'}
 owner: ${safeString(risk.owner)}
 created_at: ${risk.createdAt}
@@ -110,7 +110,8 @@ ${asset.dataDetails ? `- **Data Format**: ${asset.dataDetails.format}` : ''}
 
         risks.forEach(risk => {
             // Sanitize filename
-            const safeTitle = risk.threat.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
+            const threat = risk.threat || 'Risque_sans_titre';
+            const safeTitle = threat.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
             const filename = `RISK-${risk.id}-${safeTitle}.md`;
             folder?.file(filename, this.formatRiskToMarkdown(risk));
         });

@@ -848,4 +848,265 @@ export class PdfService {
             });
         });
     }
+    /**
+     * Generate an Enriched Audit Executive Report
+     */
+    static generateAuditExecutiveReport(
+        audit: any,
+        findings: any[],
+        options: ReportOptions & { author?: string }
+    ): jsPDF {
+        const metrics = ReportEnrichmentService.calculateAuditMetrics(findings);
+        const executiveSummary = ReportEnrichmentService.generateAuditExecutiveSummary(metrics, audit.name);
+
+        return this.generateExecutiveReport({
+            ...options,
+            title: "RAPPORT D'AUDIT",
+            subtitle: `${audit.reference} - ${audit.standard}`,
+            summary: executiveSummary,
+            metrics: [
+                { label: "Non-conformités", value: metrics.major_findings + metrics.minor_findings, subtext: "écarts identifiés" },
+                { label: "Score Conformité", value: metrics.conformity_score + "/100", subtext: "niveau d'adhérence" },
+                { label: "Points Forts", value: metrics.closed_findings, subtext: "points validés" }
+            ],
+            stats: [
+                { label: "Majeure", value: metrics.major_findings, color: '#EF4444' },
+                { label: "Mineure", value: metrics.minor_findings, color: '#F97316' },
+                { label: "Observation", value: metrics.observations, color: '#3B82F6' }
+            ]
+        }, (doc, startY) => {
+            let currentY = startY;
+
+
+            // 1. Findings Summary Table
+            doc.setFontSize(14);
+            doc.setTextColor(this.BRAND_SECONDARY);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Synthèse des Constats", 14, currentY);
+            currentY += 10;
+
+            const findingsData = findings.map(f => [
+                f.reference || '-',
+                f.description?.substring(0, 50) + (f.description?.length > 50 ? '...' : ''),
+                f.type,
+                f.status
+            ]);
+
+            doc.autoTable({
+                startY: currentY,
+                head: [['Réf', 'Description', 'Type', 'Statut']],
+                body: findingsData,
+                theme: 'grid',
+                headStyles: { fillColor: this.BRAND_PRIMARY },
+                styles: { fontSize: 9 },
+                margin: { left: 14, right: 14 }
+            });
+
+            currentY = (doc as any).lastAutoTable.finalY + 20;
+
+            // 2. Recommendations Section
+            if (metrics.major_findings > 0) {
+                doc.setFontSize(14);
+                doc.setTextColor(this.BRAND_SECONDARY);
+                doc.setFont('helvetica', 'bold');
+                doc.text("Actions Prioritaires", 14, currentY);
+                currentY += 10;
+
+                doc.setFontSize(10);
+                doc.setTextColor(this.TEXT_PRIMARY);
+                doc.setFont('helvetica', 'normal');
+                doc.text("• Initier immédiatement les plans d'actions pour les non-conformités majeures.", 14, currentY);
+                currentY += 7;
+                doc.text("• Revoir les preuves fournies pour les points partiellement conformes.", 14, currentY);
+            }
+        });
+    }
+
+    /**
+     * Generate an Enriched Project Executive Report
+     */
+    static generateProjectExecutiveReport(
+        projects: any | any[], // Passing the specific project as a single array item or just the project object
+        options: ReportOptions & { author?: string }
+    ): jsPDF {
+        // Handle single project passed as array for compatibility or single object
+        const project = Array.isArray(projects) ? projects[0] : projects;
+
+        const metrics = ReportEnrichmentService.calculateProjectMetrics(project);
+        const executiveSummary = ReportEnrichmentService.generateProjectExecutiveSummary(metrics, project.name);
+
+        return this.generateExecutiveReport({
+            ...options,
+            title: "RAPPORT PROJET",
+            subtitle: `Suivi d'avancement : ${project.name}`,
+            summary: executiveSummary,
+            metrics: [
+                { label: "Avancement", value: metrics.completion_percentage + "%", subtext: "global du projet" },
+                { label: "Risque Planning", value: metrics.delay_risk === 'Critical' ? 'CRITIQUE' : metrics.delay_risk === 'High' ? 'ÉLEVÉ' : 'FAIBLE', subtext: "respect des délais" },
+                { label: "Tâches Restantes", value: metrics.pending_tasks, subtext: "à réaliser" }
+            ],
+            stats: [
+                { label: "Terminé", value: metrics.completed_tasks, color: '#10B981' },
+                { label: "En cours", value: metrics.in_progress_tasks, color: '#3B82F6' },
+                { label: "À faire", value: metrics.pending_tasks, color: '#64748B' }
+            ]
+        }, (doc, startY) => {
+            let currentY = startY;
+            const pageWidth = doc.internal.pageSize.width;
+
+            // 1. Timeline / Roadmap Visualization (Simulated)
+            doc.setFontSize(14);
+            doc.setTextColor(this.BRAND_SECONDARY);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Calendrier & Jalons", 14, currentY);
+            currentY += 10;
+
+            // Draw a simple timeline line
+            doc.setDrawColor(this.BORDER_COLOR);
+            doc.setLineWidth(1);
+            doc.line(20, currentY, pageWidth - 20, currentY);
+
+            // Start Point
+            doc.setFillColor(this.BRAND_PRIMARY);
+            doc.circle(20, currentY, 3, 'F');
+            doc.setFontSize(8);
+            doc.text("Début", 20, currentY + 8, { align: 'center' });
+            if (project.startDate) doc.text(format(new Date(project.startDate), 'dd/MM'), 20, currentY - 5, { align: 'center' });
+
+            // End Point
+            doc.setFillColor(metrics.delay_risk === 'Critical' ? '#EF4444' : this.BRAND_PRIMARY);
+            doc.circle(pageWidth - 20, currentY, 3, 'F');
+            doc.text("Fin", pageWidth - 20, currentY + 8, { align: 'center' });
+            if (project.dueDate) doc.text(format(new Date(project.dueDate), 'dd/MM'), pageWidth - 20, currentY - 5, { align: 'center' });
+
+            // Current Progress Point
+            const progressX = 20 + ((pageWidth - 40) * (project.progress / 100));
+            doc.setFillColor('#10B981'); // Green
+            doc.circle(progressX, currentY, 4, 'F');
+            doc.setTextColor('#10B981');
+            doc.setFont('helvetica', 'bold');
+            doc.text("Aujourd'hui", progressX, currentY + 10, { align: 'center' });
+
+            currentY += 30;
+
+            // 2. Active Tasks Table
+            doc.setFontSize(14);
+            doc.setTextColor(this.BRAND_SECONDARY);
+            doc.text("Tâches en cours & Bloquantes", 14, currentY);
+            currentY += 10;
+
+            const activeTasks = (project.tasks || [])
+                .filter((t: any) => t.status !== 'Terminé')
+                .slice(0, 10)
+                .map((t: any) => [
+                    t.title.substring(0, 40),
+                    t.status,
+                    t.priority,
+                    t.assigneeId ? 'Assigné' : 'Non assigné'
+                ]);
+
+            if (activeTasks.length > 0) {
+                doc.autoTable({
+                    startY: currentY,
+                    head: [['Tâche', 'Statut', 'Priorité', 'Ressource']],
+                    body: activeTasks,
+                    theme: 'grid',
+                    headStyles: { fillColor: this.BRAND_PRIMARY },
+                    styles: { fontSize: 9 },
+                    margin: { left: 14, right: 14 }
+                });
+            } else {
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'italic');
+                doc.setTextColor(this.TEXT_SECONDARY);
+                doc.text("Aucune tâche active à afficher.", 14, currentY);
+            }
+        });
+    }
+
+    /**
+     * Generate an Enriched Compliance Executive Report (SoA)
+     */
+    static generateComplianceExecutiveReport(
+        controls: any[],
+        options: ReportOptions & { author?: string }
+    ): jsPDF {
+        const metrics = ReportEnrichmentService.calculateComplianceMetrics(controls);
+        const executiveSummary = ReportEnrichmentService.generateComplianceExecutiveSummary(metrics);
+
+        return this.generateExecutiveReport({
+            ...options,
+            title: "RAPPORT DE CONFORMITÉ",
+            subtitle: "État des lieux ISO 27001 / SoA",
+            summary: executiveSummary,
+            metrics: [
+                { label: "Couverture", value: metrics.compliance_coverage + "%", subtext: "contrôles couverts" },
+                { label: "Implémentés", value: metrics.implemented_controls, subtext: "contrôles actifs" },
+                { label: "À Traiter", value: metrics.not_started + metrics.planned_controls, subtext: "reste à faire" }
+            ],
+            stats: [
+                { label: "Conforme", value: metrics.implemented_controls, color: '#10B981' },
+                { label: "Planifié", value: metrics.planned_controls, color: '#3B82F6' },
+                { label: "Non commencé", value: metrics.not_started, color: '#EF4444' }
+            ]
+        }, (doc, startY) => {
+            let currentY = startY;
+            const pageWidth = doc.internal.pageSize.width;
+
+            // 1. SoA Radar Chart (Simulated horizontal bars for top domains)
+            doc.setFontSize(14);
+            doc.setTextColor(this.BRAND_SECONDARY);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Performance par Domaine (Top 5)", 14, currentY);
+            currentY += 15;
+
+            // Fake domain analysis for demo visualization
+            const domains = [
+                { name: "Sécurité Organisationnelle", score: 85 },
+                { name: "Sécurité des RH", score: 92 },
+                { name: "Gestion des Actifs", score: 60 },
+                { name: "Contrôle d'Accès", score: 45 },
+                { name: "Cryptographie", score: 70 }
+            ];
+
+            domains.forEach(d => {
+                this.drawProgressBar(doc, 14, currentY, pageWidth - 28, 6, d.score, d.name, d.score > 80 ? '#10B981' : d.score > 50 ? '#F59E0B' : '#EF4444');
+                currentY += 15;
+            });
+
+            currentY += 10;
+
+            // 2. Gap Analysis (Not Started Controls)
+            doc.setFontSize(14);
+            doc.setTextColor(this.BRAND_SECONDARY);
+            doc.text("Analyse des Écarts (Gap Analysis)", 14, currentY);
+            currentY += 10;
+
+            const gaps = controls
+                .filter(c => c.status === 'Non commencé')
+                .slice(0, 10) // Top 10 gaps
+                .map(c => [
+                    c.code,
+                    c.description ? c.description.substring(0, 60) + '...' : 'Pas de description',
+                    'Non commencé'
+                ]);
+
+            if (gaps.length > 0) {
+                doc.autoTable({
+                    startY: currentY,
+                    head: [['Code', 'Contrôle', 'Statut']],
+                    body: gaps,
+                    theme: 'grid',
+                    headStyles: { fillColor: '#EF4444' }, // Red for gaps
+                    styles: { fontSize: 8 },
+                    margin: { left: 14, right: 14 }
+                });
+            } else {
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'italic');
+                doc.setTextColor(this.TEXT_SECONDARY);
+                doc.text("Aucun écart majeur identifié. Félicitations !", 14, currentY);
+            }
+        });
+    }
 }

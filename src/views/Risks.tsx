@@ -687,7 +687,16 @@ export const Risks: React.FC = () => {
         setIsExportingCSV(true);
         try {
             const headers = ["Menace", "Vulnérabilité", "Actif", "Score Brut", "Score Résiduel", "Stratégie", "Statut", "Propriétaire"];
-            const rows = filteredRisks.map(r => [r.threat, r.vulnerability, getAssetName(r.assetId), r.score.toString(), (r.residualScore || r.score).toString(), r.strategy, r.status, r.owner || '']);
+            const rows = filteredRisks.map(r => [
+                r.threat || 'Menace inconnue',
+                r.vulnerability || '',
+                getAssetName(r.assetId),
+                (r.score || 0).toString(),
+                (r.residualScore || r.score || 0).toString(),
+                r.strategy || 'N/A',
+                r.status || 'N/A',
+                r.owner || ''
+            ]);
             const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
             const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `risks.csv`; link.click();
         } finally {
@@ -702,11 +711,11 @@ export const Risks: React.FC = () => {
             const canWhiteLabel = limits.features.whiteLabelReports;
 
             const data = risks.map(r => [
-                r.threat,
-                r.score.toString(),
-                r.strategy,
-                r.status,
-                (r.residualScore || r.score).toString()
+                (r.threat || 'Menace inconnue'),
+                (r.score || 0).toString(),
+                (r.strategy || 'N/A'),
+                (r.status || 'N/A'),
+                (r.residualScore || r.score || 0).toString()
             ]);
 
             PdfService.generateTableReport(
@@ -762,13 +771,13 @@ export const Risks: React.FC = () => {
         addToast("Génération du RTP avec analyse IA...", "info");
         try {
             const summary = await aiService.generateRTPSummary(
-                filteredRisks.map(r => ({ threat: r.threat, score: r.score, strategy: r.strategy, status: r.status }))
+                filteredRisks.map(r => ({ threat: r.threat || 'Menace inconnue', score: r.score || 0, strategy: r.strategy || 'N/A', status: r.status || 'N/A' }))
             );
 
             // Metrics
             const totalRisks = filteredRisks.length;
-            const avgReduction = Math.round(filteredRisks.reduce((acc, r) => acc + (r.score - (r.residualScore || r.score)), 0) / (totalRisks || 1));
-            const residualCritical = filteredRisks.filter(r => (r.residualScore || r.score) >= 15).length;
+            const avgReduction = Math.round(filteredRisks.reduce((acc, r) => acc + ((r.score || 0) - (r.residualScore || r.score || 0)), 0) / (totalRisks || 1));
+            const residualCritical = filteredRisks.filter(r => (r.residualScore || r.score || 0) >= 15).length;
 
             const metrics = [
                 { label: 'Risques Traités', value: totalRisks.toString() },
@@ -826,11 +835,11 @@ export const Risks: React.FC = () => {
                     y += 8;
 
                     const data = filteredRisks.map(r => [
-                        r.threat,
-                        r.score.toString(),
-                        r.strategy,
-                        r.status,
-                        (r.residualScore || r.score).toString()
+                        (r.threat || 'Menace inconnue'),
+                        (r.score || 0).toString(),
+                        (r.strategy || 'N/A'),
+                        (r.status || 'N/A'),
+                        (r.residualScore || r.score || 0).toString()
                     ]);
 
                     doc.autoTable({

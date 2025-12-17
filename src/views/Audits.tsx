@@ -780,6 +780,37 @@ export const Audits: React.FC = () => {
         }
     };
 
+    const handleExportExecutiveReport = async () => {
+        if (!selectedAudit) return;
+        setIsGeneratingReport(true);
+        addToast("Génération du rapport exécutif d'audit...", "info");
+
+        try {
+            const { PdfService } = await import('../services/PdfService');
+            const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+            const canWhiteLabel = limits.features.whiteLabelReports;
+
+            PdfService.generateAuditExecutiveReport(
+                selectedAudit,
+                findings,
+                {
+                    title: "RAPPORT D'AUDIT",
+                    orientation: 'portrait',
+                    organizationName: canWhiteLabel ? (organization?.name || user?.email?.split('@')[1] || 'Sentinel GRC') : 'Sentinel GRC',
+                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
+                    author: user?.displayName || 'Auditeur',
+                    coverImage: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop'
+                }
+            );
+
+            addToast("Rapport téléchargé avec succès", "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Audits.handleExportExecutiveReport', 'REPORT_GENERATION_FAILED');
+        } finally {
+            setIsGeneratingReport(false);
+        }
+    };
+
     const generateAuditReport = async () => {
         if (!selectedAudit) return;
         setIsGeneratingReport(true);
@@ -1286,6 +1317,14 @@ export const Audits: React.FC = () => {
                     actions={canEdit && (
                         hasPermission(user, 'Audit', 'create') && (
                             <>
+                                <button onClick={handleExportPack} className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                                    <Download className="w-4 h-4" />
+                                    <span>Pack Audit</span>
+                                </button>
+                                <button onClick={handleExportExecutiveReport} className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-indigo-500/20 transition-all">
+                                    <FileText className="w-4 h-4" />
+                                    <span>Rapport Expert (IA)</span>
+                                </button>
                                 <button
                                     onClick={handleGeneratePlan}
                                     className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors mr-2"
