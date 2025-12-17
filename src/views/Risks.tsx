@@ -1020,7 +1020,7 @@ export const Risks: React.FC = () => {
     }
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-8 pb-10 relative w-full max-w-[1920px] mx-auto">
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in">
             <MasterpieceBackground />
             <SEO
                 title="Gestion des Risques - Sentinel GRC"

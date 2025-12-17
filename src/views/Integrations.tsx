@@ -122,7 +122,7 @@ export const Integrations: React.FC = () => {
     });
 
     return (
-        <div className="space-y-8 animate-fade-in px-4 sm:px-6 lg:px-8 w-full pb-10 relative min-w-0 min-h-screen">
+        <div className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in min-w-0">
             <MasterpieceBackground />
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0 mb-6">

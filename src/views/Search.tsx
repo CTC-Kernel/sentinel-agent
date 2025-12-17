@@ -198,7 +198,7 @@ export const Search: React.FC = () => {
     const hasActiveFilters = advancedFilters.status || advancedFilters.owner || advancedFilters.dateFrom || advancedFilters.dateTo || advancedFilters.criticality;
 
     return (
-        <div className="space-y-6 animate-fade-in pb-10">
+        <div className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in">
             {showAdvancedSearch && (
                 <AdvancedSearch
                     onSearch={handleAdvancedSearch}

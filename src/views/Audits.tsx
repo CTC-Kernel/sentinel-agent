@@ -16,7 +16,7 @@ import { EvidenceRequestList } from '../components/audits/EvidenceRequestList';
 import { QuestionnaireList } from '../components/audits/QuestionnaireList';
 import { AuditTeam } from '../components/audits/AuditTeam';
 import { Comments } from '../components/ui/Comments';
-import { Plus, AlertTriangle, Calendar, FileText } from '../components/ui/Icons';
+import { Plus, AlertTriangle, Calendar, FileText, ClipboardCheck, CalendarDays, AlertOctagon, Edit, Trash2, User, MoreVertical, Loader2, FolderKanban, FileSpreadsheet, BrainCircuit, Activity, ArrowRight, CheckCheck, Download, MessageSquare, Users, Target, ShieldAlert, Link, Server, Flame } from '../components/ui/Icons';
 // ...
 import { AuditPlannerService } from '../services/AuditPlannerService';
 
@@ -1298,7 +1298,7 @@ export const Audits: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="p-4 md:p-8 max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-20 relative min-h-screen"
+            className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
         >
             <MasterpieceBackground />
 

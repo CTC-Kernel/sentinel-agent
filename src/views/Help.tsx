@@ -311,7 +311,7 @@ export const Help: React.FC = () => {
     const activeCategory = filteredContent.find(c => c.id === selectedCategory) || filteredContent[0];
 
     return (
-        <div className="p-4 md:p-8 max-w-[1920px] mx-auto relative min-h-screen">
+        <div className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in">
             <MasterpieceBackground />
             <div className="flex h-[calc(100vh-8rem)] animate-fade-in overflow-hidden rounded-[2.5rem] glass-panel border border-slate-200 dark:border-slate-800 shadow-2xl">
 

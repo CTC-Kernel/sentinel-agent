@@ -236,7 +236,7 @@ export const BackupRestore: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-[1920px] mx-auto space-y-8 animate-fade-in pb-24 min-w-0">
+    <div className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in min-w-0">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 min-w-0">
         <div className="min-w-0">

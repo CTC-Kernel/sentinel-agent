@@ -141,7 +141,7 @@ export const ThreatRegistry: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8 w-full max-w-[1920px] mx-auto relative min-h-screen pt-4 sm:pt-8 px-4 md:px-8"
+            className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
         >
             <MasterpieceBackground />
             <Helmet>

@@ -124,7 +124,7 @@ export const AdminDashboard: React.FC = () => {
     if (loading) return <LoadingScreen />;
 
     return (
-        <div className="w-full max-w-[1920px] mx-auto space-y-8">
+        <div className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in">
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Super Admin Dashboard</h1>
