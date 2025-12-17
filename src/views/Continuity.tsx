@@ -28,6 +28,7 @@ import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { SEO } from '../components/SEO';
 
 
 export const Continuity: React.FC = () => {
@@ -356,6 +357,11 @@ export const Continuity: React.FC = () => {
             className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
         >
             <MasterpieceBackground />
+            <SEO
+                title="Continuité d'Activité"
+                description="Business Impact Analysis (BIA) et Exercices de crise (ISO 27001 A.5.29)."
+                keywords="BIA, Continuité, PCA/PRA, Crise, Résilience"
+            />
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
@@ -378,7 +384,7 @@ export const Continuity: React.FC = () => {
                         <CustomTooltip content="Exporter l'analyse d'impact (BIA) en CSV">
                             <button
                                 onClick={handleExportCSV}
-                                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium font-bold shadow-sm"
                             >
                                 <FileSpreadsheet size={18} />
                                 Export BIA
@@ -388,7 +394,7 @@ export const Continuity: React.FC = () => {
                             <button
                                 onClick={generateReport}
                                 disabled={isGeneratingReport}
-                                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium disabled:opacity-50"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium disabled:opacity-50 font-bold shadow-sm"
                             >
                                 {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download size={18} />}
                                 Exporter Rapport
@@ -399,7 +405,7 @@ export const Continuity: React.FC = () => {
                                 <CustomTooltip content="Lancer un nouvel exercice de crise">
                                     <button
                                         onClick={() => setShowDrillModal(true)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors font-medium border border-indigo-100"
+                                        className="flex items-center gap-2 px-5 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors font-medium border border-indigo-100 font-bold"
                                     >
                                         <Zap size={18} />
                                         Nouvel Exercice
@@ -408,7 +414,7 @@ export const Continuity: React.FC = () => {
                                 <CustomTooltip content="Ajouter un nouveau processus métier">
                                     <button
                                         onClick={() => setShowCreateModal(true)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-colors font-medium shadow-lg shadow-rose-500/20"
+                                        className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-colors font-medium shadow-lg shadow-rose-500/20 font-bold"
                                     >
                                         <Plus size={18} />
                                         Nouveau Processus
@@ -421,7 +427,8 @@ export const Continuity: React.FC = () => {
             />
 
             {/* Summary Card */}
-            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8">
+            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group mb-8 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
                 <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                 </div>

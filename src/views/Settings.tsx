@@ -8,8 +8,9 @@ import { OrganizationSettings } from '../components/settings/OrganizationSetting
 import { IntegrationSettings } from '../components/settings/IntegrationSettings';
 import { SystemSettings } from '../components/settings/SystemSettings';
 import { PageHeader } from '../components/ui/PageHeader';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { staggerContainerVariants } from '../components/ui/animationVariants';
 
 const Settings: React.FC = () => {
     const { t } = useStore();
@@ -27,11 +28,14 @@ const Settings: React.FC = () => {
     };
 
     return (
-        <div className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in overflow-x-hidden">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="visible"
+            className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in overflow-x-hidden"
+        >
             <MasterpieceBackground />
-            <Helmet>
-                <title>{t('settings.title')} | Sentinel GRC</title>
-            </Helmet>
+            <SEO title={t('settings.title')} />
 
             <PageHeader
                 title={t('settings.title')}
@@ -50,7 +54,7 @@ const Settings: React.FC = () => {
                     </motion.div>
                 </AnimatePresence>
             </SettingsLayout>
-        </div>
+        </motion.div>
     );
 };
 

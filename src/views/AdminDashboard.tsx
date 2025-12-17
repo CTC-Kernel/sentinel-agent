@@ -11,6 +11,11 @@ import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { auth } from '../firebase';
 import { toast } from 'sonner';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { SEO } from '../components/SEO';
+import { PageHeader } from '../components/ui/PageHeader';
+import { motion } from 'framer-motion';
+import { staggerContainerVariants, slideUpVariants } from '../components/ui/animationVariants';
 
 interface OrganizationSummary {
     id: string;
@@ -124,16 +129,24 @@ export const AdminDashboard: React.FC = () => {
     if (loading) return <LoadingScreen />;
 
     return (
-        <div className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Super Admin Dashboard</h1>
-                    <p className="text-slate-600 dark:text-slate-400">Vue globale de l'instance Sentinel GRC</p>
-                </div>
-            </div>
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="visible"
+            className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
+        >
+            <MasterpieceBackground />
+            <SEO title="Super Admin Dashboard" description="Vue globale de l'instance Sentinel GRC" />
+
+            <PageHeader
+                title="Super Admin Dashboard"
+                subtitle="Vue globale de l'instance Sentinel GRC, gestion des organisations et maintenance."
+                breadcrumbs={[{ label: 'Admin', path: '/admin' }]}
+                icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
+            />
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="glass-panel p-6 rounded-2xl border border-white/10">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600">
@@ -167,10 +180,10 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Tenants Table */}
-            <div className="glass-panel rounded-2xl overflow-hidden border border-white/10">
+            <motion.div variants={slideUpVariants} className="glass-panel rounded-2xl overflow-hidden border border-white/10">
                 <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">Organisations Récentes ({filteredOrgs.length})</h2>
                     <div className="relative">
@@ -199,7 +212,7 @@ export const AdminDashboard: React.FC = () => {
                                 <tr key={org.id} className="hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200">
                                     <td className="px-6 py-4 text-sm font-medium">{org.name}</td>
                                     <td className="px-6 py-4">
-                                        <span className={`px - 2 py - 1 rounded - full text - xs font - bold ${org.planId === 'enterprise' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300' :
+                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${org.planId === 'enterprise' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300' :
                                             org.planId === 'professional' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300' :
                                                 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
                                             } `}>
@@ -223,7 +236,7 @@ export const AdminDashboard: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };

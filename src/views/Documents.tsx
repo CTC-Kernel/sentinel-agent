@@ -1,5 +1,7 @@
 import React, { useDeferredValue, useEffect, useMemo, useState, useRef } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
+import { motion } from 'framer-motion';
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, limit, increment, onSnapshot, orderBy } from 'firebase/firestore';
@@ -659,12 +661,18 @@ export const Documents: React.FC = () => {
     }
 
     return (
-        <div className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="visible"
+            className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
+        >
             <MasterpieceBackground />
-            <Helmet>
-                <title>Gestion Documentaire - Sentinel GRC</title>
-                <meta name="description" content="Centralisez et gérez le cycle de vie de vos politiques et procédures de sécurité." />
-            </Helmet>
+            <SEO
+                title="Gestion Documentaire"
+                description="Centralisez et gérez le cycle de vie de vos politiques et procédures de sécurité."
+                keywords="Documents, Politiques, Procédures, ISO 27001"
+            />
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
@@ -689,7 +697,7 @@ export const Documents: React.FC = () => {
                             onClick={() => {
                                 setShowCreateModal(true);
                             }}
-                            className="flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-blue-500/20"
+                            className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                         >
                             <Plus className="h-4 w-4 mr-2" /> Nouveau Document
                         </button>
@@ -697,8 +705,7 @@ export const Documents: React.FC = () => {
                 )}
             />
 
-            {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group min-w-0">
+            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group min-w-0">
                 <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                 </div>
@@ -783,7 +790,7 @@ export const Documents: React.FC = () => {
                         <span className="text-sm font-black text-red-700 dark:text-red-400">{expiredDocs}</span>
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
             <div className="flex flex-col lg:flex-row gap-6 lg:min-h-[calc(100vh-200px)] min-h-0">
                 {/* Sidebar - Folder Tree */}
@@ -823,7 +830,7 @@ export const Documents: React.FC = () => {
                                     <CustomTooltip content={isDigitalSafeMode ? "Désactiver le mode coffre-fort" : "Activer le mode coffre-fort"}>
                                         <button
                                             onClick={() => setIsDigitalSafeMode(!isDigitalSafeMode)}
-                                            className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${isDigitalSafeMode ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 hover:bg-slate-50 dark:hover:bg-white/10'}`}
+                                            className={`flex items-center px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${isDigitalSafeMode ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 hover:bg-slate-50 dark:hover:bg-white/10'}`}
                                         >
                                             <ShieldCheck className={`h-4 w-4 mr-2 ${isDigitalSafeMode ? 'text-emerald-600' : ''}`} />
                                             Coffre-fort
@@ -1403,6 +1410,6 @@ export const Documents: React.FC = () => {
                     </div>
                 )
             }
-        </div>
+        </motion.div>
     );
 };

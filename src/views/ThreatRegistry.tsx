@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
+import { PageHeader } from '../components/ui/PageHeader';
 import { collection, addDoc, onSnapshot, query, where, deleteDoc, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ThreatTemplate } from '../types';
@@ -144,36 +145,34 @@ export const ThreatRegistry: React.FC = () => {
             className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
         >
             <MasterpieceBackground />
-            <Helmet>
-                <title>Bibliothèque de Menaces | Sentinel GRC</title>
-            </Helmet>
+            <SEO title="Bibliothèque de Menaces" description="Référentiel des menaces et vulnérabilités (ISO 27005)" />
 
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300">
-                        Bibliothèque de Menaces
-                    </h1>
-                    <p className="text-slate-600 mt-2">Référentiel des menaces et vulnérabilités (ISO 27005)</p>
-                </div>
-                <div className="flex gap-3">
-                    {threats.length === 0 && (
+            <PageHeader
+                title="Bibliothèque de Menaces"
+                subtitle="Référentiel des menaces et vulnérabilités (ISO 27005)."
+                icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                breadcrumbs={[{ label: 'Menaces' }]}
+                actions={
+                    <div className="flex gap-3">
+                        {threats.length === 0 && (
+                            <button
+                                onClick={handleSeed}
+                                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-xl flex items-center transition-all shadow-lg shadow-purple-500/20 text-sm font-bold"
+                            >
+                                <Database className="h-4 w-4 mr-2" />
+                                Importer Standard
+                            </button>
+                        )}
                         <button
-                            onClick={handleSeed}
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl flex items-center transition-all shadow-lg shadow-purple-500/20"
+                            onClick={() => { setFormData({}); setShowModal(true); setIsEditing(false); }}
+                            className="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl flex items-center transition-all shadow-lg shadow-brand-500/20 text-sm font-bold"
                         >
-                            <Database className="h-5 w-5 mr-2" />
-                            Importer Standard
+                            <Plus className="h-4 w-4 mr-2" />
+                            Nouvelle Menace
                         </button>
-                    )}
-                    <button
-                        onClick={() => { setFormData({}); setShowModal(true); setIsEditing(false); }}
-                        className="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-xl flex items-center transition-all shadow-lg shadow-brand-500/20"
-                    >
-                        <Plus className="h-5 w-5 mr-2" />
-                        Nouvelle Menace
-                    </button>
-                </div>
-            </div>
+                    </div>
+                }
+            />
 
             <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-white/5 p-6 backdrop-blur-xl">
                 <div className="flex items-center space-x-4 mb-6 relative">

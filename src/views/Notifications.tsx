@@ -1,6 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { Bell, CheckCircle2, AlertTriangle, Info, X, ArrowRight } from '../components/ui/Icons';
+import { motion } from 'framer-motion';
+import { staggerContainerVariants } from '../components/ui/animationVariants';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { SEO } from '../components/SEO';
 import { useStore } from '../store';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -57,7 +61,14 @@ export const Notifications: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8 animate-fade-in max-w-4xl mx-auto pb-10">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="visible"
+            className="space-y-8 animate-fade-in max-w-4xl mx-auto pb-10 relative min-h-screen"
+        >
+            <MasterpieceBackground />
+            <SEO title="Notifications" />
             <PageHeader
                 title="Notifications"
                 subtitle="Restez informé des activités importantes."
@@ -103,7 +114,7 @@ export const Notifications: React.FC = () => {
                                         Voir les détails <ArrowRight className="h-3 w-3 ml-1" />
                                     </a>
                                 )}
-                            </div>
+                            </motion.div>
                             {!notif.read && (
                                 <button onClick={() => markAsRead(notif.id)} className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all self-center">
                                     <X className="h-4 w-4" />
@@ -113,6 +124,6 @@ export const Notifications: React.FC = () => {
                     ))}
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 };

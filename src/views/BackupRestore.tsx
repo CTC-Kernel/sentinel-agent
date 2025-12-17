@@ -11,6 +11,11 @@ import { backupConfigSchema, restoreConfigSchema, BackupConfigFormData, RestoreC
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { OnboardingService } from '../services/onboardingService';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { motion } from 'framer-motion';
+import { staggerContainerVariants } from '../components/ui/animationVariants';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { PageHeader } from '../components/ui/PageHeader';
+import { SEO } from '../components/SEO';
 
 export const BackupRestore: React.FC = () => {
   const { user, addToast } = useStore();
@@ -236,24 +241,22 @@ export const BackupRestore: React.FC = () => {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in min-w-0">
+    <motion.div
+      variants={staggerContainerVariants}
+      initial="initial"
+      animate="visible"
+      className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in min-w-0"
+    >
+      <MasterpieceBackground />
+      <SEO title="Sauvegardes & Restauration" description="Gérez vos points de restauration et la sécurité de vos données" />
+
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 min-w-0">
-        <div className="min-w-0">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-            <div className="p-2 bg-indigo-500/10 rounded-xl"><Database className="h-8 w-8 text-indigo-500" /></div>
-            Sauvegardes & Restauration
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2 ml-14">Gérez vos points de restauration et la sécurité de vos données.</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-4 max-w-full">
-          <button
-            onClick={() => OnboardingService.startBackupTour()}
-            className="flex items-center px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white rounded-xl hover:bg-slate-200 dark:hover:bg-white/20 transition-colors text-sm font-medium"
-          >
-            <HelpCircle className="h-4 w-4 mr-2" />
-            Aide
-          </button>
+      <PageHeader
+        title="Sauvegardes & Restauration"
+        subtitle="Gérez vos points de restauration et la sécurité de vos données."
+        breadcrumbs={[{ label: 'Sauvegardes' }]}
+        icon={<Database className="h-6 w-6 text-white" strokeWidth={2.5} />}
+        actions={
           <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl max-w-full overflow-x-auto">
             <button
               onClick={() => setActiveTab('backup')}
@@ -268,8 +271,8 @@ export const BackupRestore: React.FC = () => {
               Restaurer
             </button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -533,6 +536,6 @@ export const BackupRestore: React.FC = () => {
         }}
         onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
       />
-    </div>
+    </motion.div>
   );
 };

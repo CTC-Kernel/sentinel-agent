@@ -1,6 +1,6 @@
 import React, { useDeferredValue, useEffect, useMemo, useState, useRef } from 'react';
 import { Menu, Transition } from '@headlessui/react';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
 
@@ -625,10 +625,11 @@ export const Suppliers: React.FC = () => {
             className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in min-w-0"
         >
             <MasterpieceBackground />
-            <Helmet>
-                <title>Gestion des Fournisseurs - Sentinel GRC</title>
-                <meta name="description" content="Gérez vos fournisseurs, évaluez leur conformité DORA et suivez les contrats." />
-            </Helmet>
+            <SEO
+                title="Gestion des Fournisseurs"
+                description="Gérez vos fournisseurs, évaluez leur conformité DORA et suivez les contrats."
+                keywords="Fournisseurs, DORA, Contrats, Tiers"
+            />
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
@@ -651,7 +652,7 @@ export const Suppliers: React.FC = () => {
                         <>
                             <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                             <Menu as="div" className="relative inline-block text-left">
-                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                <Menu.Button className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
                                     <MoreVertical className="h-5 w-5" />
                                 </Menu.Button>
                                 <Transition

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { integrationService, IntegrationProvider } from '../services/integrationService';
 import { IntegrationCard } from '../components/integrations/IntegrationCard';
 import { Modal } from '../components/ui/Modal';
@@ -7,6 +8,9 @@ import { toast } from 'sonner';
 
 import { useStore } from '../store';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { PageHeader } from '../components/ui/PageHeader';
+import { SEO } from '../components/SEO';
+import { staggerContainerVariants } from '../components/ui/animationVariants';
 
 export const Integrations: React.FC = () => {
     const { user, demoMode } = useStore();
@@ -122,19 +126,20 @@ export const Integrations: React.FC = () => {
     });
 
     return (
-        <div className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in min-w-0">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="visible"
+            className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in min-w-0"
+        >
             <MasterpieceBackground />
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0 mb-6">
-                <div className="min-w-0">
-                    <h1 className="text-2xl font-black text-slate-900 dark:text-white font-display tracking-tight">
-                        Intégrations
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
-                        Connectez vos outils pour automatiser la collecte de preuves.
-                    </p>
-                </div>
-            </div>
+            <SEO title="Intégrations" description="Connectez vos outils pour automatiser la collecte de preuves" />
+
+            <PageHeader
+                title="Intégrations"
+                subtitle="Connectez vos outils pour automatiser la collecte de preuves."
+                breadcrumbs={[{ label: 'Intégrations' }]}
+            />
 
             {/* Filters & Search */}
             <div className="flex flex-col md:flex-row gap-3 p-1 bg-slate-100/50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-white/5 min-w-0 backdrop-blur-sm mb-6">
@@ -245,6 +250,6 @@ export const Integrations: React.FC = () => {
                     </div>
                 </div>
             </Modal>
-        </div >
+        </motion.div>
     );
 };

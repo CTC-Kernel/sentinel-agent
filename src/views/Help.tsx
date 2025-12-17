@@ -1,278 +1,125 @@
 import React, { useState, useMemo } from 'react';
-import {
-    BookOpen, HelpCircle, ChevronRight, Search, ShieldAlert,
-    LayoutDashboard, MessageSquare, Database, CheckCircle2,
-    ChevronDown, Lock, Users, FileText, Activity,
-    Siren, Settings, Menu
-} from '../components/ui/Icons';
-import { ContactModal } from '../components/ui/ContactModal';
+import { motion } from 'framer-motion';
+import { staggerContainerVariants } from '../components/ui/animationVariants';
+import { SEO } from '../components/SEO';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import {
+    Search,
+    HelpCircle,
+    MessageSquare,
+    Menu,
+    ChevronRight,
+    ChevronDown,
+    FileText,
+    Shield,
+    Zap,
+    BookOpen,
+    Settings
+} from 'lucide-react';
+import { ContactModal } from '../components/ui/ContactModal';
+import { FeedbackModal } from '../components/ui/FeedbackModal';
 
-// --- Types ---
-type ArticleSection = {
+interface Section {
     title?: string;
-    content: string | React.ReactNode;
-};
+    content: string;
+}
 
-type HelpArticle = {
+interface Article {
     id: string;
     title: string;
-    icon?: React.ComponentType<{ className?: string }>;
     description: string;
-    sections: ArticleSection[];
-};
+    icon?: any;
+    sections: Section[];
+}
 
-type HelpCategory = {
+interface Category {
     id: string;
     title: string;
-    icon: React.ComponentType<{ className?: string }>;
-    articles: HelpArticle[];
-};
+    icon: any;
+    articles: Article[];
+}
 
-// --- Content Data ---
-const HELP_CONTENT: HelpCategory[] = [
+const HELP_DATA: Category[] = [
     {
         id: 'getting-started',
-        title: 'Démarrage',
-        icon: LayoutDashboard,
+        title: 'Démarrage Rapide',
+        icon: Zap,
         articles: [
             {
-                id: 'quick-start',
-                title: 'Premiers Pas',
-                description: "Configurez votre environnement Sentinel GRC en quelques minutes.",
+                id: 'intro',
+                title: 'Introduction à Sentinel GRC',
+                description: 'Découvrez les fonctionnalités principales de votre plateforme.',
                 icon: BookOpen,
                 sections: [
                     {
-                        title: "1. Configuration de l'Organisation",
-                        content: "Rendez-vous dans les Paramètres pour renseigner le nom de votre entreprise, votre secteur d'activité et vos préférences régionales. Ces informations seront utilisées pour les rapports."
+                        title: 'Vue d\'ensemble',
+                        content: 'Sentinel GRC est votre centre de commande pour la gouvernance cyber. Il vous permet de gérer vos risques, votre conformité et vos audits en un seul endroit.'
                     },
                     {
-                        title: "2. Invitation de l'Équipe",
-                        content: "Dans l'onglet 'Équipe', invitez vos collaborateurs. Assignez-leur des rôles appropriés (Admin, Auditeur, Utilisateur) pour contrôler leurs accès."
-                    },
-                    {
-                        title: "3. Initialisation des Actifs",
-                        content: "Le module 'Actifs' est le cœur de votre analyse. Commencez par importer ou créer vos actifs primordiaux (Processus métier, Données critiques) et supports (Serveurs, Applications)."
+                        title: 'Tableau de bord',
+                        content: 'Le tableau de bord vous donne une vue synthétique de votre posture de sécurité en temps réel.'
                     }
                 ]
             },
             {
-                id: 'dashboard',
-                title: 'Comprendre le Tableau de Bord',
-                description: "Guide des indicateurs et widgets principaux.",
-                icon: LayoutDashboard,
+                id: 'first-steps',
+                title: 'Premiers pas',
+                description: 'Configurez votre compte et invitez vos collaborateurs.',
                 sections: [
                     {
-                        title: "Score de Conformité",
-                        content: "Ce pourcentage reflète votre progression globale sur l'implémentation des contrôles ISO 27001. Il est calculé en temps réel."
-                    },
-                    {
-                        title: "Radar de Maturité",
-                        content: "Visualisez votre couverture par domaine (Organisationnel, Humain, Physique, Technologique). Idéal pour identifier les zones faibles."
-                    },
-                    {
-                        title: "Flux d'Activité",
-                        content: "Trace toutes les actions importantes (création de risque, modification de document) pour une auditabilité complète."
+                        content: 'Commencez par compléter votre profil dans les paramètres, puis configurez les informations de votre organisation.'
                     }
                 ]
             }
         ]
     },
     {
-        id: 'modules',
-        title: 'Modules',
-        icon: Database,
+        id: 'risks',
+        title: 'Gestion des Risques',
+        icon: Shield,
         articles: [
             {
-                id: 'risks',
-                title: 'Gestion des Risques (ISO 27005)',
-                description: "Méthodologie et gestion du cycle de vie des risques.",
-                icon: ShieldAlert,
+                id: 'create-risk',
+                title: 'Créer une analyse de risque',
+                description: 'Méthodologie EBIOS RM et ISO 27005.',
                 sections: [
                     {
-                        title: "Méthodologie",
-                        content: "Sentinel utilise l'approche ISO 27005 : Actif + Menace + Vulnérabilité = Risque. Le score est calculé selon la formule : (Probabilité x Impact) + Sensibilité de l'actif."
-                    },
-                    {
-                        title: "Création d'un Risque",
-                        content: "Depuis la vue Risques, cliquez sur '+ Nouveau Risque'. Sélectionnez l'actif concerné, la menace (ex: Ransomware) et évaluez les impacts CID (Confidentialité, Intégrité, Disponibilité)."
-                    },
-                    {
-                        title: "Traitement du Risque",
-                        content: "Pour chaque risque, définissez une stratégie (Réduire, Accepter, Eviter, Transférer). Associez des contrôles de l'Annexe A pour réduire le risque résiduel."
-                    }
-                ]
-            },
-            {
-                id: 'compliance',
-                title: 'Conformité & SoA',
-                description: "Suivi de l'Annexe A et Déclaration d'Applicabilité.",
-                icon: CheckCircle2,
-                sections: [
-                    {
-                        title: "Les Contrôles",
-                        content: "Le module Conformité liste les 93 contrôles de l'ISO 27001:2022. Pour chaque contrôle, définissez son statut (À faire, En cours, Implémenté)."
-                    },
-                    {
-                        title: "Preuves",
-                        content: "Associez des documents ou des captures d'écran à chaque contrôle pour prouver sa mise en œuvre lors de l'audit."
-                    },
-                    {
-                        title: "SoA (Statement of Applicability)",
-                        content: "Le SoA est généré automatiquement basé sur vos statuts. Vous pouvez l'exporter en PDF depuis le bouton 'Exporter SoA'."
-                    }
-                ]
-            },
-            {
-                id: 'audits',
-                title: 'Gestion des Audits',
-                description: "Planification et suivi des audits internes/externes.",
-                icon: Activity,
-                sections: [
-                    {
-                        title: "Planification",
-                        content: "Créez un audit, assignez un auditeur (interne ou externe) et définissez la portée (scope) et la date."
-                    },
-                    {
-                        title: "Déroulement",
-                        content: "L'auditeur peut saisir ses constats (Non-conformités majeures/mineures, Observations) directement dans l'outil."
-                    },
-                    {
-                        title: "Rapport",
-                        content: "Une fois l'audit terminé, un rapport formel est généré incluant le plan d'action correctif."
-                    }
-                ]
-            },
-            {
-                id: 'incidents',
-                title: 'Incidents de Sécurité',
-                description: "Déclaration et réponse aux incidents.",
-                icon: Siren,
-                sections: [
-                    {
-                        title: "Déclaration",
-                        content: "Tout utilisateur peut déclarer un incident via le bouton 'Déclarer un incident' ou le portail simplifié."
-                    },
-                    {
-                        title: "Qualification",
-                        content: "Le RSSI qualifie l'incident (Sévérité, Impact) et assigne un responsable."
-                    },
-                    {
-                        title: "Playbooks",
-                        content: "Suivez les playbooks intégrés (ex: Phishing, Malware) pour guider la réponse à incident étape par étape."
+                        title: 'Nouvelle analyse',
+                        content: 'Pour démarrer une nouvelle analyse, rendez-vous dans le module Risques et cliquez sur "Nouvelle Analyse".'
                     }
                 ]
             }
         ]
     },
     {
-        id: 'roles',
-        title: 'Rôles & Permissions',
-        icon: Lock,
+        id: 'compliance',
+        title: 'Conformité',
+        icon: FileText,
         articles: [
             {
-                id: 'rbac-matrix',
-                title: 'Matrice des Rôles',
-                description: "Détail des accès par profil utilisateur.",
-                icon: Users,
+                id: 'iso-27001',
+                title: 'Suivi ISO 27001',
+                description: 'Gérer votre déclaration d\'applicabilité (SoA).',
                 sections: [
                     {
-                        title: "Vue d'ensemble",
-                        content: (
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full text-sm text-left text-slate-600 dark:text-slate-300">
-                                    <thead className="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-800 dark:text-slate-400">
-                                        <tr>
-                                            <th className="px-6 py-3">Fonctionnalité</th>
-                                            <th className="px-6 py-3">Admin</th>
-                                            <th className="px-6 py-3">RSSI</th>
-                                            <th className="px-6 py-3">Auditeur</th>
-                                            <th className="px-6 py-3">Utilisateur</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                                        <tr className="bg-white dark:bg-slate-900">
-                                            <td className="px-6 py-4 font-medium">Gestion des Risques</td>
-                                            <td className="px-6 py-4 text-emerald-500">Total</td>
-                                            <td className="px-6 py-4 text-emerald-500">Total</td>
-                                            <td className="px-6 py-4 text-blue-500">Lecture/Modif</td>
-                                            <td className="px-6 py-4 text-slate-500">Lecture</td>
-                                        </tr>
-                                        <tr className="bg-slate-50 dark:bg-slate-800/50">
-                                            <td className="px-6 py-4 font-medium">Audits</td>
-                                            <td className="px-6 py-4 text-emerald-500">Total</td>
-                                            <td className="px-6 py-4 text-emerald-500">Total</td>
-                                            <td className="px-6 py-4 text-blue-500">Lecture/Création</td>
-                                            <td className="px-6 py-4 text-slate-500">Lecture</td>
-                                        </tr>
-                                        <tr className="bg-white dark:bg-slate-900">
-                                            <td className="px-6 py-4 font-medium">Incidents</td>
-                                            <td className="px-6 py-4 text-emerald-500">Total</td>
-                                            <td className="px-6 py-4 text-emerald-500">Total</td>
-                                            <td className="px-6 py-4 text-slate-500">Lecture</td>
-                                            <td className="px-6 py-4 text-blue-500">Création (Déclaration)</td>
-                                        </tr>
-                                        <tr className="bg-slate-50 dark:bg-slate-800/50">
-                                            <td className="px-6 py-4 font-medium">Paramètres & Logs</td>
-                                            <td className="px-6 py-4 text-emerald-500">Total</td>
-                                            <td className="px-6 py-4 text-emerald-500">Total</td>
-                                            <td className="px-6 py-4 text-red-500">Interdit</td>
-                                            <td className="px-6 py-4 text-red-500">Interdit</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        )
-                    },
-                    {
-                        title: "Détails des Rôles",
-                        content: (
-                            <ul className="list-disc pl-5 space-y-2 mt-2">
-                                <li><strong>Admin :</strong> Accès complet système, gestion des abonnements et des utilisateurs.</li>
-                                <li><strong>RSSI :</strong> Responsable de la sécurité. Accès complet aux modules GRC, mais pas à la facturation.</li>
-                                <li><strong>Auditeur :</strong> Peut voir et modifier les preuves, les risques et mener des audits. Ne peut pas supprimer d'éléments critiques.</li>
-                                <li><strong>Utilisateur :</strong> Accès en lecture seule aux politiques et procédures. Peut déclarer des incidents.</li>
-                            </ul>
-                        )
+                        content: 'Le module Conformité vous permet de suivre l\'implémentation des mesures de sécurité de l\'annexe A de l\'ISO 27001.'
                     }
                 ]
             }
         ]
     },
     {
-        id: 'admin',
-        title: 'Administration',
+        id: 'settings',
+        title: 'Paramètres',
         icon: Settings,
         articles: [
             {
-                id: 'settings',
-                title: 'Paramètres Généraux',
-                description: "Configuration de l'organisation.",
-                icon: Settings,
+                id: 'account',
+                title: 'Mon Compte',
+                description: 'Gérer vos préférences et votre sécurité.',
                 sections: [
                     {
-                        title: "Profil Organisation",
-                        content: "Modifiez le logo, le nom et les coordonnées de votre entité. Ces éléments apparaissent sur les rapports PDF."
-                    },
-                    {
-                        title: "Sécurité",
-                        content: "Activez l'authentification à deux facteurs (2FA) pour tous les administrateurs (recommandé)."
-                    }
-                ]
-            },
-            {
-                id: 'backup',
-                title: 'Sauvegardes',
-                description: "Politique de backup et restauration.",
-                icon: Database,
-                sections: [
-                    {
-                        title: "Automatique",
-                        content: "Sentinel effectue une sauvegarde chiffrée quotidienne de toutes vos données."
-                    },
-                    {
-                        title: "Manuelle",
-                        content: "Vous pouvez déclencher un export JSON complet de vos données à tout moment depuis l'onglet 'Sauvegarde'."
+                        content: 'Vous pouvez modifier votre mot de passe et activer l\'authentification à deux facteurs depuis la page Paramètres.'
                     }
                 ]
             }
@@ -280,39 +127,39 @@ const HELP_CONTENT: HelpCategory[] = [
     }
 ];
 
-import { FeedbackModal } from '../components/ui/FeedbackModal';
-
-// ... (existing imports)
-
 export const Help: React.FC = () => {
     const [search, setSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('getting-started');
     const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isContactOpen, setIsContactOpen] = useState(false);
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    // Filter content based on search
     const filteredContent = useMemo(() => {
-        if (!search) return HELP_CONTENT;
-        return HELP_CONTENT.map(cat => ({
-            ...cat,
-            articles: cat.articles.filter(art =>
-                art.title.toLowerCase().includes(search.toLowerCase()) ||
-                art.description.toLowerCase().includes(search.toLowerCase()) ||
-                art.sections.some(s =>
-                    (typeof s.content === 'string' && s.content.toLowerCase().includes(search.toLowerCase())) ||
-                    (s.title && s.title.toLowerCase().includes(search.toLowerCase()))
-                )
+        if (!search) return HELP_DATA;
+
+        return HELP_DATA.map(category => ({
+            ...category,
+            articles: category.articles.filter(article =>
+                article.title.toLowerCase().includes(search.toLowerCase()) ||
+                article.description.toLowerCase().includes(search.toLowerCase())
             )
-        })).filter(cat => cat.articles.length > 0);
+        })).filter(category => category.articles.length > 0);
     }, [search]);
 
-    const activeCategory = filteredContent.find(c => c.id === selectedCategory) || filteredContent[0];
+    const activeCategory = useMemo(() =>
+        filteredContent.find(c => c.id === selectedCategory) || filteredContent[0],
+        [filteredContent, selectedCategory]);
 
     return (
-        <div className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="visible"
+            className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
+        >
             <MasterpieceBackground />
+            <SEO title="Centre d'Aide" description="Documentation et support Sentinel GRC" />
             <div className="flex h-[calc(100vh-8rem)] animate-fade-in overflow-hidden rounded-[2.5rem] glass-panel border border-slate-200 dark:border-slate-800 shadow-2xl">
 
                 {/* Sidebar Navigation */}
@@ -486,6 +333,6 @@ export const Help: React.FC = () => {
                     onClose={() => setIsFeedbackOpen(false)}
                 />
             </div>
-        </div>
+        </motion.div>
     );
 };

@@ -20,6 +20,10 @@ import { Drawer } from '../components/ui/Drawer';
 import { Badge } from '../components/ui/Badge';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { Target } from 'lucide-react';
+import { SEO } from '../components/SEO';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { motion } from 'framer-motion';
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 
 import { canEditResource } from '../utils/permissions';
 
@@ -285,7 +289,18 @@ export const Privacy: React.FC = () => {
     const filteredActivities = activities.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()));
 
     return (
-        <div className="space-y-8 animate-fade-in pb-10 relative">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="visible"
+            className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
+        >
+            <MasterpieceBackground />
+            <SEO
+                title="Registre RGPD"
+                description="Registre des Activités de Traitement (ROPA) - Art. 30."
+                keywords="RGPD, ROPA, Privacy, Confidentialité"
+            />
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
@@ -306,7 +321,7 @@ export const Privacy: React.FC = () => {
                         <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
+                            className="flex items-center px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
                         >
                             <Upload className="h-4 w-4 mr-2" /> Importer
                         </button>
@@ -323,9 +338,11 @@ export const Privacy: React.FC = () => {
                 )}
             />
 
-            {/* Stats Dashboard */}
             {/* Insight Card (Summary) */}
-            <div className="glass-panel p-6 md:p-7 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group min-w-0">
+                <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+                </div>
                 <div className="space-y-2">
                     <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
                         <span className="inline-flex h-2 w-2 rounded-full bg-purple-500 animate-pulse" />
@@ -375,7 +392,7 @@ export const Privacy: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
             <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-purple-500/20 transition-all border border-slate-200 dark:border-white/5">
                 <Search className="h-5 w-5 text-slate-500" />
@@ -404,7 +421,7 @@ export const Privacy: React.FC = () => {
                     </div>
                 ) : (
                     filteredActivities.map(activity => (
-                        <div key={activity.id} onClick={() => openInspector(activity)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5">
+                        <motion.div variants={slideUpVariants} key={activity.id} onClick={() => openInspector(activity)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5">
                             <div className="flex justify-between items-start mb-5">
                                 <div className="p-3 bg-purple-50 dark:bg-slate-800 rounded-2xl text-purple-600 shadow-inner">
                                     <Fingerprint className="h-6 w-6" />
@@ -434,18 +451,22 @@ export const Privacy: React.FC = () => {
                                 </div>
                             </div>
 
-                            {activity.hasDPIA && (
-                                <div className="mt-5 flex items-center justify-center bg-purple-50 dark:bg-purple-900/20 py-2 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 border border-purple-100 dark:border-purple-900/30">
-                                    <CheckCircle2 className="h-3 w-3 mr-1.5" /> DPIA Effectué
-                                </div>
-                            )}
+                            {
+                                activity.hasDPIA && (
+                                    <div className="mt-5 flex items-center justify-center bg-purple-50 dark:bg-purple-900/20 py-2 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 border border-purple-100 dark:border-purple-900/30">
+                                        <CheckCircle2 className="h-3 w-3 mr-1.5" /> DPIA Effectué
+                                    </div>
+                                )
+                            }
 
-                            {canEdit && (
-                                <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={(e) => { e.stopPropagation(); initiateDelete(activity.id, activity.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-50 shadow-sm backdrop-blur-sm"><Trash2 className="h-4 w-4" /></button>
-                                </div>
-                            )}
-                        </div>
+                            {
+                                canEdit && (
+                                    <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button onClick={(e) => { e.stopPropagation(); initiateDelete(activity.id, activity.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-50 shadow-sm backdrop-blur-sm"><Trash2 className="h-4 w-4" /></button>
+                                    </div>
+                                )
+                            }
+                        </motion.div>
                     ))
                 )}
             </div>
@@ -458,9 +479,10 @@ export const Privacy: React.FC = () => {
                 width="max-w-6xl"
                 subtitle={
                     selectedActivity ? (
-                        <span className="flex items-center gap-2">
-                            {selectedActivity.status} • {selectedActivity.manager}
-                        </span>
+                        <span className="flex items-center gap-2" >
+                            {selectedActivity.status} • {selectedActivity.manager
+                            }
+                        </span >
                     ) : null
                 }
                 actions={
@@ -644,10 +666,10 @@ export const Privacy: React.FC = () => {
                         </div>
                     </div>
                 )}
-            </Drawer>
+            </Drawer >
 
             {/* Create Drawer */}
-            <Drawer
+            < Drawer
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
                 title="Nouveau Traitement"
@@ -705,7 +727,7 @@ export const Privacy: React.FC = () => {
                         <button type="submit" className="px-8 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-purple-500/30">Enregistrer</button>
                     </div>
                 </form>
-            </Drawer>
-        </div >
+            </Drawer >
+        </motion.div >
     );
 };

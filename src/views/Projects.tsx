@@ -1,6 +1,6 @@
 
 import React, { useDeferredValue, useEffect, useMemo, useState, useCallback } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
 import 'jspdf-autotable';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, limit, where, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { Menu, Transition } from '@headlessui/react';
@@ -919,10 +919,10 @@ export const Projects: React.FC = () => {
             className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
         >
             <MasterpieceBackground />
-            <Helmet>
-                <title>Gestion de Projets - Sentinel GRC</title>
-                <meta name="description" content="Suivez vos projets de mise en conformité et d'amélioration continue." />
-            </Helmet>
+            <SEO
+                title="Gestion de Projets"
+                description="Suivez vos projets de mise en conformité et d'amélioration continue."
+            />
             {/* Task Form Modal */}
             <TaskFormModal
                 isOpen={showTaskModal}
@@ -1081,7 +1081,22 @@ export const Projects: React.FC = () => {
 
                             <CustomTooltip content="Créer un nouveau projet">
                                 <button
-                                    onClick={openCreationDrawer}
+                                    onClick={() => {
+                                        setCreationMode(true);
+                                        setEditingProject({
+                                            id: '',
+                                            name: '',
+                                            description: '',
+                                            status: 'En cours',
+                                            dueDate: new Date().toISOString(),
+                                            tasks: [],
+                                            progress: 0,
+                                            manager: user?.displayName || '',
+                                            organizationId: user?.organizationId || '',
+                                            createdAt: new Date().toISOString()
+                                        });
+                                        // setIsEditing(true); // Removed
+                                    }}
                                     className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                 >
                                     <Plus className="h-4 w-4 mr-2" />
@@ -1091,7 +1106,8 @@ export const Projects: React.FC = () => {
                         </>
                     )}
                 />
-                <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-7 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group">
+                <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent dark:border-white/5 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
                     <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                     </div>
@@ -1191,16 +1207,19 @@ export const Projects: React.FC = () => {
 
                 {
                     viewMode === 'list' ? (
-                        <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
-                            <DataTable
-                                columns={columns}
-                                data={filteredProjects}
-                                selectable={true}
-                                onBulkDelete={handleBulkDelete}
-                                onRowClick={openInspector}
-                                searchable={false}
-                                loading={loading}
-                            />
+                        <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                            <div className="relative z-10">
+                                <DataTable
+                                    columns={columns}
+                                    data={filteredProjects}
+                                    selectable={true}
+                                    onBulkDelete={handleBulkDelete}
+                                    onRowClick={openInspector}
+                                    searchable={false}
+                                    loading={loading}
+                                />
+                            </div>
                         </motion.div>
                     ) : (
                         <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

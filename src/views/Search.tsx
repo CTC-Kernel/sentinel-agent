@@ -4,6 +4,10 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
 import { Search as SearchIcon, Filter, ArrowRight, ShieldCheck, AlertTriangle, FileText, FolderKanban } from '../components/ui/Icons';
+import { motion } from 'framer-motion';
+import { staggerContainerVariants } from '../components/ui/animationVariants';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { SEO } from '../components/SEO';
 
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -198,7 +202,14 @@ export const Search: React.FC = () => {
     const hasActiveFilters = advancedFilters.status || advancedFilters.owner || advancedFilters.dateFrom || advancedFilters.dateTo || advancedFilters.criticality;
 
     return (
-        <div className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="visible"
+            className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
+        >
+            <MasterpieceBackground />
+            <SEO title="Recherche Avancée" description="Recherchez dans tous vos actifs, risques, documents et projets" />
             {showAdvancedSearch && (
                 <AdvancedSearch
                     onSearch={handleAdvancedSearch}
@@ -332,6 +343,6 @@ export const Search: React.FC = () => {
                     ))
                 )}
             </div>
-        </div>
+        </motion.div>
     );
 };

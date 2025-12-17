@@ -13,6 +13,10 @@ import { VoxelGuide } from '../components/VoxelGuide';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Network } from '../components/ui/Icons';
+import { SEO } from '../components/SEO';
+import { motion } from 'framer-motion';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { staggerContainerVariants } from '../components/ui/animationVariants';
 
 type LayerType = 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier' | 'control';
 
@@ -743,62 +747,71 @@ export const VoxelView: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900 min-w-0">
-      {/* Header */}
-      <div className="px-6 py-4 border-b border-slate-200 dark:border-white/10 bg-white/70 dark:bg-slate-900/80 backdrop-blur">
-        <PageHeader
-          title="CTC Engine"
-          subtitle="Visualisation interactive de votre écosystème de sécurité."
-          breadcrumbs={[
-            { label: 'CTC Engine' }
-          ]}
-          icon={<Network className="h-6 w-6 text-white" strokeWidth={2.5} />}
-          actions={
-            <div className="flex flex-wrap items-center gap-3 min-w-0">
-              {/* Counters */}
-              <div className="flex items-center gap-4 text-sm mr-0 md:mr-4 px-4 py-2 bg-slate-100/50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/10 max-w-full overflow-x-auto">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
-                  <span className="text-slate-600 dark:text-slate-300 font-semibold">{assets.length}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 bg-orange-500 rounded-full"></div>
-                  <span className="text-slate-600 dark:text-slate-300 font-semibold">{risks.length}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 bg-purple-500 rounded-full"></div>
-                  <span className="text-slate-600 dark:text-slate-300 font-semibold">{projects.length}</span>
-                </div>
+    <motion.div
+      variants={staggerContainerVariants}
+      initial="initial"
+      animate="visible"
+      className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
+    >
+      <MasterpieceBackground />
+      <SEO
+        title="CTC Engine"
+        description="Visualisation interactive de votre écosystème de sécurité."
+        keywords="3D, Cartographie, Cybersécurité, ISO 27005, Risques"
+      />
+
+      <PageHeader
+        title="CTC Engine"
+        subtitle="Visualisation interactive de votre écosystème de sécurité."
+        breadcrumbs={[
+          { label: 'CTC Engine' }
+        ]}
+        icon={<Network className="h-6 w-6 text-white" strokeWidth={2.5} />}
+        actions={
+          <div className="flex flex-wrap items-center gap-3 min-w-0">
+            {/* Counters */}
+            <div className="flex items-center gap-4 text-sm mr-0 md:mr-4 px-4 py-2 bg-slate-100/50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/10 max-w-full overflow-x-auto">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+                <span className="text-slate-600 dark:text-slate-300 font-semibold">{assets.length}</span>
               </div>
-
-              {/* Action Buttons */}
-              <button
-                onClick={handleRefresh}
-                className="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors shadow-sm"
-                title="Actualiser"
-              >
-                <RefreshCw className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-              </button>
-
-              <button
-                onClick={handleAIAnalysis}
-                disabled={analyzing}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${analyzing
-                  ? 'bg-indigo-100 text-indigo-400 dark:bg-slate-900/30 dark:text-indigo-400 cursor-wait'
-                  : 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5'
-                  }`}
-              >
-                {analyzing ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-                <span>{analyzing ? 'Analyse...' : 'Analyser IA'}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 bg-orange-500 rounded-full"></div>
+                <span className="text-slate-600 dark:text-slate-300 font-semibold">{risks.length}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 bg-purple-500 rounded-full"></div>
+                <span className="text-slate-600 dark:text-slate-300 font-semibold">{projects.length}</span>
+              </div>
             </div>
-          }
-        />
-      </div>
+
+            {/* Action Buttons */}
+            <button
+              onClick={handleRefresh}
+              className="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors shadow-sm"
+              title="Actualiser"
+            >
+              <RefreshCw className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+            </button>
+
+            <button
+              onClick={handleAIAnalysis}
+              disabled={analyzing}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${analyzing
+                ? 'bg-indigo-100 text-indigo-400 dark:bg-slate-900/30 dark:text-indigo-400 cursor-wait'
+                : 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5'
+                }`}
+            >
+              {analyzing ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              <span>{analyzing ? 'Analyse...' : 'Analyser IA'}</span>
+            </button>
+          </div>
+        }
+      />
 
       {/* Main Voxel View */}
       <div
@@ -1316,6 +1329,6 @@ export const VoxelView: React.FC = () => {
         </div>
       </div>
       <VoxelGuide isOpen={showGuide} onClose={handleCloseGuide} />
-    </div >
+    </motion.div >
   );
 };

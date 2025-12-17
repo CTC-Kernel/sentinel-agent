@@ -1,5 +1,5 @@
 import React, { useDeferredValue, useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
 import { useLocation } from 'react-router-dom';
 import { Controller } from 'react-hook-form';
 import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
@@ -1302,10 +1302,10 @@ export const Audits: React.FC = () => {
         >
             <MasterpieceBackground />
 
-            <Helmet>
-                <title>Gestion des Audits - Sentinel GRC</title>
-                <meta name="description" content="Planifiez et réalisez vos audits internes et externes ISO 27001." />
-            </Helmet>
+            <SEO
+                title="Gestion des Audits"
+                description="Planifiez et réalisez vos audits internes et externes ISO 27001."
+            />
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
@@ -1401,7 +1401,7 @@ export const Audits: React.FC = () => {
                                 <CustomTooltip content="Obtenir des suggestions d'audit par IA">
                                     <button
                                         onClick={handleGeneratePlan}
-                                        className="hidden sm:flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-bold shadow-lg hover:shadow-pink-500/25 transition-all hover:scale-105"
+                                        className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-bold shadow-lg hover:shadow-pink-500/25 transition-all hover:scale-105 text-sm"
                                     >
                                         <BrainCircuit className="w-4 h-4" />
                                         <span className="hidden lg:inline">Suggestions IA</span>
@@ -1409,7 +1409,7 @@ export const Audits: React.FC = () => {
                                 </CustomTooltip>
 
                                 <CustomTooltip content="Planifier un nouvel audit">
-                                    <button onClick={() => openCreationDrawer()} className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-slate-900/20 dark:shadow-none">
+                                    <button onClick={() => openCreationDrawer()} className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20">
                                         <Plus className="h-4 w-4" />
                                         <span className="hidden sm:inline">Nouvel Audit</span>
                                     </button>

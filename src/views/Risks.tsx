@@ -1023,7 +1023,7 @@ export const Risks: React.FC = () => {
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in">
             <MasterpieceBackground />
             <SEO
-                title="Gestion des Risques - Sentinel GRC"
+                title="Gestion des Risques"
                 description="Identifiez, évaluez et traitez les risques de sécurité selon ISO 27005."
                 keywords="Risques, ISO 27005, EBIOS RM, Menaces, Vulnérabilités, Plan de traitement"
             />
@@ -1072,9 +1072,8 @@ export const Risks: React.FC = () => {
             <PageHeader
                 title={risksTitle}
                 subtitle={risksSubtitle}
-                icon={<ShieldAlert className="h-6 w-6 text-white" />}
+                icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 breadcrumbs={[
-                    { label: 'Tableau de bord', path: '/' },
                     { label: 'Risques' }
                 ]}
                 trustType="integrity"
@@ -1205,7 +1204,7 @@ export const Risks: React.FC = () => {
                                 <CustomTooltip content="Lancer l'analyse IA">
                                     <button
                                         onClick={handleAIAnalysis}
-                                        className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-medium text-sm"
+                                        className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm"
                                     >
                                         <BrainCircuit className="h-4 w-4 mr-2" />
                                         <span className="hidden md:inline">Analyse IA</span>
@@ -1214,7 +1213,7 @@ export const Risks: React.FC = () => {
                                 <CustomTooltip content="Créer un nouveau risque">
                                     <button
                                         onClick={openCreationDrawer}
-                                        className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-lg shadow-brand-500/25 transition-all hover:scale-105 active:scale-95 font-medium text-sm"
+                                        className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                     >
                                         <Plus className="h-4 w-4" />
                                         <span className="hidden sm:inline">Nouveau Risque</span>
@@ -1428,7 +1427,7 @@ export const Risks: React.FC = () => {
                         </div>
                     </div>
                 ) : viewMode === 'list' ? (
-                    <div className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
+                    <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div className="relative z-10">
                             <DataTable
@@ -1550,7 +1549,7 @@ export const Risks: React.FC = () => {
                                 }}
                             />
                         </div>
-                    </div>
+                    </motion.div>
                 ) : (
                     <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 animate-fade-in">
                         {loading ? (

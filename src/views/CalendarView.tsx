@@ -2,23 +2,34 @@ import React from 'react';
 import { CalendarDashboard } from '../components/calendar/CalendarDashboard';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
+import { motion } from 'framer-motion';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { staggerContainerVariants } from '../components/ui/animationVariants';
 
 export const CalendarView: React.FC = () => {
     return (
-        <div className="space-y-8 animate-fade-in flex flex-col lg:h-full">
-            <Helmet>
-                <title>Calendrier - Sentinel GRC</title>
-            </Helmet>
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="visible"
+            className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
+        >
+            <MasterpieceBackground />
+            <SEO
+                title="Calendrier"
+                description="Vue d'ensemble des échéances, audits et maintenances."
+                keywords="Calendrier, Planning, Echéances, Audits, Projets"
+            />
             <PageHeader
                 title="Calendrier"
                 subtitle="Vue d'ensemble des échéances, audits et maintenances."
                 breadcrumbs={[{ label: 'Calendrier' }]}
-                icon={<CalendarIcon className="h-6 w-6 text-white" />}
+                icon={<CalendarIcon className="h-6 w-6 text-white" strokeWidth={2.5} />}
             />
             <div className="flex-1 min-h-0">
                 <CalendarDashboard />
             </div>
-        </div>
+        </motion.div>
     );
 };

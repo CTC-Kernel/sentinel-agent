@@ -1,7 +1,7 @@
 
 import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
-import { Helmet } from 'react-helmet-async';
+import { SEO } from '../components/SEO';
 
 import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, limit, onSnapshot, writeBatch, arrayUnion } from 'firebase/firestore';
 import { Menu, Transition } from '@headlessui/react';
@@ -689,9 +689,11 @@ export const Assets: React.FC = () => {
             className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
         >
             <MasterpieceBackground />
-            <Helmet>
-                <title>{selectedAsset ? `${selectedAsset.name} - Actifs` : 'Inventaire des Actifs - Sentinel GRC'}</title>
-            </Helmet>
+            <SEO
+                title={selectedAsset ? `${selectedAsset.name} - Actifs` : 'Inventaire des Actifs'}
+                description="Base de connaissance de l'infrastructure."
+                keywords="Assets, Actifs, Infrastructure, Inventaire"
+            />
             {/* Confirm Modal */}
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} loading={confirmData.loading} closeOnConfirm={confirmData.closeOnConfirm} />
 
@@ -708,7 +710,7 @@ export const Assets: React.FC = () => {
                     actions={canEdit && (
                         <>
                             <Menu as="div" className="relative inline-block text-left">
-                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                <Menu.Button className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
                                     <MoreVertical className="h-5 w-5" />
                                 </Menu.Button>
                                 <Transition
