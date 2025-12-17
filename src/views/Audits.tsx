@@ -16,7 +16,7 @@ import { EvidenceRequestList } from '../components/audits/EvidenceRequestList';
 import { QuestionnaireList } from '../components/audits/QuestionnaireList';
 import { AuditTeam } from '../components/audits/AuditTeam';
 import { Comments } from '../components/ui/Comments';
-import { Plus, Search, Filter, Calendar, ClipboardCheck, AlertTriangle, CheckCircle, Clock, FileText, Trash2, Edit, ChevronRight, User, MoreVertical, X, Sparkles, BrainCircuit, RefreshCw, Upload, Link, MessageSquare, Paperclip, BarChart2, ShieldAlert, ArrowRight, Save, FolderKanban, FileSpreadsheet, Loader2, Download } from '../components/ui/Icons';
+import { Plus, AlertTriangle, Calendar, FileText } from '../components/ui/Icons';
 // ...
 import { AuditPlannerService } from '../services/AuditPlannerService';
 

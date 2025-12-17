@@ -1,16 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useDashboardPreferences } from '../../../hooks/useDashboardPreferences';
-import { ConfigurableDashboardGrid } from '../configurable/ConfigurableDashboardGrid';
+import { WidgetLayout, useDashboardPreferences } from '../../../hooks/useDashboardPreferences';
+import { Plus } from '../../../components/ui/Icons';
 import { useStore } from '../../../store';
-
-import { Plus } from 'lucide-react';
+import { ConfigurableDashboardGrid } from '../configurable/ConfigurableDashboardGrid';
 import { AddWidgetModal } from '../configurable/AddWidgetModal';
-import { WidgetId, WIDGET_REGISTRY } from '../configurable/WidgetRegistry';
-
-
-// Props Interface
-import { Risk, StatsHistoryEntry } from '../../../types';
+import { WIDGET_REGISTRY, WidgetId } from '../configurable/WidgetRegistry';
+import { StatsHistoryEntry, Risk } from '../../../types';
 
 interface DashboardStats {
     totalRisks: number;
@@ -35,7 +31,7 @@ interface AdminDashboardViewProps {
     recentActivity: unknown[];
     radarData: unknown[];
     isEditing?: boolean;
-    onLayoutUpdate?: (layout: any[]) => void;
+    onLayoutUpdate?: (layout: WidgetLayout[]) => void;
 }
 
 export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => {

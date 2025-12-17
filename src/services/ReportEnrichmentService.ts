@@ -1,4 +1,4 @@
-import { Risk } from '../types';
+import { Risk, Project, ProjectTask, Control } from '../types';
 
 export interface ReportMetrics {
     total_risks: number;
@@ -224,12 +224,12 @@ export class ReportEnrichmentService {
     /**
      * Calculate metrics for a specific Project
      */
-    static calculateProjectMetrics(project: any): ProjectMetrics {
+    static calculateProjectMetrics(project: Project): ProjectMetrics {
         const tasks = project.tasks || [];
         const total = tasks.length;
-        const done = tasks.filter((t: any) => t.status === 'Terminé').length;
-        const inProgress = tasks.filter((t: any) => t.status === 'En cours').length;
-        const todo = tasks.filter((t: any) => t.status === 'A faire').length;
+        const done = tasks.filter((t: ProjectTask) => t.status === 'Terminé').length;
+        const inProgress = tasks.filter((t: ProjectTask) => t.status === 'En cours').length;
+        const todo = tasks.filter((t: ProjectTask) => t.status === 'A faire').length;
 
         // Calculate delay risk
         let delayRisk = 'Low';
@@ -273,10 +273,10 @@ export class ReportEnrichmentService {
     /**
      * Calculate metrics for Compliance (SoA)
      */
-    static calculateComplianceMetrics(controls: any[]): ComplianceMetrics {
+    static calculateComplianceMetrics(controls: Control[]): ComplianceMetrics {
         const total = controls.length;
         const implemented = controls.filter(c => c.status === 'Implémenté').length;
-        const planned = controls.filter(c => c.status === 'Planifié' || c.status === 'En cours').length;
+        const planned = controls.filter(c => c.status === 'Non commencé' || c.status === 'En cours').length;
         const notApplicable = controls.filter(c => c.status === 'Non applicable').length;
         const notStarted = controls.filter(c => c.status === 'Non commencé').length;
 

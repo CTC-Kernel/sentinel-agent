@@ -94,7 +94,7 @@ tags: [${tags.join(', ')}]
 - **Availability**: ${asset.availability}
 
 ## Details
-${(asset as any).description || 'No description provided.'}
+${(asset as { description?: string }).description || 'No description provided.'}
 ${asset.ipAddress ? `- **IP Address**: ${asset.ipAddress}` : ''}
 ${asset.dataDetails ? `- **Data Format**: ${asset.dataDetails.format}` : ''}
 `;

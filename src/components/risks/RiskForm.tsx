@@ -114,7 +114,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             const suggestions = RiskRemediationService.suggestMitigationControls(formData, controls);
             setSuggestedControlIds(suggestions);
         }
-    }, [activeTab, getValues('threat'), getValues('vulnerability')]);
+    }, [activeTab, getValues, controls]);
 
     useEffect(() => {
         if (showLibraryModal && libraryThreats.length === 0) {
@@ -225,6 +225,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.threat.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+
 
     const toggleControlSelection = (controlId: string) => {
         const currentIds = getValues('mitigationControlIds') || [];

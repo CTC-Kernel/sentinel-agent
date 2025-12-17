@@ -9,7 +9,7 @@ import { Project, ProjectTask, Risk, Control, SystemLog, UserProfile, Asset, Pro
 import { projectSchema, templateFormSchema } from '../schemas/projectSchema';
 import { z } from 'zod';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, Search, Filter, AlertTriangle, Shield, CheckCircle, Clock, Zap, FileText, Trash2, Edit, Calendar, User, Upload, ArrowRight, Grid, List, MoreVertical, Layout, BarChart2, CheckSquare, Target, Users, FolderKanban, MessageSquare, Loader2, FileSpreadsheet, Download } from '../components/ui/Icons';
+import { Plus, CheckSquare, FolderKanban, MessageSquare, Download, CalendarDays, LayoutDashboard, History, BrainCircuit, ShieldAlert, Server, ClipboardCheck, Edit, Trash2, MoreVertical, Zap, Loader2, FileSpreadsheet, Copy, Target, FileText } from '../components/ui/Icons';
 import { Badge } from '../components/ui/Badge';
 
 import { Drawer } from '../components/ui/Drawer';
@@ -1270,552 +1270,567 @@ export const Projects: React.FC = () => {
                     )
                 }
 
-                {/* Inspector Drawer - Glassmorphism */}
-                {/* Inspector Drawer */}
-                <Drawer
-                    isOpen={!!selectedProject}
-                    onClose={() => setSelectedProject(null)}
-                    title={selectedProject?.name || 'Détails du projet'}
-                    subtitle="Gestion et suivi du projet"
-                    width="max-w-6xl"
-                    breadcrumbs={getBreadcrumbs()}
-                    actions={
-                        selectedProject && (
-                            <>
-                                <CustomTooltip content="Générer un rapport exécutif PDF">
-                                    <button onClick={handleExportExecutiveReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><FileText className="h-5 w-5 text-indigo-500" /></button>
+            </motion.div>
+            {/* Inspector Drawer - Glassmorphism */}
+            {/* Inspector Drawer */}
+            <Drawer
+                isOpen={!!selectedProject}
+                onClose={() => setSelectedProject(null)}
+                title={selectedProject?.name || 'Détails du projet'}
+                subtitle="Gestion et suivi du projet"
+                width="max-w-6xl"
+                breadcrumbs={getBreadcrumbs()}
+                actions={
+                    selectedProject && (
+                        <>
+                            <CustomTooltip content="Générer un rapport exécutif PDF">
+                                <button onClick={handleExportExecutiveReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><FileText className="h-5 w-5 text-indigo-500" /></button>
+                            </CustomTooltip>
+                            <CustomTooltip content="Télécharger le rapport">
+                                <button onClick={generateReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Download className="h-5 w-5" /></button>
+                            </CustomTooltip>
+                            {canEdit && (
+                                <CustomTooltip content="Dupliquer le projet">
+                                    <button onClick={handleDuplicate} disabled={isSubmitting} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                        {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Copy className="h-5 w-5" />}
+                                    </button>
                                 </CustomTooltip>
-                                <CustomTooltip content="Télécharger le rapport">
-                                    <button onClick={generateReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Download className="h-5 w-5" /></button>
+                            )}
+                            {canEdit && (
+                                <CustomTooltip content="Modifier le projet">
+                                    <button onClick={() => openEditDrawer(selectedProject)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                                 </CustomTooltip>
-                                {canEdit && (
-                                    <CustomTooltip content="Dupliquer le projet">
-                                        <button onClick={handleDuplicate} disabled={isSubmitting} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm disabled:opacity-50">
-                                            {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Copy className="h-5 w-5" />}
-                                        </button>
-                                    </CustomTooltip>
-                                )}
-                                {canEdit && (
-                                    <CustomTooltip content="Modifier le projet">
-                                        <button onClick={() => openEditDrawer(selectedProject)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
-                                    </CustomTooltip>
-                                )}
-                                {canDeleteResource(user, 'Project') && (
-                                    <CustomTooltip content="Supprimer le projet">
-                                        <button onClick={() => initiateDelete(selectedProject.id, selectedProject.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
-                                    </CustomTooltip>
-                                )}
-                            </>
-                        )
-                    }
-                >
-                    {selectedProject && (
-                        <div className="flex flex-col h-full">
-                            {/* Status Header */}
-                            <div className="px-4 sm:px-8 py-4 bg-slate-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5 flex flex-wrap items-center gap-4">
-                                <Badge
-                                    status={selectedProject.status === 'En cours' ? 'info' : selectedProject.status === 'Terminé' ? 'success' : selectedProject.status === 'Suspendu' ? 'error' : 'neutral'}
-                                    variant="soft"
-                                >
-                                    {selectedProject.status}
-                                </Badge>
-                                <span className="text-xs font-bold text-slate-600 flex items-center gap-2">
-                                    <CalendarDays className="h-4 w-4" />
-                                    Échéance: {new Date(selectedProject.dueDate).toLocaleDateString()}
-                                </span>
-                            </div>
+                            )}
+                            {canDeleteResource(user, 'Project') && (
+                                <CustomTooltip content="Supprimer le projet">
+                                    <button onClick={() => initiateDelete(selectedProject.id, selectedProject.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                                </CustomTooltip>
+                            )}
+                        </>
+                    )
+                }
+            >
+                {selectedProject && (
+                    <div className="flex flex-col h-full">
+                        {/* Status Header */}
+                        <div className="px-4 sm:px-8 py-4 bg-slate-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5 flex flex-wrap items-center gap-4">
+                            <Badge
+                                status={selectedProject.status === 'En cours' ? 'info' : selectedProject.status === 'Terminé' ? 'success' : selectedProject.status === 'Suspendu' ? 'error' : 'neutral'}
+                                variant="soft"
+                            >
+                                {selectedProject.status}
+                            </Badge>
+                            <span className="text-xs font-bold text-slate-600 flex items-center gap-2">
+                                <CalendarDays className="h-4 w-4" />
+                                Échéance: {new Date(selectedProject.dueDate).toLocaleDateString()}
+                            </span>
+                        </div>
 
-                            {/* Tabs */}
-                            <div className="px-4 sm:px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
-                                <ScrollableTabs
-                                    tabs={[
-                                        { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
-                                        { id: 'tasks', label: 'Tâches', icon: CheckSquare, count: selectedProject.tasks?.length },
-                                        { id: 'gantt', label: 'Gantt', icon: CalendarDays },
-                                        { id: 'milestones', label: 'Jalons', icon: Target, count: projectMilestones.length },
-                                        { id: 'dashboard', label: 'Tableau de bord', icon: FileSpreadsheet },
-                                        { id: 'risks', label: 'Risques', icon: ShieldAlert, count: linkedRisks.length },
-                                        { id: 'controls', label: 'Contrôles', icon: CheckSquare, count: linkedControls.length },
-                                        { id: 'assets', label: 'Actifs', icon: Server, count: linkedAssets.length },
-                                        { id: 'audits', label: 'Audits', icon: ClipboardCheck, count: linkedAuditsList.length },
-                                        { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
-                                        { id: 'history', label: 'Historique', icon: History },
-                                        { id: 'comments', label: 'Commentaires', icon: MessageSquare }
-                                    ]}
-                                    activeTab={inspectorTab}
-                                    onTabChange={(id) => setInspectorTab(id as InspectorTabId)}
-                                />
-                            </div>
+                        {/* Tabs */}
+                        <div className="px-4 sm:px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
+                            <ScrollableTabs
+                                tabs={[
+                                    { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
+                                    { id: 'tasks', label: 'Tâches', icon: CheckSquare, count: selectedProject.tasks?.length },
+                                    { id: 'gantt', label: 'Gantt', icon: CalendarDays },
+                                    { id: 'milestones', label: 'Jalons', icon: Target, count: projectMilestones.length },
+                                    { id: 'dashboard', label: 'Tableau de bord', icon: FileSpreadsheet },
+                                    { id: 'risks', label: 'Risques', icon: ShieldAlert, count: linkedRisks.length },
+                                    { id: 'controls', label: 'Contrôles', icon: CheckSquare, count: linkedControls.length },
+                                    { id: 'assets', label: 'Actifs', icon: Server, count: linkedAssets.length },
+                                    { id: 'audits', label: 'Audits', icon: ClipboardCheck, count: linkedAuditsList.length },
+                                    { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
+                                    { id: 'history', label: 'Historique', icon: History },
+                                    { id: 'comments', label: 'Commentaires', icon: MessageSquare }
+                                ]}
+                                activeTab={inspectorTab}
+                                onTabChange={(id) => setInspectorTab(id as InspectorTabId)}
+                            />
+                        </div>
 
-                            {/* Content */}
-                            <div className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
-                                {inspectorTab === 'overview' && (
+                        {/* Content */}
+                        <div className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
+                            {inspectorTab === 'overview' && (
+                                <>
                                     <div className="space-y-8">
-                                        <div className="space-y-8">
-                                            <div>
-                                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Objectif</h3>
-                                                <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                    <div className="relative z-10 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                                                        {selectedProject.description}
+                                        <div>
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Objectif</h3>
+                                            <div className="glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                <div className="relative z-10 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                                                    {selectedProject.description}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                            <div className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                <div className="relative z-10">
+                                                    <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">Actifs Concernés</p>
+                                                    <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedAssetIds?.length || 0}</p>
+                                                </div>
+                                            </div>
+                                            <div className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                <div className="relative z-10">
+                                                    <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">Risques Traités</p>
+                                                    <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedRiskIds?.length || 0}</p>
+                                                </div>
+                                            </div>
+                                            <div className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                <div className="relative z-10">
+                                                    <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">Contrôles Implémentés</p>
+                                                    <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedControlIds?.length || 0}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Linked Audits */}
+                                        {linkedAudits.length > 0 && (
+                                            <div className="glass-panel rounded-3xl border border-white/60 dark:border-white/10 shadow-sm p-6 mt-6 relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                <div className="relative z-10">
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <div>
+                                                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Audits de conformité</p>
+                                                            <h4 className="text-lg font-bold text-slate-900 dark:text-white">Audits liés</h4>
+                                                        </div>
+                                                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{linkedAudits.length} audits</span>
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        {linkedAudits.map(audit => (
+                                                            <div key={audit.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                                <div>
+                                                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{audit.name}</p>
+                                                                    <p className="text-xs text-slate-600 dark:text-slate-400">{audit.type} • {new Date(audit.dateScheduled).toLocaleDateString()}</p>
+                                                                </div>
+                                                                <Badge
+                                                                    status={audit.status === 'Terminé' ? 'success' : 'info'}
+                                                                    variant="soft"
+                                                                    size="sm"
+                                                                >
+                                                                    {audit.status}
+                                                                </Badge>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                                <div className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                    <div className="relative z-10">
-                                                        <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">Actifs Concernés</p>
-                                                        <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedAssetIds?.length || 0}</p>
-                                                    </div>
+                                        )}
+                                        <div>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Chaîne d'approvisionnement</p>
+                                            <h4 className="text-lg font-bold text-slate-900 dark:text-white">Fournisseurs impliqués</h4>
+                                        </div>
+                                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{linkedSuppliers.length} fournisseurs</span>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {linkedSuppliers.map(supplier => (
+                                            <div key={supplier.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{supplier.name}</p>
+                                                    <p className="text-xs text-slate-600 dark:text-slate-400">{supplier.category}</p>
                                                 </div>
-                                                <div className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                    <div className="relative z-10">
-                                                        <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">Risques Traités</p>
-                                                        <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedRiskIds?.length || 0}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                    <div className="relative z-10">
-                                                        <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">Contrôles Implémentés</p>
-                                                        <p className="text-2xl font-black text-slate-900 dark:text-white">{selectedProject.relatedControlIds?.length || 0}</p>
-                                                    </div>
-                                                </div>
+                                                <Badge
+                                                    status={supplier.criticality === 'Critique' ? 'error' : 'neutral'}
+                                                    variant="soft"
+                                                    size="sm"
+                                                >
+                                                    {supplier.criticality}
+                                                </Badge>
                                             </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
 
-                                            {/* Linked Audits */}
-                                            {linkedAudits.length > 0 && (
-                                                <div className="glass-panel rounded-3xl border border-white/60 dark:border-white/10 shadow-sm p-6 mt-6 relative overflow-hidden">
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                    <div className="relative z-10">
-                                                        <div className="flex items-center justify-between mb-4">
-                                                            <div>
-                                                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Audits de conformité</p>
-                                                                <h4 className="text-lg font-bold text-slate-900 dark:text-white">Audits liés</h4>
-                                                            </div>
-                                                            <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{linkedAudits.length} audits</span>
-                                                        </div>
-                                                        <div className="space-y-3">
-                                                            {linkedAudits.map(audit => (
-                                                                <div key={audit.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
-                                                                    <div>
-                                                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{audit.name}</p>
-                                                                        <p className="text-xs text-slate-600 dark:text-slate-400">{audit.type} • {new Date(audit.dateScheduled).toLocaleDateString()}</p>
-                                                                    </div>
-                                                                    <Badge
-                                                                        status={audit.status === 'Terminé' ? 'success' : 'info'}
-                                                                        variant="soft"
-                                                                        size="sm"
-                                                                    >
-                                                                        {audit.status}
-                                                                    </Badge>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                        )}
 
-                                                    {/* Linked Suppliers */}
-                                                    {linkedSuppliers.length > 0 && (
-                                                        <div className="glass-panel rounded-3xl border border-white/60 dark:border-white/10 shadow-sm p-6 mt-6 relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                            <div className="relative z-10">
-                                                                <div className="flex items-center justify-between mb-4">
-                                                                    <div>
-                                                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Chaîne d'approvisionnement</p>
-                                                                        <h4 className="text-lg font-bold text-slate-900 dark:text-white">Fournisseurs impliqués</h4>
-                                                                    </div>
-                                                                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{linkedSuppliers.length} fournisseurs</span>
-                                                                </div>
-                                                                <div className="space-y-3">
-                                                                    {linkedSuppliers.map(supplier => (
-                                                                        <div key={supplier.id} className="flex items-center justify-between bg-white dark:bg-slate-900/40 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-3">
-                                                                            <div>
-                                                                                <p className="text-sm font-semibold text-slate-900 dark:text-white">{supplier.name}</p>
-                                                                                <p className="text-xs text-slate-600 dark:text-slate-400">{supplier.category}</p>
-                                                                            </div>
-                                                                            <Badge
-                                                                                status={supplier.criticality === 'Critique' ? 'error' : 'neutral'}
-                                                                                variant="soft"
-                                                                                size="sm"
-                                                                            >
-                                                                                {supplier.criticality}
-                                                                            </Badge>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                        )}
-                                                        </div>
-                                </div>
-                                            )}
+                            {
+                                inspectorTab === 'milestones' && (
+                                    <ProjectMilestones
+                                        project={selectedProject}
+                                        milestones={projectMilestones}
+                                        onUpdate={() => fetchMilestones(selectedProject.id)}
+                                    />
+                                )
+                            }
 
-                                            {inspectorTab === 'milestones' && (
-                                                <ProjectMilestones
-                                                    project={selectedProject}
-                                                    milestones={projectMilestones}
-                                                    onUpdate={() => fetchMilestones(selectedProject.id)}
-                                                />
-                                            )}
+                            {
+                                inspectorTab === 'dashboard' && (
+                                    <div className="space-y-6 h-full flex flex-col">
+                                        <ProjectDashboard
+                                            project={selectedProject}
+                                            milestones={projectMilestones}
+                                            relatedRisks={risks.filter(r => selectedProject.relatedRiskIds?.includes(r.id))}
+                                        />
+                                    </div>
+                                )
+                            }
 
-                                            {inspectorTab === 'dashboard' && (
-                                                <div className="space-y-6 h-full flex flex-col">
-                                                    <ProjectDashboard
-                                                        project={selectedProject}
-                                                        milestones={projectMilestones}
-                                                        relatedRisks={risks.filter(r => selectedProject.relatedRiskIds?.includes(r.id))}
-                                                    />
-                                                </div>
-                                            )}
+                            {
+                                inspectorTab === 'tasks' && (
+                                    <div className="space-y-6 h-full flex flex-col">
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700">
+                                                <button onClick={() => setTaskViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Liste</button>
+                                                <button onClick={() => setTaskViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Tableau</button>
+                                            </div>
+                                            {canEdit && (
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingTask(undefined);
+                                                        setShowTaskModal(true);
+                                                    }}
+                                                    className="flex items-center gap-2 px-4 py-2 text-xs font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 hover:scale-105 transition-all shadow-lg shadow-brand-500/30"
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                    Nouvelle tâche
+                                                </button>
+                                            )}</div>
 
-                                            {inspectorTab === 'tasks' && (
-                                                <div className="space-y-6 h-full flex flex-col">
-                                                    <div className="flex justify-between items-center">
-                                                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700">
-                                                            <button onClick={() => setTaskViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Liste</button>
-                                                            <button onClick={() => setTaskViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${taskViewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Tableau</button>
-                                                        </div>
-                                                        {canEdit && (
-                                                            <button
-                                                                onClick={() => {
-                                                                    setEditingTask(undefined);
-                                                                    setShowTaskModal(true);
-                                                                }}
-                                                                className="flex items-center gap-2 px-4 py-2 text-xs font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 hover:scale-105 transition-all shadow-lg shadow-brand-500/30"
-                                                            >
-                                                                <Plus className="h-4 w-4" />
-                                                                Nouvelle tâche
+                                        {taskViewMode === 'list' ? (
+                                            <div className="space-y-2">
+                                                {selectedProject.tasks?.length === 0 && <p className="text-center text-slate-500 text-xs py-8 italic">Aucune tâche définie.</p>}
+                                                {selectedProject.tasks?.map(task => (
+                                                    <div key={task.id} className="flex items-center p-3 glass-panel rounded-xl border border-white/60 dark:border-white/10 group hover:shadow-apple transition-all relative overflow-hidden">
+                                                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                        <div className="relative z-10 flex items-center w-full">
+                                                            <button onClick={() => toggleTaskStatus(task.id)} disabled={!canEdit} className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-green-500'}`}>
+                                                                {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
                                                             </button>
-                                                        )}</div>
-
-                                                    {taskViewMode === 'list' ? (
-                                                        <div className="space-y-2">
-                                                            {selectedProject.tasks?.length === 0 && <p className="text-center text-slate-500 text-xs py-8 italic">Aucune tâche définie.</p>}
-                                                            {selectedProject.tasks?.map(task => (
-                                                                <div key={task.id} className="flex items-center p-3 glass-panel rounded-xl border border-white/60 dark:border-white/10 group hover:shadow-apple transition-all relative overflow-hidden">
-                                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                                    <div className="relative z-10 flex items-center w-full">
-                                                                        <button onClick={() => toggleTaskStatus(task.id)} disabled={!canEdit} className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-green-500'}`}>
-                                                                            {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
-                                                                        </button>
-                                                                        <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
-                                                                            {task.title}
-                                                                            {task.dueDate && <span className="ml-2 text-[10px] text-slate-500 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{new Date(task.dueDate).toLocaleDateString()}</span>}
-                                                                        </span>
-                                                                        {canEdit && (
-                                                                            <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                                <button onClick={() => {
-                                                                                    const icsContent = generateICS([{
-                                                                                        title: `Tâche : ${task.title}`,
-                                                                                        description: `Tâche du projet ${selectedProject.name}`,
-                                                                                        startDate: task.dueDate ? new Date(task.dueDate) : new Date(selectedProject.dueDate),
-                                                                                        location: 'Sentinel GRC'
-                                                                                    }]);
-                                                                                    downloadICS(`tache_${task.id}.ics`, icsContent);
-                                                                                }} className="p-1.5 text-slate-500 hover:text-blue-500 transition-all" title="Ajouter au calendrier"><CalendarDays className="h-3.5 w-3.5" /></button>
-                                                                                <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-500 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="flex gap-4 overflow-x-auto pb-4 h-full">
-                                                            <KanbanColumn
-                                                                status="A faire"
-                                                                tasks={selectedProject.tasks?.filter(t => t.status === 'A faire') || []}
-                                                                canEdit={canEdit}
-                                                                draggedTaskId={draggedTaskId}
-                                                                onDragOver={handleDragOver}
-                                                                onDrop={handleDrop}
-                                                                onDragStart={handleDragStart}
-                                                                onEditTask={(task) => { setEditingTask(task); setShowTaskModal(true); }}
-                                                                onDeleteTask={deleteTask}
-                                                            />
-                                                            <KanbanColumn
-                                                                status="En cours"
-                                                                tasks={selectedProject.tasks?.filter(t => t.status === 'En cours') || []}
-                                                                canEdit={canEdit}
-                                                                draggedTaskId={draggedTaskId}
-                                                                onDragOver={handleDragOver}
-                                                                onDrop={handleDrop}
-                                                                onDragStart={handleDragStart}
-                                                                onEditTask={(task) => { setEditingTask(task); setShowTaskModal(true); }}
-                                                                onDeleteTask={deleteTask}
-                                                            />
-                                                            <KanbanColumn
-                                                                status="Terminé"
-                                                                tasks={selectedProject.tasks?.filter(t => t.status === 'Terminé') || []}
-                                                                canEdit={canEdit}
-                                                                draggedTaskId={draggedTaskId}
-                                                                onDragOver={handleDragOver}
-                                                                onDrop={handleDrop}
-                                                                onDragStart={handleDragStart}
-                                                                onEditTask={(task) => { setEditingTask(task); setShowTaskModal(true); }}
-                                                                onDeleteTask={deleteTask}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {/* --- REMOVED OLD LINKED ITEMS DISPLAY IN OVERVIEW --- */}
-
-                                            {inspectorTab === 'risks' && (
-                                                <div className="space-y-6">
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Risques liés ({linkedRisks.length})</h3>
-                                                        {canEdit && (
-                                                            <button
-                                                                onClick={() => {
-                                                                    navigate('/risks', { state: { createForProject: selectedProject.id, projectName: selectedProject.name } });
-                                                                }}
-                                                                className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
-                                                            >
-                                                                <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouveau Risque
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        {linkedRisks.length === 0 && <p className="text-sm text-slate-500 italic col-span-2 text-center py-8">Aucun risque associé.</p>}
-                                                        {linkedRisks.map(risk => {
-                                                            const riskLevel = risk.score >= 15 ? 'Critique' : risk.score >= 10 ? 'Élevé' : risk.score >= 5 ? 'Moyen' : 'Faible';
-                                                            return (
-                                                                <div key={risk.id} className="glass-panel p-4 rounded-2xl border border-white/60 dark:border-white/10 flex flex-col gap-2 relative overflow-hidden group hover:shadow-apple transition-all">
-                                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                                    <div className="relative z-10">
-                                                                        <div className="flex justify-between items-start">
-                                                                            <div>
-                                                                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">#{risk.id.substring(0, 4)}</span>
-                                                                                <h4 className="font-bold text-slate-900 dark:text-white line-clamp-1" title={risk.threat}>{risk.threat}</h4>
-                                                                            </div>
-                                                                            <Badge status={riskLevel === 'Critique' || riskLevel === 'Élevé' ? 'error' : riskLevel === 'Moyen' ? 'warning' : 'success'} size="sm" variant="soft">{riskLevel}</Badge>
-                                                                        </div>
-                                                                        <div className="flex items-center gap-2 mt-2">
-                                                                            <span className="text-xs text-slate-500">Score: {risk.score}</span>
-                                                                            <span className="text-xs text-slate-400">•</span>
-                                                                            <span className="text-xs text-slate-500">Impact: {risk.impact}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {inspectorTab === 'controls' && (
-                                                <div className="space-y-6">
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><CheckSquare className="h-4 w-4 mr-2" /> Contrôles liés ({linkedControls.length})</h3>
-                                                        {canEdit && (
-                                                            <button
-                                                                onClick={() => {
-                                                                    // This assumes we have a way to create controls linked to a project, or just nav to compliance
-                                                                    // Since controls are usually standard, maybe we just navigate to compliance?
-                                                                    // Or create a request? For now, navigate to Compliance with state.
-                                                                    navigate('/compliance', { state: { createForProject: selectedProject.id, projectName: selectedProject.name } });
-                                                                }}
-                                                                className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
-                                                            >
-                                                                <Plus className="h-3.5 w-3.5 mr-1.5" /> Ajouter Contrôle
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                    <div className="space-y-3">
-                                                        {linkedControls.length === 0 && <p className="text-sm text-slate-500 italic text-center py-8">Aucun contrôle associé.</p>}
-                                                        {linkedControls.map(control => (
-                                                            <div key={control.id} className="flex items-center justify-between glass-panel border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3 hover:shadow-sm transition-all relative overflow-hidden">
-                                                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                                <div className="relative z-10 flex items-center justify-between w-full">
-                                                                    <div>
-                                                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{control.code} — {control.name}</p>
-                                                                        {control.description && <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-1">{control.description}</p>}
-                                                                    </div>
-                                                                    <Badge status="neutral" variant="outline" size="sm">{control.status}</Badge>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-
-                                            {inspectorTab === 'assets' && (
-                                                <div className="space-y-6">
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><Server className="h-4 w-4 mr-2" /> Actifs liés ({linkedAssets.length})</h3>
-                                                        {canEdit && (
-                                                            <button
-                                                                onClick={() => {
-                                                                    navigate('/assets', { state: { createForProject: selectedProject.id, projectName: selectedProject.name } });
-                                                                }}
-                                                                className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
-                                                            >
-                                                                <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouvel Actif
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        {linkedAssets.length === 0 && <p className="text-sm text-slate-500 italic col-span-2 text-center py-8">Aucun actif associé.</p>}
-                                                        {linkedAssets.map(asset => (
-                                                            <div key={asset.id} className="glass-panel p-4 rounded-2xl border border-white/60 dark:border-white/10 flex items-center gap-3 relative overflow-hidden">
-                                                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                                <div className="relative z-10 flex items-center gap-3 w-full">
-                                                                    <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 flex-shrink-0">
-                                                                        <Server className="h-5 w-5" />
-                                                                    </div>
-                                                                    <div>
-                                                                        <h4 className="font-bold text-slate-900 dark:text-white text-sm">{asset.name}</h4>
-                                                                        <p className="text-xs text-slate-500">{asset.type} • {asset.confidentiality}</p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {inspectorTab === 'audits' && (
-                                                <div className="space-y-6">
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><ClipboardCheck className="h-4 w-4 mr-2" /> Audits liés ({linkedAuditsList.length})</h3>
-                                                        {canEdit && (
-                                                            <button
-                                                                onClick={() => {
-                                                                    navigate('/audits', { state: { createForProject: selectedProject.id, projectName: selectedProject.name } });
-                                                                }}
-                                                                className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
-                                                            >
-                                                                <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouvel Audit
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                    <div className="space-y-3">
-                                                        {linkedAuditsList.length === 0 && <p className="text-sm text-slate-500 italic text-center py-8">Aucun audit associé.</p>}
-                                                        {linkedAuditsList.map(audit => (
-                                                            <div key={audit.id} className="flex items-center justify-between glass-panel border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3 relative overflow-hidden">
-                                                                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                                <div className="relative z-10 flex items-center justify-between w-full">
-                                                                    <div>
-                                                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{audit.name}</p>
-                                                                        <p className="text-xs text-slate-600 dark:text-slate-400">
-                                                                            {new Date(audit.dateScheduled).toLocaleDateString()} • {audit.type} • {audit.auditor}
-                                                                        </p>
-                                                                    </div>
-                                                                    <Badge status={audit.status === 'Terminé' ? 'success' : audit.status === 'En cours' ? 'info' : 'neutral'} variant="outline" size="sm">{audit.status}</Badge>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-
-
-                                            {inspectorTab === 'history' && (
-                                                <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                                    {projectHistory.map((log, i) => (
-                                                        <div key={i} className="relative">
-                                                            <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
-                                                                <div className="h-2 w-2 rounded-full bg-brand-600"></div>
+                                                            <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
+                                                                {task.title}
+                                                                {task.dueDate && <span className="ml-2 text-[10px] text-slate-500 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{new Date(task.dueDate).toLocaleDateString()}</span>}
                                                             </span>
-                                                            <div>
-                                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
-                                                                <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{log.details}</p>
-                                                                <p className="text-[10px] text-slate-500 mt-1">Par: {log.userEmail}</p>
-                                                            </div>
+                                                            {canEdit && (
+                                                                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <button onClick={() => {
+                                                                        const icsContent = generateICS([{
+                                                                            title: `Tâche : ${task.title}`,
+                                                                            description: `Tâche du projet ${selectedProject.name}`,
+                                                                            startDate: task.dueDate ? new Date(task.dueDate) : new Date(selectedProject.dueDate),
+                                                                            location: 'Sentinel GRC'
+                                                                        }]);
+                                                                        downloadICS(`tache_${task.id}.ics`, icsContent);
+                                                                    }} className="p-1.5 text-slate-500 hover:text-blue-500 transition-all" title="Ajouter au calendrier"><CalendarDays className="h-3.5 w-3.5" /></button>
+                                                                    <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-500 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            )}
-
-                                            {inspectorTab === 'comments' && (
-                                                <div className="h-full flex flex-col">
-                                                    <Comments collectionName="projects" documentId={selectedProject.id} />
-                                                </div>
-                                            )}
-
-                                            {inspectorTab === 'gantt' && (
-                                                <div className="space-y-4 h-full min-h-[500px]">
-                                                    <div className="h-[600px] w-full">
-                                                        <GanttChart
-                                                            tasks={selectedProject.tasks || []}
-                                                            viewMode={ganttViewMode}
-                                                            onViewModeChange={setGanttViewMode}
-                                                            users={usersList}
-                                                            onTaskClick={(task) => {
-                                                                setEditingTask(task);
-                                                                setShowTaskModal(true);
-                                                            }}
-                                                            onTaskUpdate={(task, start, end) => {
-                                                                if (!canEdit) return;
-                                                                const updatedTasks = selectedProject.tasks.map(t => {
-                                                                    if (t.id === task.id) {
-                                                                        return {
-                                                                            ...t,
-                                                                            startDate: start.toISOString(),
-                                                                            dueDate: end.toISOString()
-                                                                        };
-                                                                    }
-                                                                    return t;
-                                                                });
-                                                                updateTasks(updatedTasks);
-                                                            }}
-                                                        />
                                                     </div>
-                                                </div>
-                                            )}
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="flex gap-4 overflow-x-auto pb-4 h-full">
+                                                <KanbanColumn
+                                                    status="A faire"
+                                                    tasks={selectedProject.tasks?.filter(t => t.status === 'A faire') || []}
+                                                    canEdit={canEdit}
+                                                    draggedTaskId={draggedTaskId}
+                                                    onDragOver={handleDragOver}
+                                                    onDrop={handleDrop}
+                                                    onDragStart={handleDragStart}
+                                                    onEditTask={(task) => { setEditingTask(task); setShowTaskModal(true); }}
+                                                    onDeleteTask={deleteTask}
+                                                />
+                                                <KanbanColumn
+                                                    status="En cours"
+                                                    tasks={selectedProject.tasks?.filter(t => t.status === 'En cours') || []}
+                                                    canEdit={canEdit}
+                                                    draggedTaskId={draggedTaskId}
+                                                    onDragOver={handleDragOver}
+                                                    onDrop={handleDrop}
+                                                    onDragStart={handleDragStart}
+                                                    onEditTask={(task) => { setEditingTask(task); setShowTaskModal(true); }}
+                                                    onDeleteTask={deleteTask}
+                                                />
+                                                <KanbanColumn
+                                                    status="Terminé"
+                                                    tasks={selectedProject.tasks?.filter(t => t.status === 'Terminé') || []}
+                                                    canEdit={canEdit}
+                                                    draggedTaskId={draggedTaskId}
+                                                    onDragOver={handleDragOver}
+                                                    onDrop={handleDrop}
+                                                    onDragStart={handleDragStart}
+                                                    onEditTask={(task) => { setEditingTask(task); setShowTaskModal(true); }}
+                                                    onDeleteTask={deleteTask}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            }
 
-                                            {inspectorTab === 'intelligence' && (
-                                                <div className="h-full">
-                                                    <ProjectAIAssistant
-                                                        project={selectedProject}
-                                                        risks={risks}
-                                                        controls={controls}
-                                                    />
-                                                </div>
+                            {/* --- REMOVED OLD LINKED ITEMS DISPLAY IN OVERVIEW --- */}
+
+                            {
+                                inspectorTab === 'risks' && (
+                                    <div className="space-y-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><ShieldAlert className="h-4 w-4 mr-2" /> Risques liés ({linkedRisks.length})</h3>
+                                            {canEdit && (
+                                                <button
+                                                    onClick={() => {
+                                                        navigate('/risks', { state: { createForProject: selectedProject.id, projectName: selectedProject.name } });
+                                                    }}
+                                                    className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                                >
+                                                    <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouveau Risque
+                                                </button>
                                             )}
                                         </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {linkedRisks.length === 0 && <p className="text-sm text-slate-500 italic col-span-2 text-center py-8">Aucun risque associé.</p>}
+                                            {linkedRisks.map(risk => {
+                                                const riskLevel = risk.score >= 15 ? 'Critique' : risk.score >= 10 ? 'Élevé' : risk.score >= 5 ? 'Moyen' : 'Faible';
+                                                return (
+                                                    <div key={risk.id} className="glass-panel p-4 rounded-2xl border border-white/60 dark:border-white/10 flex flex-col gap-2 relative overflow-hidden group hover:shadow-apple transition-all">
+                                                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                        <div className="relative z-10">
+                                                            <div className="flex justify-between items-start">
+                                                                <div>
+                                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">#{risk.id.substring(0, 4)}</span>
+                                                                    <h4 className="font-bold text-slate-900 dark:text-white line-clamp-1" title={risk.threat}>{risk.threat}</h4>
+                                                                </div>
+                                                                <Badge status={riskLevel === 'Critique' || riskLevel === 'Élevé' ? 'error' : riskLevel === 'Moyen' ? 'warning' : 'success'} size="sm" variant="soft">{riskLevel}</Badge>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 mt-2">
+                                                                <span className="text-xs text-slate-500">Score: {risk.score}</span>
+                                                                <span className="text-xs text-slate-400">•</span>
+                                                                <span className="text-xs text-slate-500">Impact: {risk.impact}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
                                     </div>
-                                )}
-                            </Drawer>
+                                )
+                            }
 
-                            {/* Create/Edit Drawer */}
-                            <Drawer
-                                isOpen={creationMode || !!editingProject}
-                                onClose={() => { setCreationMode(false); setEditingProject(null); }}
-                                title={editingProject ? "Modifier le Projet" : "Nouveau Projet"}
-                                subtitle={editingProject ? editingProject.name : "Création"}
-                                width="max-w-4xl"
-                                breadcrumbs={getBreadcrumbs()}
-                            >
-                                <ProjectForm
-                                    onCancel={() => { setCreationMode(false); setEditingProject(null); }}
-                                    onSubmit={handleProjectFormSubmit}
-                                    existingProject={editingProject || undefined}
-                                    availableUsers={usersList.map(u => u.displayName || u.email)}
-                                    availableRisks={risks}
-                                    availableControls={controls}
-                                    availableAssets={assets}
-                                    isLoading={isSubmitting}
-                                />
-                            </Drawer>
+                            {
+                                inspectorTab === 'controls' && (
+                                    <div className="space-y-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><CheckSquare className="h-4 w-4 mr-2" /> Contrôles liés ({linkedControls.length})</h3>
+                                            {canEdit && (
+                                                <button
+                                                    onClick={() => {
+                                                        // This assumes we have a way to create controls linked to a project, or just nav to compliance
+                                                        // Since controls are usually standard, maybe we just navigate to compliance?
+                                                        // Or create a request? For now, navigate to Compliance with state.
+                                                        navigate('/compliance', { state: { createForProject: selectedProject.id, projectName: selectedProject.name } });
+                                                    }}
+                                                    className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                                >
+                                                    <Plus className="h-3.5 w-3.5 mr-1.5" /> Ajouter Contrôle
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="space-y-3">
+                                            {linkedControls.length === 0 && <p className="text-sm text-slate-500 italic text-center py-8">Aucun contrôle associé.</p>}
+                                            {linkedControls.map(control => (
+                                                <div key={control.id} className="flex items-center justify-between glass-panel border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3 hover:shadow-sm transition-all relative overflow-hidden">
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                    <div className="relative z-10 flex items-center justify-between w-full">
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">{control.code} — {control.name}</p>
+                                                            {control.description && <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-1">{control.description}</p>}
+                                                        </div>
+                                                        <Badge status="neutral" variant="outline" size="sm">{control.status}</Badge>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )
+                            }
 
-                            <ConfirmModal
-                                isOpen={confirmData.isOpen}
-                                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
-                                title={confirmData.title}
-                                message={confirmData.message}
-                                onConfirm={confirmData.onConfirm}
-                                type="info"
-                                confirmText="Oui, mettre à jour"
-                                cancelText="Non, ignorer"
-                            />
-                        </motion.div >
-                    );
+
+                            {
+                                inspectorTab === 'assets' && (
+                                    <div className="space-y-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><Server className="h-4 w-4 mr-2" /> Actifs liés ({linkedAssets.length})</h3>
+                                            {canEdit && (
+                                                <button
+                                                    onClick={() => {
+                                                        navigate('/assets', { state: { createForProject: selectedProject.id, projectName: selectedProject.name } });
+                                                    }}
+                                                    className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                                >
+                                                    <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouvel Actif
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {linkedAssets.length === 0 && <p className="text-sm text-slate-500 italic col-span-2 text-center py-8">Aucun actif associé.</p>}
+                                            {linkedAssets.map(asset => (
+                                                <div key={asset.id} className="glass-panel p-4 rounded-2xl border border-white/60 dark:border-white/10 flex items-center gap-3 relative overflow-hidden">
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                    <div className="relative z-10 flex items-center gap-3 w-full">
+                                                        <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 flex-shrink-0">
+                                                            <Server className="h-5 w-5" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-bold text-slate-900 dark:text-white text-sm">{asset.name}</h4>
+                                                            <p className="text-xs text-slate-500">{asset.type} • {asset.confidentiality}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )
+                            }
+
+                            {
+                                inspectorTab === 'audits' && (
+                                    <div className="space-y-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><ClipboardCheck className="h-4 w-4 mr-2" /> Audits liés ({linkedAuditsList.length})</h3>
+                                            {canEdit && (
+                                                <button
+                                                    onClick={() => {
+                                                        navigate('/audits', { state: { createForProject: selectedProject.id, projectName: selectedProject.name } });
+                                                    }}
+                                                    className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                                >
+                                                    <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouvel Audit
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="space-y-3">
+                                            {linkedAuditsList.length === 0 && <p className="text-sm text-slate-500 italic text-center py-8">Aucun audit associé.</p>}
+                                            {linkedAuditsList.map(audit => (
+                                                <div key={audit.id} className="flex items-center justify-between glass-panel border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3 relative overflow-hidden">
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                    <div className="relative z-10 flex items-center justify-between w-full">
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-slate-900 dark:text-white">{audit.name}</p>
+                                                            <p className="text-xs text-slate-600 dark:text-slate-400">
+                                                                {new Date(audit.dateScheduled).toLocaleDateString()} • {audit.type} • {audit.auditor}
+                                                            </p>
+                                                        </div>
+                                                        <Badge status={audit.status === 'Terminé' ? 'success' : audit.status === 'En cours' ? 'info' : 'neutral'} variant="outline" size="sm">{audit.status}</Badge>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )
+                            }
+
+
+
+                            {
+                                inspectorTab === 'history' && (
+                                    <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
+                                        {projectHistory.map((log, i) => (
+                                            <div key={i} className="relative">
+                                                <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
+                                                    <div className="h-2 w-2 rounded-full bg-brand-600"></div>
+                                                </span>
+                                                <div>
+                                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
+                                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{log.details}</p>
+                                                    <p className="text-[10px] text-slate-500 mt-1">Par: {log.userEmail}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )
+                            }
+
+                            {
+                                inspectorTab === 'comments' && (
+                                    <div className="h-full flex flex-col">
+                                        <Comments collectionName="projects" documentId={selectedProject.id} />
+                                    </div>
+                                )
+                            }
+
+                            {
+                                inspectorTab === 'gantt' && (
+                                    <div className="space-y-4 h-full min-h-[500px]">
+                                        <div className="h-[600px] w-full">
+                                            <GanttChart
+                                                tasks={selectedProject.tasks || []}
+                                                viewMode={ganttViewMode}
+                                                onViewModeChange={setGanttViewMode}
+                                                users={usersList}
+                                                onTaskClick={(task) => {
+                                                    setEditingTask(task);
+                                                    setShowTaskModal(true);
+                                                }}
+                                                onTaskUpdate={(task, start, end) => {
+                                                    if (!canEdit) return;
+                                                    const updatedTasks = selectedProject.tasks.map(t => {
+                                                        if (t.id === task.id) {
+                                                            return {
+                                                                ...t,
+                                                                startDate: start.toISOString(),
+                                                                dueDate: end.toISOString()
+                                                            };
+                                                        }
+                                                        return t;
+                                                    });
+                                                    updateTasks(updatedTasks);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                )
+                            }
+
+                            {
+                                inspectorTab === 'intelligence' && (
+                                    <div className="h-full">
+                                        <ProjectAIAssistant
+                                            project={selectedProject}
+                                            risks={risks}
+                                            controls={controls}
+                                        />
+                                    </div>
+                                )
+                            }
+                        </div>
+                    </div>
+                )}
+            </Drawer>
+
+            {/* Create/Edit Drawer */}
+            <Drawer
+                isOpen={creationMode || !!editingProject}
+                onClose={() => { setCreationMode(false); setEditingProject(null); }}
+                title={editingProject ? "Modifier le Projet" : "Nouveau Projet"}
+                subtitle={editingProject ? editingProject.name : "Création"}
+                width="max-w-4xl"
+                breadcrumbs={getBreadcrumbs()}
+            >
+                <ProjectForm
+                    onCancel={() => { setCreationMode(false); setEditingProject(null); }}
+                    onSubmit={handleProjectFormSubmit}
+                    existingProject={editingProject || undefined}
+                    availableUsers={usersList.map(u => u.displayName || u.email)}
+                    availableRisks={risks}
+                    availableControls={controls}
+                    availableAssets={assets}
+                    isLoading={isSubmitting}
+                />
+            </Drawer>
+
+            <ConfirmModal
+                isOpen={confirmData.isOpen}
+                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+                title={confirmData.title}
+                message={confirmData.message}
+                onConfirm={confirmData.onConfirm}
+                type="info"
+                confirmText="Oui, mettre à jour"
+                cancelText="Non, ignorer"
+            />
+        </motion.div>
+    );
 };

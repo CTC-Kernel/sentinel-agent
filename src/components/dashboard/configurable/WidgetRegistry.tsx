@@ -19,11 +19,15 @@ import { AssetStatsWidget } from '../widgets/AssetStatsWidget';
 import { SuppliersStatsWidget } from '../widgets/SuppliersStatsWidget';
 import { ContinuityPlansWidget } from '../widgets/ContinuityPlansWidget';
 
+// Define generic props for widgets
+export type DashboardWidgetProps = Record<string, unknown>;
+
 // Define the Registry
 // This maps a string ID to the Component and its implicit Grid sizing
 export const WIDGET_REGISTRY: Record<string, {
     id?: string;
-    component: React.ComponentType<any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    component: React.ComponentType<any>; // Keep ComponentType<any> to allow diverse widgets, but we could narrow if possible
     defaultColSpan: 1 | 2 | 3;
     defaultRowSpan?: number;
     minColSpan?: number;

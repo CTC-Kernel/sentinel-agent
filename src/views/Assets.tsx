@@ -1,4 +1,4 @@
-```
+
 import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import { Helmet } from 'react-helmet-async';
@@ -281,7 +281,7 @@ export const Assets: React.FC = () => {
             }
 
 
-            await logAction(user, 'CREATE', 'Asset', `Création Actif: ${ cleanData.name } `);
+            await logAction(user, 'CREATE', 'Asset', `Création Actif: ${cleanData.name} `);
             addToast("Actif créé avec succès", "success");
 
             refreshAssets();
@@ -345,12 +345,12 @@ export const Assets: React.FC = () => {
                         });
                     });
                     await batch.commit();
-                    addToast(`${ risksToUpdate.length } risque(s) mis à jour automatiquement(Impact).`, "info");
+                    addToast(`${risksToUpdate.length} risque(s) mis à jour automatiquement(Impact).`, "info");
                 }
             }
 
             await updateDoc(doc(db, 'assets', selectedAsset.id), dataToUpdate);
-            await logAction(user, 'UPDATE', 'Asset', `MAJ Actif: ${ cleanData.name } `);
+            await logAction(user, 'UPDATE', 'Asset', `MAJ Actif: ${cleanData.name} `);
 
             const updatedAsset = { ...selectedAsset, ...dataToUpdate, currentValue: calculateDepreciation(cleanData.purchasePrice || 0, cleanData.purchaseDate || '') } as Asset;
             setSelectedAsset(updatedAsset);
@@ -371,7 +371,7 @@ export const Assets: React.FC = () => {
 
     const handleDuplicate = () => {
         if (!selectedAsset || !canEdit) return;
-        const copy = { ...selectedAsset, name: `${ selectedAsset.name } (Copie)` };
+        const copy = { ...selectedAsset, name: `${selectedAsset.name} (Copie)` };
         setSelectedAsset(copy);
         setCreationMode(true);
         setIsEditing(false);
@@ -450,11 +450,11 @@ export const Assets: React.FC = () => {
 
         if (!rSnap.empty || !iSnap.empty || !pSnap.empty || !aSnap.empty || !bSnap.empty) {
             let msg = "Impossible de supprimer cet actif car il est lié à :";
-            if (!rSnap.empty) msg += `\n - ${ rSnap.size } risque(s)`;
-            if (!iSnap.empty) msg += `\n - ${ iSnap.size } incident(s)`;
-            if (!pSnap.empty) msg += `\n - ${ pSnap.size } projet(s)`;
-            if (!aSnap.empty) msg += `\n - ${ aSnap.size } audit(s)`;
-            if (!bSnap.empty) msg += `\n - ${ bSnap.size } processus métier`;
+            if (!rSnap.empty) msg += `\n - ${rSnap.size} risque(s)`;
+            if (!iSnap.empty) msg += `\n - ${iSnap.size} incident(s)`;
+            if (!pSnap.empty) msg += `\n - ${pSnap.size} projet(s)`;
+            if (!aSnap.empty) msg += `\n - ${aSnap.size} audit(s)`;
+            if (!bSnap.empty) msg += `\n - ${bSnap.size} processus métier`;
 
             return addToast(msg, "error");
         }
@@ -472,7 +472,7 @@ export const Assets: React.FC = () => {
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await deleteDoc(doc(db, 'assets', id));
-            await logAction(user, 'DELETE', 'Asset', `Suppression actif: ${ name } `);
+            await logAction(user, 'DELETE', 'Asset', `Suppression actif: ${name} `);
             refreshAssets();
             setSelectedAsset(null);
             setShowInspector(false);
@@ -530,7 +530,7 @@ export const Assets: React.FC = () => {
             setVulnerabilities(vulns);
             if (vulns.length > 0) {
                 setInspectorTab('security');
-                addToast(`${ vulns.length } vulnérabilités trouvées`, "info");
+                addToast(`${vulns.length} vulnérabilités trouvées`, "info");
             } else {
                 addToast("Aucune vulnérabilité connue trouvée (NVD)", "success");
             }
@@ -547,7 +547,7 @@ export const Assets: React.FC = () => {
             await addDoc(collection(db, 'risks'), sanitizeData({
                 organizationId: user.organizationId,
                 assetId: selectedAsset.id,
-                threat: `Vulnérabilité ${ vuln.cveId } `,
+                threat: `Vulnérabilité ${vuln.cveId} `,
                 vulnerability: vuln.description,
                 consequences: "Compromission de la confidentialité, intégrité ou disponibilité de l'actif.",
                 probability: 3, // Default Medium
@@ -558,8 +558,8 @@ export const Assets: React.FC = () => {
                 createdAt: new Date().toISOString(),
                 history: []
             }));
-            await logAction(user, 'CREATE', 'Risk', `Création auto risque pour CVE ${ vuln.cveId } sur ${ selectedAsset.name } `);
-            addToast(`Risque créé pour ${ vuln.cveId } `, "success");
+            await logAction(user, 'CREATE', 'Risk', `Création auto risque pour CVE ${vuln.cveId} sur ${selectedAsset.name} `);
+            addToast(`Risque créé pour ${vuln.cveId} `, "success");
             // Refresh risks
             setLinkedRisks(prev => [...prev]); // Trigger refresh implicitly if using real-time listener, but here we might need manual refresh or just wait for listener.
         } catch (error) {
@@ -591,7 +591,7 @@ export const Assets: React.FC = () => {
             await Promise.all(assetsToPrint.map(async (asset) => {
                 try {
                     // Generate QR code with asset ID and URL to view it
-                    const url = `${ window.location.origin } /#/assets ? id = ${ asset.id } `;
+                    const url = `${window.location.origin} /#/assets ? id = ${asset.id} `;
                     qrCodes[asset.id] = await QRCode.toDataURL(url, { width: 100, margin: 0 });
                 } catch (e) {
                     ErrorLogger.error(e, 'Assets.generateLabels', { metadata: { assetId: asset.id, code: 'QR_GEN_FAILED' } });
@@ -602,7 +602,7 @@ export const Assets: React.FC = () => {
                 {
                     title: 'Étiquettes d\'Actifs',
                     orientation: 'landscape',
-                    filename: targetAsset ? `etiquette - ${ targetAsset.name }.pdf` : 'etiquettes-actifs.pdf'
+                    filename: targetAsset ? `etiquette - ${targetAsset.name}.pdf` : 'etiquettes-actifs.pdf'
                 },
                 (doc) => {
                     let x = 10, y = 10;
@@ -623,10 +623,10 @@ export const Assets: React.FC = () => {
 
                         doc.setFontSize(10);
                         doc.setFont('helvetica', 'normal');
-                        doc.text(`ID: ${ asset.id.substring(0, 8) } `, x + 5, y + 20);
-                        doc.text(`Type: ${ asset.type } `, x + 5, y + 27);
-                        doc.text(`Propriétaire: ${ asset.owner || 'N/A' } `, x + 5, y + 34);
-                        doc.text(`Statut: ${ asset.lifecycleStatus || 'N/A' } `, x + 5, y + 41);
+                        doc.text(`ID: ${asset.id.substring(0, 8)} `, x + 5, y + 20);
+                        doc.text(`Type: ${asset.type} `, x + 5, y + 27);
+                        doc.text(`Propriétaire: ${asset.owner || 'N/A'} `, x + 5, y + 34);
+                        doc.text(`Statut: ${asset.lifecycleStatus || 'N/A'} `, x + 5, y + 41);
 
                         // QR Code
                         const qr = qrCodes[asset.id];
@@ -654,7 +654,7 @@ export const Assets: React.FC = () => {
 
     const generateIntakeLink = () => {
         if (!user?.organizationId) return;
-        const url = `${ window.location.origin } /#/intake ? org = ${ user.organizationId } `;
+        const url = `${window.location.origin} /#/intake ? org = ${user.organizationId} `;
         navigator.clipboard.writeText(url);
         addToast("Lien kiosque copié !", "success");
     };
@@ -690,7 +690,7 @@ export const Assets: React.FC = () => {
         >
             <MasterpieceBackground />
             <Helmet>
-                <title>{selectedAsset ? `${ selectedAsset.name } - Actifs` : 'Inventaire des Actifs - Sentinel GRC'}</title>
+                <title>{selectedAsset ? `${selectedAsset.name} - Actifs` : 'Inventaire des Actifs - Sentinel GRC'}</title>
             </Helmet>
             {/* Confirm Modal */}
             <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} loading={confirmData.loading} closeOnConfirm={confirmData.closeOnConfirm} />
@@ -729,11 +729,10 @@ export const Assets: React.FC = () => {
                                                 {({ active }) => (
                                                     <button
                                                         onClick={generateIntakeLink}
-                                                        className={`${
-    active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-} group flex w - full items - center rounded - lg px - 2 py - 2 text - sm`}
+                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                            } group flex w - full items - center rounded - lg px - 2 py - 2 text - sm`}
                                                     >
-                                                        <Link className={`mr - 2 h - 4 w - 4 ${ active ? 'text-white' : 'text-brand-500' } `} />
+                                                        <Link className={`mr - 2 h - 4 w - 4 ${active ? 'text-white' : 'text-brand-500'} `} />
                                                         Lien Kiosque
                                                     </button>
                                                 )}
@@ -742,11 +741,10 @@ export const Assets: React.FC = () => {
                                                 {({ active }) => (
                                                     <button
                                                         onClick={handleExportCSV}
-                                                        className={`${
-    active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-} group flex w - full items - center rounded - lg px - 2 py - 2 text - sm`}
+                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                            } group flex w - full items - center rounded - lg px - 2 py - 2 text - sm`}
                                                     >
-                                                        <FileSpreadsheet className={`mr - 2 h - 4 w - 4 ${ active ? 'text-white' : 'text-slate-500' } `} />
+                                                        <FileSpreadsheet className={`mr - 2 h - 4 w - 4 ${active ? 'text-white' : 'text-slate-500'} `} />
                                                         Export CSV
                                                     </button>
                                                 )}
@@ -887,7 +885,7 @@ export const Assets: React.FC = () => {
                                     header: 'Classification',
                                     accessorKey: 'confidentiality',
                                     cell: ({ row }) => (
-                                        <span className={`px - 3 py - 1 rounded - lg text - [11px] font - bold tracking - wide border shadow - sm ${ getCriticalityColor(row.original.confidentiality) } `}>
+                                        <span className={`px - 3 py - 1 rounded - lg text - [11px] font - bold tracking - wide border shadow - sm ${getCriticalityColor(row.original.confidentiality)} `}>
                                             {row.original.confidentiality}
                                         </span>
                                     ),
@@ -899,8 +897,8 @@ export const Assets: React.FC = () => {
                                         const status = row.original.lifecycleStatus || 'Neuf';
                                         const isService = status === 'En service';
                                         return (
-                                            <span className={`flex items - center w - fit px - 2.5 py - 1 rounded - full text - [11px] font - bold border ${ isService ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700' } `}>
-                                                <span className={`w - 1.5 h - 1.5 rounded - full mr - 2 ${ isService ? 'bg-green-500' : 'bg-slate-400' } `}></span>
+                                            <span className={`flex items - center w - fit px - 2.5 py - 1 rounded - full text - [11px] font - bold border ${isService ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'} `}>
+                                                <span className={`w - 1.5 h - 1.5 rounded - full mr - 2 ${isService ? 'bg-green-500' : 'bg-slate-400'} `}></span>
                                                 {status}
                                             </span>
                                         );
@@ -940,7 +938,7 @@ export const Assets: React.FC = () => {
                             loading={loading}
                             pageSize={12}
                             onBulkDelete={async (selectedIds) => {
-                                if (!window.confirm(`Êtes - vous sûr de vouloir supprimer ${ selectedIds.length } actifs ? Cette action est irréversible.`)) {
+                                if (!window.confirm(`Êtes - vous sûr de vouloir supprimer ${selectedIds.length} actifs ? Cette action est irréversible.`)) {
                                     return;
                                 }
 
@@ -952,7 +950,7 @@ export const Assets: React.FC = () => {
                                     });
                                     await batch.commit();
 
-                                    addToast(`${ selectedIds.length } actifs supprimés avec succès`, 'success');
+                                    addToast(`${selectedIds.length} actifs supprimés avec succès`, 'success');
                                     // Refresh logic is usually automatic with Firestore subscription
                                 } catch (error) {
                                     ErrorLogger.handleErrorWithToast(error, 'Assets.bulkDelete', 'DELETE_FAILED');
@@ -988,7 +986,7 @@ export const Assets: React.FC = () => {
                                                 <Server className="h-6 w-6" />
                                             </div>
                                             <div className="flex gap-2">
-                                                <span className={`px - 2 py - 1 rounded - lg text - [10px] font - bold uppercase tracking - wider border shadow - sm ${ getCriticalityColor(asset.confidentiality) } `}>{asset.confidentiality}</span>
+                                                <span className={`px - 2 py - 1 rounded - lg text - [10px] font - bold uppercase tracking - wider border shadow - sm ${getCriticalityColor(asset.confidentiality)} `}>{asset.confidentiality}</span>
                                             </div>
                                         </div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{asset.name}</h3>
@@ -996,7 +994,7 @@ export const Assets: React.FC = () => {
 
                                         <div className="mt-auto pt-4 border-t border-dashed border-slate-200 dark:border-white/10 flex justify-between items-center">
                                             <div className="flex items-center gap-2">
-                                                <span className={`w - 2 h - 2 rounded - full ${ asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400' } `}></span>
+                                                <span className={`w - 2 h - 2 rounded - full ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'} `}></span>
                                                 <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{asset.lifecycleStatus || 'Neuf'}</span>
                                             </div>
                                             <div className="flex gap-1">
@@ -1199,7 +1197,7 @@ export const Assets: React.FC = () => {
                                             {['confidentiality', 'integrity', 'availability'].map((field) => (
                                                 <div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5">
                                                     <label className="block text-[10px] font-bold uppercase text-slate-500 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label>
-                                                    <div className={`text - sm font - bold ${ getCriticalityColor(selectedAsset[field as 'confidentiality' | 'integrity' | 'availability']) } px - 2 py - 1 rounded - lg inline - block`}>
+                                                    <div className={`text - sm font - bold ${getCriticalityColor(selectedAsset[field as 'confidentiality' | 'integrity' | 'availability'])} px - 2 py - 1 rounded - lg inline - block`}>
                                                         {selectedAsset[field as 'confidentiality' | 'integrity' | 'availability']}
                                                     </div>
                                                 </div>
@@ -1232,7 +1230,7 @@ export const Assets: React.FC = () => {
                                                         {supported.map(p => (
                                                             <div key={p.id} className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 flex justify-between items-center">
                                                                 <span className="text-sm font-medium text-slate-700 dark:text-white">{p.name}</span>
-                                                                <span className={`text - [10px] px - 2 py - 0.5 rounded font - bold ${ p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600' } `}>{p.priority}</span>
+                                                                <span className={`text - [10px] px - 2 py - 0.5 rounded font - bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'} `}>{p.priority}</span>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -1303,7 +1301,7 @@ export const Assets: React.FC = () => {
                                             )}
                                         </div>
                                     </div>
-                                    <div><div className="flex items-center justify-between mb-4 px-1"><h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center"><ClipboardList className="h-4 w-4 mr-2 text-brand-500" /> Historique Maintenance</h3></div>{canEdit && (<div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-200 dark:border-white/5 mb-6 shadow-sm"><div className="grid grid-cols-2 gap-4 mb-4"><input type="date" className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.date} onChange={e => setNewMaintenance({ ...newMaintenance, date: e.target.value })} /><select className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.type} onChange={e => setNewMaintenance({ ...newMaintenance, type: e.target.value as MaintenanceRecord['type'] })}>{['Préventive', 'Corrective', 'Mise à jour', 'Inspection'].map(t => <option key={t} value={t}>{t}</option>)}</select></div><div className="flex gap-4 mb-4"><input type="text" placeholder="Description..." className="flex-1 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.description} onChange={e => setNewMaintenance({ ...newMaintenance, description: e.target.value })} /><input type="number" placeholder="Coût (€)..." className="w-24 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.cost || ''} onChange={e => setNewMaintenance({ ...newMaintenance, cost: parseFloat(e.target.value) })} /></div><button onClick={handleAddMaintenance} disabled={isAddingMaintenance} className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:opacity-50 flex justify-center items-center">{isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}Ajouter Intervention</button></div>)}<div className="space-y-3">{maintenanceRecords.length === 0 ? <p className="text-sm text-slate-500 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (<div key={rec.id} className="flex items-start p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all"><div className={`mt - 1.5 w - 2.5 h - 2.5 rounded - full mr - 4 flex - shrink - 0 ${ rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' } `}></div><div className="flex-1"><div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-md text-slate-600 dark:text-slate-300 font-bold">{rec.type}</span></div><p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p><div className="flex justify-between mt-2"><span className="text-[10px] text-slate-500 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[10px] font-bold text-slate-600">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div></div></div>))}</div></div>
+                                    <div><div className="flex items-center justify-between mb-4 px-1"><h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center"><ClipboardList className="h-4 w-4 mr-2 text-brand-500" /> Historique Maintenance</h3></div>{canEdit && (<div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-200 dark:border-white/5 mb-6 shadow-sm"><div className="grid grid-cols-2 gap-4 mb-4"><input type="date" className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.date} onChange={e => setNewMaintenance({ ...newMaintenance, date: e.target.value })} /><select className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.type} onChange={e => setNewMaintenance({ ...newMaintenance, type: e.target.value as MaintenanceRecord['type'] })}>{['Préventive', 'Corrective', 'Mise à jour', 'Inspection'].map(t => <option key={t} value={t}>{t}</option>)}</select></div><div className="flex gap-4 mb-4"><input type="text" placeholder="Description..." className="flex-1 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.description} onChange={e => setNewMaintenance({ ...newMaintenance, description: e.target.value })} /><input type="number" placeholder="Coût (€)..." className="w-24 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.cost || ''} onChange={e => setNewMaintenance({ ...newMaintenance, cost: parseFloat(e.target.value) })} /></div><button onClick={handleAddMaintenance} disabled={isAddingMaintenance} className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:opacity-50 flex justify-center items-center">{isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}Ajouter Intervention</button></div>)}<div className="space-y-3">{maintenanceRecords.length === 0 ? <p className="text-sm text-slate-500 text-center italic py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucune intervention enregistrée.</p> : maintenanceRecords.map(rec => (<div key={rec.id} className="flex items-start p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm hover:shadow-md transition-all"><div className={`mt - 1.5 w - 2.5 h - 2.5 rounded - full mr - 4 flex - shrink - 0 ${rec.type === 'Corrective' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'} `}></div><div className="flex-1"><div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-slate-900 dark:text-white">{new Date(rec.date).toLocaleDateString()}</span><span className="text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-md text-slate-600 dark:text-slate-300 font-bold">{rec.type}</span></div><p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{rec.description}</p><div className="flex justify-between mt-2"><span className="text-[10px] text-slate-500 font-medium">Tech: {rec.technician}</span>{rec.cost && <span className="text-[10px] font-bold text-slate-600">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(rec.cost)}</span>}</div></div></div>))}</div></div>
                                 </div>
                             )}
                             {inspectorTab === 'security' && (
@@ -1397,7 +1395,7 @@ export const Assets: React.FC = () => {
                                                     <div key={risk.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
                                                         <div className="flex justify-between items-start mb-2">
                                                             <span className="text-sm font-bold text-slate-900 dark:text-white">{risk.threat}</span>
-                                                            <span className={`text - [10px] px - 2 py - 1 rounded - lg font - bold ${ risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300' } `}>Score {risk.score}</span>
+                                                            <span className={`text - [10px] px - 2 py - 1 rounded - lg font - bold ${risk.score >= 15 ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'} `}>Score {risk.score}</span>
                                                         </div>
                                                         <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{risk.vulnerability}</p>
                                                         {risk.score >= 15 && <div className="flex items-center text-[10px] text-red-600 font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-xl w-fit"><Flame className="h-3 w-3 mr-1.5" /> Risque Critique</div>}
@@ -1427,7 +1425,7 @@ export const Assets: React.FC = () => {
                                                     <div key={inc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
                                                         <div className="flex justify-between items-start mb-2">
                                                             <span className="text-sm font-bold text-slate-900 dark:text-white">{inc.title}</span>
-                                                            <span className={`text - [10px] uppercase font - bold px - 2 py - 1 rounded - lg ${ inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' } `}>{inc.status}</span>
+                                                            <span className={`text - [10px] uppercase font - bold px - 2 py - 1 rounded - lg ${inc.status === 'Résolu' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} `}>{inc.status}</span>
                                                         </div>
                                                         <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">{new Date(inc.dateReported).toLocaleDateString()}</p>
                                                     </div>
@@ -1448,12 +1446,12 @@ export const Assets: React.FC = () => {
                                                 <div key={proj.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <span className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</span>
-                                                        <span className={`text - [10px] uppercase font - bold px - 2 py - 1 rounded - lg ${ proj.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600' } `}>{proj.status}</span>
+                                                        <span className={`text - [10px] uppercase font - bold px - 2 py - 1 rounded - lg ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'} `}>{proj.status}</span>
                                                     </div>
                                                     <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{proj.description}</p>
                                                     <div className="flex items-center justify-between">
                                                         <div className="w-full bg-slate-200 rounded-full h-1.5 mr-4 max-w-[100px]">
-                                                            <div className="bg-brand-500 h-1.5 rounded-full" style={{ width: `${ proj.progress }% ` }}></div>
+                                                            <div className="bg-brand-500 h-1.5 rounded-full" style={{ width: `${proj.progress}% ` }}></div>
                                                         </div>
                                                         <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{proj.progress}%</span>
                                                     </div>
@@ -1474,7 +1472,7 @@ export const Assets: React.FC = () => {
                                                 <div key={audit.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <span className="text-sm font-bold text-slate-900 dark:text-white">{audit.name}</span>
-                                                        <span className={`text - [10px] uppercase font - bold px - 2 py - 1 rounded - lg ${ audit.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700' } `}>{audit.status}</span>
+                                                        <span className={`text - [10px] uppercase font - bold px - 2 py - 1 rounded - lg ${audit.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} `}>{audit.status}</span>
                                                     </div>
                                                     <div className="flex items-center gap-4 mt-2">
                                                         <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1">
@@ -1503,7 +1501,7 @@ export const Assets: React.FC = () => {
                                                 <div key={doc.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <span className="text-sm font-bold text-slate-900 dark:text-white truncate pr-4">{doc.title}</span>
-                                                        <span className={`text - [10px] uppercase font - bold px - 2 py - 1 rounded - lg ${ doc.status === 'Publié' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600' } `}>{doc.status}</span>
+                                                        <span className={`text - [10px] uppercase font - bold px - 2 py - 1 rounded - lg ${doc.status === 'Publié' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'} `}>{doc.status}</span>
                                                     </div>
                                                     <div className="flex items-center justify-between mt-3">
                                                         <span className="text-xs text-slate-500">{doc.type} • v{doc.version}</span>

@@ -41,11 +41,13 @@ export const useDashboardPreferences = (userId: string | undefined, role: string
     // Reload preferences if userId or role changes (after mount)
     useEffect(() => {
         if (!userId) {
-            setHasLoaded(true);
+            setTimeout(() => setHasLoaded(true), 0);
             return;
         }
 
-        setHasLoaded(false);
+        if (hasLoaded) {
+            setHasLoaded(false);
+        }
 
         const key = `${STORAGE_KEY_PREFIX}${userId}_${role}`;
         const stored = localStorage.getItem(key);
@@ -81,6 +83,7 @@ export const useDashboardPreferences = (userId: string | undefined, role: string
                 setHasLoaded(true);
             }, 0);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId, role, defaultLayout]);
 
     const saveLayout = useCallback((newLayout: WidgetLayout[]) => {

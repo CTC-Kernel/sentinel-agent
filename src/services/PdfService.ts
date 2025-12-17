@@ -3,6 +3,7 @@ import 'jspdf-autotable';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ReportEnrichmentService } from './ReportEnrichmentService';
+import { Risk, Project, ProjectTask, Control, Audit, Finding } from '../types';
 
 interface ReportOptions {
     title: string;
@@ -781,7 +782,7 @@ export class PdfService {
      * Uses ReportEnrichmentService to analyze data and produce a high-value PDF
      */
     static generateRiskExecutiveReport(
-        risks: any[],
+        risks: Risk[],
         options: ReportOptions & { author?: string }
     ): jsPDF {
 
@@ -829,9 +830,9 @@ export class PdfService {
             currentY += 10;
 
             const criticalRisks = analysis.top_risks
-                .map((r: any) => [
+                .map((r: Risk) => [
                     r.threat,
-                    r.category || 'Général',
+                    (r as { category?: string }).category || 'Général',
                     (r.probability * r.impact).toString(),
                     r.strategy || 'À définir'
                 ]);
@@ -847,7 +848,7 @@ export class PdfService {
             });
 
             // Update currentY after table
-            currentY = (doc as any).lastAutoTable.finalY + 20;
+            currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 20;
 
             // 3. Recommendations
             doc.setFontSize(14);
@@ -870,8 +871,8 @@ export class PdfService {
      * Generate an Enriched Audit Executive Report
      */
     static generateAuditExecutiveReport(
-        audit: any,
-        findings: any[],
+        audit: Audit,
+        findings: Finding[],
         options: ReportOptions & { author?: string }
     ): jsPDF {
         const metrics = ReportEnrichmentService.calculateAuditMetrics(findings);
@@ -904,7 +905,7 @@ export class PdfService {
             currentY += 10;
 
             const findingsData = findings.map(f => [
-                f.reference || '-',
+                (f as { reference?: string }).reference || '-',
                 f.description?.substring(0, 50) + (f.description?.length > 50 ? '...' : ''),
                 f.type,
                 f.status
@@ -920,7 +921,7 @@ export class PdfService {
                 margin: { left: 14, right: 14 }
             });
 
-            currentY = (doc as any).lastAutoTable.finalY + 20;
+            currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 20;
 
             // 2. Recommendations Section
             if (metrics.major_findings > 0) {
@@ -944,7 +945,7 @@ export class PdfService {
      * Generate an Enriched Project Executive Report
      */
     static generateProjectExecutiveReport(
-        projects: any | any[], // Passing the specific project as a single array item or just the project object
+        projects: Project | Project[], // Passing the specific project as a single array item or just the project object
         options: ReportOptions & { author?: string }
     ): jsPDF {
         // Handle single project passed as array for compatibility or single object
@@ -1014,9 +1015,9 @@ export class PdfService {
             currentY += 10;
 
             const activeTasks = (project.tasks || [])
-                .filter((t: any) => t.status !== 'Terminé')
+                .filter((t: ProjectTask) => t.status !== 'Terminé')
                 .slice(0, 10)
-                .map((t: any) => [
+                .map((t: ProjectTask) => [
                     t.title.substring(0, 40),
                     t.status,
                     t.priority,
@@ -1046,7 +1047,7 @@ export class PdfService {
      * Generate an Enriched Compliance Executive Report (SoA)
      */
     static generateComplianceExecutiveReport(
-        controls: any[],
+        controls: Control[],
         options: ReportOptions & { author?: string }
     ): jsPDF {
         const metrics = ReportEnrichmentService.calculateComplianceMetrics(controls);

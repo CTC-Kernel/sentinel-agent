@@ -7,7 +7,7 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
-import { Plus, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, BrainCircuit, Loader2, MoreVertical, Download } from '../components/ui/Icons';
+import { Plus, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, BrainCircuit, Loader2, MoreVertical } from '../components/ui/Icons';
 import { PageControls } from '../components/ui/PageControls';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';

@@ -14,7 +14,7 @@ interface ConfigurableDashboardGridProps {
     layout: WidgetLayout[];
     onLayoutChange: (newLayout: WidgetLayout[]) => void;
     isEditing: boolean;
-    widgetProps: Record<string, any>; // Props to pass down to widgets
+    widgetProps: Record<string, unknown>; // Props to pass down to widgets
 }
 
 export const ConfigurableDashboardGrid: React.FC<ConfigurableDashboardGridProps> = ({
