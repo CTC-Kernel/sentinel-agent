@@ -4,7 +4,7 @@ import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { riskSchema, RiskFormData } from '../../schemas/riskSchema';
 import { Risk, Control, Asset, UserProfile, BusinessProcess, Supplier, Criticality, ThreatTemplate } from '../../types';
-import { BookOpen, Shield, Search, LayoutGrid, FileText, Activity, Layers, AlertTriangle } from '../ui/Icons';
+import { BookOpen, Shield, Search, LayoutGrid, FileText, Activity, Layers, AlertTriangle, Sparkles } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -21,6 +21,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Modal } from '../ui/Modal';
 import { FRAMEWORK_OPTIONS } from '../../data/frameworks';
+import { RiskRemediationService } from '../../services/RiskRemediationService';
 
 interface RiskFormProps {
     onSubmit: (data: RiskFormData) => Promise<void>;
@@ -103,6 +104,17 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const [showLibraryModal, setShowLibraryModal] = React.useState(false);
     const [libraryThreats, setLibraryThreats] = React.useState<ThreatTemplate[]>([]);
     const [searchTerm, setSearchTerm] = React.useState('');
+    const [suggestedControlIds, setSuggestedControlIds] = React.useState<string[]>([]);
+
+    useEffect(() => {
+        const threat = getValues('threat');
+        if (threat && activeTab === 'treatment') {
+            // Cast to generic object to avoid strict Risk type matching issues with form data
+            const formData = getValues() as unknown as Partial<Risk>;
+            const suggestions = RiskRemediationService.suggestMitigationControls(formData, controls);
+            setSuggestedControlIds(suggestions);
+        }
+    }, [activeTab, getValues('threat'), getValues('vulnerability')]);
 
     useEffect(() => {
         if (showLibraryModal && libraryThreats.length === 0) {
@@ -504,23 +516,39 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             </label>
                             <div className="border border-slate-200 dark:border-slate-700 rounded-xl max-h-[250px] overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900/50">
                                 {controls.length > 0 ? (
-                                    controls.map(ctrl => (
-                                        <label key={ctrl.id} className={`flex items-start space-x-3 p-2 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 shadow-sm' : ''}`}>
-                                            <input
-                                                type="checkbox"
-                                                className="mt-1 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                                                checked={mitigationControlIds?.includes(ctrl.id) || false}
-                                                onChange={() => toggleControlSelection(ctrl.id)}
-                                            />
-                                            <div className="flex-1">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{ctrl.code}</span>
-                                                    {ctrl.status === 'Implémenté' && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 rounded-full">Implémenté</span>}
-                                                </div>
-                                                <span className="text-xs text-slate-600 dark:text-slate-400">{ctrl.name}</span>
-                                            </div>
-                                        </label>
-                                    ))
+                                    controls
+                                        .sort((a, b) => {
+                                            const aLinked = mitigationControlIds?.includes(a.id) ? 1 : 0;
+                                            const bLinked = mitigationControlIds?.includes(b.id) ? 1 : 0;
+                                            if (aLinked !== bLinked) return bLinked - aLinked;
+
+                                            const aSugg = suggestedControlIds.includes(a.id) ? 1 : 0;
+                                            const bSugg = suggestedControlIds.includes(b.id) ? 1 : 0;
+                                            return bSugg - aSugg;
+                                        })
+                                        .map(ctrl => {
+                                            const isSuggested = suggestedControlIds.includes(ctrl.id);
+                                            return (
+                                                <label key={ctrl.id} className={`flex items-start space-x-3 p-2 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 shadow-sm' : ''} ${isSuggested ? 'bg-purple-50/50 dark:bg-purple-900/10' : ' '}`}>
+                                                    <input
+                                                        type="checkbox"
+                                                        className="mt-1 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                                                        checked={mitigationControlIds?.includes(ctrl.id) || false}
+                                                        onChange={() => toggleControlSelection(ctrl.id)}
+                                                    />
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                                                                {ctrl.code}
+                                                                {isSuggested && <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-1.5 rounded-full flex items-center"><Sparkles className="w-3 h-3 mr-1" /> IA</span>}
+                                                            </span>
+                                                            {ctrl.status === 'Implémenté' && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 rounded-full">Implémenté</span>}
+                                                        </div>
+                                                        <span className="text-xs text-slate-600 dark:text-slate-400">{ctrl.name}</span>
+                                                    </div>
+                                                </label>
+                                            )
+                                        })
                                 ) : (
                                     <div className="p-4 text-center text-xs text-slate-500">Aucun contrôle disponible.</div>
                                 )}

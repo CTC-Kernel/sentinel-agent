@@ -9,7 +9,8 @@ import { db } from '../firebase';
 import { Asset, Criticality, SystemLog, MaintenanceRecord, Risk, Incident, UserProfile, Project, BusinessProcess, Supplier, Audit, Vulnerability, AssetHistory, Document as GRCDocument } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse, BrainCircuit, FileText, ExternalLink, Loader2 } from '../components/ui/Icons';
+import { Plus, Search, Server, Trash2, AlertTriangle, History, Tag, QrCode, MessageSquare, Archive, CalendarClock, ClipboardList, ShieldAlert, Siren, Flame, FileSpreadsheet, Clock, Copy, FolderKanban, CheckSquare, Link, Network, ShieldCheck, HeartPulse, BrainCircuit, FileText, ExternalLink, Loader2, FileCode } from '../components/ui/Icons';
+
 import { PageControls } from '../components/ui/PageControls';
 import { RelationshipGraph } from '../components/RelationshipGraph';
 import { useStore } from '../store';
@@ -43,6 +44,8 @@ import { Edit } from '../components/ui/Icons';
 import { integrationService } from '../services/integrationService';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { DataTable } from '../components/ui/DataTable';
+import { ObsidianService } from '../services/ObsidianService';
+import { AssetClassificationService } from '../services/AssetClassificationService';
 
 interface ShodanResult {
     ip_str?: string;
@@ -149,7 +152,7 @@ export const Assets: React.FC = () => {
 
     const [showInspector, setShowInspector] = useState(false);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'list' | 'matrix'>('grid');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isGeneratingLabels, setIsGeneratingLabels] = useState(false);
     const [isExportingCSV, setIsExportingCSV] = useState(false);
@@ -320,6 +323,27 @@ export const Assets: React.FC = () => {
                     reason: 'Mise à jour des criticités (DIC)'
                 };
                 dataToUpdate.history = [...(prev.history || []), historyEntry];
+
+                // Propagate to linked risks
+                const risksQ = query(collection(db, 'risks'), where('organizationId', '==', user.organizationId), where('assetId', '==', selectedAsset.id));
+                const riskSnap = await getDocs(risksQ);
+                const risks = riskSnap.docs.map(d => ({ id: d.id, ...d.data() } as Risk));
+                const updatedAssetForCheck = { ...prev, ...cleanData } as Asset;
+
+                const risksToUpdate = AssetClassificationService.checkRiskImpactConsistency(updatedAssetForCheck, risks);
+
+                if (risksToUpdate.length > 0) {
+                    const batch = writeBatch(db);
+                    risksToUpdate.forEach(r => {
+                        batch.update(doc(db, 'risks', r.id), {
+                            impact: r.impact,
+                            score: (r.probability || 1) * (r.impact || 1), // Recalculate score
+                            justification: r.justification
+                        });
+                    });
+                    await batch.commit();
+                    addToast(`${risksToUpdate.length} risque(s) mis à jour automatiquement (Impact).`, "info");
+                }
             }
 
             await updateDoc(doc(db, 'assets', selectedAsset.id), dataToUpdate);
@@ -759,6 +783,13 @@ export const Assets: React.FC = () => {
                                 title="Exporter CSV"
                             >
                                 {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                            </button>
+                            <button
+                                onClick={() => ObsidianService.exportAssetsToObsidian(filteredAssets)}
+                                className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
+                                title="Exporter vers Obsidian"
+                            >
+                                <FileCode className="h-4 w-4 text-emerald-600" />
                             </button>
                         </>
                     }

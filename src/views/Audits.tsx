@@ -7,7 +7,7 @@ import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
 import { SeveritySelector } from '../components/audits/SeveritySelector';
 import { FileUploader } from '../components/ui/FileUploader';
 import { AIAssistButton } from '../components/ai/AIAssistButton';
-import { collection, addDoc, getDocs, query, doc, deleteDoc, where, updateDoc, arrayUnion } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, doc, deleteDoc, where, updateDoc, arrayUnion, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Audit, Finding, Control, UserProfile, AuditChecklist, AuditQuestion, Document, Asset, Risk, Project } from '../types';
 import { canEditResource, canDeleteResource, hasPermission } from '../utils/permissions';
@@ -15,7 +15,9 @@ import { EvidenceRequestList } from '../components/audits/EvidenceRequestList';
 import { QuestionnaireList } from '../components/audits/QuestionnaireList';
 import { AuditTeam } from '../components/audits/AuditTeam';
 import { Comments } from '../components/ui/Comments';
-import { Plus, Activity, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare, BrainCircuit, Loader2 } from '../components/ui/Icons';
+import { Plus, Activity, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare, BrainCircuit, Loader2, Sparkles } from '../components/ui/Icons';
+// ...
+import { AuditPlannerService } from '../services/AuditPlannerService';
 
 import { Drawer } from '../components/ui/Drawer';
 import { AuditForm } from '../components/audits/AuditForm';
@@ -37,7 +39,6 @@ import { slideUpVariants, staggerContainerVariants } from '../components/ui/anim
 import { sendEmail } from '../services/emailService';
 import { getAuditReminderTemplate } from '../services/emailTemplates';
 import { PdfService } from '../services/PdfService';
-import { generateICS, downloadICS } from '../utils/calendar';
 import { ErrorLogger } from '../services/errorLogger';
 import { SafeHTML } from '../components/ui/SafeHTML';
 import { getPlanLimits } from '../config/plans';
@@ -56,7 +57,7 @@ import type { jsPDF } from 'jspdf';
 export const Audits: React.FC = () => {
     const { user, addToast, organization } = useStore();
     const canEdit = canEditResource(user, 'Audit');
-    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('audits_view_mode', 'grid');
+    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix'>('audits_view_mode', 'grid');
 
     const role = user?.role || 'user';
     const [isValidating, setIsValidating] = useState(false);
@@ -166,7 +167,6 @@ export const Audits: React.FC = () => {
     const deferredFilter = useDeferredValue(filter);
 
     const [isExportingCSV, setIsExportingCSV] = useState(false);
-    const [isExportingCalendar, setIsExportingCalendar] = useState(false);
 
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
     const [findings, setFindings] = useState<Finding[]>([]);
@@ -661,21 +661,39 @@ export const Audits: React.FC = () => {
         }
     };
 
-    const handleExportCalendar = async () => {
-        if (isExportingCalendar) return;
-        setIsExportingCalendar(true);
-        try {
-            const events = filteredAudits.map(audit => ({
-                title: `Audit: ${audit.name} `,
-                description: `Type: ${audit.type} | Auditeur: ${audit.auditor} | Statut: ${audit.status} `,
-                startDate: new Date(audit.dateScheduled),
-                location: 'Sentinel GRC'
-            }));
-            const icsContent = generateICS(events);
-            downloadICS(`audits_calendar_${new Date().toISOString().split('T')[0]}.ics`, icsContent);
-        } finally {
-            setTimeout(() => setIsExportingCalendar(false), 0);
+    const handleExportCalendar = () => {
+        const scheduledAudits = audits.filter(a => a.status === 'Planifié' && a.dateScheduled);
+        if (scheduledAudits.length === 0) {
+            addToast("Aucun audit planifié à exporter.", "info");
+            return;
         }
+
+        let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Sentinel GRC//NONSGML v1.0//EN\n";
+
+        scheduledAudits.forEach(audit => {
+            const date = new Date(audit.dateScheduled!);
+            const dateStr = date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+            icsContent += "BEGIN:VEVENT\n";
+            icsContent += `UID:${audit.id}@sentinel.grc\n`;
+            icsContent += `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'}\n`;
+            icsContent += `DTSTART;VALUE=DATE:${dateStr.substring(0, 8)}\n`;
+            icsContent += `SUMMARY:Audit ${audit.name}\n`;
+            icsContent += `DESCRIPTION:Audit de type ${audit.type} assigné à ${audit.auditor || 'Non assigné'}.\n`;
+            icsContent += "END:VEVENT\n";
+        });
+
+        icsContent += "END:VCALENDAR";
+
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.setAttribute('download', 'audit_calendar.ics');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        addToast(`${scheduledAudits.length} audits exportés vers le calendrier.`, "success");
     };
 
     const generateSoA = () => {
@@ -711,6 +729,56 @@ export const Audits: React.FC = () => {
     };
 
 
+
+    const handleGeneratePlan = async () => {
+        if (!user?.organizationId) return;
+
+        // Pass existing audits to prevent duplicates
+        const suggestions = AuditPlannerService.generateAuditSuggestions(risks, assets, audits);
+        if (suggestions.length === 0) {
+            addToast("Aucune suggestion d'audit pertinente trouvée.", "info");
+            return;
+        }
+
+        if (window.confirm(`L'assistant a identifié ${suggestions.length} priorités d'audit basées sur les risques et actifs critiques. Voulez-vous les générer ?`)) {
+            try {
+                const batch = writeBatch(db);
+                let count = 0;
+                suggestions.forEach(s => {
+                    if (count >= 5) return; // Limit to 5 max effectively
+                    const newAuditRef = doc(collection(db, 'audits'));
+                    // Cast 's' or spread safely. AuditSuggestion has extra 'reason' and 'priority' which are fine to store or omit.
+                    // Storing them is better for context.
+                    batch.set(newAuditRef, {
+                        name: s.name,
+                        type: s.type,
+                        dateScheduled: s.dateScheduled,
+                        relatedAssetIds: s.relatedAssetIds,
+                        relatedRiskIds: s.relatedRiskIds,
+                        // Custom fields for context
+                        planningReason: s.reason,
+                        priority: s.priority,
+
+                        organizationId: user.organizationId,
+                        status: 'Planifié',
+                        findingsCount: 0,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        auditor: user.displayName || 'À définir',
+                        relatedProjectIds: [],
+                        relatedControlIds: []
+                    });
+                    count++;
+                });
+
+                await batch.commit();
+                refreshAudits();
+                addToast(`${count} audits planifiés avec succès.`, "success");
+            } catch (e) {
+                ErrorLogger.handleErrorWithToast(e, 'Audits.handleGeneratePlan', 'CREATE_FAILED');
+            }
+        }
+    };
 
     const generateAuditReport = async () => {
         if (!selectedAudit) return;
@@ -1217,10 +1285,30 @@ export const Audits: React.FC = () => {
                     icon={<ClipboardCheck className="h-6 w-6 text-white" strokeWidth={2.5} />}
                     actions={canEdit && (
                         hasPermission(user, 'Audit', 'create') && (
-                            <button onClick={() => openCreationDrawer()} className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-slate-900/20 dark:shadow-none">
-                                <Plus className="w-5 h-5" />
-                                <span>Nouvel Audit</span>
-                            </button>
+                            <>
+                                <button
+                                    onClick={handleGeneratePlan}
+                                    className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors mr-2"
+                                    title="Générer un plan d'audit via IA"
+                                >
+                                    <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                    <span>Planifier (IA)</span>
+                                </button>
+
+                                <button
+                                    onClick={handleExportCalendar}
+                                    className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors mr-2"
+                                    title="Ajouter au calendrier (.ics)"
+                                >
+                                    <Calendar className="w-4 h-4 text-orange-500" />
+                                    <span>Calendrier</span>
+                                </button>
+
+                                <button onClick={() => openCreationDrawer()} className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-slate-900/20 dark:shadow-none">
+                                    <Plus className="w-5 h-5" />
+                                    <span>Nouvel Audit</span>
+                                </button>
+                            </>
                         )
                     )}
                 />
@@ -1261,11 +1349,10 @@ export const Audits: React.FC = () => {
                             </button>
                             <button
                                 onClick={handleExportCalendar}
-                                disabled={isExportingCalendar}
                                 className="p-2 bg-white dark:bg-slate-800 rounded-lg text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-sm"
                                 title="Exporter Calendrier"
                             >
-                                {isExportingCalendar ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarDays className="h-4 w-4" />}
+                                <CalendarDays className="h-4 w-4" />
                             </button>
                         </>
                     }

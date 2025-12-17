@@ -8,7 +8,8 @@ import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, l
 import { db } from '../firebase';
 import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment, Criticality, Incident, MitreTechnique } from '../types';
 import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, Search, Server, Trash2, History, Copy, BrainCircuit, TrendingUp, ArrowRight, CheckCircle2, FileSpreadsheet, Loader2, Filter, ShieldAlert, Download, FileText, TrendingDown, RefreshCw, Clock, Edit, LayoutDashboard, FolderKanban, MessageSquare, Network, CalendarDays } from '../components/ui/Icons';
+import { Plus, Search, Filter, Download, Clock, TrendingUp, FileText, BrainCircuit, FileCode, TrendingDown, RefreshCw, Loader2, FileSpreadsheet, Copy, Edit, Trash2, FolderKanban, MessageSquare, Network, CalendarDays, Server, ShieldAlert, ArrowRight, CheckCircle2, LayoutDashboard, History } from 'lucide-react';
+import { ObsidianService } from '../services/ObsidianService';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 import { Badge } from '../components/ui/Badge';
@@ -692,6 +693,34 @@ export const Risks: React.FC = () => {
         });
     };
 
+    const handleExportRiskExecutiveReport = async () => {
+        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+        const canWhiteLabel = limits.features.whiteLabelReports;
+
+        setIsGeneratingReport(true);
+        addToast("Génération du rapport exécutif IA...", "info");
+
+        try {
+            const { PdfService } = await import('../services/PdfService');
+
+            PdfService.generateRiskExecutiveReport(filteredRisks, {
+                title: "RAPPORT DE GOUVERNANCE CYBER",
+                subtitle: `Analyse des Risques & Conformité ISO 27001 | ${new Date().toLocaleDateString()}`,
+                filename: `rapport_executif_risques_${new Date().toISOString().split('T')[0]}.pdf`,
+                organizationName: canWhiteLabel ? (organization?.name || user?.email?.split('@')[1] || 'Sentinel GRC') : 'Sentinel GRC',
+                organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
+                author: user?.displayName || 'RSSI',
+                coverImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop'
+            });
+
+            addToast("Rapport exécutif généré avec succès", "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Risks.handleExportRiskExecutiveReport', 'REPORT_GENERATION_FAILED');
+        } finally {
+            setIsGeneratingReport(false);
+        }
+    };
+
     const handleExportRTP = async () => {
         const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
         const canWhiteLabel = limits.features.whiteLabelReports;
@@ -998,13 +1027,23 @@ export const Risks: React.FC = () => {
                 actions={
                     <>
                         {canEdit && (
-                            <button
-                                onClick={() => setShowTemplateModal(true)}
-                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
-                            >
-                                <Download className="h-4 w-4 mr-2" />
-                                <span>Importer Template</span>
-                            </button>
+                            <>
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={importing}
+                                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
+                                >
+                                    {importing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400 mr-2" />}
+                                    <span>Import CSV</span>
+                                </button>
+                                <button
+                                    onClick={() => setShowTemplateModal(true)}
+                                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
+                                >
+                                    <Copy className="h-4 w-4 mr-2" />
+                                    <span>Templates</span>
+                                </button>
+                            </>
                         )}
 
                         <button
@@ -1017,11 +1056,37 @@ export const Risks: React.FC = () => {
                         </button>
 
                         <button
+                            onClick={handleExportRiskExecutiveReport}
+                            disabled={isGeneratingReport}
+                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm disabled:opacity-50"
+                        >
+                            {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4 text-indigo-500" />}
+                            <span>Rapport Exécutif</span>
+                        </button>
+
+                        <button
+                            onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)}
+                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
+                        >
+                            <FileCode className="h-4 w-4 text-emerald-500" />
+                            <span>Obsidian</span>
+                        </button>
+
+                        <button
                             onClick={handleExportPDF}
                             className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
                         >
                             <Download className="h-4 w-4 mr-2" />
                             <span>Registre (PDF)</span>
+                        </button>
+
+                        <button
+                            onClick={handleExportCSV}
+                            disabled={isExportingCSV}
+                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm disabled:opacity-50"
+                        >
+                            {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 text-slate-500" />}
+                            <span>Export CSV</span>
                         </button>
 
                         {canEdit && (
@@ -1118,32 +1183,6 @@ export const Risks: React.FC = () => {
                     activeFiltersCount={(activeFilters.status ? 1 : 0) + (activeFilters.owner ? 1 : 0) + (activeFilters.criticality ? 1 : 0)}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
-                    primaryAction={
-                        canEdit && (
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={importing}
-                                    className="hidden sm:flex items-center px-4 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-sm font-bold rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800"
-                                >
-                                    {importing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSpreadsheet className="h-4 w-4 mr-2" />}
-                                    Import CSV
-                                </button>
-                                <button
-                                    onClick={() => setShowTemplateModal(true)}
-                                    className="flex items-center px-4 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 text-sm font-bold rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all border border-indigo-200 dark:border-indigo-800"
-                                >
-                                    <Copy className="h-4 w-4 mr-2" /> Templates
-                                </button>
-                                <button
-                                    onClick={openCreationDrawer}
-                                    className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                                >
-                                    <Plus className="h-4 w-4 mr-2" /> Nouveau Risque
-                                </button>
-                            </div>
-                        )
-                    }
                     secondaryActions={
                         <div className="flex items-center gap-2">
                             <div className="w-40 hidden lg:block">
@@ -1153,22 +1192,6 @@ export const Risks: React.FC = () => {
                                     onChange={(val) => setFrameworkFilter(val === 'Toutes les normes' ? '' : val as string)}
                                 />
                             </div>
-                            <button
-                                onClick={handleAIAnalysis}
-                                disabled={analyzing}
-                                className="p-2.5 bg-purple-50 dark:bg-white/5 rounded-xl text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors"
-                                title="Recommandations IA"
-                            >
-                                {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4" />}
-                            </button>
-                            <button
-                                onClick={handleExportCSV}
-                                disabled={isExportingCSV}
-                                className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
-                                title="Exporter CSV"
-                            >
-                                {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-                            </button>
                         </div>
                     }
                 />

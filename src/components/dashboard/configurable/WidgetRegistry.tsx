@@ -8,7 +8,7 @@ import { HealthCheckWidget } from '../widgets/HealthCheckWidget';
 import { PriorityRisksWidget } from '../widgets/PriorityRisksWidget';
 import { RecentActivityWidget } from '../widgets/RecentActivityWidget';
 import { MaturityRadarWidget } from '../widgets/MaturityRadarWidget';
-import { CyberNewsWidget } from '../../CyberNewsWidget';
+import { CyberNewsWidget } from '../CyberNewsWidget';
 
 // Define the Registry
 // This maps a string ID to the Component and its implicit Grid sizing

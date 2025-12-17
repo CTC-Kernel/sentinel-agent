@@ -9,8 +9,9 @@ import { db } from '../firebase';
 import { toast } from 'sonner';
 import { analyticsService } from '../services/analyticsService';
 import { Control, Document, Risk, Finding, UserProfile, SystemLog, Asset, Supplier, Project, Audit, BusinessProcess, AutomatedEvidence, Framework } from '../types';
-import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User, FolderKanban, FileSpreadsheet, RefreshCw, Loader2, CheckCircle2, XCircle, Plug, MessageSquare } from '../components/ui/Icons';
+import { FileText, AlertTriangle, Download, Paperclip, Link, ExternalLink, ShieldAlert, AlertOctagon, Search, X, Save, File, ShieldCheck, Plus, ChevronRight, Filter, ChevronDown, User, FolderKanban, FileSpreadsheet, RefreshCw, Loader2, CheckCircle2, XCircle, Plug, MessageSquare, Sparkles } from '../components/ui/Icons';
 import { useStore } from '../store';
+import { ComplianceService } from '../services/ComplianceService';
 import { logAction } from '../services/logger';
 import { Skeleton } from '../components/ui/Skeleton';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -808,6 +809,43 @@ export const Compliance: React.FC = () => {
         }
     };
 
+    const handleSuggestJustification = () => {
+        if (!selectedControl) return;
+        const linkedRisks = risks.filter(r => r.mitigationControlIds?.includes(selectedControl.id));
+        const suggestion = ComplianceService.suggestSoAJustification(selectedControl, linkedRisks);
+        setEditJustification(suggestion);
+        addToast("Justification suggérée par IA.", "info");
+    };
+
+    const handleAutoMapEvidence = async () => {
+        if (!canEdit) return;
+        const suggestions = ComplianceService.suggestEvidenceLinks(controls, documents);
+        if (suggestions.length === 0) {
+            addToast("Aucune suggestion de preuve trouvée.", "info");
+            return;
+        }
+
+        if (window.confirm(`L'IA a identifié ${suggestions.length} suggestions de preuves. Voulez-vous les appliquer ?`)) {
+            setUpdating(true);
+            try {
+                const batch = writeBatch(db);
+                let count = 0;
+                suggestions.forEach(s => {
+                    const ref = doc(db, 'controls', s.controlId);
+                    batch.update(ref, { evidenceIds: arrayUnion(s.documentId) });
+                    count++;
+                });
+                await batch.commit();
+                refreshControls();
+                addToast(`${count} preuves liées automatiquement.`, "success");
+            } catch (error) {
+                ErrorLogger.handleErrorWithToast(error, 'Compliance.autoMap', 'UPDATE_FAILED');
+            } finally {
+                setUpdating(false);
+            }
+        }
+    };
+
     // ... rest of the file
     const getDomainStats = (prefix: string) => {
         const domainControls = controls.filter(c => c.code.startsWith(prefix));
@@ -971,13 +1009,23 @@ export const Compliance: React.FC = () => {
                             </div>
 
                             {viewMode === 'compliance' && (
-                                <button
-                                    onClick={generateSoAReport}
-                                    className="hidden md:flex p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 hover:text-slate-600 transition-colors"
-                                    title="Générer SoA"
-                                >
-                                    <Download className="h-5 w-5" />
-                                </button>
+                                <>
+                                    <button
+                                        onClick={handleAutoMapEvidence}
+                                        className="hidden md:flex items-center space-x-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-300 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors border border-purple-200 dark:border-purple-800"
+                                        title="Suggestions IA"
+                                    >
+                                        <Sparkles className="w-4 h-4" />
+                                        <span className="text-xs font-bold">Suggestions (IA)</span>
+                                    </button>
+                                    <button
+                                        onClick={generateSoAReport}
+                                        className="hidden md:flex p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 hover:text-slate-600 transition-colors"
+                                        title="Générer SoA"
+                                    >
+                                        <Download className="h-5 w-5" />
+                                    </button>
+                                </>
                             )}
                         </div>
                     }
@@ -1470,7 +1518,18 @@ export const Compliance: React.FC = () => {
                                     <div>
                                         <div className="flex justify-between items-end mb-3 px-2">
                                             <h3 className="text-xs font-bold uppercase text-slate-500 flex items-center tracking-widest"><FileText className="h-3.5 w-3.5 mr-2" /> Justification SoA</h3>
-                                            {selectedControl.status === 'Exclu' && <span className="text-[10px] text-red-500 font-bold uppercase bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded">Obligatoire</span>}
+                                            <div className="flex items-center space-x-2">
+                                                {canEdit && (
+                                                    <button
+                                                        onClick={handleSuggestJustification}
+                                                        className="text-[10px] bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-300 px-2 py-1 rounded-lg font-bold flex items-center hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors"
+                                                        title="Suggérer une justification"
+                                                    >
+                                                        <Sparkles className="w-3 h-3 mr-1" /> IA
+                                                    </button>
+                                                )}
+                                                {selectedControl.status === 'Exclu' && <span className="text-[10px] text-red-500 font-bold uppercase bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded">Obligatoire</span>}
+                                            </div>
                                         </div>
                                         {canEdit ? (
                                             <div className="relative group">

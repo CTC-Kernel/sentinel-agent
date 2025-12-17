@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { ReportEnrichmentService } from './ReportEnrichmentService';
 
 interface ReportOptions {
     title: string;
@@ -698,6 +699,7 @@ export class PdfService {
         }
     }
 
+
     /**
      * Draw a 5x5 Risk Heatmap Matrix
      */
@@ -753,6 +755,97 @@ export class PdfService {
         ['Faible', 'Moyen', 'Fort', 'Critique', 'Catastrophique'].forEach((_, i) => {
             doc.text((i + 1).toString(), x + (i * cellSize) + cellSize / 2, y + height + 3, { align: 'center' });
             doc.text((i + 1).toString(), x - 2, y + height - (i * cellSize) - cellSize / 2, { align: 'right', baseline: 'middle' });
+        });
+    }
+
+    /**
+     * Generate an Enriched AI-Powered Risk Report
+     * Uses ReportEnrichmentService to analyze data and produce a high-value PDF
+     */
+    static generateRiskExecutiveReport(
+        risks: any[],
+        options: ReportOptions & { author?: string }
+    ): jsPDF {
+
+        // 1. Analyze Data using the new service
+        const analysis = ReportEnrichmentService.analyzeRiskPortfolio(risks);
+        const metrics = ReportEnrichmentService.calculateMetrics(risks);
+        const executiveSummary = ReportEnrichmentService.generateExecutiveSummary(metrics);
+
+        return this.generateExecutiveReport({
+            ...options,
+            title: "RAPPORT DE GOUVERNANCE CYBER",
+            subtitle: "Analyse des Risques & Conformité ISO 27001",
+            summary: executiveSummary,
+            metrics: [
+                { label: "Risques Totaux", value: metrics.total_risks, subtext: "actifs dans le registre" },
+                { label: "Critiques", value: metrics.critical_risks, subtext: "nécessitent action immédiate" },
+                { label: "Score Global", value: metrics.risk_score + "/100", subtext: "exposition au risque" }
+            ],
+            stats: [
+                { label: "Critique", value: metrics.critical_risks, color: '#EF4444' },
+                { label: "Élevé", value: metrics.high_risks, color: '#F97316' },
+                { label: "Moyen", value: metrics.medium_risks, color: '#F59E0B' },
+                { label: "Faible", value: metrics.low_risks, color: '#10B981' }
+            ]
+        }, (doc, startY) => {
+            const pageWidth = doc.internal.pageSize.width;
+            let currentY = startY;
+
+            // 1. Risk Heatmap Section
+            doc.setFontSize(14);
+            doc.setTextColor(this.BRAND_SECONDARY);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Cartographie des Risques", 14, currentY);
+            currentY += 10;
+
+            // Draw Heatmap centered
+            this.drawRiskMatrix(doc, (pageWidth - 100) / 2, currentY, 100, 100, risks);
+            currentY += 110;
+
+            // 2. Top Critical Risks Table
+            doc.setFontSize(14);
+            doc.setTextColor(this.BRAND_SECONDARY);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Top 5 Risques Critiques", 14, currentY);
+            currentY += 10;
+
+            const criticalRisks = analysis.top_risks
+                .map((r: any) => [
+                    r.threat,
+                    r.category || 'Général',
+                    (r.probability * r.impact).toString(),
+                    r.strategy || 'À définir'
+                ]);
+
+            doc.autoTable({
+                startY: currentY,
+                head: [['Titre du Risque', 'Catégorie', 'Score', 'Stratégie']],
+                body: criticalRisks,
+                theme: 'grid',
+                headStyles: { fillColor: this.BRAND_PRIMARY },
+                styles: { fontSize: 9 },
+                margin: { left: 14, right: 14 }
+            });
+
+            // Update currentY after table
+            currentY = (doc as any).lastAutoTable.finalY + 20;
+
+            // 3. Recommendations
+            doc.setFontSize(14);
+            doc.setTextColor(this.BRAND_SECONDARY);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Recommandations Stratégiques (IA)", 14, currentY);
+            currentY += 10;
+
+            doc.setFontSize(10);
+            doc.setTextColor(this.TEXT_PRIMARY);
+            doc.setFont('helvetica', 'normal');
+
+            analysis.recommendations.forEach((rec, i) => {
+                doc.text(`${i + 1}. ${rec}`, 14, currentY);
+                currentY += 7;
+            });
         });
     }
 }

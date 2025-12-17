@@ -12,6 +12,8 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { DatePicker } from '../ui/DatePicker';
 import { ASSET_TYPES, ASSET_LIFECYCLE_STATUSES, COMPLIANCE_SCOPES } from '../../data/assetConstants';
 import { AIAssistantHeader, BaseTemplate } from '../ui/AIAssistantHeader';
+import { AssetClassificationService } from '../../services/AssetClassificationService';
+import { useStore } from '../../store';
 
 type AssetTemplate = BaseTemplate & {
     type: string;
@@ -80,7 +82,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             }
         }
     });
-
+    const { addToast } = useStore();
     const [suggestingField, setSuggestingField] = React.useState<string | null>(null);
 
     useEffect(() => {
@@ -188,6 +190,22 @@ export const AssetForm: React.FC<AssetFormProps> = ({
         } finally {
             setSuggestingField(null);
         }
+    };
+
+    const handleAutoClassify = () => {
+        const currentValues = getValues();
+        // Convert FormData to Partial<Asset> structure expected by service
+        const partialAsset: Partial<Asset> = {
+            ...currentValues,
+            // Safe casts or conversions if needed
+        };
+        const suggestion = AssetClassificationService.suggestClassification(partialAsset);
+
+        setValue('confidentiality', suggestion.confidentiality, { shouldDirty: true });
+        setValue('integrity', suggestion.integrity, { shouldDirty: true });
+        setValue('availability', suggestion.availability, { shouldDirty: true });
+
+        addToast(`Classification appliquée: ${suggestion.reason}`, "success");
     };
 
     return (
@@ -470,10 +488,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     <div className="flex items-center"><AlertTriangle className="h-4 w-4 mr-2" /> Classification DIC</div>
                     <button
                         type="button"
-                        onClick={() => handleSuggestField('confidentiality')}
+                        onClick={handleAutoClassify}
                         className="text-xs normal-case font-medium text-brand-500 hover:text-brand-600 flex items-center bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg transition-colors"
                     >
-                        <Sparkles className="h-3 w-3 mr-1.5" /> Suggérer Classification
+                        <Sparkles className="h-3 w-3 mr-1.5" /> Auto-Classifier (Règles)
                     </button>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

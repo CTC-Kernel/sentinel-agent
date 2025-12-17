@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useDashboardPreferences } from '../../../../hooks/useDashboardPreferences';
+import { useDashboardPreferences } from '../../../hooks/useDashboardPreferences';
 import { ConfigurableDashboardGrid } from '../configurable/ConfigurableDashboardGrid';
-import { useStore } from '../../../../store';
-import { slideUpVariants } from '../../ui/animationVariants';
+import { useStore } from '../../../store';
+
 import { Plus } from 'lucide-react';
-import { WIDGET_REGISTRY } from '../configurable/WidgetRegistry';
+
 
 // Props Interface
 interface AdminDashboardViewProps {

@@ -4,9 +4,8 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStr
 import { CSS } from '@dnd-kit/utilities';
 import { WidgetLayout } from '../../../hooks/useDashboardPreferences';
 import { WIDGET_REGISTRY } from './WidgetRegistry';
-import { motion, AnimatePresence } from 'framer-motion';
 import { GripVertical, X } from 'lucide-react';
-import { useStore } from '../../../store'; // Assuming we have global store for toast etc
+
 
 // --- Sortable Item Component ---
 interface SortableWidgetProps {
@@ -123,7 +122,7 @@ export const ConfigurableDashboardGrid: React.FC<ConfigurableDashboardGridProps>
         onLayoutChange(newLayout);
     };
 
-    const renderWidget = (item: WidgetLayout, isOverlay = false) => {
+    const renderWidget = (item: WidgetLayout) => {
         const entry = WIDGET_REGISTRY[item.widgetId];
         if (!entry) return <div className="p-4 bg-red-100 text-red-800 rounded-xl">Widget not found: {item.widgetId}</div>;
 
@@ -163,7 +162,7 @@ export const ConfigurableDashboardGrid: React.FC<ConfigurableDashboardGridProps>
                     <div className="h-full rounded-[2rem] overflow-hidden opacity-90 shadow-2xl scale-105">
                         {(() => {
                             const widget = layout.find(w => w.id === activeId);
-                            return widget ? renderWidget(widget, true) : null;
+                            return widget ? renderWidget(widget) : null;
                         })()}
                     </div>
                 ) : null}

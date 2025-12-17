@@ -125,7 +125,8 @@ import {
   Edit2,
   Plug,
   EyeOff,
-  PieChart
+  PieChart,
+  FileCode
 } from 'lucide-react';
 
 export {
@@ -254,5 +255,6 @@ export {
   Edit2,
   Plug,
   EyeOff,
-  PieChart
+  PieChart,
+  FileCode
 };
