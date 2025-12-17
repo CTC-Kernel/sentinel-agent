@@ -24,6 +24,7 @@ import { AuditForm } from '../components/audits/AuditForm';
 import { AuditDashboard } from '../components/audits/AuditDashboard';
 import { AuditAIAssistant } from '../components/audits/AuditAIAssistant';
 import { useStore } from '../store';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { logAction } from '../services/logger';
 
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -1324,36 +1325,36 @@ export const Audits: React.FC = () => {
                     actions={canEdit && (
                         hasPermission(user, 'Audit', 'create') && (
                             <>
-                                <button onClick={handleExportPack} className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                    <Download className="w-4 h-4" />
-                                    <span>Pack Audit</span>
-                                </button>
-                                <button onClick={handleExportExecutiveReport} className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-indigo-500/20 transition-all">
-                                    <FileText className="w-4 h-4" />
-                                    <span>Rapport Expert (IA)</span>
-                                </button>
-                                <button
-                                    onClick={handleGeneratePlan}
-                                    className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors mr-2"
-                                    title="Générer un plan d'audit via IA"
-                                >
-                                    <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                                    <span>Planifier (IA)</span>
-                                </button>
+                                <CustomTooltip content="Télécharger le pack complet d'audit (ZIP)">
+                                    <button onClick={handleExportPack} className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                                        <FolderKanban className="h-4 w-4 text-emerald-600" />
+                                        <span className="hidden sm:inline">Pack</span>
+                                    </button>
+                                </CustomTooltip>
 
-                                <button
-                                    onClick={handleExportCalendar}
-                                    className="flex items-center space-x-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors mr-2"
-                                    title="Ajouter au calendrier (.ics)"
-                                >
-                                    <Calendar className="w-4 h-4 text-orange-500" />
-                                    <span>Calendrier</span>
-                                </button>
+                                <CustomTooltip content="Générer le rapport exécutif global">
+                                    <button onClick={handleExportExecutiveReport} className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-indigo-500/20 transition-all">
+                                        {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                                        <span className="hidden sm:inline">Rapport Exécutif</span>
+                                    </button>
+                                </CustomTooltip>
 
-                                <button onClick={() => openCreationDrawer()} className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-slate-900/20 dark:shadow-none">
-                                    <Plus className="w-5 h-5" />
-                                    <span>Nouvel Audit</span>
-                                </button>
+                                <CustomTooltip content="Obtenir des suggestions d'audit par IA">
+                                    <button
+                                        onClick={handleAIAssist}
+                                        className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-bold shadow-lg hover:shadow-pink-500/25 transition-all hover:scale-105"
+                                    >
+                                        <BrainCircuit className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Suggestions IA</span>
+                                    </button>
+                                </CustomTooltip>
+
+                                <CustomTooltip content="Planifier un nouvel audit">
+                                    <button onClick={() => openCreationDrawer()} className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-slate-900/20 dark:shadow-none">
+                                        <Plus className="h-4 w-4" />
+                                        <span className="hidden sm:inline">Nouvel Audit</span>
+                                    </button>
+                                </CustomTooltip>
                             </>
                         )
                     )}
@@ -1385,21 +1386,23 @@ export const Audits: React.FC = () => {
                     onViewModeChange={setViewMode}
                     secondaryActions={
                         <>
-                            <button
-                                onClick={handleExportCSV}
-                                disabled={isExportingCSV}
-                                className="p-2 bg-white dark:bg-slate-800 rounded-lg text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-sm"
-                                title="Exporter CSV"
-                            >
-                                {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-                            </button>
-                            <button
-                                onClick={handleExportCalendar}
-                                className="p-2 bg-white dark:bg-slate-800 rounded-lg text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-sm"
-                                title="Exporter Calendrier"
-                            >
-                                <CalendarDays className="h-4 w-4" />
-                            </button>
+                            <CustomTooltip content="Exporter en CSV">
+                                <button
+                                    onClick={handleExportCSV}
+                                    disabled={isExportingCSV}
+                                    className="p-2 bg-white dark:bg-slate-800 rounded-lg text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-sm"
+                                >
+                                    {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                                </button>
+                            </CustomTooltip>
+                            <CustomTooltip content="Ajouter au calendrier">
+                                <button
+                                    onClick={handleExportCalendar}
+                                    className="p-2 bg-white dark:bg-slate-800 rounded-lg text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-sm"
+                                >
+                                    <CalendarDays className="h-4 w-4" />
+                                </button>
+                            </CustomTooltip>
                         </>
                     }
                 />
@@ -1486,10 +1489,17 @@ export const Audits: React.FC = () => {
                     selectedAudit && (
                         <>
                             {canDeleteResource(user, 'Audit') && (
-                                <button onClick={() => selectedAudit && initiateDeleteAudit(selectedAudit.id, selectedAudit.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-red-500">
-                                    <Trash2 className="h-5 w-5" />
-                                </button>
+                                <CustomTooltip content="Supprimer l'audit">
+                                    <button onClick={() => selectedAudit && initiateDeleteAudit(selectedAudit.id, selectedAudit.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-red-500">
+                                        <Trash2 className="h-5 w-5" />
+                                    </button>
+                                </CustomTooltip>
                             )}
+                            <CustomTooltip content="Fermer">
+                                <button onClick={() => { setShowFindingsDrawer(false); setSelectedAudit(null); }} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500">
+                                    <ArrowRight className="h-5 w-5" />
+                                </button>
+                            </CustomTooltip>
                             <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-2"></div>
 
                             {selectedAudit.status !== 'Validé' && canEdit && (

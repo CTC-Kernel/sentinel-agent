@@ -12,12 +12,22 @@ import { CyberNewsWidget } from '../CyberNewsWidget';
 import { RiskHeatmapWidget } from '../widgets/RiskHeatmapWidget';
 import { AuditsDonutWidget } from '../widgets/AuditsDonutWidget';
 import { ProjectTasksWidget } from '../widgets/ProjectTasksWidget';
+import { IncidentsStatsWidget } from '../widgets/IncidentsStatsWidget';
+import { DocumentsStatsWidget } from '../widgets/DocumentsStatsWidget';
+import { ComplianceProgressWidget } from '../widgets/ComplianceProgressWidget';
+import { AssetStatsWidget } from '../widgets/AssetStatsWidget';
+import { SuppliersStatsWidget } from '../widgets/SuppliersStatsWidget';
+import { ContinuityPlansWidget } from '../widgets/ContinuityPlansWidget';
 
 // Define the Registry
 // This maps a string ID to the Component and its implicit Grid sizing
 export const WIDGET_REGISTRY: Record<string, {
+    id?: string;
     component: React.ComponentType<any>;
     defaultColSpan: 1 | 2 | 3;
+    defaultRowSpan?: number;
+    minColSpan?: number;
+    minRowSpan?: number;
     titleKey: string; // for the "Add Widget" menu
 }> = {
     'stats-overview': {
@@ -71,10 +81,67 @@ export const WIDGET_REGISTRY: Record<string, {
         titleKey: 'dashboard.auditsStatus'
     },
     'project-tasks': {
+        id: 'project-tasks',
         component: ProjectTasksWidget,
         defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1,
         titleKey: 'dashboard.projectStatus'
+    },
+    'incidents-stats': {
+        id: 'incidents-stats',
+        titleKey: 'dashboard.incidentsStats',
+        component: IncidentsStatsWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1
+    },
+    'documents-stats': {
+        id: 'documents-stats',
+        titleKey: 'dashboard.documentsStats',
+        component: DocumentsStatsWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1
+    },
+    'compliance-progress': {
+        id: 'compliance-progress',
+        titleKey: 'dashboard.complianceProgress',
+        component: ComplianceProgressWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1
+    },
+    'asset-stats': {
+        id: 'asset-stats',
+        titleKey: 'dashboard.assetStats',
+        component: AssetStatsWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1
+    },
+    'suppliers-stats': {
+        id: 'suppliers-stats',
+        titleKey: 'dashboard.suppliersStats',
+        component: SuppliersStatsWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1
+    },
+    'continuity-plans': {
+        id: 'continuity-plans',
+        titleKey: 'dashboard.continuityPlans',
+        component: ContinuityPlansWidget,
+        defaultColSpan: 1,
+        defaultRowSpan: 1,
+        minColSpan: 1,
+        minRowSpan: 1
     }
 };
-
 export type WidgetId = keyof typeof WIDGET_REGISTRY;

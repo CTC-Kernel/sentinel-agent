@@ -20,7 +20,7 @@ import { slideUpVariants, staggerContainerVariants } from '../components/ui/anim
 
 import { Comments } from '../components/ui/Comments';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Pagination } from '../components/ui/Pagination';
@@ -46,6 +46,7 @@ import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { DataTable } from '../components/ui/DataTable';
 import { ObsidianService } from '../services/ObsidianService';
 import { AssetClassificationService } from '../services/AssetClassificationService';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
 interface ShodanResult {
     ip_str?: string;
@@ -707,19 +708,22 @@ export const Assets: React.FC = () => {
                     icon={<Server className="h-6 w-6 text-white" strokeWidth={2.5} />}
                     actions={canEdit && (
                         <>
-                            <button
-                                onClick={generateIntakeLink}
-                                className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
-                                title="Copier le lien Kiosque"
-                            >
-                                <Link className="h-4 w-4 mr-2 text-brand-500" /> Lien Kiosque
-                            </button>
-                            <button
-                                onClick={() => openInspector(undefined)}
-                                className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                            >
-                                <Plus className="h-4 w-4 mr-2" /> Nouvel Actif
-                            </button>
+                            <CustomTooltip content="Copier le lien Kiosque">
+                                <button
+                                    onClick={generateIntakeLink}
+                                    className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
+                                >
+                                    <Link className="h-4 w-4 mr-2 text-brand-500" /> Lien Kiosque
+                                </button>
+                            </CustomTooltip>
+                            <CustomTooltip content="Créer un nouvel actif">
+                                <button
+                                    onClick={() => openInspector(undefined)}
+                                    className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" /> Nouvel Actif
+                                </button>
+                            </CustomTooltip>
                         </>
                     )}
                 />
@@ -763,34 +767,40 @@ export const Assets: React.FC = () => {
                     onViewModeChange={setViewMode}
                     primaryAction={
                         canEdit && (
-                            <button
-                                onClick={() => openInspector(undefined)}
-                                className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                            >
-                                <Plus className="h-4 w-4 mr-2" /> Nouvel Actif
-                            </button>
+                            <CustomTooltip content="Créer un nouvel actif">
+                                <button
+                                    onClick={() => openInspector(undefined)}
+                                    className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" /> Nouvel Actif
+                                </button>
+                            </CustomTooltip>
                         )
                     }
                     secondaryActions={
                         <>
-                            <button disabled={isGeneratingLabels} onClick={() => generateLabels()} className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 hover:bg-slate-100 dark:hover:bg-white/10" title="Imprimer Étiquette">
-                                {isGeneratingLabels ? <span className="animate-spin">⏳</span> : <QrCode className="h-4 w-4" />}
-                            </button>
-                            <button
-                                onClick={handleExportCSV}
-                                disabled={isExportingCSV}
-                                className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
-                                title="Exporter CSV"
-                            >
-                                {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-                            </button>
-                            <button
-                                onClick={() => ObsidianService.exportAssetsToObsidian(filteredAssets)}
-                                className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
-                                title="Exporter vers Obsidian"
-                            >
-                                <FileCode className="h-4 w-4 text-emerald-600" />
-                            </button>
+                            <CustomTooltip content="Imprimer Étiquette">
+                                <button disabled={isGeneratingLabels} onClick={() => generateLabels()} className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 hover:bg-slate-100 dark:hover:bg-white/10">
+                                    {isGeneratingLabels ? <span className="animate-spin">⏳</span> : <QrCode className="h-4 w-4" />}
+                                </button>
+                            </CustomTooltip>
+                            <CustomTooltip content="Exporter CSV">
+                                <button
+                                    onClick={handleExportCSV}
+                                    disabled={isExportingCSV}
+                                    className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
+                                >
+                                    {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                                </button>
+                            </CustomTooltip>
+                            <CustomTooltip content="Exporter vers Obsidian">
+                                <button
+                                    onClick={() => ObsidianService.exportAssetsToObsidian(filteredAssets)}
+                                    className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
+                                >
+                                    <FileCode className="h-4 w-4 text-emerald-600" />
+                                </button>
+                            </CustomTooltip>
                         </>
                     }
                 />
@@ -864,13 +874,17 @@ export const Assets: React.FC = () => {
                                 header: '',
                                 cell: ({ row }) => (
                                     <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                                        <button disabled={isGeneratingLabels} onClick={() => generateLabels(row.original)} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all disabled:opacity-50" title="Imprimer Étiquette">
-                                            {isGeneratingLabels ? <span className="animate-spin text-xs">⏳</span> : <QrCode className="h-4 w-4" />}
-                                        </button>
-                                        {canDeleteResource(user, 'Asset') && (
-                                            <button onClick={() => initiateDelete(row.original.id, row.original.name)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Supprimer">
-                                                <Trash2 className="h-4 w-4" />
+                                        <CustomTooltip content="Imprimer Étiquette">
+                                            <button disabled={isGeneratingLabels} onClick={() => generateLabels(row.original)} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all disabled:opacity-50">
+                                                {isGeneratingLabels ? <span className="animate-spin text-xs">⏳</span> : <QrCode className="h-4 w-4" />}
                                             </button>
+                                        </CustomTooltip>
+                                        {canDeleteResource(user, 'Asset') && (
+                                            <CustomTooltip content="Supprimer">
+                                                <button onClick={() => initiateDelete(row.original.id, row.original.name)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </CustomTooltip>
                                         )}
                                     </div>
                                 ),
@@ -978,18 +992,24 @@ export const Assets: React.FC = () => {
                                 <>
                                     {canEdit && (
                                         <>
-                                            <button onClick={() => setIsEditing(true)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-brand-500">
-                                                <Edit className="h-5 w-5" />
-                                            </button>
-                                            <button onClick={() => handleDuplicate()} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-blue-500">
-                                                <Copy className="h-5 w-5" />
-                                            </button>
+                                            <CustomTooltip content="Modifier">
+                                                <button onClick={() => setIsEditing(true)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-brand-500">
+                                                    <Edit className="h-5 w-5" />
+                                                </button>
+                                            </CustomTooltip>
+                                            <CustomTooltip content="Dupliquer">
+                                                <button onClick={() => handleDuplicate()} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-blue-500">
+                                                    <Copy className="h-5 w-5" />
+                                                </button>
+                                            </CustomTooltip>
                                         </>
                                     )}
                                     {canDeleteResource(user, 'Asset') && (
-                                        <button onClick={() => selectedAsset && initiateDelete(selectedAsset.id, selectedAsset.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-red-500">
-                                            <Trash2 className="h-5 w-5" />
-                                        </button>
+                                        <CustomTooltip content="Supprimer">
+                                            <button onClick={() => selectedAsset && initiateDelete(selectedAsset.id, selectedAsset.name)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-red-500">
+                                                <Trash2 className="h-5 w-5" />
+                                            </button>
+                                        </CustomTooltip>
                                     )}
                                 </>
                             )}
@@ -1228,7 +1248,7 @@ export const Assets: React.FC = () => {
                                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.2} />
                                                                 <XAxis dataKey="year" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                                                                 <YAxis hide />
-                                                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }} itemStyle={{ color: '#fff' }} formatter={(val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)} />
+                                                                <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }} itemStyle={{ color: '#fff' }} formatter={(val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)} />
                                                                 <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
                                                             </AreaChart>
                                                         </ResponsiveContainer>
@@ -1244,22 +1264,26 @@ export const Assets: React.FC = () => {
                                 <div className="space-y-8">
                                     {/* Scan Actions */}
                                     <div className="flex gap-4">
-                                        <button
-                                            onClick={handleScanAsset}
-                                            disabled={scanning}
-                                            className="flex-1 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform flex items-center justify-center disabled:opacity-50"
-                                        >
-                                            {scanning ? <span className="animate-spin mr-2">⏳</span> : <Search className="w-4 h-4 mr-2" />}
-                                            Scan Shodan
-                                        </button>
-                                        <button
-                                            onClick={handleCheckCVEs}
-                                            disabled={scanning}
-                                            className="flex-1 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-xl text-sm font-bold shadow-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors flex items-center justify-center disabled:opacity-50"
-                                        >
-                                            {scanning ? <span className="animate-spin mr-2">⏳</span> : <ShieldAlert className="w-4 h-4 mr-2" />}
-                                            Check CVEs (NVD)
-                                        </button>
+                                        <CustomTooltip content="Scanner l'actif avec Shodan.io">
+                                            <button
+                                                onClick={handleScanAsset}
+                                                disabled={scanning}
+                                                className="flex-1 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform flex items-center justify-center disabled:opacity-50"
+                                            >
+                                                {scanning ? <span className="animate-spin mr-2">⏳</span> : <Search className="w-4 h-4 mr-2" />}
+                                                Scan Shodan
+                                            </button>
+                                        </CustomTooltip>
+                                        <CustomTooltip content="Rechercher des CVEs (NVD)">
+                                            <button
+                                                onClick={handleCheckCVEs}
+                                                disabled={scanning}
+                                                className="flex-1 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-xl text-sm font-bold shadow-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors flex items-center justify-center disabled:opacity-50"
+                                            >
+                                                {scanning ? <span className="animate-spin mr-2">⏳</span> : <ShieldAlert className="w-4 h-4 mr-2" />}
+                                                Check CVEs (NVD)
+                                            </button>
+                                        </CustomTooltip>
                                     </div>
 
                                     {/* Shodan Results */}
@@ -1290,13 +1314,14 @@ export const Assets: React.FC = () => {
                                                             <span className="text-sm font-bold text-red-700 dark:text-red-400">{vuln.cveId}</span>
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-800 rounded">{vuln.severity} ({vuln.score})</span>
-                                                                <button
-                                                                    onClick={() => handleCreateRiskFromVuln(vuln)}
-                                                                    className="p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded text-red-600 dark:text-red-400 transition-colors"
-                                                                    title="Créer un risque"
-                                                                >
-                                                                    <Plus className="h-4 w-4" />
-                                                                </button>
+                                                                <CustomTooltip content="Créer un risque">
+                                                                    <button
+                                                                        onClick={() => handleCreateRiskFromVuln(vuln)}
+                                                                        className="p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded text-red-600 dark:text-red-400 transition-colors"
+                                                                    >
+                                                                        <Plus className="h-4 w-4" />
+                                                                    </button>
+                                                                </CustomTooltip>
                                                             </div>
                                                         </div>
                                                         <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2" title={vuln.description}>{vuln.description}</p>

@@ -27,6 +27,7 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { hasPermission } from '../utils/permissions';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
 export const Team: React.FC = () => {
     const navigate = useNavigate();
@@ -377,19 +378,23 @@ export const Team: React.FC = () => {
                 icon={<Users className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={canAdmin && activeTab === 'members' && (
                     <>
-                        <button
-                            onClick={handleExportCSV}
-                            className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
-                        >
-                            <FileSpreadsheet className="h-4 w-4 mr-2" /> Export CSV
-                        </button>
-                        <button
-                            onClick={handleOpenInviteModal}
-                            className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Inviter un membre
-                        </button>
+                        <CustomTooltip content="Exporter la liste des membres en CSV">
+                            <button
+                                onClick={handleExportCSV}
+                                className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
+                            >
+                                <FileSpreadsheet className="h-4 w-4 mr-2" /> Export CSV
+                            </button>
+                        </CustomTooltip>
+                        <CustomTooltip content="Inviter un nouveau collaborateur">
+                            <button
+                                onClick={handleOpenInviteModal}
+                                className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Inviter un membre
+                            </button>
+                        </CustomTooltip>
                     </>
                 )}
             />
@@ -533,18 +538,22 @@ export const Team: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="mt-auto flex gap-2 pt-3">
-                                                <button
-                                                    onClick={() => handleRejectRequest(req)}
-                                                    className="flex-1 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl text-xs font-bold hover:bg-red-100 hover:text-red-600 transition-colors flex items-center justify-center gap-1"
-                                                >
-                                                    <XCircle className="h-3.5 w-3.5" /> Refuser
-                                                </button>
-                                                <button
-                                                    onClick={() => handleApproveRequest(req)}
-                                                    className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
-                                                >
-                                                    <Check className="h-3.5 w-3.5" /> Approuver
-                                                </button>
+                                                <CustomTooltip content="Refuser la demande">
+                                                    <button
+                                                        onClick={() => handleRejectRequest(req)}
+                                                        className="flex-1 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl text-xs font-bold hover:bg-red-100 hover:text-red-600 transition-colors flex items-center justify-center gap-1"
+                                                    >
+                                                        <XCircle className="h-3.5 w-3.5" /> Refuser
+                                                    </button>
+                                                </CustomTooltip>
+                                                <CustomTooltip content="Approuver l'accès">
+                                                    <button
+                                                        onClick={() => handleApproveRequest(req)}
+                                                        className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+                                                    >
+                                                        <Check className="h-3.5 w-3.5" /> Approuver
+                                                    </button>
+                                                </CustomTooltip>
                                             </div>
                                         </div>
                                     ))}
@@ -571,13 +580,17 @@ export const Team: React.FC = () => {
                                     {canAdmin && (
                                         <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             {!u.isPending && (
-                                                <button onClick={() => openEditModal(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all">
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
+                                                <CustomTooltip content="Modifier le rôle/département">
+                                                    <button onClick={() => openEditModal(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all">
+                                                        <Edit className="h-4 w-4" />
+                                                    </button>
+                                                </CustomTooltip>
                                             )}
-                                            <button onClick={() => initiateDelete(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-red-500 shadow-sm hover:scale-105 transition-all">
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
+                                            <CustomTooltip content={u.isPending ? "Annuler l'invitation" : "Supprimer le membre"}>
+                                                <button onClick={() => initiateDelete(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-red-500 shadow-sm hover:scale-105 transition-all">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </CustomTooltip>
                                         </div>
                                     )}
 

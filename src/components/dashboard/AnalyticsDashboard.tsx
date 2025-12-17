@@ -13,6 +13,7 @@ import {
     Legend,
     ResponsiveContainer
 } from 'recharts';
+import { Tooltip as UiTooltip } from '../ui/Tooltip';
 import {
     TrendingUp,
     Activity,
@@ -275,27 +276,30 @@ export const AnalyticsDashboard: React.FC = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                    <button
-                        onClick={() => OnboardingService.startAnalyticsTour()}
-                        className="px-4 py-2 bg-white/50 dark:bg-slate-800/50 text-brand-600 dark:text-brand-400 border border-brand-100 dark:border-brand-900/30 rounded-xl text-sm font-bold hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all flex items-center gap-2 backdrop-blur-sm"
-                    >
-                        <HelpCircle className="h-4 w-4" />
-                        Visite guidée
-                    </button>
+                    <UiTooltip content="Lancer une visite interactive du tableau de bord" position="bottom">
+                        <button
+                            onClick={() => OnboardingService.startAnalyticsTour()}
+                            className="px-4 py-2 bg-white/50 dark:bg-slate-800/50 text-brand-600 dark:text-brand-400 border border-brand-100 dark:border-brand-900/30 rounded-xl text-sm font-bold hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all flex items-center gap-2 backdrop-blur-sm"
+                        >
+                            <HelpCircle className="h-4 w-4" />
+                            Visite guidée
+                        </button>
+                    </UiTooltip>
 
                     {/* Time range selector */}
                     <div className="flex gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-xl border border-white/20 dark:border-white/5 backdrop-blur-md">
                         {(['7d', '30d', '90d', '1y'] as const).map((range) => (
-                            <button
-                                key={range}
-                                onClick={() => setTimeRange(range)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${timeRange === range
-                                    ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                                    }`}
-                            >
-                                {range === '7d' ? '7J' : range === '30d' ? '30J' : range === '90d' ? '90J' : '1A'}
-                            </button>
+                            <UiTooltip key={range} content={`Afficher les données sur ${range === '7d' ? '7 jours' : range === '30d' ? '30 jours' : range === '90d' ? '90 jours' : '1 an'}`} position="top">
+                                <button
+                                    onClick={() => setTimeRange(range)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${timeRange === range
+                                        ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                                        }`}
+                                >
+                                    {range === '7d' ? '7J' : range === '30d' ? '30J' : range === '90d' ? '90J' : '1A'}
+                                </button>
+                            </UiTooltip>
                         ))}
                     </div>
                 </div>

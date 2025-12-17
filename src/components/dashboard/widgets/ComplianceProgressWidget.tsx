@@ -10,7 +10,7 @@ interface ComplianceProgressWidgetProps {
     t?: (key: string) => string;
 }
 
-export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> = ({ navigate, t = (k) => k }) => {
+export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> = ({ navigate }) => {
     const { user } = useStore();
 
     const { data: controls, loading } = useFirestoreCollection<Control>(
@@ -42,41 +42,50 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
     }
 
     return (
-        <div className="flex flex-col h-full space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-border/50">
-                <h3 className="text-lg font-bold flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-brand-500" />
+        <div className="h-full flex flex-col p-5 glass-panel rounded-2xl border border-white/60 dark:border-white/5 shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+
+            <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-white/5 relative z-10">
+                <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
+                    <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
+                        <ShieldCheck className="w-4 h-4" />
+                    </div>
                     Conformité
                 </h3>
                 <button
                     onClick={() => navigate && navigate('/compliance')}
-                    className="text-xs font-medium text-brand-600 dark:text-brand-400 hover:underline"
+                    className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5"
                 >
                     Voir tout
                 </button>
             </div>
 
-            <div className="flex items-center gap-4 flex-1">
+            <div className="flex items-center gap-4 flex-1 relative z-10">
                 {/* Score Circle */}
-                <div className="relative flex-shrink-0 group cursor-pointer" onClick={() => navigate && navigate('/compliance')}>
+                <div className="relative flex-shrink-0 group/chart cursor-pointer transform hover:scale-105 transition-transform duration-300" onClick={() => navigate && navigate('/compliance')}>
                     <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
-                        <circle className="text-muted-foreground/10" strokeWidth="6" stroke="currentColor" fill="transparent" r="42" cx="48" cy="48" />
+                        <defs>
+                            <linearGradient id="complianceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor={stats.complianceRate >= 80 ? '#10b981' : stats.complianceRate >= 50 ? '#3b82f6' : '#f59e0b'} />
+                                <stop offset="100%" stopColor={stats.complianceRate >= 80 ? '#34d399' : stats.complianceRate >= 50 ? '#60a5fa' : '#fbbf24'} />
+                            </linearGradient>
+                        </defs>
+                        <circle className="text-slate-100 dark:text-slate-800" strokeWidth="6" stroke="currentColor" fill="transparent" r="42" cx="48" cy="48" />
                         <circle
-                            className="text-brand-600 transition-all duration-1000 ease-out"
+                            stroke="url(#complianceGradient)"
                             strokeWidth="6"
                             strokeDasharray={263.89}
                             strokeDashoffset={263.89 - (263.89 * stats.complianceRate) / 100}
                             strokeLinecap="round"
-                            stroke="currentColor"
                             fill="transparent"
                             r="42"
                             cx="48"
                             cy="48"
-                            style={{ filter: 'drop-shadow(0 0 4px currentColor)' }}
+                            style={{ filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.1))' }}
                         />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-xl font-black text-foreground">{stats.complianceRate.toFixed(0)}%</span>
+                        <span className="text-xl font-black text-foreground tracking-tight">{stats.complianceRate.toFixed(0)}%</span>
                     </div>
                 </div>
 
@@ -86,7 +95,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                         Moyenne pondérée des contrôles implémentés.
                     </p>
                     <div className="flex items-center gap-2 mt-2">
-                        <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400`}>
+                        <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50`}>
                             <TrendingUp className="w-3 h-3" />
                             Stable
                         </div>
@@ -95,14 +104,14 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
             </div>
 
             {/* Mini Progress Bar breakdown */}
-            <div className="mt-auto space-y-2">
+            <div className="mt-auto space-y-2 relative z-10">
                 <div className="flex justify-between items-center text-xs">
-                    <span className="text-muted-foreground font-medium">Implémenté</span>
+                    <span className="text-muted-foreground font-bold uppercase tracking-wider text-[10px]">Implémenté</span>
                     <span className="font-bold text-foreground">{stats.implementedControls}/{stats.totalControls}</span>
                 </div>
-                <div className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                     <div
-                        className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
+                        className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-1000 ease-out"
                         style={{ width: `${(stats.implementedControls / (stats.totalControls || 1)) * 100}%` }}
                     />
                 </div>

@@ -17,7 +17,7 @@ import { hasPermission } from '../../utils/permissions';
 import { UserProfile } from '../../types';
 
 export const ProfileSettings: React.FC = () => {
-    const { user, setUser, addToast, t } = useStore();
+    const { user, setUser, addToast, t, language, setLanguage } = useStore();
     const [savingProfile, setSavingProfile] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [breachCheckLoading, setBreachCheckLoading] = useState(false);
@@ -226,6 +226,17 @@ export const ProfileSettings: React.FC = () => {
                                     {...profileForm.register('department')}
                                     error={profileForm.formState.errors.department?.message}
                                     className="md:col-span-2"
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <CustomSelect
+                                    label={t('common.language')}
+                                    options={[
+                                        { value: 'fr', label: 'Français' },
+                                        { value: 'en', label: 'English' },
+                                    ]}
+                                    value={language}
+                                    onChange={(value) => setLanguage(value as 'fr' | 'en')}
                                 />
                             </div>
                         </div>

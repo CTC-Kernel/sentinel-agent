@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search, X, Filter, LayoutGrid, List, Loader2, Grid3X3 } from 'lucide-react';
+import { Tooltip } from './Tooltip';
 
 
 interface PageControlsProps {
@@ -107,33 +108,36 @@ export const PageControls: React.FC<PageControlsProps> = ({
                 {/* View Mode Toggle */}
                 {viewMode && onViewModeChange && (
                     <div className="flex bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <button
-                            onClick={() => onViewModeChange('grid')}
-                            className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'grid'
-                                ? 'bg-white dark:bg-slate-800 text-brand-600 shadow-sm scale-100'
-                                : 'text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5'}`}
-                            title="Vue Grille"
-                        >
-                            <LayoutGrid className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={() => onViewModeChange('list')}
-                            className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'list'
-                                ? 'bg-white dark:bg-slate-800 text-brand-600 shadow-sm scale-100'
-                                : 'text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5'}`}
-                            title="Vue Liste"
-                        >
-                            <List className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={() => onViewModeChange('matrix')}
-                            className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'matrix'
-                                ? 'bg-white dark:bg-slate-800 text-brand-600 shadow-sm scale-100'
-                                : 'text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5'}`}
-                            title="Vue Matrice"
-                        >
-                            <Grid3X3 className="h-4 w-4" />
-                        </button>
+                        <Tooltip content="Vue Grille">
+                            <button
+                                onClick={() => onViewModeChange('grid')}
+                                className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'grid'
+                                    ? 'bg-white dark:bg-slate-800 text-brand-600 shadow-sm scale-100'
+                                    : 'text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5'}`}
+                            >
+                                <LayoutGrid className="h-4 w-4" />
+                            </button>
+                        </Tooltip>
+                        <Tooltip content="Vue Liste">
+                            <button
+                                onClick={() => onViewModeChange('list')}
+                                className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'list'
+                                    ? 'bg-white dark:bg-slate-800 text-brand-600 shadow-sm scale-100'
+                                    : 'text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5'}`}
+                            >
+                                <List className="h-4 w-4" />
+                            </button>
+                        </Tooltip>
+                        <Tooltip content="Vue Matrice">
+                            <button
+                                onClick={() => onViewModeChange('matrix')}
+                                className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'matrix'
+                                    ? 'bg-white dark:bg-slate-800 text-brand-600 shadow-sm scale-100'
+                                    : 'text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5'}`}
+                            >
+                                <Grid3X3 className="h-4 w-4" />
+                            </button>
+                        </Tooltip>
                     </div>
                 )}
 

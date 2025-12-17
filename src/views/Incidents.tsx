@@ -35,6 +35,7 @@ import { SecurityEvent } from '../services/integrationService';
 import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
 export const Incidents: React.FC = () => {
     const { user, addToast } = useStore();
@@ -361,20 +362,24 @@ export const Incidents: React.FC = () => {
                     actions={
                         hasPermission(user, 'Incident', 'create') && (
                             <div className="flex gap-3">
-                                <button
-                                    onClick={() => setImportModalOpen(true)}
-                                    className="bg-white/50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-200 border border-white/60 dark:border-white/10 px-4 py-2 rounded-xl font-medium hover:bg-white/80 dark:hover:bg-slate-700/80 transition-colors flex items-center shadow-sm backdrop-blur-md"
-                                >
-                                    <BrainCircuit className="h-4 w-4 mr-2" />
-                                    Importer SIEM/EDR
-                                </button>
-                                <button
-                                    onClick={() => setCreationMode(true)}
-                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
-                                >
-                                    <Plus className="h-5 w-5 mr-2" />
-                                    Déclarer un incident
-                                </button>
+                                <CustomTooltip content="Importer des événements de sécurité (SIEM/EDR)">
+                                    <button
+                                        onClick={() => setImportModalOpen(true)}
+                                        className="bg-white/50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-200 border border-white/60 dark:border-white/10 px-4 py-2 rounded-xl font-medium hover:bg-white/80 dark:hover:bg-slate-700/80 transition-colors flex items-center shadow-sm backdrop-blur-md"
+                                    >
+                                        <BrainCircuit className="h-4 w-4 mr-2" />
+                                        Importer SIEM/EDR
+                                    </button>
+                                </CustomTooltip>
+                                <CustomTooltip content="Déclarer un nouvel incident de sécurité">
+                                    <button
+                                        onClick={() => setCreationMode(true)}
+                                        className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
+                                    >
+                                        <Plus className="h-5 w-5 mr-2" />
+                                        Déclarer un incident
+                                    </button>
+                                </CustomTooltip>
                             </div>
                         )
                     }
@@ -611,21 +616,25 @@ export const Incidents: React.FC = () => {
 
                                             <div className="flex gap-3 pt-4">
                                                 {canEdit && (
-                                                    <button
-                                                        onClick={() => setIsEditing(true)}
-                                                        className="flex-1 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
-                                                    >
-                                                        <Edit className="h-4 w-4" />
-                                                        Modifier
-                                                    </button>
+                                                    <CustomTooltip content="Modifier l'incident">
+                                                        <button
+                                                            onClick={() => setIsEditing(true)}
+                                                            className="flex-1 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                            Modifier
+                                                        </button>
+                                                    </CustomTooltip>
                                                 )}
                                                 {canDeleteResource(user, 'Incident') && (
-                                                    <button
-                                                        onClick={() => initiateDelete(selectedIncident.id)}
-                                                        className="p-2.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                                                    >
-                                                        <Trash2 className="h-5 w-5" />
-                                                    </button>
+                                                    <CustomTooltip content="Supprimer l'incident">
+                                                        <button
+                                                            onClick={() => initiateDelete(selectedIncident.id)}
+                                                            className="p-2.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                                                        >
+                                                            <Trash2 className="h-5 w-5" />
+                                                        </button>
+                                                    </CustomTooltip>
                                                 )}
                                             </div>
                                         </div>

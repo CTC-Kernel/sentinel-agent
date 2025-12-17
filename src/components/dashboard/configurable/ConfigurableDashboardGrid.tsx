@@ -5,6 +5,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { WidgetLayout } from '../../../hooks/useDashboardPreferences';
 import { WIDGET_REGISTRY } from './WidgetRegistry';
 import { GripVertical, X } from 'lucide-react';
+import { Tooltip } from '../../ui/Tooltip';
 
 
 // --- Sortable Item Component ---
@@ -29,7 +30,7 @@ const SortableWidget = ({ widget, isEditing, children, onRemove }: SortableWidge
         transform: CSS.Transform.toString(transform),
         transition,
         zIndex: isDragging ? 50 : 'auto',
-        opacity: isDragging ? 0.3 : 1,
+        opacity: isDragging ? 0 : 1, // Completely hide original to show placeholder
     };
 
     const colSpanClass = widget.colSpan === 2 ? 'md:col-span-2' : widget.colSpan === 3 ? 'md:col-span-3' : 'md:col-span-1';
@@ -38,12 +39,18 @@ const SortableWidget = ({ widget, isEditing, children, onRemove }: SortableWidge
         <div
             ref={setNodeRef}
             style={style}
-            className={`relative group/widget h-full ${colSpanClass} ${isEditing ? 'ring-2 ring-dashed ring-slate-300 dark:ring-slate-700 rounded-[2rem] p-1' : ''}`}
+            className={`relative group/widget h-full ${colSpanClass} ${isEditing ? 'touch-none' : ''}`}
         >
-            {/* Widget Content */}
-            <div className={`h-full ${isEditing ? 'pointer-events-none' : ''}`}>
-                {children}
-            </div>
+            {/* Widget Content or Placeholder */}
+            {isDragging ? (
+                <div className="h-full w-full rounded-[2rem] border-2 border-dashed border-brand-300 dark:border-brand-700/50 bg-brand-50/50 dark:bg-brand-900/10 backdrop-blur-sm flex items-center justify-center animate-pulse">
+                    <span className="text-sm font-semibold text-brand-500/70">Déplacer ici</span>
+                </div>
+            ) : (
+                <div className={`h-full ring-offset-2 ring-offset-background transition-all duration-200 ${isEditing ? 'ring-2 ring-slate-200 dark:ring-slate-700 rounded-[2rem] hover:ring-brand-400 cursor-grab active:cursor-grabbing' : ''}`}>
+                    {children}
+                </div>
+            )}
 
             {/* Edit Overlays */}
             {isEditing && (
@@ -57,12 +64,14 @@ const SortableWidget = ({ widget, isEditing, children, onRemove }: SortableWidge
                     </div>
 
                     {onRemove && (
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onRemove(widget.id); }}
-                            className="absolute -top-2 -right-2 z-20 p-1.5 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
+                        <Tooltip content="Supprimer ce widget" position="top">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onRemove(widget.id); }}
+                                className="absolute -top-2 -right-2 z-20 p-1.5 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </Tooltip>
                     )}
                 </>
             )}
@@ -160,10 +169,19 @@ export const ConfigurableDashboardGrid: React.FC<ConfigurableDashboardGridProps>
 
             <DragOverlay dropAnimation={dropAnimation}>
                 {activeId ? (
-                    <div className="h-full rounded-[2rem] overflow-hidden opacity-90 shadow-2xl scale-105">
+                    <div className="w-full h-full rounded-[2rem] overflow-hidden shadow-2xl scale-105 ring-4 ring-brand-500/20 cursor-grabbing bg-background">
                         {(() => {
                             const widget = layout.find(w => w.id === activeId);
-                            return widget ? renderWidget(widget) : null;
+                            // We need to enforce width on the overlay to prevent squashing
+                            if (!widget) return null;
+
+                            // We can approximate width or just let it be intrinsic, 
+                            // but adding a specific class for the overlay helps.
+                            return (
+                                <div className="w-full h-full pointer-events-none">
+                                    {renderWidget(widget)}
+                                </div>
+                            );
                         })()}
                     </div>
                 ) : null}

@@ -12,6 +12,8 @@ type DashboardInsight = {
     action?: string;
 };
 
+import { Tooltip } from '../../ui/Tooltip';
+
 type DashboardUserLike = {
     role?: string;
     displayName?: string;
@@ -172,41 +174,46 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         {/* Right: Actions */}
                         <div className="flex items-center gap-3 shrink-0 w-full lg:w-auto flex-wrap lg:flex-nowrap justify-end">
                             {onToggleEdit && (
-                                <button
-                                    onClick={onToggleEdit}
-                                    className={`p-2 rounded-md transition-all ${isEditing ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-muted-foreground hover:text-foreground hover:bg-background border border-transparent'}`}
-                                    title={isEditing ? "Terminer l'édition" : "Personnaliser le tableau de bord"}
-                                >
-                                    {isEditing ? <Check className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
-                                </button>
+                                <Tooltip content={isEditing ? "Terminer l'édition" : "Personnaliser le tableau de bord"} position="bottom">
+                                    <button
+                                        onClick={onToggleEdit}
+                                        className={`p-2 rounded-md transition-all ${isEditing ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-muted-foreground hover:text-foreground hover:bg-background border border-transparent'}`}
+                                    >
+                                        {isEditing ? <Check className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
+                                    </button>
+                                </Tooltip>
                             )}
 
                             <div className="flex items-center gap-2 p-1 bg-accent/50 rounded-lg border border-border/50">
-                                <button
-                                    onClick={generateExecutiveReport}
-                                    disabled={isGeneratingReport}
-                                    className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all disabled:opacity-50"
-                                    title={t('dashboard.executiveReport')}
-                                >
-                                    {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-                                </button>
-                                <button
-                                    onClick={generateICal}
-                                    className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all"
-                                    title={t('dashboard.exportIcal')}
-                                >
-                                    <CalendarDays className="h-4 w-4" />
-                                </button>
+                                <Tooltip content={t('dashboard.executiveReport')} position="bottom">
+                                    <button
+                                        onClick={generateExecutiveReport}
+                                        disabled={isGeneratingReport}
+                                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all disabled:opacity-50"
+                                    >
+                                        {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                                    </button>
+                                </Tooltip>
+                                <Tooltip content={t('dashboard.exportIcal')} position="bottom">
+                                    <button
+                                        onClick={generateICal}
+                                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all"
+                                    >
+                                        <CalendarDays className="h-4 w-4" />
+                                    </button>
+                                </Tooltip>
                             </div>
 
                             {role === 'admin' && (
-                                <button
-                                    onClick={() => navigate('/team')}
-                                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:-translate-y-0.5"
-                                >
-                                    <Users className="h-4 w-4" />
-                                    <span className="hidden xl:inline">Inviter</span>
-                                </button>
+                                <Tooltip content="Inviter un nouveau membre" position="bottom">
+                                    <button
+                                        onClick={() => navigate('/team')}
+                                        className="hidden sm:flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:-translate-y-0.5"
+                                    >
+                                        <Users className="h-4 w-4" />
+                                        <span className="hidden xl:inline">Inviter</span>
+                                    </button>
+                                </Tooltip>
                             )}
                         </div>
                     </div>

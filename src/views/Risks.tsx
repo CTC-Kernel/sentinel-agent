@@ -1082,83 +1082,101 @@ export const Risks: React.FC = () => {
                     <>
                         {canEdit && (
                             <>
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={importing}
-                                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
-                                >
-                                    {importing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400 mr-2" />}
-                                    <span>Import CSV</span>
-                                </button>
-                                <button
-                                    onClick={() => setShowTemplateModal(true)}
-                                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
-                                >
-                                    <Copy className="h-4 w-4 mr-2" />
-                                    <span>Templates</span>
-                                </button>
+                                <CustomTooltip content="Importer des risques depuis un CSV">
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={importing}
+                                        className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
+                                    >
+                                        {importing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400 mr-2" />}
+                                        <span>Import CSV</span>
+                                    </button>
+                                </CustomTooltip>
+                                <CustomTooltip content="Gérer les modèles de risques">
+                                    <button
+                                        onClick={() => setShowTemplateModal(true)}
+                                        className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
+                                    >
+                                        <Copy className="h-4 w-4 mr-2" />
+                                        <span>Templates</span>
+                                    </button>
+                                </CustomTooltip>
                             </>
                         )}
 
-                        <button
-                            onClick={handleExportRTP}
-                            disabled={isGeneratingReport}
-                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm disabled:opacity-50"
-                        >
-                            {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4 text-red-500" />}
-                            <span>RTP (PDF)</span>
-                        </button>
+                        <CustomTooltip content="Générer le rapport PDF RTP">
+                            <button
+                                onClick={handleExportRTP}
+                                disabled={isGeneratingReport}
+                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm disabled:opacity-50"
+                            >
+                                {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4 text-red-500" />}
+                                <span>RTP (PDF)</span>
+                            </button>
+                        </CustomTooltip>
 
-                        <button
-                            onClick={handleExportRiskExecutiveReport}
-                            disabled={isGeneratingReport}
-                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm disabled:opacity-50"
-                        >
-                            {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4 text-indigo-500" />}
-                            <span>Rapport Exécutif</span>
-                        </button>
+                        <CustomTooltip content="Générer le rapport exécutif">
+                            <button
+                                onClick={handleExportRiskExecutiveReport}
+                                disabled={isGeneratingReport}
+                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm disabled:opacity-50"
+                            >
+                                {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4 text-indigo-500" />}
+                                <span>Rapport Exécutif</span>
+                            </button>
+                        </CustomTooltip>
 
-                        <button
-                            onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)}
-                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
-                        >
-                            <FileCode className="h-4 w-4 text-emerald-500" />
-                            <span>Obsidian</span>
-                        </button>
+                        <CustomTooltip content="Exporter vers Obsidian">
+                            <button
+                                onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)}
+                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
+                            >
+                                <FileCode className="h-4 w-4 text-emerald-500" />
+                                <span>Obsidian</span>
+                            </button>
+                        </CustomTooltip>
 
-                        <button
-                            onClick={handleExportPDF}
-                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
-                        >
-                            <Download className="h-4 w-4 mr-2" />
-                            <span>Registre (PDF)</span>
-                        </button>
+                        <CustomTooltip content="Télécharger le registre PDF">
+                            <button
+                                onClick={handleExportPDF}
+                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm"
+                            >
+                                <Download className="h-4 w-4 mr-2" />
+                                <span>Registre (PDF)</span>
+                            </button>
+                        </CustomTooltip>
 
-                        <button
-                            onClick={handleExportCSV}
-                            disabled={isExportingCSV}
-                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm disabled:opacity-50"
-                        >
-                            {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 text-slate-500" />}
-                            <span>Export CSV</span>
-                        </button>
+                        <CustomTooltip content="Exporter en CSV">
+                            <button
+                                onClick={handleExportCSV}
+                                disabled={isExportingCSV}
+                                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors font-medium text-sm disabled:opacity-50"
+                            >
+                                {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 text-slate-500" />}
+                                <span>Export CSV</span>
+                            </button>
+                        </CustomTooltip>
 
                         {canEdit && (
                             <>
-                                <button
-                                    onClick={handleAIAnalysis}
-                                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-medium text-sm"
-                                >
-                                    <BrainCircuit className="h-4 w-4 mr-2" />
-                                    <span>Analyse IA</span>
-                                </button>
-                                <button
-                                    onClick={() => setCreationMode(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-lg shadow-brand-500/25 transition-all hover:scale-105 active:scale-95 font-medium text-sm"
-                                >
-                                    <Plus className="h-4 w-4" />
-                                    <span>Nouveau Risque</span>
-                                </button>
+                                <CustomTooltip content="Lancer l'analyse IA">
+                                    <button
+                                        onClick={handleAIAnalysis}
+                                        className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-medium text-sm"
+                                    >
+                                        <BrainCircuit className="h-4 w-4 mr-2" />
+                                        <span>Analyse IA</span>
+                                    </button>
+                                </CustomTooltip>
+                                <CustomTooltip content="Créer un nouveau risque">
+                                    <button
+                                        onClick={() => setCreationMode(true)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-lg shadow-brand-500/25 transition-all hover:scale-105 active:scale-95 font-medium text-sm"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        <span>Nouveau Risque</span>
+                                    </button>
+                                </CustomTooltip>
                             </>
                         )}
                     </>
@@ -1401,12 +1419,16 @@ export const Risks: React.FC = () => {
                                         <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
                                             {canEdit && (
                                                 <>
-                                                    <button onClick={() => { setSelectedRisk(row.original); setIsEditing(true); }} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all" title="Modifier">
-                                                        <Edit className="h-4 w-4" />
-                                                    </button>
-                                                    <button onClick={() => initiateDelete(row.original.id, row.original.threat)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all" title="Supprimer">
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
+                                                    <CustomTooltip content="Modifier le risque">
+                                                        <button onClick={() => { setSelectedRisk(row.original); setIsEditing(true); }} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all">
+                                                            <Edit className="h-4 w-4" />
+                                                        </button>
+                                                    </CustomTooltip>
+                                                    <CustomTooltip content="Supprimer le risque">
+                                                        <button onClick={() => initiateDelete(row.original.id, row.original.threat)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </CustomTooltip>
                                                 </>
                                             )}
                                         </div>
@@ -1535,15 +1557,21 @@ export const Risks: React.FC = () => {
                         <>
                             {canEdit && selectedRisk && (
                                 <>
-                                    <button onClick={handleDuplicate} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Dupliquer" aria-label="Dupliquer le risque">
-                                        <Copy className="h-5 w-5" />
-                                    </button>
-                                    <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Modifier" aria-label="Modifier le risque">
-                                        <Edit className="h-5 w-5" />
-                                    </button>
-                                    <button onClick={() => initiateDelete(selectedRisk.id, selectedRisk.threat)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm" aria-label="Supprimer le risque">
-                                        <Trash2 className="h-5 w-5" />
-                                    </button>
+                                    <CustomTooltip content="Dupliquer">
+                                        <button onClick={handleDuplicate} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" aria-label="Dupliquer le risque">
+                                            <Copy className="h-5 w-5" />
+                                        </button>
+                                    </CustomTooltip>
+                                    <CustomTooltip content="Modifier">
+                                        <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" aria-label="Modifier le risque">
+                                            <Edit className="h-5 w-5" />
+                                        </button>
+                                    </CustomTooltip>
+                                    <CustomTooltip content="Supprimer">
+                                        <button onClick={() => initiateDelete(selectedRisk.id, selectedRisk.threat)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm" aria-label="Supprimer le risque">
+                                            <Trash2 className="h-5 w-5" />
+                                        </button>
+                                    </CustomTooltip>
                                 </>
                             )}
                         </>

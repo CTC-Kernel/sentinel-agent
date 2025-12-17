@@ -26,6 +26,7 @@ import { AddToCalendar } from '../components/ui/AddToCalendar';
 import { ProcessFormModal } from '../components/continuity/ProcessFormModal';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
 
 export const Continuity: React.FC = () => {
@@ -372,37 +373,45 @@ export const Continuity: React.FC = () => {
                 icon={<HeartPulse className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={
                     <div className="flex flex-wrap gap-3 w-full sm:w-auto">
-                        <button
-                            onClick={handleExportCSV}
-                            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium"
-                        >
-                            <FileSpreadsheet size={18} />
-                            Export BIA
-                        </button>
-                        <button
-                            onClick={generateReport}
-                            disabled={isGeneratingReport}
-                            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium disabled:opacity-50"
-                        >
-                            {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download size={18} />}
-                            Exporter Rapport
-                        </button>
+                        <CustomTooltip content="Exporter l'analyse d'impact (BIA) en CSV">
+                            <button
+                                onClick={handleExportCSV}
+                                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium"
+                            >
+                                <FileSpreadsheet size={18} />
+                                Export BIA
+                            </button>
+                        </CustomTooltip>
+                        <CustomTooltip content="Générer un rapport PDF de continuité">
+                            <button
+                                onClick={generateReport}
+                                disabled={isGeneratingReport}
+                                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 font-medium disabled:opacity-50"
+                            >
+                                {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download size={18} />}
+                                Exporter Rapport
+                            </button>
+                        </CustomTooltip>
                         {canEdit && (
                             <>
-                                <button
-                                    onClick={() => setShowDrillModal(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors font-medium border border-indigo-100"
-                                >
-                                    <Zap size={18} />
-                                    Nouvel Exercice
-                                </button>
-                                <button
-                                    onClick={() => setShowCreateModal(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-colors font-medium shadow-lg shadow-rose-500/20"
-                                >
-                                    <Plus size={18} />
-                                    Nouveau Processus
-                                </button>
+                                <CustomTooltip content="Lancer un nouvel exercice de crise">
+                                    <button
+                                        onClick={() => setShowDrillModal(true)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors font-medium border border-indigo-100"
+                                    >
+                                        <Zap size={18} />
+                                        Nouvel Exercice
+                                    </button>
+                                </CustomTooltip>
+                                <CustomTooltip content="Ajouter un nouveau processus métier">
+                                    <button
+                                        onClick={() => setShowCreateModal(true)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-colors font-medium shadow-lg shadow-rose-500/20"
+                                    >
+                                        <Plus size={18} />
+                                        Nouveau Processus
+                                    </button>
+                                </CustomTooltip>
                             </>
                         )}
                     </div>
@@ -654,10 +663,14 @@ export const Continuity: React.FC = () => {
                 actions={
                     <div className="flex gap-2">
                         {canEdit && (
-                            <button onClick={() => setShowEditModal(true)} className="p-2 text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"><Edit className="h-4 w-4" /></button>
+                            <CustomTooltip content="Modifier le processus">
+                                <button onClick={() => setShowEditModal(true)} className="p-2 text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"><Edit className="h-4 w-4" /></button>
+                            </CustomTooltip>
                         )}
                         {canEdit && (
-                            <button onClick={() => selectedProcess && initiateDelete(selectedProcess.id, selectedProcess.name)} className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
+                            <CustomTooltip content="Supprimer le processus">
+                                <button onClick={() => selectedProcess && initiateDelete(selectedProcess.id, selectedProcess.name)} className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
+                            </CustomTooltip>
                         )}
                     </div>
                 }

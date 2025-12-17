@@ -1023,47 +1023,55 @@ export const Compliance: React.FC = () => {
                     trustType="general"
                     actions={
                         <div className="flex flex-wrap items-center gap-3">
-                            <button
-                                onClick={handleExportExecutiveReport}
-                                disabled={isExportingPDF}
-                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-300 font-bold text-sm"
-                            >
-                                {isExportingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-                                <span>Rapport Exécutif</span>
-                            </button>
+                            <CustomTooltip content="Générer un rapport exécutif PDF">
+                                <button
+                                    onClick={handleExportExecutiveReport}
+                                    disabled={isExportingPDF}
+                                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-300 font-bold text-sm"
+                                >
+                                    {isExportingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                                    <span>Rapport Exécutif</span>
+                                </button>
+                            </CustomTooltip>
                             {/* View Switcher */}
                             <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-white/10">
-                                <button
-                                    onClick={() => setViewMode('compliance')}
-                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'compliance' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-700'}`}
-                                >
-                                    Conformité
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('watch')}
-                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'watch' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-700'}`}
-                                >
-                                    Veille
-                                </button>
+                                <CustomTooltip content="Vue Conformité">
+                                    <button
+                                        onClick={() => setViewMode('compliance')}
+                                        className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'compliance' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-700'}`}
+                                    >
+                                        Conformité
+                                    </button>
+                                </CustomTooltip>
+                                <CustomTooltip content="Vue Veille Réglementaire">
+                                    <button
+                                        onClick={() => setViewMode('watch')}
+                                        className={`px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 text-center whitespace-nowrap ${viewMode === 'watch' ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-700'}`}
+                                    >
+                                        Veille
+                                    </button>
+                                </CustomTooltip>
                             </div>
 
                             {viewMode === 'compliance' && (
                                 <>
-                                    <button
-                                        onClick={handleAutoMapEvidence}
-                                        className="hidden md:flex items-center space-x-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-300 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors border border-purple-200 dark:border-purple-800"
-                                        title="Suggestions IA"
-                                    >
-                                        <Sparkles className="w-4 h-4" />
-                                        <span className="text-xs font-bold">Suggestions (IA)</span>
-                                    </button>
-                                    <button
-                                        onClick={generateSoAReport}
-                                        className="hidden md:flex p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 hover:text-slate-600 transition-colors"
-                                        title="Générer SoA"
-                                    >
-                                        <Download className="h-5 w-5" />
-                                    </button>
+                                    <CustomTooltip content="Suggestions automatiques par IA">
+                                        <button
+                                            onClick={handleAutoMapEvidence}
+                                            className="hidden md:flex items-center space-x-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-300 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors border border-purple-200 dark:border-purple-800"
+                                        >
+                                            <Sparkles className="w-4 h-4" />
+                                            <span className="text-xs font-bold">Suggestions (IA)</span>
+                                        </button>
+                                    </CustomTooltip>
+                                    <CustomTooltip content="Générer Rapport SoA">
+                                        <button
+                                            onClick={generateSoAReport}
+                                            className="hidden md:flex p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 hover:text-slate-600 transition-colors"
+                                        >
+                                            <Download className="h-5 w-5" />
+                                        </button>
+                                    </CustomTooltip>
                                 </>
                             )}
                         </div>

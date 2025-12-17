@@ -11,7 +11,7 @@ interface DocumentsStatsWidgetProps {
     t?: (key: string) => string;
 }
 
-export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navigate: propNavigate, t = (k) => k }) => {
+export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navigate: propNavigate }) => {
     const { user } = useStore();
     const routerNavigate = useNavigate();
     const navigate = propNavigate || routerNavigate;
@@ -45,83 +45,100 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
     }
 
     return (
-        <div className="flex flex-col h-full space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-border/50">
-                <h3 className="text-lg font-bold flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-brand-500" />
+        <div className="h-full flex flex-col p-5 glass-panel rounded-2xl border border-white/60 dark:border-white/5 shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+
+            <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-white/5 relative z-10">
+                <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
+                    <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                        <FileText className="w-4 h-4" />
+                    </div>
                     Documents
                 </h3>
                 <button
                     onClick={() => navigate('/documents')}
-                    className="text-xs font-medium text-brand-600 dark:text-brand-400 hover:underline"
+                    className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5"
                 >
                     Voir tout
                 </button>
             </div>
 
-            <div className="flex items-center gap-6 flex-1 justify-center">
-                {/* Simplified Circular Progress */}
-                <div className="relative group cursor-pointer" onClick={() => navigate('/documents')}>
-                    <svg className="w-24 h-24 transform -rotate-90">
+            <div className="flex items-center gap-6 flex-1 justify-center relative z-10 py-2">
+                {/* Score Circle */}
+                <div className="relative group/chart cursor-pointer transform hover:scale-105 transition-transform duration-300" onClick={() => navigate('/documents')}>
+                    <svg className="w-24 h-24 transform -rotate-90 overflow-visible">
+                        <defs>
+                            <linearGradient id="docGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor={stats.validationRate >= 80 ? '#10b981' : stats.validationRate >= 50 ? '#3b82f6' : '#f59e0b'} />
+                                <stop offset="100%" stopColor={stats.validationRate >= 80 ? '#34d399' : stats.validationRate >= 50 ? '#60a5fa' : '#fbbf24'} />
+                            </linearGradient>
+                        </defs>
                         <circle
                             className="text-slate-100 dark:text-slate-800"
                             strokeWidth="8"
                             stroke="currentColor"
                             fill="transparent"
-                            r="40"
+                            r="42"
                             cx="48"
                             cy="48"
                         />
                         <circle
-                            className={`${stats.validationRate >= 80 ? 'text-emerald-500' : stats.validationRate >= 50 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
+                            stroke="url(#docGradient)"
                             strokeWidth="8"
-                            strokeDasharray={251}
-                            strokeDashoffset={251 - (251 * stats.validationRate) / 100}
+                            strokeDasharray={263.89}
+                            strokeDashoffset={263.89 - (263.89 * stats.validationRate) / 100}
                             strokeLinecap="round"
-                            stroke="currentColor"
                             fill="transparent"
-                            r="40"
+                            r="42"
                             cx="48"
                             cy="48"
+                            style={{ filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.1))' }}
                         />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-xl font-black text-foreground">{Math.round(stats.validationRate)}%</span>
-                        <span className="text-[9px] uppercase font-bold text-muted-foreground">Validés</span>
+                        <span className="text-2xl font-black text-foreground tracking-tight">{Math.round(stats.validationRate)}%</span>
+                        <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wide">Validés</span>
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-3 min-w-[120px]">
+                <div className="flex flex-col gap-3 min-w-[100px]">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-                            <span className="text-xs text-muted-foreground font-medium">Total</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                            <span className="text-xs text-muted-foreground font-bold">Total</span>
                         </div>
-                        <span className="text-sm font-bold text-foreground">{stats.totalDocs}</span>
+                        <span className="text-xs font-black text-foreground">{stats.totalDocs}</span>
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            <span className="text-xs text-muted-foreground font-medium">Publiés</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                            <span className="text-xs text-muted-foreground font-bold">Publiés</span>
                         </div>
-                        <span className="text-sm font-bold text-foreground">{stats.publishedDocs}</span>
+                        <span className="text-xs font-black text-foreground">{stats.publishedDocs}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+                            <span className="text-xs text-muted-foreground font-bold">Brouillons</span>
+                        </div>
+                        <span className="text-xs font-black text-foreground">{stats.draftDocs}</span>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mt-auto">
-                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 flex items-center gap-2 border border-slate-100 dark:border-white/5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                    <div className="flex flex-col">
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold">Publiés</span>
-                        <span className="text-sm font-bold text-foreground">{stats.publishedDocs}</span>
+            <div className="grid grid-cols-2 gap-2 mt-auto relative z-10">
+                <div className="bg-white/50 dark:bg-white/5 rounded-xl p-2.5 flex items-center gap-3 border border-white/60 dark:border-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider truncate">Publiés</span>
+                        <span className="text-sm font-black text-foreground leading-none mt-0.5">{stats.publishedDocs}</span>
                     </div>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 flex items-center gap-2 border border-slate-100 dark:border-white/5">
-                    <Edit className="w-4 h-4 text-slate-500" />
-                    <div className="flex flex-col">
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold">Brouillons</span>
-                        <span className="text-sm font-bold text-foreground">{stats.draftDocs}</span>
+                <div className="bg-white/50 dark:bg-white/5 rounded-xl p-2.5 flex items-center gap-3 border border-white/60 dark:border-white/5 hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
+                    <Edit className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider truncate">Brouillons</span>
+                        <span className="text-sm font-black text-foreground leading-none mt-0.5">{stats.draftDocs}</span>
                     </div>
                 </div>
             </div>

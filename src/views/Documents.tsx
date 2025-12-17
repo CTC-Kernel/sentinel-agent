@@ -21,6 +21,7 @@ import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { EmptyState } from '../components/ui/EmptyState';
 import { FilePreview } from '../components/ui/FilePreview';
 import { PageHeader } from '../components/ui/PageHeader';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { ErrorLogger } from '../services/errorLogger';
 import { DocumentForm } from '../components/documents/DocumentForm';
 import { SafeHTML } from '../components/ui/SafeHTML';
@@ -681,14 +682,16 @@ export const Documents: React.FC = () => {
                 icon={<FileText className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 trustType="storage"
                 actions={canCreate && (
-                    <button
-                        onClick={() => {
-                            setShowCreateModal(true);
-                        }}
-                        className="flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-blue-500/20"
-                    >
-                        <Plus className="h-4 w-4 mr-2" /> Nouveau Document
-                    </button>
+                    <CustomTooltip content="Ajouter un nouveau document">
+                        <button
+                            onClick={() => {
+                                setShowCreateModal(true);
+                            }}
+                            className="flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-blue-500/20"
+                        >
+                            <Plus className="h-4 w-4 mr-2" /> Nouveau Document
+                        </button>
+                    </CustomTooltip>
                 )}
             />
 
@@ -806,21 +809,24 @@ export const Documents: React.FC = () => {
                             onViewModeChange={setViewMode}
                             secondaryActions={
                                 <>
-                                    <button
-                                        onClick={handleExportCSV}
-                                        disabled={isExportingCSV}
-                                        className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title="Exporter CSV"
-                                    >
-                                        {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-                                    </button>
-                                    <button
-                                        onClick={() => setIsDigitalSafeMode(!isDigitalSafeMode)}
-                                        className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${isDigitalSafeMode ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 hover:bg-slate-50 dark:hover:bg-white/10'}`}
-                                    >
-                                        <ShieldCheck className={`h-4 w-4 mr-2 ${isDigitalSafeMode ? 'text-emerald-600' : ''}`} />
-                                        Coffre-fort
-                                    </button>
+                                    <CustomTooltip content="Exporter la liste en CSV">
+                                        <button
+                                            onClick={handleExportCSV}
+                                            disabled={isExportingCSV}
+                                            className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                                        </button>
+                                    </CustomTooltip>
+                                    <CustomTooltip content={isDigitalSafeMode ? "Désactiver le mode coffre-fort" : "Activer le mode coffre-fort"}>
+                                        <button
+                                            onClick={() => setIsDigitalSafeMode(!isDigitalSafeMode)}
+                                            className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${isDigitalSafeMode ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 hover:bg-slate-50 dark:hover:bg-white/10'}`}
+                                        >
+                                            <ShieldCheck className={`h-4 w-4 mr-2 ${isDigitalSafeMode ? 'text-emerald-600' : ''}`} />
+                                            Coffre-fort
+                                        </button>
+                                    </CustomTooltip>
                                 </>
                             }
                         />
@@ -884,19 +890,21 @@ export const Documents: React.FC = () => {
                                                 <Users className="h-3.5 w-3.5 mr-1.5" /> {docItem.owner}
                                             </div>
                                             {docItem.url && (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (docItem.isSecure) {
-                                                            handleSecureView(docItem);
-                                                        } else {
-                                                            window.open(docItem.url, '_blank');
-                                                        }
-                                                    }}
-                                                    className="p-1 text-slate-300 hover:text-blue-500 transition-colors"
-                                                >
-                                                    {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
-                                                </button>
+                                                <CustomTooltip content={docItem.isSecure ? "Consultation Sécurisée" : "Ouvrir le lien"}>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (docItem.isSecure) {
+                                                                handleSecureView(docItem);
+                                                            } else {
+                                                                window.open(docItem.url, '_blank');
+                                                            }
+                                                        }}
+                                                        className="p-1 text-slate-300 hover:text-blue-500 transition-colors"
+                                                    >
+                                                        {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
+                                                    </button>
+                                                </CustomTooltip>
                                             )}
                                         </div>
                                     </div>
@@ -1015,22 +1023,29 @@ export const Documents: React.FC = () => {
                                                 </span>
                                             )}
                                             {selectedDocument.url && (
-                                                <button
-                                                    onClick={() => selectedDocument.isSecure ? handleSecureView(selectedDocument) : window.open(selectedDocument.url, '_blank')}
-                                                    className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"
-                                                    title={selectedDocument.isSecure ? "Consultation Sécurisée" : "Ouvrir"}
-                                                >
-                                                    {selectedDocument.isSecure ? <ShieldCheck className="h-5 w-5 text-emerald-600" /> : <Eye className="h-5 w-5" />}
-                                                </button>
+                                                <CustomTooltip content={selectedDocument.isSecure ? "Consultation Sécurisée" : "Ouvrir"}>
+                                                    <button
+                                                        onClick={() => selectedDocument.isSecure ? handleSecureView(selectedDocument) : window.open(selectedDocument.url, '_blank')}
+                                                        className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"
+                                                    >
+                                                        {selectedDocument.isSecure ? <ShieldCheck className="h-5 w-5 text-emerald-600" /> : <Eye className="h-5 w-5" />}
+                                                    </button>
+                                                </CustomTooltip>
                                             )}
                                             {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !isEditing && (
-                                                <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                                                <CustomTooltip content="Modifier le document">
+                                                    <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                                                </CustomTooltip>
                                             )}
                                             {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && isEditing && (
-                                                <button onClick={() => setIsEditing(false)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><X className="h-5 w-5" /></button>
+                                                <CustomTooltip content="Annuler l'édition">
+                                                    <button onClick={() => setIsEditing(false)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><X className="h-5 w-5" /></button>
+                                                </CustomTooltip>
                                             )}
                                             {canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && (
-                                                <button onClick={() => initiateDelete(selectedDocument.id, selectedDocument.title)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                                                <CustomTooltip content="Supprimer le document">
+                                                    <button onClick={() => initiateDelete(selectedDocument.id, selectedDocument.title)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                                                </CustomTooltip>
                                             )}
                                             <button onClick={() => setSelectedDocument(null)} className="p-2.5 text-slate-500 hover:text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors"><X className="h-5 w-5" /></button>
                                         </div>

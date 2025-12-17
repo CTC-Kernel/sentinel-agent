@@ -30,6 +30,7 @@ import { Drawer } from '../components/ui/Drawer';
 import { SupplierForm } from '../components/suppliers/SupplierForm';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { SupplierDashboard } from '../components/suppliers/SupplierDashboard';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { SupplierAIAssistant } from '../components/suppliers/SupplierAIAssistant';
 
 const getCriticalityColor = (c: Criticality) => {
@@ -597,16 +598,17 @@ export const Suppliers: React.FC = () => {
             cell: ({ row }) => (
                 <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
                     {canEdit && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                initiateDelete(row.original.id, row.original.name);
-                            }}
-                            className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
-                            title="Supprimer"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
+                        <CustomTooltip content="Supprimer le fournisseur">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    initiateDelete(row.original.id, row.original.name);
+                                }}
+                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </CustomTooltip>
                     )}
                 </div>
             )
@@ -645,19 +647,23 @@ export const Suppliers: React.FC = () => {
                     actions={canEdit && (
                         <>
                             <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={isImporting}
-                                className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white disabled:opacity-50"
-                            >
-                                {isImporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />} Importer
-                            </button>
-                            <button
-                                onClick={() => openCreationDrawer()}
-                                className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                            >
-                                <Plus className="h-4 w-4 mr-2" /> Nouveau Fournisseur
-                            </button>
+                            <CustomTooltip content="Importer des fournisseurs depuis un CSV">
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={isImporting}
+                                    className="hidden sm:flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white disabled:opacity-50"
+                                >
+                                    {isImporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />} Importer
+                                </button>
+                            </CustomTooltip>
+                            <CustomTooltip content="Ajouter un nouveau fournisseur">
+                                <button
+                                    onClick={() => openCreationDrawer()}
+                                    className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" /> Nouveau Fournisseur
+                                </button>
+                            </CustomTooltip>
                         </>
                     )}
                 />
@@ -688,22 +694,24 @@ export const Suppliers: React.FC = () => {
                     onViewModeChange={setViewMode}
                     secondaryActions={
                         <>
-                            <button
-                                onClick={handleExportCSV}
-                                disabled={isExportingCSV}
-                                className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Exporter CSV"
-                            >
-                                {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-                            </button>
-                            <button
-                                onClick={handleExportDORARegister}
-                                disabled={isExportingDORA}
-                                className="p-2.5 bg-indigo-50 dark:bg-slate-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Exporter Registre DORA"
-                            >
-                                {isExportingDORA ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
-                            </button>
+                            <CustomTooltip content="Exporter la liste en CSV">
+                                <button
+                                    onClick={handleExportCSV}
+                                    disabled={isExportingCSV}
+                                    className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                                </button>
+                            </CustomTooltip>
+                            <CustomTooltip content="Exporter le registre DORA">
+                                <button
+                                    onClick={handleExportDORARegister}
+                                    disabled={isExportingDORA}
+                                    className="p-2.5 bg-indigo-50 dark:bg-slate-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isExportingDORA ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
+                                </button>
+                            </CustomTooltip>
                         </>
                     }
                 />
@@ -806,13 +814,19 @@ export const Suppliers: React.FC = () => {
                 actions={
                     <div className="flex gap-2">
                         {canEdit && !isEditing && (
-                            <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                            <CustomTooltip content="Modifier le fournisseur">
+                                <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                            </CustomTooltip>
                         )}
                         {canEdit && isEditing && (
-                            <button onClick={editForm.handleSubmit(handleUpdate)} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
+                            <CustomTooltip content="Enregistrer les modifications">
+                                <button onClick={editForm.handleSubmit(handleUpdate)} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
+                            </CustomTooltip>
                         )}
                         {canEdit && (
-                            <button onClick={() => initiateDelete(selectedSupplier!.id, selectedSupplier!.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                            <CustomTooltip content="Supprimer le fournisseur">
+                                <button onClick={() => initiateDelete(selectedSupplier!.id, selectedSupplier!.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                            </CustomTooltip>
                         )}
                     </div>
                 }

@@ -8,6 +8,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
 import { FeedbackModal } from '../ui/FeedbackModal';
+import { Tooltip } from '../ui/Tooltip';
 
 interface TopBarProps {
     setMobileOpen: (open: boolean) => void;
@@ -108,23 +109,25 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block"></div>
 
-                    <button
-                        onClick={async () => {
-                            toggleTheme();
-                            if (user) {
-                                try {
-                                    const newTheme = theme === 'light' ? 'dark' : 'light';
-                                    await updateDoc(doc(db, 'users', user.uid), { theme: newTheme });
-                                } catch (e) {
-                                    ErrorLogger.error(e, 'TopBar.toggleTheme');
+                    <Tooltip content={theme === 'light' ? t('common.darkMode') : t('common.lightMode')} position="bottom">
+                        <button
+                            onClick={async () => {
+                                toggleTheme();
+                                if (user) {
+                                    try {
+                                        const newTheme = theme === 'light' ? 'dark' : 'light';
+                                        await updateDoc(doc(db, 'users', user.uid), { theme: newTheme });
+                                    } catch (e) {
+                                        ErrorLogger.error(e, 'TopBar.toggleTheme');
+                                    }
                                 }
-                            }
-                        }}
-                        className="p-2 rounded-full text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-                        aria-label="Toggle Theme"
-                    >
-                        {theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />}
-                    </button>
+                            }}
+                            className="p-2 rounded-full text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                            aria-label="Toggle Theme"
+                        >
+                            {theme === 'light' ? <Moon className="h-5 w-5" strokeWidth={2} /> : <Sun className="h-5 w-5" strokeWidth={2} />}
+                        </button>
+                    </Tooltip>
 
                     <div className="relative" ref={userMenuRef}>
                         <button

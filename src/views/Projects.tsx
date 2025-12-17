@@ -45,6 +45,7 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
 import { PageControls } from '../components/ui/PageControls';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { usePersistedState } from '../hooks/usePersistedState';
@@ -889,12 +890,18 @@ export const Projects: React.FC = () => {
                 <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
                     {canEdit && (
                         <>
-                            <button onClick={(e) => { e.stopPropagation(); openEditDrawer(row.original); }} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Modifier">
-                                <Edit className="h-4 w-4" />
-                            </button>
-                            <button onClick={(e) => { e.stopPropagation(); initiateDelete(row.original.id, row.original.name); }} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100" title="Supprimer">
-                                <Trash2 className="h-4 w-4" />
-                            </button>
+                            <CustomTooltip content="Modifier le projet">
+                                <button onClick={(e) => { e.stopPropagation(); openEditDrawer(row.original); }} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100">
+                                    <Edit className="h-4 w-4" />
+                                </button>
+                            </CustomTooltip>
+                            {canDeleteResource(user, 'Project') && (
+                                <CustomTooltip content="Supprimer le projet">
+                                    <button onClick={(e) => { e.stopPropagation(); initiateDelete(row.original.id, row.original.name); }} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100">
+                                        <Trash2 className="h-4 w-4" />
+                                    </button>
+                                </CustomTooltip>
+                            )}
                         </>
                     )}
                 </div>
@@ -998,29 +1005,32 @@ export const Projects: React.FC = () => {
                     icon={<FolderKanban className="h-6 w-6 text-white" strokeWidth={2.5} />}
                     actions={canEdit && (
                         <>
-                            <button
-                                onClick={() => {
-                                    const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
-                                    if (!limits.features.customTemplates) {
-                                        if (confirm("Cette fonctionnalité nécessite un plan Professional ou Enterprise. Voulez-vous mettre à niveau ?")) {
-                                            navigate('/pricing');
+                            <CustomTooltip content="Créer un projet depuis un modèle">
+                                <button
+                                    onClick={() => {
+                                        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
+                                        if (!limits.features.customTemplates) {
+                                            if (confirm("Cette fonctionnalité nécessite un plan Professional ou Enterprise. Voulez-vous mettre à niveau ?")) {
+                                                navigate('/pricing');
+                                            }
+                                            return;
                                         }
-                                        return;
-                                    }
-                                    setShowTemplateModal(true);
-                                }}
-                                className="flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20"
-                            >
-                                <Zap className="h-4 w-4 mr-2" />
-                                Depuis Template
-                            </button>
-                            <button
-                                onClick={openCreationDrawer}
-                                className="flex-1 w-full relative z-20 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 transition-all"
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Nouveau Projet
-                            </button>
+                                        setShowTemplateModal(true);
+                                    }}
+                                    className="flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20"
+                                >
+                                    <Zap className="h-4 w-4 mr-2" />
+                                    Depuis Template
+                                </button>
+                            </CustomTooltip>
+                            <CustomTooltip content="Créer un nouveau projet">
+                                <button
+                                    onClick={openCreationDrawer}
+                                    className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" /> Nouveau Projet
+                                </button>
+                            </CustomTooltip>
                         </>
                     )}
                 />
@@ -1123,105 +1133,109 @@ export const Projects: React.FC = () => {
                     onViewModeChange={setViewMode}
                     secondaryActions={
                         <>
-                            <button
-                                onClick={handleExportCSV}
-                                disabled={isExportingCSV}
-                                className="p-2 bg-white dark:bg-slate-800 rounded-lg text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-sm"
-                                title="Exporter CSV"
-                            >
-                                {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-                            </button>
-                            <button
-                                onClick={exportPDF}
-                                disabled={isExportingPDF}
-                                className="p-2 bg-white dark:bg-slate-800 rounded-lg text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-sm"
-                                title="Exporter PDF"
-                            >
-                                {isExportingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                            </button>
+                            <CustomTooltip content="Exporter la liste en CSV">
+                                <button
+                                    onClick={handleExportCSV}
+                                    disabled={isExportingCSV}
+                                    className="p-2 bg-white dark:bg-slate-800 rounded-lg text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-sm"
+                                >
+                                    {isExportingCSV ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                                </button>
+                            </CustomTooltip>
+                            <CustomTooltip content="Exporter en PDF">
+                                <button
+                                    onClick={exportPDF}
+                                    disabled={isExportingPDF}
+                                    className="p-2 bg-white dark:bg-slate-800 rounded-lg text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-700 shadow-sm"
+                                >
+                                    {isExportingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                                </button>
+                            </CustomTooltip>
                         </>
                     }
                 />
             </motion.div>
 
-            {viewMode === 'list' ? (
-                <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
-                    <DataTable
-                        columns={columns}
-                        data={filteredProjects}
-                        selectable={true}
-                        onBulkDelete={handleBulkDelete}
-                        onRowClick={openInspector}
-                        searchable={false}
-                        loading={loading}
-                    />
-                </motion.div>
-            ) : (
-                <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {loading ? (
-                        <div className="col-span-full"><CardSkeleton count={3} /></div>
-                    ) : filteredProjects.length === 0 ? (
-                        <div className="col-span-full">
-                            <EmptyState
-                                icon={FolderKanban}
-                                title="Aucun projet en cours"
-                                description={filter ? "Aucun projet ne correspond à votre recherche." : "Lancez de nouveaux projets pour améliorer votre posture de sécurité."}
-                                actionLabel={filter || !canEdit ? undefined : "Créer un projet"}
-                                onAction={filter || !canEdit ? undefined : openCreationDrawer}
-                            />
-                        </div>
-                    ) : (
-                        filteredProjects.map(project => (
-                            <div key={project.id} onClick={() => openInspector(project)} className="glass-panel rounded-[2.5rem] p-6 card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5">
-                                <div className="flex justify-between items-start mb-4">
-                                    <Badge
-                                        status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'}
-                                        variant="soft"
-                                    >
-                                        {project.status}
-                                    </Badge>
-                                    <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {canEdit && (
-                                            <>
-                                                <button onClick={(e) => { e.stopPropagation(); openEditDrawer(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
-                                                <button onClick={(e) => { e.stopPropagation(); initiateDelete(project.id, project.name); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{project.name}</h3>
-                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 h-10 leading-relaxed">{project.description}</p>
-
-                                <div className="mb-6">
-                                    <div className="flex justify-between text-xs mb-1.5 font-medium">
-                                        <span className="text-slate-600 dark:text-slate-300">Avancement</span>
-                                        <span className="text-brand-600">{project.progress}%</span>
-                                    </div>
-                                    <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-2">
-                                        <div className="bg-brand-500 h-2 rounded-full transition-all duration-500 shadow-sm" style={{ width: `${project.progress}%` }}></div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center text-xs text-slate-600 mb-4 space-x-4 border-t border-gray-100 dark:border-white/10 pt-4 mt-auto">
-                                    <div className="flex items-center font-medium">
-                                        <CalendarDays className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
-                                        {new Date(project.dueDate).toLocaleDateString()}
-                                    </div>
-                                    <div className="flex items-center font-medium">
-                                        <CheckSquare className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
-                                        {project.tasks?.length || 0} tâches
-                                    </div>
-                                </div>
+            {
+                viewMode === 'list' ? (
+                    <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                        <DataTable
+                            columns={columns}
+                            data={filteredProjects}
+                            selectable={true}
+                            onBulkDelete={handleBulkDelete}
+                            onRowClick={openInspector}
+                            searchable={false}
+                            loading={loading}
+                        />
+                    </motion.div>
+                ) : (
+                    <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {loading ? (
+                            <div className="col-span-full"><CardSkeleton count={3} /></div>
+                        ) : filteredProjects.length === 0 ? (
+                            <div className="col-span-full">
+                                <EmptyState
+                                    icon={FolderKanban}
+                                    title="Aucun projet en cours"
+                                    description={filter ? "Aucun projet ne correspond à votre recherche." : "Lancez de nouveaux projets pour améliorer votre posture de sécurité."}
+                                    actionLabel={filter || !canEdit ? undefined : "Créer un projet"}
+                                    onAction={filter || !canEdit ? undefined : openCreationDrawer}
+                                />
                             </div>
-                        ))
-                    )}
-                </motion.div>
-            )}
+                        ) : (
+                            filteredProjects.map(project => (
+                                <div key={project.id} onClick={() => openInspector(project)} className="glass-panel rounded-[2.5rem] p-6 card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <Badge
+                                            status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'}
+                                            variant="soft"
+                                        >
+                                            {project.status}
+                                        </Badge>
+                                        <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {canEdit && (
+                                                <>
+                                                    <button onClick={(e) => { e.stopPropagation(); openEditDrawer(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
+                                                        <Edit className="h-4 w-4" />
+                                                    </button>
+                                                    <button onClick={(e) => { e.stopPropagation(); initiateDelete(project.id, project.name); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{project.name}</h3>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 h-10 leading-relaxed">{project.description}</p>
+
+                                    <div className="mb-6">
+                                        <div className="flex justify-between text-xs mb-1.5 font-medium">
+                                            <span className="text-slate-600 dark:text-slate-300">Avancement</span>
+                                            <span className="text-brand-600">{project.progress}%</span>
+                                        </div>
+                                        <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-2">
+                                            <div className="bg-brand-500 h-2 rounded-full transition-all duration-500 shadow-sm" style={{ width: `${project.progress}%` }}></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center text-xs text-slate-600 mb-4 space-x-4 border-t border-gray-100 dark:border-white/10 pt-4 mt-auto">
+                                        <div className="flex items-center font-medium">
+                                            <CalendarDays className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
+                                            {new Date(project.dueDate).toLocaleDateString()}
+                                        </div>
+                                        <div className="flex items-center font-medium">
+                                            <CheckSquare className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
+                                            {project.tasks?.length || 0} tâches
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </motion.div>
+                )
+            }
 
             {/* Inspector Drawer - Glassmorphism */}
             {/* Inspector Drawer */}
@@ -1235,18 +1249,28 @@ export const Projects: React.FC = () => {
                 actions={
                     selectedProject && (
                         <>
-                            <button onClick={handleExportExecutiveReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Rapport Exécutif (IA)"><FileText className="h-5 w-5 text-indigo-500" /></button>
-                            <button onClick={generateReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" title="Télécharger Rapport"><Download className="h-5 w-5" /></button>
+                            <CustomTooltip content="Générer un rapport exécutif PDF">
+                                <button onClick={handleExportExecutiveReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><FileText className="h-5 w-5 text-indigo-500" /></button>
+                            </CustomTooltip>
+                            <CustomTooltip content="Télécharger le rapport">
+                                <button onClick={generateReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Download className="h-5 w-5" /></button>
+                            </CustomTooltip>
                             {canEdit && (
-                                <button onClick={handleDuplicate} disabled={isSubmitting} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm disabled:opacity-50" title="Dupliquer">
-                                    {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Copy className="h-5 w-5" />}
-                                </button>
+                                <CustomTooltip content="Dupliquer le projet">
+                                    <button onClick={handleDuplicate} disabled={isSubmitting} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                        {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Copy className="h-5 w-5" />}
+                                    </button>
+                                </CustomTooltip>
                             )}
                             {canEdit && (
-                                <button onClick={() => openEditDrawer(selectedProject)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                                <CustomTooltip content="Modifier le projet">
+                                    <button onClick={() => openEditDrawer(selectedProject)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                                </CustomTooltip>
                             )}
                             {canDeleteResource(user, 'Project') && (
-                                <button onClick={() => initiateDelete(selectedProject.id, selectedProject.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                                <CustomTooltip content="Supprimer le projet">
+                                    <button onClick={() => initiateDelete(selectedProject.id, selectedProject.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                                </CustomTooltip>
                             )}
                         </>
                     )
@@ -1728,6 +1752,6 @@ export const Projects: React.FC = () => {
                 confirmText="Oui, mettre à jour"
                 cancelText="Non, ignorer"
             />
-        </motion.div>
+        </motion.div >
     );
 };

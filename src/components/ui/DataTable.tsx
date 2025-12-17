@@ -12,6 +12,7 @@ import {
 import { ChevronUp, ChevronDown, Download, Search, ChevronLeft, ChevronRight, Trash2 } from './Icons';
 import { cn } from '../../lib/utils';
 import { Skeleton } from './Skeleton';
+import { Tooltip } from './Tooltip';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -147,23 +148,27 @@ export function DataTable<TData extends { id: string }, TValue>({
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                     {/* Bulk Actions */}
                     {selectable && selectedIds.length > 0 && onBulkDelete && (
-                        <button
-                            onClick={() => onBulkDelete(selectedIds)}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors animate-fade-in"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                            Supprimer ({selectedIds.length})
-                        </button>
+                        <Tooltip content="Supprimer la sélection">
+                            <button
+                                onClick={() => onBulkDelete(selectedIds)}
+                                className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors animate-fade-in"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                                Supprimer ({selectedIds.length})
+                            </button>
+                        </Tooltip>
                     )}
 
                     {exportable && (
-                        <button
-                            onClick={handleExport}
-                            className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform"
-                        >
-                            <Download className="h-4 w-4" />
-                            Exporter CSV
-                        </button>
+                        <Tooltip content="Exporter en CSV">
+                            <button
+                                onClick={handleExport}
+                                className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform"
+                            >
+                                <Download className="h-4 w-4" />
+                                Exporter CSV
+                            </button>
+                        </Tooltip>
                     )}
                 </div>
             </div>

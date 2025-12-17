@@ -22,7 +22,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({ isOpen, onClose,
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 w-screen h-screen bg-black/60 backdrop-blur-sm" onClick={onClose}>
                 <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
