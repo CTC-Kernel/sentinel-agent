@@ -1363,10 +1363,10 @@ export const Risks: React.FC = () => {
 
                             <div className="relative p-8 bg-slate-50/50 dark:bg-black/20 rounded-[2rem] border border-slate-200/50 dark:border-white/5 shadow-inner">
                                 <div className="grid grid-cols-[auto_1fr] gap-6">
-                                    <div className="flex items-center justify-center">
+                                    <div className="flex items-center justify-center w-8">
                                         <div className="-rotate-90 font-bold text-xs text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Probabilité</div>
                                     </div>
-                                    <div className="grid grid-rows-5 grid-cols-5 gap-4 h-[500px] w-[600px]">
+                                    <div className="grid grid-rows-5 grid-cols-5 gap-4 w-full min-w-[600px] aspect-square mx-auto">
                                         {[5, 4, 3, 2, 1].map(prob => (
                                             <React.Fragment key={prob}>
                                                 {[1, 2, 3, 4, 5].map(impact => {

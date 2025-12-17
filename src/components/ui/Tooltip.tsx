@@ -116,15 +116,15 @@ export const Tooltip: React.FC<TooltipProps> = ({
             onBlur={hideTooltip}
         >
             {children}
-            <AnimatePresence>
-                {isVisible && (
-                    createPortal(
+            {createPortal(
+                <AnimatePresence>
+                    {isVisible && (
                         <motion.div
                             initial={variants.initial}
                             animate={variants.animate}
                             exit={variants.exit}
                             transition={{ duration: 0.15, ease: 'easeOut' }}
-                            className="fixed z-[9999] px-3 py-1.5 text-xs font-semibold text-white bg-slate-900/90 dark:bg-white/95 dark:text-slate-900 backdrop-blur-md border border-white/10 dark:border-slate-900/10 rounded-lg shadow-xl shadow-black/20 whitespace-normal max-w-[250px] pointer-events-none"
+                            className="fixed z-[99999] px-3 py-1.5 text-xs font-semibold text-white bg-slate-900/90 dark:bg-white/95 dark:text-slate-900 backdrop-blur-md border border-white/10 dark:border-slate-900/10 rounded-lg shadow-xl shadow-black/20 whitespace-normal max-w-[250px] pointer-events-none"
                             style={{
                                 top: coords.top,
                                 left: coords.left,
@@ -140,11 +140,11 @@ export const Tooltip: React.FC<TooltipProps> = ({
                                     ${position === 'right' ? 'left-[-4px] top-1/2 -translate-y-1/2 border-t-0 border-r-0' : ''}
                                 `}
                             />
-                        </motion.div>,
-                        document.body
-                    )
-                )}
-            </AnimatePresence>
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 };

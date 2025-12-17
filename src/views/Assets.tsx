@@ -1461,9 +1461,11 @@ export const Assets: React.FC = () => {
                                                     </div>
                                                     <div className="flex items-center justify-between mt-3">
                                                         <span className="text-xs text-slate-500">{doc.type} • v{doc.version}</span>
-                                                        <a href={doc.url} target="_blank" rel="noreferrer" className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center">
-                                                            Voir <ExternalLink className="h-3 w-3 ml-1" />
-                                                        </a>
+                                                        <CustomTooltip content="Ouvrir le document dans un nouvel onglet">
+                                                            <a href={doc.url} target="_blank" rel="noreferrer" className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center">
+                                                                Voir <ExternalLink className="h-3 w-3 ml-1" />
+                                                            </a>
+                                                        </CustomTooltip>
                                                     </div>
                                                 </div>
                                             ))}

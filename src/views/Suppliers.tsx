@@ -892,9 +892,11 @@ export const Suppliers: React.FC = () => {
                                                     )}
                                                 </div>
                                                 {documentsRaw.find(d => d.id === selectedSupplier.contractDocumentId) ? (
-                                                    <a href={documentsRaw.find(d => d.id === selectedSupplier.contractDocumentId)?.url} target="_blank" rel="noreferrer" className="text-xs font-bold bg-white dark:bg-slate-800 px-4 py-3 rounded-xl shadow-sm hover:text-brand-600 flex items-center justify-center transition-all w-full border border-blue-200 dark:border-blue-900/30">
-                                                        <Link className="h-3 w-3 mr-2" /> Ouvrir le contrat
-                                                    </a>
+                                                    <CustomTooltip content="Visualiser le contrat signé">
+                                                        <a href={documentsRaw.find(d => d.id === selectedSupplier.contractDocumentId)?.url} target="_blank" rel="noreferrer" className="text-xs font-bold bg-white dark:bg-slate-800 px-4 py-3 rounded-xl shadow-sm hover:text-brand-600 flex items-center justify-center transition-all w-full border border-blue-200 dark:border-blue-900/30">
+                                                            <Link className="h-3 w-3 mr-2" /> Ouvrir le contrat
+                                                        </a>
+                                                    </CustomTooltip>
                                                 ) : <span className="text-xs text-blue-400 font-medium italic text-center block">Aucun document lié</span>}
                                             </div>
 

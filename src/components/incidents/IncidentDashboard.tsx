@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { ShieldAlert, CalendarDays, Search, FileSpreadsheet, Siren, Trash2, LayoutGrid, List, CheckCircle2 } from '../ui/Icons';
 import { Incident, Criticality } from '../../types';
 import { useStore } from '../../store';
@@ -137,16 +138,17 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             cell: ({ row }) => (
                 <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
                     {canEdit && onDelete && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete(row.original.id);
-                            }}
-                            className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
-                            title="Supprimer"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
+                        <CustomTooltip content="Supprimer l'incident">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDelete(row.original.id);
+                                }}
+                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </CustomTooltip>
                     )}
                 </div>
             )
@@ -263,16 +265,21 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                     value={filter}
                     onChange={e => setFilter(e.target.value)}
                 />
-                <button
-                    onClick={handleExportCSV}
-                    className="p-2 bg-slate-50/50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors border border-transparent hover:border-slate-200 dark:hover:border-white/10"
-                    title="Exporter CSV"
-                >
-                    <FileSpreadsheet className="h-4 w-4" />
-                </button>
+                <CustomTooltip content="Exporter CSV">
+                    <button
+                        onClick={handleExportCSV}
+                        className="p-2 bg-slate-50/50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors border border-transparent hover:border-slate-200 dark:hover:border-white/10"
+                    >
+                        <FileSpreadsheet className="h-4 w-4" />
+                    </button>
+                </CustomTooltip>
                 <div className="flex bg-slate-50/50 dark:bg-white/5 p-1 rounded-xl border border-slate-200/50 dark:border-white/10 shadow-sm ml-2">
-                    <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Grille"><LayoutGrid className="h-4 w-4" /></button>
-                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`} title="Vue Liste"><List className="h-4 w-4" /></button>
+                    <CustomTooltip content="Vue Grille">
+                        <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}><LayoutGrid className="h-4 w-4" /></button>
+                    </CustomTooltip>
+                    <CustomTooltip content="Vue Liste">
+                        <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}><List className="h-4 w-4" /></button>
+                    </CustomTooltip>
                 </div>
             </div>
 
@@ -328,15 +335,17 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                         </span>
                                     </div>
                                     {canEdit && onDelete && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onDelete(inc.id);
-                                            }}
-                                            className="p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
+                                        <CustomTooltip content="Supprimer l'incident">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onDelete(inc.id);
+                                                }}
+                                                className="p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </CustomTooltip>
                                     )}
                                 </div>
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-brand-600 transition-colors leading-tight">

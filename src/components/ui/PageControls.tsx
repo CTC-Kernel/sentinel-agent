@@ -56,14 +56,15 @@ export const PageControls: React.FC<PageControlsProps> = ({
                     />
 
                     {searchQuery && (
-                        <button
-                            type="button"
-                            onClick={() => onSearchChange('')}
-                            className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
-                            title="Effacer la recherche"
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
+                        <Tooltip content="Effacer la recherche">
+                            <button
+                                type="button"
+                                onClick={() => onSearchChange('')}
+                                className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </Tooltip>
                     )}
 
                     {/* Count Badge */}

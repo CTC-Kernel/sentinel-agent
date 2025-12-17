@@ -259,13 +259,15 @@ export function DataTable<TData extends { id: string }, TValue>({
                     </p>
 
                     <div className="flex gap-2">
-                        <button
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage()}
-                            className="w-10 h-10 rounded-2xl flex items-center justify-center border border-slate-200 dark:border-white/10 text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                        </button>
+                        <Tooltip content="Page précédente">
+                            <button
+                                onClick={() => table.previousPage()}
+                                disabled={!table.getCanPreviousPage()}
+                                className="w-10 h-10 rounded-2xl flex items-center justify-center border border-slate-200 dark:border-white/10 text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </button>
+                        </Tooltip>
 
                         <div className="flex items-center gap-1">
                             {Array.from({ length: Math.min(5, table.getPageCount()) }, (_, i) => {
@@ -300,13 +302,15 @@ export function DataTable<TData extends { id: string }, TValue>({
                             })}
                         </div>
 
-                        <button
-                            onClick={() => table.nextPage()}
-                            disabled={!table.getCanNextPage()}
-                            className="p-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-white/10 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors backdrop-blur-sm"
-                        >
-                            <ChevronRight className="h-4 w-4" />
-                        </button>
+                        <Tooltip content="Page suivante">
+                            <button
+                                onClick={() => table.nextPage()}
+                                disabled={!table.getCanNextPage()}
+                                className="p-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-white/10 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors backdrop-blur-sm"
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </button>
+                        </Tooltip>
                     </div>
                 </div>
             )}
