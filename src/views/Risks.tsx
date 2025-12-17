@@ -87,11 +87,41 @@ export const Risks: React.FC = () => {
         { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
+    // V2 Integration: Backend Data State
+    const [backendRisks, setBackendRisks] = useState<Risk[]>([]);
+    const [usingBackend, setUsingBackend] = useState(false);
+    const [backendLoading, setBackendLoading] = useState(false);
+
     useEffect(() => {
         if (risksError) {
             ErrorLogger.handleErrorWithToast(risksError, 'Risks.fetch');
         }
     }, [risksError, user]);
+
+    // Fetch from V2 Adapter
+    useEffect(() => {
+        const fetchFromBackend = async () => {
+            if (!user?.organizationId) return;
+
+            // Check if we should use backend (can be a flag or default)
+            // For this transition phase, we try to fetch, if successful, we use it.
+            setBackendLoading(true);
+            try {
+                const response = await hybridService.getRisksFromBackend();
+                if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+                    setBackendRisks(response.data as Risk[]);
+                    setUsingBackend(true);
+                    addToast("Connecté au Kernel CyberSec GRC V2", "success"); // Optional feedback
+                }
+            } catch (err) {
+                console.warn("Backend V2 fallback failed, using Firestore", err);
+            } finally {
+                setBackendLoading(false);
+            }
+        };
+
+        fetchFromBackend();
+    }, [user?.organizationId]);
 
     const { data: rawControls, loading: controlsLoading } = useFirestoreCollection<Control>(
         'controls',
@@ -142,7 +172,10 @@ export const Risks: React.FC = () => {
     );
 
     // Derived State (Sorting)
-    const risks = React.useMemo(() => [...rawRisks].sort((a, b) => b.score - a.score), [rawRisks]);
+    const risks = React.useMemo(() => {
+        const source = usingBackend ? backendRisks : rawRisks;
+        return [...source].sort((a, b) => b.score - a.score);
+    }, [rawRisks, backendRisks, usingBackend]);
     const controls = React.useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
     const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
 
@@ -176,7 +209,7 @@ export const Risks: React.FC = () => {
     const [isExportingCSV, setIsExportingCSV] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [updating, setUpdating] = useState(false);
-    const loading = risksLoading || controlsLoading || assetsLoading || usersLoading || processesLoading || suppliersLoading || projectsLoading || auditsLoading || incidentsLoading || importing;
+    const loading = risksLoading || backendLoading || controlsLoading || assetsLoading || usersLoading || processesLoading || suppliersLoading || projectsLoading || auditsLoading || incidentsLoading || importing;
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [preSelectedProjectId, setPreSelectedProjectId] = useState<string | null>(null);
 

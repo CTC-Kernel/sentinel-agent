@@ -242,6 +242,14 @@ class HybridService {
             return { success: false, error: 'Failed to export data' };
         }
     }
+
+    /**
+     * Fetch Risks from the dedicated V2 Backend Adapter
+     * Uses the new /api/v2/risks endpoint
+     */
+    async getRisksFromBackend(): Promise<HybridResponse<unknown[]>> {
+        return this.request<unknown[]>('/v2/risks/');
+    }
 }
 
 export const hybridService = new HybridService(OVH_API_BASE_URL);
