@@ -40,7 +40,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
     secondaryActions
 }) => {
     return (
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-center w-full">
+        <div className="flex flex-col md:flex-row flex-wrap gap-4 justify-between items-center w-full">
             {/* Left Section: Search & Count */}
             <div className="flex-1 w-full md:max-w-xl relative group z-20">
                 <div className="absolute inset-0 bg-brand-500/5 dark:bg-white/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

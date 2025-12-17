@@ -1255,6 +1255,33 @@ export const Risks: React.FC = () => {
                     activeFiltersCount={(activeFilters.status ? 1 : 0) + (activeFilters.owner ? 1 : 0) + (activeFilters.criticality ? 1 : 0)}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
+                    primaryAction={
+                        canEdit && (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={importing}
+                                    className="hidden sm:flex items-center px-4 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-sm font-bold rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all border border-emerald-200 dark:border-emerald-800"
+                                >
+                                    {importing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSpreadsheet className="h-4 w-4 mr-2" />}
+                                    <span className="hidden xl:inline">Import CSV</span>
+                                </button>
+                                <button
+                                    onClick={() => setShowTemplateModal(true)}
+                                    className="flex items-center px-4 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 text-sm font-bold rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all border border-indigo-200 dark:border-indigo-800"
+                                >
+                                    <Copy className="h-4 w-4 mr-2" />
+                                    <span className="hidden xl:inline">Templates</span>
+                                </button>
+                                <button
+                                    onClick={openCreationDrawer}
+                                    className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" /> Nouveau Risque
+                                </button>
+                            </div>
+                        )
+                    }
                     secondaryActions={
                         <div className="flex items-center gap-2">
                             <div className="w-40 hidden lg:block">

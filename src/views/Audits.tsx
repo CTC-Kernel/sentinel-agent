@@ -15,7 +15,7 @@ import { EvidenceRequestList } from '../components/audits/EvidenceRequestList';
 import { QuestionnaireList } from '../components/audits/QuestionnaireList';
 import { AuditTeam } from '../components/audits/AuditTeam';
 import { Comments } from '../components/ui/Comments';
-import { Plus, Activity, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare, BrainCircuit, Loader2, Sparkles } from '../components/ui/Icons';
+import { Plus, Activity, Trash2, FileSpreadsheet, CalendarDays, User, AlertOctagon, Download, ShieldAlert, ClipboardCheck, Link, Server, Flame, FolderKanban, CheckCheck, Target, Edit, FileText, Calendar, AlertTriangle, Users, MessageSquare, BrainCircuit, Loader2, ArrowRight } from '../components/ui/Icons';
 // ...
 import { AuditPlannerService } from '../services/AuditPlannerService';
 
@@ -1341,7 +1341,7 @@ export const Audits: React.FC = () => {
 
                                 <CustomTooltip content="Obtenir des suggestions d'audit par IA">
                                     <button
-                                        onClick={handleAIAssist}
+                                        onClick={handleGeneratePlan}
                                         className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-bold shadow-lg hover:shadow-pink-500/25 transition-all hover:scale-105"
                                     >
                                         <BrainCircuit className="w-4 h-4" />
