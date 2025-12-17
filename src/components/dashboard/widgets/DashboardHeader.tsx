@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Server, ClipboardCheck, FileText, ArrowRight, CalendarDays, Loader2, Activity, ShieldCheck, Users, AlertTriangle } from '../../ui/Icons';
+import { Server, ClipboardCheck, FileText, ArrowRight, CalendarDays, Loader2, Activity, ShieldCheck, Users, AlertTriangle, LayoutDashboard, Check } from '../../ui/Icons';
 import { ShinyText } from '../../ui/ShinyText';
 
 
@@ -33,6 +33,8 @@ interface DashboardHeaderProps {
     generateICal?: () => void;
     generateExecutiveReport?: () => void;
     isGeneratingReport?: boolean;
+    isEditing?: boolean;
+    onToggleEdit?: () => void;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -42,7 +44,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     insight,
     generateICal = () => { },
     generateExecutiveReport = () => { },
-    isGeneratingReport = false
+    isGeneratingReport = false,
+    isEditing = false,
+    onToggleEdit
 }) => {
     // Determine gradient based on score
     const getGradeColor = (g?: string) => {
@@ -167,6 +171,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
                         {/* Right: Actions */}
                         <div className="flex items-center gap-3 shrink-0 w-full lg:w-auto flex-wrap lg:flex-nowrap justify-end">
+                            {onToggleEdit && (
+                                <button
+                                    onClick={onToggleEdit}
+                                    className={`p-2 rounded-md transition-all ${isEditing ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-muted-foreground hover:text-foreground hover:bg-background border border-transparent'}`}
+                                    title={isEditing ? "Terminer l'édition" : "Personnaliser le tableau de bord"}
+                                >
+                                    {isEditing ? <Check className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
+                                </button>
+                            )}
+
                             <div className="flex items-center gap-2 p-1 bg-accent/50 rounded-lg border border-border/50">
                                 <button
                                     onClick={generateExecutiveReport}

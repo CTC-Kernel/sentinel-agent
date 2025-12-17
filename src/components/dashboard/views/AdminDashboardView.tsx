@@ -1,95 +1,82 @@
 import React from 'react';
-import { StatsOverview } from '../widgets/StatsOverview';
-import { MyWorkspaceWidget } from '../widgets/MyWorkspaceWidget';
-import { ComplianceEvolutionWidget } from '../widgets/ComplianceEvolutionWidget';
-import { HealthCheckWidget } from '../widgets/HealthCheckWidget';
-import { PriorityRisksWidget } from '../widgets/PriorityRisksWidget';
-import { RecentActivityWidget } from '../widgets/RecentActivityWidget';
-import { MaturityRadarWidget } from '../widgets/MaturityRadarWidget';
-import { CyberNewsWidget } from '../CyberNewsWidget';
-import { motion } from 'framer-motion';
-import { slideUpVariants, staggerContainerVariants } from '../../ui/animationVariants';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useDashboardPreferences } from '../../../../hooks/useDashboardPreferences';
+import { ConfigurableDashboardGrid } from '../configurable/ConfigurableDashboardGrid';
+import { useStore } from '../../../../store';
+import { slideUpVariants } from '../../ui/animationVariants';
+import { Plus } from 'lucide-react';
+import { WIDGET_REGISTRY } from '../configurable/WidgetRegistry';
 
-type Stats = React.ComponentProps<typeof StatsOverview>['stats'];
-type ActionItemList = React.ComponentProps<typeof MyWorkspaceWidget>['myActionItems'];
-type HistoryData = React.ComponentProps<typeof ComplianceEvolutionWidget>['historyData'];
-type HealthIssueList = React.ComponentProps<typeof HealthCheckWidget>['healthIssues'];
-type RiskList = React.ComponentProps<typeof PriorityRisksWidget>['topRisks'];
-type ActivityList = React.ComponentProps<typeof RecentActivityWidget>['recentActivity'];
-type RadarData = React.ComponentProps<typeof MaturityRadarWidget>['radarData'];
-
+// Props Interface
 interface AdminDashboardViewProps {
-    stats: Stats;
+    stats: any;
     loading: boolean;
     navigate: (path: string) => void;
     t: (key: string) => string;
     theme: string;
-    myActionItems: ActionItemList;
-    historyData: HistoryData;
-    healthIssues: HealthIssueList;
-    topRisks: RiskList;
-    recentActivity: ActivityList;
-    radarData: RadarData;
+    myActionItems: any;
+    historyData: any;
+    healthIssues: any;
+    topRisks: any;
+    recentActivity: any;
+    radarData: any;
+    isEditing?: boolean; // Passed from parent
+    onLayoutUpdate?: (layout: any[]) => void; // Callback to parent if needed
 }
 
-export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
-    stats, loading, navigate, t, theme, myActionItems, historyData, healthIssues, topRisks, recentActivity, radarData
-}) => {
+export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => {
+    const { user } = useStore();
+
+    // Default Admin Layout
+    const defaultLayout = [
+        { id: 'stats-1', widgetId: 'stats-overview', colSpan: 3 },
+        { id: 'workspace-1', widgetId: 'my-workspace', colSpan: 2 },
+        { id: 'maturity-1', widgetId: 'maturity-radar', colSpan: 1 }, // Moving radar up as right column
+        { id: 'history-1', widgetId: 'compliance-evolution', colSpan: 2 },
+        { id: 'health-1', widgetId: 'health-check', colSpan: 1 },
+        { id: 'activity-1', widgetId: 'recent-activity', colSpan: 1 },
+        { id: 'risks-1', widgetId: 'priority-risks', colSpan: 1 },
+        { id: 'news-1', widgetId: 'cyber-news', colSpan: 1 },
+    ];
+
+    const { layout, updateLayout, resetLayout } = useDashboardPreferences(user?.uid, 'admin', defaultLayout);
+
     return (
         <motion.div
-            variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-8"
+            className="space-y-6"
         >
-            <motion.div variants={slideUpVariants}>
-                <StatsOverview stats={stats} loading={loading} navigate={navigate} t={t} />
-            </motion.div>
+            <ConfigurableDashboardGrid
+                layout={layout}
+                onLayoutChange={updateLayout}
+                isEditing={props.isEditing || false}
+                widgetProps={props}
+            />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Focus Column (2/3) */}
-                <div className="lg:col-span-2 space-y-8">
-                    <motion.div variants={slideUpVariants}>
-                        <MyWorkspaceWidget myActionItems={myActionItems} loading={loading} navigate={navigate} t={t} />
-                    </motion.div>
+            {/* Add Widget Button (Only visible in Edit Mode) */}
+            <AnimatePresence>
+                {props.isEditing && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex gap-4"
+                    >
+                        <button
+                            onClick={resetLayout}
+                            className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-6 py-3 rounded-full shadow-xl font-bold border border-slate-200 dark:border-slate-700 hover:scale-105 transition-all"
+                        >
+                            {props.t('common.reset')}
+                        </button>
 
-                    <motion.div variants={slideUpVariants}>
-                        <ComplianceEvolutionWidget historyData={historyData} loading={loading} t={t} theme={theme} />
-                    </motion.div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <motion.div variants={slideUpVariants}>
-                            <RecentActivityWidget recentActivity={recentActivity} loading={loading} t={t} />
-                        </motion.div>
-                        <motion.div variants={slideUpVariants}>
-                            <PriorityRisksWidget topRisks={topRisks} loading={loading} navigate={navigate} t={t} />
-                        </motion.div>
-                    </div>
-                </div>
-
-                {/* Right Context Column (1/3) */}
-                <div className="space-y-8">
-                    <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-[2rem] border border-glass-border shadow-sm relative overflow-hidden group hover:shadow-apple transition-all duration-300">
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-6 text-center">Niveau de Maturité</h3>
-                        <div className="min-h-[250px] flex items-center justify-center -ml-2">
-                            <MaturityRadarWidget
-                                radarData={radarData}
-                                t={t}
-                                navigate={navigate}
-                            />
+                        <div className="bg-slate-900 text-white px-6 py-3 rounded-full shadow-xl font-bold flex items-center gap-2 border border-slate-700">
+                            <Plus className="w-5 h-5" /> <span>{props.t('dashboard.addWidget')}</span>
+                            {/* Note: Pulling up a proper modal to add widgets would go here */}
                         </div>
                     </motion.div>
-
-                    <motion.div variants={slideUpVariants}>
-                        <HealthCheckWidget healthIssues={healthIssues} loading={loading} navigate={navigate} t={t} />
-                    </motion.div>
-
-                    <motion.div variants={slideUpVariants}>
-                        <CyberNewsWidget />
-                    </motion.div>
-                </div>
-            </div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 };
