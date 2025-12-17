@@ -5,6 +5,8 @@ import { ConfigurableDashboardGrid } from '../configurable/ConfigurableDashboard
 import { useStore } from '../../../store';
 
 import { Plus } from 'lucide-react';
+import { AddWidgetModal } from '../configurable/AddWidgetModal';
+import { WidgetId, WIDGET_REGISTRY } from '../configurable/WidgetRegistry';
 
 
 // Props Interface
@@ -40,6 +42,21 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
     ];
 
     const { layout, updateLayout, resetLayout } = useDashboardPreferences(user?.uid, 'admin', defaultLayout);
+    const [isAddWidgetModalOpen, setIsAddWidgetModalOpen] = React.useState(false);
+
+    const handleAddWidget = (widgetId: WidgetId) => {
+        const widgetConfig = WIDGET_REGISTRY[widgetId];
+        if (!widgetConfig) return;
+
+        // Find a suitable position (basic logic: append to end)
+        const newWidgetLayout = {
+            id: `${widgetId}-${Date.now()}`,
+            widgetId: widgetId,
+            colSpan: widgetConfig.defaultColSpan || 1
+        };
+
+        updateLayout([...layout, newWidgetLayout]);
+    };
 
     return (
         <motion.div
@@ -70,13 +87,24 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
                             {props.t('common.reset')}
                         </button>
 
-                        <div className="bg-slate-900 text-white px-6 py-3 rounded-full shadow-xl font-bold flex items-center gap-2 border border-slate-700">
+                        <motion.button
+                            onClick={() => setIsAddWidgetModalOpen(true)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="bg-brand-600 text-white px-6 py-3 rounded-full shadow-xl font-bold flex items-center gap-2 border border-brand-500 hover:bg-brand-700 transition-colors"
+                        >
                             <Plus className="w-5 h-5" /> <span>{props.t('dashboard.addWidget')}</span>
-                            {/* Note: Pulling up a proper modal to add widgets would go here */}
-                        </div>
+                        </motion.button>
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <AddWidgetModal
+                isOpen={isAddWidgetModalOpen}
+                onClose={() => setIsAddWidgetModalOpen(false)}
+                onAdd={handleAddWidget}
+                currentWidgetIds={layout.map(w => w.widgetId)}
+            />
         </motion.div>
     );
 };

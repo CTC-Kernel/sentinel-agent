@@ -43,7 +43,9 @@ export const Dashboard: React.FC = () => {
 
     const [activeIncidentsCount, setActiveIncidentsCount] = useState(0);
     const [openAuditsCount, setOpenAuditsCount] = useState(0);
+
     const [showGettingStarted, setShowGettingStarted] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
 
     const { user, theme, addToast, t } = useStore();
     const navigate = useNavigate();
@@ -509,7 +511,10 @@ export const Dashboard: React.FC = () => {
                 insight={insight}
                 generateICal={generateICal}
                 generateExecutiveReport={generateExecutiveReport}
+
                 isGeneratingReport={isGeneratingReport}
+                isEditing={isEditing}
+                onToggleEdit={() => setIsEditing(!isEditing)}
             />
 
             {showGettingStarted && (
@@ -531,6 +536,7 @@ export const Dashboard: React.FC = () => {
                         return (
                             <AdminDashboardView
                                 stats={stats}
+                                isEditing={isEditing}
                                 loading={loading}
                                 navigate={navigate}
                                 t={t}

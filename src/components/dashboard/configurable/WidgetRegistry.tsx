@@ -9,6 +9,9 @@ import { PriorityRisksWidget } from '../widgets/PriorityRisksWidget';
 import { RecentActivityWidget } from '../widgets/RecentActivityWidget';
 import { MaturityRadarWidget } from '../widgets/MaturityRadarWidget';
 import { CyberNewsWidget } from '../CyberNewsWidget';
+import { RiskHeatmapWidget } from '../widgets/RiskHeatmapWidget';
+import { AuditsDonutWidget } from '../widgets/AuditsDonutWidget';
+import { ProjectTasksWidget } from '../widgets/ProjectTasksWidget';
 
 // Define the Registry
 // This maps a string ID to the Component and its implicit Grid sizing
@@ -56,6 +59,21 @@ export const WIDGET_REGISTRY: Record<string, {
         component: CyberNewsWidget,
         defaultColSpan: 1,
         titleKey: 'dashboard.cyberNews'
+    },
+    'risk-heatmap': {
+        component: RiskHeatmapWidget,
+        defaultColSpan: 1,
+        titleKey: 'dashboard.riskHeatmap'
+    },
+    'audits-donut': {
+        component: AuditsDonutWidget,
+        defaultColSpan: 1,
+        titleKey: 'dashboard.auditsStatus'
+    },
+    'project-tasks': {
+        component: ProjectTasksWidget,
+        defaultColSpan: 1,
+        titleKey: 'dashboard.projectStatus'
     }
 };
 
