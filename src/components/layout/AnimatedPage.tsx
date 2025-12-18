@@ -45,7 +45,7 @@ export const AnimatedPage: React.FC<AnimatedPageProps> = ({ children, className 
             exit="out"
             variants={pageVariants}
             transition={pageTransition}
-            className={`w-full min-h-full flex flex-col ${className}`}
+            className={`w-full flex flex-col p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in ${className}`}
         >
             {children}
         </motion.div>

@@ -65,7 +65,7 @@ export const Notifications: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
+            className="space-y-8"
         >
             <MasterpieceBackground />
             <SEO title="Notifications" />

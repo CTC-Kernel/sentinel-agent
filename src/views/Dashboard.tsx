@@ -177,27 +177,31 @@ export const Dashboard: React.FC = () => {
     const historyData = React.useMemo(() => {
         return historyStats
             .map((d) => {
-                const anyD = d as unknown as { date?: unknown; compliance?: unknown; metrics?: { complianceRate?: unknown } };
+                const anyD = d as any;
+                const metrics = d.metrics || {
+                    complianceRate: Number(anyD.compliance) || 0,
+                    totalRisks: Number(anyD.risks) || 0,
+                    criticalRisks: 0,
+                    highRisks: 0,
+                    openIncidents: Number(anyD.incidents) || 0,
+                    totalAssets: 0,
+                    activeProjects: 0
+                };
 
-                let complianceVal: number | undefined = undefined;
-
-                if (anyD.metrics && typeof anyD.metrics.complianceRate !== 'undefined') {
-                    const val = anyD.metrics.complianceRate;
-                    complianceVal = typeof val === 'string' ? parseFloat(val) : typeof val === 'number' ? val : undefined;
-                } else if (typeof anyD.compliance !== 'undefined') {
-                    const val = anyD.compliance;
-                    complianceVal = typeof val === 'string' ? parseFloat(val) : typeof val === 'number' ? val : undefined;
-                }
+                const complianceVal = metrics.complianceRate;
 
                 return {
-                    date: typeof anyD.date === 'string' ? anyD.date : '',
-                    compliance: typeof complianceVal === 'number' && Number.isFinite(complianceVal) ? complianceVal : 0
-                };
+                    id: d.id || `temp-${Math.random()}`,
+                    organizationId: d.organizationId || user?.organizationId || '',
+                    date: typeof anyD.date === 'string' ? anyD.date : new Date().toISOString().split('T')[0],
+                    timestamp: typeof d.timestamp === 'number' ? d.timestamp : Date.now(),
+                    metrics,
+                    compliance: complianceVal // Backward compatibility for DirectionDashboardView
+                } as (StatsHistoryEntry & { compliance: number });
             })
-            // Filter out entries with invalid dates or where compliance couldn't be resolved
             .filter(d => d.date && d.date.length > 0)
             .sort((a, b) => a.date.localeCompare(b.date));
-    }, [historyStats]);
+    }, [historyStats, user?.organizationId]);
 
     const { stats, radarData, complianceScore } = React.useMemo(() => {
         const implemented = controls.filter(c => c.status === 'Implémenté').length;
@@ -233,21 +237,33 @@ export const Dashboard: React.FC = () => {
             }
         });
 
+        const criticalRisksCount = allRisks.filter(r => r.score >= 15).length;
+
         return {
             stats: {
+                // Existing
                 risks: allRisks.length,
                 assets: allAssets.length,
                 compliance: compScore,
-                highRisks: allRisks.filter(r => r.score >= 15).length,
+                highRisks: criticalRisksCount,
                 auditsOpen: openAuditsCount,
                 activeIncidents: activeIncidentsCount,
                 assetValue: totalAssetValue,
-                financialRisk: financialExposure
+                financialRisk: financialExposure,
+
+                // New fields for AdminDashboardView compatibility
+                totalRisks: allRisks.length,
+                criticalRisks: criticalRisksCount,
+                // highRisks is already present above
+                openIncidents: activeIncidentsCount,
+                complianceRate: compScore,
+                totalAssets: allAssets.length,
+                activeProjects: myProjects.length
             },
             radarData: rData,
             complianceScore: compScore
         };
-    }, [controls, allAssets, allRisks, openAuditsCount, activeIncidentsCount]);
+    }, [controls, allAssets, allRisks, openAuditsCount, activeIncidentsCount, myProjects]);
 
     const scoreGrade = React.useMemo(() => {
         if (!Number.isFinite(complianceScore) || complianceScore < 0) return undefined;
@@ -491,7 +507,7 @@ export const Dashboard: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
+            className="space-y-8"
         >
             <MasterpieceBackground />
             <SEO

@@ -83,7 +83,7 @@ const Pricing = () => {
       variants={staggerContainerVariants}
       initial="initial"
       animate="visible"
-      className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-10 pb-20 relative min-h-screen animate-fade-in w-full min-w-0"
+      className="space-y-10 min-w-0"
     >
       <MasterpieceBackground />
       <SEO title="Abonnement" description="Gérez votre abonnement et accédez aux fonctionnalités premium" />

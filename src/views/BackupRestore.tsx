@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { BackupService, BackupMetadata } from '../services/backupService';
-import { Save, RotateCcw, Clock, CheckCircle2, AlertTriangle, FileText, Shield, Users, Database, Download, Trash2, RefreshCw, HardDrive, Calendar, CalendarDays, HelpCircle } from '../components/ui/Icons';
+import { Save, RotateCcw, Clock, CheckCircle2, AlertTriangle, FileText, Shield, Users, Database, Download, Trash2, RefreshCw, HardDrive, Calendar, CalendarDays } from '../components/ui/Icons';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { backupConfigSchema, restoreConfigSchema, BackupConfigFormData, RestoreConfigFormData } from '../schemas/backupSchema';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { OnboardingService } from '../services/onboardingService';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
@@ -245,7 +244,7 @@ export const BackupRestore: React.FC = () => {
       variants={staggerContainerVariants}
       initial="initial"
       animate="visible"
-      className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in min-w-0"
+      className="space-y-8 min-w-0"
     >
       <MasterpieceBackground />
       <SEO title="Sauvegardes & Restauration" description="Gérez vos points de restauration et la sécurité de vos données" />

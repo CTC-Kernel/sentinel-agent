@@ -158,7 +158,7 @@ export const Help: React.FC = () => {
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in"
+            className="space-y-8"
         >
             <MasterpieceBackground />
             <SEO title="Centre d'Aide" description="Documentation et support Sentinel GRC" />
@@ -208,13 +208,13 @@ export const Help: React.FC = () => {
                                         setMobileMenuOpen(false);
                                     }}
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group ${selectedCategory === category.id
-                                            ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400'
-                                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'
+                                        ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400'
+                                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'
                                         }`}
                                 >
                                     <div className={`p-2 rounded-lg transition-colors ${selectedCategory === category.id
-                                            ? 'bg-brand-500/20'
-                                            : 'bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700'
+                                        ? 'bg-brand-500/20'
+                                        : 'bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700'
                                         }`}>
                                         <category.icon className="w-4 h-4" />
                                     </div>
