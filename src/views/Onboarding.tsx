@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useStore } from '../store';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { doc, setDoc, collection, query, where, getDocs, addDoc, writeBatch, updateDoc } from 'firebase/firestore';
@@ -363,11 +364,8 @@ export const Onboarding: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen py-10 flex items-center justify-center bg-background relative font-sans selection:bg-brand-500 selection:text-white">
-            <div className="absolute inset-0 w-full h-full pointer-events-none">
-                <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-400/20 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-60 animate-float"></div>
-                <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-400/20 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-60 animate-float" style={{ animationDelay: '3s' }}></div>
-            </div>
+        <div className="min-h-screen py-10 flex items-center justify-center relative font-sans selection:bg-brand-500 selection:text-white">
+            <MasterpieceBackground />
 
             <div className="w-full max-w-xl p-6 relative z-10 animate-scale-in">
                 <div className="glass-panel rounded-[2.5rem] p-10 md:p-12 shadow-2xl">

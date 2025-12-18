@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useStore } from '../store';
 import { Check, ChevronRight, Shield, Zap, Building2, HelpCircle, Info, ChevronDown, type LucideIcon } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { SEO } from '../components/SEO';
+import { staggerContainerVariants } from '../components/ui/animationVariants';
 import { SubscriptionService } from '../services/subscriptionService';
 import { ErrorLogger } from '../services/errorLogger';
 import { PLANS } from '../config/plans';
@@ -75,7 +79,14 @@ const Pricing = () => {
   ];
 
   return (
-    <div className="space-y-10 animate-fade-in pb-12 px-4 sm:px-6 lg:px-8 w-full min-w-0">
+    <motion.div
+      variants={staggerContainerVariants}
+      initial="initial"
+      animate="visible"
+      className="p-6 md:p-8 max-w-[1920px] mx-auto space-y-10 pb-20 relative min-h-screen animate-fade-in w-full min-w-0"
+    >
+      <MasterpieceBackground />
+      <SEO title="Abonnement" description="Gérez votre abonnement et accédez aux fonctionnalités premium" />
       {/* Header with Premium Typography */}
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 min-w-0">
         <div className="min-w-0">
@@ -327,7 +338,7 @@ const Pricing = () => {
         onClose={() => setIsContactOpen(false)}
         subject="Demande de devis / Information"
       />
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { auth } from '../firebase';
 import { sendEmailVerification, signOut, reload } from 'firebase/auth';
 import { useStore } from '../store';
@@ -69,12 +70,8 @@ export const VerifyEmail: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen py-10 flex flex-col items-center justify-center bg-background relative font-sans">
-            {/* Ambient Background */}
-            <div className="absolute inset-0 w-full h-full">
-                <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-300/30 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float"></div>
-                <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-300/30 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{ animationDelay: '3s' }}></div>
-            </div>
+        <div className="min-h-screen py-10 flex flex-col items-center justify-center relative font-sans">
+            <MasterpieceBackground />
 
             <div className="w-full max-w-md p-6 relative z-10 animate-scale-in">
                 <div className="glass-panel rounded-[2.5rem] p-10 flex flex-col items-center shadow-2xl border border-white/50 dark:border-white/10 bg-white/90 dark:bg-black/60 backdrop-blur-xl text-center">
