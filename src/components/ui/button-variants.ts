@@ -15,7 +15,7 @@ export const buttonVariants = cva(
                 ghost: "hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white active:bg-slate-200 dark:active:bg-slate-700",
                 link: "text-brand-600 dark:text-brand-400 underline-offset-4 hover:underline",
                 glass: "glass-panel hover:bg-white/60 dark:hover:bg-white/10 text-slate-900 dark:text-white shadow-sm backdrop-blur-md border border-white/50 dark:border-white/10 hover:-translate-y-0.5 active:translate-y-0",
-                premium: "relative overflow-hidden bg-gradient-to-r from-brand-600 to-blue-600 text-white shadow-lg shadow-brand-500/30 hover:shadow-brand-500/50 hover:scale-[1.02] active:scale-[0.98] border border-brand-500/20 after:absolute after:inset-0 after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent after:translate-x-[-200%] hover:after:translate-x-[200%] after:transition-transform after:duration-[1.5s] after:ease-in-out",
+                premium: "relative overflow-hidden bg-gradient-to-r from-brand-600 to-blue-600 text-white shadow-lg shadow-brand-500/30 hover:shadow-brand-500/50 hover:scale-[1.02] active:scale-[0.98] border border-brand-500/20 after:absolute after:inset-0 after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent after:translate-x-[-200%] hover:after:translate-x-[200%] after:transition-transform after:duration-[1500ms] after:ease-in-out",
             },
             size: {
                 default: "h-10 px-4 py-2",

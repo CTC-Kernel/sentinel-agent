@@ -114,7 +114,7 @@ export const Notifications: React.FC = () => {
                                         Voir les détails <ArrowRight className="h-3 w-3 ml-1" />
                                     </a>
                                 )}
-                            </motion.div>
+                            </div>
                             {!notif.read && (
                                 <button onClick={() => markAsRead(notif.id)} className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all self-center">
                                     <X className="h-4 w-4" />
