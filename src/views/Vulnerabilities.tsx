@@ -12,6 +12,7 @@ import { where, addDoc, collection, updateDoc, doc, deleteDoc } from 'firebase/f
 import { db } from '../firebase';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { logAction } from '../services/logger';
+import { ErrorLogger } from '../services/errorLogger';
 import { Modal } from '../components/ui/Modal';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
@@ -115,7 +116,7 @@ export const Vulnerabilities: React.FC = () => {
             setIsCreating(false);
             refresh();
         } catch (error) {
-            console.error(error);
+            ErrorLogger.error(error, 'Vulnerabilities.handleSave');
             addToast("Erreur lors de l'enregistrement", "error");
         }
     };
