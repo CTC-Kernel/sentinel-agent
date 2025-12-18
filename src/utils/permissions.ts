@@ -1,21 +1,4 @@
-import { UserProfile } from '../types';
-
-export type ResourceType =
-    | 'Asset'
-    | 'Risk'
-    | 'Project'
-    | 'Audit'
-    | 'Document'
-    | 'User'
-    | 'Settings'
-    | 'SystemLog'
-    | 'Control'
-    | 'Incident'
-    | 'Supplier'
-    | 'BusinessProcess'
-    | 'ProcessingActivity'
-    | 'SupplierAssessment'
-    | 'SupplierIncident';
+import { UserProfile, ResourceType } from '../types';
 
 export type ActionType = 'create' | 'read' | 'update' | 'delete' | 'manage';
 export type Role = 'admin' | 'rssi' | 'auditor' | 'project_manager' | 'direction' | 'user';

@@ -12,6 +12,7 @@ import { where, addDoc, collection, updateDoc, doc, deleteDoc } from 'firebase/f
 import { db } from '../firebase';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { logAction } from '../services/logger';
+import { hasPermission, canDeleteResource } from '../utils/permissions';
 import { ErrorLogger } from '../services/errorLogger';
 import { Modal } from '../components/ui/Modal';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
@@ -22,13 +23,14 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { Badge } from '../components/ui/Badge';
 
 export const Vulnerabilities: React.FC = () => {
-    const { user, addToast } = useStore();
+    const { user, organization, addToast } = useStore();
     const [viewMode] = useState<'list' | 'kanban'>('list');
     const [isCreating, setIsCreating] = useState(false);
     const [selectedVuln, setSelectedVuln] = useState<Vulnerability | null>(null);
     const [formData, setFormData] = useState<Partial<Vulnerability>>({});
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<'Open' | 'In Progress' | 'Resolved' | 'All'>('Open');
+    const [filterSeverity, setFilterSeverity] = useState<string>('All');
 
     // Data Fetching
     const { data: vulnerabilities, loading: vulnLoading, refresh } = useFirestoreCollection<Vulnerability>(
@@ -41,6 +43,9 @@ export const Vulnerabilities: React.FC = () => {
         'assets',
         [where('organizationId', '==', user?.organizationId)]
     );
+
+    const canCreate = hasPermission(user, 'Vulnerability', 'create', organization?.ownerId);
+    const canManage = hasPermission(user, 'Vulnerability', 'manage', organization?.ownerId);
 
     // Derived State and KPIs
     const stats = useMemo(() => {
@@ -64,12 +69,41 @@ export const Vulnerabilities: React.FC = () => {
                     activeTab === 'In Progress' ? v.status === 'In Progress' :
                         v.status !== 'Resolved'; // Open usually means Not Resolved
 
-            return matchesSearch && matchesTab;
+            const matchesSeverity = filterSeverity === 'All' ? true : v.severity === filterSeverity;
+
+            return matchesSearch && matchesTab && matchesSeverity;
         }).sort((a, b) => {
             const severityWeight = { Critical: 4, High: 3, Medium: 2, Low: 1 };
             return (severityWeight[b.severity] || 0) - (severityWeight[a.severity] || 0);
         });
-    }, [vulnerabilities, searchTerm, activeTab]);
+    }, [vulnerabilities, searchTerm, activeTab, filterSeverity]);
+
+    const handleExportCSV = () => {
+        const headers = ["ID", "Titre", "Sévérité", "Statut", "Actif", "Score", "Date"];
+        const rows = filteredVulns.map(v => [
+            v.cveId,
+            `"${v.title || v.description}"`,
+            v.severity,
+            v.status,
+            v.assetName || "N/A",
+            v.score || "0",
+            v.createdAt || ""
+        ]);
+
+        const csvContent = "data:text/csv;charset=utf-8,"
+            + headers.join(",") + "\n"
+            + rows.map(e => e.join(",")).join("\n");
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `vulnerabilities_export_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        logAction(user, 'EXPORT', 'Vulnerabilities', `Exported ${filteredVulns.length} vulnerabilities`);
+    };
 
     const handleCreate = () => {
         setFormData({
@@ -121,7 +155,11 @@ export const Vulnerabilities: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = async (id: string, ownerId?: string) => {
+        if (!canDeleteResource(user, 'Vulnerability', ownerId, organization?.ownerId)) {
+            addToast("Permission refusée", "error");
+            return;
+        }
         if (!confirm("Supprimer cette vulnérabilité ?")) return;
         try {
             await deleteDoc(doc(db, 'vulnerabilities', id));
@@ -167,13 +205,24 @@ export const Vulnerabilities: React.FC = () => {
                 icon={<ShieldAlert className="h-6 w-6 text-white" />}
                 breadcrumbs={[{ label: 'Gouvernance' }, { label: 'Vulnérabilités' }]}
                 actions={
-                    <button
-                        onClick={handleCreate}
-                        className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl flex items-center shadow-lg shadow-brand-500/20 text-sm font-bold transition-all"
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Nouvelle Vulnérabilité
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleExportCSV}
+                            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl flex items-center text-sm font-bold backdrop-blur-md transition-all"
+                        >
+                            <Server className="h-4 w-4 mr-2" /> {/* Reusing Server icon as placeholder for Download/File */}
+                            Exporter CSV
+                        </button>
+                        {canCreate && (
+                            <button
+                                onClick={handleCreate}
+                                className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl flex items-center shadow-lg shadow-brand-500/20 text-sm font-bold transition-all"
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Nouvelle Vulnérabilité
+                            </button>
+                        )}
+                    </div>
                 }
             />
 
@@ -214,6 +263,21 @@ export const Vulnerabilities: React.FC = () => {
                                 {tab === 'All' ? 'Tout' : tab === 'Open' ? 'Ouvertes' : tab === 'In Progress' ? 'En Cours' : 'Résolues'}
                             </button>
                         ))}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4 text-slate-400" />
+                        <select
+                            value={filterSeverity}
+                            onChange={(e) => setFilterSeverity(e.target.value)}
+                            className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500"
+                        >
+                            <option value="All">Toutes Sévérités</option>
+                            <option value="Critical">Critique</option>
+                            <option value="High">Élevée</option>
+                            <option value="Medium">Moyenne</option>
+                            <option value="Low">Faible</option>
+                        </select>
                     </div>
 
                     <div className="relative w-full md:w-64">
@@ -287,9 +351,11 @@ export const Vulnerabilities: React.FC = () => {
                                                 <button onClick={() => handleEdit(vuln)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 rounded-lg">
                                                     <Filter className="h-4 w-4" /> {/* Edit icon proxy */}
                                                 </button>
-                                                <button onClick={() => handleDelete(vuln.id!)} className="p-2 hover:bg-red-50 text-red-500 rounded-lg">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
+                                                {canManage && (
+                                                    <button onClick={() => handleDelete(vuln.id!, vuln.organizationId)} className="p-2 hover:bg-red-50 text-red-500 rounded-lg">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -305,7 +371,7 @@ export const Vulnerabilities: React.FC = () => {
                 <form onSubmit={handleSave} className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                         <FloatingLabelInput label="CVE ID (ex: CVE-2024-1234)" value={formData.cveId || ''} onChange={(e) => setFormData({ ...formData, cveId: e.target.value })} required />
-                        <FloatingLabelSelect label="Sévérité" value={formData.severity || 'Medium'} onChange={(e) => setFormData({ ...formData, severity: e.target.value as any })} options={['Low', 'Medium', 'High', 'Critical'].map(v => ({ label: v, value: v }))} />
+                        <FloatingLabelSelect label="Sévérité" value={formData.severity || 'Medium'} onChange={(e) => setFormData({ ...formData, severity: e.target.value as Vulnerability['severity'] })} options={['Low', 'Medium', 'High', 'Critical'].map(v => ({ label: v, value: v }))} />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -320,7 +386,7 @@ export const Vulnerabilities: React.FC = () => {
                         options={assets.map(a => ({ label: a.name, value: a.id }))}
                     />
 
-                    <FloatingLabelSelect label="Statut" value={formData.status || 'Open'} onChange={(e) => setFormData({ ...formData, status: e.target.value as any })} options={['Open', 'In Progress', 'Resolved', 'False Positive'].map(v => ({ label: v, value: v }))} />
+                    <FloatingLabelSelect label="Statut" value={formData.status || 'Open'} onChange={(e) => setFormData({ ...formData, status: e.target.value as Vulnerability['status'] })} options={['Open', 'In Progress', 'Resolved', 'False Positive'].map(v => ({ label: v, value: v }))} />
 
                     <FloatingLabelTextarea label="Description" value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required rows={3} />
                     <FloatingLabelTextarea label="Plan de Remédiation" value={formData.remediationPlan || ''} onChange={(e) => setFormData({ ...formData, remediationPlan: e.target.value })} rows={3} />

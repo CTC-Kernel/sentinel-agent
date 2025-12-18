@@ -34,9 +34,7 @@ const Login = React.lazy(() => import('./views/Login').then(module => ({ default
 const Onboarding = React.lazy(() => import('./views/Onboarding').then(module => ({ default: module.Onboarding })));
 const VerifyEmail = React.lazy(() => import('./views/VerifyEmail').then(module => ({ default: module.VerifyEmail })));
 const LandingPage = React.lazy(() => import('./views/LandingPage').then(module => ({ default: module.LandingPage })));
-const Reports = React.lazy(() => import('./views/Reports').then(module => ({ default: module.Reports })));
-const Vulnerabilities = React.lazy(() => import('./views/Vulnerabilities').then(module => ({ default: module.Vulnerabilities })));
-const ThreatIntelligence = React.lazy(() => import('./views/ThreatIntelligence').then(module => ({ default: module.ThreatIntelligence })));
+
 
 // Route wrapper that decides whether to show Landing Page or App logic
 const LandingOrAppRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -217,21 +215,7 @@ const AppInner: React.FC = () => {
                                 <VerifyEmail />
                             </AuthGuard>
                         } />
-                        <Route path="/reports" element={
-                            <AuthGuard>
-                                <Reports />
-                            </AuthGuard>
-                        } />
-                        <Route path="/vulnerabilities" element={
-                            <AuthGuard>
-                                <Vulnerabilities />
-                            </AuthGuard>
-                        } />
-                        <Route path="/threat-intelligence" element={
-                            <AuthGuard>
-                                <ThreatIntelligence />
-                            </AuthGuard>
-                        } />
+
                         {/* Landing Page Route: Shows LandingPage for visitors, AppLayout (Dashboard) for users */}
                         <Route path="/" element={
                             <LandingOrAppRoute>

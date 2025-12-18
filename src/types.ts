@@ -6,7 +6,7 @@ export enum Criticality {
   CRITICAL = 'Critique'
 }
 
-export type ResourceType = 'Asset' | 'Risk' | 'Project' | 'Audit' | 'Document' | 'Control' | 'Incident' | 'Supplier' | 'BusinessProcess';
+export type ResourceType = 'Asset' | 'Risk' | 'Project' | 'Audit' | 'Document' | 'Control' | 'Incident' | 'Supplier' | 'BusinessProcess' | 'Vulnerability' | 'Threat' | 'SystemLog' | 'ProcessingActivity' | 'SupplierAssessment' | 'SupplierIncident' | 'User' | 'Settings';
 export type ActionType = 'read' | 'create' | 'update' | 'delete' | 'manage';
 
 
@@ -133,6 +133,8 @@ export interface Vulnerability {
   source: string;
   remediationPlan?: string;
   relatedRiskId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Risk {
@@ -253,6 +255,7 @@ export interface Document {
   externalUrl?: string;
   externalId?: string; // ID of the file in the external provider
   folderId?: string;
+  author?: string; // Generated report author name
   content?: string; // HTML content for rich text policies
 }
 
@@ -800,6 +803,21 @@ export interface AISuggestedLink {
   type: 'risk_factor' | 'dependency' | 'impact' | 'mitigation';
   confidence: number;
   reasoning: string;
+}
+
+export interface Threat {
+  id: string;
+  title: string;
+  type: string;
+  severity: 'Critical' | 'High' | 'Medium' | 'Low';
+  country: string;
+  date: string;
+  votes: number;
+  comments: number;
+  author: string;
+  coordinates?: [number, number];
+  timestamp?: number;
+  active?: boolean;
 }
 
 export interface AIInsight {

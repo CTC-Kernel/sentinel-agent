@@ -5,12 +5,13 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants, slideUpVariants } from '../components/ui/animationVariants';
 import { Globe, AlertOctagon, TrendingUp, Users, MessageSquare, ThumbsUp, Shield, Activity, Share2, Box } from '../components/ui/Icons';
+import { Threat } from '../types';
 import { WorldThreatMap } from '../components/map/WorldThreatMap';
 import { Tooltip } from 'react-tooltip';
 import { Badge } from '../components/ui/Badge';
 import { ThreatPlanet } from '../components/map/ThreatPlanet';
 import { useFirestoreCollection } from '../hooks/useFirestore';
-import { orderBy, addDoc, collection } from 'firebase/firestore';
+import { orderBy, addDoc, collection, updateDoc, doc, increment } from 'firebase/firestore';
 import { db } from '../firebase';
 import { logAction } from '../services/logger';
 import { useStore } from '../store';
@@ -23,23 +24,13 @@ const INITIAL_THREATS = [
     { title: 'DDoS attacks on Healthcare sector', type: 'DDoS', severity: 'High', country: 'India', date: '1d ago', votes: 230, comments: 67, author: 'Sentinel Team', timestamp: Date.now() - 90000000 },
 ];
 
-interface Threat {
-    id: string;
-    title: string;
-    type: string;
-    severity: 'Critical' | 'High' | 'Medium' | 'Low';
-    country: string;
-    date: string;
-    votes: number;
-    comments: number;
-    author: string;
-    coordinates?: [number, number]; // Optional for map mapping
-}
+
 
 export const ThreatIntelligence: React.FC = () => {
-    const { user } = useStore();
+    const { user, addToast } = useStore();
     const [tooltipContent, setTooltipContent] = useState('');
     const [activeFilter, setActiveFilter] = useState('All');
+    const [activeSeverityFilter, setActiveSeverityFilter] = useState('All');
     const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
 
     // Real Data Integration
@@ -50,9 +41,14 @@ export const ThreatIntelligence: React.FC = () => {
         if (!loading && threats.length === 0 && !initialLoadRef.current) {
             initialLoadRef.current = true;
             const seedData = async () => {
-                logAction(user, 'SEED_DATA', 'ThreatIntelligence', `Seeding ${INITIAL_THREATS.length} initial threats`);
-                for (const threat of INITIAL_THREATS) {
-                    await addDoc(collection(db, 'threats'), threat);
+                try {
+                    logAction(user, 'SEED_DATA', 'ThreatIntelligence', `Seeding ${INITIAL_THREATS.length} initial threats`);
+                    for (const threat of INITIAL_THREATS) {
+                        await addDoc(collection(db, 'threats'), threat);
+                    }
+                } catch (error) {
+                    // Suppress permission errors in demo/prod mix if user lacks write access
+                    console.warn('Failed to seed initial threats data (likely permission issue):', error);
                 }
             };
             seedData();
@@ -103,7 +99,28 @@ export const ThreatIntelligence: React.FC = () => {
             value: data.value,
             markers: data.markers
         }));
+        return Object.entries(countryCounts).map(([country, data]) => ({
+            country,
+            value: data.value,
+            markers: data.markers
+        }));
     }, [threats]);
+
+    const handleConfirmSighting = async (e: React.MouseEvent, threatId: string) => {
+        e.stopPropagation(); // Prevent card click
+        if (!user) return;
+        try {
+            const threatRef = doc(db, 'threats', threatId);
+            await updateDoc(threatRef, {
+                votes: increment(1)
+            });
+            logAction(user, 'CONFIRM_SIGHTING', 'ThreatIntelligence', `Confirmed sighting of threat ${threatId}`);
+            addToast("Observation confirmée (+1)", "success");
+        } catch (error) {
+            console.warn('Error confirming sighting:', error); // Likely permission in demo mode
+            addToast("Action non autorisée (Mode Démo)", "info");
+        }
+    };
 
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-8 pb-20">
@@ -116,7 +133,10 @@ export const ThreatIntelligence: React.FC = () => {
                 icon={<Globe className="h-6 w-6 text-white" />}
                 breadcrumbs={[{ label: 'Pilotage' }, { label: 'Threat Intel' }]}
                 actions={
-                    <button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl flex items-center text-sm font-bold backdrop-blur-md">
+                    <button
+                        onClick={() => addToast("Le module de signalement communautaire sera disponible dans la v2.1", "info")}
+                        className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl flex items-center text-sm font-bold backdrop-blur-md transition-all"
+                    >
                         <Share2 className="h-4 w-4 mr-2" />
                         Partager une observation
                     </button>
@@ -159,21 +179,39 @@ export const ThreatIntelligence: React.FC = () => {
                             <TrendingUp className="h-5 w-5 mr-2 text-brand-500" />
                             Flux de Menaces (Global)
                         </h2>
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                            {['All', 'Ransomware', 'Vulnerability'].map(f => (
-                                <button
-                                    key={f}
-                                    onClick={() => setActiveFilter(f)}
-                                    className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeFilter === f ? 'bg-white dark:bg-slate-700 shadow text-brand-600' : 'text-slate-500'}`}
-                                >
-                                    {f}
-                                </button>
-                            ))}
+                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg gap-2">
+                            <div className="flex gap-1">
+                                {['All', 'Ransomware', 'Vulnerability'].map(f => (
+                                    <button
+                                        key={f}
+                                        onClick={() => setActiveFilter(f)}
+                                        className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeFilter === f ? 'bg-white dark:bg-slate-700 shadow text-brand-600' : 'text-slate-500'}`}
+                                    >
+                                        {f}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                            <div className="flex gap-1">
+                                {['All', 'Critical', 'High'].map(s => (
+                                    <button
+                                        key={s}
+                                        onClick={() => setActiveSeverityFilter(s)}
+                                        className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeSeverityFilter === s ? 'bg-white dark:bg-slate-700 shadow text-red-600' : 'text-slate-500'}`}
+                                    >
+                                        {s}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
                     <div className="space-y-4">
-                        {threats.filter(t => activeFilter === 'All' || t.type === activeFilter).map((threat) => (
+                        {threats.filter(t => {
+                            const typeMatch = activeFilter === 'All' || t.type === activeFilter;
+                            const severityMatch = activeSeverityFilter === 'All' || t.severity === activeSeverityFilter;
+                            return typeMatch && severityMatch;
+                        }).map((threat) => (
                             <motion.div
                                 key={threat.id}
                                 variants={slideUpVariants}
@@ -196,7 +234,10 @@ export const ThreatIntelligence: React.FC = () => {
                                         </div>
 
                                         <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                                            <button className="flex items-center text-xs font-bold text-slate-500 hover:text-brand-500 transition-colors">
+                                            <button
+                                                onClick={(e) => handleConfirmSighting(e, threat.id)}
+                                                className="flex items-center text-xs font-bold text-slate-500 hover:text-brand-500 transition-colors"
+                                            >
                                                 <ThumbsUp className="h-4 w-4 mr-1.5" />
                                                 {threat.votes} Confirmations
                                             </button>
@@ -204,7 +245,10 @@ export const ThreatIntelligence: React.FC = () => {
                                                 <MessageSquare className="h-4 w-4 mr-1.5" />
                                                 {threat.comments} Discussions
                                             </button>
-                                            <button className="flex items-center text-xs font-bold text-slate-500 hover:text-green-500 transition-colors ml-auto">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); addToast("Génération de règle SIGMA/YARA en cours de développement...", "info"); }}
+                                                className="flex items-center text-xs font-bold text-slate-500 hover:text-green-500 transition-colors ml-auto"
+                                            >
                                                 <Shield className="h-4 w-4 mr-1.5" />
                                                 Créer une règle de détection
                                             </button>
