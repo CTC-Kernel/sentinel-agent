@@ -951,6 +951,21 @@ export const Risks: React.FC = () => {
         return !risk.lastReviewDate || new Date(risk.lastReviewDate) < oneYearAgo;
     };
 
+    const getSLAStatus = (risk: Risk) => {
+        if (risk.strategy === 'Accepter' || !risk.treatmentDeadline) return null;
+        if (risk.status === 'Fermé' || risk.status === 'Résolu') return null;
+
+        const deadline = new Date(risk.treatmentDeadline);
+        const now = new Date();
+        const diffTime = deadline.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 0) return { status: 'overdue', days: Math.abs(diffDays), label: `Retard ${Math.abs(diffDays)}j`, color: 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-900/20 dark:border-red-800' };
+        if (diffDays <= 7) return { status: 'warning', days: diffDays, label: `J-${diffDays}`, color: 'text-orange-600 bg-orange-50 border-orange-200 dark:text-orange-400 dark:bg-orange-900/20 dark:border-orange-800' };
+        return { status: 'ok', days: diffDays, label: `${diffDays}j`, color: 'text-slate-500 bg-slate-100 border-slate-200 dark:text-slate-400 dark:bg-slate-800 dark:border-white/10' };
+    };
+
+
     const handleAIAnalysis = async () => {
         try {
             setAnalyzing(true);
@@ -1491,11 +1506,16 @@ export const Risks: React.FC = () => {
                                                 <Badge status={row.original.status === 'Ouvert' ? 'error' : row.original.status === 'En cours' ? 'warning' : 'success'} variant="outline">
                                                     {row.original.status}
                                                 </Badge>
-                                                {isReviewOverdue(row.original) && (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
-                                                        <Clock className="h-3 w-3 mr-1" /> Revue en retard
-                                                    </span>
                                                 )}
+                                                {(() => {
+                                                    const sla = getSLAStatus(row.original);
+                                                    if (sla) return (
+                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold mt-1 ${sla.color}`}>
+                                                            <Clock className="h-3 w-3 mr-1" /> {sla.label}
+                                                        </span>
+                                                    );
+                                                    return null;
+                                                })()}
                                             </div>
                                         ),
                                     },
@@ -1597,7 +1617,18 @@ export const Risks: React.FC = () => {
                                         </div>
                                         <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-xs font-medium text-slate-600 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
+                                                <div className="flex flex-col gap-1.5 items-start">
+                                                    <span className="text-xs font-medium text-slate-600 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
+                                                    {(() => {
+                                                        const sla = getSLAStatus(risk);
+                                                        if (sla) return (
+                                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[10px] font-bold ${sla.color}`}>
+                                                                <Clock className="w-3 h-3 mr-1" /> {sla.label}
+                                                            </span>
+                                                        )
+                                                        return null;
+                                                    })()}
+                                                </div>
                                                 <div className="flex items-center gap-2">
                                                     {risk.treatment?.slaStatus && risk.treatment.status !== 'Terminé' && (
                                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-red-100 text-red-700 border-red-200' :

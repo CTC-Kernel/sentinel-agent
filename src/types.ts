@@ -166,6 +166,10 @@ export interface Risk {
   history?: RiskHistory[];
   treatment?: RiskTreatment;
   isSecureStorage?: boolean;
+  // V2: SLA & Treatment
+  treatmentDeadline?: string;
+  treatmentOwnerId?: string;
+  treatmentStatus?: 'Pending' | 'In Progress' | 'Done' | 'Overdue';
   category?: string;
   updatedAt?: string;
   justification?: string;

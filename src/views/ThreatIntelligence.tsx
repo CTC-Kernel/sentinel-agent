@@ -5,7 +5,9 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants, slideUpVariants } from '../components/ui/animationVariants';
 import { Globe, AlertOctagon, TrendingUp, Users, MessageSquare, ThumbsUp, Shield, Activity, Share2, Box } from '../components/ui/Icons';
+import { RefreshCw } from 'lucide-react';
 import { Threat } from '../types';
+import { ThreatFeedService } from '../services/ThreatFeedService';
 import { WorldThreatMap } from '../components/map/WorldThreatMap';
 import { Tooltip } from 'react-tooltip';
 import { Badge } from '../components/ui/Badge';
@@ -32,6 +34,7 @@ export const ThreatIntelligence: React.FC = () => {
     const [activeFilter, setActiveFilter] = useState('All');
     const [activeSeverityFilter, setActiveSeverityFilter] = useState('All');
     const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
+    const [isSeeding, setIsSeeding] = useState(false);
 
     // Real Data Integration
     const { data: threats, loading } = useFirestoreCollection<Threat>('threats', [orderBy('timestamp', 'desc')], { realtime: true });
@@ -133,13 +136,36 @@ export const ThreatIntelligence: React.FC = () => {
                 icon={<Globe className="h-6 w-6 text-white" />}
                 breadcrumbs={[{ label: 'Pilotage' }, { label: 'Threat Intel' }]}
                 actions={
-                    <button
-                        onClick={() => addToast("Le module de signalement communautaire sera disponible dans la v2.1", "info")}
-                        className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl flex items-center text-sm font-bold backdrop-blur-md transition-all"
-                    >
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Partager une observation
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={async () => {
+                                if (isSeeding) return;
+                                setIsSeeding(true);
+                                addToast("Mise à jour des flux de menaces en cours...", "info");
+                                try {
+                                    const stats = await ThreatFeedService.seedThreatsAndVulnerabilities(user?.organizationId || 'demo');
+                                    addToast(`Flux mis à jour: ${stats.threats} menaces, ${stats.vulns} vulnérabilités ajoutées.`, "success");
+                                } catch (e) {
+                                    console.error(e);
+                                    addToast("Erreur lors de la mise à jour des flux", "error");
+                                } finally {
+                                    setIsSeeding(false);
+                                }
+                            }}
+                            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl flex items-center text-sm font-bold backdrop-blur-md transition-all"
+                            disabled={isSeeding}
+                        >
+                            <RefreshCw className={`h-4 w-4 mr-2 ${isSeeding ? 'animate-spin' : ''}`} />
+                            {isSeeding ? 'Mise à jour...' : 'Actualiser Flux'}
+                        </button>
+                        <button
+                            onClick={() => addToast("Le module de signalement communautaire sera disponible dans la v2.1", "info")}
+                            className="bg-brand-600 hover:bg-brand-500 text-white border border-brand-400 px-4 py-2 rounded-xl flex items-center text-sm font-bold shadow-lg shadow-brand-500/20 transition-all"
+                        >
+                            <Share2 className="h-4 w-4 mr-2" />
+                            Partager une observation
+                        </button>
+                    </div>
                 }
             />
 

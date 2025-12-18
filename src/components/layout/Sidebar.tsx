@@ -31,22 +31,28 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       title: t('common.pilotage'),
       items: [
         { key: 'dashboard', name: t('sidebar.dashboard'), to: '/', icon: LayoutDashboard },
-        { key: 'calendar', name: t('common.calendar'), to: '/calendar', icon: Calendar },
-        { key: 'voxel', name: t('common.ctcEngine'), to: '/ctc-engine', icon: Settings3D },
-        { key: 'incidents', name: t('sidebar.incidents'), to: '/incidents', icon: Siren },
         { key: 'projects', name: t('sidebar.projects'), to: '/projects', icon: FolderKanban },
         { key: 'reports', name: 'Rapports', to: '/reports', icon: Printer },
+        { key: 'calendar', name: t('common.calendar'), to: '/calendar', icon: Calendar },
+      ]
+    },
+    {
+      title: "OPÉRATIONS",
+      items: [
+        { key: 'incidents', name: t('sidebar.incidents'), to: '/incidents', icon: Siren },
+        { key: 'vulnerabilities', name: 'Vulnérabilités', to: '/vulnerabilities', icon: Bug },
+        { key: 'threat-intelligence', name: 'Threat Intel', to: '/threat-intelligence', icon: Globe },
+        { key: 'voxel', name: t('common.ctcEngine'), to: '/ctc-engine', icon: Settings3D },
       ]
     },
     {
       title: t('common.governance'),
       items: [
         { key: 'risks', name: t('common.riskManagement'), to: '/risks', icon: ShieldAlert },
-        { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse },
         { key: 'compliance', name: t('common.complianceDda'), to: '/compliance', icon: FileText },
         { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity },
-        { key: 'vulnerabilities', name: 'Vulnérabilités', to: '/vulnerabilities', icon: Bug },
-        { key: 'threat-intelligence', name: 'Threat Intel', to: '/threat-intelligence', icon: Globe },
+        { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse },
+        { key: 'privacy', name: t('common.privacyGdpr'), to: '/privacy', icon: Fingerprint },
       ]
     },
     {
@@ -55,7 +61,6 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         { key: 'assets', name: t('sidebar.assets'), to: '/assets', icon: Server },
         { key: 'suppliers', name: t('sidebar.suppliers'), to: '/suppliers', icon: Building },
         { key: 'documents', name: t('sidebar.documents'), to: '/documents', icon: Briefcase },
-        { key: 'privacy', name: t('common.privacyGdpr'), to: '/privacy', icon: Fingerprint },
       ]
     },
     {

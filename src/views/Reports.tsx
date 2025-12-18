@@ -21,14 +21,16 @@ import {
     FileCheck,
     Trash2,
     Lock,
-    Search
+    Search,
+    Archive
 } from 'lucide-react';
 import { useFirestoreCollection } from '../hooks/useFirestore';
-import { where, deleteDoc, doc } from 'firebase/firestore';
-import { Risk, Audit, Asset, Document, Control } from '../types';
+import { where, deleteDoc, doc, getDocs, query, collection } from 'firebase/firestore';
+import { Risk, Audit, Asset, Document, Control, Incident } from '../types';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Button } from '../components/ui/button';
 import { PdfService } from '../services/PdfService';
+import { CompliancePackService } from '../services/CompliancePackService';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { getPlanLimits } from '../config/plans';
@@ -154,6 +156,27 @@ export const Reports: React.FC = () => {
                         title: 'RAPPORT DE CONFORMITÉ',
                         subtitle: `État des lieux ISO 27001 / SoA | ${new Date().toLocaleDateString()}`,
                         filename: `soa_audit_${new Date().toISOString().split('T')[0]}.pdf`,
+                    });
+                    break;
+                case 'compliance_pack':
+                    if (!canReadControls) throw new Error("Permission refusée");
+                    // Fetch additional data required for the pack on-demand
+                    const [incidentsSnap, allDocsSnap] = await Promise.all([
+                        getDocs(query(collection(db, 'incidents'), where('organizationId', '==', user?.organizationId))),
+                        getDocs(query(collection(db, 'documents'), where('organizationId', '==', user?.organizationId)))
+                    ]);
+
+                    const incidentsData = incidentsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Incident));
+                    const allDocumentsData = allDocsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Document));
+
+                    await CompliancePackService.generatePack({
+                        organizationName: canWhiteLabel ? (organization?.name || 'Sentinel GRC') : 'Sentinel GRC',
+                        risks,
+                        controls,
+                        documents: allDocumentsData,
+                        audits,
+                        incidents: incidentsData,
+                        assets
                     });
                     break;
                 default:
@@ -347,6 +370,16 @@ export const Reports: React.FC = () => {
                                         gradient="from-indigo-500 to-violet-500"
                                         onGenerate={() => handleGenerateReport('compliance_soa')}
                                         loading={generating === 'compliance_soa'}
+                                        disabled={!canReadControls}
+                                    />
+                                    <ReportCard
+                                        title="Pack de Conformité (Audit)"
+                                        description="Export complet ZIP contenant toutes les preuves : SoA, Registres, Politiques et Rapports pour l'auditeur."
+                                        icon={Archive}
+                                        color="purple-500"
+                                        gradient="from-purple-500 to-fuchsia-500"
+                                        onGenerate={() => handleGenerateReport('compliance_pack')}
+                                        loading={generating === 'compliance_pack'}
                                         disabled={!canReadControls}
                                     />
                                 </div>

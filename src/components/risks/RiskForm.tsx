@@ -90,6 +90,11 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const status = useWatch({ control, name: 'status' });
     const assetId = useWatch({ control, name: 'assetId' });
 
+    // Watch for SLA fields
+    // const treatmentDeadline = watch('treatmentDeadline');
+    // const treatmentOwnerId = watch('treatmentOwnerId');
+
+
     const mapCriticalityToImpact = (crit: Criticality): number => {
         switch (crit) {
             case Criticality.CRITICAL: return 5;
@@ -509,6 +514,39 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                 </div>
                             </div>
                         </div>
+
+                        {/* SLA & Treatment Plan Details */}
+                        {strategy !== 'Accepter' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-xl border border-brand-100 dark:border-brand-900/30 bg-brand-50/50 dark:bg-brand-900/10">
+                                <Controller
+                                    name="treatmentDeadline"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <FloatingLabelInput
+                                            label="Échéance du Traitement (SLA)"
+                                            type="date"
+                                            value={field.value || ''}
+                                            onChange={field.onChange}
+                                            required={(strategy as string) !== 'Accepter'}
+                                            error={errors.treatmentDeadline?.message}
+                                        />
+                                    )}
+                                />
+                                <Controller
+                                    name="treatmentOwnerId"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <CustomSelect
+                                            label="Responsable du Traitement"
+                                            value={field.value || ''}
+                                            onChange={field.onChange}
+                                            options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
+                                            placeholder="Sélectionner un responsable..."
+                                        />
+                                    )}
+                                />
+                            </div>
+                        )}
 
                         {/* Existing Controls */}
                         <div className="space-y-3">

@@ -24,6 +24,12 @@ export const riskSchema = z.object({
     affectedProcessIds: z.array(z.string()).optional(),
     relatedSupplierIds: z.array(z.string()).optional(),
     relatedProjectIds: z.array(z.string()).optional(),
+
+    // V2: SLA & Treatment (Root Level for indexing)
+    treatmentDeadline: z.string().optional(),
+    treatmentOwnerId: z.string().optional(),
+    treatmentStatus: z.enum(['Pending', 'In Progress', 'Done', 'Overdue']).optional(),
+
     treatment: z.object({
         strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter']).optional(),
         description: z.string().optional(),

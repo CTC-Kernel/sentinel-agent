@@ -588,6 +588,92 @@ export class NotificationService {
     }
 
     /**
+     * Check for upcoming risk treatment deadlines and notify owners
+     */
+    static async checkRiskTreatmentSLA(organizationId: string): Promise<void> {
+        // Fetch open risks
+        const q = query(
+            collection(db, 'risks'),
+            where('organizationId', '==', organizationId),
+            where('status', 'in', ['Ouvert', 'En cours'])
+        );
+
+        const snap = await getDocs(q);
+        const risks = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Risk));
+
+        for (const risk of risks) {
+            // Only if treatment data exists and not Accepted (Accepted risks have no treatment deadline usually)
+            if (!risk.treatmentDeadline || risk.strategy === 'Accepter') continue;
+
+            const deadline = new Date(risk.treatmentDeadline);
+            const now = new Date();
+            const diffTime = deadline.getTime() - now.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            // Alert logic:
+            // 1. Overdue (diffDays < 0)
+            // 2. Due soon (diffDays <= 7)
+            if (diffDays <= 7) {
+                // Determine Owner (Prefer treatment owner, fallback to risk owner)
+                const ownerId = risk.treatmentOwnerId || risk.ownerId; // Note: ownerId might be empty if not assigned
+                if (!ownerId) continue;
+
+                // Idempotency: Check if notified in last 24h
+                const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                // Construct a unique-ish link or rely on title parsing
+                const notifLink = `/risks?id=${risk.id}`; // Assuming we can deep link
+
+                const existingNotifs = await getDocs(query(
+                    collection(db, 'notifications'),
+                    where('userId', '==', ownerId),
+                    where('link', '==', notifLink),
+                    where('createdAt', '>=', yesterday)
+                ));
+
+                const msgTag = diffDays < 0 ? 'Retard traitement' : 'Échéance traitement';
+                const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(msgTag));
+
+                if (!alreadyNotified) {
+                    const isOverdue = diffDays < 0;
+                    await addDoc(collection(db, 'notifications'), sanitizeData({
+                        organizationId,
+                        userId: ownerId,
+                        type: isOverdue ? 'danger' : 'warning',
+                        title: `${msgTag} : ${risk.threat}`,
+                        message: isOverdue
+                            ? `Le traitement est en retard de ${Math.abs(diffDays)} jours`
+                            : `Le traitement arrive à échéance dans ${diffDays} jours`,
+                        link: notifLink,
+                        read: false,
+                        createdAt: new Date().toISOString()
+                    }));
+
+                    // Send Email
+                    try {
+                        const userSnap = await getDoc(doc(db, 'users', ownerId));
+                        if (userSnap.exists()) {
+                            const userData = userSnap.data();
+                            if (userData.email) {
+                                await sendEmail(null, {
+                                    to: userData.email,
+                                    subject: `${msgTag} : ${risk.threat}`,
+                                    html: getRiskTreatmentDueTemplate(
+                                        risk.threat,
+                                        risk.treatmentDeadline,
+                                        userData.displayName || 'Propriétaire',
+                                        buildAppUrl('/risks')
+                                    ),
+                                    type: 'RISK_TREATMENT_DUE'
+                                });
+                            }
+                        }
+                    } catch (e) { ErrorLogger.error(e, 'NotificationService.checkRiskTreatmentSLA.sendEmail'); }
+                }
+            }
+        }
+    }
+
+    /**
      * Run all automated checks
      */
     static async runAutomatedChecks(organizationId: string): Promise<void> {
@@ -597,11 +683,19 @@ export class NotificationService {
             this.checkUpcomingMaintenance(organizationId),
             this.checkCriticalRisks(organizationId),
             this.checkExpiringContracts(organizationId),
+            this.checkRiskTreatmentSLA(organizationId),
         ]);
 
         results.forEach((result, index) => {
             if (result.status === 'rejected') {
-                const methods = ['checkUpcomingAudits', 'checkOverdueDocuments', 'checkUpcomingMaintenance', 'checkCriticalRisks', 'checkExpiringContracts'];
+                const methods = [
+                    'checkUpcomingAudits',
+                    'checkOverdueDocuments',
+                    'checkUpcomingMaintenance',
+                    'checkCriticalRisks',
+                    'checkExpiringContracts',
+                    'checkRiskTreatmentSLA'
+                ];
                 ErrorLogger.error(result.reason, `NotificationService.${methods[index]}`);
             }
         });
