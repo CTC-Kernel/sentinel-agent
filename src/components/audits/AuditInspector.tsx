@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { findingSchema, FindingFormData } from '../../schemas/findingSchema';
-import { Audit, Control, Document } from '../../types';
+import { Audit, Control, Document as GRCDocument } from '../../types';
 import { useAuditDetails } from '../../hooks/audits/useAuditDetails';
 import { ScrollableTabs } from '../ui/ScrollableTabs';
-import { AlertOctagon, ClipboardCheck, BrainCircuit, FileText, MessageSquare, Users, Target, Plus, Trash2, ArrowRight, CheckCheck, Loader2, AlertTriangle, Download, Edit } from '../ui/Icons';
-import { CustomTooltip } from '../ui/CustomTooltip';
-import { FloatingLabelTextarea } from '../ui/FloatingLabelInput'; // Check naming
-import { AIAssistButton } from '../ai/AIAssistButton'; // Check path
-import { AuditDashboard } from './AuditDashboard'; // Reuse
+import { AlertOctagon, ClipboardCheck, BrainCircuit, FileText, Target, Plus, Trash2, ArrowRight, CheckCheck, Loader2, Download } from 'lucide-react';
+import { Tooltip as CustomTooltip } from '../ui/Tooltip';
+import { FloatingLabelTextarea } from '../ui/FloatingLabelInput';
+import { AIAssistButton } from '../ai/AIAssistButton';
+import { AuditDashboard } from './AuditDashboard';
 import { useStore } from '../../store';
 import { canDeleteResource } from '../../utils/permissions';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useForm } from 'react-hook-form'; // Removed Controller
+import { zodResolver } from '@hookform/resolvers/zod';
+import { findingSchema, FindingFormData } from '../../schemas/findingSchema';
 
 interface AuditInspectorProps {
     audit: Audit;
     onClose: () => void;
     controls: Control[];
-    documents: Document[];
+    documents: GRCDocument[];
     refreshAudits: () => void;
     canEdit: boolean;
 }
@@ -28,7 +27,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
     const {
         findings, checklist, fetchDetails,
         handleAddFinding, handleDeleteFinding,
-        generateChecklist, handleChecklistAnswer, markAllConform,
+        generateChecklist, handleChecklistAnswer,
         validateAudit, generateAuditReport, handleExportPack,
         isGeneratingReport, isValidating
     } = useAuditDetails(audit, controls, documents, refreshAudits);
@@ -213,7 +212,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                 )}
 
                 {activeTab === 'dashboard' && (
-                    <AuditDashboard audit={audit} />
+                    <AuditDashboard audits={[audit]} findings={findings} />
                 )}
             </div>
         </div>

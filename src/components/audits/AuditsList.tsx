@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
-import { DataTable } from '../../ui/DataTable';
-import { Audit } from '../../../types';
+import { DataTable } from '../ui/DataTable';
+import { Audit } from '../../types';
 import { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2, CalendarDays, ClipboardCheck, AlertOctagon } from '../../ui/Icons';
-import { Tooltip } from '../../ui/Tooltip';
+import { Edit, Trash2, CalendarDays, ClipboardCheck, AlertOctagon } from 'lucide-react';
+import { Tooltip } from '../ui/Tooltip';
 
 interface AuditsListProps {
     audits: Audit[];
@@ -112,7 +112,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
             columns={columns}
             data={audits}
             loading={isLoading}
-            searchPlaceholder="Rechercher un audit..."
+
         />
     );
 };

@@ -11,7 +11,7 @@ import { Drawer } from '../components/ui/Drawer';
 import { AuditForm } from '../components/audits/AuditForm';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useStore } from '../store';
-import { AuditInspector } from '../components/audits/AuditInspector';
+import { AuditInspector } from '@/components/audits/AuditInspector';
 import { Audit } from '../types';
 
 export const Audits: React.FC = () => {
@@ -78,7 +78,7 @@ export const Audits: React.FC = () => {
                 onExportCSV={handleExportCSV}
                 onExportCalendar={handleExportCalendar}
                 canEdit={canEdit}
-                auditsCount={audits.length}
+
             />
 
             <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-2xl border border-glass-border">

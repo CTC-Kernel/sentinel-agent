@@ -66,6 +66,7 @@ export interface Asset {
   createdAt: string;
   purchaseDate?: string;
   purchasePrice?: number; // Valeur d'achat
+  version?: string; // Software version
   currentValue?: number; // Valeur après amortissement
   warrantyEnd?: string;
   nextMaintenance?: string;
@@ -77,7 +78,9 @@ export interface Asset {
   updatedAt?: string;
   // Specialized fields
   ipAddress?: string;
-  version?: string;
+  hostname?: string;
+  cpe?: string;
+  macAddress?: string;
   licenseExpiry?: string;
   email?: string;
   role?: string;
@@ -347,6 +350,8 @@ export interface Audit {
   createdBy?: string; // User ID of the creator (for Segregation of Duties)
   updatedAt?: string;
   score?: number; // Added for Audit reporting
+  reference?: string; // e.g. AUD-2024-001
+  standard?: string; // e.g. ISO 27001
 }
 
 export interface EvidenceRequest {

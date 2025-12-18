@@ -1,9 +1,9 @@
-import { useState, useMemo, useDeferredValue, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useFirestoreCollection } from '../useFirestore';
 import { where, collection, addDoc, updateDoc, doc, deleteDoc, query, getDocs, arrayUnion, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
-import { Audit, Control, Asset, Risk, UserProfile, Document, Project, Finding, AuditChecklist, AuditQuestion } from '../../types';
+import { Audit, Control, Asset, Risk, UserProfile, Document, Project, Finding, AuditChecklist } from '../../types';
 import { canEditResource, canDeleteResource } from '../../utils/permissions';
 import { logAction } from '../../services/logger';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -15,7 +15,7 @@ import { sendEmail } from '../../services/emailService';
 import { analyticsService } from '../../services/analyticsService';
 
 export const useAudits = () => {
-    const { user, addToast, organization } = useStore();
+    const { user, addToast } = useStore();
     const canEdit = canEditResource(user, 'Audit');
     const canDelete = canDeleteResource(user, 'Audit');
 
@@ -172,7 +172,7 @@ export const useAudits = () => {
         addToast(`${suggestions.length} audits planifiés avec succès.`, "success");
     };
 
-    const generateChecklist = async (audit: Audit) => {
+    const generateChecklist = async (_audit: Audit) => {
         if (!user?.organizationId) return;
         // ... Logic for generating checklist ...
         // Reused from Audits.tsx but simplified/abstracted

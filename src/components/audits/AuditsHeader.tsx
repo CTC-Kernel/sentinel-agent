@@ -1,7 +1,7 @@
 import React from 'react';
-import { Plus, Download, Calendar, BrainCircuit } from '../../ui/Icons';
-import { PageHeader } from '../../ui/PageHeader';
-import { Audit } from '../../../types';
+import { Plus, Download, Calendar, BrainCircuit } from 'lucide-react';
+import { PageHeader } from '../ui/PageHeader';
+
 
 interface AuditsHeaderProps {
     title: string;
@@ -11,21 +11,17 @@ interface AuditsHeaderProps {
     onExportCSV: () => void;
     onExportCalendar: () => void;
     canEdit: boolean;
-    auditsCount: number;
 }
 
 export const AuditsHeader: React.FC<AuditsHeaderProps> = ({
-    title, subtitle, onNewAudit, onGeneratePlan, onExportCSV, onExportCalendar, canEdit, auditsCount
+    title, subtitle, onNewAudit, onGeneratePlan, onExportCSV, onExportCalendar, canEdit
 }) => {
     return (
         <PageHeader
             title={title}
             subtitle={subtitle}
-            quickStats={[
-                { label: 'Audits', value: auditsCount.toString() },
-                // ... other stats could be added here
-            ]}
-            action={
+
+            actions={
                 <div className="flex gap-2">
                     <button onClick={onExportCalendar} className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors" title="Exporter Calendrier">
                         <Calendar className="w-5 h-5" />

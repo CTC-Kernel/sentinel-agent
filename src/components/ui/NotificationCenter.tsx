@@ -157,9 +157,15 @@ export const NotificationCenter: React.FC = () => {
                                 </div>
                             )}
                             <div className="p-2 text-center border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                                <span className="text-[10px] text-slate-400">
-                                    Seules les 50 dernières notifications sont affichées
-                                </span>
+                                <button
+                                    onClick={() => {
+                                        navigate('/notifications');
+                                        setIsOpen(false);
+                                    }}
+                                    className="text-xs font-bold text-brand-600 hover:text-brand-700 dark:text-brand-400 hover:underline"
+                                >
+                                    Voir toutes les notifications
+                                </button>
                             </div>
                         </div>
                     </div>

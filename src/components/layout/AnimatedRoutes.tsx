@@ -5,7 +5,7 @@ import { AnimatedPage } from './AnimatedPage';
 
 // Lazy Imports (Copied from App.tsx)
 const Dashboard = React.lazy(() => import('../../views/Dashboard').then(module => ({ default: module.Dashboard })));
-const Assets = React.lazy(() => import('../../views/Assets').then(module => ({ default: module.Assets })));
+const Assets = React.lazy(() => import('../../views/Assets'));
 const Risks = React.lazy(() => import('../../views/Risks').then(module => ({ default: module.Risks })));
 const Compliance = React.lazy(() => import('../../views/Compliance').then(module => ({ default: module.Compliance })));
 const Audits = React.lazy(() => import('../../views/Audits').then(module => ({ default: module.Audits })));
@@ -25,7 +25,8 @@ const KioskPage = React.lazy(() => import('../../components/AssetIntake/KioskPag
 const BackupRestore = React.lazy(() => import('../../views/BackupRestore').then(module => ({ default: module.BackupRestore })));
 const AnalyticsDashboard = React.lazy(() => import('../../components/dashboard/AnalyticsDashboard').then(module => ({ default: module.AnalyticsDashboard })));
 const InteractiveTimeline = React.lazy(() => import('../../components/timeline/InteractiveTimeline').then(module => ({ default: module.InteractiveTimeline })));
-const AuditTrailViewer = React.lazy(() => import('../../components/audit/AuditTrailViewer').then(module => ({ default: module.AuditTrailViewer })));
+const ActivityLogs = React.lazy(() => import('../../views/ActivityLogs').then(module => ({ default: module.ActivityLogs })));
+
 const CalendarView = React.lazy(() => import('../../views/CalendarView').then(module => ({ default: module.CalendarView })));
 const Pricing = React.lazy(() => import('../../views/Pricing'));
 const AdminDashboard = React.lazy(() => import('../../views/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
@@ -47,7 +48,7 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/" element={<AnimatedPage><Dashboard /></AnimatedPage>} />
                 <Route path="/analytics" element={<AnimatedPage><AnalyticsDashboard /></AnimatedPage>} />
                 <Route path="/timeline" element={<AnimatedPage><InteractiveTimeline /></AnimatedPage>} />
-                <Route path="/audit-trail" element={<AnimatedPage><AuditTrailViewer /></AnimatedPage>} />
+                <Route path="/audit-trail" element={<AnimatedPage><ActivityLogs /></AnimatedPage>} />
                 <Route path="/incidents" element={<AnimatedPage><Incidents /></AnimatedPage>} />
                 <Route path="/projects" element={<AnimatedPage><Projects /></AnimatedPage>} />
                 <Route path="/assets" element={<AnimatedPage><Assets /></AnimatedPage>} />

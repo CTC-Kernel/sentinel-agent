@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Assets } from '../Assets';
+import Assets from '../Assets';
 import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 

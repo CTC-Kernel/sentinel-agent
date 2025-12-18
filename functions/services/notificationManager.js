@@ -58,15 +58,27 @@ class NotificationManager {
     }
 
     /**
+     * Helper to check if a notification was already sent recently (24h)
+     */
+    static async checkIfAlreadyNotified(db, userId, link, type) {
+        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const snap = await db.collection('notifications')
+            .where('userId', '==', userId)
+            .where('link', '==', link)
+            .where('type', '==', type)
+            .where('createdAt', '>=', yesterday)
+            .limit(1)
+            .get();
+        return !snap.empty;
+    }
+
+    /**
      * 1. Check Upcoming Audits (7 days and 1 day before)
      */
     static async checkUpcomingAudits(db, orgId, orgName) {
         const today = new Date();
         const sevenDaysLater = new Date();
         sevenDaysLater.setDate(today.getDate() + 7);
-        const tomorrow = new Date();
-        tomorrow.setDate(today.getDate() + 1);
-
         // Date ranges for querying (simple string comparison works for ISO dates YYYY-MM-DD)
         const rangeStart = today.toISOString().split('T')[0];
         const rangeEnd = sevenDaysLater.toISOString().split('T')[0];
@@ -85,23 +97,24 @@ class NotificationManager {
 
             for (const doc of auditsSnap.docs) {
                 const audit = doc.data();
-                // Check if we already notified for this specific check (e.g. store in separate collection or array)
-                // For simplicity here, we assume idempotency via 'lastNotifiedAt' or similar, but simplified for this implementation.
-                // A robust system would track `notificationSent_7d`, `notificationSent_1d`.
-
-                // We'll just check if it's exactly 7 days or 1 day away to avoid spamming every run (assuming daily run)
                 const auditDate = new Date(audit.date);
                 const diffTime = Math.abs(auditDate - today);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                 if (diffDays === 7 || diffDays === 1) {
                     if (audit.auditorId) {
+                        const link = `/audits/${doc.id}`;
+                        const type = 'AUDIT_REMINDER';
+
+                        const alreadySent = await this.checkIfAlreadyNotified(db, audit.auditorId, link, type);
+                        if (alreadySent) continue;
+
                         await this.queueNotification(batch, db, {
                             userId: audit.auditorId,
                             title: "Rappel d'Audit",
                             message: `L'audit "${audit.name}" est prévu pour le ${audit.date}.`,
-                            link: `/audits/${doc.id}`,
-                            type: 'AUDIT_REMINDER',
+                            link,
+                            type,
                             emailHtml: getAuditReminderHtml(audit.name, "Auditeur", audit.date, `${appBaseUrl.value()}/audits/${doc.id}`)
                         });
                     }
@@ -134,17 +147,20 @@ class NotificationManager {
             for (const doc of docsSnap.docs) {
                 const document = doc.data();
                 if (document.ownerId) {
-                    // Check if already notified recently to prevent spam
-                    // Skipping for MVP, assuming daily run catches it once if we filter strictly or update a 'lastNotified' field.
-                    // IMPORTANT: To prevent spam on "Overdue", we should check a flag.
-                    // For now, let's notify only if it matches today exactly (notification on due date).
-                    if (document.nextReviewDate === today) {
+                    // Check if overdue or exactly today
+                    if (document.nextReviewDate <= today) {
+                        const link = `/documents/${doc.id}?view=preview`;
+                        const type = 'DOC_REVIEW';
+
+                        const alreadySent = await this.checkIfAlreadyNotified(db, document.ownerId, link, type);
+                        if (alreadySent) continue;
+
                         await this.queueNotification(batch, db, {
                             userId: document.ownerId,
                             title: "Révision Documentaire",
-                            message: `Le document "${document.title}" doit être révisé aujourd'hui.`,
-                            link: `/documents/${doc.id}?view=preview`,
-                            type: 'DOC_REVIEW',
+                            message: `Le document "${document.title}" doit être révisé.`,
+                            link,
+                            type,
                             emailHtml: getDocumentReviewHtml(document.title, "Propriétaire", document.nextReviewDate, `${appBaseUrl.value()}/documents/${doc.id}`)
                         });
                     }
@@ -159,14 +175,11 @@ class NotificationManager {
 
     /**
      * 3. Check Risk Treatments Due & Enforce SLA
-     * - Checks for treatments due today (Notification)
-     * - Checks for treatments overdue (Update Status -> Retard, SLA -> Breached + Notification)
      */
     static async checkRiskTreatments(db, orgId, orgName) {
         const today = new Date().toISOString().split('T')[0];
 
         try {
-            // Get open or in-progress risks
             const risksSnap = await db.collection('risks')
                 .where('organizationId', '==', orgId)
                 .where('status', 'in', ['Ouvert', 'En cours'])
@@ -184,6 +197,8 @@ class NotificationManager {
 
                     if (!treatment.dueDate || !treatment.ownerId) continue;
 
+                    const link = `/risk-assessment`;
+
                     // CASE 1: OVERDUE (Enforce SLA)
                     if (treatment.dueDate < today && treatment.status !== 'Terminé' && treatment.status !== 'Retard') {
                         // Update Risk Document
@@ -195,27 +210,34 @@ class NotificationManager {
                         });
                         updatesCount++;
 
-                        // Notify Owner
-                        await this.queueNotification(batch, db, {
-                            userId: treatment.ownerId,
-                            title: "⚠️ Traitement en Retard (SLA Rompu)",
-                            message: `Le plan de traitement pour "${risk.name}" est en retard. Statut mis à jour.`,
-                            link: `/risk-assessment`,
-                            type: 'RISK_SLA_BREACH',
-                            emailHtml: getRiskTreatmentDueHtml(risk.name, treatment.dueDate, "Responsable", `${appBaseUrl.value()}/risk-assessment`)
-                        });
+                        const type = 'RISK_SLA_BREACH';
+                        const alreadySent = await this.checkIfAlreadyNotified(db, treatment.ownerId, link, type);
+                        if (!alreadySent) {
+                            await this.queueNotification(batch, db, {
+                                userId: treatment.ownerId,
+                                title: "⚠️ Traitement en Retard (SLA Rompu)",
+                                message: `Le plan de traitement pour "${risk.name}" est en retard. Statut mis à jour.`,
+                                link,
+                                type,
+                                emailHtml: getRiskTreatmentDueHtml(risk.name, treatment.dueDate, "Responsable", `${appBaseUrl.value()}/risk-assessment`)
+                            });
+                        }
                     }
 
                     // CASE 2: DUE TODAY (Reminder)
                     else if (treatment.dueDate === today && treatment.status !== 'Terminé') {
-                        await this.queueNotification(batch, db, {
-                            userId: treatment.ownerId,
-                            title: "Échéance de Traitement Aujourd'hui",
-                            message: `Le plan de traitement pour "${risk.name}" doit être terminé ce soir.`,
-                            link: `/risk-assessment`,
-                            type: 'RISK_TREATMENT_DUE',
-                            emailHtml: getRiskTreatmentDueHtml(risk.name, treatment.dueDate, "Responsable", `${appBaseUrl.value()}/risk-assessment`)
-                        });
+                        const type = 'RISK_TREATMENT_DUE';
+                        const alreadySent = await this.checkIfAlreadyNotified(db, treatment.ownerId, link, type);
+                        if (!alreadySent) {
+                            await this.queueNotification(batch, db, {
+                                userId: treatment.ownerId,
+                                title: "Échéance de Traitement Aujourd'hui",
+                                message: `Le plan de traitement pour "${risk.name}" doit être terminé ce soir.`,
+                                link,
+                                type,
+                                emailHtml: getRiskTreatmentDueHtml(risk.name, treatment.dueDate, "Responsable", `${appBaseUrl.value()}/risk-assessment`)
+                            });
+                        }
                     }
                 }
             }
@@ -252,14 +274,20 @@ class NotificationManager {
             for (const doc of assetsSnap.docs) {
                 const asset = doc.data();
                 if (asset.ownerId) {
-                    await this.queueNotification(batch, db, {
-                        userId: asset.ownerId,
-                        title: "Maintenance à venir",
-                        message: `Maintenance prévue pour "${asset.name}" le ${asset.nextMaintenanceDate}.`,
-                        link: `/asset-inventory`,
-                        type: 'ASSET_MAINTENANCE',
-                        emailHtml: getMaintenanceHtml(asset.name, asset.nextMaintenanceDate, "Propriétaire", `${appBaseUrl.value()}/asset-inventory`)
-                    });
+                    const link = `/asset-inventory`;
+                    const type = 'ASSET_MAINTENANCE';
+                    const alreadySent = await this.checkIfAlreadyNotified(db, asset.ownerId, link, type);
+
+                    if (!alreadySent) {
+                        await this.queueNotification(batch, db, {
+                            userId: asset.ownerId,
+                            title: "Maintenance à venir",
+                            message: `Maintenance prévue pour "${asset.name}" le ${asset.nextMaintenanceDate}.`,
+                            link,
+                            type,
+                            emailHtml: getMaintenanceHtml(asset.name, asset.nextMaintenanceDate, "Propriétaire", `${appBaseUrl.value()}/asset-inventory`)
+                        });
+                    }
                 }
             }
 
@@ -269,7 +297,6 @@ class NotificationManager {
             logger.error(`Error checking assets for org ${orgId}`, error);
         }
     }
-
 
     /**
      * Helper to add notification and email to batch

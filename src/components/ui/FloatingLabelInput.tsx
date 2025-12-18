@@ -102,3 +102,5 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
 });
 
 FloatingLabelInput.displayName = 'FloatingLabelInput';
+
+export const FloatingLabelTextarea = (props: FloatingLabelInputProps) => <FloatingLabelInput textarea {...props} />;

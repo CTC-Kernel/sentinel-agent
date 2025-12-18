@@ -1,9 +1,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Drawer } from '../ui/Drawer';
 import { Badge } from '../ui/Badge';
-import { Project, ProjectTask, UserProfile, Risk, Control, Asset, Audit, Supplier, SystemLog, ProjectMilestone } from '../../types';
+import { Project, ProjectTask, UserProfile, Risk, Control, Asset, Audit, ProjectMilestone } from '../../types';
 import { CalendarDays, LayoutDashboard, CheckSquare, Target, FileSpreadsheet, ShieldAlert, Server, ClipboardCheck, BrainCircuit, History, MessageSquare, FileText, Download, Copy, Edit, Trash2, Plus, Loader2 } from '../ui/Icons';
 import { ScrollableTabs } from '../ui/ScrollableTabs';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
@@ -13,11 +12,10 @@ import { ProjectAIAssistant } from './ProjectAIAssistant';
 import { KanbanColumn } from './KanbanColumn';
 import { GanttChart } from './GanttChart';
 import { Comments } from '../ui/Comments';
-import { NotificationService } from '../../services/notificationService';
 import { generateICS, downloadICS } from '../../utils/calendar';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { TaskFormModal } from './TaskFormModal'; // Assuming strictly relative path derived from Projects.tsx imports
+import { TaskFormModal } from './TaskFormModal';
 import { sanitizeData } from '../../utils/dataSanitizer';
 
 import './gantt.css';
@@ -49,19 +47,18 @@ interface ProjectInspectorProps {
 }
 
 export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
-    isOpen, project, onClose, user, canEdit, usersList,
+    isOpen, project, onClose, canEdit, usersList,
     risks, controls, assets, audits,
     updateTasks, onDeleteProject, onDuplicateProject, onEditProject,
     onExportExecutiveReport, onGenerateReport, isSubmitting
 }) => {
-    const navigate = useNavigate();
+    // Navigate unused
     const [inspectorTab, setInspectorTab] = useState<InspectorTabId>('overview');
     const [viewMode, setViewMode] = useState<'list' | 'board'>('list'); // Task View Mode
     const [ganttViewMode, setGanttViewMode] = useState<'Month' | 'Week' | 'Day'>('Month');
 
     // Local Data
     const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>([]);
-    const [projectHistory, setProjectHistory] = useState<SystemLog[]>([]);
 
     // Kanban State
     const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
@@ -74,7 +71,6 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     useEffect(() => {
         if (project) {
             fetchMilestones(project.id);
-            fetchHistory(project.id);
         }
     }, [project?.id]);
 
@@ -88,26 +84,11 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
         }
     };
 
-    const fetchHistory = async (projectId: string) => {
-        try {
-            // Pseudo-query for logs - usually logs are in 'systemLogs' or 'logs' collection
-            const q = query(collection(db, 'systemLogs'), where('resource', '==', 'Project'), where('details', '>=', projectId), limit(20)); // Simplified
-            // In reality, logs might be complex to filter by details string. 
-            // Assuming simplified logic or empty for now if no dedicated index.
-            // setProjectHistory(...) 
-        } catch (e) {
-            console.error("Error fetching history");
-        }
-    };
-
     // Derived Lists
     const linkedRisks = useMemo(() => risks.filter(r => project?.relatedRiskIds?.includes(r.id)), [risks, project]);
     const linkedControls = useMemo(() => controls.filter(c => project?.relatedControlIds?.includes(c.id)), [controls, project]);
     const linkedAssets = useMemo(() => assets.filter(a => project?.relatedAssetIds?.includes(a.id)), [assets, project]);
     const linkedAuditsList = useMemo(() => audits.filter(a => project?.relatedAuditIds?.includes(a.id)), [audits, project]);
-    // Suppliers? Not in prop list, assume empty or derive from somewhere? 
-    // Projects.tsx had `linkedSuppliers`. I'll omit for now or fetch.
-    const linkedSuppliers: Supplier[] = [];
 
     // Task Handlers
     const handleTaskSubmit = async (taskData: Partial<ProjectTask>) => {
@@ -117,7 +98,6 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
 
         if (editingTask) {
             newTasks = newTasks.map(t => t.id === editingTask.id ? { ...t, ...cleanTaskData } : t);
-            // Notify... (skipped strictly for brevity, can re-add if needed or moved to logic)
         } else {
             const newTask = { id: Date.now().toString(), ...cleanTaskData } as ProjectTask;
             newTasks.push(newTask);
@@ -131,7 +111,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
         if (!project || !updateTasks) return;
         const task = project.tasks.find(t => t.id === taskId);
         if (!task) return;
-        const newStatus = task.status === 'Terminé' ? 'A faire' : 'Terminé';
+        const newStatus: ProjectTask['status'] = task.status === 'Terminé' ? 'A faire' : 'Terminé';
         const newTasks = project.tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t);
         await updateTasks(project, newTasks);
     };
@@ -144,7 +124,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     };
 
     // Kanban Handlers
-    const handleDragStart = (e: React.DragEvent, taskId: string) => {
+    const handleDragStart = (_: React.DragEvent, taskId: string) => {
         setDraggedTaskId(taskId);
     };
     const handleDragOver = (e: React.DragEvent) => e.preventDefault();

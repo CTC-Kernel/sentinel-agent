@@ -76,7 +76,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
                 layout={layout}
                 onLayoutChange={updateLayout}
                 isEditing={props.isEditing || false}
-                widgetProps={props}
+                widgetProps={props as unknown as Record<string, unknown>}
             />
 
             {/* Add Widget Button (Only visible in Edit Mode) */}

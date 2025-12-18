@@ -1,0 +1,31 @@
+
+> sentinel-grc@2.0.0 type-check
+> tsc --noEmit
+
+src/components/assets/AssetList.tsx(3,17): error TS6133: 'Criticality' is declared but its value is never read.
+src/components/assets/AssetList.tsx(5,18): error TS6133: 'Clock' is declared but its value is never read.
+src/components/assets/AssetList.tsx(5,25): error TS6133: 'QrCode' is declared but its value is never read.
+src/components/assets/AssetList.tsx(5,33): error TS6133: 'Trash2' is declared but its value is never read.
+src/components/assets/AssetList.tsx(5,41): error TS6133: 'Edit' is declared but its value is never read.
+src/components/assets/AssetList.tsx(6,1): error TS6133: 'CustomTooltip' is declared but its value is never read.
+src/components/assets/AssetList.tsx(10,1): error TS6133: 'motion' is declared but its value is never read.
+src/components/assets/AssetList.tsx(34,5): error TS6133: 'onDelete' is declared but its value is never read.
+src/components/assets/AssetList.tsx(35,5): error TS6133: 'onGenerateLabel' is declared but its value is never read.
+src/components/assets/AssetList.tsx(36,5): error TS6133: 'isGeneratingLabels' is declared but its value is never read.
+src/components/assets/AssetList.tsx(83,27): error TS6133: 'maintenanceOverdue' is declared but its value is never read.
+src/components/assets/AssetList.tsx(93,146): error TS2304: Cannot find name 'getCriticalityColor'.
+src/components/layout/AnimatedRoutes.tsx(8,96): error TS2339: Property 'Assets' does not exist on type 'typeof import("/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Assets")'.
+src/components/projects/ProjectInspector.tsx(16,1): error TS6133: 'NotificationService' is declared but its value is never read.
+src/components/projects/ProjectInspector.tsx(18,45): error TS6133: 'orderBy' is declared but its value is never read.
+src/components/projects/ProjectInspector.tsx(52,31): error TS6133: 'user' is declared but its value is never read.
+src/components/projects/ProjectInspector.tsx(57,11): error TS6133: 'navigate' is declared but its value is never read.
+src/components/projects/ProjectInspector.tsx(64,12): error TS6133: 'projectHistory' is declared but its value is never read.
+src/components/projects/ProjectInspector.tsx(64,28): error TS6133: 'setProjectHistory' is declared but its value is never read.
+src/components/projects/ProjectInspector.tsx(94,19): error TS6133: 'q' is declared but its value is never read.
+src/components/projects/ProjectInspector.tsx(94,130): error TS2304: Cannot find name 'limit'.
+src/components/projects/ProjectInspector.tsx(110,11): error TS6133: 'linkedSuppliers' is declared but its value is never read.
+src/components/projects/ProjectInspector.tsx(136,36): error TS2345: Argument of type '{ status: string; id: string; title: string; description?: string | undefined; assignee?: string | undefined; assigneeId?: string | undefined; startDate?: string | undefined; dueDate?: string | undefined; ... 4 more ...; progress?: number | undefined; }[]' is not assignable to parameter of type 'ProjectTask[]'.
+  Type '{ status: string; id: string; title: string; description?: string; assignee?: string; assigneeId?: string; startDate?: string; dueDate?: string; priority?: "low" | "medium" | "high"; estimatedHours?: number; actualHours?: number; dependencies?: string[]; progress?: number; }' is not assignable to type 'ProjectTask'.
+    Types of property 'status' are incompatible.
+      Type 'string' is not assignable to type '"En cours" | "Terminé" | "A faire" | "Bloqué"'.
+src/components/projects/ProjectInspector.tsx(147,30): error TS6133: 'e' is declared but its value is never read.

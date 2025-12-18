@@ -880,9 +880,9 @@ export class PdfService {
 
         return this.generateExecutiveReport({
             ...options,
-            title: "RAPPORT D'AUDIT",
-            subtitle: `${audit.reference} - ${audit.standard}`,
-            summary: executiveSummary,
+            title: `Rapport d'Audit: ${audit.name}`,
+            subtitle: `${audit.reference || audit.id.slice(0, 8)} - ${audit.standard || audit.framework || 'N/A'}`,
+            summary: executiveSummary || `Audit de type ${audit.type} réalisé par ${audit.auditor}. ${audit.findingsCount} écarts identifiés.`,
             metrics: [
                 { label: "Non-conformités", value: metrics.major_findings + metrics.minor_findings, subtext: "écarts identifiés" },
                 { label: "Score Conformité", value: metrics.conformity_score + "/100", subtext: "niveau d'adhérence" },
