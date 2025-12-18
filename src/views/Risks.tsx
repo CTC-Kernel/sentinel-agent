@@ -22,6 +22,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { SEO } from '../components/SEO';
 import { ShieldAlert } from 'lucide-react';
 import { PdfService } from '../services/PdfService';
+import { canEditResource } from '../utils/permissions';
 // @ts-ignore
 import Papa from 'papaparse';
 
@@ -63,7 +64,9 @@ export const Risks: React.FC = () => {
 
     // Role Logic
     const role = user?.role || 'user';
-    const canEdit = ['admin', 'rssi', 'risk_manager'].includes(role) || (role === 'user' && demoMode);
+
+    // Permission Logic
+    const canEdit = canEditResource(user, 'Risk');
 
     // Titles
     let risksTitle = 'Gestion des Risques';

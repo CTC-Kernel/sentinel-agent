@@ -33,27 +33,10 @@ const Integrations = React.lazy(() => import('../../views/Integrations').then(mo
 const ThreatRegistry = React.lazy(() => import('../../views/ThreatRegistry').then(module => ({ default: module.ThreatRegistry })));
 const Vulnerabilities = React.lazy(() => import('../../views/Vulnerabilities').then(module => ({ default: module.Vulnerabilities })));
 const ThreatIntelligence = React.lazy(() => import('../../views/ThreatIntelligence').then(module => ({ default: module.ThreatIntelligence })));
-
 const Reports = React.lazy(() => import('../../views/Reports').then(module => ({ default: module.Reports })));
 
-import { AlertTriangle } from '../ui/Icons';
-import { Link } from 'react-router-dom';
-import { Button } from '../ui/button';
-
-const NotFound = () => (
-    <div className="flex flex-col items-center justify-center h-full text-center p-6">
-        <div className="glass-panel p-12 rounded-[2.5rem] max-w-md shadow-2xl border border-white/40 dark:border-white/5">
-            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/10 flex items-center justify-center mx-auto mb-6 text-slate-500">
-                <AlertTriangle className="h-8 w-8" />
-            </div>
-            <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-3 font-display tracking-tight">404</h1>
-            <p className="text-slate-600 dark:text-slate-400 mb-8 text-lg font-medium">La page que vous cherchez n'existe pas.</p>
-            <Button asChild className="rounded-2xl px-8 py-6 font-bold text-sm shadow-lg">
-                <Link to="/">Retour à l'accueil</Link>
-            </Button>
-        </div>
-    </div>
-);
+// New Professional 404 Page
+import { NotFound } from '../../views/NotFound';
 
 export const AnimatedRoutes: React.FC = () => {
     const location = useLocation();

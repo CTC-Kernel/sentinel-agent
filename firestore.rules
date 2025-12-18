@@ -9,12 +9,11 @@ service cloud.firestore {
     }
     
     function getUserData() {
-      // Prefer custom claims for performance and stability in aggregations
-      return request.auth.token.organizationId != null 
+      // Require custom claims for performance and security
+      // Falls back to 'none' if claims are not yet set (e.g. pending backend sync)
+      return request.auth.token.keys().hasAny(['organizationId']) 
         ? request.auth.token 
-        : (exists(/databases/$(database)/documents/users/$(request.auth.uid)) 
-            ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data 
-            : {'role': 'none', 'organizationId': 'none'});
+        : {'role': 'none', 'organizationId': 'none'};
     }
     
     // Role Checks
@@ -22,7 +21,7 @@ service cloud.firestore {
       return isAuthenticated() && getUserData().role == role;
     }
 
-    function isAdmin() { return hasRole('admin'); }
+    function isAdmin() { return request.auth.token.role == 'admin' || request.auth.token.superAdmin == true; }
     function isSuperAdmin() { return request.auth.token.superAdmin == true; }
     function isRSSI() { return hasRole('rssi'); }
     function isAuditor() { return hasRole('auditor'); }
@@ -239,11 +238,8 @@ service cloud.firestore {
       // Global read access for all authenticated users
       allow read: if isAuthenticated();
       
-      // Write access:
-      // In a real scenario, restricted to Sentinel Team (SuperAdmin).
-      // For this Demo App: Allow any authenticated user to create/update to enable 
-      // Auto-seeding and collaborative simulation features.
-      allow write: if isAuthenticated(); 
+      // Write access restricted to Admin/SuperAdmin for production safety
+      allow write: if isAuthenticated() && (isAdmin() || isSuperAdmin()); 
     }
     
     // Controls

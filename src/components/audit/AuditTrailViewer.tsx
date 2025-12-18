@@ -4,6 +4,11 @@ import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import ReactDiffViewer from 'react-diff-viewer-continued';
+import { motion } from 'framer-motion';
+import { staggerContainerVariants } from '../ui/animationVariants';
+import { MasterpieceBackground } from '../ui/MasterpieceBackground';
+import { PageHeader } from '../ui/PageHeader';
+import { SEO } from '../SEO';
 import {
     History,
     User,
@@ -175,29 +180,36 @@ export const AuditTrailViewer: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-foreground">
-                        Audit Trail
-                    </h2>
-                    <p className="text-muted-foreground mt-1">
-                        Traçabilité complète de toutes les modifications
-                    </p>
-                </div>
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="visible"
+            className="space-y-8"
+        >
+            <MasterpieceBackground />
+            <SEO title="Journal d'Audit" />
 
-                <button
-                    onClick={handleExport}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:scale-105 transition-transform"
-                >
-                    <Download className="h-4 w-4" />
-                    Exporter CSV
-                </button>
-            </div>
+            <PageHeader
+                title="Journal d'Audit"
+                subtitle="Traçabilité complète et immuable de toutes les activités système."
+                icon={<History className="h-6 w-6 text-white" />}
+                breadcrumbs={[
+                    { label: 'Système' },
+                    { label: 'Journal d\'Audit' }
+                ]}
+                actions={
+                    <button
+                        onClick={handleExport}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-500/20 transition-all active:scale-95"
+                    >
+                        <Download className="h-4 w-4" />
+                        Exporter CSV
+                    </button>
+                }
+            />
 
             {/* Filters */}
-            <div className="bg-card text-card-foreground p-6 rounded-2xl border border-border">
+            <div className="glass-panel p-6 rounded-2xl border border-white/50 dark:border-white/5 shadow-sm">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Search */}
                     <div className="relative">
@@ -417,6 +429,6 @@ export const AuditTrailViewer: React.FC = () => {
                     )}
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 };
