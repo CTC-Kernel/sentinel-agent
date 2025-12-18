@@ -548,6 +548,30 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             </div>
                         )}
 
+                        {/* Justification Field - Required for High Risks Acceptance */}
+                        {strategy === 'Accepter' && (probability * impact) >= 12 && (
+                            <div className="space-y-2 animate-fade-in p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/30 rounded-xl">
+                                <label className="flex items-center gap-2 text-sm font-bold text-orange-800 dark:text-orange-200">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    Justification d'Acceptation du Risque (Obligatoire)
+                                </label>
+                                <p className="text-xs text-orange-700 dark:text-orange-300">
+                                    Vous vous apprêtez à accepter un risque critique (Score: {probability * impact}). Veuillez justifier cette décision pour le registre.
+                                </p>
+                                <textarea
+                                    {...control.register('justification')}
+                                    rows={3}
+                                    className="w-full rounded-lg border-orange-300 dark:border-orange-800 bg-white dark:bg-black/20 text-sm focus:ring-2 focus:ring-orange-500"
+                                    placeholder="Expliquez pourquoi ce risque est accepté (ex: coût de traitement disproportionné, risque transitoire...)"
+                                />
+                                {errors.justification && (
+                                    <p className="text-xs font-bold text-red-600 dark:text-red-400 mt-1">
+                                        {errors.justification.message}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
                         {/* Existing Controls */}
                         <div className="space-y-3">
                             <label className="flex items-center text-sm font-bold text-slate-900 dark:text-white">

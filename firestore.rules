@@ -228,6 +228,13 @@ service cloud.firestore {
     }
 
     // Threat Intelligence (Global/Shared)
+    match /relationships/{relId} {
+      allow read: if isAuthenticated() && resource.data.sourceOrgId == request.auth.token.organizationId;
+      allow create: if isAuthenticated() && request.resource.data.sourceOrgId == request.auth.token.organizationId;
+      allow update: if isAuthenticated() && resource.data.sourceOrgId == request.auth.token.organizationId;
+      allow delete: if isAuthenticated() && resource.data.sourceOrgId == request.auth.token.organizationId;
+    }
+
     match /threats/{threatId} {
       // Global read access for all authenticated users
       allow read: if isAuthenticated();

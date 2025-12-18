@@ -1,2346 +1,294 @@
-import React, { useDeferredValue, useEffect, useMemo, useState, useRef } from 'react';
-import { FRAMEWORK_OPTIONS } from '../data/frameworks';
-import { SEO } from '../components/SEO';
-import { RiskFormData, riskSchema } from '../schemas/riskSchema';
-import { z } from 'zod';
-
-import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, arrayUnion } from 'firebase/firestore';
-import { db } from '../firebase';
-import { Risk, Control, Asset, SystemLog, UserProfile, RiskHistory, Project, BusinessProcess, Supplier, Audit, RiskRecommendation, RiskTreatment, Criticality, Incident, MitreTechnique } from '../types';
-import { canEditResource, canDeleteResource } from '../utils/permissions';
-import { Plus, Search, Filter, Download, Clock, TrendingUp, FileText, BrainCircuit, FileCode, TrendingDown, RefreshCw, Loader2, FileSpreadsheet, Copy, Edit, Trash2, FolderKanban, MessageSquare, Network, CalendarDays, Server, ShieldAlert, ArrowRight, CheckCircle2, LayoutDashboard, History, MoreVertical } from 'lucide-react';
-import { Menu, Transition } from '@headlessui/react';
-import { ObsidianService } from '../services/ObsidianService';
-import { CustomSelect } from '../components/ui/CustomSelect';
-import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { Badge } from '../components/ui/Badge';
-import { LoadingScreen } from '../components/ui/LoadingScreen';
-import { DataTable } from '../components/ui/DataTable';
-
-import { PageControls } from '../components/ui/PageControls';
-import { motion } from 'framer-motion';
-import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
-import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
-
-import { RiskForm } from '../components/risks/RiskForm';
-import { RelationshipGraph } from '../components/RelationshipGraph';
+import React, { useState, useRef } from 'react';
+// import { useLocation } from 'react-router-dom';
 import { useStore } from '../store';
-import { usePersistedState } from '../hooks/usePersistedState';
-import { useFirestoreCollection } from '../hooks/useFirestore';
-import { logAction } from '../services/logger';
-import { getPlanLimits } from '../config/plans';
-import { Comments } from '../components/ui/Comments';
-import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { CardSkeleton } from '../components/ui/Skeleton';
-import { EmptyState } from '../components/ui/EmptyState';
-import { RiskDashboard } from '../components/risks/RiskDashboard';
+// import { useRiskData } from '../hooks/risks/useRiskData';
+import { useRiskData } from '../hooks/risks/useRiskData';
+import { useRiskActions } from '../hooks/risks/useRiskActions';
+import { useRiskFilters } from '../hooks/risks/useRiskFilters';
+import { useRiskStats } from '../hooks/risks/useRiskStats';
+
+import { RiskHeader } from '../components/risks/RiskHeader';
+import { RiskStats } from '../components/risks/RiskStats';
+import { RiskMatrix } from '../components/risks/RiskMatrix';
+import { RiskList } from '../components/risks/RiskList';
+import { RiskGrid } from '../components/risks/RiskGrid';
+import { RiskInspector } from '../components/risks/RiskInspector';
+import { RiskFilters } from '../components/risks/RiskFilters';
+import { RiskForm } from '../components/risks/RiskForm';
 import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
-import { RiskTemplate, createRisksFromTemplate } from '../utils/riskTemplates';
-import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
-import { RiskAIAssistant } from '../components/risks/RiskAIAssistant';
-import { RiskRecommendationsModal } from '../components/risks/RiskRecommendationsModal';
-import { SafeHTML } from '../components/ui/SafeHTML';
-
-
-import { PageHeader } from '../components/ui/PageHeader';
+// import { RiskRecommendation } from '../types';
 import { Drawer } from '../components/ui/Drawer';
-import { ErrorLogger } from '../services/errorLogger';
-import { hybridService } from '../services/hybridService';
-import { aiService } from '../services/aiService';
-import { integrationService } from '../services/integrationService';
-import { analyticsService } from '../services/analyticsService';
-import { sanitizeData } from '../utils/dataSanitizer';
-import { ScrollableTabs } from '../components/ui/ScrollableTabs';
-import { useLocation, useNavigate } from 'react-router-dom';
-
-
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { SEO } from '../components/SEO';
+import { ShieldAlert } from 'lucide-react';
+import { PdfService } from '../services/PdfService';
+// @ts-ignore
+import Papa from 'papaparse';
 
 export const Risks: React.FC = () => {
-    const { user, addToast, organization, demoMode } = useStore();
-    const location = useLocation();
-    const navigate = useNavigate();
+    const { user, demoMode } = useStore();
+    // const location = useLocation();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // 1. Data Hook
+    const {
+        risks, assets, controls, rawProcesses, suppliers, audits, projects, usersList,
+        loading: dataLoading, refreshRisks
+    } = useRiskData();
+
+    // 2. Actions Hook
+    const {
+        createRisk, updateRisk, deleteRisk, bulkDeleteRisks, exportCSV,
+        submitting, isGeneratingReport, setIsGeneratingReport, isExportingCSV
+    } = useRiskActions(refreshRisks);
+
+    // 3. Filters Hook
+    const {
+        activeFilters, setActiveFilters,
+        frameworkFilter, setFrameworkFilter,
+        matrixFilter, setMatrixFilter,
+        showAdvancedSearch, setShowAdvancedSearch,
+        filteredRisks
+    } = useRiskFilters(risks);
+
+    // 4. Stats Hook
+    const stats = useRiskStats(filteredRisks);
+
+    // 5. Local UI State
+    const [viewMode, setViewMode] = useState<'matrix' | 'list' | 'cards'>('cards');
+    const [selectedRisk, setSelectedRisk] = useState<any | null>(null);
+    const [creationMode, setCreationMode] = useState(false);
+    const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+    const [importing, setImporting] = useState(false);
+
+    // Role Logic
     const role = user?.role || 'user';
+    const canEdit = ['admin', 'rssi', 'risk_manager'].includes(role) || (role === 'user' && demoMode);
 
+    // Titles
     let risksTitle = 'Gestion des Risques';
     let risksSubtitle = "Analyse et traitement des risques selon ISO 27005.";
-
     if (role === 'admin' || role === 'rssi') {
         risksTitle = 'Registre des Risques & Exposition';
-        risksSubtitle = "Pilotez l'identification, l'évaluation et le traitement des risques critiques de l'organisation.";
+        risksSubtitle = "Pilotez l'identification, l'évaluation et le traitement des risques critiques.";
     } else if (role === 'direction') {
         risksTitle = 'Vue Exécutive des Risques';
-        risksSubtitle = "Surveillez les risques majeurs, leur impact potentiel et l'avancement des plans de traitement.";
-    } else if (role === 'auditor') {
-        risksTitle = 'Risques Auditables';
-        risksSubtitle = "Analysez les risques, contrôles et preuves associés pour préparer vos missions d'audit.";
-    } else if (role === 'project_manager') {
-        risksTitle = 'Risques Projets';
-        risksSubtitle = "Suivez les risques impactant vos projets, jalons critiques et engagements.";
-    } else {
-        risksTitle = 'Mes Risques';
-        risksSubtitle = "Consultez les risques liés à vos actifs, activités ou responsabilités.";
+        risksSubtitle = "Surveillez les risques majeurs et l'avancement des plans de traitement.";
     }
 
-    // Data Fetching with Hooks
-    const { data: rawRisks, loading: risksLoading, refresh: refreshRisks, error: risksError } = useFirestoreCollection<Risk>(
-        'risks',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
-
-    // V2 Integration: Backend Data State
-    const [backendRisks, setBackendRisks] = useState<Risk[]>([]);
-    const [usingBackend, setUsingBackend] = useState(false);
-    const [backendLoading, setBackendLoading] = useState(false);
-
-    useEffect(() => {
-        if (risksError) {
-            ErrorLogger.handleErrorWithToast(risksError, 'Risks.fetch');
-        }
-    }, [risksError, user]);
-
-    // Fetch from V2 Adapter
-    useEffect(() => {
-        const fetchFromBackend = async () => {
-            if (!user?.organizationId) return;
-
-            // Check if we should use backend (can be a flag or default)
-            // For this transition phase, we try to fetch, if successful, we use it.
-            setBackendLoading(true);
-            try {
-                const response = await hybridService.getRisksFromBackend();
-                if (response.success && Array.isArray(response.data) && response.data.length > 0) {
-                    setBackendRisks(response.data as Risk[]);
-                    setUsingBackend(true);
-                    addToast("Connecté au Kernel CyberSec GRC V2", "success"); // Optional feedback
-                }
-            } catch (err) {
-                console.warn("Backend V2 fallback failed, using Firestore", err);
-            } finally {
-                setBackendLoading(false);
-            }
-        };
-
-        fetchFromBackend();
-    }, [user?.organizationId, addToast]);
-
-    const { data: rawControls, loading: controlsLoading } = useFirestoreCollection<Control>(
-        'controls',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
-
-    const { data: rawAssets, loading: assetsLoading } = useFirestoreCollection<Asset>(
-        'assets',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
-
-    const { data: rawProcesses, loading: processesLoading } = useFirestoreCollection<BusinessProcess>(
-        'business_processes',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
-
-    const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
-        'users',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
-
-    const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
-        'suppliers',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
-
-    const { data: projects, loading: projectsLoading } = useFirestoreCollection<Project>(
-        'projects',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
-
-    const { data: audits, loading: auditsLoading } = useFirestoreCollection<Audit>(
-        'audits',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
-
-    const { data: incidents, loading: incidentsLoading } = useFirestoreCollection<Incident>(
-        'incidents',
-        [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
-
-    // Derived State (Sorting)
-    const risks = React.useMemo(() => {
-        const source = usingBackend ? backendRisks : rawRisks;
-        return [...source].sort((a, b) => b.score - a.score);
-    }, [rawRisks, backendRisks, usingBackend]);
-    const controls = React.useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
-    const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
-
-
-
-    const [creationMode, setCreationMode] = useState(false);
-    const [showTemplateModal, setShowTemplateModal] = useState(false);
-    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-    const [activeFilters, setActiveFilters] = useState<SearchFilters>({ query: '', type: 'all' });
-    const [frameworkFilter, setFrameworkFilter] = usePersistedState<string>('risks_framework_filter', '');
-    const [viewMode, setViewMode] = usePersistedState<'list' | 'grid' | 'matrix'>('risks_view_mode_v2', 'grid');
-
-    // Matrix Filter State
-    const [matrixFilter, setMatrixFilter] = usePersistedState<{ p: number, i: number } | null>('risks_matrix_filter', null);
-
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const canEdit = canEditResource(user, 'Risk');
-    const [isEditing, setIsEditing] = useState(false);
-    // const [currentRiskId, setCurrentRiskId] = useState<string | null>(null); // Removed unused
-    const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
-    const [mitreQuery, setMitreQuery] = useState('');
-    const [mitreResults, setMitreResults] = useState<MitreTechnique[]>([]);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'treatment' | 'dashboard' | 'projects' | 'audits' | 'history' | 'comments' | 'graph' | 'threats'>('details');
-    const [linkedProjects, setLinkedProjects] = useState<Project[]>([]);
-    const [linkedAudits, setLinkedAudits] = useState<Audit[]>([]);
-    const [riskHistory, setRiskHistory] = useState<SystemLog[]>([]);
-    const [riskScoreHistory, setRiskScoreHistory] = useState<RiskHistory[]>([]);
-    const [stats, setStats] = useState({ total: 0, critical: 0, mitigated: 0, reviewDue: 0 });
-    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-    const [importing, setImporting] = useState(false);
-    const [isExportingCSV, setIsExportingCSV] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
-    const [updating, setUpdating] = useState(false);
-    const loading = risksLoading || backendLoading || controlsLoading || assetsLoading || usersLoading || processesLoading || suppliersLoading || projectsLoading || auditsLoading || incidentsLoading || importing;
-    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-    const [preSelectedProjectId, setPreSelectedProjectId] = useState<string | null>(null);
-
-    // AI Recommendations State
-    const [showRecommendations, setShowRecommendations] = useState(false);
-    const [recommendations, setRecommendations] = useState<RiskRecommendation[]>([]);
-    const [analyzing, setAnalyzing] = useState(false);
-
-    const mapCriticalityToImpact = (crit: Criticality): number => {
-        switch (crit) {
-            case Criticality.CRITICAL: return 5;
-            case Criticality.HIGH: return 4;
-            case Criticality.MEDIUM: return 3;
-            case Criticality.LOW:
-            default: return 2;
-        }
-    };
-
-    useEffect(() => {
-        const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-        setStats({
-            total: risks.length,
-            critical: risks.filter(r => r.score >= 15).length,
-            mitigated: risks.filter(r => (r.residualScore || r.score) < r.score).length,
-            reviewDue: risks.filter(r => !r.lastReviewDate || new Date(r.lastReviewDate) < oneYearAgo).length
-        });
-    }, [risks]);
-
-
-
-    const openInspector = React.useCallback(async (risk: Risk) => {
-        setSelectedRisk(risk);
-        setCreationMode(false);
-        setInspectorTab('details');
-        setIsEditing(false);
-
-        if (!user?.organizationId) {
-            ErrorLogger.error("Cannot open inspector: User has no organization ID", 'Risks.openInspector');
-            return;
-        }
-
-        try {
-            const q = query(collection(db, 'system_logs'), where('organizationId', '==', user.organizationId), limit(50));
-            const snap = await getDocs(q);
-            const logs = snap.docs.map(d => d.data() as SystemLog);
-            const relevantLogs = logs.filter(l => l.resource === 'Risk' && l.details?.includes(risk.threat));
-            relevantLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-            setRiskHistory(relevantLogs);
-
-            const hq = query(collection(db, 'risk_history'), where('riskId', '==', risk.id), where('organizationId', '==', user.organizationId));
-            const hSnap = await getDocs(hq);
-            const historyData = hSnap.docs.map(d => ({ id: d.id, ...d.data() } as RiskHistory));
-            historyData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            setRiskScoreHistory(historyData);
-
-            const projQ = query(collection(db, 'projects'), where('organizationId', '==', user?.organizationId), where('relatedRiskIds', 'array-contains', risk.id));
-            getDocs(projQ).then(snap => { setLinkedProjects(snap.docs.map(d => ({ id: d.id, ...d.data() } as Project))); });
-
-            const auditQ = query(collection(db, 'audits'), where('organizationId', '==', user?.organizationId), where('relatedRiskIds', 'array-contains', risk.id));
-            getDocs(auditQ).then(snap => { setLinkedAudits(snap.docs.map(d => ({ id: d.id, ...d.data() } as Audit))); });
-
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.openInspector', 'FETCH_FAILED'); }
-    }, [user?.organizationId]);
-
-    useEffect(() => {
-        const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string; createForProject?: string; projectName?: string };
-
-        if (state.createForProject) {
-            setCreationMode(true);
-            setPreSelectedProjectId(state.createForProject);
-            // Optional: Show toast or indicator that we are creating for a project
-        }
-
-        if (!state.fromVoxel || !state.voxelSelectedId) return;
-        if (loading || risks.length === 0) return;
-        const risk = risks.find(r => r.id === state.voxelSelectedId);
-        if (risk) {
-            openInspector(risk);
-        }
-    }, [location.state, loading, risks, openInspector]);
-
-
-
-    const onSubmit = async (data: RiskFormData) => {
-        if (!canEdit || !user?.organizationId) return;
-        setSubmitting(true);
-        try {
-            // Validate data with Zod
-            const validatedData = riskSchema.parse(data);
-
-            const asset = assets.find(a => a.id === validatedData.assetId);
-            if (asset) {
-                const cia = [asset.confidentiality, asset.integrity, asset.availability];
-                const recommendedImpact = Math.max(...cia.map(mapCriticalityToImpact));
-                if (validatedData.impact < recommendedImpact) {
-                    ErrorLogger.warn('Impact inférieur au niveau de criticité de l\'actif', 'Risks.onSubmit', {
-                        metadata: {
-                            assetId: asset.id,
-                            impact: validatedData.impact,
-                            recommendedImpact
-                        }
-                    });
-                }
-            }
-
-            const probability = validatedData.probability;
-            const impact = validatedData.impact;
-            const residualProbability = validatedData.residualProbability ?? probability;
-            const residualImpact = validatedData.residualImpact ?? impact;
-
-            const score = probability * impact;
-            const residualScore = residualProbability * residualImpact;
-
-            if (residualScore > score) {
-                addToast("Le score résiduel ne peut pas être supérieur au score brut. Ajustez la probabilité ou l'impact résiduel.", "error");
-                return;
-            }
-
-            if (validatedData.strategy === 'Accepter' && residualScore >= 15 && !validatedData.justification?.trim()) {
-                addToast("Pour accepter un risque critique (score résiduel >= 15), une justification détaillée est requise.", "error");
-                return;
-            }
-
-            // Derive owner name
-            const ownerUser = usersList.find(u => u.uid === validatedData.ownerId);
-            const ownerName = ownerUser?.displayName || '';
-
-            // Sanitize data before sending to Firestore
-            const cleanNewRisk = {
-                ...sanitizeData(validatedData),
-                owner: ownerName,
-                relatedProjectIds: preSelectedProjectId ? [preSelectedProjectId] : []
-            };
-
-            const nowIso = new Date().toISOString();
-
-            // Creation only
-            const docRef = await addDoc(collection(db, 'risks'), sanitizeData({
-                ...cleanNewRisk,
-                organizationId: user.organizationId,
-                score,
-                residualScore,
-                previousScore: score,
-                createdAt: nowIso,
-                lastReviewDate: nowIso
-            }));
-
-            // Bi-directional linking for Project
-            if (preSelectedProjectId) {
-                const projectRef = doc(db, 'projects', preSelectedProjectId);
-                await updateDoc(projectRef, {
-                    relatedRiskIds: arrayUnion(docRef.id)
-                });
-                setPreSelectedProjectId(null); // Reset after successful creation
-            }
-
-            // Persist initial history entry in immutable collection
-            await addDoc(collection(db, 'risk_history'), {
-                organizationId: user.organizationId,
-                riskId: docRef.id,
-                date: new Date().toISOString(),
-                previousScore: score,
-                newScore: score,
-                previousProbability: probability,
-                newProbability: probability,
-                previousImpact: impact,
-                newImpact: impact,
-                residualProbability,
-                residualImpact,
-                residualScore,
-                changedBy: user.email || 'Unknown'
-            });
-
-            if (cleanNewRisk.isSecureStorage) {
-                await hybridService.storeSecureData('risk', {
-                    id: docRef.id,
-                    ...cleanNewRisk,
-                    organizationId: user.organizationId
-                });
-                addToast("Risque sécurisé sur OVH SecNumCloud", "success");
-            }
-
-            // Centralized Audit Logging (SecNumCloud)
-            await hybridService.logCriticalEvent({
-                action: 'create',
-                object_type: 'risk',
-                object_id: docRef.id,
-                description: `Created risk: ${cleanNewRisk.threat}`,
-                metadata: { score, residualScore }
-            });
-
-            await logAction(user, 'CREATE', 'Risk', `Ajout risque: ${cleanNewRisk.threat}`);
-            addToast("Risque ajouté", "success");
-            setCreationMode(false);
-            refreshRisks();
-        } catch (error) {
-            if (error instanceof z.ZodError && (error as z.ZodError).issues?.length > 0) {
-                addToast((error as z.ZodError).issues[0].message, "error");
-            } else {
-                ErrorLogger.handleErrorWithToast(error, 'Risks.onSubmit', 'CREATE_FAILED');
-            }
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-
-
-    const handleUpdate = async (data: RiskFormData) => {
-        if (!user?.organizationId || !selectedRisk || !canEdit) return;
-        setSubmitting(true);
-        try {
-            // Validate data with Zod
-            const validatedData = riskSchema.parse(data);
-            const riskData = sanitizeData({ ...validatedData });
-            const probability = riskData.probability;
-            const impact = riskData.impact;
-            const residualProbability = riskData.residualProbability ?? probability;
-            const residualImpact = riskData.residualImpact ?? impact;
-            const score = probability * impact;
-            const residualScore = residualProbability * residualImpact;
-
-            if (residualScore > score) {
-                addToast("Le score résiduel ne peut pas être supérieur au score brut. Ajustez la probabilité ou l'impact résiduel.", "error");
-                return;
-            }
-
-            if (validatedData.strategy === 'Accepter' && residualScore >= 15 && !validatedData.justification?.trim()) {
-                addToast("Pour accepter un risque critique (score résiduel >= 15), une justification détaillée est requise.", "error");
-                return;
-            }
-
-            const hasSignificantChange =
-                probability !== selectedRisk.probability ||
-                impact !== selectedRisk.impact ||
-                residualProbability !== (selectedRisk.residualProbability ?? selectedRisk.probability) ||
-                residualImpact !== (selectedRisk.residualImpact ?? selectedRisk.impact) ||
-                validatedData.strategy !== selectedRisk.strategy ||
-                validatedData.status !== selectedRisk.status;
-
-            const newLastReviewDate = hasSignificantChange ? new Date().toISOString() : selectedRisk.lastReviewDate;
-
-            const historyEntry: RiskHistory = {
-                date: new Date().toISOString(),
-                previousScore: selectedRisk.score,
-                newScore: score,
-                changedBy: user.email || 'Unknown',
-                previousProbability: selectedRisk.probability,
-                newProbability: probability,
-                previousImpact: selectedRisk.impact,
-                newImpact: impact,
-                residualProbability,
-                residualImpact,
-                residualScore,
-                // Add justification if present (e.g. from AI)
-                reason: data.justification
-            };
-
-            const updatedHistory = [...(selectedRisk.history || []), historyEntry];
-
-            const updatePayload = {
-                ...riskData,
-                score,
-                residualProbability,
-                residualImpact,
-                residualScore,
-                history: updatedHistory,
-                ...(hasSignificantChange && newLastReviewDate ? { lastReviewDate: newLastReviewDate } : {})
-            };
-
-            await updateDoc(doc(db, 'risks', selectedRisk.id), sanitizeData(updatePayload));
-
-            // Persist history entry in immutable collection
-            await addDoc(collection(db, 'risk_history'), {
-                organizationId: user.organizationId,
-                riskId: selectedRisk.id,
-                ...historyEntry
-            });
-
-            if (riskData.isSecureStorage) {
-                await hybridService.storeSecureData('risk', {
-                    id: selectedRisk.id,
-                    ...riskData,
-                    organizationId: user.organizationId
-                });
-                addToast("Données synchronisées avec OVH SecNumCloud", "success");
-            }
-
-            // Centralized Audit Logging (SecNumCloud)
-            await hybridService.logCriticalEvent({
-                action: 'update',
-                object_type: 'risk',
-                object_id: selectedRisk.id,
-                description: `Updated risk: ${riskData.threat}`,
-                metadata: {
-                    previousScore: selectedRisk.score,
-                    newScore: score
-                }
-            });
-
-            await logAction(user, 'UPDATE', 'Risk', `Mise à jour risque: ${riskData.threat}`);
-            analyticsService.logEvent('assess_risk', {
-                risk_id: selectedRisk.id,
-                score: score,
-                strategy: riskData.strategy
-            });
-            addToast("Risque mis à jour", "success");
-            const updatedRisk: Risk = { ...selectedRisk, ...riskData, score, residualProbability, residualImpact, residualScore, history: updatedHistory } as Risk;
-            if (hasSignificantChange && newLastReviewDate) {
-                updatedRisk.lastReviewDate = newLastReviewDate;
-            }
-            setSelectedRisk(updatedRisk);
-            setIsEditing(false);
-            refreshRisks();
-        } catch (error) {
-            if (error instanceof z.ZodError && (error as z.ZodError).issues?.length > 0) {
-                addToast((error as z.ZodError).issues[0].message, "error");
-            } else {
-                ErrorLogger.handleErrorWithToast(error, 'Risks.handleUpdate', 'UPDATE_FAILED');
-            }
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const openCreationDrawer = () => {
-        if (!canEdit) return;
-        setSelectedRisk(null);
-        setCreationMode(true);
-    };
-
-    const handleDuplicate = async () => {
-        if (!selectedRisk || !canEdit || !user?.organizationId) return;
-        try {
-            const newRiskData = { ...selectedRisk, threat: `${selectedRisk.threat} (Copie)`, createdAt: new Date().toISOString() };
-            await addDoc(collection(db, 'risks'), sanitizeData({ ...newRiskData, organizationId: user.organizationId }));
-            await logAction(user, 'CREATE', 'Risk', `Duplication Risque: ${newRiskData.threat}`);
-            addToast("Risque dupliqué", "success");
-            refreshRisks();
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleDuplicate', 'CREATE_FAILED'); }
-    };
-
-    const initiateDelete = async (id: string, threat: string) => {
-        if (!canDeleteResource(user, 'Risk')) return;
-        const incQ = query(collection(db, 'incidents'), where('organizationId', '==', user?.organizationId), where('relatedRiskId', '==', id));
-        const projQ = query(collection(db, 'projects'), where('organizationId', '==', user?.organizationId), where('relatedRiskIds', 'array-contains', id));
-
-        try {
-            const [incSnap, projSnap] = await Promise.all([getDocs(incQ), getDocs(projQ)]);
-
-            if (!incSnap.empty || !projSnap.empty) {
-                addToast(`Impossible de supprimer : Lié à ${incSnap.size} incidents et ${projSnap.size} projets.`, "error");
-                return;
-            }
-            setConfirmData({ isOpen: true, title: "Supprimer le risque ?", message: `Cette action est irréversible.`, onConfirm: () => handleDeleteRisk(id, threat) });
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.initiateDelete', 'FETCH_FAILED'); }
-    };
-
-    const handleDeleteRisk = async (id: string, threat: string) => {
-        try {
-            await deleteDoc(doc(db, 'risks', id));
-
-            // Centralized Audit Logging (SecNumCloud)
-            await hybridService.logCriticalEvent({
-                action: 'delete',
-                object_type: 'risk',
-                object_id: id,
-                description: `Deleted risk: ${threat}`
-            });
-
-            await logAction(user, 'DELETE', 'Risk', `Suppression risque: ${threat}`);
-            if (selectedRisk?.id === id) setSelectedRisk(null);
-            addToast("Risque supprimé", "info");
-            refreshRisks();
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Risks.handleDeleteRisk', 'DELETE_FAILED'); }
-    };
-
-    const handleStatusChange = async (risk: Risk, newStatus: Risk['status']) => {
-        if (!canEdit) return;
-        setUpdating(true);
-        try {
-            await updateDoc(doc(db, 'risks', risk.id), { status: newStatus });
-
-            // Centralized Audit Logging
-            await hybridService.logCriticalEvent({
-                action: 'update_status',
-                object_type: 'risk',
-                object_id: risk.id,
-                description: `Risk status changed to ${newStatus}`,
-                metadata: { oldStatus: risk.status, newStatus }
-            });
-
-            await logAction(user, 'UPDATE', 'Risk', `Statut risque changé vers ${newStatus}`);
-            refreshRisks();
-            if (selectedRisk?.id === risk.id) setSelectedRisk({ ...selectedRisk, status: newStatus });
-            addToast(`Statut changé`, "success");
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Risks.handleStatusChange', 'UPDATE_FAILED');
-        } finally {
-            setUpdating(false);
-        }
-    };
-
-    const handleStrategyChange = async (risk: Risk, newStrategy: Risk['strategy']) => {
-        if (!canEdit) return;
-        setUpdating(true);
-        try {
-            await updateDoc(doc(db, 'risks', risk.id), { strategy: newStrategy });
-
-            // Centralized Audit Logging
-            await hybridService.logCriticalEvent({
-                action: 'update_strategy',
-                object_type: 'risk',
-                object_id: risk.id,
-                description: `Risk strategy changed to ${newStrategy}`,
-                metadata: { oldStrategy: risk.strategy, newStrategy }
-            });
-
-            await logAction(user, 'UPDATE', 'Risk', `Stratégie risque changée vers ${newStrategy}`);
-            refreshRisks();
-            if (selectedRisk?.id === risk.id) setSelectedRisk({ ...selectedRisk, strategy: newStrategy });
-            addToast(`Stratégie changée`, "success");
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Risks.handleStrategyChange', 'UPDATE_FAILED');
-        } finally {
-            setUpdating(false);
-        }
-    };
-
-    const handleReview = async () => {
-        if (!canEdit || !selectedRisk) return;
-        setUpdating(true);
-        const today = new Date().toISOString();
-        try {
-            await updateDoc(doc(db, 'risks', selectedRisk.id), { lastReviewDate: today });
-            await logAction(user, 'REVIEW', 'Risk', `Revue validée: ${selectedRisk.threat}`);
-            // setRisks(prev => prev.map(r => r.id === selectedRisk.id ? { ...r, lastReviewDate: today } : r)); // Removed manual state update, relying on refresh
-            setSelectedRisk({ ...selectedRisk, lastReviewDate: today });
-            addToast("Revue du risque validée", "success");
-            refreshRisks();
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Risks.handleReview', 'UPDATE_FAILED');
-        } finally {
-            setUpdating(false);
-        }
-    };
-
-    const handleImportTemplate = async (template: RiskTemplate, owner: string) => {
-        if (!canEdit || !user?.organizationId) return;
-        try {
-            const risksToImport = createRisksFromTemplate(template, user.organizationId, owner);
-
-            const batch = writeBatch(db);
-            risksToImport.forEach(risk => {
-                const newRiskRef = doc(collection(db, 'risks'));
-                // Try to resolve ownerId
-                const ownerUser = usersList.find(u => u.displayName === owner || u.email === owner);
-                batch.set(newRiskRef, sanitizeData({ ...risk, ownerId: ownerUser?.uid || '' }));
-            });
-
-            await batch.commit();
-            await logAction(user, 'CREATE', 'Risk', `Import de ${risksToImport.length} risques depuis template ${template.name}`);
-            addToast(`${risksToImport.length} risques importés avec succès`, "success");
-            setShowTemplateModal(false);
-            refreshRisks();
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Risks.handleImportTemplate', 'CREATE_FAILED');
-        }
-    };
-
-
-
-    const handleExportCSV = async () => {
-        if (isExportingCSV) return;
-        setIsExportingCSV(true);
-        try {
-            const headers = ["Menace", "Vulnérabilité", "Actif", "Score Brut", "Score Résiduel", "Stratégie", "Statut", "Propriétaire"];
-            const rows = filteredRisks.map(r => [
-                r.threat || 'Menace inconnue',
-                r.vulnerability || '',
-                getAssetName(r.assetId),
-                (r.score || 0).toString(),
-                (r.residualScore || r.score || 0).toString(),
-                r.strategy || 'N/A',
-                r.status || 'N/A',
-                r.owner || ''
-            ]);
-            const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
-            const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })); link.download = `risks.csv`; link.click();
-        } finally {
-            setTimeout(() => setIsExportingCSV(false), 0);
-        }
-    };
-
-    const handleExportPDF = () => {
-        void (async () => {
-            const { PdfService } = await import('../services/PdfService');
-            const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
-            const canWhiteLabel = limits.features.whiteLabelReports;
-
-            const data = risks.map(r => [
-                (r.threat || 'Menace inconnue'),
-                (r.score || 0).toString(),
-                (r.strategy || 'N/A'),
-                (r.status || 'N/A'),
-                (r.residualScore || r.score || 0).toString()
-            ]);
-
-            PdfService.generateTableReport(
-                {
-                    title: 'Registre des Risques',
-                    subtitle: `Exporté le ${new Date().toLocaleDateString()}`,
-                    filename: 'risques.pdf',
-                    organizationName: canWhiteLabel ? organization?.name : undefined,
-                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
-                    coverImage: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2070&auto=format&fit=crop', // Business/Analytics (Same as Executive to stay consistent)
-                    includeCover: true,
-                    author: user?.displayName || 'Risk Manager'
-                },
-                ['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel'],
-                data
-            );
-            addToast("Rapport téléchargé avec succès", "success");
-        })().catch((error) => {
-            ErrorLogger.handleErrorWithToast(error, 'Risks.handleExportPDF', 'REPORT_GENERATION_FAILED');
-        });
-    };
-
-    const handleExportRiskExecutiveReport = async () => {
-        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
-        const canWhiteLabel = limits.features.whiteLabelReports;
-
-        setIsGeneratingReport(true);
-        addToast("Génération du rapport exécutif IA...", "info");
-
-        try {
-            const { PdfService } = await import('../services/PdfService');
-
-            PdfService.generateRiskExecutiveReport(filteredRisks, {
-                title: "RAPPORT DE GOUVERNANCE CYBER",
-                subtitle: `Analyse des Risques & Conformité ISO 27001 | ${new Date().toLocaleDateString()}`,
-                filename: `rapport_executif_risques_${new Date().toISOString().split('T')[0]}.pdf`,
-                organizationName: canWhiteLabel ? (organization?.name || user?.email?.split('@')[1] || 'Sentinel GRC') : 'Sentinel GRC',
-                organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
-                author: user?.displayName || 'RSSI',
-                coverImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop'
-            });
-
-            addToast("Rapport exécutif généré avec succès", "success");
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Risks.handleExportRiskExecutiveReport', 'REPORT_GENERATION_FAILED');
-        } finally {
-            setIsGeneratingReport(false);
-        }
-    };
-
+    // Handlers
     const handleExportRTP = async () => {
-        const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
-        const canWhiteLabel = limits.features.whiteLabelReports;
-
         setIsGeneratingReport(true);
-        addToast("Génération du RTP avec analyse IA...", "info");
         try {
-            const summary = await aiService.generateRTPSummary(
-                filteredRisks.map(r => ({ threat: r.threat || 'Menace inconnue', score: r.score || 0, strategy: r.strategy || 'N/A', status: r.status || 'N/A' }))
-            );
-
-            // Metrics
-            const totalRisks = filteredRisks.length;
-            const avgReduction = Math.round(filteredRisks.reduce((acc, r) => acc + ((r.score || 0) - (r.residualScore || r.score || 0)), 0) / (totalRisks || 1));
-            const residualCritical = filteredRisks.filter(r => (r.residualScore || r.score || 0) >= 15).length;
-
-            const metrics = [
-                { label: 'Risques Traités', value: totalRisks.toString() },
-                { label: 'Réduction Moy.', value: `-${avgReduction} pts`, subtext: 'Efficacité Traitement' },
-                { label: 'Critiques Résiduels', value: residualCritical.toString(), subtext: 'Attention Requise' },
-                { label: 'Taux Couverture', value: `${Math.round((filteredRisks.filter(r => r.strategy !== 'Accepter').length / totalRisks) * 100)}%` }
-            ];
-
-            // Stats (Strategy)
-            const stratCounts = { 'Atténuer': 0, 'Éviter': 0, 'Transférer': 0, 'Accepter': 0 };
-            filteredRisks.forEach(r => { if (stratCounts[r.strategy as keyof typeof stratCounts] !== undefined) stratCounts[r.strategy as keyof typeof stratCounts]++; });
-
-            const stats = [
-                { label: 'Atténuer', value: stratCounts['Atténuer'], color: '#3B82F6' },
-                { label: 'Éviter', value: stratCounts['Éviter'], color: '#10B981' },
-                { label: 'Transférer', value: stratCounts['Transférer'], color: '#F59E0B' },
-                { label: 'Accepter', value: stratCounts['Accepter'], color: '#64748B' }
-            ].filter(s => s.value > 0);
-
-            const { PdfService } = await import('../services/PdfService');
-
-            PdfService.generateExecutiveReport(
-                {
-                    title: 'Plan de Traitement des Risques (RTP)',
-                    subtitle: `ISO 27001 | ${new Date().toLocaleDateString()}`,
-                    filename: 'RTP.pdf',
-                    organizationName: canWhiteLabel ? (organization?.name || user?.email?.split('@')[1] || 'Sentinel GRC') : 'Sentinel GRC',
-                    organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
-                    author: user?.displayName || 'RSSI',
-                    summary: summary,
-                    metrics,
-                    stats,
-                    coverImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop' // AI/Tech themed image
-                },
-                (doc, startY) => {
-                    let y = startY;
-
-                    // Risk Matrix Section
-                    doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
-                    doc.text("Cartographie des Risques", 14, y);
-                    y += 10;
-
-                    // Draw Matrix centered
-                    const matrixSize = 80;
-                    const matrixX = (doc.internal.pageSize.width - matrixSize) / 2;
-
-                    // Pass filteredRisks directly as expected by drawRiskMatrix signature
-                    PdfService.drawRiskMatrix(doc, matrixX, y, matrixSize, matrixSize, filteredRisks);
-
-                    y += matrixSize + 20;
-
-
-                    doc.setFontSize(14); doc.setTextColor(79, 70, 229); doc.setFont('helvetica', 'bold');
-                    doc.text("Tableau de Traitement", 14, y);
-                    y += 8;
-
-                    const data = filteredRisks.map(r => [
-                        (r.threat || 'Menace inconnue'),
-                        (r.score || 0).toString(),
-                        (r.strategy || 'N/A'),
-                        (r.status || 'N/A'),
-                        (r.residualScore || r.score || 0).toString()
-                    ]);
-
-                    doc.autoTable({
-                        startY: y,
-                        head: [['Menace', 'Brut', 'Stratégie', 'Statut', 'Résiduel']],
-                        body: data,
-                        theme: 'striped',
-                        headStyles: { fillColor: [79, 70, 229] },
-                        styles: { fontSize: 9 }
-                    });
-                }
-            );
-            addToast("RTP généré avec succès", "success");
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Risks.handleExportRTP', 'REPORT_GENERATION_FAILED');
+            PdfService.generateRiskExecutiveReport(filteredRisks, {
+                title: 'Plan de Traitement des Risques',
+                subtitle: 'Plan de traitement',
+                author: user?.displayName
+            });
+        } catch (e) {
+            console.error(e);
         } finally {
             setIsGeneratingReport(false);
         }
+    };
+
+    const handleExportExecutive = async () => {
+        setIsGeneratingReport(true);
+        try {
+            PdfService.generateRiskExecutiveReport(filteredRisks, {
+                title: 'Rapport Exécutif des Risques',
+                subtitle: `Généré par ${user?.displayName || 'Utilisateur'} le ${new Date().toLocaleDateString()}`,
+                filename: `risques_exec_${new Date().toISOString().split('T')[0]}.pdf`,
+                organizationName: user?.organizationName || 'Sentinel GRC',
+                author: user?.displayName
+            });
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setIsGeneratingReport(false);
+        }
+    };
+
+    const handleExportPDF = async () => {
+        handleExportExecutive();
     };
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!canEdit || !user?.organizationId) return;
         const file = event.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const text = e.target?.result as string;
-            if (!text) return;
-            const lines = text.split('\n').slice(1).filter(line => line.trim() !== '');
-            if (lines.length === 0) { addToast("Fichier CSV vide", "error"); return; }
-            setImporting(true);
-            try {
-                const batch = writeBatch(db);
+        setImporting(true);
+
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: async (results: any) => {
+                const data = results.data as any[];
                 let count = 0;
-                lines.forEach(line => {
-                    const cols = line.split(',');
-                    if (cols.length >= 3) {
-                        const newRef = doc(collection(db, 'risks'));
-                        const prob = Math.min(Math.max(parseInt(cols[3]?.trim()) || 3, 1), 5) as Risk['probability'];
-                        const imp = Math.min(Math.max(parseInt(cols[4]?.trim()) || 3, 1), 5) as Risk['impact'];
-                        batch.set(newRef, sanitizeData({
-                            organizationId: user.organizationId,
-                            threat: cols[0]?.trim() || 'Menace importée',
-                            vulnerability: cols[1]?.trim() || '',
-                            assetId: '',
-                            probability: prob,
-                            impact: imp,
-                            score: prob * imp,
-                            residualScore: prob * imp,
-                            strategy: 'Atténuer',
-                            status: 'Ouvert',
-                            owner: '',
-                            createdAt: new Date().toISOString()
-                        }));
+                // Basic implementation: Create risks from CSV
+                // Assuming CSV headers match Risk fields loosely or map them
+                for (const row of data) {
+                    if (row.Menace || row.Threat) {
+                        await createRisk({
+                            threat: row.Menace || row.Threat,
+                            vulnerability: row.Vulnerability || row.Vulnérabilite || '',
+                            probability: parseInt(row.Probability || row.Probabilite || '1') as any,
+                            impact: parseInt(row.Impact || '1') as any,
+                            strategy: row.Strategy || row.Strategie || 'Atténuer',
+                            status: row.Status || row.Statut || 'Ouvert'
+                        });
                         count++;
                     }
-                });
-                await batch.commit();
-                await logAction(user, 'IMPORT', 'Risk', `Import CSV de ${count} risques`);
-                addToast(`${count} risques importés`, "success");
+                }
+                setImporting(false);
                 refreshRisks();
-
-            } catch (error) { ErrorLogger.handleErrorWithToast(error, 'Risks.handleFileUpload', 'FILE_UPLOAD_FAILED'); } finally { setImporting(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
-        };
-        reader.readAsText(file);
-    };
-
-    const getAssetName = (id?: string) => assets.find(a => a.id === id)?.name || 'Actif inconnu';
-
-    const deferredQuery = useDeferredValue(activeFilters.query);
-    const filteredRisks = useMemo(() => risks.filter(r => {
-        if (!r) return false;
-        const needle = (deferredQuery || '').toLowerCase().trim();
-        const threat = r.threat || '';
-        const vul = r.vulnerability || '';
-        const scenario = r.scenario || '';
-
-        const matchesSearch = !needle ||
-            threat.toLowerCase().includes(needle) ||
-            vul.toLowerCase().includes(needle) ||
-            scenario.toLowerCase().includes(needle);
-
-        const matchesFramework = frameworkFilter ? r.framework === frameworkFilter : true;
-        // Matrix filtering logic: Only show if no filter set OR if matches specific probability AND impact
-        const matchesMatrix = matrixFilter ? (r.probability === matrixFilter.p && r.impact === matrixFilter.i) : true;
-        return matchesSearch && matchesMatrix && matchesFramework;
-    }), [risks, deferredQuery, frameworkFilter, matrixFilter]);
-
-    const getRisksForCell = (prob: number, impact: number) => risks.filter(r => r.probability === prob && r.impact === impact && (!frameworkFilter || r.framework === frameworkFilter));
-
-
-
-
-    const getRiskLevel = (score: number) => {
-        if (score >= 15) return { label: 'Critique', status: 'error' as const };
-        if (score >= 10) return { label: 'Élevé', status: 'warning' as const };
-        if (score >= 5) return { label: 'Moyen', status: 'info' as const };
-        return { label: 'Faible', status: 'success' as const };
-    };
-
-    const isReviewOverdue = (risk: Risk) => {
-        const oneYearAgo = new Date();
-        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-        return !risk.lastReviewDate || new Date(risk.lastReviewDate) < oneYearAgo;
-    };
-
-    const getSLAStatus = (risk: Risk) => {
-        if (risk.strategy === 'Accepter' || !risk.treatmentDeadline) return null;
-        if (risk.status === 'Fermé' || risk.status === 'Résolu') return null;
-
-        const deadline = new Date(risk.treatmentDeadline);
-        const now = new Date();
-        const diffTime = deadline.getTime() - now.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays < 0) return { status: 'overdue', days: Math.abs(diffDays), label: `Retard ${Math.abs(diffDays)}j`, color: 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-900/20 dark:border-red-800' };
-        if (diffDays <= 7) return { status: 'warning', days: diffDays, label: `J-${diffDays}`, color: 'text-orange-600 bg-orange-50 border-orange-200 dark:text-orange-400 dark:bg-orange-900/20 dark:border-orange-800' };
-        return { status: 'ok', days: diffDays, label: `${diffDays}j`, color: 'text-slate-500 bg-slate-100 border-slate-200 dark:text-slate-400 dark:bg-slate-800 dark:border-white/10' };
-    };
-
-
-    const handleAIAnalysis = async () => {
-        try {
-            setAnalyzing(true);
-            setShowRecommendations(true);
-
-            // Use local AI Service instead of backend
-            const graphData = {
-                assets: assets,
-                risks: risks,
-                projects: projects,
-                audits: audits,
-                incidents: incidents,
-                suppliers: suppliers,
-                controls: controls
-            };
-
-            const response = await aiService.analyzeGraph(graphData);
-
-            // Map AI insights to recommendations format
-            // The AI service returns 'insights', we need to adapt them to 'RiskRecommendation'
-            // or update the modal to accept insights.
-            // For now, we'll map them to a compatible structure if possible, 
-            // or just use the insights as recommendations.
-
-            // RiskRecommendation interface: { id, riskId, title, description, type, impact, suggestedAction }
-            // AIInsight interface: { id, type, title, description, relatedIds, severity }
-
-            const mappedRecommendations: RiskRecommendation[] = response.insights.map(insight => ({
-                title: insight.title,
-                description: insight.description,
-                priority: insight.severity === 'critical' ? 'urgent' : insight.severity === 'high' ? 'high' : 'medium',
-                suggested_actions: [{ action: insight.description, priority: 'high' }],
-                confidence_score: 0.85
-            }));
-
-            setRecommendations(mappedRecommendations);
-
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Risks.handleAIAnalysis', 'UNKNOWN_ERROR');
-            setShowRecommendations(false);
-        } finally {
-            setAnalyzing(false);
-        }
-    };
-
-    const getBreadcrumbs = () => {
-        const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Risques', onClick: () => { setSelectedRisk(null); setCreationMode(false); setIsEditing(false); } }];
-
-        if (creationMode) {
-            crumbs.push({ label: 'Création' });
-            return crumbs;
-        }
-
-        if (selectedRisk) {
-            const assetName = getAssetName(selectedRisk.assetId);
-            if (assetName) {
-                crumbs.push({ label: assetName });
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            },
+            error: (err: any) => {
+                console.error("Import Error", err);
+                setImporting(false);
             }
-            crumbs.push({ label: selectedRisk.threat });
-        }
-
-        return crumbs;
-    };
-
-    if (loading) {
-        return <LoadingScreen />;
+        });
     }
 
     return (
-        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-8">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-500">
+            <SEO title={risksTitle} description={risksSubtitle} />
             <MasterpieceBackground />
-            <SEO
-                title="Gestion des Risques"
-                description="Identifiez, évaluez et traitez les risques de sécurité selon ISO 27005."
-                keywords="Risques, ISO 27005, EBIOS RM, Menaces, Vulnérabilités, Plan de traitement"
-            />
-            <RiskTemplateModal
-                isOpen={showTemplateModal}
-                onClose={() => setShowTemplateModal(false)}
-                onSelectTemplate={handleImportTemplate}
-                owners={usersList.map(u => u.displayName || u.email)}
-                isLoading={importing}
-            />
 
-            <RiskRecommendationsModal
-                isOpen={showRecommendations}
-                onClose={() => setShowRecommendations(false)}
-                recommendations={recommendations}
-                isLoading={analyzing}
-            />
+            <div className="relative z-10 p-6 md:p-8 space-y-8 max-w-[1920px] mx-auto">
+                <RiskHeader
+                    risksTitle={risksTitle}
+                    risksSubtitle={risksSubtitle}
+                    canEdit={canEdit}
+                    isGeneratingReport={isGeneratingReport}
+                    isExportingCSV={isExportingCSV}
+                    importing={importing}
+                    filteredRisks={filteredRisks}
+                    onExportRTP={handleExportRTP}
+                    onExportExecutiveReport={handleExportExecutive}
+                    onExportPDF={handleExportPDF}
+                    onExportCSV={() => exportCSV(filteredRisks)}
+                    onImportCSV={() => fileInputRef.current?.click()}
+                    onTemplateModalOpen={() => setIsTemplateModalOpen(true)}
+                    onAIAnalysis={() => { }} // Placeholder
+                    onNewRisk={() => setCreationMode(true)}
+                    fileInputRef={fileInputRef as any}
+                />
 
-            {showAdvancedSearch && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <AdvancedSearch
-                        onSearch={(filters) => {
-                            setActiveFilters(filters);
-                            setShowAdvancedSearch(false);
-                        }}
-                        onClose={() => setShowAdvancedSearch(false)}
-                    />
-                </div>
-            )}
+                {/* Hidden File Input */}
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept=".csv"
+                    onChange={handleFileUpload}
+                />
 
-            <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept=".csv"
-                onChange={handleFileUpload}
-            />
+                <RiskStats stats={stats} risks={risks} />
 
-            <ConfirmModal
-                isOpen={confirmData.isOpen}
-                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
-                onConfirm={confirmData.onConfirm}
-                title={confirmData.title}
-                message={confirmData.message}
-            />
-            <PageHeader
-                title={risksTitle}
-                subtitle={risksSubtitle}
-                icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                breadcrumbs={[
-                    { label: 'Risques' }
-                ]}
-                trustType="integrity"
-                actions={
-                    <>
-                        <Menu as="div" className="relative inline-block text-left">
-                            <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
-                                <MoreVertical className="h-5 w-5" />
-                            </Menu.Button>
-                            <Transition
-                                as={React.Fragment}
-                                enter="transition ease-out duration-100"
-                                enterFrom="transform opacity-0 scale-95"
-                                enterTo="transform opacity-100 scale-100"
-                                leave="transition ease-in duration-75"
-                                leaveFrom="transform opacity-100 scale-100"
-                                leaveTo="transform opacity-0 scale-95"
-                            >
-                                <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                    <div className="p-1">
-                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Rapports & Exports
-                                        </div>
-                                        <Menu.Item>
-                                            {({ active }) => (
-                                                <button
-                                                    onClick={handleExportRTP}
-                                                    disabled={isGeneratingReport}
-                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
-                                                >
-                                                    {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} />}
-                                                    RTP (PDF)
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                        <Menu.Item>
-                                            {({ active }) => (
-                                                <button
-                                                    onClick={handleExportRiskExecutiveReport}
-                                                    disabled={isGeneratingReport}
-                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
-                                                >
-                                                    {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-indigo-500'}`} />}
-                                                    Rapport Exécutif
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                        <Menu.Item>
-                                            {({ active }) => (
-                                                <button
-                                                    onClick={handleExportPDF}
-                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                >
-                                                    <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
-                                                    Registre (PDF)
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                        <Menu.Item>
-                                            {({ active }) => (
-                                                <button
-                                                    onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)}
-                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                >
-                                                    <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />
-                                                    Obsidian
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                        <Menu.Item>
-                                            {({ active }) => (
-                                                <button
-                                                    onClick={handleExportCSV}
-                                                    disabled={isExportingCSV}
-                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                        } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                >
-                                                    {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
-                                                    Export CSV
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                    </div>
-                                    <div className="p-1">
-                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                            Données
-                                        </div>
-                                        {canEdit && (
-                                            <>
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <button
-                                                            onClick={() => fileInputRef.current?.click()}
-                                                            disabled={importing}
-                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                        >
-                                                            {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />}
-                                                            Import CSV
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <button
-                                                            onClick={() => setShowTemplateModal(true)}
-                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                        >
-                                                            <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
-                                                            Templates
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                            </>
-                                        )}
-                                    </div>
-                                </Menu.Items>
-                            </Transition>
-                        </Menu>
-
-                        {canEdit && (
-                            <>
-                                <CustomTooltip content="Lancer l'analyse IA">
-                                    <button
-                                        onClick={handleAIAnalysis}
-                                        className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm"
-                                    >
-                                        <BrainCircuit className="h-4 w-4 mr-2" />
-                                        <span className="hidden md:inline">Analyse IA</span>
-                                    </button>
-                                </CustomTooltip>
-                                <CustomTooltip content="Créer un nouveau risque">
-                                    <button
-                                        onClick={openCreationDrawer}
-                                        className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                        <span className="hidden sm:inline">Nouveau Risque</span>
-                                    </button>
-                                </CustomTooltip>
-                            </>
-                        )}
-                    </>
-                }
-            />
-
-            {/* Stats */}
-            {/* Insight Card (Summary) */}
-            <motion.div variants={slideUpVariants}>
-                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-transparent dark:border-white/5 shadow-lg relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative z-10">
-                        <div className="space-y-2">
-                            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                                <span className="inline-flex h-2 w-2 rounded-full bg-brand-500 animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
-                                Vue globale des risques
-                            </p>
-                            <div className="flex items-baseline gap-3">
-                                <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 tracking-tight">{stats.total}</h2>
-                                <span className="text-sm font-bold text-slate-600 dark:text-slate-400">Risques identifiés</span>
-                            </div>
-                        </div>
-
-                        <div className="h-px w-full md:w-px md:h-20 bg-gradient-to-b from-transparent via-slate-200 dark:via-white/5 to-transparent" />
-
-                        <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-8">
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Critiques</p>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-2xl font-black text-red-500 drop-shadow-sm">{stats.critical}</span>
-                                    <Badge status="error" variant="soft" size="sm" className="shadow-none">Score 15+</Badge>
-                                </div>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Score Moyen</p>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-2xl font-black text-slate-900 dark:text-white">
-                                        {risks.length > 0 ? (risks.reduce((sum, r) => sum + r.score, 0) / risks.length).toFixed(1) : '0'}
-                                    </span>
-                                    <span className="text-xs font-medium text-slate-400">/ 25</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Non Traités</p>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-2xl font-black text-amber-500 drop-shadow-sm">
-                                        {risks.filter(r => r.strategy === 'Accepter' && r.score >= 10).length}
-                                    </span>
-                                    <span className="text-xs font-medium text-slate-500">Critiques</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Réduction</p>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-2xl font-black text-emerald-500 drop-shadow-sm">
-                                        {risks.length > 0 ?
-                                            Math.round(((risks.reduce((sum, r) => sum + r.score, 0) - risks.reduce((sum, r) => sum + (r.residualScore || r.score), 0)) / risks.reduce((sum, r) => sum + r.score, 0)) * 100)
-                                            : 0}%
-                                    </span>
-                                    <TrendingDown className="h-4 w-4 text-emerald-500" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
-
-            <motion.div variants={slideUpVariants}>
-                <PageControls
-                    searchQuery={activeFilters.query}
-                    onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
-                    searchPlaceholder="Rechercher un risque..."
-                    totalItems={filteredRisks.length}
-                    isLoading={loading}
-                    onAdvancedSearch={() => setShowAdvancedSearch(true)}
-                    activeFiltersCount={(activeFilters.status ? 1 : 0) + (activeFilters.owner ? 1 : 0) + (activeFilters.criticality ? 1 : 0)}
+                <RiskFilters
+                    query={activeFilters.query}
+                    onQueryChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
-                    primaryAction={
-                        canEdit && (
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={openCreationDrawer}
-                                    className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                                >
-                                    <Plus className="h-4 w-4 mr-2" /> Nouveau Risque
-                                </button>
-                            </div>
-                        )
-                    }
-                    secondaryActions={
-                        <div className="flex items-center gap-2">
-                            <div className="w-40 hidden lg:block">
-                                <CustomSelect
-                                    options={[{ label: 'Toutes les normes', value: 'Toutes les normes' }, ...FRAMEWORK_OPTIONS]}
-                                    value={frameworkFilter || 'Toutes les normes'}
-                                    onChange={(val) => setFrameworkFilter(val === 'Toutes les normes' ? '' : val as string)}
-                                />
-                            </div>
-                        </div>
-                    }
+                    frameworkFilter={frameworkFilter}
+                    onFrameworkFilterChange={setFrameworkFilter}
+                    showAdvancedSearch={showAdvancedSearch}
+                    onToggleAdvancedSearch={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                    totalRisks={risks.length}
+                    filteredCount={filteredRisks.length}
                 />
-            </motion.div>
 
-            {/* Filter Feedback */}
-            {
-                matrixFilter && (
-                    <motion.div variants={slideUpVariants}>
-                        <div className="flex items-center justify-between bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 shadow-sm">
-                            <div className="flex items-center gap-3">
-                                <Filter className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-                                <span className="text-sm font-bold text-brand-900 dark:text-brand-100">
-                                    Filtrage actif : <span className="bg-white dark:bg-black/20 px-2 py-0.5 rounded-lg shadow-sm">Probabilité {matrixFilter?.p}</span> × <span className="bg-white dark:bg-black/20 px-2 py-0.5 rounded-lg shadow-sm">Impact {matrixFilter?.i}</span>
-                                </span>
-                            </div>
-                            <button onClick={() => setMatrixFilter(null)} className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center bg-white dark:bg-black/20 px-3 py-1.5 rounded-lg shadow-sm transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"><RefreshCw className="h-3 w-3 mr-1.5" /> Réinitialiser</button>
-                        </div>
-                    </motion.div>
-                )
-            }
-
-            {
-                viewMode === 'matrix' ? (
-                    <div className="glass-panel p-4 sm:p-8 rounded-[2.5rem] shadow-lg overflow-x-auto animate-fade-in border border-white/60 dark:border-white/10 relative backdrop-blur-xl bg-white/40 dark:bg-black/40">
-                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 dark:from-indigo-500/10 dark:to-purple-500/10 pointer-events-none" />
-                        <div className="relative z-10 w-full mb-8">
-                            <div>
-                                <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 tracking-tight">Matrice des Risques</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Distribution selon la probabilité et l'impact</p>
-                            </div>
-                            <div className="flex flex-wrap gap-3 text-xs font-medium bg-white/50 dark:bg-white/5 p-2 rounded-xl backdrop-blur-md border border-white/20 dark:border-white/5">
-                                <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 mr-2 shadow-[0_0_8px_rgba(244,63,94,0.5)]"></span>Critique (15-25)</span>
-                                <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-orange-500 mr-2 shadow-[0_0_8px_rgba(249,115,22,0.5)]"></span>Élevé (10-14)</span>
-                                <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 mr-2 shadow-[0_0_8px_rgba(251,191,36,0.5)]"></span>Moyen (5-9)</span>
-                                <span className="flex items-center px-2 py-1 rounded-lg"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>Faible (1-4)</span>
-                            </div>
-                        </div>
-
-                        <div className="relative p-8 bg-slate-50/50 dark:bg-black/20 rounded-[2rem] border border-slate-200/50 dark:border-white/5 shadow-inner">
-                            <div className="grid grid-cols-[auto_1fr] gap-6">
-                                <div className="flex items-center justify-center w-8">
-                                    <div className="-rotate-90 font-bold text-xs text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">Probabilité</div>
-                                </div>
-                                <div className="grid grid-rows-5 grid-cols-5 gap-4 w-full min-w-[600px] aspect-square mx-auto">
-                                    {[5, 4, 3, 2, 1].map(prob => (
-                                        <React.Fragment key={prob}>
-                                            {[1, 2, 3, 4, 5].map(impact => {
-                                                const cellRisks = getRisksForCell(prob, impact);
-                                                const hasRisks = cellRisks.length > 0;
-                                                const isSelected = matrixFilter?.p === prob && matrixFilter?.i === impact;
-                                                const score = prob * impact;
-
-                                                // Determine styles based on score
-                                                let bgClass = 'bg-slate-100 dark:bg-white/5';
-                                                let borderClass = 'border-slate-200 dark:border-white/10';
-
-                                                if (score >= 15) { bgClass = 'bg-rose-500/10 dark:bg-rose-500/20'; borderClass = 'border-rose-500/30'; }
-                                                else if (score >= 10) { bgClass = 'bg-orange-500/10 dark:bg-orange-500/20'; borderClass = 'border-orange-500/30'; }
-                                                else if (score >= 5) { bgClass = 'bg-amber-400/10 dark:bg-amber-400/20'; borderClass = 'border-amber-400/30'; }
-                                                else if (hasRisks) { bgClass = 'bg-emerald-500/10 dark:bg-emerald-500/20'; borderClass = 'border-emerald-500/30'; }
-
-                                                return (
-                                                    <CustomTooltip key={`${prob}-${impact}`} content={`Prob: ${prob}, Impact: ${impact}, ${cellRisks.length} Risques (Score: ${score})`} position="top">
-                                                        <div
-                                                            onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: prob, i: impact })}
-                                                            className={`
-                                                                    relative rounded-2xl flex items-center justify-center transition-all duration-300 border cursor-pointer
-                                                                    ${bgClass} ${borderClass}
-                                                                    ${hasRisks ? 'hover:scale-105 hover:z-10 hover:shadow-lg cursor-pointer' : 'opacity-60 cursor-default grayscale'}
-                                                                    ${isSelected ? 'ring-2 ring-brand-500 scale-105 z-20 shadow-xl opacity-100' : matrixFilter && hasRisks ? 'opacity-40' : ''}
-                                                                `}
-                                                        >
-                                                            {hasRisks && (
-                                                                <>
-                                                                    <div className="flex flex-col items-center">
-                                                                        <span className={`text-2xl font-black drop-shadow-sm
-                                                                                ${score >= 15 ? 'text-rose-600 dark:text-rose-400' :
-                                                                                score >= 10 ? 'text-orange-600 dark:text-orange-400' :
-                                                                                    score >= 5 ? 'text-amber-600 dark:text-amber-400' :
-                                                                                        'text-emerald-600 dark:text-emerald-400'
-                                                                            }
-                                                                            `}>{cellRisks.length}</span>
-                                                                    </div>
-                                                                    {/* Corner Indicator */}
-                                                                    <div className={`absolute top-2 right-2 w-2 h-2 rounded-full
-                                                                             ${score >= 15 ? 'bg-rose-500 animate-pulse' :
-                                                                            score >= 10 ? 'bg-orange-500' :
-                                                                                score >= 5 ? 'bg-amber-500' :
-                                                                                    'bg-emerald-500'
-                                                                        }
-                                                                        `}></div>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    </CustomTooltip>
-                                                )
-                                            })}
-                                        </React.Fragment>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-[auto_1fr] gap-6 mt-4">
-                                <div className="w-8"></div>
-                                <div className="text-center font-bold text-xs text-slate-500 uppercase tracking-[0.2em]">Impact</div>
-                            </div>
-                        </div>
+                {matrixFilter && (
+                    <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 flex justify-between items-center mb-6">
+                        <span className="text-sm font-bold text-brand-900 dark:text-brand-100">
+                            Filtre Matrice : Probabilité {matrixFilter.p} × Impact {matrixFilter.i}
+                        </span>
+                        <button onClick={() => setMatrixFilter(null)} className="text-xs text-red-500 font-bold hover:underline">Réinitialiser</button>
                     </div>
+                )}
+
+                {viewMode === 'matrix' ? (
+                    <RiskMatrix
+                        risks={filteredRisks}
+                        matrixFilter={matrixFilter}
+                        setMatrixFilter={setMatrixFilter}
+                        frameworkFilter={frameworkFilter}
+                    />
                 ) : viewMode === 'list' ? (
-                    <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                        <div className="relative z-10">
-                            <DataTable
-                                columns={[
-                                    {
-                                        header: 'Menace',
-                                        accessorKey: 'threat',
-                                        cell: ({ row }) => (
-                                            <div className="flex items-center">
-                                                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center mr-4 text-slate-600 dark:text-slate-300">
-                                                    <ShieldAlert className="h-5 w-5" strokeWidth={1.5} />
-                                                </div>
-                                                <div>
-                                                    <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.threat}</div>
-                                                    <div className="text-xs text-slate-600 font-medium">{row.original.owner || 'Non assigné'}</div>
-                                                </div>
-                                            </div>
-                                        ),
-                                    },
-                                    {
-                                        header: 'Vulnérabilité',
-                                        accessorKey: 'vulnerability',
-                                        cell: ({ row }) => (
-                                            <div className="max-w-xs truncate" title={row.original.vulnerability}>
-                                                {row.original.vulnerability}
-                                            </div>
-                                        ),
-                                    },
-                                    {
-                                        header: 'Actif',
-                                        accessorFn: (row) => getAssetName(row.assetId),
-                                        cell: ({ row }) => (
-                                            <span className="text-slate-600 dark:text-slate-400 font-medium">
-                                                {getAssetName(row.original.assetId)}
-                                            </span>
-                                        ),
-                                    },
-                                    {
-                                        header: 'Score',
-                                        accessorKey: 'score',
-                                        cell: ({ row }) => (
-                                            <Badge status={getRiskLevel(row.original.score).status} variant="soft" size="sm">
-                                                {row.original.score}
-                                            </Badge>
-                                        ),
-                                    },
-                                    {
-                                        header: 'Stratégie',
-                                        accessorKey: 'strategy',
-                                        cell: ({ row }) => (
-                                            <span className="text-slate-600 dark:text-slate-400 font-medium">
-                                                {row.original.strategy}
-                                            </span>
-                                        ),
-                                    },
-                                    {
-                                        header: 'Statut',
-                                        accessorKey: 'status',
-                                        cell: ({ row }) => (
-                                            <div className="flex flex-col items-start gap-1">
-                                                <Badge status={row.original.status === 'Ouvert' ? 'error' : row.original.status === 'En cours' ? 'warning' : 'success'} variant="outline">
-                                                    {row.original.status}
-                                                </Badge>
-
-                                                {(() => {
-                                                    const sla = getSLAStatus(row.original);
-                                                    if (sla) return (
-                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold mt-1 ${sla.color}`}>
-                                                            <Clock className="h-3 w-3 mr-1" /> {sla.label}
-                                                        </span>
-                                                    );
-                                                    return null;
-                                                })()}
-                                            </div>
-                                        ),
-                                    },
-                                    {
-                                        id: 'actions',
-                                        header: '',
-                                        cell: ({ row }) => (
-                                            <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                                                {canEdit && (
-                                                    <>
-                                                        <CustomTooltip content="Modifier le risque">
-                                                            <button onClick={() => { setSelectedRisk(row.original); setIsEditing(true); }} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all">
-                                                                <Edit className="h-4 w-4" />
-                                                            </button>
-                                                        </CustomTooltip>
-                                                        <CustomTooltip content="Supprimer le risque">
-                                                            <button onClick={() => initiateDelete(row.original.id, row.original.threat)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all">
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </button>
-                                                        </CustomTooltip>
-                                                    </>
-                                                )}
-                                            </div>
-                                        ),
-                                    },
-                                ]}
-                                data={filteredRisks}
-                                selectable={canEdit}
-                                onRowClick={(risk) => openInspector(risk)}
-                                searchable={false}
-                                exportable={false}
-                                loading={loading}
-                                onBulkDelete={async (selectedIds) => {
-                                    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} risques ? Cette action est irréversible.`)) {
-                                        return;
-                                    }
-
-                                    try {
-                                        const batch = writeBatch(db);
-                                        selectedIds.forEach(id => {
-                                            const ref = doc(db, 'risks', id);
-                                            batch.delete(ref);
-                                        });
-                                        await batch.commit();
-
-                                        addToast(`${selectedIds.length} risques supprimés avec succès`, 'success');
-                                        refreshRisks();
-                                    } catch (error) {
-                                        ErrorLogger.handleErrorWithToast(error, 'Risks.bulkDelete', 'DELETE_FAILED');
-                                    }
-                                }}
-                            />
-                        </div>
-                    </motion.div>
+                    <RiskList
+                        risks={filteredRisks}
+                        loading={dataLoading}
+                        canEdit={canEdit}
+                        assets={assets}
+                        onEdit={(r) => setSelectedRisk(r)}
+                        onDelete={deleteRisk}
+                        onBulkDelete={bulkDeleteRisks}
+                        onSelect={(r) => setSelectedRisk(r)}
+                    />
                 ) : (
-                    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 animate-fade-in">
-                        {loading ? (
-                            <div className="col-span-full"><CardSkeleton count={3} /></div>
-                        ) : filteredRisks.length === 0 ? (
-                            <div className="col-span-full">
-                                <EmptyState
-                                    icon={ShieldAlert}
-                                    title="Aucun risque identifié"
-                                    description={activeFilters.query ? "Aucun risque ne correspond à votre recherche." : "Identifiez et évaluez les risques pour protéger votre organisation."}
-                                    actionLabel={activeFilters.query || !canEdit ? undefined : "Nouveau Risque"}
-                                    onAction={activeFilters.query || !canEdit ? undefined : openCreationDrawer}
-                                />
-                            </div>
-                        ) : filteredRisks.map(risk => {
-                            const level = getRiskLevel(risk.score);
-                            const residualScore = risk.residualScore || risk.score;
-                            const isMitigated = residualScore < risk.score;
-                            const trend = risk.previousScore && risk.score > risk.previousScore ? 'up' : risk.previousScore && risk.score < risk.previousScore ? 'down' : 'stable';
+                    <RiskGrid
+                        risks={filteredRisks}
+                        loading={dataLoading}
+                        assets={assets}
+                        onSelect={(r) => setSelectedRisk(r)}
+                        emptyStateIcon={ShieldAlert}
+                        emptyStateTitle="Aucun risque"
+                        emptyStateDescription="Aucun risque trouvé."
+                    />
+                )}
+            </div>
 
-                            return (
-                                <div key={risk.id} onClick={() => openInspector(risk)} className="group glass-panel p-6 rounded-[2rem] card-hover flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5 overflow-hidden">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                    <div className="relative z-10 flex flex-col h-full">
-                                        <div className="flex justify-between items-start mb-5">
-                                            <div className="flex items-center gap-2">
-                                                <Badge status={level.status} variant="soft" size="sm">
-                                                    {level.label} {risk.score}
-                                                </Badge>
-                                                {trend === 'up' && <span className="text-red-500" title="En hausse"><TrendingUp className="h-4 w-4" /></span>}
-                                                {trend === 'down' && <span className="text-emerald-500" title="En baisse"><TrendingDown className="h-4 w-4" /></span>}
-                                                {isMitigated && (<><ArrowRight className="w-3 h-3 text-slate-500" /><div className="px-2.5 py-1 text-[10px] font-bold rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-800">Résiduel: {residualScore}</div></>)}
-                                            </div>
-                                        </div>
-                                        <div className="mb-4 flex-1">
-                                            <div className="flex items-center mb-3">
-                                                <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 mr-2.5"><Server className="w-3.5 h-3.5" /></div>
-                                                <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide truncate">{getAssetName(risk.assetId)}</span>
-                                            </div>
-                                            <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug mb-2 line-clamp-2">{risk.threat}</h4>
-                                            <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50/80 dark:bg-black/20 p-3 rounded-xl inline-block w-full border border-slate-100 dark:border-white/5">
-                                                <span className="font-bold text-xs uppercase text-slate-500 block mb-1">Vulnérabilité</span>
-                                                <SafeHTML content={risk.vulnerability || ''} className="line-clamp-3" />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-slate-700">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex flex-col gap-1.5 items-start">
-                                                    <span className="text-xs font-medium text-slate-600 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">{risk.strategy}</span>
-                                                    {(() => {
-                                                        const sla = getSLAStatus(risk);
-                                                        if (sla) return (
-                                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[10px] font-bold ${sla.color}`}>
-                                                                <Clock className="w-3 h-3 mr-1" /> {sla.label}
-                                                            </span>
-                                                        )
-                                                        return null;
-                                                    })()}
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    {risk.treatment?.slaStatus && risk.treatment.status !== 'Terminé' && (
-                                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${risk.treatment.slaStatus === 'Breached' ? 'bg-red-100 text-red-700 border-red-200' :
-                                                            risk.treatment.slaStatus === 'At Risk' ? 'bg-orange-100 text-orange-700 border-orange-200' :
-                                                                'bg-emerald-100 text-emerald-700 border-emerald-200'
-                                                            }`}>
-                                                            SLA: {risk.treatment.slaStatus}
-                                                        </span>
-                                                    )}
-                                                    <Badge
-                                                        status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : 'success'}
-                                                        variant="outline"
-                                                    >
-                                                        {risk.status}
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                            {isReviewOverdue(risk) && (
-                                                <div className="flex items-center justify-between">
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-[10px] font-bold">
-                                                        <Clock className="h-3 w-3 mr-1" /> Revue en retard
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )
-            }
+            <RiskInspector
+                isOpen={!!selectedRisk}
+                onClose={() => setSelectedRisk(null)}
+                risk={selectedRisk}
+                assets={assets}
+                controls={controls}
+                projects={projects}
+                audits={audits}
+                suppliers={suppliers}
+                usersList={usersList}
+                processes={rawProcesses}
+                canEdit={canEdit}
+                demoMode={demoMode}
+                onUpdate={updateRisk}
+                onDelete={deleteRisk}
+                onDuplicate={(r) => createRisk({ ...r, threat: `${r.threat} (Copie)` } as any)}
+            />
 
             <Drawer
-                isOpen={!!selectedRisk || creationMode}
-                onClose={() => { setSelectedRisk(null); setCreationMode(false); setIsEditing(false); }}
-                title={creationMode ? 'Nouveau Risque' : selectedRisk?.threat}
-                subtitle={
-                    creationMode ? 'Création' : (
-                        <div className="flex items-center gap-2">
-                            <Server className="h-3.5 w-3.5" /> {getAssetName(selectedRisk?.assetId)}
-                        </div>
-                    )
-                }
-                width={creationMode || isEditing ? "max-w-4xl" : "max-w-6xl"}
-                breadcrumbs={getBreadcrumbs()}
-                actions={
-                    !creationMode && (
-                        <>
-                            {canEdit && selectedRisk && (
-                                <>
-                                    <CustomTooltip content="Dupliquer">
-                                        <button onClick={handleDuplicate} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" aria-label="Dupliquer le risque">
-                                            <Copy className="h-5 w-5" />
-                                        </button>
-                                    </CustomTooltip>
-                                    <CustomTooltip content="Modifier">
-                                        <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm" aria-label="Modifier le risque">
-                                            <Edit className="h-5 w-5" />
-                                        </button>
-                                    </CustomTooltip>
-                                    <CustomTooltip content="Supprimer">
-                                        <button onClick={() => initiateDelete(selectedRisk.id, selectedRisk.threat)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm" aria-label="Supprimer le risque">
-                                            <Trash2 className="h-5 w-5" />
-                                        </button>
-                                    </CustomTooltip>
-                                </>
-                            )}
-                        </>
-                    )
-                }
+                isOpen={creationMode}
+                onClose={() => setCreationMode(false)}
+                title="Nouveau Risque"
+                width="max-w-4xl"
             >
-                {creationMode ? (
+                <div className="p-6">
                     <RiskForm
-                        onSubmit={onSubmit}
+                        onSubmit={async (data) => {
+                            const success = await createRisk(data as any);
+                            if (success) setCreationMode(false);
+                        }}
                         onCancel={() => setCreationMode(false)}
                         assets={assets}
-                        usersList={usersList}
+                        usersList={usersList as any}
                         processes={rawProcesses}
                         suppliers={suppliers}
                         controls={controls}
                         isLoading={submitting}
                     />
-                ) : selectedRisk && (
-                    <div className="flex flex-col h-full">
-                        {isEditing ? (
-                            <div className="p-6">
-                                <RiskForm
-                                    onSubmit={handleUpdate}
-                                    onCancel={() => setIsEditing(false)}
-                                    initialData={selectedRisk}
-                                    existingRisk={selectedRisk}
-                                    assets={assets}
-                                    usersList={usersList}
-                                    processes={rawProcesses}
-                                    suppliers={suppliers}
-                                    controls={controls}
-                                    isEditing={true}
-                                    isLoading={submitting}
-                                />
-                            </div>
-                        ) : (
-                            <>
-                                <div className="px-4 md:px-8 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-transparent">
-                                    <ScrollableTabs
-                                        tabs={[
-                                            { id: 'details', label: 'Détails', icon: ShieldAlert },
-                                            { id: 'treatment', label: 'Traitement', icon: CheckCircle2 },
-                                            { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-                                            { id: 'projects', label: 'Projets', icon: FolderKanban },
-                                            { id: 'audits', label: 'Audits', icon: CheckCircle2 },
-                                            { id: 'history', label: 'Historique', icon: History },
-                                            { id: 'comments', label: 'Discussion', icon: MessageSquare },
-                                            { id: 'graph', label: 'Graphe', icon: Network },
-                                            { id: 'threats', label: 'Menaces', icon: ShieldAlert }
-                                        ]}
-                                        activeTab={inspectorTab}
-                                        onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
-                                    />
-                                </div>
-
-                                <div className="p-4 md:p-8 space-y-8">
-                                    {inspectorTab === 'details' && (
-                                        <div className="space-y-8">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                                <div className="p-6 bg-red-50/80 dark:bg-red-900/10 rounded-[2rem] border border-red-100 dark:border-red-900/30 shadow-sm">
-                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4">Risque Brut</h4>
-                                                    <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{selectedRisk.score}</div>
-                                                    <div className="text-xs font-medium text-slate-600">Prob: {selectedRisk.probability} × Impact: {selectedRisk.impact}</div>
-                                                </div>
-                                                <div className="p-6 bg-emerald-50/80 dark:bg-emerald-900/10 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
-                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4">Risque Résiduel</h4>
-                                                    <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{selectedRisk.residualScore || selectedRisk.score}</div>
-                                                    <div className="text-xs font-medium text-slate-600">Prob: {selectedRisk.residualProbability || selectedRisk.probability} × Impact: {selectedRisk.residualImpact || selectedRisk.impact}</div>
-                                                </div>
-                                            </div>
-
-                                            <RiskAIAssistant
-                                                risk={selectedRisk}
-                                                onUpdate={(updates) => handleUpdate({ ...selectedRisk, ...updates } as unknown as RiskFormData)}
-                                            />
-
-                                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Stratégie de Traitement</h4>
-                                                <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{selectedRisk.strategy}</div>
-                                            </div>
-                                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Propriétaire</h4>
-                                                <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{selectedRisk.owner || 'Non assigné'}</div>
-                                            </div>
-                                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Statut Actuel</h4>
-                                                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                                                    {canEdit ? (
-                                                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                                                            {['Ouvert', 'En cours', 'Fermé'].map(s => (
-                                                                <button
-                                                                    key={s}
-                                                                    onClick={() => handleStatusChange(selectedRisk, s as Risk['status'])}
-                                                                    disabled={updating}
-                                                                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none ${selectedRisk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'} ${updating ? 'opacity-50 cursor-wait' : ''}`}
-                                                                >
-                                                                    {s}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    ) : <Badge status={selectedRisk.status === 'Ouvert' ? 'error' : selectedRisk.status === 'En cours' ? 'warning' : 'success'} variant="soft">{selectedRisk.status}</Badge>}
-                                                    {canEdit && (
-                                                        <button
-                                                            onClick={handleReview}
-                                                            disabled={updating}
-                                                            className={`flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors w-full sm:w-auto ${updating ? 'opacity-70 cursor-wait' : ''}`}
-                                                        >
-                                                            {updating ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <CalendarDays className="h-3.5 w-3.5 mr-2" />}
-                                                            Valider la revue
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                {selectedRisk.lastReviewDate && (<p className="text-xs text-slate-500 mt-3 text-right">Dernière revue le : {new Date(selectedRisk.lastReviewDate).toLocaleDateString()}</p>)}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'treatment' && (
-                                        <div className="space-y-6">
-                                            <div className="flex items-center justify-between">
-                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Traitement du Risque</h3>
-                                                <span className="text-xs font-medium bg-brand-50 dark:bg-brand-900/20 text-brand-600 px-2.5 py-1 rounded-full">{selectedRisk.mitigationControlIds?.length || 0} mesures</span>
-                                            </div>
-
-                                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm space-y-8 transition-all duration-300 hover:shadow-apple">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <div className="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-lg text-brand-600 dark:text-brand-400">
-                                                        <Network className="h-5 w-5" />
-                                                    </div>
-                                                    <h4 className="text-base font-bold text-slate-800 dark:text-white">Décision & Plan de Traitement</h4>
-                                                </div>
-
-                                                <div className="space-y-4">
-                                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Stratégie retenue</label>
-                                                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                                                        {['Accepter', 'Atténuer', 'Transférer', 'Éviter'].map(s => (
-                                                            <button
-                                                                key={s}
-                                                                type="button"
-                                                                onClick={() => handleStrategyChange(selectedRisk, s as Risk['strategy'])}
-                                                                disabled={!canEdit || updating}
-                                                                className={`
-                                                        px-4 py-3 rounded-xl border text-sm font-bold transition-all duration-200 flex items-center justify-center
-                                                        ${selectedRisk.strategy === s
-                                                                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md transform scale-[1.02]'
-                                                                        : 'bg-transparent text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'}
-                                                        ${(!canEdit || updating) ? 'opacity-50 cursor-not-allowed' : ''}
-                                                    `}
-                                                            >
-                                                                {updating && selectedRisk.strategy === s ? <Loader2 className="h-4 w-4 animate-spin" /> : s}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                {selectedRisk.strategy !== 'Accepter' && (
-                                                    <div className="pt-6 border-t border-gray-100 dark:border-white/5 space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
-                                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><Clock className="h-4 w-4 mr-2" /> Exécution du plan</h4>
-
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                            <div className="space-y-2">
-                                                                <label className="text-xs font-medium text-slate-500">Échéance cible</label>
-                                                                <input
-                                                                    type="date"
-                                                                    className="w-full px-4 py-3 rounded-xl border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium text-sm disabled:opacity-50 transition-all"
-                                                                    value={selectedRisk.treatment?.dueDate || ''}
-                                                                    onChange={async (e) => {
-                                                                        if (!canEdit) return;
-                                                                        setUpdating(true);
-                                                                        const newDate = e.target.value;
-                                                                        const treatment = { ...selectedRisk.treatment, dueDate: newDate };
-
-                                                                        // Calculate SLA Status
-                                                                        let slaStatus: 'On Track' | 'At Risk' | 'Breached' = 'On Track';
-                                                                        if (newDate) {
-                                                                            const due = new Date(newDate);
-                                                                            const now = new Date();
-                                                                            const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-                                                                            if (diffDays < 0) slaStatus = 'Breached';
-                                                                            else if (diffDays < 7) slaStatus = 'At Risk';
-                                                                        }
-                                                                        treatment.slaStatus = slaStatus;
-
-                                                                        try {
-                                                                            await updateDoc(doc(db, 'risks', selectedRisk.id), { treatment });
-                                                                            setSelectedRisk({ ...selectedRisk, treatment });
-                                                                            refreshRisks();
-                                                                            addToast("Échéance mise à jour", "success");
-                                                                        } catch (err) {
-                                                                            ErrorLogger.handleErrorWithToast(err, 'Risks.updateDueDate', 'UPDATE_FAILED');
-                                                                        } finally {
-                                                                            setUpdating(false);
-                                                                        }
-                                                                    }}
-                                                                    disabled={!canEdit || updating}
-                                                                />
-                                                            </div>
-
-                                                            <div className="space-y-2">
-                                                                <label className="text-xs font-medium text-slate-500">Responsable</label>
-                                                                <CustomSelect
-                                                                    options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                                                                    value={selectedRisk.treatment?.ownerId || ''}
-                                                                    onChange={async (val) => {
-                                                                        if (!canEdit) return;
-                                                                        setUpdating(true);
-                                                                        const treatment = { ...selectedRisk.treatment, ownerId: val as string };
-                                                                        try {
-                                                                            await updateDoc(doc(db, 'risks', selectedRisk.id), { treatment });
-                                                                            setSelectedRisk({ ...selectedRisk, treatment });
-                                                                            refreshRisks();
-                                                                            addToast("Responsable mis à jour", "success");
-                                                                        } catch (err) {
-                                                                            ErrorLogger.handleErrorWithToast(err, 'Risks.updateOwner', 'UPDATE_FAILED');
-                                                                        } finally {
-                                                                            setUpdating(false);
-                                                                        }
-                                                                    }}
-                                                                    placeholder="Assigner..."
-                                                                    disabled={!canEdit || updating}
-                                                                />
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="space-y-2">
-                                                            <label className="text-xs font-medium text-slate-500">État d'avancement</label>
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="relative flex-1">
-                                                                    <select
-                                                                        className="w-full px-4 py-3 rounded-xl border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium text-sm appearance-none disabled:opacity-50 transition-all cursor-pointer"
-                                                                        value={selectedRisk.treatment?.status || 'Planifié'}
-                                                                        onChange={async (e) => {
-                                                                            if (!canEdit) return;
-                                                                            setUpdating(true);
-                                                                            const newStatus = e.target.value as RiskTreatment['status'];
-                                                                            const treatment = {
-                                                                                ...selectedRisk.treatment,
-                                                                                status: newStatus,
-                                                                                completedDate: newStatus === 'Terminé' ? new Date().toISOString() : undefined
-                                                                            };
-                                                                            try {
-                                                                                await updateDoc(doc(db, 'risks', selectedRisk.id), { treatment });
-                                                                                setSelectedRisk({ ...selectedRisk, treatment });
-                                                                                refreshRisks();
-                                                                                addToast("Statut d'avancement mis à jour", "success");
-                                                                            } catch (err) {
-                                                                                ErrorLogger.handleErrorWithToast(err, 'Risks.updateTreatmentStatus', 'UPDATE_FAILED');
-                                                                            } finally {
-                                                                                setUpdating(false);
-                                                                            }
-                                                                        }}
-                                                                        disabled={!canEdit || updating}
-                                                                    >
-                                                                        <option value="Planifié">📅 Planifié</option>
-                                                                        <option value="En cours">⚡ En cours</option>
-                                                                        <option value="Terminé">✅ Terminé</option>
-                                                                        <option value="Retard">⚠️ Retard</option>
-                                                                    </select>
-                                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* SLA Badge */}
-                                                                {selectedRisk.treatment?.slaStatus && selectedRisk.treatment.status !== 'Terminé' && (
-                                                                    <div className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border whitespace-nowrap ${selectedRisk.treatment.slaStatus === 'Breached' ? 'bg-red-50 text-red-600 border-red-100 dark:bg-red-900/20 dark:text-red-400' :
-                                                                        selectedRisk.treatment.slaStatus === 'At Risk' ? 'bg-orange-50 text-orange-600 border-orange-100 dark:bg-orange-900/20 dark:text-orange-400' :
-                                                                            'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400'
-                                                                        }`}>
-                                                                        {selectedRisk.treatment.slaStatus === 'Breached' && <span className="mr-1">🚨</span>}
-                                                                        {selectedRisk.treatment.slaStatus === 'At Risk' && <span className="mr-1">⚠️</span>}
-                                                                        SLA: {selectedRisk.treatment.slaStatus}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Affected Processes Section */}
-                                            <div className="space-y-4">
-                                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Processus Impactés</label>
-                                                <CustomSelect
-                                                    options={rawProcesses.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
-                                                    value={selectedRisk.affectedProcessIds || []}
-                                                    onChange={async (val) => {
-                                                        if (!selectedRisk || !canEdit) return;
-                                                        setUpdating(true);
-                                                        const newIds = Array.isArray(val) ? val : [val];
-                                                        try {
-                                                            await updateDoc(doc(db, 'risks', selectedRisk.id), { affectedProcessIds: newIds });
-                                                            setSelectedRisk({ ...selectedRisk, affectedProcessIds: newIds });
-                                                            refreshRisks();
-                                                            addToast("Processus mis à jour", "success");
-                                                        } catch (e) {
-                                                            ErrorLogger.handleErrorWithToast(e, 'Risks.updateProcesses', 'UPDATE_FAILED');
-                                                        } finally {
-                                                            setUpdating(false);
-                                                        }
-                                                    }}
-                                                    placeholder="Sélectionner les processus impactés..."
-                                                    multiple
-                                                    disabled={!canEdit || updating}
-                                                />
-                                            </div>
-
-                                            {/* Related Suppliers Section (Combined Direct & Reverse) */}
-                                            <div className="space-y-4">
-                                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Fournisseurs Concernés</label>
-                                                <CustomSelect
-                                                    options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
-                                                    value={selectedRisk.relatedSupplierIds || []}
-                                                    onChange={async (val) => {
-                                                        if (!selectedRisk || !canEdit) return;
-                                                        setUpdating(true);
-                                                        const newIds = Array.isArray(val) ? val : [val];
-                                                        try {
-                                                            await updateDoc(doc(db, 'risks', selectedRisk.id), { relatedSupplierIds: newIds });
-                                                            setSelectedRisk({ ...selectedRisk, relatedSupplierIds: newIds });
-                                                            refreshRisks();
-                                                            addToast("Fournisseurs mis à jour", "success");
-                                                        } catch (e) {
-                                                            ErrorLogger.handleErrorWithToast(e, 'Risks.updateSuppliers', 'UPDATE_FAILED');
-                                                        } finally {
-                                                            setUpdating(false);
-                                                        }
-                                                    }}
-                                                    placeholder="Sélectionner les fournisseurs concernés..."
-                                                    multiple
-                                                    disabled={!canEdit || updating}
-                                                />
-
-                                                {/* Display Reverse Linked Suppliers (if any are not already in direct links) */}
-                                                {(() => {
-                                                    const directIds = selectedRisk.relatedSupplierIds || [];
-                                                    const reverseLinked = suppliers.filter(s => s.relatedRiskIds?.includes(selectedRisk.id) && !directIds.includes(s.id));
-
-                                                    if (reverseLinked.length > 0) {
-                                                        return (
-                                                            <div className="mt-2 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
-                                                                <h5 className="text-xs font-bold uppercase text-slate-500 mb-2">Liés depuis la fiche Fournisseur</h5>
-                                                                <div className="space-y-2">
-                                                                    {reverseLinked.map(s => (
-                                                                        <div key={s.id} className="flex justify-between items-center">
-                                                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{s.name}</span>
-                                                                            <span className="text-xs text-slate-600">{s.category}</span>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return null;
-                                                })()}
-                                            </div>
-
-                                            {selectedRisk.mitigationControlIds && selectedRisk.mitigationControlIds.length > 0 ? (
-                                                <div className="space-y-3">
-                                                    {selectedRisk.mitigationControlIds.map(cid => {
-                                                        const ctrl = controls.find(c => c.id === cid);
-                                                        return ctrl ? (
-                                                            <div key={cid} className="flex items-start p-4 bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all">
-                                                                <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-xl mr-4 text-green-600"><CheckCircle2 className="h-5 w-5" /></div>
-                                                                <div>
-                                                                    <div className="font-bold text-sm text-slate-900 dark:text-white mb-1">{ctrl.code}</div>
-                                                                    <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{ctrl.name}</div>
-                                                                </div>
-                                                            </div>
-                                                        ) : null;
-                                                    })}
-                                                </div>
-                                            ) : (
-                                                <div className="text-center py-12 text-slate-500 bg-white dark:bg-slate-800/30 rounded-[2rem] border border-dashed border-gray-200 dark:border-white/10">
-                                                    <ShieldAlert className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                                                    Aucun contrôle d'atténuation lié.
-                                                </div>
-                                            )}
-                                        </div>
-
-                                    )}
-
-                                    {inspectorTab === 'dashboard' && (
-                                        <div className="space-y-6">
-                                            <RiskDashboard risks={[selectedRisk]} />
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'projects' && (
-                                        <div className="space-y-8">
-                                            <div className="flex justify-between items-center mb-4">
-                                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
-                                                {canEdit && (
-                                                    <button
-                                                        onClick={() => {
-                                                            if (selectedRisk) {
-                                                                navigate('/projects', { state: { createForRisk: selectedRisk.id, riskName: selectedRisk.threat } });
-                                                            }
-                                                        }}
-                                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
-                                                    >
-                                                        <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouveau Projet
-                                                    </button>
-                                                )}
-                                            </div>
-                                            {linkedProjects.length === 0 ? (
-                                                <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-[2rem] border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé à ce risque.</p>
-                                            ) : (
-                                                <div className="grid gap-4">
-                                                    {linkedProjects.map(proj => (
-                                                        <div key={proj.id} className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm hover:shadow-apple transition-all duration-300">
-                                                            <div className="flex justify-between items-start mb-2">
-                                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{proj.name}</span>
-                                                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${proj.status === 'En cours' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{proj.status}</span>
-                                                            </div>
-                                                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{proj.description}</p>
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="w-full bg-slate-200 rounded-full h-1.5 mr-4 max-w-[100px]">
-                                                                    <div className="bg-brand-500 h-1.5 rounded-full" style={{ width: `${proj.progress}%` }}></div>
-                                                                </div>
-                                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{proj.progress}%</span>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'audits' && (
-                                        <div className="space-y-8">
-                                            <div className="flex justify-between items-center mb-4">
-                                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><CheckCircle2 className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
-                                                {canEdit && (
-                                                    <button
-                                                        onClick={() => {
-                                                            if (selectedRisk) {
-                                                                navigate('/audits', { state: { createForRisk: selectedRisk.id, riskName: selectedRisk.threat } });
-                                                            }
-                                                        }}
-                                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
-                                                    >
-                                                        <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouvel Audit
-                                                    </button>
-                                                )}
-                                            </div>
-                                            {linkedAudits.length === 0 ? (
-                                                <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-[2rem] border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé à ce risque.</p>
-                                            ) : (
-                                                <div className="grid gap-4">
-                                                    {linkedAudits.map(audit => (
-                                                        <div key={audit.id} className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm hover:shadow-apple transition-all duration-300">
-                                                            <div className="flex justify-between items-start mb-2">
-                                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{audit.name}</span>
-                                                                <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${audit.status === 'Terminé' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>{audit.status}</span>
-                                                            </div>
-                                                            <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">Auditeur: {audit.auditor}</p>
-                                                            <div className="flex items-center text-xs text-slate-600">
-                                                                <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-                                                                {new Date(audit.dateScheduled).toLocaleDateString()}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'graph' && (
-                                        <div className="h-[500px]">
-                                            <RelationshipGraph rootId={selectedRisk.id} rootType="Risk" />
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'history' && (
-                                        <div className="space-y-8">
-                                            <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Évolution du Score</h4>
-                                                {riskScoreHistory.length === 0 ? <p className="text-sm text-slate-500 italic">Aucun changement de score enregistré.</p> : riskScoreHistory.map((h, i) => (
-                                                    <div key={i} className="relative">
-                                                        <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-blue-100 dark:border-blue-900">
-                                                            <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                                                        </span>
-                                                        <div>
-                                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(h.date).toLocaleString()}</span>
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                <span className="text-sm font-bold text-slate-600">Score:</span>
-                                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{h.previousScore} ➔ {h.newScore}</span>
-                                                            </div>
-                                                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Par: {h.changedBy}</p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Journal d'Audit</h4>
-                                                {riskHistory.map((log, i) => (
-                                                    <div key={i} className="relative">
-                                                        <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
-                                                            <div className="h-2 w-2 rounded-full bg-brand-500"></div>
-                                                        </span>
-                                                        <div>
-                                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
-                                                            <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{log.details}</p>
-                                                            <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-gray-50 dark:bg-white/5 text-[10px] font-medium text-slate-600">{log.userEmail}</div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'comments' && (
-                                        <div className="h-full flex flex-col">
-                                            <Comments collectionName="risks" documentId={selectedRisk.id} />
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'threats' && (
-                                        <div className="space-y-6">
-                                            {/* Linked Techniques */}
-                                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-apple">
-                                                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-600 mb-4 flex items-center">
-                                                    Techniques Liées ({selectedRisk.mitreTechniques?.length || 0})
-                                                </h3>
-                                                {!selectedRisk.mitreTechniques || selectedRisk.mitreTechniques.length === 0 ? (
-                                                    <p className="text-sm text-slate-500 italic">Aucune technique liée.</p>
-                                                ) : (
-                                                    <div className="space-y-3">
-                                                        {selectedRisk.mitreTechniques.map(tech => {
-                                                            if (!selectedRisk) return null; // Guard selectedRisk
-                                                            return (
-                                                                <div key={tech.id} className="flex justify-between items-start p-3 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5">
-                                                                    <div>
-                                                                        <div className="font-bold text-slate-900 dark:text-white text-sm">
-                                                                            {tech.name} <span className="text-slate-500 font-mono text-xs ml-2">({tech.id})</span>
-                                                                        </div>
-                                                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">{tech.description}</p>
-                                                                    </div>
-                                                                    <button
-                                                                        onClick={async () => {
-                                                                            if (!canEdit || !selectedRisk) return; // Guard selectedRisk
-                                                                            const updatedTechniques = selectedRisk.mitreTechniques?.filter(t => t.id !== tech.id) || [];
-                                                                            try {
-                                                                                await updateDoc(doc(db, 'risks', selectedRisk.id), { mitreTechniques: updatedTechniques });
-                                                                                setSelectedRisk({ ...selectedRisk, mitreTechniques: updatedTechniques });
-                                                                                refreshRisks();
-                                                                                addToast("Technique retirée", "success");
-                                                                            } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.removeMitreTechnique'); }
-                                                                        }}
-                                                                        className="text-slate-500 hover:text-red-500 transition-colors p-1"
-                                                                        title="Retirer"
-                                                                        disabled={!canEdit}
-                                                                    >
-                                                                        <Trash2 className="h-4 w-4" />
-                                                                    </button>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Search & Add */}
-                                            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-white/5">
-                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center">
-                                                    <ShieldAlert className="w-5 h-5 mr-2 text-red-500" />
-                                                    Rechercher MITRE ATT&CK
-                                                </h3>
-                                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-                                                    Recherchez des techniques pour les lier à ce risque.
-                                                </p>
-
-                                                <div className="flex gap-2 mb-6">
-                                                    <div className="relative flex-1">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Rechercher une technique (ex: Phishing, T1566)..."
-                                                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-2 focus:ring-brand-500 outline-none"
-                                                            value={mitreQuery}
-                                                            onChange={(e) => setMitreQuery(e.target.value)}
-                                                            onKeyDown={(e) => e.key === 'Enter' && integrationService.getCommonMitreTechniques(mitreQuery, demoMode).then(setMitreResults)}
-                                                        />
-                                                        <Search className="absolute left-3 top-3.5 w-5 h-5 text-slate-500" />
-                                                    </div>
-                                                    <button
-                                                        onClick={() => integrationService.getCommonMitreTechniques(mitreQuery, demoMode).then(setMitreResults)}
-                                                        className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl hover:opacity-90 transition-opacity"
-                                                    >
-                                                        Rechercher
-                                                    </button>
-                                                </div>
-
-                                                <div className="space-y-4">
-                                                    {mitreResults.length > 0 ? (
-                                                        mitreResults.map((technique) => {
-                                                            const isLinked = selectedRisk.mitreTechniques?.some(t => t.id === technique.id);
-                                                            return (
-                                                                <div key={technique.id} className="p-4 bg-white dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5 hover:border-brand-500 dark:hover:border-brand-500 transition-colors group">
-                                                                    <div className="flex justify-between items-start mb-2">
-                                                                        <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-500 transition-colors">
-                                                                            {technique.name} <span className="text-slate-500 font-mono text-xs ml-2">({technique.id})</span>
-                                                                        </h4>
-                                                                        <button
-                                                                            onClick={async () => {
-                                                                                if (!canEdit || isLinked || !selectedRisk) return;
-                                                                                const currentTechniques = selectedRisk.mitreTechniques || [];
-                                                                                const updatedTechniques = [...currentTechniques, technique];
-                                                                                try {
-                                                                                    await updateDoc(doc(db, 'risks', selectedRisk.id), { mitreTechniques: updatedTechniques });
-                                                                                    setSelectedRisk({ ...selectedRisk, mitreTechniques: updatedTechniques });
-                                                                                    refreshRisks();
-                                                                                    addToast("Technique ajoutée", "success");
-                                                                                } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Risks.addMitreTechnique'); }
-                                                                            }}
-                                                                            className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${isLinked
-                                                                                ? 'bg-green-100 text-green-700 cursor-default'
-                                                                                : 'bg-brand-600 text-white hover:bg-brand-700 shadow-sm hover:shadow'
-                                                                                }`}
-                                                                            disabled={!canEdit || isLinked}
-                                                                        >
-                                                                            {isLinked ? 'Lié' : 'Ajouter'}
-                                                                        </button>
-                                                                    </div>
-                                                                    <p className="text-sm text-slate-600 dark:text-slate-400">{technique.description}</p>
-                                                                </div>
-                                                            );
-                                                        })
-                                                    ) : (
-                                                        <div className="text-center py-8 text-slate-500 italic">
-                                                            Aucun résultat. Essayez de rechercher "Phishing" ou "Exploit".
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </div>
-                )}
+                </div>
             </Drawer>
-        </motion.div >
+
+            <RiskTemplateModal
+                isOpen={isTemplateModalOpen}
+                onClose={() => setIsTemplateModalOpen(false)}
+                onSelectTemplate={async () => {
+                    // Adapter logic for template
+                    setIsTemplateModalOpen(false);
+                }}
+                owners={usersList as any}
+            />
+        </div>
     );
 };
-

@@ -59,6 +59,16 @@ export const riskSchema = z.object({
 }, {
     message: "Le risque résiduel (cible) ne peut pas être supérieur au risque brut (inhérent). Vérifiez vos évaluations.",
     path: ["residualImpact"] // Show error on this field
+}).refine((data) => {
+    // Validate that Justification is present if Risk is Accepted and Criticality is High (Score >= 12)
+    const score = data.probability * data.impact;
+    if (data.strategy === 'Accepter' && score >= 12) {
+        return !!data.justification && data.justification.trim().length > 10;
+    }
+    return true;
+}, {
+    message: "Une justification détaillée est obligatoire pour accepter un risque critique (Score ≥ 12).",
+    path: ["justification"]
 });
 
 export type RiskFormData = z.infer<typeof riskSchema>;

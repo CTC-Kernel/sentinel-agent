@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store';
 import { SettingsLayout } from '../components/settings/SettingsLayout';
 import { ProfileSettings } from '../components/settings/ProfileSettings';
+import { UserActivityLog } from '../components/settings/UserActivityLog';
 import { SecuritySettings } from '../components/settings/SecuritySettings';
 import { OrganizationSettings } from '../components/settings/OrganizationSettings';
 import { IntegrationSettings } from '../components/settings/IntegrationSettings';
@@ -19,6 +20,7 @@ const Settings: React.FC = () => {
     const renderContent = () => {
         switch (activeTab) {
             case 'profile': return <ProfileSettings />;
+            case 'activity': return <UserActivityLog />;
             case 'security': return <SecuritySettings />;
             case 'organization': return <OrganizationSettings />;
             case 'integrations': return <IntegrationSettings />;

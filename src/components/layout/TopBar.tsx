@@ -74,6 +74,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
 
                     {/* Modern Search Bar Trigger */}
                     <button
+                        data-tour="command-palette"
                         onClick={openCommandPalette}
                         className="hidden md:flex items-center gap-3 px-4 py-2.5 bg-white/40 dark:bg-[#020617]/40 hover:bg-white/60 dark:hover:bg-[#020617]/60 border border-white/60 dark:border-white/10 rounded-2xl text-sm text-slate-600 dark:text-slate-400 transition-all duration-200 group w-full max-w-md shadow-sm hover:shadow-md backdrop-blur-md"
                     >
@@ -105,12 +106,15 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                             {t('common.adminShort')}
                         </Link>
                     )}
-                    <NotificationCenter />
+                    <span data-tour="notifications">
+                        <NotificationCenter />
+                    </span>
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block"></div>
 
                     <Tooltip content={theme === 'light' ? t('common.darkMode') : t('common.lightMode')} position="bottom">
                         <button
+                            data-tour="theme-toggle"
                             onClick={async () => {
                                 toggleTheme();
                                 if (user) {

@@ -9,6 +9,23 @@ export enum Criticality {
 export type ResourceType = 'Asset' | 'Risk' | 'Project' | 'Audit' | 'Document' | 'Control' | 'Incident' | 'Supplier' | 'BusinessProcess' | 'Vulnerability' | 'Threat' | 'SystemLog' | 'ProcessingActivity' | 'SupplierAssessment' | 'SupplierIncident' | 'User' | 'Settings';
 export type ActionType = 'read' | 'create' | 'update' | 'delete' | 'manage';
 
+export interface HealthIssue {
+  id: string;
+  type: 'warning' | 'danger';
+  message: string;
+  count: number;
+  link: string;
+}
+
+export interface ActionItem {
+  id: string;
+  type: 'audit' | 'document' | 'project' | 'policy' | 'incident' | 'risk';
+  title: string;
+  date: string;
+  status: string;
+  link: string;
+}
+
 
 
 // ... (existing imports, etc)
@@ -226,6 +243,7 @@ export interface Control {
   relatedRiskIds?: string[]; // Added missing field
   relatedSupplierIds?: string[];
   relatedProjectIds?: string[];
+  maturity?: number; // Added for SoA reporting
 }
 
 export interface Document {
@@ -328,6 +346,7 @@ export interface Audit {
   externalAuditors?: string[]; // Emails of external auditors
   createdBy?: string; // User ID of the creator (for Segregation of Duties)
   updatedAt?: string;
+  score?: number; // Added for Audit reporting
 }
 
 export interface EvidenceRequest {

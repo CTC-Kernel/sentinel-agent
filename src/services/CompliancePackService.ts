@@ -4,7 +4,7 @@ import { saveAs } from 'file-saver';
 import { PdfService } from './PdfService';
 import { Risk, Control, Document as GRCDocument, Audit, Incident, Asset } from '../types';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+
 
 export class CompliancePackService {
 
@@ -116,7 +116,7 @@ L'intégrité de ces données est garantie par le système.
                     const rows = data.controls.map(c => [
                         c.code,
                         c.name,
-                        c.status === 'Applicable' ? 'Oui' : 'Non',
+                        c.applicability === 'Applicable' ? 'Oui' : 'Non',
                         `${c.maturity}/5`
                     ]);
                     doc.autoTable({
@@ -194,14 +194,14 @@ L'intégrité de ces données est garantie par le système.
             const incDoc = PdfService.generateTableReport(
                 { title: "Registre des Incidents", organizationName: data.organizationName, save: false, orientation: 'landscape' },
                 ['Titre', 'Sévérité', 'Statut', 'Date', 'Impact'],
-                data.incidents.map(i => [i.title, i.severity, i.status, format(new Date(i.createdAt), 'dd/MM/yyyy'), i.impact || 'N/A'])
+                data.incidents.map(i => [i.title, i.severity, i.status, format(new Date(i.dateReported), 'dd/MM/yyyy'), i.impact || 'N/A'])
             );
             incidentFolder.file("Registre_Incidents.pdf", incDoc.output('blob'));
 
             const assetDoc = PdfService.generateTableReport(
                 { title: "Inventaire des Actifs", organizationName: data.organizationName, save: false },
                 ['Nom', 'Type', 'Criticité', 'Propriétaire'],
-                data.assets.map(a => [a.name, a.type, a.criticality, a.owner || 'N/A'])
+                data.assets.map(a => [a.name, a.type, a.confidentiality, a.owner || 'N/A'])
             );
             incidentFolder.file("Inventaire_Actifs.pdf", assetDoc.output('blob'));
         }

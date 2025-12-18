@@ -26,6 +26,7 @@ interface DataTableProps<TData, TValue> {
     pageSize?: number;
     className?: string;
     loading?: boolean;
+    emptyState?: React.ReactNode;
 }
 
 export function DataTable<TData extends { id: string }, TValue>({
@@ -40,6 +41,7 @@ export function DataTable<TData extends { id: string }, TValue>({
     pageSize = 10,
     className,
     loading = false,
+    emptyState,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
@@ -239,11 +241,15 @@ export function DataTable<TData extends { id: string }, TValue>({
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={tableColumns.length} className="text-center py-16 text-slate-500 dark:text-slate-400">
-                                    <div className="flex flex-col items-center justify-center gap-2">
-                                        <Search className="h-8 w-8 opacity-20" />
-                                        <p>Aucune donnée à afficher</p>
-                                    </div>
+                                <td colSpan={tableColumns.length} className="p-0">
+                                    {emptyState || (
+                                        <div className="flex flex-col items-center justify-center py-16 text-slate-500 dark:text-slate-400">
+                                            <div className="w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center mb-4">
+                                                <Search className="h-8 w-8 opacity-20" />
+                                            </div>
+                                            <p className="font-medium">Aucune donnée à afficher</p>
+                                        </div>
+                                    )}
                                 </td>
                             </tr>
                         )}

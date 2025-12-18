@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Import all widgets
-import { StatsOverview } from '../widgets/StatsOverview';
+import { DashboardStats } from '../widgets/DashboardStats';
 import { MyWorkspaceWidget } from '../widgets/MyWorkspaceWidget';
 import { ComplianceEvolutionWidget } from '../widgets/ComplianceEvolutionWidget';
 import { HealthCheckWidget } from '../widgets/HealthCheckWidget';
@@ -35,7 +35,7 @@ export const WIDGET_REGISTRY: Record<string, {
     titleKey: string; // for the "Add Widget" menu
 }> = {
     'stats-overview': {
-        component: StatsOverview,
+        component: DashboardStats,
         defaultColSpan: 3,
         titleKey: 'dashboard.statsOverview'
     },

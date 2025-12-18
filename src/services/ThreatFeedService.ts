@@ -1,6 +1,6 @@
 
 import { db } from '../firebase';
-import { collection, addDoc, query, where, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { Threat, Vulnerability } from '../types';
 
 const CISA_KEV_URL = 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json';
@@ -112,9 +112,7 @@ export class ThreatFeedService {
         let threatsAdded = 0;
         let vulnsAdded = 0;
 
-        // Batch writes (max 500 per batch in Firestore)
-        const batch = writeBatch(db);
-        let opCount = 0;
+
 
         // 1. Process Vulnerabilities
         // Strategy: We want global vulnerabilities potentially, but here we attach them to the org
@@ -128,7 +126,7 @@ export class ThreatFeedService {
             const snap = await getDocs(q);
 
             if (snap.empty) {
-                const newRef = Math.random().toString(36).substring(7); // Placeholder ID generation if not using addDoc
+
                 const docRef = addDoc(collection(db, 'vulnerabilities'), {
                     ...v,
                     organizationId,

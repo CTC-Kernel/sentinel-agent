@@ -63,43 +63,7 @@ const ThreatMarker: React.FC<{ position: THREE.Vector3; name: string; intensity:
     );
 };
 
-const Planet: React.FC<{ data: ThreatData[] }> = ({ data }) => {
-    const planetRef = useRef<THREE.Mesh>(null);
-    const globeTexture = useMemo(() => new THREE.TextureLoader().load('https://upload.wikimedia.org/wikipedia/commons/2/23/Blue_Marble_2002.png'), []);
 
-    // Auto-rotate
-    useFrame(() => {
-        if (planetRef.current) {
-            planetRef.current.rotation.y += 0.0005;
-        }
-    });
-
-    return (
-        <group>
-            {/* The Globe */}
-            <mesh ref={planetRef}>
-                <sphereGeometry args={[2, 64, 64]} />
-                <meshPhongMaterial
-                    map={globeTexture}
-                    bumpScale={0.05}
-                    specular={new THREE.Color('grey')}
-                    shininess={5}
-                />
-            </mesh>
-
-            {/* Atmosphere Halo */}
-            <mesh scale={[2.1, 2.1, 2.1]}>
-                <sphereGeometry args={[1, 64, 64]} />
-                <meshBasicMaterial color="#3b82f6" transparent opacity={0.1} side={THREE.BackSide} blending={THREE.AdditiveBlending} />
-            </mesh>
-
-            {/* Markers attached to the planet group so they rotate with it? 
-                Actually if they are separate, we need to rotate the container. 
-                Let's put markers inside the planetRef if possible, or rotate a container group.
-            */}
-        </group>
-    );
-};
 
 // We need a scene container that holds the planet and markers in the same coordinate system.
 const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {

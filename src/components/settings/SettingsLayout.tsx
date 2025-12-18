@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Shield, Building, Link, Server, ChevronRight } from '../ui/Icons';
+import { User, Shield, Building, Link, Server, ChevronRight, Activity } from '../ui/Icons';
 import { cn } from '../../lib/utils';
 import { useStore } from '../../store';
 import { hasPermission } from '../../utils/permissions';
@@ -17,6 +17,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
 
     const tabs = [
         { id: 'profile', label: t('settings.profile'), icon: User },
+        { id: 'activity', label: 'Mon Activité', icon: Activity },
         { id: 'security', label: t('settings.security'), icon: Shield },
         { id: 'organization', label: t('settings.organization'), icon: Building, requiredPermission: { resource: 'Settings', action: 'manage' } },
         { id: 'integrations', label: t('settings.integrations'), icon: Link },

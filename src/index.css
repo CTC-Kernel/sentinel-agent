@@ -486,3 +486,80 @@ body.voxel-fullscreen header {
 .animate-shine {
   animation: shine 5s linear infinite;
 }
+
+/* Driver.js Theme Overrides for Masterpiece */
+.driver-popover.driverjs-theme {
+  background-color: transparent !important;
+  color: inherit !important;
+  padding: 0 !important;
+  border-radius: 1.5rem !important;
+  box-shadow: none !important;
+}
+
+.driver-popover.driverjs-theme .driver-popover-arrow {
+  border: none !important;
+  background-color: transparent !important;
+}
+
+.driver-popover.driverjs-theme .driver-popover-title {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.driver-popover.driverjs-theme .driver-popover-description {
+  font-size: 0.9rem !important;
+  line-height: 1.5 !important;
+  font-weight: 400 !important;
+}
+
+.driver-popover.driverjs-theme button {
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+  padding: 0.5rem 1rem !important;
+}
+
+/* We inject a glassmorphism container via script or assume driver allows HTML content */
+/* Since driver.js creates its own DOM, we use global overrides to force the look */
+.driver-popover {
+  @apply glass-panel text-foreground p-6 rounded-3xl shadow-xl;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  max-width: 350px !important;
+}
+
+.dark .driver-popover {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+.driver-popover-title {
+  @apply text-lg font-bold mb-2 text-slate-900 dark:text-white;
+}
+
+.driver-popover-description {
+  @apply text-sm text-slate-600 dark:text-slate-300;
+}
+
+.driver-popover-footer {
+  @apply mt-4 gap-2;
+}
+
+.driver-popover-next-btn {
+  @apply bg-brand-600 text-white hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20 py-2 px-4 rounded-xl text-xs !important;
+  border: none !important;
+  text-shadow: none !important;
+}
+
+.driver-popover-prev-btn {
+  @apply bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors py-2 px-4 rounded-xl text-xs !important;
+  border: none !important;
+  text-shadow: none !important;
+}
+
+.driver-popover-close-btn {
+  @apply text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors !important;
+}

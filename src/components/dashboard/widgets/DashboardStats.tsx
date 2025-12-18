@@ -16,7 +16,7 @@ interface StatsOverviewProps {
     t: (key: string) => string;
 }
 
-export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats, loading, navigate, t }) => {
+export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, navigate, t }) => {
     const calculateHealthScore = () => {
         if (!stats) return 100;
         let score = 100;
