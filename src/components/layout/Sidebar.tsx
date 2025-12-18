@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
-import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database, Calendar, Loader2, Bug, Globe } from '../ui/Icons';
+import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database, Calendar, Loader2, Bug, Globe, History as HistoryIcon } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
 import { Scale, Shield, Printer } from 'lucide-react';
@@ -67,6 +67,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       title: t('common.administration'),
       items: [
         { key: 'team', name: t('sidebar.team'), to: '/team', icon: Users },
+        { key: 'audit-trail', name: "Journal d'Audit", to: '/audit-trail', icon: HistoryIcon },
         { key: 'backup', name: t('common.backup'), to: '/backup', icon: Database },
         ...(isSuperAdmin ? [{ key: 'super_admin', name: t('sidebar.superAdmin'), to: '/admin_management', icon: Shield }] : [])
       ]
@@ -76,14 +77,10 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
   const filterItem = (item: { key: string; name: string }) => {
     if (!user) return false;
 
-    // ALWAYS SHOW Dashboard to avoid empty menu confusion
-    if (item.key === 'dashboard') return true;
-
-    // If user is admin or owner -> Show All
-    if (user.role === 'admin' || user.role === 'rssi') return true;
-
-    // STRICT RBAC FILTERING
+    // STRICT RBAC FILTERING - Source of Truth: permissions.ts
+    // Admin/RSSI check is handled INSIDE hasPermission, no need to duplicate here.
     switch (item.key) {
+      case 'dashboard': return true; // Always visible
       case 'incidents': return hasPermission(user, 'Incident', 'read');
       case 'projects': return hasPermission(user, 'Project', 'read');
       case 'risks': return hasPermission(user, 'Risk', 'read');
@@ -92,14 +89,16 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       case 'assets': return hasPermission(user, 'Asset', 'read');
       case 'team': return hasPermission(user, 'User', 'read');
       case 'backup': return hasPermission(user, 'Settings', 'manage');
-      case 'continuity': return hasPermission(user, 'Risk', 'read');
+      case 'continuity': return hasPermission(user, 'Risk', 'read'); // BCP often linked to Risk/Admin
       case 'compliance': return hasPermission(user, 'Audit', 'read');
       case 'suppliers': return hasPermission(user, 'Supplier', 'read');
-      case 'privacy': return hasPermission(user, 'Document', 'read');
-      case 'voxel': return false;
-      case 'vulnerabilities': return hasPermission(user, 'Asset', 'read') || hasPermission(user, 'Risk', 'read');
-      case 'threat-intelligence': return true; // Public/Collaborative but authenticated
-      case 'reports': return hasPermission(user, 'Risk', 'read') || hasPermission(user, 'Audit', 'read');
+      case 'privacy': return hasPermission(user, 'Document', 'read'); // RGPD linked to Docs usually
+      case 'voxel': return user.role === 'admin' || user.role === 'rssi' || user.role === 'direction'; // Restricted to high-level for now
+      case 'vulnerabilities': return hasPermission(user, 'Asset', 'read');
+      case 'threat-intelligence': return true; // Open to all auth users
+      case 'reports': return hasPermission(user, 'Risk', 'read');
+      case 'audit-trail': return user.role === 'admin' || user.role === 'rssi' || user.role === 'auditor'; // Specific to auditors
+      case 'super_admin': return isSuperAdmin;
       default: return true;
     }
   };

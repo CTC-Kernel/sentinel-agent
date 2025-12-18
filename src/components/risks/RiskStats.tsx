@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TrendingDown } from 'lucide-react';
 import { Badge } from '../ui/Badge';
-import { slideUpVariants } from '@/utils/animations';
+import { slideUpVariants } from '../ui/animationVariants';
 
 interface RiskStatsProps {
     stats: {

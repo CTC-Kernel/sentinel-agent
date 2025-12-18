@@ -6,7 +6,7 @@ import { Badge } from '../ui/Badge';
 import { EmptyState } from '../ui/EmptyState';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Risk, Asset } from '../../types';
-import { slideUpVariants } from '@/utils/animations';
+import { slideUpVariants } from '../ui/animationVariants';
 
 interface RiskListProps {
     risks: Risk[];

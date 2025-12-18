@@ -26,6 +26,7 @@ interface RiskHeaderProps {
     onAIAnalysis: () => void;
     onNewRisk: () => void;
     fileInputRef: React.RefObject<HTMLInputElement>;
+    isAnalyzing?: boolean;
 }
 
 export const RiskHeader: React.FC<RiskHeaderProps> = ({
@@ -44,6 +45,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
     onTemplateModalOpen,
     onAIAnalysis,
     onNewRisk,
+    isAnalyzing = false,
 }) => {
     return (
         <PageHeader
@@ -172,10 +174,11 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                             <CustomTooltip content="Lancer l'analyse IA">
                                 <button
                                     onClick={onAIAnalysis}
-                                    className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm"
+                                    disabled={isAnalyzing}
+                                    className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
-                                    <BrainCircuit className="h-4 w-4 mr-2" />
-                                    <span className="hidden md:inline">Analyse IA</span>
+                                    {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
+                                    <span className="hidden md:inline">{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>
                                 </button>
                             </CustomTooltip>
                             <CustomTooltip content="Créer un nouveau risque">

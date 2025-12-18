@@ -46,10 +46,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     {toasts.map((toast) => (
                         <div
                             key={toast.id}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border animate-in slide-in-from-right fade-in duration-300 ${toast.type === 'success' ? 'bg-emerald-50 text-emerald-900 border-emerald-200' :
-                                    toast.type === 'error' ? 'bg-red-50 text-red-900 border-red-200' :
-                                        toast.type === 'warning' ? 'bg-amber-50 text-amber-900 border-amber-200' :
-                                            'bg-blue-50 text-blue-900 border-blue-200'
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border animate-in slide-in-from-right fade-in duration-300 glass-panel backdrop-blur-xl ${toast.type === 'success' ? 'bg-emerald-50/90 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-100 border-emerald-200 dark:border-emerald-800' :
+                                toast.type === 'error' ? 'bg-red-50/90 dark:bg-red-900/20 text-red-900 dark:text-red-100 border-red-200 dark:border-red-800' :
+                                    toast.type === 'warning' ? 'bg-amber-50/90 dark:bg-amber-900/20 text-amber-900 dark:text-amber-100 border-amber-200 dark:border-amber-800' :
+                                        'bg-blue-50/90 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100 border-blue-200 dark:border-blue-800'
                                 }`}
                         >
                             {toast.type === 'success' && <CheckCircle className="h-5 w-5 text-emerald-500" />}

@@ -40,6 +40,13 @@ export const NotFound: React.FC = () => {
                             Retour au Tableau de Bord
                         </Link>
                     </Button>
+                    <Button
+                        variant="ghost"
+                        onClick={() => window.history.back()}
+                        className="w-full text-base py-6 rounded-xl font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                    >
+                        Retour à la page précédente
+                    </Button>
                 </div>
             </motion.div>
         </div>

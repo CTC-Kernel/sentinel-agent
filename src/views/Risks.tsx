@@ -25,6 +25,8 @@ import { PdfService } from '../services/PdfService';
 import { canEditResource } from '../utils/permissions';
 // @ts-ignore
 import Papa from 'papaparse';
+import { aiService } from '../services/aiService';
+import { toast } from 'sonner';
 
 export const Risks: React.FC = () => {
     const { user, demoMode } = useStore();
@@ -42,6 +44,7 @@ export const Risks: React.FC = () => {
         createRisk, updateRisk, deleteRisk, bulkDeleteRisks, exportCSV,
         submitting, isGeneratingReport, setIsGeneratingReport, isExportingCSV
     } = useRiskActions(refreshRisks);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     // 3. Filters Hook
     const {
@@ -173,7 +176,27 @@ export const Risks: React.FC = () => {
                     onExportCSV={() => exportCSV(filteredRisks)}
                     onImportCSV={() => fileInputRef.current?.click()}
                     onTemplateModalOpen={() => setIsTemplateModalOpen(true)}
-                    onAIAnalysis={() => { }} // Placeholder
+                    onAIAnalysis={async () => {
+                        setIsAnalyzing(true);
+                        try {
+                            // Example AI Analysis: Analyse de la distribution des risques
+                            const prompt = `Analyse cette liste de ${filteredRisks.length} risques. Donne-moi 3 insights clés sur les menaces principales et une recommandation stratégique. Format court.`;
+                            const analysis = await aiService.chatWithAI(prompt, {
+                                riskCount: filteredRisks.length,
+                                highRisks: filteredRisks.filter(r => (r.probability * r.impact) >= 12).length
+                            });
+                            // Display result in a nice modal or toast (for now toast/alert)
+                            // Ideally detailed modal, but 'Concrete Solution' -> Toast is quick wins.
+                            // Better: open a "AI Insights" modal with the result.
+                            toast.info("Analyse IA terminée", { description: analysis, duration: 10000 });
+                        } catch (e) {
+                            console.error(e);
+                            toast.error("Erreur lors de l'analyse IA");
+                        } finally {
+                            setIsAnalyzing(false);
+                        }
+                    }}
+                    isAnalyzing={isAnalyzing}
                     onNewRisk={() => setCreationMode(true)}
                     fileInputRef={fileInputRef as any}
                 />
