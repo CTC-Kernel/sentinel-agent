@@ -14,7 +14,7 @@ interface VitestConfigExport extends UserConfig {
 export default defineConfig({
   plugins: [
     react(),
-    tsconfigPaths(),
+    tsconfigPaths({ ignoreConfigErrors: true }),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: null,
