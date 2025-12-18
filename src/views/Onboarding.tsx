@@ -18,6 +18,7 @@ import { ErrorLogger } from '../services/errorLogger';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { onboardingSchema, OnboardingFormData } from '../schemas/onboardingSchema';
+import { LegalModal } from '../components/ui/LegalModal';
 
 
 
@@ -68,6 +69,11 @@ export const Onboarding: React.FC = () => {
     const [assetName, setAssetName] = useState('');
     const [assetType, setAssetType] = useState('SaaS');
     const [initialAssets, setInitialAssets] = useState<{ name: string, type: string }[]>([]);
+
+    // Legal & Terms
+    const [termsAccepted, setTermsAccepted] = useState(false);
+    const [showLegalModal, setShowLegalModal] = useState(false);
+    const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms' | 'cgv'>('terms');
 
     const handleStep3 = async () => {
         if (!user?.organizationId || user.role !== 'admin') return;
@@ -566,6 +572,21 @@ export const Onboarding: React.FC = () => {
 
                                     {error && <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl flex items-start gap-3"><AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" /><div><p className="text-sm font-semibold text-red-900 dark:text-red-200">Erreur de configuration</p><p className="text-xs text-red-700 dark:text-red-300 mt-1">{error}</p></div></div>}
 
+                                    <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                        <div className="flex items-center h-5 mt-0.5">
+                                            <input
+                                                id="terms"
+                                                type="checkbox"
+                                                checked={termsAccepted}
+                                                onChange={(e) => setTermsAccepted(e.target.checked)}
+                                                className="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500 bg-white dark:bg-black/20 dark:border-white/10"
+                                            />
+                                        </div>
+                                        <label htmlFor="terms" className="text-sm text-slate-600 dark:text-slate-400">
+                                            Je certifie être autorisé à agir au nom de l'organisation et j'accepte les <button type="button" onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="text-brand-600 dark:text-brand-400 font-bold hover:underline">Conditions d'Utilisation</button>, la <button type="button" onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="text-brand-600 dark:text-brand-400 font-bold hover:underline">Politique de Confidentialité</button> et les <button type="button" onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="text-brand-600 dark:text-brand-400 font-bold hover:underline">CGV</button>.
+                                        </label>
+                                    </div>
+
                                     <div className="pt-4 flex gap-3">
                                         <button
                                             type="button"
@@ -574,7 +595,7 @@ export const Onboarding: React.FC = () => {
                                         >
                                             Retour
                                         </button>
-                                        <button type="submit" disabled={loading || (!user?.organizationId && !form.watch('organizationName'))} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <button type="submit" disabled={loading || (!user?.organizationId && !form.watch('organizationName')) || !termsAccepted} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
                                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Continuer <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                         </button>
                                     </div>
@@ -813,7 +834,13 @@ export const Onboarding: React.FC = () => {
                     )}
 
                 </div>
-            </div >
-        </div >
+            </div>
+
+            <LegalModal
+                isOpen={showLegalModal}
+                onClose={() => setShowLegalModal(false)}
+                initialTab={legalTab}
+            />
+        </div>
     );
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuroraBackground } from '../components/ui/AuroraBackground';
 import { Spotlight } from '../components/ui/aceternity/Spotlight';
@@ -10,12 +10,15 @@ import { SparklesCore } from '../components/ui/aceternity/Sparkles';
 import { SEO } from '../components/SEO';
 import { LandingDashboardMockup } from '../components/landing/LandingDashboardMockup';
 import { useStore } from '../store';
+import { LegalModal } from '../components/ui/LegalModal';
 
 
 
 export const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { theme, toggleTheme } = useStore();
+    const [showLegalModal, setShowLegalModal] = useState(false);
+    const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms' | 'cgv'>('mentions');
 
     return (
         <div className="bg-slate-950 min-h-screen w-full relative overflow-x-hidden selection:bg-brand-500 selection:text-white">
@@ -171,11 +174,24 @@ export const LandingPage: React.FC = () => {
                         <span className="font-bold text-white">Sentinel GRC</span>
                     </div>
 
+                    <div className="flex flex-wrap gap-4 md:gap-8 justify-center items-center text-xs font-medium text-slate-500">
+                        <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-white transition-colors">Mentions Légales</button>
+                        <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-white transition-colors">Confidentialité</button>
+                        <button onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="hover:text-white transition-colors">CGU</button>
+                        <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-white transition-colors">CGV</button>
+                    </div>
+
                     <p className="text-xs text-slate-500">
                         © 2024 Cyber Threat Consulting. Sentinel GRC.
                     </p>
                 </div>
             </footer>
+
+            <LegalModal
+                isOpen={showLegalModal}
+                onClose={() => setShowLegalModal(false)}
+                initialTab={legalTab}
+            />
         </div>
     );
 };

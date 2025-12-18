@@ -12,6 +12,7 @@ import { PLANS } from '../config/plans';
 import { PlanType } from '../types';
 import { Tooltip } from '../components/ui/Tooltip';
 import { ContactModal } from '../components/ui/ContactModal';
+import { LegalModal } from '../components/ui/LegalModal';
 
 const Pricing = () => {
   const { user, addToast } = useStore();
@@ -19,6 +20,8 @@ const Pricing = () => {
   const [loading, setLoading] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isContactOpen, setIsContactOpen] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState(false);
+  const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms' | 'cgv'>('cgv');
 
   const handleSubscribe = async (planId: PlanType) => {
     if (!user?.organizationId) {
@@ -337,6 +340,18 @@ const Pricing = () => {
         isOpen={isContactOpen}
         onClose={() => setIsContactOpen(false)}
         subject="Demande de devis / Information"
+      />
+
+      <div className="flex flex-wrap gap-4 justify-center items-center text-xs font-medium text-slate-500 pb-8">
+        <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors">CGV</button>
+        <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors">Confidentialité</button>
+        <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors">Mentions Légales</button>
+      </div>
+
+      <LegalModal
+        isOpen={showLegalModal}
+        onClose={() => setShowLegalModal(false)}
+        initialTab={legalTab}
       />
     </motion.div>
   );

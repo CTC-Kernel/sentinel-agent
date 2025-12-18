@@ -5,11 +5,11 @@ import { X, Shield, FileText, Scale } from 'lucide-react';
 interface LegalModalProps {
     isOpen: boolean;
     onClose: () => void;
-    initialTab?: 'mentions' | 'privacy' | 'terms';
+    initialTab?: 'mentions' | 'privacy' | 'terms' | 'cgv';
 }
 
 export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initialTab = 'mentions' }) => {
-    const [activeTab, setActiveTab] = useState<'mentions' | 'privacy' | 'terms'>(initialTab);
+    const [activeTab, setActiveTab] = useState<'mentions' | 'privacy' | 'terms' | 'cgv'>(initialTab);
 
     if (!isOpen) return null;
 
@@ -17,6 +17,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
         { id: 'mentions', label: 'Mentions Légales', icon: Scale },
         { id: 'privacy', label: 'Confidentialité', icon: Shield },
         { id: 'terms', label: 'CGU', icon: FileText },
+        { id: 'cgv', label: 'CGV', icon: FileText },
     ] as const;
 
     return createPortal(
@@ -135,6 +136,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">1. Acceptation</h3>
                                     <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
                                         L'utilisation de Sentinel GRC implique l'acceptation pleine et entière des présentes conditions générales d'utilisation.
+                                        Tout accès ou utilisation du site vaut acceptation inconditionnelle et respect de l'ensemble des termes des présentes CGU.
                                     </p>
                                 </section>
 
@@ -142,13 +144,15 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">2. Accès au Service</h3>
                                     <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
                                         Le service est réservé aux professionnels autorisés par leur organisation. L'utilisateur est responsable de la confidentialité de ses identifiants.
+                                        L'éditeur met en œuvre tous les moyens pour assurer un accès de qualité au service 24h/24, 7j/7, mais n'est tenu à aucune obligation d'y parvenir.
                                     </p>
                                 </section>
 
                                 <section>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">3. Propriété Intellectuelle</h3>
                                     <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
-                                        Tous les éléments de la plateforme (code, design, logos) sont la propriété exclusive de Cyber Threat Consulting.
+                                        Tous les éléments de la plateforme (code, design, logos, bases de données) sont la propriété exclusive de Cyber Threat Consulting.
+                                        Toute reproduction, représentation, modification, publication, adaptation de tout ou partie des éléments du site, quel que soit le moyen ou le procédé utilisé, est interdite, sauf autorisation écrite préalable.
                                     </p>
                                 </section>
 
@@ -156,6 +160,61 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">4. Responsabilité</h3>
                                     <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
                                         Sentinel GRC est un outil d'aide à la décision. L'éditeur ne saurait être tenu responsable des décisions de gestion des risques prises sur la base des informations fournies par l'outil.
+                                        L'éditeur ne pourra être tenu responsable des dommages directs et indirects causés au matériel de l'utilisateur, lors de l'accès au site.
+                                    </p>
+                                </section>
+                            </div>
+                        )}
+
+                        {activeTab === 'cgv' && (
+                            <div className="space-y-6 animate-fade-in">
+                                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-100 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm font-medium mb-6">
+                                    Conditions Générales de Vente (CGV) applicables aux abonnements SaaS Sentinel GRC.
+                                </div>
+
+                                <section>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">1. Objet</h3>
+                                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                                        Les présentes Conditions Générales de Vente (CGV) régissent les relations contractuelles entre la société Cyber Threat Consulting (le "Prestataire") et toute personne morale (le "Client") souscrivant aux services de la plateforme Sentinel GRC.
+                                    </p>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">2. Abonnement et Services</h3>
+                                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                                        Le service est fourni sous forme d'abonnement SaaS (Software as a Service). Les fonctionnalités accessibles dépendent du plan choisi (Discovery, Professional, Enterprise).
+                                        L'abonnement permet un accès à la plateforme pour le nombre d'utilisateurs et d'actifs définis dans le plan.
+                                    </p>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">3. Durée et Renouvellement</h3>
+                                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                                        Les abonnements sont souscrits pour une durée déterminée (mensuelle ou annuelle) et sont renouvelables par tacite reconduction pour la même durée, sauf dénonciation par l'une des parties avant la fin de la période en cours.
+                                    </p>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">4. Tarifs et Paiement</h3>
+                                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                                        Les prix sont indiqués en euros et hors taxes. Le paiement s'effectue par prélèvement automatique via notre partenaire de paiement sécurisé (Stripe).
+                                        Tout retard de paiement pourra entraîner la suspension de l'accès au service.
+                                    </p>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">5. Résiliation</h3>
+                                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                                        Le Client peut résilier son abonnement à tout moment depuis son espace client. La résiliation prendra effet à la fin de la période d'abonnement en cours.
+                                        Aucun remboursement ne sera effectué pour la période non consommée.
+                                    </p>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">6. Données Personnelles et Sécurité</h3>
+                                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                                        Cyber Threat Consulting s'engage à respecter la réglementation RGPD. Les données du Client sont hébergées de manière sécurisée et ne sont jamais revendues.
+                                        Les détails sont disponibles dans notre Politique de Confidentialité.
                                     </p>
                                 </section>
                             </div>

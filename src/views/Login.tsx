@@ -95,7 +95,7 @@ export const Login: React.FC = () => {
 
     // Legal Modal State
     const [showLegalModal, setShowLegalModal] = useState(false);
-    const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms'>('mentions');
+    const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms' | 'cgv'>('mentions');
 
     // MFA State
     const [showMfaModal, setShowMfaModal] = useState(false);
@@ -428,6 +428,10 @@ export const Login: React.FC = () => {
                     {' '}et{' '}
                     <button onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
                         Conditions d'utilisation
+                    </button>
+                    ,{' '}
+                    <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
+                        CGV
                     </button>
                     {' '}et{' '}
                     <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
