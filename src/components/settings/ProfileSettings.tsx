@@ -29,7 +29,6 @@ export const ProfileSettings: React.FC = () => {
             displayName: user?.displayName || '',
             department: user?.department || '',
             role: (user?.role as UserProfile['role']) || 'user',
-            geminiApiKey: '',
             shodanApiKey: '',
             hibpApiKey: '',
             safeBrowsingApiKey: ''
@@ -111,7 +110,6 @@ export const ProfileSettings: React.FC = () => {
             const functions = getFunctions();
             const saveUserApiKeys = httpsCallable(functions, 'saveUserApiKeys');
             const payload: Record<string, string> = {};
-            if (data.geminiApiKey !== undefined) payload.geminiApiKey = data.geminiApiKey || '';
             if (data.shodanApiKey !== undefined) payload.shodanApiKey = data.shodanApiKey || '';
             if (data.hibpApiKey !== undefined) payload.hibpApiKey = data.hibpApiKey || '';
             if (data.safeBrowsingApiKey !== undefined) payload.safeBrowsingApiKey = data.safeBrowsingApiKey || '';
@@ -123,7 +121,6 @@ export const ProfileSettings: React.FC = () => {
                 displayName: data.displayName,
                 department: data.department || '',
                 role: updatedRole,
-                hasGeminiKey: data.geminiApiKey ? true : user.hasGeminiKey,
                 hasShodanKey: data.shodanApiKey ? true : user.hasShodanKey,
                 hasHibpKey: data.hibpApiKey ? true : user.hasHibpKey,
                 hasSafeBrowsingKey: data.safeBrowsingApiKey ? true : user.hasSafeBrowsingKey
@@ -256,12 +253,6 @@ export const ProfileSettings: React.FC = () => {
                             </div>
 
                             <div className="grid grid-cols-1 gap-4">
-                                <FloatingLabelInput
-                                    label="Gemini API Key (Google AI)"
-                                    type="password"
-                                    {...profileForm.register('geminiApiKey')}
-                                    placeholder="sk-..."
-                                />
                                 <FloatingLabelInput
                                     label="Shodan API Key (Threat Intel)"
                                     type="password"
