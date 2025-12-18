@@ -3,14 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { AuroraBackground } from '../components/ui/AuroraBackground';
 import { Spotlight } from '../components/ui/aceternity/Spotlight';
 import { Button } from '../components/ui/button';
-import { Lock, ArrowRight, Sun, Moon, Shield, CheckCircle2, Sparkles } from '../components/ui/Icons';
+import { Lock, ArrowRight, Sun, Moon, Shield, CheckCircle2 } from '../components/ui/Icons';
 import { SparklesCore } from '../components/ui/aceternity/Sparkles';
 import { ContainerScroll } from '../components/ui/aceternity/ContainerScroll';
 import { BorderBeam } from '../components/ui/aceternity/BorderBeam';
 import { SEO } from '../components/SEO';
 import { LandingDashboardMockup } from '../components/landing/LandingDashboardMockup';
-import { FeaturesSection } from '../components/landing/FeaturesSection';
-import { Footer } from '../components/layout/Footer';
 import { useStore } from '../store';
 import { motion } from 'framer-motion';
 
@@ -19,7 +17,7 @@ export const LandingPage: React.FC = () => {
     const { theme, toggleTheme } = useStore();
 
     return (
-        <AuroraBackground className="min-h-screen font-apple selection:bg-brand-500 selection:text-white !block !h-auto overflow-x-hidden bg-slate-950">
+        <AuroraBackground className="min-h-screen font-apple selection:bg-brand-500 selection:text-white !block !h-auto overflow-hidden bg-slate-950">
             <SEO
                 title="Sentinel GRC — Accès Sécurisé"
                 description="Portail d'accès sécurisé à votre espace de gouvernance Sentinel GRC."
@@ -59,7 +57,7 @@ export const LandingPage: React.FC = () => {
                 </div>
             </nav>
 
-            <div className="relative z-10 pt-20">
+            <div className="relative z-10">
                 <ContainerScroll
                     titleComponent={
                         <div className="flex flex-col items-center justify-center space-y-8 mb-10">
@@ -67,24 +65,22 @@ export const LandingPage: React.FC = () => {
                                 initial={{ opacity: 0, scale: 0.5 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ duration: 0.5 }}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-md hover:bg-indigo-500/20 transition-colors cursor-default shadow-lg shadow-indigo-500/10 group"
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md hover:bg-white/10 transition-colors cursor-default shadow-lg shadow-brand-500/10"
                             >
                                 <span className="flex h-2 w-2 relative">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                                 </span>
-                                <span className="text-sm font-bold text-indigo-300 tracking-wide uppercase text-[10px] md:text-xs group-hover:text-indigo-200 transition-colors">
-                                    Nouveau : Module IA Générative 2.0
-                                </span>
+                                <span className="text-sm font-medium text-slate-300 tracking-wide uppercase text-[10px] md:text-xs">Système Opérationnel</span>
                             </motion.div>
 
-                            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight text-center max-w-5xl mx-auto">
-                                Transformez votre Gouvernance <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-blue-400 to-brand-400 animate-gradient-x">en Avantage Stratégique</span>
+                            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-none tracking-tight text-center max-w-5xl mx-auto">
+                                Bienvenue sur <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-blue-400 to-brand-400 animate-gradient-x">Sentinel GRC</span>
                             </h1>
 
                             <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed text-center">
-                                Centralisez, automatisez et pilotez votre cybersécurité avec la première plateforme GRC conçue pour le COMEX.
+                                Le centre de commande nouvelle génération pour votre gouvernance cyber.
                             </p>
 
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto pt-4 relative z-20">
@@ -94,13 +90,13 @@ export const LandingPage: React.FC = () => {
                                     className="h-14 px-8 rounded-2xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-lg hover:scale-105 transition-all shadow-[0_0_30px_-5px_rgba(79,70,229,0.4)] w-full sm:w-auto relative overflow-hidden group border border-white/10"
                                 >
                                     <span className="relative z-10 flex items-center">
-                                        Commencer maintenant
+                                        Accéder à l'espace
                                         <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                                     </span>
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
                                 </Button>
-                                <Button onClick={() => navigate('/login?mode=signup')} variant="ghost" size="lg" className="h-14 px-8 rounded-2xl text-slate-400 hover:text-white hover:bg-white/5 font-bold text-lg w-full sm:w-auto border border-transparent hover:border-white/10 transition-all flex items-center gap-2">
-                                    Demander une démo
+                                <Button onClick={() => navigate('/login?mode=signup')} variant="ghost" size="lg" className="h-14 px-8 rounded-2xl text-slate-400 hover:text-white hover:bg-white/5 font-bold text-lg w-full sm:w-auto border border-transparent hover:border-white/10 transition-all">
+                                    Créer un compte
                                 </Button>
                             </div>
                         </div>
@@ -112,7 +108,7 @@ export const LandingPage: React.FC = () => {
 
                         {/* Floating Glass Cards - 3D Parallax Effect */}
                         <motion.div
-                            className="absolute -right-4 md:-right-12 top-20 md:top-12 p-4 bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-20 max-w-[200px] hidden md:block"
+                            className="absolute -right-4 md:-right-12 top-20 md:top-12 p-4 bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-20 max-w-[200px] hidden md:block"
                             animate={{ y: [0, -10, 0] }}
                             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                         >
@@ -126,14 +122,10 @@ export const LandingPage: React.FC = () => {
                             <div className="h-1.5 w-full bg-white/10 rounded-full mt-2 overflow-hidden">
                                 <div className="h-full w-[92%] bg-emerald-500 rounded-full"></div>
                             </div>
-                            <div className="mt-2 text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-                                <Sparkles className="h-3 w-3" />
-                                +15% vs target
-                            </div>
                         </motion.div>
 
                         <motion.div
-                            className="absolute -left-4 md:-left-12 bottom-20 md:bottom-12 p-4 bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-20 max-w-[200px] hidden md:block"
+                            className="absolute -left-4 md:-left-12 bottom-20 md:bottom-12 p-4 bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-20 max-w-[200px] hidden md:block"
                             animate={{ y: [0, 10, 0] }}
                             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0 }}
                         >
@@ -143,15 +135,10 @@ export const LandingPage: React.FC = () => {
                                 </div>
                                 <span className="text-xs font-bold text-white">Conformité ISO</span>
                             </div>
-                            <div className="text-xs text-slate-400 leading-tight">Audit de renouvellement validé avec succès.</div>
+                            <div className="text-xs text-slate-400">Audit interne terminé avec succès.</div>
                         </motion.div>
                     </div>
                 </ContainerScroll>
-
-                {/* Scroll Content */}
-                <FeaturesSection />
-
-                <Footer />
             </div>
 
         </AuroraBackground>

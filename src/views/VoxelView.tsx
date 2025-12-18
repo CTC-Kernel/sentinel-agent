@@ -751,7 +751,7 @@ export const VoxelView: React.FC = () => {
       variants={staggerContainerVariants}
       initial="initial"
       animate="visible"
-      className="space-y-8"
+      className="flex flex-col flex-1 space-y-8 h-full"
     >
       <MasterpieceBackground />
       <SEO
