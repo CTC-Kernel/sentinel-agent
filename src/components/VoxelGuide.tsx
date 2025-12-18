@@ -64,7 +64,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                                     <Map className="w-5 h-5" />
                                 </div>
                                 <h3 className="text-white font-semibold mb-2">Topologie Stratégique</h3>
-                                <p className="text-xs text-slate-500 leading-relaxed">
+                                <p className="text-xs text-slate-400 leading-relaxed">
                                     Une <span className="text-slate-200">carte unifiée</span> de votre territoire numérique. Vos actifs sont les fondations, vos projets les blocs, et vos risques les menaces en lévitation.
                                 </p>
                             </div>
@@ -75,7 +75,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                                     <Share2 className="w-5 h-5" />
                                 </div>
                                 <h3 className="text-white font-semibold mb-2">Liens Invisibles</h3>
-                                <p className="text-xs text-slate-500 leading-relaxed">
+                                <p className="text-xs text-slate-400 leading-relaxed">
                                     Révélez les <span className="text-slate-200">dépendances cachées</span>. Suivez les flux de données pour comprendre comment l'arrêt d'un actif critique impacte toute la chaîne.
                                 </p>
                             </div>
@@ -86,7 +86,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                                     <Zap className="w-5 h-5" />
                                 </div>
                                 <h3 className="text-white font-semibold mb-2">Radar de Priorité</h3>
-                                <p className="text-xs text-slate-500 leading-relaxed">
+                                <p className="text-xs text-slate-400 leading-relaxed">
                                     Ne cherchez plus l'urgence : elle pulse en rouge. <span className="text-slate-200">Taille et couleur</span> dictent l'action. Identifiez vos Quick Wins en une seconde.
                                 </p>
                             </div>

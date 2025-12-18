@@ -770,7 +770,7 @@ export const VoxelView: React.FC = () => {
         actions={
           <div className="flex flex-wrap items-center gap-3 min-w-0">
             {/* Counters */}
-            <div className="flex items-center gap-4 text-sm mr-0 md:mr-4 px-4 py-2 bg-slate-100/50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-white/10 max-w-full overflow-x-auto">
+            <div className="flex items-center gap-4 text-sm mr-0 md:mr-4 px-4 py-2 bg-slate-500/10 dark:bg-white/5 rounded-xl border border-slate-200/50 dark:border-white/10 max-w-full overflow-x-auto backdrop-blur-md shadow-sm">
               <div className="flex items-center gap-2">
                 <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
                 <span className="text-slate-600 dark:text-slate-300 font-semibold">{assets.length}</span>
@@ -788,7 +788,7 @@ export const VoxelView: React.FC = () => {
             {/* Action Buttons */}
             <button
               onClick={handleRefresh}
-              className="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors shadow-sm"
+              className="p-2.5 bg-white/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 hover:bg-slate-500/10 dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm backdrop-blur-sm"
               title="Actualiser"
             >
               <RefreshCw className="h-4 w-4 text-slate-600 dark:text-slate-300" />

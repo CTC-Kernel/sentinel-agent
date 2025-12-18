@@ -251,7 +251,7 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
               <div className="flex items-center gap-3 pt-1">
                 <button
                   onClick={(e) => { e.stopPropagation(); handleOpenSelected(); }}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-white text-slate-900 font-bold text-sm hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-black/20 cursor-pointer flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-blue-600 hover:from-brand-500 hover:to-blue-500 text-white font-bold text-sm transition-all shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center justify-center gap-2"
                 >
                   <span>Voir détails</span>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
