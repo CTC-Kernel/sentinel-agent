@@ -800,6 +800,7 @@ export interface Comment {
   createdAt: string;
 }
 
+
 export interface AISuggestedLink {
   id: string;
   sourceId: string;
@@ -807,6 +808,22 @@ export interface AISuggestedLink {
   type: 'risk_factor' | 'dependency' | 'impact' | 'mitigation';
   confidence: number;
   reasoning: string;
+}
+
+export interface TrustRelationship {
+  id: string;
+  sourceOrgId: string;
+  targetOrgId: string;
+  targetOrgName: string;
+  status: 'trusted' | 'blocked' | 'pending';
+  createdAt: string;
+}
+
+export interface SharingPreferences {
+  organizationId: string;
+  defaultScope: 'public' | 'community' | 'trusted_only' | 'private';
+  anonymizeIdentity: boolean;
+  autoShareHighSeverity: boolean;
 }
 
 export interface Threat {
@@ -819,9 +836,13 @@ export interface Threat {
   votes: number;
   comments: number;
   author: string;
+  authorId?: string; // Link to user
+  organizationId?: string; // Link to origin org
   coordinates?: [number, number];
   timestamp?: number;
   active?: boolean;
+  verified?: boolean; // New verified field
+  source?: string; // 'Community' | 'CISA' | 'URLhaus' | etc.
 }
 
 export interface AIInsight {

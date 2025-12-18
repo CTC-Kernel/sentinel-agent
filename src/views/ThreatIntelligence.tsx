@@ -12,6 +12,8 @@ import { WorldThreatMap } from '../components/map/WorldThreatMap';
 import { Tooltip } from 'react-tooltip';
 import { Badge } from '../components/ui/Badge';
 import { ThreatPlanet } from '../components/map/ThreatPlanet';
+import { ThreatDiscussion } from '../components/threat-intel/ThreatDiscussion';
+import { SubmitThreatModal } from '../components/threat-intel/SubmitThreatModal';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { orderBy, addDoc, collection, updateDoc, doc, increment } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -35,6 +37,11 @@ export const ThreatIntelligence: React.FC = () => {
     const [activeSeverityFilter, setActiveSeverityFilter] = useState('All');
     const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
     const [isSeeding, setIsSeeding] = useState(false);
+
+    // Community Features State
+    const [selectedThreatId, setSelectedThreatId] = useState<string | null>(null);
+    const [selectedThreatTitle, setSelectedThreatTitle] = useState('');
+    const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
     // Real Data Integration
     const { data: threats, loading } = useFirestoreCollection<Threat>('threats', [orderBy('timestamp', 'desc')], { realtime: true });
@@ -159,7 +166,7 @@ export const ThreatIntelligence: React.FC = () => {
                             {isSeeding ? 'Mise à jour...' : 'Actualiser Flux'}
                         </button>
                         <button
-                            onClick={() => addToast("Le module de signalement communautaire sera disponible dans la v2.1", "info")}
+                            onClick={() => setIsSubmitModalOpen(true)}
                             className="bg-brand-600 hover:bg-brand-500 text-white border border-brand-400 px-4 py-2 rounded-xl flex items-center text-sm font-bold shadow-lg shadow-brand-500/20 transition-all"
                         >
                             <Share2 className="h-4 w-4 mr-2" />
@@ -167,6 +174,19 @@ export const ThreatIntelligence: React.FC = () => {
                         </button>
                     </div>
                 }
+            />
+
+            <ThreatDiscussion
+                threatId={selectedThreatId || ''}
+                threatTitle={selectedThreatTitle}
+                isOpen={!!selectedThreatId}
+                onClose={() => setSelectedThreatId(null)}
+            />
+
+            <SubmitThreatModal
+                isOpen={isSubmitModalOpen}
+                onClose={() => setIsSubmitModalOpen(false)}
+                onSuccess={() => addToast("Menace signalée à la communauté avec succès", "success")}
             />
 
             {/* Map Section */}
@@ -247,6 +267,13 @@ export const ThreatIntelligence: React.FC = () => {
                                     <span className="text-xs text-slate-400">{threat.date}</span>
                                     <Badge status={threat.severity === 'Critical' ? 'error' : 'warning'} variant="soft">{threat.severity}</Badge>
                                 </div>
+                                {/* Verified Badge Logic */}
+                                {threat.votes > 5 && (
+                                    <div className="absolute top-5 right-20 flex items-center bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full border border-blue-500/20">
+                                        <Shield className="h-3 w-3 mr-1" />
+                                        <span className="text-[10px] font-bold">Vérifié</span>
+                                    </div>
+                                )}
 
                                 <div className="flex items-start gap-4">
                                     <div className={`p-3 rounded-xl ${threat.type === 'Ransomware' ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'} dark:bg-white/5`}>
@@ -267,9 +294,16 @@ export const ThreatIntelligence: React.FC = () => {
                                                 <ThumbsUp className="h-4 w-4 mr-1.5" />
                                                 {threat.votes} Confirmations
                                             </button>
-                                            <button className="flex items-center text-xs font-bold text-slate-500 hover:text-blue-500 transition-colors">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedThreatId(threat.id);
+                                                    setSelectedThreatTitle(threat.title);
+                                                }}
+                                                className="flex items-center text-xs font-bold text-slate-500 hover:text-blue-500 transition-colors"
+                                            >
                                                 <MessageSquare className="h-4 w-4 mr-1.5" />
-                                                {threat.comments} Discussions
+                                                {threat.comments || 0} Discussions
                                             </button>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); addToast("Génération de règle SIGMA/YARA en cours de développement...", "info"); }}
