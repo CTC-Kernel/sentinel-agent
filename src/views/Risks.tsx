@@ -1506,7 +1506,7 @@ export const Risks: React.FC = () => {
                                                 <Badge status={row.original.status === 'Ouvert' ? 'error' : row.original.status === 'En cours' ? 'warning' : 'success'} variant="outline">
                                                     {row.original.status}
                                                 </Badge>
-                                                )}
+
                                                 {(() => {
                                                     const sla = getSLAStatus(row.original);
                                                     if (sla) return (

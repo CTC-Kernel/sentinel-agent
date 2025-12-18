@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -5,7 +6,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants, slideUpVariants } from '../components/ui/animationVariants';
 import { Globe, AlertOctagon, TrendingUp, Users, MessageSquare, ThumbsUp, Shield, Activity, Share2, Box } from '../components/ui/Icons';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Settings } from 'lucide-react';
 import { Threat } from '../types';
 import { ThreatFeedService } from '../services/ThreatFeedService';
 import { WorldThreatMap } from '../components/map/WorldThreatMap';
@@ -14,11 +15,13 @@ import { Badge } from '../components/ui/Badge';
 import { ThreatPlanet } from '../components/map/ThreatPlanet';
 import { ThreatDiscussion } from '../components/threat-intel/ThreatDiscussion';
 import { SubmitThreatModal } from '../components/threat-intel/SubmitThreatModal';
+import { CommunitySettingsModal } from '../components/threat-intel/CommunitySettingsModal';
 import { useFirestoreCollection } from '../hooks/useFirestore';
-import { orderBy, addDoc, collection, updateDoc, doc, increment } from 'firebase/firestore';
+import { orderBy, addDoc, collection, updateDoc, doc, increment, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { logAction } from '../services/logger';
 import { useStore } from '../store';
+import { TrustRelationship } from '../types';
 
 // Initial Seed Data for Demo Mode (Production Ready: stored in DB)
 const INITIAL_THREATS = [
@@ -42,6 +45,64 @@ export const ThreatIntelligence: React.FC = () => {
     const [selectedThreatId, setSelectedThreatId] = useState<string | null>(null);
     const [selectedThreatTitle, setSelectedThreatTitle] = useState('');
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+    // Trust & Network Management State (Firestore)
+    // Filter relationships where sourceOrgId is current user's org (or 'me' for demo)
+    const myOrgId = user?.organizationId || 'demo';
+    const { data: partners, loading: loadingPartners } = useFirestoreCollection<TrustRelationship>('relationships', [], {
+        realtime: true
+    });
+    // Client-side filter because useFirestoreCollection hook might be limited on complex queries (or just to keep it simple)
+    // ideally we'd pass a query, but for now filtering locally if the hook fetches all.
+    // Looking at the hook usage elsewhere, it seems to take a query constraint array.
+    // Let's rely on client side filtering ensuring we only see "my" relationships.
+    const myPartners = useMemo(() => {
+        return partners.filter(p => p.sourceOrgId === myOrgId);
+    }, [partners, myOrgId]);
+
+
+    const handleTrustAction = async (id: string, action: 'trust' | 'block' | 'remove') => {
+        try {
+            if (action === 'remove') {
+                await deleteDoc(doc(db, 'relationships', id));
+                addToast("Relation supprimée", "info");
+            } else {
+                await updateDoc(doc(db, 'relationships', id), {
+                    status: action === 'trust' ? 'trusted' : 'blocked'
+                });
+                addToast(action === 'trust' ? "Partenaire ajouté aux cercles de confiance" : "Organisation bloquée", "success");
+            }
+        } catch (e) {
+            console.error("Error updating relationship", e);
+            addToast("Erreur lors de la mise à jour", "error");
+        }
+    };
+
+    const trustedOrgIds = useMemo(() => myPartners.filter(p => p.status === 'trusted').map(p => p.targetOrgId), [myPartners]);
+    const blockedOrgIds = useMemo(() => myPartners.filter(p => p.status === 'blocked').map(p => p.targetOrgId), [myPartners]);
+
+    // Seeding Logic for Relationships (if empty)
+    React.useEffect(() => {
+        if (!loadingPartners && myPartners.length === 0 && !initialLoadRef.current) {
+            const seedRelationships = async () => {
+                const MOCK_PARTNERS = [
+                    { sourceOrgId: myOrgId, targetOrgId: 'org_cyber_def', targetOrgName: 'CyberDefense Corp', status: 'trusted', createdAt: new Date().toISOString() },
+                    { sourceOrgId: myOrgId, targetOrgId: 'org_fin_sec', targetOrgName: 'FinanceSecure Ltd', status: 'pending', createdAt: new Date().toISOString() },
+                    { sourceOrgId: myOrgId, targetOrgId: 'org_spammer', targetOrgName: 'Spammy Inc', status: 'blocked', createdAt: new Date().toISOString() },
+                ];
+                try {
+                    for (const p of MOCK_PARTNERS) {
+                        await addDoc(collection(db, 'relationships'), p);
+                    }
+                    // initialLoadRef.current is shared with threats seeding, maybe separate?
+                    // actually threats logic sets it to true. Let's just do it here if threats didn't block it, 
+                    // or purely based on myPartners length.
+                } catch (e) { console.warn("Auto-seeding relationships failed", e); }
+            };
+            seedRelationships();
+        }
+    }, [loadingPartners, myPartners.length, myOrgId]);
 
     // Real Data Integration
     const { data: threats, loading } = useFirestoreCollection<Threat>('threats', [orderBy('timestamp', 'desc')], { realtime: true });
@@ -124,7 +185,7 @@ export const ThreatIntelligence: React.FC = () => {
             await updateDoc(threatRef, {
                 votes: increment(1)
             });
-            logAction(user, 'CONFIRM_SIGHTING', 'ThreatIntelligence', `Confirmed sighting of threat ${threatId}`);
+            logAction(user, 'CONFIRM_SIGHTING', 'ThreatIntelligence', `Confirmed sighting of threat ${threatId} `);
             addToast("Observation confirmée (+1)", "success");
         } catch (error) {
             console.warn('Error confirming sighting:', error); // Likely permission in demo mode
@@ -162,7 +223,7 @@ export const ThreatIntelligence: React.FC = () => {
                             className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl flex items-center text-sm font-bold backdrop-blur-md transition-all"
                             disabled={isSeeding}
                         >
-                            <RefreshCw className={`h-4 w-4 mr-2 ${isSeeding ? 'animate-spin' : ''}`} />
+                            <RefreshCw className={`h - 4 w - 4 mr - 2 ${isSeeding ? 'animate-spin' : ''} `} />
                             {isSeeding ? 'Mise à jour...' : 'Actualiser Flux'}
                         </button>
                         <button
@@ -172,8 +233,22 @@ export const ThreatIntelligence: React.FC = () => {
                             <Share2 className="h-4 w-4 mr-2" />
                             Partager une observation
                         </button>
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl transition-all border border-white/10"
+                            title="Gérer mon réseau et ma confidentialité"
+                        >
+                            <Settings className="h-5 w-5" />
+                        </button>
                     </div>
                 }
+            />
+
+            <CommunitySettingsModal
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                partners={myPartners}
+                onTrustAction={handleTrustAction}
             />
 
             <ThreatDiscussion
@@ -231,7 +306,7 @@ export const ThreatIntelligence: React.FC = () => {
                                     <button
                                         key={f}
                                         onClick={() => setActiveFilter(f)}
-                                        className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeFilter === f ? 'bg-white dark:bg-slate-700 shadow text-brand-600' : 'text-slate-500'}`}
+                                        className={`px - 3 py - 1 text - xs font - medium rounded - md transition - all ${activeFilter === f ? 'bg-white dark:bg-slate-700 shadow text-brand-600' : 'text-slate-500'} `}
                                     >
                                         {f}
                                     </button>
@@ -243,7 +318,7 @@ export const ThreatIntelligence: React.FC = () => {
                                     <button
                                         key={s}
                                         onClick={() => setActiveSeverityFilter(s)}
-                                        className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeSeverityFilter === s ? 'bg-white dark:bg-slate-700 shadow text-red-600' : 'text-slate-500'}`}
+                                        className={`px - 3 py - 1 text - xs font - medium rounded - md transition - all ${activeSeverityFilter === s ? 'bg-white dark:bg-slate-700 shadow text-red-600' : 'text-slate-500'} `}
                                     >
                                         {s}
                                     </button>
@@ -256,7 +331,9 @@ export const ThreatIntelligence: React.FC = () => {
                         {threats.filter(t => {
                             const typeMatch = activeFilter === 'All' || t.type === activeFilter;
                             const severityMatch = activeSeverityFilter === 'All' || t.severity === activeSeverityFilter;
-                            return typeMatch && severityMatch;
+                            // Trust Filtering: Exclude blocked orgs
+                            const isBlocked = t.organizationId && blockedOrgIds.includes(t.organizationId);
+                            return typeMatch && severityMatch && !isBlocked;
                         }).map((threat) => (
                             <motion.div
                                 key={threat.id}
@@ -275,8 +352,16 @@ export const ThreatIntelligence: React.FC = () => {
                                     </div>
                                 )}
 
+                                {/* Trusted Partner Badge Logic */}
+                                {threat.organizationId && trustedOrgIds.includes(threat.organizationId) && (
+                                    <div className="absolute top-5 right-20 flex items-center bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full border border-green-500/20 mr-2">
+                                        <Shield className="h-3 w-3 mr-1" />
+                                        <span className="text-[10px] font-bold">Partenaire</span>
+                                    </div>
+                                )}
+
                                 <div className="flex items-start gap-4">
-                                    <div className={`p-3 rounded-xl ${threat.type === 'Ransomware' ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'} dark:bg-white/5`}>
+                                    <div className={`p - 3 rounded - xl ${threat.type === 'Ransomware' ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'} dark: bg - white / 5`}>
                                         <AlertOctagon className="h-6 w-6" />
                                     </div>
                                     <div className="flex-1">
