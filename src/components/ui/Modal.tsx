@@ -68,7 +68,7 @@ export const Modal: React.FC<ModalProps> = ({
                     <button
                         ref={closeButtonRef}
                         onClick={onClose}
-                        className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                        className="p-2 rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
                         aria-label="Fermer"
                     >
                         <X className="w-5 h-5" />

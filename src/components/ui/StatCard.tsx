@@ -39,7 +39,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         if (!trend) return '';
         if (trend.value > 0) return 'text-success-text bg-success-bg ring-success-border/50';
         if (trend.value < 0) return 'text-error-text bg-error-bg ring-error-border/50';
-        return 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 ring-slate-200 dark:ring-slate-700';
+        return 'text-slate-600 dark:text-slate-400 bg-slate-500/10 dark:bg-white/5 ring-slate-500/20 dark:ring-white/10';
     };
 
     return (
@@ -78,7 +78,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                 {/* Value and title */}
                 <div>
                     {loading ? (
-                        <div className="h-10 w-24 bg-slate-200 dark:bg-slate-700 rounded-xl animate-pulse mb-2"></div>
+                        <div className="h-10 w-24 bg-slate-200/50 dark:bg-white/5 rounded-xl animate-pulse mb-2"></div>
                     ) : (
                         <h3 className="text-4xl font-bold tracking-tighter text-slate-900 dark:text-white font-display">
                             {value}

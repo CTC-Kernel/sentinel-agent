@@ -65,7 +65,7 @@ export const Badge: React.FC<BadgeProps> = ({
             default:
                 if (variant === 'outline') return "border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400";
                 if (variant === 'glass') return "bg-slate-500/10 backdrop-blur-md text-slate-700 dark:text-slate-300 border border-slate-500/20 shadow-sm";
-                if (variant === 'soft') return "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700";
+                if (variant === 'soft') return "bg-slate-500/10 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-white/10";
                 return "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm";
         }
     };

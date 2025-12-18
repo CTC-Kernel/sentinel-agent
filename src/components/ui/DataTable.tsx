@@ -58,7 +58,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                         checked={table.getIsAllPageRowsSelected()}
                         onChange={table.getToggleAllPageRowsSelectedHandler()}
                         aria-label="Sélectionner toutes les lignes"
-                        className="rounded border-gray-300 text-brand-600 focus:ring-brand-500 w-4 h-4 cursor-pointer"
+                        className="rounded border-slate-300/50 dark:border-white/20 text-brand-600 focus:ring-brand-500/20 w-4 h-4 cursor-pointer bg-white/50 dark:bg-white/5 transition-colors"
                     />
                 </div>
             ),
@@ -70,7 +70,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                         disabled={!row.getCanSelect()}
                         onChange={row.getToggleSelectedHandler()}
                         aria-label={`Sélectionner la ligne ${row.index + 1}`}
-                        className="rounded border-gray-300 text-brand-600 focus:ring-brand-500 w-4 h-4 cursor-pointer"
+                        className="rounded border-slate-300/50 dark:border-white/20 text-brand-600 focus:ring-brand-500/20 w-4 h-4 cursor-pointer bg-white/50 dark:bg-white/5 transition-colors"
                     />
                 </div>
             ),
@@ -178,7 +178,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                 <table className="w-full">
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <tr key={headerGroup.id} className="border-b border-slate-200/60 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+                            <tr key={headerGroup.id} className="border-b border-slate-200/50 dark:border-white/5 bg-slate-50/30 dark:bg-white/5">
                                 {headerGroup.headers.map((header) => {
                                     return (
                                         <th

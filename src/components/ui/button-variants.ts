@@ -11,8 +11,8 @@ export const buttonVariants = cva(
                 outline:
                     "border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white backdrop-blur-sm hover:-translate-y-0.5 active:translate-y-0 shadow-sm",
                 secondary:
-                    "bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 shadow-sm hover:-translate-y-0.5 active:translate-y-0",
-                ghost: "hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white active:bg-slate-200 dark:active:bg-slate-700",
+                    "bg-slate-500/10 text-slate-900 hover:bg-slate-500/20 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/20 shadow-sm hover:-translate-y-0.5 active:translate-y-0 backdrop-blur-sm border border-slate-200/50 dark:border-white/10",
+                ghost: "hover:bg-slate-500/10 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white active:bg-slate-500/20 dark:active:bg-white/20",
                 link: "text-brand-600 dark:text-brand-400 underline-offset-4 hover:underline",
                 glass: "glass-panel hover:bg-white/60 dark:hover:bg-white/10 text-slate-900 dark:text-white shadow-sm backdrop-blur-md border border-white/50 dark:border-white/10 hover:-translate-y-0.5 active:translate-y-0",
                 premium: "relative overflow-hidden bg-gradient-to-r from-brand-600 to-blue-600 text-white shadow-lg shadow-brand-500/30 hover:shadow-brand-500/50 hover:scale-[1.02] active:scale-[0.98] border border-brand-500/20 after:absolute after:inset-0 after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent after:translate-x-[-200%] hover:after:translate-x-[200%] after:transition-transform after:duration-[1500ms] after:ease-in-out",
