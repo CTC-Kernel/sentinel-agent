@@ -1106,190 +1106,190 @@ export const Projects: React.FC = () => {
                         </>
                     )}
                 />
-                <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent dark:border-white/5 overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
-                    <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+            </motion.div>
+            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent dark:border-white/5 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
+                <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
+                </div>
+                {/* Global Score */}
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="relative">
+                        <svg className="w-24 h-24 transform -rotate-90" style={{ overflow: 'visible' }}>
+                            <circle
+                                cx="48"
+                                cy="48"
+                                r="40"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                fill="transparent"
+                                className="text-slate-200 dark:text-slate-700"
+                            />
+                            <circle
+                                cx="48"
+                                cy="48"
+                                r="40"
+                                stroke="currentColor"
+                                strokeWidth="8"
+                                fill="transparent"
+                                strokeDasharray={251.2}
+                                strokeDashoffset={251.2 - (251.2 * (projects.length > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length) : 0)) / 100}
+                                className="text-brand-500 transition-all duration-1000 ease-out"
+                            />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <span className="text-xl font-black text-slate-900 dark:text-white">
+                                {projects.length > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length) : 0}%
+                            </span>
+                        </div>
                     </div>
-                    {/* Global Score */}
-                    <div className="flex items-center gap-6 relative z-10">
-                        <div className="relative">
-                            <svg className="w-24 h-24 transform -rotate-90" style={{ overflow: 'visible' }}>
-                                <circle
-                                    cx="48"
-                                    cy="48"
-                                    r="40"
-                                    stroke="currentColor"
-                                    strokeWidth="8"
-                                    fill="transparent"
-                                    className="text-slate-200 dark:text-slate-700"
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Avancement Global</h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
+                            Moyenne d'avancement de tous les projets en cours.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Key Metrics Breakdown */}
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                    <div>
+                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Projets</div>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{projects.length}</div>
+                    </div>
+                    <div>
+                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">En Cours</div>
+                        <div className="text-2xl font-bold text-brand-600 dark:text-brand-400">
+                            {projects.filter(p => p.status === 'En cours').length}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">En Retard</div>
+                        <div className={`text-2xl font-bold ${projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
+                            {projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Alerts/Status */}
+                <div className="flex flex-col gap-3 min-w-[180px]">
+                    {projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length > 0 && (
+                        <div className="flex items-center gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-xl border border-red-100 dark:border-red-800/30">
+                            <ShieldAlert className="h-4 w-4 shrink-0" />
+                            <span className="font-medium">{projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length} projets en retard</span>
+                        </div>
+                    )}
+                    {projects.filter(p => p.status === 'En cours').length > 0 && (
+                        <div className="flex items-center gap-3 text-sm text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 px-3 py-2 rounded-xl border border-brand-100 dark:border-brand-800/30">
+                            <FolderKanban className="h-4 w-4 shrink-0" />
+                            <span className="font-medium">{projects.filter(p => p.status === 'En cours').length} projets actifs</span>
+                        </div>
+                    )}
+                    {projects.length === 0 && (
+                        <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/20 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-800/30">
+                            <CheckSquare className="h-4 w-4 shrink-0" />
+                            <span className="font-medium">Aucun projet</span>
+                        </div>
+                    )}
+                </div>
+            </motion.div>
+
+            <motion.div variants={slideUpVariants}>
+                <PageControls
+                    searchQuery={filter}
+                    onSearchChange={setFilter}
+                    searchPlaceholder="Rechercher un projet..."
+                    totalItems={filteredProjects.length}
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
+                    secondaryActions={null}
+                />
+            </motion.div>
+
+            {
+                viewMode === 'list' ? (
+                    <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                        <div className="relative z-10">
+                            <DataTable
+                                columns={columns}
+                                data={filteredProjects}
+                                selectable={true}
+                                onBulkDelete={handleBulkDelete}
+                                onRowClick={openInspector}
+                                searchable={false}
+                                loading={loading}
+                            />
+                        </div>
+                    </motion.div>
+                ) : (
+                    <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {loading ? (
+                            <div className="col-span-full"><CardSkeleton count={3} /></div>
+                        ) : filteredProjects.length === 0 ? (
+                            <div className="col-span-full">
+                                <EmptyState
+                                    icon={FolderKanban}
+                                    title="Aucun projet en cours"
+                                    description={filter ? "Aucun projet ne correspond à votre recherche." : "Lancez de nouveaux projets pour améliorer votre posture de sécurité."}
+                                    actionLabel={filter || !canEdit ? undefined : "Créer un projet"}
+                                    onAction={filter || !canEdit ? undefined : openCreationDrawer}
                                 />
-                                <circle
-                                    cx="48"
-                                    cy="48"
-                                    r="40"
-                                    stroke="currentColor"
-                                    strokeWidth="8"
-                                    fill="transparent"
-                                    strokeDasharray={251.2}
-                                    strokeDashoffset={251.2 - (251.2 * (projects.length > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length) : 0)) / 100}
-                                    className="text-brand-500 transition-all duration-1000 ease-out"
-                                />
-                            </svg>
-                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                                <span className="text-xl font-black text-slate-900 dark:text-white">
-                                    {projects.length > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length) : 0}%
-                                </span>
                             </div>
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Avancement Global</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
-                                Moyenne d'avancement de tous les projets en cours.
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Key Metrics Breakdown */}
-                    <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
-                        <div>
-                            <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Projets</div>
-                            <div className="text-2xl font-bold text-slate-900 dark:text-white">{projects.length}</div>
-                        </div>
-                        <div>
-                            <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">En Cours</div>
-                            <div className="text-2xl font-bold text-brand-600 dark:text-brand-400">
-                                {projects.filter(p => p.status === 'En cours').length}
-                            </div>
-                        </div>
-                        <div>
-                            <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">En Retard</div>
-                            <div className={`text-2xl font-bold ${projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
-                                {projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Alerts/Status */}
-                    <div className="flex flex-col gap-3 min-w-[180px]">
-                        {projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length > 0 && (
-                            <div className="flex items-center gap-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-xl border border-red-100 dark:border-red-800/30">
-                                <ShieldAlert className="h-4 w-4 shrink-0" />
-                                <span className="font-medium">{projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length} projets en retard</span>
-                            </div>
-                        )}
-                        {projects.filter(p => p.status === 'En cours').length > 0 && (
-                            <div className="flex items-center gap-3 text-sm text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 px-3 py-2 rounded-xl border border-brand-100 dark:border-brand-800/30">
-                                <FolderKanban className="h-4 w-4 shrink-0" />
-                                <span className="font-medium">{projects.filter(p => p.status === 'En cours').length} projets actifs</span>
-                            </div>
-                        )}
-                        {projects.length === 0 && (
-                            <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/20 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-800/30">
-                                <CheckSquare className="h-4 w-4 shrink-0" />
-                                <span className="font-medium">Aucun projet</span>
-                            </div>
-                        )}
-                    </div>
-                </motion.div>
-
-                <motion.div variants={slideUpVariants}>
-                    <PageControls
-                        searchQuery={filter}
-                        onSearchChange={setFilter}
-                        searchPlaceholder="Rechercher un projet..."
-                        totalItems={filteredProjects.length}
-                        viewMode={viewMode}
-                        onViewModeChange={setViewMode}
-                        secondaryActions={null}
-                    />
-                </motion.div>
-
-                {
-                    viewMode === 'list' ? (
-                        <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
-                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                            <div className="relative z-10">
-                                <DataTable
-                                    columns={columns}
-                                    data={filteredProjects}
-                                    selectable={true}
-                                    onBulkDelete={handleBulkDelete}
-                                    onRowClick={openInspector}
-                                    searchable={false}
-                                    loading={loading}
-                                />
-                            </div>
-                        </motion.div>
-                    ) : (
-                        <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {loading ? (
-                                <div className="col-span-full"><CardSkeleton count={3} /></div>
-                            ) : filteredProjects.length === 0 ? (
-                                <div className="col-span-full">
-                                    <EmptyState
-                                        icon={FolderKanban}
-                                        title="Aucun projet en cours"
-                                        description={filter ? "Aucun projet ne correspond à votre recherche." : "Lancez de nouveaux projets pour améliorer votre posture de sécurité."}
-                                        actionLabel={filter || !canEdit ? undefined : "Créer un projet"}
-                                        onAction={filter || !canEdit ? undefined : openCreationDrawer}
-                                    />
-                                </div>
-                            ) : (
-                                filteredProjects.map(project => (
-                                    <div key={project.id} onClick={() => openInspector(project)} className="glass-panel rounded-[2.5rem] p-6 card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <Badge
-                                                status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'}
-                                                variant="soft"
-                                            >
-                                                {project.status}
-                                            </Badge>
-                                            <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                {canEdit && (
-                                                    <>
-                                                        <button onClick={(e) => { e.stopPropagation(); openEditDrawer(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
-                                                            <Edit className="h-4 w-4" />
-                                                        </button>
-                                                        <button onClick={(e) => { e.stopPropagation(); initiateDelete(project.id, project.name); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{project.name}</h3>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 h-10 leading-relaxed">{project.description}</p>
-
-                                        <div className="mb-6">
-                                            <div className="flex justify-between text-xs mb-1.5 font-medium">
-                                                <span className="text-slate-600 dark:text-slate-300">Avancement</span>
-                                                <span className="text-brand-600">{project.progress}%</span>
-                                            </div>
-                                            <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-2">
-                                                <div className="bg-brand-500 h-2 rounded-full transition-all duration-500 shadow-sm" style={{ width: `${project.progress}%` }}></div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center text-xs text-slate-600 mb-4 space-x-4 border-t border-gray-100 dark:border-white/10 pt-4 mt-auto">
-                                            <div className="flex items-center font-medium">
-                                                <CalendarDays className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
-                                                {new Date(project.dueDate).toLocaleDateString()}
-                                            </div>
-                                            <div className="flex items-center font-medium">
-                                                <CheckSquare className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
-                                                {project.tasks?.length || 0} tâches
-                                            </div>
+                        ) : (
+                            filteredProjects.map(project => (
+                                <div key={project.id} onClick={() => openInspector(project)} className="glass-panel rounded-[2.5rem] p-6 card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <Badge
+                                            status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'}
+                                            variant="soft"
+                                        >
+                                            {project.status}
+                                        </Badge>
+                                        <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {canEdit && (
+                                                <>
+                                                    <button onClick={(e) => { e.stopPropagation(); openEditDrawer(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors">
+                                                        <Edit className="h-4 w-4" />
+                                                    </button>
+                                                    <button onClick={(e) => { e.stopPropagation(); initiateDelete(project.id, project.name); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
-                                ))
-                            )}
-                        </motion.div>
-                    )
-                }
 
-            </motion.div>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{project.name}</h3>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 h-10 leading-relaxed">{project.description}</p>
+
+                                    <div className="mb-6">
+                                        <div className="flex justify-between text-xs mb-1.5 font-medium">
+                                            <span className="text-slate-600 dark:text-slate-300">Avancement</span>
+                                            <span className="text-brand-600">{project.progress}%</span>
+                                        </div>
+                                        <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-2">
+                                            <div className="bg-brand-500 h-2 rounded-full transition-all duration-500 shadow-sm" style={{ width: `${project.progress}%` }}></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center text-xs text-slate-600 mb-4 space-x-4 border-t border-gray-100 dark:border-white/10 pt-4 mt-auto">
+                                        <div className="flex items-center font-medium">
+                                            <CalendarDays className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
+                                            {new Date(project.dueDate).toLocaleDateString()}
+                                        </div>
+                                        <div className="flex items-center font-medium">
+                                            <CheckSquare className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
+                                            {project.tasks?.length || 0} tâches
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </motion.div>
+                )
+            }
+
             {/* Inspector Drawer - Glassmorphism */}
             {/* Inspector Drawer */}
             <Drawer

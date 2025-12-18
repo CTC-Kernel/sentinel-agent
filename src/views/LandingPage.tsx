@@ -84,7 +84,7 @@ export const LandingPage: React.FC = () => {
                             {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                         </button>
                         <Button onClick={() => navigate('/login')} className="rounded-full px-6 bg-brand-600 hover:bg-brand-500 text-white font-bold shadow-[0_0_20px_rgba(79,70,229,0.5)] border border-brand-400/20 transition-all hover:scale-105">
-                            Commencer
+                            Se connecter
                         </Button>
                     </div>
                 </div>
@@ -103,10 +103,7 @@ export const LandingPage: React.FC = () => {
                                 <span className="text-sm font-medium text-slate-300 tracking-wide">Nouvelle Génération GRC</span>
                             </div>
 
-                            <h1 className="text-5xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-white/90 to-white/50 tracking-tight mb-8 leading-[1.1] drop-shadow-sm">
-                                L'Art de la <br />
-                                <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-indigo-400 to-brand-400 pb-2">Gouvernance</span>
-                            </h1>
+
 
                             <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed font-light">
                                 Pilotez votre conformité ISO 27001 et vos risques avec une élégance et une précision inégalées. Une plateforme conçue pour l'excellence.
@@ -114,7 +111,7 @@ export const LandingPage: React.FC = () => {
 
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
                                 <Button onClick={() => navigate('/login')} size="lg" className="h-14 px-8 rounded-full bg-white text-black font-bold text-lg hover:bg-slate-200 hover:scale-105 transition-all shadow-[0_0_25px_rgba(255,255,255,0.3)] w-full sm:w-auto flex items-center gap-2 group">
-                                    Créer mon compte
+                                    Accedez à l'onboarding
                                     <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                                 </Button>
                             </div>
@@ -127,42 +124,6 @@ export const LandingPage: React.FC = () => {
                     </div>
                 </ContainerScroll>
             </div>
-
-            {/* Value Proposition / Features Section */}
-            <section className="relative z-10 py-24 -mt-20">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {[
-                            {
-                                title: "Pilotage Unifié",
-                                desc: "Centralisez risques, audits et conformité en un seul point de vérité.",
-                                icon: <Lock className="w-6 h-6 text-brand-400" />
-                            },
-                            {
-                                title: "Intelligence Artificielle",
-                                desc: "Analysez vos écarts et générez vos plans d'actions instantanément.",
-                                icon: <SparklesCore id="feature2" background="transparent" minSize={1} maxSize={2} particleDensity={10} className="w-6 h-6" particleColor="#818cf8" />
-                            },
-                            {
-                                title: "Rapports Automatisés",
-                                desc: "Générez des rapports d'audits professionnels en un clic.",
-                                icon: <ArrowRight className="w-6 h-6 text-emerald-400 -rotate-45" />
-                            }
-                        ].map((feature, i) => (
-                            <div key={i} className="group relative p-8 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-br from-brand-500/10 via-transparent to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                <div className="relative z-10">
-                                    <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-brand-500/10">
-                                        {feature.icon}
-                                    </div>
-                                    <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
-                                    <p className="text-slate-400 leading-relaxed">{feature.desc}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
 
             {/* Footer */}
             <footer className="relative z-10 bg-black/40 py-12 border-t border-white/10 backdrop-blur-xl">

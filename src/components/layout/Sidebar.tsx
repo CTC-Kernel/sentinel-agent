@@ -5,7 +5,7 @@ import { auth } from '../../firebase';
 import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database, Calendar, Loader2 } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
-import { Scale, Shield } from 'lucide-react';
+import { Scale, Shield, Printer } from 'lucide-react';
 import { hasPermission } from '../../utils/permissions';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
@@ -35,6 +35,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         { key: 'voxel', name: t('common.ctcEngine'), to: '/ctc-engine', icon: Settings3D },
         { key: 'incidents', name: t('sidebar.incidents'), to: '/incidents', icon: Siren },
         { key: 'projects', name: t('sidebar.projects'), to: '/projects', icon: FolderKanban },
+        { key: 'reports', name: 'Rapports', to: '/reports', icon: Printer },
       ]
     },
     {
@@ -89,6 +90,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       case 'suppliers': return hasPermission(user, 'Supplier', 'read');
       case 'privacy': return hasPermission(user, 'Document', 'read');
       case 'voxel': return false;
+      case 'reports': return hasPermission(user, 'Risk', 'read') || hasPermission(user, 'Audit', 'read');
       default: return true;
     }
   };

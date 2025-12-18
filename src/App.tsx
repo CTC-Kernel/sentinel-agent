@@ -34,6 +34,7 @@ const Login = React.lazy(() => import('./views/Login').then(module => ({ default
 const Onboarding = React.lazy(() => import('./views/Onboarding').then(module => ({ default: module.Onboarding })));
 const VerifyEmail = React.lazy(() => import('./views/VerifyEmail').then(module => ({ default: module.VerifyEmail })));
 const LandingPage = React.lazy(() => import('./views/LandingPage').then(module => ({ default: module.LandingPage })));
+const Reports = React.lazy(() => import('./views/Reports').then(module => ({ default: module.Reports })));
 
 // Route wrapper that decides whether to show Landing Page or App logic
 const LandingOrAppRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -212,6 +213,11 @@ const AppInner: React.FC = () => {
                         <Route path="/verify-email" element={
                             <AuthGuard requireOnboarding={false}>
                                 <VerifyEmail />
+                            </AuthGuard>
+                        } />
+                        <Route path="/reports" element={
+                            <AuthGuard>
+                                <Reports />
                             </AuthGuard>
                         } />
                         {/* Landing Page Route: Shows LandingPage for visitors, AppLayout (Dashboard) for users */}
