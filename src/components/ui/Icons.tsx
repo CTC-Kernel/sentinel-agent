@@ -126,7 +126,11 @@ import {
   Plug,
   EyeOff,
   PieChart,
-  FileCode
+  FileCode,
+  Twitter,
+  Linkedin,
+  Github,
+  Heart
 } from 'lucide-react';
 
 export {
@@ -256,5 +260,9 @@ export {
   Plug,
   EyeOff,
   PieChart,
-  FileCode
+  FileCode,
+  Twitter,
+  Linkedin,
+  Github,
+  Heart
 };
