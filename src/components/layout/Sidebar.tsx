@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
-import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database, Calendar, Loader2 } from '../ui/Icons';
+import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database, Calendar, Loader2, Bug, Globe } from '../ui/Icons';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
 import { Scale, Shield, Printer } from 'lucide-react';
@@ -45,6 +45,8 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse },
         { key: 'compliance', name: t('common.complianceDda'), to: '/compliance', icon: FileText },
         { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity },
+        { key: 'vulnerabilities', name: 'Vulnérabilités', to: '/vulnerabilities', icon: Bug },
+        { key: 'threat-intelligence', name: 'Threat Intel', to: '/threat-intelligence', icon: Globe },
       ]
     },
     {
@@ -90,6 +92,8 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       case 'suppliers': return hasPermission(user, 'Supplier', 'read');
       case 'privacy': return hasPermission(user, 'Document', 'read');
       case 'voxel': return false;
+      case 'vulnerabilities': return hasPermission(user, 'Asset', 'read') || hasPermission(user, 'Risk', 'read');
+      case 'threat-intelligence': return true; // Public/Collaborative but authenticated
       case 'reports': return hasPermission(user, 'Risk', 'read') || hasPermission(user, 'Audit', 'read');
       default: return true;
     }

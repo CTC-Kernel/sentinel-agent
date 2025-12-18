@@ -130,7 +130,11 @@ import {
   Twitter,
   Linkedin,
   Github,
-  Heart
+  Heart,
+  Bug,
+  ThumbsUp,
+  Share2,
+  Box
 } from 'lucide-react';
 
 export {
@@ -264,5 +268,9 @@ export {
   Twitter,
   Linkedin,
   Github,
-  Heart
+  Heart,
+  Bug,
+  ThumbsUp,
+  Share2,
+  Box
 };

@@ -216,6 +216,28 @@ service cloud.firestore {
         (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
       allow delete: if canDelete(resource.data.organizationId);
     }
+
+    // Vulnerabilities
+    match /vulnerabilities/{vulnId} {
+      allow read: if canRead(resource.data.organizationId);
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
+      allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId)));
+      allow delete: if canDelete(resource.data.organizationId);
+    }
+
+    // Threat Intelligence (Global/Shared)
+    match /threats/{threatId} {
+      // Global read access for all authenticated users
+      allow read: if isAuthenticated();
+      
+      // Write access:
+      // In a real scenario, restricted to Sentinel Team (SuperAdmin).
+      // For this Demo App: Allow any authenticated user to create/update to enable 
+      // Auto-seeding and collaborative simulation features.
+      allow write: if isAuthenticated(); 
+    }
     
     // Controls
     match /controls/{controlId} {

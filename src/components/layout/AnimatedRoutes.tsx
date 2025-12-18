@@ -31,6 +31,8 @@ const Pricing = React.lazy(() => import('../../views/Pricing'));
 const AdminDashboard = React.lazy(() => import('../../views/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
 const Integrations = React.lazy(() => import('../../views/Integrations').then(module => ({ default: module.Integrations })));
 const ThreatRegistry = React.lazy(() => import('../../views/ThreatRegistry').then(module => ({ default: module.ThreatRegistry })));
+const Vulnerabilities = React.lazy(() => import('../../views/Vulnerabilities').then(module => ({ default: module.Vulnerabilities })));
+const ThreatIntelligence = React.lazy(() => import('../../views/ThreatIntelligence').then(module => ({ default: module.ThreatIntelligence })));
 
 import { AlertTriangle } from '../ui/Icons';
 import { Link } from 'react-router-dom';
@@ -65,7 +67,9 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/projects" element={<AnimatedPage><Projects /></AnimatedPage>} />
                 <Route path="/assets" element={<AnimatedPage><Assets /></AnimatedPage>} />
                 <Route path="/risks" element={<AnimatedPage><Risks /></AnimatedPage>} />
+                <Route path="/vulnerabilities" element={<AnimatedPage><Vulnerabilities /></AnimatedPage>} />
                 <Route path="/threat-library" element={<AnimatedPage><ThreatRegistry /></AnimatedPage>} />
+                <Route path="/threat-intelligence" element={<AnimatedPage><ThreatIntelligence /></AnimatedPage>} />
                 <Route path="/compliance" element={<AnimatedPage><Compliance /></AnimatedPage>} />
                 <Route path="/documents" element={<AnimatedPage><Documents /></AnimatedPage>} />
                 <Route path="/audits" element={<AnimatedPage><Audits /></AnimatedPage>} />

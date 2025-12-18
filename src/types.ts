@@ -116,12 +116,23 @@ export interface CyberNewsItem {
 }
 
 export interface Vulnerability {
+  id?: string;
+  organizationId?: string;
   cveId: string;
+  title?: string;
   description: string;
   severity: 'Low' | 'Medium' | 'High' | 'Critical';
   score?: number;
+  cvssVector?: string;
   publishedDate: string;
+  detectedAt?: string;
+  remediatedAt?: string;
+  status?: 'Open' | 'In Progress' | 'Resolved' | 'False Positive';
+  assetId?: string;
+  assetName?: string;
   source: string;
+  remediationPlan?: string;
+  relatedRiskId?: string;
 }
 
 export interface Risk {
