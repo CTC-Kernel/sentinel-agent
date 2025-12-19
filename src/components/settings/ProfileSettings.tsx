@@ -257,41 +257,41 @@ export const ProfileSettings: React.FC = () => {
                             </div>
 
                             <div className="space-y-4">
-                                {[
+                                {([
                                     { key: 'risks', label: t('common.risks') },
                                     { key: 'audits', label: t('common.audits') },
                                     { key: 'tasks', label: t('common.tasks') },
                                     { key: 'system', label: t('common.system') }
-                                ].map((category) => (
+                                ] as const).map((category) => (
                                     <div key={category.key} className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
                                         <h4 className="font-medium text-slate-900 dark:text-white mb-3 capitalize">{category.label}</h4>
                                         <div className="flex gap-6 flex-wrap">
                                             <Controller
-                                                name={`notificationPreferences.${category.key}.email` as any}
+                                                name={`notificationPreferences.${category.key}.email`}
                                                 control={profileForm.control}
                                                 render={({ field }) => (
                                                     <div className="flex items-center gap-2">
-                                                        <Switch checked={field.value} onChange={field.onChange} />
+                                                        <Switch checked={field.value ?? false} onChange={field.onChange} />
                                                         <span className="text-sm text-slate-600 dark:text-slate-300">Email</span>
                                                     </div>
                                                 )}
                                             />
                                             <Controller
-                                                name={`notificationPreferences.${category.key}.push` as any}
+                                                name={`notificationPreferences.${category.key}.push`}
                                                 control={profileForm.control}
                                                 render={({ field }) => (
                                                     <div className="flex items-center gap-2">
-                                                        <Switch checked={field.value} onChange={field.onChange} />
+                                                        <Switch checked={field.value ?? false} onChange={field.onChange} />
                                                         <span className="text-sm text-slate-600 dark:text-slate-300">Push</span>
                                                     </div>
                                                 )}
                                             />
                                             <Controller
-                                                name={`notificationPreferences.${category.key}.inApp` as any}
+                                                name={`notificationPreferences.${category.key}.inApp`}
                                                 control={profileForm.control}
                                                 render={({ field }) => (
                                                     <div className="flex items-center gap-2">
-                                                        <Switch checked={field.value} onChange={field.onChange} />
+                                                        <Switch checked={field.value ?? false} onChange={field.onChange} />
                                                         <span className="text-sm text-slate-600 dark:text-slate-300">In-App</span>
                                                     </div>
                                                 )}

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { TrendingDown } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { slideUpVariants } from '../ui/animationVariants';
+import { Risk } from '../../types';
 
 interface RiskStatsProps {
     stats: {
@@ -12,7 +13,7 @@ interface RiskStatsProps {
         reductionPercentage: number;
         untreatedCritical: number;
     };
-    risks: any[]; // Or proper Risk type
+    risks: Risk[]; // Or proper Risk type
 }
 
 export const RiskStats: React.FC<RiskStatsProps> = ({ stats }) => {

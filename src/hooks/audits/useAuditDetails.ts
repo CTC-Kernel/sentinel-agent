@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { collection, addDoc, updateDoc, doc, deleteDoc, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
-import { Audit, Finding, AuditChecklist, AuditQuestion, Control, Document } from '../../types';
+import { Audit, Finding, AuditChecklist, AuditQuestion, Control, Document, Risk } from '../../types';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { ErrorLogger } from '../../services/errorLogger';
 import { logAction } from '../../services/logger';
@@ -40,7 +40,7 @@ export const useAuditDetails = (
 
     // --- Findings ---
 
-    const handleAddFinding = async (data: any) => {
+    const handleAddFinding = async (data: Partial<Finding>) => {
         if (!selectedAudit || !user?.organizationId) return;
         try {
             const cleanData = sanitizeData(data);
@@ -158,7 +158,7 @@ export const useAuditDetails = (
 
     // --- Reports ---
 
-    const generateAuditReport = async (relatedRisks: any[]) => {
+    const generateAuditReport = async (relatedRisks: Risk[]) => {
         if (!selectedAudit) return;
         setIsGeneratingReport(true);
         addToast("Génération du rapport...", "info");

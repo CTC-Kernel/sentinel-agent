@@ -26,7 +26,7 @@ export const useDashboardMetrics = ({
     const historyData = useMemo(() => {
         return historyStats
             .map((d, index) => {
-                const anyD = d as any;
+                const anyD = d as unknown as Record<string, unknown>;
                 const metrics = d.metrics || {
                     complianceRate: Number(anyD.compliance) || 0,
                     totalRisks: Number(anyD.risks) || 0,

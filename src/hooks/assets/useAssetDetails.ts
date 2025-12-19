@@ -89,7 +89,7 @@ export function useAssetDetails(asset: Asset | null) {
         return () => {
             unsubMaint();
         };
-    }, [asset?.id, user?.organizationId, asset?.name]);
+    }, [asset, user?.organizationId]);
 
     const addMaintenance = async (data: MaintenanceRecord) => {
         if (!asset || !user?.organizationId) return false;

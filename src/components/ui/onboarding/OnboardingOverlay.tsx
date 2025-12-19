@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOnboardingStore } from './useOnboardingStore';
 import { OnboardingCard } from './TourCard';
@@ -10,19 +10,24 @@ export const OnboardingOverlay: React.FC = () => {
 
     const currentStep = steps[currentStepIndex];
 
-    const updateRect = () => {
-        if (!currentStep?.target) return;
-        const element = document.querySelector(currentStep.target);
+    // Helper to get the target element
+    const getStepElement = useCallback((step: typeof currentStep) => {
+        if (!step?.target) return null;
+        return document.querySelector(step.target);
+    }, []);
+
+    const updateRect = useCallback(() => {
+        const element = getStepElement(currentStep);
         if (element) {
             const rect = element.getBoundingClientRect();
             // Check if element is visible/in viewport, maybe scroll to it?
             element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-            setTargetRect(JSON.parse(JSON.stringify(rect))); // Force copy
+            setTargetRect(rect);
         } else {
             // Fallback for missing elements or center positioning?
             setTargetRect(null);
         }
-    };
+    }, [currentStep, getStepElement]);
 
     useEffect(() => {
         if (isActive && currentStep) {

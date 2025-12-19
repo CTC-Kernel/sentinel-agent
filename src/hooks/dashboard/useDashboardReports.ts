@@ -15,7 +15,7 @@ interface ReportContext {
     allRisks: Risk[];
     topRisks: Risk[];
     financialRisk: number;
-    radarData: any[];
+    radarData: { subject: string; A: number; fullMark: number }[];
     organizationLogo?: string;
 }
 

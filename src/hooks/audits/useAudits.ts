@@ -1,3 +1,4 @@
+
 import { useState, useMemo, useCallback } from 'react';
 import { useFirestoreCollection } from '../useFirestore';
 import { where, collection, addDoc, updateDoc, doc, deleteDoc, query, getDocs, arrayUnion, writeBatch } from 'firebase/firestore';
@@ -80,7 +81,7 @@ export const useAudits = () => {
         }
     }, [user?.organizationId]);
 
-    const handleCreateAudit = async (data: any, preSelectedProjectId?: string | null) => {
+    const handleCreateAudit = async (data: Partial<Audit>, preSelectedProjectId?: string | null) => {
         if (!canEdit || !user?.organizationId) return;
         try {
             const cleanData = sanitizeData(data);
@@ -98,14 +99,14 @@ export const useAudits = () => {
                 await updateDoc(doc(db, 'projects', preSelectedProjectId), { relatedAuditIds: arrayUnion(docRef.id) });
             }
 
-            await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${data.name}`);
+            await logAction(user, 'CREATE', 'Audit', `Nouvel audit: ${data.name} `);
             analyticsService.logEvent('create_audit', { audit_type: data.type, auditor: data.auditor });
 
             if (data.auditor) {
                 const auditorUser = usersList.find(u => u.displayName === data.auditor);
                 if (auditorUser) {
                     const emailContent = getAuditReminderTemplate(data.name || 'Audit', auditorUser.displayName || 'Auditeur', data.dateScheduled || '', buildAppUrl('/audits'));
-                    await sendEmail(user, { to: auditorUser.email, subject: `[Sentinel] Nouvel audit assigné: ${data.name}`, html: emailContent, type: 'AUDIT_REMINDER' });
+                    await sendEmail(user, { to: auditorUser.email, subject: `[Sentinel] Nouvel audit assigné: ${data.name} `, html: emailContent, type: 'AUDIT_REMINDER' });
                 }
             }
             refreshAudits();
@@ -116,11 +117,11 @@ export const useAudits = () => {
         }
     };
 
-    const handleUpdateAudit = async (id: string, data: any) => {
+    const handleUpdateAudit = async (id: string, data: Partial<Audit>) => {
         if (!canEdit) return;
         try {
             await updateDoc(doc(db, 'audits', id), sanitizeData(data));
-            await logAction(user, 'UPDATE', 'Audit', `Mise à jour audit: ${data.name}`);
+            await logAction(user, 'UPDATE', 'Audit', `Mise à jour audit: ${data.name} `);
             refreshAudits();
             addToast("Audit mis à jour", "success");
         } catch (error) {
@@ -138,7 +139,7 @@ export const useAudits = () => {
             await Promise.all(findingsSnap.docs.map(d => deleteDoc(doc(db, 'findings', d.id))));
 
             await deleteDoc(doc(db, 'audits', id));
-            await logAction(user, 'DELETE', 'Audit', `Suppression audit: ${name}`);
+            await logAction(user, 'DELETE', 'Audit', `Suppression audit: ${name} `);
 
             if (selectedAudit?.id === id) setSelectedAudit(null);
             refreshAudits();

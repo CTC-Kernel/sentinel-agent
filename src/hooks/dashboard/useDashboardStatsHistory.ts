@@ -10,7 +10,7 @@ interface DashboardStatsHistoryProps {
     allRisksCount: number;
     complianceScore: number;
     activeIncidentsCount: number;
-    radarData: any[];
+    radarData: { subject: string; A: number; fullMark: number }[];
 }
 
 export const useDashboardStatsHistory = ({
@@ -39,7 +39,7 @@ export const useDashboardStatsHistory = ({
                         compliance: complianceScore,
                         incidents: activeIncidentsCount,
                         timestamp: new Date().toISOString(),
-                        frameworks: Object.entries(radarData).reduce((acc, [subject, data]: [string, any]) => ({ ...acc, [subject]: data.A }), {})
+                        frameworks: Object.entries(radarData).reduce((acc, [_, data]: [string, { subject: string; A: number }]) => ({ ...acc, [data.subject || 'Unknown']: data.A }), {})
                     }, { merge: true }); // Use merge to be safe
                 } catch (e) {
                     // Silent fail or log if needed, but avoiding user disruption

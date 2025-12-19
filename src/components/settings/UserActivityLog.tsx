@@ -72,10 +72,12 @@ export const UserActivityLog: React.FC = () => {
 
                     // Client-side Sort
                     fetchedLogs.sort((a, b) => {
-                        const getMillis = (timestamp: any) => {
-                            if (typeof timestamp === 'object' && 'toMillis' in timestamp) return timestamp.toMillis();
+                        const getMillis = (timestamp: unknown) => {
+                            if (timestamp && typeof timestamp === 'object' && 'toMillis' in timestamp) {
+                                return (timestamp as { toMillis: () => number }).toMillis();
+                            }
                             // Handle if it's already a date object or string
-                            return new Date(timestamp).getTime();
+                            return new Date(timestamp as string | number | Date).getTime();
                         };
                         return getMillis(b.timestamp) - getMillis(a.timestamp);
                     });
@@ -101,14 +103,14 @@ export const UserActivityLog: React.FC = () => {
                 cell: ({ row }) => {
                     const val = row.original.timestamp;
                     if (!val) return '-';
-                    const date = (typeof val === 'object' && 'toDate' in val)
-                        ? (val as any).toDate()
+                    const date = (typeof val === 'object' && val && 'toDate' in val)
+                        ? (val as { toDate: () => Date }).toDate()
                         : new Date(val as string | number);
                     try {
                         // Check if date is valid
                         if (isNaN(date.getTime())) return '-';
                         return format(date, 'Pp', { locale: fr });
-                    } catch (e) { return '-'; }
+                    } catch { return '-'; }
                 }
             }
         ];
