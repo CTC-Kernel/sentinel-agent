@@ -4,7 +4,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants, slideUpVariants } from '../components/ui/animationVariants';
-import { ShieldAlert, Search, Filter, Plus, Trash2, CheckCircle2 as CheckCircle, Clock, AlertOctagon, Server, AlertTriangle } from '../components/ui/Icons';
+import { ShieldAlert, Plus, Trash2, CheckCircle2 as CheckCircle, Clock, Server, AlertTriangle, LayoutDashboard, List, FolderKanban, MoreVertical, FileSpreadsheet } from '../components/ui/Icons';
 import { useStore } from '../store';
 import { Vulnerability, Asset } from '../types';
 import { useFirestoreCollection } from '../hooks/useFirestore';
@@ -21,15 +21,28 @@ import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Badge } from '../components/ui/Badge';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
+import { Menu, Transition } from '@headlessui/react';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
 export const Vulnerabilities: React.FC = () => {
     const { user, organization, addToast } = useStore();
-    const [viewMode] = useState<'list' | 'kanban'>('list');
+
+    // Tabs & View State
+    const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'board'>('list');
+    const tabs = [
+        { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
+        { id: 'list', label: "Liste", icon: List },
+        { id: 'board', label: "Kanban", icon: FolderKanban },
+    ];
+
     const [isCreating, setIsCreating] = useState(false);
     const [selectedVuln, setSelectedVuln] = useState<Vulnerability | null>(null);
     const [formData, setFormData] = useState<Partial<Vulnerability>>({});
+
+    // Filters
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeTab, setActiveTab] = useState<'Open' | 'In Progress' | 'Resolved' | 'All'>('Open');
     const [filterSeverity, setFilterSeverity] = useState<string>('All');
 
     // Data Fetching
@@ -64,19 +77,14 @@ export const Vulnerabilities: React.FC = () => {
                 v.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 v.assetName?.toLowerCase().includes(searchTerm.toLowerCase());
 
-            const matchesTab = activeTab === 'All' ? true :
-                activeTab === 'Resolved' ? v.status === 'Resolved' :
-                    activeTab === 'In Progress' ? v.status === 'In Progress' :
-                        v.status !== 'Resolved'; // Open usually means Not Resolved
-
             const matchesSeverity = filterSeverity === 'All' ? true : v.severity === filterSeverity;
 
-            return matchesSearch && matchesTab && matchesSeverity;
+            return matchesSearch && matchesSeverity;
         }).sort((a, b) => {
             const severityWeight = { Critical: 4, High: 3, Medium: 2, Low: 1 };
             return (severityWeight[b.severity] || 0) - (severityWeight[a.severity] || 0);
         });
-    }, [vulnerabilities, searchTerm, activeTab, filterSeverity]);
+    }, [vulnerabilities, searchTerm, filterSeverity]);
 
     const handleExportCSV = () => {
         const headers = ["ID", "Titre", "Sévérité", "Statut", "Actif", "Score", "Date"];
@@ -206,96 +214,125 @@ export const Vulnerabilities: React.FC = () => {
                 subtitle="Centre de gestion des vulnérabilités et remédiation"
                 icon={<ShieldAlert className="h-6 w-6 text-white" />}
                 breadcrumbs={[{ label: 'Gouvernance' }, { label: 'Vulnérabilités' }]}
-                actions={
-                    <div className="flex gap-2">
-                        <button
-                            onClick={handleExportCSV}
-                            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-xl flex items-center text-sm font-bold backdrop-blur-md transition-all"
-                        >
-                            <Server className="h-4 w-4 mr-2" /> {/* Reusing Server icon as placeholder for Download/File */}
-                            Exporter CSV
-                        </button>
-                        {canCreate && (
-                            <button
-                                onClick={handleCreate}
-                                className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl flex items-center shadow-lg shadow-brand-500/20 text-sm font-bold transition-all"
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Nouvelle Vulnérabilité
-                            </button>
-                        )}
-                    </div>
-                }
             />
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {[
-                    { label: 'Vulnérabilités Totales', value: stats.total, icon: ShieldAlert, color: 'text-blue-500' },
-                    { label: 'Critiques', value: stats.critical, icon: AlertOctagon, color: 'text-red-500' },
-                    { label: 'Élevées', value: stats.high, icon: AlertTriangle, color: 'text-orange-500' },
-                    { label: 'Taux de Résolution', value: `${stats.remediationRate}%`, icon: CheckCircle, color: 'text-emerald-500' },
-                ].map((stat, i) => (
-                    <motion.div
-                        key={i}
-                        variants={slideUpVariants}
-                        className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 backdrop-blur-sm"
-                    >
-                        <div className="flex items-center justify-between mb-4">
-                            <stat.icon className={`h-8 w-8 ${stat.color} opacity-80`} />
-                            {i === 3 && <div className="h-2 w-24 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-emerald-500" style={{ width: stats.remediationRate + '%' }}></div></div>}
+            <ScrollableTabs
+                tabs={tabs}
+                activeTab={activeTab}
+                onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'board')}
+            />
+
+            {/* OVERVIEW TAB */}
+            {activeTab === 'overview' && (
+                <motion.div variants={slideUpVariants} className="space-y-6">
+                    <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent dark:border-white/5 overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
+                        <div className="flex items-center gap-6 relative z-10">
+                            <div className="relative">
+                                <svg className="w-24 h-24 transform -rotate-90">
+                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-200 dark:text-slate-700" />
+                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * stats.remediationRate) / 100} className="text-emerald-500 transition-all duration-1000 ease-out" />
+                                </svg>
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                                    <span className="text-xl font-black text-slate-900 dark:text-white">
+                                        {stats.remediationRate}%
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Taux de Remédiation</h3>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">Pourcentage de vulnérabilités résolues.</p>
+                            </div>
                         </div>
-                        <div className="text-3xl font-bold text-slate-900 dark:text-white">{stat.value}</div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">{stat.label}</div>
+
+                        {/* Metrics */}
+                        <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                            <div>
+                                <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total</div>
+                                <div className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</div>
+                            </div>
+                            <div>
+                                <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Critiques</div>
+                                <div className="text-2xl font-bold text-red-600">{stats.critical}</div>
+                            </div>
+                            <div>
+                                <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Élevées</div>
+                                <div className="text-2xl font-bold text-orange-500">{stats.high}</div>
+                            </div>
+                        </div>
                     </motion.div>
-                ))}
-            </div>
+                </motion.div>
+            )}
 
-            {/* Main Content */}
-            <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-white/5 backdrop-blur-xl overflow-hidden min-h-[600px]">
-                {/* Controls */}
-                <div className="p-6 border-b border-slate-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl">
-                        {['Open', 'In Progress', 'Resolved', 'All'].map((tab) => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab as typeof activeTab)}
-                                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === tab ? 'bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-                            >
-                                {tab === 'All' ? 'Tout' : tab === 'Open' ? 'Ouvertes' : tab === 'In Progress' ? 'En Cours' : 'Résolues'}
-                            </button>
-                        ))}
-                    </div>
+            {/* List & Board Controls */}
+            {activeTab !== 'overview' && (
+                <PremiumPageControl
+                    searchQuery={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    searchPlaceholder="Rechercher CVE, Actif..."
+                    // View mode toggle only relevant if we wanted sub-views in tabs, but here tabs separate views.
+                    // We can reuse it to toggle visual density or just keep it simple.
+                    // Let's allow grid/list toggle for the List tab if desired, or hide it.
+                    // For now, hiding list/grid toggles as Tabs handle the main view switch.
 
-                    <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4 text-slate-400" />
-                        <select
-                            value={filterSeverity}
-                            onChange={(e) => setFilterSeverity(e.target.value)}
-                            className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500"
-                        >
-                            <option value="All">Toutes Sévérités</option>
-                            <option value="Critical">Critique</option>
-                            <option value="High">Élevée</option>
-                            <option value="Medium">Moyenne</option>
-                            <option value="Low">Faible</option>
-                        </select>
-                    </div>
+                    actions={
+                        <div className="flex items-center gap-2">
+                            <Menu as="div" className="relative inline-block text-left">
+                                <Menu.Button className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors text-sm font-medium">
+                                    <span className="hidden sm:inline">Sévérité:</span> <span className="font-bold">{filterSeverity === 'All' ? 'Toutes' : filterSeverity}</span>
+                                </Menu.Button>
+                                <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
+                                    <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                        <div className="p-1">
+                                            {['All', 'Critical', 'High', 'Medium', 'Low'].map((s) => (
+                                                <Menu.Item key={s}>
+                                                    {({ active }) => (
+                                                        <button onClick={() => setFilterSeverity(s)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                            {s === 'All' ? 'Toutes' : s}
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                            ))}
+                                        </div>
+                                    </Menu.Items>
+                                </Transition>
+                            </Menu>
 
-                    <div className="relative w-full md:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="Rechercher CVE, Actif..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
-                        />
-                    </div>
-                </div>
+                            {canCreate && (
+                                <CustomTooltip content="Déclarer une vulnérabilité">
+                                    <button onClick={handleCreate} className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20">
+                                        <Plus className="h-4 w-4 mr-2" /> <span className="hidden sm:inline">Nouvelle Vulnérabilité</span>
+                                    </button>
+                                </CustomTooltip>
+                            )}
 
-                {/* List View */}
-                {viewMode === 'list' && (
+
+                            <Menu as="div" className="relative inline-block text-left">
+                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                    <MoreVertical className="h-5 w-5" />
+                                </Menu.Button>
+                                <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
+                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                        <div className="p-1">
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button onClick={handleExportCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        <FileSpreadsheet className="mr-2 h-4 w-4" /> Export CSV
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                        </div>
+                                    </Menu.Items>
+                                </Transition>
+                            </Menu>
+                        </div>
+                    }
+                />
+            )}
+
+            {/* LIST TAB */}
+            {activeTab === 'list' && (
+                <motion.div variants={slideUpVariants} className="bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-white/5 backdrop-blur-xl overflow-hidden min-h-[600px]">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-slate-50 dark:bg-white/5 text-left">
@@ -351,7 +388,7 @@ export const Vulnerabilities: React.FC = () => {
                                                     <AlertTriangle className="h-4 w-4" />
                                                 </button>
                                                 <button onClick={() => handleEdit(vuln)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 rounded-lg">
-                                                    <Filter className="h-4 w-4" /> {/* Edit icon proxy */}
+                                                    <List className="h-4 w-4" /> {/* Edit icon proxy if needed, referencing previous edit icon used commonly */}
                                                 </button>
                                                 {canManage && (
                                                     <button onClick={() => handleDelete(vuln.id!, vuln.organizationId)} className="p-2 hover:bg-red-50 text-red-500 rounded-lg">
@@ -365,8 +402,56 @@ export const Vulnerabilities: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
-                )}
-            </div>
+                </motion.div>
+            )}
+
+            {/* KANBAN TAB */}
+            {activeTab === 'board' && (
+                <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-300px)] min-h-[500px] overflow-x-auto pb-4">
+                    {['Open', 'In Progress', 'Resolved'].map((status) => {
+                        const columnVulns = filteredVulns.filter(v =>
+                            status === 'Open' ? (v.status !== 'In Progress' && v.status !== 'Resolved') : v.status === status
+                        );
+
+                        return (
+                            <div key={status} className="flex flex-col glass-panel rounded-2xl p-4 border border-white/20 h-full">
+                                <h4 className="text-sm font-bold uppercase text-slate-600 dark:text-slate-400 mb-4 flex justify-between tracking-wider px-1">
+                                    {status === 'Open' ? 'Ouvert' : status === 'In Progress' ? 'En Cours' : 'Résolu'}
+                                    <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg text-xs shadow-sm border border-slate-200 dark:border-white/5">
+                                        {columnVulns.length}
+                                    </span>
+                                </h4>
+                                <div className="space-y-4 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
+                                    {columnVulns.length === 0 ? (
+                                        <div className="h-32 border-2 border-dashed border-slate-200 dark:border-white/5 rounded-xl flex items-center justify-center text-slate-400 text-xs font-medium">
+                                            Aucune vulnérabilité
+                                        </div>
+                                    ) : (
+                                        columnVulns.map(v => (
+                                            <div key={v.id} onClick={() => handleEdit(v)} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm hover:shadow-md cursor-pointer transition-all group">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <Badge status={v.severity === 'Critical' ? 'error' : v.severity === 'High' ? 'warning' : 'info'} variant="soft" size="sm">{v.severity}</Badge>
+                                                    <span className="text-xs text-slate-400 font-mono">{v.cveId}</span>
+                                                </div>
+                                                <h5 className="font-bold text-slate-900 dark:text-white text-sm mb-1 line-clamp-2">{v.title}</h5>
+                                                <div className="flex items-center text-xs text-slate-500 mb-3">
+                                                    <Server className="h-3 w-3 mr-1" /> {v.assetName || 'N/A'}
+                                                </div>
+                                                {v.score && (
+                                                    <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/5">
+                                                        <span className="text-xs font-bold text-slate-400">CVSS</span>
+                                                        <span className={`text-xs font-bold ${v.score >= 7 ? 'text-red-500' : 'text-slate-600'}`}>{v.score}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )
+                    })}
+                </motion.div>
+            )}
 
             {/* Modal */}
             <Modal isOpen={isCreating} onClose={() => setIsCreating(false)} title={selectedVuln ? `Modifier ${selectedVuln.cveId}` : "Nouvelle Vulnérabilité"} maxWidth="max-w-2xl">

@@ -882,6 +882,7 @@ export interface Threat {
   active?: boolean;
   verified?: boolean; // New verified field
   source?: string; // 'Community' | 'CISA' | 'URLhaus' | etc.
+  description?: string;
 }
 
 export interface AIInsight {

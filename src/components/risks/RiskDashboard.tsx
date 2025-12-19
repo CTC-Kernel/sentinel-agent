@@ -130,9 +130,10 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
     }, [risks]);
 
 
-    // Unique IDs for gradients
-    const areaGradientId = React.useId();
-    const barGradientBlueId = React.useId();
+    // Generic unique ID for this instance
+    const uniqueId = React.useId().replace(/:/g, '');
+    const areaGradientId = `area-gradient-${uniqueId}`;
+    const barGradientBlueId = `bar-gradient-${uniqueId}`;
 
     return (
         <div className="space-y-6">
@@ -285,7 +286,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                             <PieChart>
                                 <defs>
                                     {distributionData.map((entry, index) => (
-                                        <linearGradient key={`grad-${index}`} id={`pieGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                                        <linearGradient key={`grad-${index}`} id={`pieGradient-${uniqueId}-${index}`} x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
                                             <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
                                         </linearGradient>
@@ -302,7 +303,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, onFilterCha
                                     stroke="none"
                                 >
                                     {distributionData.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={`url(#pieGradient-${index})`} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
+                                        <Cell key={`cell-${index}`} fill={`url(#pieGradient-${uniqueId}-${index})`} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<ChartTooltip />} cursor={false} />

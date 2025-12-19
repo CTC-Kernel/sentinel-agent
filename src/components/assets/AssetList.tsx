@@ -52,7 +52,20 @@ export const AssetList: React.FC<AssetListProps> = ({
                 <div className="relative z-10">
                     <DataTable
                         columns={[
-                            // ...
+                            { header: 'Nom', accessorKey: 'name', cell: ({ row }) => <span className="font-bold text-slate-900 dark:text-white">{row.original.name}</span> },
+                            { header: 'Type', accessorKey: 'type' },
+                            { header: 'Criticité', accessorKey: 'confidentiality', cell: ({ row }) => <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span> },
+                            { header: 'Propriétaire', accessorKey: 'owner' },
+                            {
+                                header: 'Statut',
+                                accessorKey: 'lifecycleStatus',
+                                cell: ({ row }) => (
+                                    <div className="flex items-center gap-2">
+                                        <span className={`w-2 h-2 rounded-full ${row.original.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>
+                                        <span>{row.original.lifecycleStatus || 'Neuf'}</span>
+                                    </div>
+                                )
+                            },
                         ]}
                         data={assets}
                         selectable={canDelete}
