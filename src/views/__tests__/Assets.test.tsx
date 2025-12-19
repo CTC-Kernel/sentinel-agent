@@ -22,6 +22,7 @@ vi.mock('../../components/ui/Icons', () => ({
     List: () => <span data-testid="icon-list" />,
     Trash2: () => <span data-testid="icon-trash" />,
     Download: () => <span data-testid="icon-download" />,
+    Box: () => <span data-testid="icon-box" />,
     FileText: () => <span data-testid="icon-file-text" />,
     Activity: () => <span data-testid="icon-activity" />,
     Clock: () => <span data-testid="icon-clock" />,
@@ -88,7 +89,7 @@ describe('Assets View', () => {
 
     it('renders the assets inventory title', () => {
         const { getByText } = render(<Assets />);
-        expect(getByText(/Cartographie des Actifs/i)).toBeInTheDocument();
+        expect(getByText(/Actifs & Inventaire/i)).toBeInTheDocument();
     });
 
     it('displays empty state when no assets found', () => {

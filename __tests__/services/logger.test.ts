@@ -45,7 +45,9 @@ describe('logger', () => {
         organizationId: 'org-123',
         action: 'CREATE',
         resource: 'Asset',
-        details: 'Created new asset: Server 01'
+        details: 'Created new asset: Server 01',
+        userDisplayName: 'test@example.com',
+        userEmail: 'test@example.com'
       });
     });
 
@@ -82,7 +84,9 @@ describe('logger', () => {
         organizationId: 'org-123',
         action: 'DELETE',
         resource: 'Risk',
-        details: ''
+        details: '',
+        userDisplayName: 'test@example.com',
+        userEmail: 'test@example.com'
       });
     });
 

@@ -63,7 +63,7 @@ const Continuity: React.FC = () => {
         }
     };
 
-    const handleUpdateProcess = async (data: any) => {
+    const handleUpdateProcess = async (data: BusinessProcessFormData) => {
         if (!editingProcess) return;
         try {
             await updateDoc(doc(db, 'business_processes', editingProcess.id), {
@@ -78,7 +78,7 @@ const Continuity: React.FC = () => {
             if (selectedProcess?.id === editingProcess.id) {
                 setSelectedProcess({ ...editingProcess, ...data });
             }
-        } catch (error) {
+        } catch {
             addToast('Erreur lors de la mise à jour', 'error');
         }
     };
@@ -90,13 +90,12 @@ const Continuity: React.FC = () => {
             addToast('Processus supprimé', 'success');
             setSelectedProcess(null);
             refresh();
-        } catch (e) {
+        } catch {
             addToast('Erreur suppression', 'error');
         }
     };
 
-    // Placeholder to avoid empty tool call error if I decide not to edit yet. But I'll try to edit line 99 handleLogDrill data: any just in case.
-    const handleLogDrill = async (data: any) => {
+    const handleLogDrill = async (data: Partial<BcpDrill>) => {
         try {
             const newDrill = {
                 ...data,
@@ -117,7 +116,7 @@ const Continuity: React.FC = () => {
             setIsDrillModalOpen(false);
             refreshDrills();
             refresh();
-        } catch (error) {
+        } catch {
             addToast('Erreur enregistrement', 'error');
         }
     };

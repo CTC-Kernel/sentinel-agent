@@ -69,7 +69,7 @@ export const useDashboardData = (): DashboardData => {
 
     const loading = manualLoading || (needsGlobalStats && controlsLoading) || (needsLogs && logsLoading) || ((needsGlobalStats || isAuditor) && historyLoading) || risksLoading || (needsAssets && assetsLoading) || (needsSuppliers && suppliersLoading) || ((isPM || isAdmin) && projectsLoading) || ((isAuditor || isAdmin) && auditsLoading) || myDocsLoading || publishedDocsLoading || myIncidentsLoading;
 
-    const fetchCounts = async () => {
+    const fetchCounts = useCallback(async () => {
         if (!user?.organizationId) {
             setManualLoading(false);
             return;
@@ -141,11 +141,11 @@ export const useDashboardData = (): DashboardData => {
         } finally {
             setManualLoading(false);
         }
-    };
+    }, [user?.organizationId, user?.organizationName, organizationName]);
 
     useEffect(() => {
         fetchCounts();
-    }, [user?.organizationId]);
+    }, [fetchCounts]);
 
     return {
         controls,

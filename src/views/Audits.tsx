@@ -13,6 +13,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useStore } from '../store';
 import { AuditInspector } from '@/components/audits/AuditInspector';
 import { Audit } from '../types';
+import { AuditFormData } from '../schemas/auditSchema';
 
 export const Audits: React.FC = () => {
     const {
@@ -48,7 +49,7 @@ export const Audits: React.FC = () => {
         setSelectedAudit(audit);
     };
 
-    const onFormSubmit = async (data: any) => {
+    const onFormSubmit = async (data: AuditFormData) => {
         if (editingAudit) {
             await handleUpdateAudit(editingAudit.id, data);
         } else {

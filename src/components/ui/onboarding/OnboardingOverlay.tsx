@@ -37,7 +37,7 @@ export const OnboardingOverlay: React.FC = () => {
                 clearTimeout(timer);
             };
         }
-    }, [isActive, currentStep, currentStepIndex]);
+    }, [isActive, currentStep, currentStepIndex, updateRect]);
 
     if (!isActive) return null;
 

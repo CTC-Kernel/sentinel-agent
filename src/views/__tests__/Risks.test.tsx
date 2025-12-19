@@ -14,6 +14,17 @@ vi.mock('../../hooks/useFirestore', () => ({
     useFirestoreCollection: vi.fn(),
 }));
 
+vi.mock('../../hooks/useAuth', () => ({
+    useAuth: () => ({
+        user: { uid: 'test-user', email: 'test@example.com', organizationId: 'test-org' },
+        loading: false,
+    }),
+}));
+
+vi.mock('../../contexts/ToastContext', () => ({
+    useToast: () => ({ toast: vi.fn() }),
+}));
+
 vi.mock('react-helmet-async', () => ({
     Helmet: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     HelmetProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -119,6 +130,6 @@ describe('Risks View', () => {
                 <Risks />
             </MemoryRouter>
         );
-        expect(screen.getByText(/Aucun risque identifié/i)).toBeInTheDocument();
+        expect(screen.getByText(/Aucun risque trouvé/i)).toBeInTheDocument();
     });
 });

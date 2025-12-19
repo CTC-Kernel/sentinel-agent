@@ -132,7 +132,7 @@ export const useProjectLogic = () => {
                 progress: 0,
                 tasks: project.tasks.map(t => ({ ...t, status: 'A faire', id: Date.now() + Math.random().toString() }))
             };
-            // @ts-expect-error
+            // @ts-expect-error - Timestamp type mismatch with external library
             delete newProjData.id;
 
             await addDoc(collection(db, 'projects'), sanitizeData(newProjData));

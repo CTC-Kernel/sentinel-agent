@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { collection, query, where, orderBy, limit, startAfter, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '../firebase';
 import { SystemLog } from '../types';
@@ -9,7 +9,7 @@ export const useActivityLogs = (limitCount: number = 50) => {
     const { user } = useStore();
     const [logs, setLogs] = useState<SystemLog[]>([]);
     const [loading, setLoading] = useState(true);
-    const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+    const lastDocRef = useRef<QueryDocumentSnapshot<DocumentData> | null>(null);
     const [hasMore, setHasMore] = useState(true);
 
 
@@ -32,8 +32,8 @@ export const useActivityLogs = (limitCount: number = 50) => {
             // If filtering by specific fields is needed, we would add 'where' clauses here
             // but we must be careful about index requirements.
 
-            if (isLoadMore && lastDoc) {
-                q = query(q, startAfter(lastDoc));
+            if (isLoadMore && lastDocRef.current) {
+                q = query(q, startAfter(lastDocRef.current));
             }
 
             const snapshot = await getDocs(q);
@@ -50,7 +50,7 @@ export const useActivityLogs = (limitCount: number = 50) => {
                 ...doc.data()
             } as SystemLog));
 
-            setLastDoc(snapshot.docs[snapshot.docs.length - 1]);
+            lastDocRef.current = snapshot.docs[snapshot.docs.length - 1];
             setLogs(prev => isLoadMore ? [...prev, ...newLogs] : newLogs);
             setHasMore(snapshot.docs.length === limitCount);
 
@@ -60,15 +60,15 @@ export const useActivityLogs = (limitCount: number = 50) => {
         } finally {
             setLoading(false);
         }
-    }, [user?.organizationId, limitCount, lastDoc]);
+    }, [user?.organizationId, limitCount]);
 
     useEffect(() => {
         // Initial fetch
         fetchLogs(false);
-    }, [user?.organizationId]);
+    }, [fetchLogs]);
 
     const refresh = () => {
-        setLastDoc(null);
+        lastDocRef.current = null;
         fetchLogs(false);
     };
 

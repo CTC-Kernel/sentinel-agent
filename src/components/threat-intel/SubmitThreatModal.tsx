@@ -50,6 +50,7 @@ export const SubmitThreatModal: React.FC<SubmitThreatModalProps> = ({ isOpen, on
                 votes: 0,
                 comments: 0,
                 active: true,
+                // eslint-disable-next-line react-hooks/purity
                 timestamp: Date.now(),
                 organizationId: user.organizationId, // Optional, depending on if its private or public
                 verified: false,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     ShieldAlert, CheckCircle2, LayoutDashboard, FolderKanban,
     History, MessageSquare, Network, Copy, Edit, Trash2,
@@ -54,14 +54,13 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
     const [mitreResults, setMitreResults] = useState<MitreTechnique[]>([]);
 
     // Reset state when risk changes
-    useEffect(() => {
-        if (!isOpen) {
-            setInspectorTab('details');
-            setIsEditing(false);
-            setMitreQuery('');
-            setMitreResults([]);
-        }
-    }, [isOpen]);
+    const handleClose = () => {
+        setInspectorTab('details');
+        setIsEditing(false);
+        setMitreQuery('');
+        setMitreResults([]);
+        onClose();
+    };
 
     if (!risk) return null;
 
@@ -77,7 +76,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
     const handleStatusChange = async (newStatus: Risk['status']) => {
         if (!canEdit || !risk) return;
 
-        let updates: Partial<Risk> = { status: newStatus };
+        const updates: Partial<Risk> = { status: newStatus };
 
         // If closing the risk, user might want to set completion date etc.
         // For simplicity, we just update status here as per original code logic
@@ -103,7 +102,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
     return (
         <Drawer
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={handleClose}
             title={risk.threat}
             subtitle={
                 <div className="flex items-center gap-2">

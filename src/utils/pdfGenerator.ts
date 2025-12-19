@@ -31,7 +31,7 @@ export const generateContinuityReport = (processes: BusinessProcess[], drills: B
     });
 
     // Drills Section
-    const finalY = (doc as any).lastAutoTable.finalY || 50;
+    const finalY = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY || 50;
     doc.setFontSize(16);
     doc.text("Exercices & Tests", 14, finalY + 15);
 

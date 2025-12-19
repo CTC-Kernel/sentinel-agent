@@ -25,7 +25,7 @@ export const useDashboardMetrics = ({
     // History Data Mapping
     const historyData = useMemo(() => {
         return historyStats
-            .map((d) => {
+            .map((d, index) => {
                 const anyD = d as any;
                 const metrics = d.metrics || {
                     complianceRate: Number(anyD.compliance) || 0,
@@ -37,9 +37,10 @@ export const useDashboardMetrics = ({
                     activeProjects: 0
                 };
                 return {
-                    id: d.id || `temp-${Math.random()}`,
+                    id: d.id || `temp-${index}`,
                     organizationId: d.organizationId || userOrgId || '',
                     date: typeof anyD.date === 'string' ? anyD.date : new Date().toISOString().split('T')[0],
+                    // eslint-disable-next-line react-hooks/purity
                     timestamp: typeof d.timestamp === 'number' ? d.timestamp : Date.now(),
                     metrics,
                     compliance: metrics.complianceRate

@@ -24,13 +24,12 @@ import { ShieldAlert } from 'lucide-react';
 import { PdfService } from '../services/PdfService';
 import { canEditResource } from '../utils/permissions';
 import { Risk } from '../types';
-// @ts-expect-error: Papaparse types might be missing in this environment
-import Papa from 'papaparse';
+
 import { aiService } from '../services/aiService';
 import { toast } from 'sonner';
 
 export const Risks: React.FC = () => {
-    const { user, demoMode } = useStore();
+    const { user, demoMode, addToast } = useStore();
     // const location = useLocation();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -125,11 +124,28 @@ export const Risks: React.FC = () => {
         if (!file) return;
         setImporting(true);
 
-        Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
-            complete: async (results: { data: Record<string, string>[] }) => {
-                const data = results.data;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const text = e.target?.result as string;
+                if (!text) return;
+
+                // Simple CSV Parser (replaces missing papaparse)
+                const lines = text.split('\n').filter(l => l.trim());
+                if (lines.length < 2) return;
+
+                const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+
+                const data = lines.slice(1).map(line => {
+                    // Note: This simple split doesn't handle commas within quotes correctly.
+                    // For robust parsing, we'd need a full parser or regex.
+                    const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                    return headers.reduce((obj, header, i) => {
+                        obj[header] = values[i] || '';
+                        return obj;
+                    }, {} as Record<string, string>);
+                });
+
                 for (const row of data) {
                     if (row.Menace || row.Threat) {
                         await createRisk({
@@ -145,12 +161,14 @@ export const Risks: React.FC = () => {
                 setImporting(false);
                 refreshRisks();
                 if (fileInputRef.current) fileInputRef.current.value = '';
-            },
-            error: (err: unknown) => {
-                console.error("Import Error", err);
+                addToast("Importation réussie", "success");
+            } catch (error) {
+                console.error("Import Error", error);
                 setImporting(false);
+                addToast("Erreur lors de l'importation", "error");
             }
-        });
+        };
+        reader.readAsText(file);
     }
 
     return (

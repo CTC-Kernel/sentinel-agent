@@ -241,7 +241,7 @@ export const useAuditDetails = (
                         const r = await fetch(d.url);
                         const b = await r.blob();
                         evFolder?.file(`${d.title}.pdf`, b);
-                    } catch { }
+                    } catch (e) { console.warn('Failed to fetch evidence URL', e); }
                 }));
             }
 

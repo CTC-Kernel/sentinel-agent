@@ -54,7 +54,7 @@ export class NotificationService {
                     const userData = userDoc.data() as UserProfile;
                     preferences = userData.notificationPreferences;
                 }
-            } catch (e) {
+            } catch {
                 // Ignore fetch errors
             }
         }

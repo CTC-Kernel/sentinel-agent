@@ -17,7 +17,7 @@ const Incidents = React.lazy(() => import('../../views/Incidents').then(module =
 const Suppliers = React.lazy(() => import('../../views/Suppliers').then(module => ({ default: module.Suppliers })));
 const Privacy = React.lazy(() => import('../../views/Privacy').then(module => ({ default: module.Privacy })));
 const Help = React.lazy(() => import('../../views/Help').then(module => ({ default: module.Help })));
-const Continuity = React.lazy(() => import('../../views/Continuity').then(module => ({ default: module.Continuity })));
+const Continuity = React.lazy(() => import('../../views/Continuity'));
 const VoxelView = React.lazy(() => import('../../views/VoxelView').then(module => ({ default: module.VoxelView })));
 const Notifications = React.lazy(() => import('../../views/Notifications').then(module => ({ default: module.Notifications })));
 const Search = React.lazy(() => import('../../views/Search').then(module => ({ default: module.Search })));

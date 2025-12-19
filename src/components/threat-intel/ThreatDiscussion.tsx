@@ -40,7 +40,7 @@ export const ThreatDiscussion: React.FC<ThreatDiscussionProps> = ({ threatId, th
         });
 
         return () => unsubscribe();
-    }, [threatId, isOpen]);
+    }, [threatId, isOpen, setComments]);
 
     const handleSend = async (e?: React.FormEvent) => {
         e?.preventDefault();
