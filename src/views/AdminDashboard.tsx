@@ -201,25 +201,25 @@ export const AdminDashboard: React.FC = () => {
                     <table className="w-full">
                         <thead className="bg-slate-50 dark:bg-slate-800/50">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Nom</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Plan</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Création</th>
-                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase">Actions</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Nom</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Plan</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Création</th>
+                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-white/10">
+                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                             {filteredOrgs.map(org => (
-                                <tr key={org.id} className="hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200">
+                                <tr key={org.id} className="hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 transition-colors">
                                     <td className="px-6 py-4 text-sm font-medium">{org.name}</td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${org.planId === 'enterprise' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300' :
+                                        <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${org.planId === 'enterprise' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300' :
                                             org.planId === 'professional' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300' :
-                                                'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                                                'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
                                             } `}>
                                             {org.planId || 'discovery'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-slate-600">
+                                    <td className="px-6 py-4 text-sm text-slate-500">
                                         {org.createdAt ? new Date(org.createdAt).toLocaleDateString() : '-'}
                                     </td>
                                     <td className="px-6 py-4 text-right">

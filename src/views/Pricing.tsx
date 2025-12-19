@@ -102,19 +102,19 @@ const Pricing = () => {
         </div>
 
         {/* Apple-style Segmented Control */}
-        <div className="bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl flex items-center relative shadow-inner border border-slate-200/50 dark:border-white/5 shrink-0 max-w-full overflow-x-auto">
+        <div className="bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-full flex items-center relative shadow-inner border border-slate-200/50 dark:border-white/5 shrink-0">
           <div
-            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white dark:bg-slate-700 rounded-lg shadow-sm transition-all duration-300 ease-out ${isAnnual ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'}`}
+            className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white dark:bg-slate-600 rounded-full shadow-sm transition-all duration-300 ease-out ${isAnnual ? 'translate-x-[calc(100%+6px)]' : 'translate-x-0'}`}
           />
           <button
             onClick={() => setIsAnnual(false)}
-            className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 ${!isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+            className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 rounded-full ${!isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
             Mensuel
           </button>
           <button
             onClick={() => setIsAnnual(true)}
-            className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 flex items-center gap-2 ${isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+            className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 rounded-full flex items-center gap-2 ${isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
             Annuel
             <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full shadow-sm shadow-emerald-500/20 tracking-wide">

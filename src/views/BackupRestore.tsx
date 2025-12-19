@@ -354,10 +354,12 @@ export const BackupRestore: React.FC = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-slate-600 uppercase tracking-wider">Planifier :</span>
-                    <button type="button" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors">Quotidien</button>
-                    <button type="button" onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors">Hebdo</button>
-                    <button type="button" onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition-colors">Mensuel</button>
+                    <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mr-2">Planifier :</span>
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                      <button type="button" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Quotidien</button>
+                      <button type="button" onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Hebdo</button>
+                      <button type="button" onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Mensuel</button>
+                    </div>
                   </div>
                   <button
                     type="submit"
