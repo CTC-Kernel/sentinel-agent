@@ -392,20 +392,20 @@ export const Reports: React.FC = () => {
                     {activeTab === 'history' && (
                         <motion.div variants={slideUpVariants} className="space-y-6">
                             {/* Search Bar for History */}
-                            <div className="flex justify-end">
-                                <div className="relative w-full max-w-sm">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-[#0B1120]/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl mb-2">
+                                <div className="relative flex-1 min-w-0 group">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                                     <input
                                         type="text"
                                         placeholder="Rechercher un rapport..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none backdrop-blur-sm transition-all text-sm"
+                                        className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 transition-all"
                                     />
                                 </div>
                             </div>
 
-                            <div className="bg-white/60 dark:bg-[#0B1120]/60 backdrop-blur-xl rounded-3xl border border-white/20 dark:border-white/5 shadow-xl overflow-hidden min-h-[400px]">
+                            <div className="glass-panel rounded-2xl overflow-hidden border border-white/10">
                                 {documentsLoading ? (
                                     <div className="p-20 flex justify-center"><LoadingScreen /></div>
                                 ) : filteredDocuments.length === 0 ? (
@@ -419,13 +419,13 @@ export const Reports: React.FC = () => {
                                 ) : (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-sm text-left">
-                                            <thead className="bg-slate-50/50 dark:bg-white/5 text-slate-500 dark:text-slate-400 font-medium border-b border-slate-100 dark:border-white/5">
+                                            <thead className="bg-slate-50 dark:bg-slate-800/50">
                                                 <tr>
-                                                    <th className="px-8 py-5">Nom du rapport</th>
-                                                    <th className="px-6 py-5">Date</th>
-                                                    <th className="px-6 py-5">Version</th>
-                                                    <th className="px-6 py-5">Auteur</th>
-                                                    <th className="px-8 py-5 text-right">Actions</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Nom du rapport</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Version</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Auteur</th>
+                                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-white/5">

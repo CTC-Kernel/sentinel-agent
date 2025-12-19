@@ -225,11 +225,11 @@ const Pricing = () => {
         <div className="overflow-x-auto max-w-full">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-100 dark:border-white/5">
-                <th className="text-left py-6 px-10 font-bold text-xs text-slate-500 uppercase tracking-widest w-1/3">Fonctionnalités</th>
-                <th className="py-6 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">Discovery</th>
-                <th className="py-6 px-6 text-center font-bold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-widest w-1/5 bg-blue-50/30 dark:bg-blue-500/5 border-x border-blue-100/50 dark:border-blue-500/10">Professional</th>
-                <th className="py-6 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">Enterprise</th>
+              <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-white/5">
+                <th className="text-left py-5 px-10 font-bold text-xs text-slate-500 uppercase tracking-widest w-1/3">Fonctionnalités</th>
+                <th className="py-5 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">Discovery</th>
+                <th className="py-5 px-6 text-center font-bold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-widest w-1/5 bg-blue-50/30 dark:bg-blue-500/5 border-x border-blue-100/50 dark:border-blue-500/10">Professional</th>
+                <th className="py-5 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">Enterprise</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">

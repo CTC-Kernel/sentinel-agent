@@ -141,19 +141,19 @@ export const Integrations: React.FC = () => {
                 breadcrumbs={[{ label: 'Intégrations' }]}
             />
 
-            {/* Filters & Search */}
-            <div className="flex flex-col md:flex-row gap-3 p-1 bg-slate-100/50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-white/5 min-w-0 backdrop-blur-sm mb-6">
-                <div className="relative flex-1 min-w-0">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            {/* Filters & Search - Premium Glass Design */}
+            <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-[#0B1120]/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl mb-8">
+                <div className="relative flex-1 min-w-0 group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                     <input
                         type="text"
                         placeholder="Rechercher une intégration..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-transparent rounded-lg border-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 transition-all"
+                        className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400"
                     />
                 </div>
-                <div className="flex gap-1 overflow-x-auto no-scrollbar items-center pr-1">
+                <div className="flex gap-1 overflow-x-auto no-scrollbar items-center pr-1.5 pl-1.5 border-l border-slate-200/50 dark:border-white/5">
                     {[
                         { id: 'all', label: 'Tout', icon: LayoutGrid },
                         { id: 'cloud', label: 'Cloud', icon: Cloud },
@@ -163,9 +163,9 @@ export const Integrations: React.FC = () => {
                         <button
                             key={cat.id}
                             onClick={() => setCategoryFilter(cat.id)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${categoryFilter === cat.id
-                                ? 'bg-white dark:bg-brand-500 text-slate-900 dark:text-white shadow-sm ring-1 ring-slate-200 dark:ring-0'
-                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5'
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${categoryFilter === cat.id
+                                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg shadow-slate-900/20 dark:shadow-white/20'
+                                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                                 }`}
                         >
                             <cat.icon className="h-3.5 w-3.5" />
