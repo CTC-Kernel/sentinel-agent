@@ -209,7 +209,7 @@ export const Risks: React.FC = () => {
                         // For now, simpler to just log or ignore if useRiskFilters doesn't support direct property set
                         // But let's try to map it:
                         // Assuming search query or we need to add explicit filters to useRiskFilters
-                        console.log('Filter requested:', filter);
+
                     }
                 }}
             />

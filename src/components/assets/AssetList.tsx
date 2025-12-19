@@ -39,6 +39,7 @@ export const AssetList: React.FC<AssetListProps> = ({
     viewMode,
     user,
     onEdit,
+    onDelete,
     onBulkDelete,
     activeFiltersQuery,
     canEdit
@@ -101,6 +102,15 @@ export const AssetList: React.FC<AssetListProps> = ({
                         loading={loading}
                         pageSize={12}
                         onBulkDelete={onBulkDelete}
+                        emptyState={
+                            <EmptyState
+                                icon={Server}
+                                title="Aucun actif trouvé"
+                                description={activeFiltersQuery ? "Aucun actif ne correspond à votre recherche." : "Commencez par ajouter votre premier actif."}
+                                actionLabel={activeFiltersQuery || !canEdit ? undefined : "Nouvel Actif"}
+                                onAction={activeFiltersQuery || !canEdit ? undefined : () => onEdit({} as Asset)}
+                            />
+                        }
                     />
                 </div>
             </div>

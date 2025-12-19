@@ -4,6 +4,7 @@ import { Audit } from '../../types';
 import { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2, CalendarDays, ClipboardCheck, AlertOctagon } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
+import { EmptyState } from '../ui/EmptyState';
 
 interface AuditsListProps {
     audits: Audit[];
@@ -112,7 +113,14 @@ export const AuditsList: React.FC<AuditsListProps> = ({
             columns={columns}
             data={audits}
             loading={isLoading}
-
+            emptyState={
+                <EmptyState
+                    icon={ClipboardCheck}
+                    title="Aucun audit trouvé"
+                    description="Aucun audit ne correspond à vos critères."
+                // No action button here as creation is usually in the page header
+                />
+            }
         />
     );
 };
