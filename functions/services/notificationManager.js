@@ -45,7 +45,8 @@ class NotificationManager {
                     this.checkUpcomingAudits(db, orgId, orgName),
                     this.checkOverdueDocuments(db, orgId, orgName),
                     this.checkRiskTreatments(db, orgId, orgName),
-                    this.checkAssetMaintenance(db, orgId, orgName)
+                    this.checkAssetMaintenance(db, orgId, orgName),
+                    this.checkOverdueDrills(db, orgId)
                 ]);
             });
 
@@ -295,6 +296,81 @@ class NotificationManager {
 
         } catch (error) {
             logger.error(`Error checking assets for org ${orgId}`, error);
+        }
+    }
+
+    /**
+     * Checks for Business Continuity Plans/Processes that haven't been tested in over a year.
+     * @param {admin.firestore.Firestore} db
+     * @param {string} organizationId
+     */
+    static async checkOverdueDrills(db, organizationId) {
+        const now = new Date();
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(now.getFullYear() - 1);
+
+        const processesRef = db.collection('business_processes')
+            .where('organizationId', '==', organizationId);
+
+        try {
+            const snapshot = await processesRef.get();
+            if (snapshot.empty) return;
+
+            const batch = db.batch();
+            let notificationCount = 0;
+
+            for (const doc of snapshot.docs) {
+                const process = doc.data();
+                let shouldNotify = false;
+
+                // Check if never tested and created > 1 year ago
+                if (!process.lastTestDate) {
+                    const createdAt = process.createdAt ? new Date(process.createdAt) : null;
+                    if (createdAt && createdAt < oneYearAgo) {
+                        shouldNotify = true;
+                    }
+                } else {
+                    // Check if last test > 1 year ago
+                    const lastTest = new Date(process.lastTestDate);
+                    if (lastTest < oneYearAgo) {
+                        shouldNotify = true;
+                    }
+                }
+
+                if (shouldNotify && process.owner) {
+                    // Notify organization admins
+                    const adminsSnapshot = await db.collection('users')
+                        .where('organizationId', '==', organizationId)
+                        .where('role', 'in', ['admin', 'owner'])
+                        .get();
+
+                    for (const adminDoc of adminsSnapshot.docs) {
+                        const adminUser = adminDoc.data();
+
+                        // IDEMPOTENCY CHECK
+                        const alreadyNotified = await this.checkIfAlreadyNotified(db, adminUser.uid, '/continuity', 'DRILL_OVERDUE', `drill_overdue_${process.id}_${new Date().toDateString()}`);
+
+                        if (!alreadyNotified) {
+                            await this.queueNotification(batch, db, {
+                                userId: adminUser.uid,
+                                title: 'Exercice PCA Requis',
+                                message: `Le processus "${process.name}" n'a pas été testé depuis plus d'un an. Une revue est nécessaire.`,
+                                link: '/continuity',
+                                type: 'DRILL_OVERDUE',
+                                emailHtml: '' // No HTML import for now, keep it simple or implement later
+                            });
+                            notificationCount++;
+                        }
+                    }
+                }
+            }
+
+            if (notificationCount > 0) {
+                await batch.commit();
+                logger.info(`Queued ${notificationCount} overdue drill notifications for org ${organizationId}`);
+            }
+        } catch (error) {
+            logger.error(`Error checking drills for org ${organizationId}`, error);
         }
     }
 
