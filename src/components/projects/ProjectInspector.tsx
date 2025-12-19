@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Drawer } from '../ui/Drawer';
 import { Badge } from '../ui/Badge';
 import { Project, ProjectTask, UserProfile, Risk, Control, Asset, Audit, ProjectMilestone } from '../../types';
@@ -67,14 +67,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
 
-    // Fetch Details on Open
-    useEffect(() => {
-        if (project) {
-            fetchMilestones(project.id);
-        }
-    }, [project?.id]);
-
-    const fetchMilestones = async (projectId: string) => {
+    const fetchMilestones = useCallback(async (projectId: string) => {
         try {
             const q = query(collection(db, 'projectMilestones'), where('projectId', '==', projectId));
             const snap = await getDocs(q);
@@ -82,10 +75,19 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
         } catch (e) {
             console.error("Error fetching milestones", e);
         }
-    };
+    }, []);
+
+    // Fetch Details on Open
+    // Fetch Details on Open
+    useEffect(() => {
+        if (project) {
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            fetchMilestones(project.id);
+        }
+    }, [project?.id, fetchMilestones]);
 
     // Derived Lists
-    const linkedRisks = useMemo(() => risks.filter(r => project?.relatedRiskIds?.includes(r.id)), [risks, project]);
+    const linkedRisks = useMemo(() => risks.filter(r => project?.relatedRiskIds?.includes(r.id)), [risks, project?.relatedRiskIds]);
     const linkedControls = useMemo(() => controls.filter(c => project?.relatedControlIds?.includes(c.id)), [controls, project]);
     const linkedAssets = useMemo(() => assets.filter(a => project?.relatedAssetIds?.includes(a.id)), [assets, project]);
     const linkedAuditsList = useMemo(() => audits.filter(a => project?.relatedAuditIds?.includes(a.id)), [audits, project]);

@@ -10,7 +10,7 @@ import { Document, UserProfile, SystemLog, Control, Asset, Audit, DocumentFolder
 import { canEditResource } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { Plus, X, List, File, ExternalLink, Trash2, Link as LinkIcon, Edit, Users, Bell, FileText, History, MessageSquare, Eye, FileSpreadsheet, ShieldCheck, CheckCircle2, Loader2 } from '../components/ui/Icons';
-import { PageControls } from '../components/ui/PageControls';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { sendEmail } from '../services/emailService';
@@ -808,15 +808,13 @@ export const Documents: React.FC = () => {
                 {/* Main Content */}
                 <div className="flex-1 min-w-0 flex flex-col gap-6 overflow-hidden">
                     <div className="mb-6">
-                        <PageControls
+                        <PremiumPageControl
                             searchQuery={filter}
                             onSearchChange={setFilter}
                             searchPlaceholder="Rechercher un document..."
-                            totalItems={filteredDocuments.length}
-                            isLoading={loadingDocuments}
                             viewMode={viewMode}
                             onViewModeChange={setViewMode}
-                            secondaryActions={
+                            actions={
                                 <>
                                     <CustomTooltip content="Exporter la liste en CSV">
                                         <button

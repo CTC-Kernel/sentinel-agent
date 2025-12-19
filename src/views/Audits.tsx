@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { SEO } from '../components/SEO';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { motion } from 'framer-motion';
 
 import { useAudits } from '../hooks/audits/useAudits';
-import { AuditsHeader } from '../components/audits/AuditsHeader';
 import { AuditsList } from '../components/audits/AuditsList';
 import { Drawer } from '../components/ui/Drawer';
 import { AuditForm } from '../components/audits/AuditForm';
@@ -14,6 +13,9 @@ import { useStore } from '../store';
 import { AuditInspector } from '@/components/audits/AuditInspector';
 import { Audit } from '../types';
 import { AuditFormData } from '../schemas/auditSchema';
+import { PageHeader } from '../components/ui/PageHeader';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
+import { Calendar, Download, BrainCircuit, Plus } from 'lucide-react';
 
 export const Audits: React.FC = () => {
     const {
@@ -29,6 +31,16 @@ export const Audits: React.FC = () => {
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+    const [filter, setFilter] = useState('');
+
+    // Filter Logic
+    const filteredAudits = useMemo(() => {
+        return audits.filter(audit =>
+            audit.name.toLowerCase().includes(filter.toLowerCase()) ||
+            audit.auditor?.toLowerCase().includes(filter.toLowerCase()) ||
+            audit.type?.toLowerCase().includes(filter.toLowerCase())
+        );
+    }, [audits, filter]);
 
     // Handle "View" or "Edit" Logic
     const handleEdit = (audit: Audit) => {
@@ -71,20 +83,50 @@ export const Audits: React.FC = () => {
             <MasterpieceBackground />
             <SEO title="Audits & Conformité" description="Gestion des audits de sécurité" />
 
-            <AuditsHeader
+            <PageHeader
                 title={auditsTitle}
                 subtitle={auditsSubtitle}
-                onNewAudit={() => { setEditingAudit(null); setCreationMode(true); }}
-                onGeneratePlan={handleGeneratePlan}
-                onExportCSV={handleExportCSV}
-                onExportCalendar={handleExportCalendar}
-                canEdit={canEdit}
-
             />
+
+            <motion.div variants={slideUpVariants}>
+                <PremiumPageControl
+                    searchQuery={filter}
+                    onSearchChange={setFilter}
+                    searchPlaceholder="Rechercher un audit..."
+                    actions={
+                        <div className="flex gap-2">
+                            <button onClick={handleExportCalendar} className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors" title="Exporter Calendrier">
+                                <Calendar className="w-5 h-5" />
+                            </button>
+                            <button onClick={handleExportCSV} className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors" title="Exporter CSV">
+                                <Download className="w-5 h-5" />
+                            </button>
+                            {canEdit && (
+                                <>
+                                    <button
+                                        onClick={handleGeneratePlan}
+                                        className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium text-sm border border-purple-200 dark:border-purple-800"
+                                    >
+                                        <BrainCircuit className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Assistant IA</span>
+                                    </button>
+                                    <button
+                                        onClick={() => { setEditingAudit(null); setCreationMode(true); }}
+                                        className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors font-medium text-sm shadow-sm hover:shadow-md"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Nouvel Audit</span>
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    }
+                />
+            </motion.div>
 
             <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-2xl border border-glass-border">
                 <AuditsList
-                    audits={audits}
+                    audits={filteredAudits}
                     isLoading={loading}
                     onEdit={handleEdit}
                     onDelete={handleDelete}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ShieldCheck, Plus, Zap, Download, Activity
@@ -18,6 +18,7 @@ import { generateContinuityReport } from '../utils/pdfGenerator';
 import { ContinuityStats } from '../components/continuity/ContinuityStats';
 import { ContinuityBIA } from '../components/continuity/ContinuityBIA';
 import { ContinuityDrills } from '../components/continuity/ContinuityDrills';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 
 const Continuity: React.FC = () => {
     const { user, addToast } = useStore();
@@ -26,6 +27,7 @@ const Continuity: React.FC = () => {
     const [isDrillModalOpen, setIsDrillModalOpen] = useState(false);
     const [selectedProcess, setSelectedProcess] = useState<BusinessProcess | null>(null);
     const [editingProcess, setEditingProcess] = useState<BusinessProcess | null>(null);
+    const [filter, setFilter] = useState('');
 
     // Data Fetching
     const { data: processes, loading, refresh } = useFirestoreCollection<BusinessProcess>('business_processes',
@@ -40,6 +42,14 @@ const Continuity: React.FC = () => {
     const { data: risks } = useFirestoreCollection<Risk>('risks', user?.organizationId ? [where('organizationId', '==', user.organizationId)] : []);
     const { data: suppliers } = useFirestoreCollection<Supplier>('suppliers', user?.organizationId ? [where('organizationId', '==', user.organizationId)] : []);
     const { data: users } = useFirestoreCollection<UserProfile>('users', user?.organizationId ? [where('organizationId', '==', user.organizationId)] : []);
+
+    const filteredProcesses = useMemo(() => {
+        return processes.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
+    }, [processes, filter]);
+
+    const filteredDrills = useMemo(() => {
+        return drills.filter(d => d.type.toLowerCase().includes(filter.toLowerCase()));
+    }, [drills, filter]);
 
     const handleCreateProcess = async (data: BusinessProcessFormData) => {
         try {
@@ -129,34 +139,6 @@ const Continuity: React.FC = () => {
                 title="Continuité d'Activité"
                 subtitle="Gérez vos plans de continuité (PCA), analysez les impacts (BIA) et documentez vos exercices de crise."
                 icon={<Activity className="h-6 w-6 text-white" />}
-                actions={
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => generateContinuityReport(processes, drills)}
-                            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/10 text-slate-700 dark:text-white rounded-xl text-sm font-bold border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/20 transition-all shadow-sm"
-                        >
-                            <Download className="h-4 w-4" />
-                            <span className="hidden sm:inline">Rapport</span>
-                        </button>
-                        {activeTab === 'bia' ? (
-                            <button
-                                onClick={() => { setEditingProcess(null); setIsProcessModalOpen(true); }}
-                                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                            >
-                                <Plus className="h-4 w-4" />
-                                <span className="hidden sm:inline">Nouveau Processus</span>
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => setIsDrillModalOpen(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                            >
-                                <Plus className="h-4 w-4" />
-                                <span className="hidden sm:inline">Saisir un Exercice</span>
-                            </button>
-                        )}
-                    </div>
-                }
             />
 
             <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
@@ -166,7 +148,7 @@ const Continuity: React.FC = () => {
                 {/* Tabs */}
                 <div className="flex gap-6 mb-8 border-b border-slate-200 dark:border-white/10">
                     <button
-                        onClick={() => setActiveTab('bia')}
+                        onClick={() => { setActiveTab('bia'); setFilter(''); }}
                         className={`pb-4 px-2 text-sm font-bold flex items-center gap-2 transition-all relative ${activeTab === 'bia' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                     >
                         <ShieldCheck className="h-4 w-4" />
@@ -174,7 +156,7 @@ const Continuity: React.FC = () => {
                         {activeTab === 'bia' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600 dark:bg-brand-400 rounded-full" />}
                     </button>
                     <button
-                        onClick={() => setActiveTab('drills')}
+                        onClick={() => { setActiveTab('drills'); setFilter(''); }}
                         className={`pb-4 px-2 text-sm font-bold flex items-center gap-2 transition-all relative ${activeTab === 'drills' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                     >
                         <Zap className="h-4 w-4" />
@@ -183,11 +165,47 @@ const Continuity: React.FC = () => {
                     </button>
                 </div>
 
+                <div className="mb-6">
+                    <PremiumPageControl
+                        searchQuery={filter}
+                        onSearchChange={setFilter}
+                        searchPlaceholder={activeTab === 'bia' ? "Rechercher un processus..." : "Rechercher un exercice..."}
+                        actions={
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => generateContinuityReport(processes, drills)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/10 text-slate-700 dark:text-white rounded-xl text-sm font-bold border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/20 transition-all shadow-sm"
+                                >
+                                    <Download className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Rapport</span>
+                                </button>
+                                {activeTab === 'bia' ? (
+                                    <button
+                                        onClick={() => { setEditingProcess(null); setIsProcessModalOpen(true); }}
+                                        className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        <span className="hidden sm:inline">Nouveau Processus</span>
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => setIsDrillModalOpen(true)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        <span className="hidden sm:inline">Saisir un Exercice</span>
+                                    </button>
+                                )}
+                            </div>
+                        }
+                    />
+                </div>
+
                 <AnimatePresence mode="wait">
                     {activeTab === 'bia' ? (
                         <ContinuityBIA
                             key="bia"
-                            processes={processes}
+                            processes={filteredProcesses}
                             loading={loading}
                             onOpenInspector={setSelectedProcess}
                             onNewProcess={() => { setEditingProcess(null); setIsProcessModalOpen(true); }}
@@ -195,8 +213,8 @@ const Continuity: React.FC = () => {
                     ) : (
                         <ContinuityDrills
                             key="drills"
-                            processes={processes}
-                            drills={drills}
+                            processes={processes} // Drills usually need raw processes for lookup, but the list is drills
+                            drills={filteredDrills}
                             loading={loading}
                             onNewDrill={() => setIsDrillModalOpen(true)}
                         />

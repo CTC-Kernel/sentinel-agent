@@ -8,7 +8,7 @@ import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, wri
 import { db } from '../firebase';
 import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
 import { Plus, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, BrainCircuit, Loader2, MoreVertical } from '../components/ui/Icons';
-import { PageControls } from '../components/ui/PageControls';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { logAction } from '../services/logger';
@@ -747,15 +747,12 @@ export const Suppliers: React.FC = () => {
             </motion.div>
 
             <motion.div variants={slideUpVariants} className="mb-6">
-                <PageControls
+                <PremiumPageControl
                     searchQuery={filter}
                     onSearchChange={setFilter}
                     searchPlaceholder="Rechercher un fournisseur..."
-                    totalItems={filteredSuppliers.length}
-                    isLoading={loadingSuppliers}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
-                    secondaryActions={null}
                 />
             </motion.div>
 

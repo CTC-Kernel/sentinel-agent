@@ -8,7 +8,7 @@ import { ProjectCard } from '../components/projects/ProjectCard';
 import { ProjectInspector } from '../components/projects/ProjectInspector';
 import { ProjectForm } from '../components/projects/ProjectForm';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
-import { PageControls } from '../components/ui/PageControls';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { Drawer } from '../components/ui/Drawer';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -168,46 +168,46 @@ export const Projects: React.FC = () => {
 
             {/* Controls */}
             <motion.div variants={slideUpVariants}>
-                <PageControls
+                <PremiumPageControl
                     searchQuery={filter}
                     onSearchChange={setFilter}
                     searchPlaceholder="Rechercher un projet..."
-                    totalItems={filteredProjects.length}
                     viewMode={viewMode}
                     onViewModeChange={(mode) => setViewMode(mode as 'list' | 'grid' | 'matrix')}
-                    primaryAction={canEdit && (
-                        <CustomTooltip content="Créer un nouveau projet">
-                            <button onClick={() => { setCreationMode(true); setEditingProject(null); }} className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20">
-                                <Plus className="h-4 w-4 mr-2" /> <span className="hidden sm:inline">Nouveau Projet</span>
-                            </button>
-                        </CustomTooltip>
-                    )}
-                    secondaryActions={canEdit && (
-                        <Menu as="div" className="relative inline-block text-left">
-                            <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
-                                <MoreVertical className="h-5 w-5" />
-                            </Menu.Button>
-                            <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
-                                <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                    <div className="p-1">
-                                        <Menu.Item>
-                                            {({ active }) => (
-                                                <button onClick={() => setShowTemplateModal(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                    <Zap className="mr-2 h-4 w-4" /> Depuis Template
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                        <Menu.Item>
-                                            {({ active }) => (
-                                                <button onClick={handleExportCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                    <FileSpreadsheet className="mr-2 h-4 w-4" /> Export CSV
-                                                </button>
-                                            )}
-                                        </Menu.Item>
-                                    </div>
-                                </Menu.Items>
-                            </Transition>
-                        </Menu>
+                    actions={canEdit && (
+                        <>
+                            <CustomTooltip content="Créer un nouveau projet">
+                                <button onClick={() => { setCreationMode(true); setEditingProject(null); }} className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20">
+                                    <Plus className="h-4 w-4 mr-2" /> <span className="hidden sm:inline">Nouveau Projet</span>
+                                </button>
+                            </CustomTooltip>
+
+                            <Menu as="div" className="relative inline-block text-left">
+                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                    <MoreVertical className="h-5 w-5" />
+                                </Menu.Button>
+                                <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
+                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                        <div className="p-1">
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button onClick={() => setShowTemplateModal(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        <Zap className="mr-2 h-4 w-4" /> Depuis Template
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button onClick={handleExportCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        <FileSpreadsheet className="mr-2 h-4 w-4" /> Export CSV
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                        </div>
+                                    </Menu.Items>
+                                </Transition>
+                            </Menu>
+                        </>
                     )}
                 />
             </motion.div>

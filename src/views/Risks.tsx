@@ -1,77 +1,179 @@
 import React, { useState, useRef } from 'react';
-// import { useLocation } from 'react-router-dom';
-import { useStore } from '../store';
-// import { useRiskData } from '../hooks/risks/useRiskData';
+import { Menu, Transition } from '@headlessui/react';
+import {
+    FileText, FileSpreadsheet, FileCode, MoreVertical,
+    Loader2, Plus, BrainCircuit, ShieldAlert, Copy
+} from 'lucide-react';
+import { PageHeader } from '../components/ui/PageHeader';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+import { ObsidianService } from '../services/ObsidianService';
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { motion, AnimatePresence } from 'framer-motion';
+
 import { useRiskData } from '../hooks/risks/useRiskData';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
 import { useRiskFilters } from '../hooks/risks/useRiskFilters';
 import { useRiskStats } from '../hooks/risks/useRiskStats';
 
-import { RiskHeader } from '../components/risks/RiskHeader';
-import { RiskStats } from '../components/risks/RiskStats';
-import { RiskMatrix } from '../components/risks/RiskMatrix';
 import { RiskList } from '../components/risks/RiskList';
 import { RiskGrid } from '../components/risks/RiskGrid';
-import { RiskInspector } from '../components/risks/RiskInspector';
-import { RiskFilters } from '../components/risks/RiskFilters';
-import { RiskForm } from '../components/risks/RiskForm';
-import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
-// import { RiskRecommendation } from '../types';
-import { Drawer } from '../components/ui/Drawer';
-import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
-import { SEO } from '../components/SEO';
-import { ShieldAlert } from 'lucide-react';
-import { PdfService } from '../services/PdfService';
-import { canEditResource } from '../utils/permissions';
-import { Risk } from '../types';
+import { RiskMatrix } from '../components/risks/RiskMatrix';
+import { RiskStats } from '../components/risks/RiskStats';
 
+import { Drawer } from '../components/ui/Drawer';
+import { RiskForm } from '../components/risks/RiskForm';
+import { RiskInspector } from '../components/risks/RiskInspector';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { RiskTemplateModal } from '../components/risks/RiskTemplateModal';
 import { aiService } from '../services/aiService';
+import { PdfService } from '../services/PdfService';
+import { useStore } from '../store';
 import { toast } from 'sonner';
+import { Risk } from '../types';
+import { canEditResource } from '../utils/permissions';
+import { useAuth } from '../hooks/useAuth';
 
 export const Risks: React.FC = () => {
-    const { user, demoMode, addToast } = useStore();
-    // const location = useLocation();
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    // Hooks
+    const { user } = useAuth(); // Prefer useAuth for user object
+    const { demoMode } = useStore();
+    const { risks, loading, assets, controls, projects, audits, suppliers, usersList, rawProcesses, refreshRisks } = useRiskData();
 
-    // 1. Data Hook
-    const {
-        risks, assets, controls, rawProcesses, suppliers, audits, projects, usersList,
-        loading: dataLoading, refreshRisks
-    } = useRiskData();
+    // Permission check
+    const canEdit = canEditResource(user as any, 'Risk');
 
-    // 2. Actions Hook
     const {
-        createRisk, updateRisk, deleteRisk, bulkDeleteRisks, exportCSV,
-        submitting, isGeneratingReport, setIsGeneratingReport, isExportingCSV
+        createRisk, updateRisk, deleteRisk, bulkDeleteRisks,
+        exportCSV, isGeneratingReport, setIsGeneratingReport, submitting, isExportingCSV
     } = useRiskActions(refreshRisks);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-    // 3. Filters Hook
     const {
         activeFilters, setActiveFilters,
-        frameworkFilter, setFrameworkFilter,
-        matrixFilter, setMatrixFilter,
+        filteredRisks,
         showAdvancedSearch, setShowAdvancedSearch,
-        filteredRisks
+        frameworkFilter, setFrameworkFilter,
+        matrixFilter, setMatrixFilter
     } = useRiskFilters(risks);
 
-    // 4. Stats Hook
     const stats = useRiskStats(filteredRisks);
 
-    // 5. Local UI State
-    const [viewMode, setViewMode] = useState<'matrix' | 'list' | 'cards'>('cards');
-    const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
+    // Local UI State
     const [creationMode, setCreationMode] = useState(false);
+    const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
+    const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
+    const [confirmData, setConfirmData] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+    const [viewMode, setViewMode] = useState<'matrix' | 'list' | 'grid'>('grid'); // Fixed type to match PremiumPageControl
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+    const [isImporting, setIsImporting] = useState(false);
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
-    const [importing, setImporting] = useState(false);
+
+
+    // Refs
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Helper functions
+    const handleEdit = (risk: Risk) => {
+        setEditingRisk(risk);
+        setCreationMode(true);
+    };
+
+    const handleDelete = (risk: Pick<Risk, 'id'>) => {
+        setConfirmData({
+            isOpen: true,
+            title: "Supprimer le risque ?",
+            message: "Cette action est irréversible.",
+            onConfirm: () => deleteRisk(risk.id)
+        });
+    };
+
+    const handleExportExecutive = async () => {
+        setIsGeneratingReport(true);
+        try {
+            await PdfService.generateRiskExecutiveReport(filteredRisks, {
+                title: 'Rapport Exécutif des Risques',
+                subtitle: `Généré par ${user?.displayName || 'Utilisateur'} le ${new Date().toLocaleDateString()} `,
+                filename: `risques_exec_${new Date().toISOString().split('T')[0]}.pdf`,
+                organizationName: user?.organizationName || 'Sentinel GRC',
+                author: user?.displayName || 'Sentinel User'
+            });
+            toast.success("Rapport généré avec succès");
+        } catch (e) {
+            console.error(e);
+            toast.error("Erreur lors de la génération du rapport");
+        } finally {
+            setIsGeneratingReport(false);
+        }
+    };
+
+    const handleExportPDF = async () => {
+        // Re-using executive report for now as it's the main PDF export
+        handleExportExecutive();
+    };
+
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        setIsImporting(true);
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const text = e.target?.result as string;
+                if (!text) return;
+
+                // Simple CSV Parser
+                const lines = text.split('\n').filter(l => l.trim());
+                if (lines.length < 2) return;
+
+                const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+
+                const data = lines.slice(1).map(line => {
+                    const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+                    return headers.reduce((obj, header, i) => {
+                        obj[header] = values[i] || '';
+                        return obj;
+                    }, {} as Record<string, string>);
+                });
+
+                let importedCount = 0;
+                for (const row of data) {
+                    if (row.Menace || row.Threat) {
+                        const prob = Math.min(Math.max(parseInt(row.Probability || row.Probabilite || '1'), 1), 5) as 1 | 2 | 3 | 4 | 5;
+                        const impact = Math.min(Math.max(parseInt(row.Impact || '1'), 1), 5) as 1 | 2 | 3 | 4 | 5;
+
+                        await createRisk({
+                            threat: row.Menace || row.Threat,
+                            vulnerability: row.Vulnerability || row.Vulnérabilite || '',
+                            probability: prob,
+                            impact: impact,
+                            strategy: (row.Strategy || row.Strategie || 'Atténuer') as Risk['strategy'],
+                            status: (row.Status || row.Statut || 'Ouvert') as Risk['status'],
+                        });
+                        importedCount++;
+                    }
+                }
+                setIsImporting(false);
+                refreshRisks();
+                if (fileInputRef.current) fileInputRef.current.value = '';
+                toast.success(`${importedCount} risques importés avec succès`);
+            } catch (error) {
+                console.error("Import Error", error);
+                setIsImporting(false);
+                toast.error("Erreur lors de l'importation");
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    const onFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        handleFileUpload(e);
+    };
+
 
     // Role Logic
     const role = user?.role || 'user';
-
-    // Permission Logic
-    const canEdit = canEditResource(user, 'Risk');
-
-    // Titles
     let risksTitle = 'Gestion des Risques';
     let risksSubtitle = "Analyse et traitement des risques selon ISO 27005.";
     if (role === 'admin' || role === 'rssi') {
@@ -82,164 +184,177 @@ export const Risks: React.FC = () => {
         risksSubtitle = "Surveillez les risques majeurs et l'avancement des plans de traitement.";
     }
 
-    // Handlers
-    const handleExportRTP = async () => {
-        setIsGeneratingReport(true);
-        try {
-            PdfService.generateRiskExecutiveReport(filteredRisks, {
-                title: 'Plan de Traitement des Risques',
-                subtitle: 'Plan de traitement',
-                author: user?.displayName
-            });
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setIsGeneratingReport(false);
-        }
-    };
-
-    const handleExportExecutive = async () => {
-        setIsGeneratingReport(true);
-        try {
-            PdfService.generateRiskExecutiveReport(filteredRisks, {
-                title: 'Rapport Exécutif des Risques',
-                subtitle: `Généré par ${user?.displayName || 'Utilisateur'} le ${new Date().toLocaleDateString()}`,
-                filename: `risques_exec_${new Date().toISOString().split('T')[0]}.pdf`,
-                organizationName: user?.organizationName || 'Sentinel GRC',
-                author: user?.displayName
-            });
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setIsGeneratingReport(false);
-        }
-    };
-
-    const handleExportPDF = async () => {
-        handleExportExecutive();
-    };
-
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-        setImporting(true);
-
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            try {
-                const text = e.target?.result as string;
-                if (!text) return;
-
-                // Simple CSV Parser (replaces missing papaparse)
-                const lines = text.split('\n').filter(l => l.trim());
-                if (lines.length < 2) return;
-
-                const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-
-                const data = lines.slice(1).map(line => {
-                    // Note: This simple split doesn't handle commas within quotes correctly.
-                    // For robust parsing, we'd need a full parser or regex.
-                    const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-                    return headers.reduce((obj, header, i) => {
-                        obj[header] = values[i] || '';
-                        return obj;
-                    }, {} as Record<string, string>);
-                });
-
-                for (const row of data) {
-                    if (row.Menace || row.Threat) {
-                        await createRisk({
-                            threat: row.Menace || row.Threat,
-                            vulnerability: row.Vulnerability || row.Vulnérabilite || '',
-                            probability: (parseInt(row.Probability || row.Probabilite || '1') as 1 | 2 | 3 | 4 | 5),
-                            impact: (parseInt(row.Impact || '1') as 1 | 2 | 3 | 4 | 5),
-                            strategy: (row.Strategy || row.Strategie || 'Atténuer') as Risk['strategy'],
-                            status: (row.Status || row.Statut || 'Ouvert') as Risk['status']
-                        });
-                    }
-                }
-                setImporting(false);
-                refreshRisks();
-                if (fileInputRef.current) fileInputRef.current.value = '';
-                addToast("Importation réussie", "success");
-            } catch (error) {
-                console.error("Import Error", error);
-                setImporting(false);
-                addToast("Erreur lors de l'importation", "error");
-            }
-        };
-        reader.readAsText(file);
-    }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-500">
-            <SEO title={risksTitle} description={risksSubtitle} />
-            <MasterpieceBackground />
+        <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-6">
+            <PageHeader
+                title={risksTitle}
+                subtitle={risksSubtitle}
+                icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                breadcrumbs={[{ label: 'Risques' }]}
+                trustType="integrity"
+            />
 
-            <div className="relative z-10 p-6 md:p-8 space-y-8 max-w-[1920px] mx-auto">
-                <RiskHeader
-                    risksTitle={risksTitle}
-                    risksSubtitle={risksSubtitle}
-                    canEdit={canEdit}
-                    isGeneratingReport={isGeneratingReport}
-                    isExportingCSV={isExportingCSV}
-                    importing={importing}
-                    filteredRisks={filteredRisks}
-                    onExportRTP={handleExportRTP}
-                    onExportExecutiveReport={handleExportExecutive}
-                    onExportPDF={handleExportPDF}
-                    onExportCSV={() => exportCSV(filteredRisks)}
-                    onImportCSV={() => fileInputRef.current?.click()}
-                    onTemplateModalOpen={() => setIsTemplateModalOpen(true)}
-                    onAIAnalysis={async () => {
-                        setIsAnalyzing(true);
-                        try {
-                            // Example AI Analysis: Analyse de la distribution des risques
-                            const prompt = `Analyse cette liste de ${filteredRisks.length} risques. Donne-moi 3 insights clés sur les menaces principales et une recommandation stratégique. Format court.`;
-                            const analysis = await aiService.chatWithAI(prompt, {
-                                riskCount: filteredRisks.length,
-                                highRisks: filteredRisks.filter(r => (r.probability * r.impact) >= 12).length
-                            });
-                            // Display result in a nice modal or toast (for now toast/alert)
-                            // Ideally detailed modal, but 'Concrete Solution' -> Toast is quick wins.
-                            // Better: open a "AI Insights" modal with the result.
-                            toast.info("Analyse IA terminée", { description: analysis, duration: 10000 });
-                        } catch (e) {
-                            console.error(e);
-                            toast.error("Erreur lors de l'analyse IA");
-                        } finally {
-                            setIsAnalyzing(false);
-                        }
-                    }}
-                    isAnalyzing={isAnalyzing}
-                    onNewRisk={() => setCreationMode(true)}
-                    fileInputRef={fileInputRef as React.RefObject<HTMLInputElement>}
-                />
+            <RiskStats stats={stats} risks={risks} />
 
-                {/* Hidden File Input */}
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept=".csv"
-                    onChange={handleFileUpload}
-                />
-
-                <RiskStats stats={stats} risks={risks} />
-
-                <RiskFilters
-                    query={activeFilters.query}
-                    onQueryChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
+            <motion.div variants={slideUpVariants}>
+                <PremiumPageControl
+                    searchQuery={activeFilters.query}
+                    onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
+                    searchPlaceholder="Rechercher une menace, une vulnérabilité..."
                     viewMode={viewMode}
-                    onViewModeChange={setViewMode}
-                    frameworkFilter={frameworkFilter}
-                    onFrameworkFilterChange={setFrameworkFilter}
+                    onViewModeChange={(mode) => setViewMode(mode)}
                     showAdvancedSearch={showAdvancedSearch}
                     onToggleAdvancedSearch={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                    totalRisks={risks.length}
-                    filteredCount={filteredRisks.length}
-                />
+                    actions={
+                        <>
+                            {/* Framework Filter */}
+                            <div className="hidden md:block">
+                                <select
+                                    className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                                    value={frameworkFilter}
+                                    onChange={(e) => setFrameworkFilter(e.target.value)}
+                                >
+                                    <option value="">Tous les référentiels</option>
+                                    <option value="ISO 27001">ISO 27001</option>
+                                    <option value="ISO 27005">ISO 27005</option>
+                                    <option value="EBIOS">EBIOS RM</option>
+                                    <option value="NIST">NIST</option>
+                                </select>
+                            </div>
 
+                            <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
+
+                            {/* Actions Menu */}
+                            <Menu as="div" className="relative inline-block text-left">
+                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                    <MoreVertical className="h-5 w-5" />
+                                </Menu.Button>
+                                <Transition
+                                    as={React.Fragment}
+                                    enter="transition ease-out duration-100"
+                                    enterFrom="transform opacity-0 scale-95"
+                                    enterTo="transform opacity-100 scale-100"
+                                    leave="transition ease-in duration-75"
+                                    leaveFrom="transform opacity-100 scale-100"
+                                    leaveTo="transform opacity-0 scale-95"
+                                >
+                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                        <div className="p-1">
+                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                Rapports & Exports
+                                            </div>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button onClick={handleExportPDF} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} /> RTP (PDF)
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button onClick={handleExportExecutive} disabled={isGeneratingReport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} />} Rapport Exécutif
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button onClick={() => exportCSV(filteredRisks)} disabled={isExportingCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} Export CSV
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} /> Obsidian
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                        </div>
+                                        {canEdit && (
+                                            <div className="p-1">
+                                                <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Données</div>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button
+                                                            onClick={() => fileInputRef.current?.click()}
+                                                            disabled={isImporting}
+                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        >
+                                                            {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} Import CSV
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button onClick={() => setIsTemplateModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                            <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> Templates
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                            </div>
+                                        )}
+                                    </Menu.Items>
+                                </Transition>
+                            </Menu>
+
+                            {/* Main CTA Actions */}
+                            {canEdit && (
+                                <>
+                                    <CustomTooltip content="Lancer l'analyse IA">
+                                        <button
+                                            onClick={async () => {
+                                                setIsAnalyzing(true);
+                                                try {
+                                                    const prompt = `Analyse cette liste de ${filteredRisks.length} risques. Donne-moi 3 insights clés sur les menaces principales et une recommandation stratégique. Format court.`;
+                                                    const analysis = await aiService.chatWithAI(prompt);
+                                                    toast.info("Analyse IA terminée", { description: analysis, duration: 10000 });
+                                                } catch (e) {
+                                                    console.error(e);
+                                                    toast.error("Erreur lors de l'analyse IA");
+                                                } finally {
+                                                    setIsAnalyzing(false);
+                                                }
+                                            }}
+                                            disabled={isAnalyzing}
+                                            className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                                        >
+                                            {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
+                                            <span className="hidden xl:inline">{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>
+                                        </button>
+                                    </CustomTooltip>
+                                    <CustomTooltip content="Créer un nouveau risque">
+                                        <button
+                                            onClick={() => { setEditingRisk(null); setCreationMode(true); }}
+                                            className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                            <span className="hidden sm:inline">Nouveau Risque</span>
+                                        </button>
+                                    </CustomTooltip>
+                                </>
+                            )}
+                        </>
+                    }
+                />
+            </motion.div>
+
+            {/* Hidden Input for Import */}
+            <input type="file" ref={fileInputRef} hidden accept=".csv" onChange={onFileInputChange} />
+
+            {/* Advanced Search Panel Placeholder */}
+            <AnimatePresence>
+                {showAdvancedSearch && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="p-4 glass-panel border border-slate-200 dark:border-white/10 rounded-xl mt-4">
+                        <p className="text-sm text-slate-500">Recherche avancée (Implémentation future - le composant a été désactivé temporairement)</p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Main Content */}
+            <motion.div variants={slideUpVariants} className={viewMode === 'list' ? "glass-panel p-6 rounded-2xl border border-glass-border" : ""}>
                 {matrixFilter && (
                     <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 flex justify-between items-center mb-6">
                         <span className="text-sm font-bold text-brand-900 dark:text-brand-100">
@@ -249,36 +364,40 @@ export const Risks: React.FC = () => {
                     </div>
                 )}
 
-                {viewMode === 'matrix' ? (
+                {viewMode === 'matrix' && (
                     <RiskMatrix
                         risks={filteredRisks}
                         matrixFilter={matrixFilter}
                         setMatrixFilter={setMatrixFilter}
                         frameworkFilter={frameworkFilter}
                     />
-                ) : viewMode === 'list' ? (
+                )}
+                {viewMode === 'list' && (
                     <RiskList
                         risks={filteredRisks}
-                        loading={dataLoading}
+                        loading={loading}
+                        onEdit={handleEdit}
+                        onDelete={(id) => handleDelete({ id })}
+                        onSelect={setSelectedRisk}
                         canEdit={canEdit}
-                        assets={assets}
-                        onEdit={(r) => setSelectedRisk(r)}
-                        onDelete={deleteRisk}
                         onBulkDelete={bulkDeleteRisks}
-                        onSelect={(r) => setSelectedRisk(r)}
-                    />
-                ) : (
-                    <RiskGrid
-                        risks={filteredRisks}
-                        loading={dataLoading}
                         assets={assets}
-                        onSelect={(r) => setSelectedRisk(r)}
-                        emptyStateIcon={ShieldAlert}
-                        emptyStateTitle="Aucun risque"
-                        emptyStateDescription="Aucun risque trouvé."
                     />
                 )}
-            </div>
+                {viewMode === 'grid' && (
+                    <RiskGrid
+                        risks={filteredRisks}
+                        loading={loading}
+                        assets={assets}
+                        onSelect={setSelectedRisk}
+                        emptyStateIcon={ShieldAlert}
+                        emptyStateTitle="Aucun risque identifié"
+                        emptyStateDescription="Commencez par ajouter un risque pour visualiser votre exposition."
+                        emptyStateActionLabel={canEdit ? "Créer un risque" : undefined}
+                        onEmptyStateAction={canEdit ? () => setCreationMode(true) : undefined}
+                    />
+                )}
+            </motion.div>
 
             <RiskInspector
                 isOpen={!!selectedRisk}
@@ -294,8 +413,16 @@ export const Risks: React.FC = () => {
                 canEdit={canEdit}
                 demoMode={demoMode}
                 onUpdate={updateRisk}
-                onDelete={deleteRisk}
-                onDuplicate={(r) => createRisk({ ...r, threat: `${r.threat} (Copie)` } as Risk)}
+                onDelete={(id) => deleteRisk(id)} // Wrapper to match signature if needed
+                onDuplicate={(r) => {
+                    const { id, history, ...rest } = r;
+                    createRisk({
+                        ...rest,
+                        threat: `${r.threat} (Copie)`,
+                        probability: r.probability as 1 | 2 | 3 | 4 | 5,
+                        impact: r.impact as 1 | 2 | 3 | 4 | 5
+                    } as any);
+                }}
             />
 
             <Drawer
@@ -306,11 +433,24 @@ export const Risks: React.FC = () => {
             >
                 <div className="p-6">
                     <RiskForm
+                        initialData={editingRisk || undefined}
                         onSubmit={async (data) => {
-                            const success = await createRisk(data as Risk);
-                            if (success) setCreationMode(false);
+                            if (editingRisk) {
+                                await updateRisk(editingRisk.id, {
+                                    ...data,
+                                    probability: data.probability as 1 | 2 | 3 | 4 | 5,
+                                    impact: data.impact as 1 | 2 | 3 | 4 | 5,
+                                    residualProbability: data.residualProbability as 1 | 2 | 3 | 4 | 5 | undefined,
+                                    residualImpact: data.residualImpact as 1 | 2 | 3 | 4 | 5 | undefined,
+                                    aiAnalysis: data.aiAnalysis || undefined
+                                });
+                            } else {
+                                await createRisk(data as Risk);
+                            }
+                            setCreationMode(false);
+                            setEditingRisk(null);
                         }}
-                        onCancel={() => setCreationMode(false)}
+                        onCancel={() => { setCreationMode(false); setEditingRisk(null); }}
                         assets={assets}
                         usersList={usersList}
                         processes={rawProcesses}
@@ -324,12 +464,39 @@ export const Risks: React.FC = () => {
             <RiskTemplateModal
                 isOpen={isTemplateModalOpen}
                 onClose={() => setIsTemplateModalOpen(false)}
-                onSelectTemplate={async () => {
-                    // Adapter logic for template
+                onSelectTemplate={async (template, ownerId) => {
+                    const promises = template.risks.map(risk => createRisk({
+                        threat: risk.threat,
+                        vulnerability: risk.vulnerability,
+                        probability: risk.probability as 1 | 2 | 3 | 4 | 5,
+                        impact: risk.impact as 1 | 2 | 3 | 4 | 5,
+                        strategy: risk.strategy as any,
+                        status: 'Ouvert',
+                        framework: template.category as any,
+                        owner: ownerId,
+                        // You can map other fields if they exist in RiskTemplate's risk objects
+                    }));
+
+                    try {
+                        await Promise.all(promises);
+                        toast.success(`${template.risks.length} risques créés depuis le modèle`);
+                    } catch (error) {
+                        console.error('Template import error', error);
+                        toast.error("Erreur lors de l'import depuis le modèle");
+                    }
                     setIsTemplateModalOpen(false);
                 }}
                 users={usersList}
             />
-        </div>
+
+            <ConfirmModal
+                isOpen={confirmData.isOpen}
+                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+                onConfirm={confirmData.onConfirm}
+                title={confirmData.title}
+                message={confirmData.message}
+            />
+
+        </motion.div>
     );
 };
