@@ -135,6 +135,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
 
                     <div className="relative" ref={userMenuRef}>
                         <button
+                            data-tour="header-profile"
                             className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-slate-50 dark:hover:bg-white/5 transition-all group focus:outline-none focus:ring-2 focus:ring-brand-500/50"
                             onClick={() => setShowUserMenu(!showUserMenu)}
                         >

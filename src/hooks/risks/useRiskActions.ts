@@ -4,13 +4,12 @@ import { collection, addDoc, updateDoc, doc, deleteDoc, writeBatch } from 'fireb
 import { useAuth } from '../../hooks/useAuth';
 import { Risk } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
-import { useToast } from '@/contexts/ToastContext';
+import { toast } from 'sonner'; // Integrated sonner
 import { logAction } from '../../services/logger';
 import { NotificationService } from '../../services/notificationService';
 
 export const useRiskActions = (onRefresh: () => void) => {
     const { user } = useAuth();
-    const { addToast } = useToast();
     const [submitting, setSubmitting] = useState(false);
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [isExportingCSV, setIsExportingCSV] = useState(false);
@@ -35,7 +34,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             };
 
             await addDoc(collection(db, 'risks'), riskData);
-            addToast('Risque créé avec succès', 'success');
+            toast.success('Risque créé avec succès');
             onRefresh();
             if (user) {
                 logAction(user, 'CREATE_RISK', 'Risk', 'Risque créé');
@@ -64,7 +63,7 @@ export const useRiskActions = (onRefresh: () => void) => {
         } catch (error) {
             console.error('Error creating risk:', error);
             ErrorLogger.error(error as Error, 'CREATE_FAILED');
-            addToast('Erreur lors de la création du risque', 'error');
+            toast.error('Erreur lors de la création du risque');
             return false;
         } finally {
             setSubmitting(false);
@@ -84,13 +83,14 @@ export const useRiskActions = (onRefresh: () => void) => {
                 logAction(user, 'UPDATE_RISK_STATUS', 'Risk', `Status updated to ${data.status}`);
             }
 
-            addToast('Risque mis à jour', 'success');
+
+            toast.success('Risque mis à jour');
             onRefresh();
             return true;
         } catch (error) {
             console.error('Error updating risk:', error);
             ErrorLogger.error(error as Error, 'UPDATE_FAILED');
-            addToast('Erreur lors de la mise à jour', 'error');
+            toast.error('Erreur lors de la mise à jour');
             return false;
         } finally {
             setSubmitting(false);
@@ -102,12 +102,12 @@ export const useRiskActions = (onRefresh: () => void) => {
         setSubmitting(true);
         try {
             await deleteDoc(doc(db, 'risks', id));
-            addToast('Risque supprimé', 'success');
+            toast.success('Risque supprimé');
             onRefresh();
             return true;
         } catch (error) {
             console.error('Error deleting risk:', error);
-            addToast('Erreur lors de la suppression', 'error');
+            toast.error('Erreur lors de la suppression');
             return false;
         } finally {
             setSubmitting(false);
@@ -117,9 +117,9 @@ export const useRiskActions = (onRefresh: () => void) => {
     const exportRisks = (risks: Risk[], _format: 'csv' | 'pdf') => {
         return new Promise<void>((resolve) => {
             // console.log(`Exporting ${risks.length} risks as ${format}`);
-            addToast('Export démarré...', 'info');
+            toast.info('Export démarré...');
             setTimeout(() => {
-                addToast('Export terminé (simulation)', 'success');
+                toast.success('Export terminé (simulation)');
 
                 if (user?.uid && user?.organizationId) {
                     NotificationService.create(
@@ -153,11 +153,11 @@ export const useRiskActions = (onRefresh: () => void) => {
                 batch.delete(doc(db, 'risks', id));
             });
             await batch.commit();
-            addToast(`${ids.length} risques supprimés`, 'success');
+            toast.success(`${ids.length} risques supprimés`);
             onRefresh();
         } catch (error) {
             console.error('Bulk delete error', error);
-            addToast('Erreur suppression multiple', 'error');
+            toast.error('Erreur suppression multiple');
         } finally {
             setSubmitting(false);
         }

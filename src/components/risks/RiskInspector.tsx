@@ -19,7 +19,7 @@ import { RiskTreatmentPlan } from './RiskTreatmentPlan';
 import { Risk, Asset, Control, Project, Audit, Supplier, MitreTechnique } from '../../types';
 import { integrationService } from '../../services/integrationService';
 // import { useAuth } from '../../hooks/useAuth';
-import { useToast } from '../../contexts/ToastContext';
+import { toast } from 'sonner';
 
 interface RiskInspectorProps {
     isOpen: boolean;
@@ -44,7 +44,6 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
     canEdit, demoMode, onUpdate, onDelete, onDuplicate
 }) => {
     const navigate = useNavigate();
-    const { addToast } = useToast();
 
     // Internal State
     const [inspectorTab, setInspectorTab] = useState<'details' | 'treatment' | 'dashboard' | 'projects' | 'audits' | 'history' | 'comments' | 'graph' | 'threats'>('details');
@@ -81,7 +80,8 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         // If closing the risk, user might want to set completion date etc.
         // For simplicity, we just update status here as per original code logic
         await handleLocalUpdate(updates);
-        addToast(`Statut mis à jour : ${newStatus}`, 'success');
+
+        toast.success(`Statut mis à jour : ${newStatus}`);
     };
 
     //    const handleStrategyChange = async (newStrategy: Risk['strategy']) => {
@@ -92,8 +92,9 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
 
     const handleReview = async () => {
         if (!canEdit) return;
+
         await handleLocalUpdate({ lastReviewDate: new Date().toISOString() });
-        addToast("Revue validée pour aujourd'hui", "success");
+        toast.success("Revue validée pour aujourd'hui");
     };
 
     const linkedProjects = projects.filter(p => p.relatedRiskIds?.includes(risk.id));

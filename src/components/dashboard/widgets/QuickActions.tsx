@@ -14,7 +14,7 @@ interface QuickActionsProps {
 
 export const QuickActions: React.FC<QuickActionsProps> = ({ navigate, t, stats }) => {
     return (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-5" data-tour="quick-actions">
             <button onClick={() => navigate('/ctc-engine')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-purple-300 dark:hover:border-purple-500/50 active:scale-95 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
                 <div className="relative z-10 flex flex-col items-center gap-3">

@@ -10,6 +10,7 @@ import { useDashboardInsights } from '../hooks/dashboard/useDashboardInsights';
 
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { useTour } from '../hooks/useTour';
 
 // Widgets
 import { DashboardHeader } from '../components/dashboard/widgets/DashboardHeader';
@@ -29,6 +30,7 @@ import { OperationalDashboardView } from '../components/dashboard/views/Operatio
 
 
 export const Dashboard: React.FC = () => {
+    useTour();
     const [organizationName, setOrganizationName] = useState<string>('');
     const [organizationLogo, setOrganizationLogo] = useState<string | undefined>(undefined);
     const [error, setError] = useState<string | null>(null);

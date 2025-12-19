@@ -21,9 +21,7 @@ vi.mock('../../hooks/useAuth', () => ({
     }),
 }));
 
-vi.mock('../../contexts/ToastContext', () => ({
-    useToast: () => ({ toast: vi.fn() }),
-}));
+
 
 vi.mock('react-helmet-async', () => ({
     Helmet: ({ children }: { children: React.ReactNode }) => <>{children}</>,

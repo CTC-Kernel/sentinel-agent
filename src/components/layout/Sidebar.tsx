@@ -149,7 +149,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 min-h-0 space-y-6 overflow-y-auto custom-scrollbar px-4">
+        <nav className="flex-1 px-4 space-y-2 overflow-y-auto scrollbar-hide py-4" data-tour="sidebar-nav">
           {navGroups.map((group, groupIndex) => {
             const visibleItems = group.items.filter(filterItem);
             if (visibleItems.length === 0) return null;
