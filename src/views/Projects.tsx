@@ -13,17 +13,31 @@ import { Drawer } from '../components/ui/Drawer';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SEO } from '../components/SEO';
-import { FolderKanban, Plus, MoreVertical, Zap, FileSpreadsheet } from '../components/ui/Icons';
+import { Plus, MoreVertical, Zap, FileSpreadsheet } from '../components/ui/Icons';
 import { TemplateModal } from '../components/projects/TemplateModal';
 import { createProjectFromTemplate } from '../utils/projectTemplates';
+import { GanttChart } from '../components/projects/GanttChart';
+import jsPDF from 'jspdf';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { Menu, Transition } from '@headlessui/react';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
-import jsPDF from 'jspdf';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { LayoutDashboard, List, CalendarDays, FolderKanban } from 'lucide-react';
 
 export const Projects: React.FC = () => {
     const { user, addToast } = useStore();
+
+    // Tabs
+    const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'board' | 'gantt'>('list');
+    const [ganttViewMode, setGanttViewMode] = useState<'Day' | 'Week' | 'Month'>('Month');
+
+    const tabs = [
+        { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
+        { id: 'list', label: "Liste", icon: List },
+        { id: 'board', label: "Kanban", icon: FolderKanban },
+        { id: 'gantt', label: "Planning", icon: CalendarDays },
+    ];
     const {
         projects, risks, controls, assets, audits, usersList, loading,
         handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks,
@@ -128,52 +142,61 @@ export const Projects: React.FC = () => {
             <MasterpieceBackground />
             <SEO title="Gestion de Projets" description="Suivez vos projets de mise en conformité." />
 
-            {/* Header & Stats */}
-            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent dark:border-white/5 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
-                {/* ... Keep the cool SVG chart if desired, explicitly copied for brevity ... */}
-                <div className="flex items-center gap-6 relative z-10">
-                    <div className="relative">
-                        <svg className="w-24 h-24 transform -rotate-90">
-                            <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-200 dark:text-slate-700" />
-                            <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * (projects.length > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length) : 0)) / 100} className="text-brand-500 transition-all duration-1000 ease-out" />
-                        </svg>
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                            <span className="text-xl font-black text-slate-900 dark:text-white">
-                                {projects.length > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length) : 0}%
-                            </span>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Avancement Global</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">Moyenne d'avancement de tous les projets.</p>
-                    </div>
-                </div>
-                {/* Metrics */}
-                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
-                    <div>
-                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total</div>
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{projects.length}</div>
-                    </div>
-                    <div>
-                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">En Cours</div>
-                        <div className="text-2xl font-bold text-brand-600 dark:text-brand-400">{projects.filter(p => p.status === 'En cours').length}</div>
-                    </div>
-                    <div>
-                        <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">En Retard</div>
-                        <div className="text-2xl font-bold text-red-500">{projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length}</div>
-                    </div>
-                </div>
-            </motion.div>
+            <ScrollableTabs
+                tabs={tabs}
+                activeTab={activeTab}
+                onTabChange={(id) => setActiveTab(id as any)}
+            />
 
-            {/* Controls */}
-            <motion.div variants={slideUpVariants}>
+            {/* OVERVIEW TAB */}
+            {activeTab === 'overview' && (
+                <motion.div variants={slideUpVariants} className="space-y-6">
+                    <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent dark:border-white/5 overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
+                        <div className="flex items-center gap-6 relative z-10">
+                            <div className="relative">
+                                <svg className="w-24 h-24 transform -rotate-90">
+                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-200 dark:text-slate-700" />
+                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * (projects.length > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length) : 0)) / 100} className="text-brand-500 transition-all duration-1000 ease-out" />
+                                </svg>
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                                    <span className="text-xl font-black text-slate-900 dark:text-white">
+                                        {projects.length > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length) : 0}%
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Avancement Global</h3>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">Moyenne d'avancement de tous les projets.</p>
+                            </div>
+                        </div>
+                        {/* Metrics */}
+                        <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
+                            <div>
+                                <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total</div>
+                                <div className="text-2xl font-bold text-slate-900 dark:text-white">{projects.length}</div>
+                            </div>
+                            <div>
+                                <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">En Cours</div>
+                                <div className="text-2xl font-bold text-brand-600 dark:text-brand-400">{projects.filter(p => p.status === 'En cours').length}</div>
+                            </div>
+                            <div>
+                                <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">En Retard</div>
+                                <div className="text-2xl font-bold text-red-500">{projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length}</div>
+                            </div>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+
+            {/* Shared Controls for List, Board, Gantt */}
+            {activeTab !== 'overview' && (
                 <PremiumPageControl
                     searchQuery={filter}
                     onSearchChange={setFilter}
                     searchPlaceholder="Rechercher un projet..."
-                    viewMode={viewMode}
-                    onViewModeChange={(mode) => setViewMode(mode as 'list' | 'grid' | 'matrix')}
+                    viewMode={activeTab === 'list' ? viewMode : undefined}
+                    onViewModeChange={activeTab === 'list' ? (mode) => setViewMode(mode as 'list' | 'grid' | 'matrix') : undefined}
                     actions={canEdit && (
                         <>
                             <CustomTooltip content="Créer un nouveau projet">
@@ -210,42 +233,100 @@ export const Projects: React.FC = () => {
                         </>
                     )}
                 />
-            </motion.div>
+            )}
 
-            {/* List / Grid */}
-            {viewMode === 'list' ? (
-                <ProjectList
-                    projects={filteredProjects}
-                    loading={loading}
-                    canEdit={canEdit}
-                    user={user}
-                    onEdit={onEditProject}
-                    onDelete={onDeleteRequest}
-                    onBulkDelete={() => { }}
-                    onSelect={setSelectedProject}
-                />
-            ) : (
-                <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {loading ? (
-                        <div className="col-span-full text-center py-8">Chargement...</div>
-                    ) : filteredProjects.length === 0 ? (
-                        <div className="col-span-full">
-                            <EmptyState icon={FolderKanban} title="Aucun projet" description="Commencez par créer un nouveau projet." actionLabel={canEdit ? "Créer un projet" : undefined} onAction={() => setCreationMode(true)} />
-                        </div>
+            {/* LIST TAB */}
+            {activeTab === 'list' && (
+                <motion.div variants={slideUpVariants} className="space-y-6">
+                    {viewMode === 'list' ? (
+                        <ProjectList
+                            projects={filteredProjects}
+                            loading={loading}
+                            canEdit={canEdit}
+                            user={user}
+                            onEdit={onEditProject}
+                            onDelete={onDeleteRequest}
+                            onBulkDelete={() => { }}
+                            onSelect={setSelectedProject}
+                        />
                     ) : (
-                        filteredProjects.map(p => (
-                            <ProjectCard
-                                key={p.id}
-                                project={p}
-                                canEdit={canEdit}
-                                user={user}
-                                onEdit={onEditProject}
-                                onDelete={onDeleteRequest}
-                                onClick={setSelectedProject}
-                                onDuplicate={handleDuplicateWrapper}
-                            />
-                        ))
+                        <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {loading ? (
+                                <div className="col-span-full text-center py-8">Chargement...</div>
+                            ) : filteredProjects.length === 0 ? (
+                                <div className="col-span-full">
+                                    <EmptyState icon={FolderKanban} title="Aucun projet" description="Commencez par créer un nouveau projet." actionLabel={canEdit ? "Créer un projet" : undefined} onAction={() => setCreationMode(true)} />
+                                </div>
+                            ) : (
+                                filteredProjects.map(p => (
+                                    <ProjectCard
+                                        key={p.id}
+                                        project={p}
+                                        canEdit={canEdit}
+                                        user={user}
+                                        onEdit={onEditProject}
+                                        onDelete={onDeleteRequest}
+                                        onClick={setSelectedProject}
+                                        onDuplicate={handleDuplicateWrapper}
+                                    />
+                                ))
+                            )}
+                        </motion.div>
                     )}
+                </motion.div>
+            )}
+
+            {/* PLANNING TAB */}
+            {activeTab === 'gantt' && (
+                <motion.div variants={slideUpVariants} className="space-y-6">
+                    <GanttChart
+                        tasks={filteredProjects.flatMap(p => p.tasks || [])}
+                        viewMode={ganttViewMode}
+                        onViewModeChange={setGanttViewMode}
+                    />
+                </motion.div>
+            )}
+
+            {/* KANBAN TAB */}
+            {activeTab === 'board' && (
+                <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-300px)] min-h-[500px] overflow-x-auto pb-4">
+                    {['A faire', 'En cours', 'Terminé'].map((status) => {
+                        const columnProjects = filteredProjects.filter(p =>
+                            status === 'A faire' ? (p.status !== 'En cours' && p.status !== 'Terminé') : p.status === status
+                        );
+
+                        return (
+                            <div key={status} className="flex flex-col glass-panel rounded-2xl p-4 border border-white/20 h-full">
+                                <h4 className="text-sm font-bold uppercase text-slate-600 dark:text-slate-400 mb-4 flex justify-between tracking-wider px-1">
+                                    {status}
+                                    <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg text-xs shadow-sm border border-slate-200 dark:border-white/5">
+                                        {columnProjects.length}
+                                    </span>
+                                </h4>
+                                <div className="space-y-4 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
+                                    {columnProjects.length === 0 ? (
+                                        <div className="h-32 border-2 border-dashed border-slate-200 dark:border-white/5 rounded-xl flex items-center justify-center text-slate-400 text-xs font-medium">
+                                            Aucun projet
+                                        </div>
+                                    ) : (
+                                        columnProjects.map(p => (
+                                            <ProjectCard
+                                                key={p.id}
+                                                project={p}
+                                                canEdit={canEdit}
+                                                user={user}
+                                                onEdit={onEditProject}
+                                                onDelete={onDeleteRequest}
+                                                onClick={setSelectedProject}
+                                                onDuplicate={handleDuplicateWrapper}
+                                                compact
+                                            />
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </motion.div>
             )}
 
@@ -261,7 +342,7 @@ export const Projects: React.FC = () => {
                 controls={controls}
                 assets={assets}
                 audits={audits}
-                updateTasks={updateProjectTasks}
+                updateTasks={async (p, t) => { await updateProjectTasks(p, t); }}
                 onDeleteProject={onDeleteRequest}
                 onDuplicateProject={handleDuplicateWrapper}
                 onEditProject={onEditProject}

@@ -320,7 +320,98 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                             <ProjectAIAssistant project={project} risks={risks} controls={controls} />
                         )}
 
-                        {/* Other tabs omitted for brevity, can be re-added easily equivalent to Projects.tsx code */}
+                        {inspectorTab === 'risks' && (
+                            <div className="space-y-4">
+                                {linkedRisks.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-64 text-slate-500">
+                                        <ShieldAlert className="h-12 w-12 mb-2 opacity-50" />
+                                        <p>Aucun risque lié à ce projet.</p>
+                                    </div>
+                                ) : (
+                                    linkedRisks.map(risk => (
+                                        <div key={risk.id} className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex justify-between items-center group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
+                                            <div>
+                                                <h4 className="font-bold text-slate-900 dark:text-white">{risk.description}</h4>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${risk.level >= 8 ? 'bg-red-100 text-red-600' : risk.level >= 4 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>Score: {risk.level}</span>
+                                                    <span className="text-xs text-slate-500">{risk.category}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
+
+                        {inspectorTab === 'controls' && (
+                            <div className="space-y-4">
+                                {linkedControls.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-64 text-slate-500">
+                                        <CheckSquare className="h-12 w-12 mb-2 opacity-50" />
+                                        <p>Aucun contrôle lié à ce projet.</p>
+                                    </div>
+                                ) : (
+                                    linkedControls.map(control => (
+                                        <div key={control.id} className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex justify-between items-center bg-white/40 dark:bg-white/5">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-xs font-mono text-slate-400">{control.code}</span>
+                                                    <h4 className="font-bold text-slate-900 dark:text-white">{control.name}</h4>
+                                                </div>
+                                                <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{control.description}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
+
+                        {inspectorTab === 'assets' && (
+                            <div className="space-y-4">
+                                {linkedAssets.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-64 text-slate-500">
+                                        <Server className="h-12 w-12 mb-2 opacity-50" />
+                                        <p>Aucun actif lié à ce projet.</p>
+                                    </div>
+                                ) : (
+                                    linkedAssets.map(asset => (
+                                        <div key={asset.id} className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex items-center gap-4 bg-white/40 dark:bg-white/5">
+                                            <div className="h-10 w-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                                                <Server className="h-5 w-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-900 dark:text-white">{asset.name}</h4>
+                                                <span className="text-xs text-slate-500">{asset.type}</span>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
+
+                        {inspectorTab === 'audits' && (
+                            <div className="space-y-4">
+                                {linkedAuditsList.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-64 text-slate-500">
+                                        <ClipboardCheck className="h-12 w-12 mb-2 opacity-50" />
+                                        <p>Aucun audit lié à ce projet.</p>
+                                    </div>
+                                ) : (
+                                    linkedAuditsList.map(audit => (
+                                        <div key={audit.id} className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 bg-white/40 dark:bg-white/5">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h4 className="font-bold text-slate-900 dark:text-white">{audit.name}</h4>
+                                                    <p className="text-xs text-slate-500 mt-1">Ref: {audit.reference}</p>
+                                                </div>
+                                                <Badge status={audit.status === 'Clôturé' ? 'success' : 'warning'}>{audit.status}</Badge>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
+
                         {inspectorTab === 'comments' && (
                             <Comments collectionName="projects" documentId={project.id} />
                         )}
