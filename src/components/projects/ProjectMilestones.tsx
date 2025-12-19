@@ -104,7 +104,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
             </div>
 
             {isEditing && (
-                <div className="glass-panel p-6 rounded-2xl border border-white/20 mb-6 bg-white/50 dark:bg-slate-900/50">
+                <div className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/5 mb-6 bg-white/60 dark:bg-[#0B1120]/60 backdrop-blur-xl shadow-lg">
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <FloatingLabelInput
                             label="Titre du jalon"

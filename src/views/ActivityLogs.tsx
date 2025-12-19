@@ -6,9 +6,10 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { Activity, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../components/ui/animationVariants';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 
 export const ActivityLogs: React.FC = () => {
-    const { logs, loading, hasMore, loadMore, refresh } = useActivityLogs();
+    const { logs, loading, hasMore, loadMore, refresh, filter, setFilter } = useActivityLogs();
 
     return (
         <div className="relative min-h-screen">
@@ -35,6 +36,12 @@ export const ActivityLogs: React.FC = () => {
                     animate="visible"
                     className="space-y-6"
                 >
+                    <PremiumPageControl
+                        searchQuery={filter.search}
+                        onSearchChange={(val) => setFilter(prev => ({ ...prev, search: val }))}
+                        searchPlaceholder="Rechercher par utilisateur, action ou détails..."
+                    />
+
                     <div className="glass-panel p-6 rounded-2xl">
                         <ActivityLogList
                             logs={logs}

@@ -13,6 +13,33 @@ export const useActivityLogs = (limitCount: number = 50) => {
     const [hasMore, setHasMore] = useState(true);
 
 
+    const [filter, setFilter] = useState({ search: '', action: '', resource: '' });
+
+    const [filteredLogs, setFilteredLogs] = useState<SystemLog[]>([]);
+
+    useEffect(() => {
+        let result = logs;
+
+        if (filter.search) {
+            const needle = filter.search.toLowerCase();
+            result = result.filter(l =>
+                (l.details || '').toLowerCase().includes(needle) ||
+                (l.userEmail || '').toLowerCase().includes(needle) ||
+                (l.action || '').toLowerCase().includes(needle)
+            );
+        }
+
+        if (filter.action) {
+            result = result.filter(l => l.action === filter.action);
+        }
+
+        if (filter.resource) {
+            result = result.filter(l => l.resource === filter.resource);
+        }
+
+        setFilteredLogs(result);
+    }, [logs, filter]);
+
     const fetchLogs = useCallback(async (isLoadMore = false) => {
         if (!user?.organizationId) return;
 
@@ -24,13 +51,6 @@ export const useActivityLogs = (limitCount: number = 50) => {
                 orderBy('timestamp', 'desc'),
                 limit(limitCount)
             );
-
-            // Filters application (client-side filtering mostly or simple compounding)
-            // Note: Complex filtering on firestore requires composite indexes.
-            // For now, we stick to basic org + sort.
-
-            // If filtering by specific fields is needed, we would add 'where' clauses here
-            // but we must be careful about index requirements.
 
             if (isLoadMore && lastDocRef.current) {
                 q = query(q, startAfter(lastDocRef.current));
@@ -79,10 +99,12 @@ export const useActivityLogs = (limitCount: number = 50) => {
     };
 
     return {
-        logs,
+        logs: filteredLogs,
         loading,
         hasMore,
         refresh,
-        loadMore
+        loadMore,
+        filter,
+        setFilter
     };
 };

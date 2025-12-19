@@ -14,9 +14,10 @@ interface PremiumPageControlProps {
     onViewModeChange?: (mode: 'grid' | 'list' | 'matrix') => void;
 
     /**
-     * Additional actions to render on the right side, before the view toggles
+     * Additional actions to render on the right side
      */
     actions?: React.ReactNode;
+    children?: React.ReactNode;
 }
 
 export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
@@ -27,34 +28,31 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
     onToggleAdvancedSearch,
     viewMode,
     onViewModeChange,
-    actions
+    actions,
+    children
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="glass-panel p-4 rounded-3xl flex flex-col sm:flex-row justify-between items-center gap-4 dark:border-white/5 shadow-sm hover:shadow-md transition-shadow duration-300">
+        <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-[#0B1120]/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl">
             {/* Search Bar */}
-            <div className="w-full sm:w-96">
-                <div
-                    className="relative group cursor-text"
-                    onClick={() => inputRef.current?.focus()}
-                >
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-hover:text-brand-500 transition-colors duration-300" />
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        placeholder={searchPlaceholder}
-                        className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-black/20 border-none rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500/50 transition-all font-medium"
-                        value={searchQuery}
-                        onChange={(e) => onSearchChange(e.target.value)}
-                    />
-                </div>
+            <div className="relative flex-1 min-w-0 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder={searchPlaceholder}
+                    className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 transition-all"
+                    value={searchQuery}
+                    onChange={(e) => onSearchChange(e.target.value)}
+                />
             </div>
 
             {/* Actions & Controls */}
-            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <div className="flex items-center gap-2 pl-2 border-l border-slate-200/50 dark:border-white/5">
+                {children}
                 {actions && (
-                    <div className="flex items-center gap-3 border-r border-slate-200 dark:border-white/10 pr-3 mr-1">
+                    <div className="flex items-center gap-2 mr-2">
                         {actions}
                     </div>
                 )}
@@ -63,9 +61,9 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                 {onToggleAdvancedSearch && (
                     <button
                         onClick={onToggleAdvancedSearch}
-                        className={`p-3 rounded-xl transition-all duration-300 ${showAdvancedSearch
+                        className={`p-2 rounded-xl transition-all duration-300 ${showAdvancedSearch
                             ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400 shadow-inner'
-                            : 'bg-slate-50 text-slate-500 hover:bg-slate-100 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10'
+                            : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5'
                             }`}
                         title="Filtres avancés"
                     >
@@ -75,36 +73,36 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
 
                 {/* View Mode Toggles */}
                 {onViewModeChange && viewMode && (
-                    <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-xl flex">
+                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
                         <button
-                            onClick={() => onViewModeChange('list')}
-                            className={`p-2 rounded-lg transition-all duration-300 ${viewMode === 'list'
+                            onClick={() => onViewModeChange?.('list')}
+                            className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'list'
                                 ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5'
+                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
                                 }`}
                             title="Vue Liste"
                         >
-                            <List className="w-5 h-5" />
+                            <List className="w-4 h-4" />
                         </button>
                         <button
-                            onClick={() => onViewModeChange('grid')}
-                            className={`p-2 rounded-lg transition-all duration-300 ${viewMode === 'grid'
+                            onClick={() => onViewModeChange?.('grid')}
+                            className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'grid'
                                 ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5'
+                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
                                 }`}
                             title="Vue Grille"
                         >
-                            <LayoutGrid className="w-5 h-5" />
+                            <LayoutGrid className="w-4 h-4" />
                         </button>
                         <button
-                            onClick={() => onViewModeChange('matrix')}
-                            className={`p-2 rounded-lg transition-all duration-300 ${viewMode === 'matrix'
+                            onClick={() => onViewModeChange?.('matrix')}
+                            className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'matrix'
                                 ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5'
+                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
                                 }`}
                             title="Vue Matrice"
                         >
-                            <LayoutDashboard className="w-5 h-5" />
+                            <LayoutDashboard className="w-4 h-4" />
                         </button>
                     </div>
                 )}

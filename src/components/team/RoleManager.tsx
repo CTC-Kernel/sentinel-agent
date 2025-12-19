@@ -5,6 +5,8 @@ import { CustomRole, ResourceType, ActionType } from '../../types';
 import { useStore } from '../../store';
 import { Drawer } from '../ui/Drawer';
 import { ConfirmModal } from '../ui/ConfirmModal';
+import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { Button } from '../ui/button';
 import { Plus, Edit, Trash2, Shield, Check } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
@@ -113,12 +115,12 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Rôles Personnalisés</h3>
                     <p className="text-sm text-slate-600">Gérez les permissions fines pour votre organisation.</p>
                 </div>
-                <button
+                <Button
                     onClick={() => handleOpenDrawer()}
-                    className="flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20"
+                    className="flex items-center gap-2 bg-brand-600 text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700"
                 >
-                    <Plus className="h-4 w-4 mr-2" /> Nouveau Rôle
-                </button>
+                    <Plus className="h-4 w-4" /> Nouveau Rôle
+                </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -155,38 +157,30 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
             >
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom du rôle</label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.name}
-                                onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none"
-                                placeholder="ex: Stagiaire Marketing"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Description</label>
-                            <input
-                                type="text"
-                                value={formData.description}
-                                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none"
-                                placeholder="Description du rôle..."
-                            />
-                        </div>
+                        <FloatingLabelInput
+                            label="Nom du rôle"
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            required
+                            placeholder="ex: Stagiaire Marketing"
+                        />
+                        <FloatingLabelInput
+                            label="Description"
+                            value={formData.description}
+                            onChange={e => setFormData({ ...formData, description: e.target.value })}
+                            placeholder="Description du rôle..."
+                        />
                     </div>
 
                     <div className="border-t border-slate-200 dark:border-white/10 pt-6">
                         <h4 className="font-bold text-slate-900 dark:text-white mb-4">Matrice des Permissions</h4>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-slate-600 uppercase bg-slate-50 dark:bg-slate-800/50">
+                                <thead className="bg-slate-50 dark:bg-slate-800/50 text-left">
                                     <tr>
-                                        <th className="px-4 py-3 rounded-tl-lg">Ressource</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider rounded-tl-lg">Ressource</th>
                                         {ACTIONS.map(action => (
-                                            <th key={action} className="px-4 py-3 text-center">{action}</th>
+                                            <th key={action} className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">{action}</th>
                                         ))}
                                     </tr>
                                 </thead>
@@ -219,8 +213,8 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                     </div>
 
                     <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
-                        <button type="button" onClick={() => setIsDrawerOpen(false)} className="px-6 py-2.5 text-slate-600 font-bold hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                        <button type="submit" className="px-6 py-2.5 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20">Enregistrer</button>
+                        <Button type="button" variant="ghost" onClick={() => setIsDrawerOpen(false)}>Annuler</Button>
+                        <Button type="submit" className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20">Enregistrer</Button>
                     </div>
                 </form>
             </Drawer>

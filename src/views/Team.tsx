@@ -20,6 +20,8 @@ import { ErrorLogger } from '../services/errorLogger';
 import { Drawer } from '../components/ui/Drawer';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { CustomSelect } from '../components/ui/CustomSelect';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
+import { Button } from '../components/ui/button';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userSchema, UserFormData } from '../schemas/userSchema';
 import { RoleManager } from '../components/team/RoleManager';
@@ -393,21 +395,22 @@ export const Team: React.FC = () => {
                 actions={canAdmin && activeTab === 'members' && (
                     <>
                         <CustomTooltip content="Exporter la liste des membres en CSV">
-                            <button
+                            <Button
+                                variant="outline"
                                 onClick={handleExportCSV}
-                                className="flex items-center px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
+                                className="gap-2"
                             >
-                                <FileSpreadsheet className="h-4 w-4 mr-2" /> Export CSV
-                            </button>
+                                <FileSpreadsheet className="h-4 w-4" /> Export CSV
+                            </Button>
                         </CustomTooltip>
                         <CustomTooltip content="Inviter un nouveau collaborateur">
-                            <button
+                            <Button
                                 onClick={handleOpenInviteModal}
-                                className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                className="gap-2 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
                             >
-                                <Plus className="h-4 w-4 mr-2" />
+                                <Plus className="h-4 w-4" />
                                 Inviter un membre
-                            </button>
+                            </Button>
                         </CustomTooltip>
                     </>
                 )}
@@ -680,26 +683,29 @@ export const Team: React.FC = () => {
                             <User className="h-10 w-10" />
                         </div>
                     </div>
+
+                    <FloatingLabelInput
+                        label="Nom complet (Optionnel)"
+                        {...inviteForm.register('displayName')}
+                    />
+
                     <div>
-                        <label htmlFor="team-invite-displayName" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom complet (Optionnel)</label>
-                        <input id="team-invite-displayName" autoComplete="name" type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                            {...inviteForm.register('displayName')} placeholder="Jean Dupont" />
-                    </div>
-                    <div>
-                        <label htmlFor="team-invite-email" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Email professionnel</label>
-                        <input id="team-invite-email" autoComplete="email" type="email" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                            {...inviteForm.register('email')} placeholder="jean@entreprise.com" />
+                        <FloatingLabelInput
+                            label="Email professionnel"
+                            type="email"
+                            {...inviteForm.register('email')}
+                        />
                         {inviteForm.formState.errors.email && <p className="text-red-500 text-xs mt-1">{inviteForm.formState.errors.email?.message}</p>}
                     </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Rôle</label>
                             <Controller
                                 control={inviteForm.control}
                                 name="role"
                                 render={({ field }) => (
                                     <CustomSelect
-                                        label=""
+                                        label="Rôle"
                                         value={field.value}
                                         onChange={field.onChange}
                                         options={[
@@ -716,14 +722,15 @@ export const Team: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label htmlFor="team-invite-department" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Département</label>
-                            <input id="team-invite-department" autoComplete="organization" type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                {...inviteForm.register('department')} placeholder="IT" />
+                            <FloatingLabelInput
+                                label="Département"
+                                {...inviteForm.register('department')}
+                            />
                         </div>
                     </div>
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                        <button type="button" onClick={() => setShowInviteModal(false)} className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                        <button type="submit" className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-transform">Envoyer</button>
+                        <Button type="button" variant="ghost" onClick={() => setShowInviteModal(false)}>Annuler</Button>
+                        <Button type="submit" className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-transform" isLoading={loading}>Envoyer</Button>
                     </div>
                 </form>
             </Drawer>
@@ -743,21 +750,19 @@ export const Team: React.FC = () => {
                             <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedUser.email}</p>
                         </div>
 
-                        <div>
-                            <label htmlFor="team-edit-displayName" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom d'affichage</label>
-                            <input id="team-edit-displayName" autoComplete="name" type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                {...editForm.register('displayName')} />
-                        </div>
+                        <FloatingLabelInput
+                            label="Nom d'affichage"
+                            {...editForm.register('displayName')}
+                        />
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Rôle</label>
                                 <Controller
                                     control={editForm.control}
                                     name="role"
                                     render={({ field }) => (
                                         <CustomSelect
-                                            label=""
+                                            label="Rôle"
                                             value={field.value}
                                             onChange={field.onChange}
                                             options={[
@@ -774,15 +779,16 @@ export const Team: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label htmlFor="team-edit-department" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Département</label>
-                                <input id="team-edit-department" autoComplete="organization" type="text" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none font-medium"
-                                    {...editForm.register('department')} />
+                                <FloatingLabelInput
+                                    label="Département"
+                                    {...editForm.register('department')}
+                                />
                             </div>
                         </div>
 
                         <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                            <button type="button" onClick={() => setShowEditModal(false)} className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                            <button type="submit" className="px-8 py-3 bg-brand-600 text-white rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-transform">Enregistrer</button>
+                            <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>Annuler</Button>
+                            <Button type="submit" className="bg-brand-600 text-white hover:scale-105 transition-transform">Enregistrer</Button>
                         </div>
                     </form>
                 )}

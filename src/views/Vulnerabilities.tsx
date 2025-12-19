@@ -292,14 +292,14 @@ export const Vulnerabilities: React.FC = () => {
                 <motion.div variants={slideUpVariants} className="bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-white/5 backdrop-blur-xl overflow-hidden min-h-[600px]">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-slate-50 dark:bg-white/5 text-left">
+                            <thead className="bg-slate-50 dark:bg-slate-800/50 text-left">
                                 <tr>
-                                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Sévérité</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">CVE & Titre</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Actif Affecté</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Score</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Statut</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase text-right">Actions</th>
+                                    <th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">Sévérité</th>
+                                    <th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">CVE & Titre</th>
+                                    <th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">Actif Affecté</th>
+                                    <th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">Score</th>
+                                    <th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider">Statut</th>
+                                    <th className="px-6 py-5 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -380,8 +380,11 @@ export const Vulnerabilities: React.FC = () => {
                                 </h4>
                                 <div className="space-y-4 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
                                     {columnVulns.length === 0 ? (
-                                        <div className="h-32 border-2 border-dashed border-slate-200 dark:border-white/5 rounded-xl flex items-center justify-center text-slate-400 text-xs font-medium">
-                                            Aucune vulnérabilité
+                                        <div className="flex flex-col items-center justify-center h-48 text-center p-4">
+                                            <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center mb-3">
+                                                <CheckCircle className="h-6 w-6 text-slate-300 dark:text-slate-600" />
+                                            </div>
+                                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Aucune vulnérabilité</p>
                                         </div>
                                     ) : (
                                         columnVulns.map(v => (

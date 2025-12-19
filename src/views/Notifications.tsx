@@ -12,10 +12,14 @@ import { CardSkeleton } from '../components/ui/Skeleton';
 import { NotificationRecord } from '../types';
 import { NotificationService } from '../services/notificationService';
 import { ErrorLogger } from '../services/errorLogger';
+import { Button } from '../components/ui/button';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 
 export const Notifications: React.FC = () => {
     const [notifications, setNotifications] = useState<NotificationRecord[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterStatus, setFilterStatus] = useState<'all' | 'unread'>('all');
     const { user } = useStore();
 
     // Real-time subscription
@@ -60,6 +64,13 @@ export const Notifications: React.FC = () => {
         }
     };
 
+    const filteredNotifications = notifications.filter(n => {
+        const matchesSearch = (n.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (n.message || '').toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesFilter = filterStatus === 'all' ? true : !n.read;
+        return matchesSearch && matchesFilter;
+    });
+
     return (
         <motion.div
             variants={staggerContainerVariants}
@@ -77,28 +88,51 @@ export const Notifications: React.FC = () => {
                 ]}
                 icon={<Bell className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={notifications.some(n => !n.read) && (
-                    <button
+                    <Button
                         onClick={markAll}
-                        className="px-4 py-2.5 text-sm font-bold text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-colors border border-brand-200 dark:border-brand-800"
+                        variant="outline"
+                        className="gap-2"
                     >
+                        <CheckCircle2 className="h-4 w-4" />
                         Tout marquer comme lu
-                    </button>
+                    </Button>
                 )}
             />
+
+            <PremiumPageControl
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                searchPlaceholder="Rechercher dans les notifications..."
+            >
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setFilterStatus('all')}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filterStatus === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'bg-white/50 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10'}`}
+                    >
+                        Toutes
+                    </button>
+                    <button
+                        onClick={() => setFilterStatus('unread')}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filterStatus === 'unread' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'bg-white/50 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10'}`}
+                    >
+                        Non lues
+                    </button>
+                </div>
+            </PremiumPageControl>
 
             {loading ? (
                 <div className="space-y-4">
                     <CardSkeleton count={3} />
                 </div>
-            ) : notifications.length === 0 ? (
+            ) : filteredNotifications.length === 0 ? (
                 <EmptyState
                     icon={Bell}
                     title="Aucune notification"
-                    description="Vous êtes à jour ! Aucune nouvelle activité à signaler."
+                    description={searchQuery ? "Aucun résultat pour votre recherche." : "Vous êtes à jour ! Aucune nouvelle activité à signaler."}
                 />
             ) : (
                 <div className="space-y-4">
-                    {notifications.map(notif => (
+                    {filteredNotifications.map(notif => (
                         <div key={notif.id} className="glass-panel p-5 rounded-2xl border border-white/50 dark:border-white/5 shadow-sm hover:shadow-md transition-all flex gap-4 group">
                             <div className={`p-3 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-gray-100 dark:border-white/5 h-fit`}>
                                 {getIcon(notif.type)}
