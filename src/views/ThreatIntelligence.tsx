@@ -16,6 +16,7 @@ import { ThreatPlanet } from '../components/map/ThreatPlanet';
 import { ThreatDiscussion } from '../components/threat-intel/ThreatDiscussion';
 import { SubmitThreatModal } from '../components/threat-intel/SubmitThreatModal';
 import { CommunitySettingsModal } from '../components/threat-intel/CommunitySettingsModal';
+import { ThreatToRiskModal } from '../components/threat-intel/ThreatToRiskModal';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { orderBy, addDoc, collection, updateDoc, doc, increment, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -24,12 +25,8 @@ import { useStore } from '../store';
 import { TrustRelationship } from '../types';
 
 // Initial Seed Data for Demo Mode (Production Ready: stored in DB)
-const INITIAL_THREATS = [
-    { title: 'Ransomware "BlackCat" Variant Detected', type: 'Ransomware', severity: 'Critical', country: 'United States', date: '2h ago', votes: 124, comments: 45, author: 'Sentinel Team', timestamp: Date.now() },
-    { title: 'Zero-day in popular CI/CD tool', type: 'Vulnerability', severity: 'High', country: 'Germany', date: '5h ago', votes: 89, comments: 12, author: 'Community', timestamp: Date.now() - 18000000 },
-    { title: 'Phishing Campaign targeting Finance', type: 'Phishing', severity: 'Medium', country: 'France', date: '1d ago', votes: 56, comments: 8, author: 'CyberAlliance', timestamp: Date.now() - 86400000 },
-    { title: 'DDoS attacks on Healthcare sector', type: 'DDoS', severity: 'High', country: 'India', date: '1d ago', votes: 230, comments: 67, author: 'Sentinel Team', timestamp: Date.now() - 90000000 },
-];
+// Initial Seed Data moved to ThreatFeedService
+
 
 
 
@@ -46,6 +43,8 @@ export const ThreatIntelligence: React.FC = () => {
     const [selectedThreatTitle, setSelectedThreatTitle] = useState('');
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
+    const [threatForRisk, setThreatForRisk] = useState<Threat | null>(null);
 
     // Trust & Network Management State (Firestore)
     // Filter relationships where sourceOrgId is current user's org (or 'me' for demo)
@@ -113,13 +112,10 @@ export const ThreatIntelligence: React.FC = () => {
             initialLoadRef.current = true;
             const seedData = async () => {
                 try {
-                    logAction(user, 'SEED_DATA', 'ThreatIntelligence', `Seeding ${INITIAL_THREATS.length} initial threats`);
-                    for (const threat of INITIAL_THREATS) {
-                        await addDoc(collection(db, 'threats'), threat);
-                    }
+                    const stats = await ThreatFeedService.seedThreatsAndVulnerabilities(user?.organizationId || 'demo');
+                    logAction(user, 'SEED_DATA', 'ThreatIntelligence', `Seeding complete: ${stats.threats} threats, ${stats.vulns} vulns`);
                 } catch (error) {
-                    // Suppress permission errors in demo/prod mix if user lacks write access
-                    console.warn('Failed to seed initial threats data (likely permission issue):', error);
+                    console.warn('Failed to seed initial threats data:', error);
                 }
             };
             seedData();
@@ -193,6 +189,50 @@ export const ThreatIntelligence: React.FC = () => {
         }
     };
 
+    const handleDownloadRule = (e: React.MouseEvent, threat: Threat) => {
+        e.stopPropagation();
+        const ruleContent = `
+title: ${threat.title}
+status: experimental
+description: Auto-generated SIGMA rule for ${threat.title}
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        CommandLine|contains:
+            - '${threat.title.split(' ')[0]}' 
+    condition: selection
+level: ${threat.severity === 'Critical' ? 'critical' : 'high'}
+        `.trim();
+
+        const blob = new Blob([ruleContent], { type: 'text/yaml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `SIGMA_${threat.id}.yml`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        addToast("Règle de détection téléchargée", "success");
+    };
+
+    // Aggregate Top Contributors
+    const topContributors = useMemo(() => {
+        const counts: Record<string, number> = {};
+        threats.forEach(t => {
+            const author = t.author || 'Unknown';
+            if (['URLhaus', 'CISA KEV'].includes(author)) return;
+            counts[author] = (counts[author] || 0) + 1;
+        });
+        return Object.entries(counts)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 5)
+            .map(([name, count], index) => ({ name, count, rank: index + 1 }));
+    }, [threats]);
+
+
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-8 pb-20">
             <MasterpieceBackground />
@@ -262,6 +302,12 @@ export const ThreatIntelligence: React.FC = () => {
                 isOpen={isSubmitModalOpen}
                 onClose={() => setIsSubmitModalOpen(false)}
                 onSuccess={() => addToast("Menace signalée à la communauté avec succès", "success")}
+            />
+
+            <ThreatToRiskModal
+                isOpen={isRiskModalOpen}
+                threat={threatForRisk}
+                onClose={() => setIsRiskModalOpen(false)}
             />
 
             {/* Map Section */}
@@ -391,11 +437,23 @@ export const ThreatIntelligence: React.FC = () => {
                                                 {threat.comments || 0} Discussions
                                             </button>
                                             <button
-                                                onClick={(e) => { e.stopPropagation(); addToast("Génération de règle SIGMA/YARA en cours de développement...", "info"); }}
-                                                className="flex items-center text-xs font-bold text-slate-500 hover:text-green-500 transition-colors ml-auto"
+                                                onClick={(e) => handleDownloadRule(e, threat)}
+                                                className="flex items-center text-xs font-bold text-slate-500 hover:text-green-500 transition-colors ml-auto gap-2"
                                             >
-                                                <Shield className="h-4 w-4 mr-1.5" />
-                                                Créer une règle de détection
+                                                <Shield className="h-4 w-4" />
+                                                Règle SIGMA
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setThreatForRisk(threat);
+                                                    setIsRiskModalOpen(true);
+                                                }}
+                                                className="flex items-center text-xs font-bold text-slate-500 hover:text-orange-500 transition-colors gap-2"
+                                                title="Transformer en Risque"
+                                            >
+                                                <AlertOctagon className="h-4 w-4" />
+                                                Impact
                                             </button>
                                         </div>
                                     </div>
@@ -427,20 +485,24 @@ export const ThreatIntelligence: React.FC = () => {
                     <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-white/5 p-6 backdrop-blur-xl">
                         <h3 className="font-bold text-slate-900 dark:text-white mb-4">Top Contributeurs</h3>
                         <div className="space-y-4">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="flex items-center justify-between">
+                            {topContributors.length > 0 ? topContributors.map((c) => (
+                                <div key={c.name} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-xs">U{i}</div>
+                                        <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-xs text-slate-700 dark:text-slate-200">
+                                            {c.name.charAt(0).toUpperCase()}
+                                        </div>
                                         <div>
-                                            <div className="text-sm font-bold dark:text-white">User_{i}</div>
-                                            <div className="text-xs text-slate-500">Level {10 - i} Analyst</div>
+                                            <div className="text-sm font-bold dark:text-white">{c.name}</div>
+                                            <div className="text-xs text-slate-500">{c.count} Menaces signalées</div>
                                         </div>
                                     </div>
                                     <div className="text-xs font-bold text-green-500">
-                                        Top 1%
+                                        #{c.rank}
                                     </div>
                                 </div>
-                            ))}
+                            )) : (
+                                <p className="text-sm text-slate-500">Aucun contributeur.</p>
+                            )}
                         </div>
                     </div>
                 </div>

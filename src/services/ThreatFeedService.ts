@@ -107,12 +107,29 @@ export class ThreatFeedService {
      */
     static async seedThreatsAndVulnerabilities(organizationId: string): Promise<{ threats: number, vulns: number }> {
         const vulns = await this.fetchCisaKev();
-        const threats = await this.fetchUrlHaus();
+        let threats = await this.fetchUrlHaus();
+
+        // Fallback or Baseline Data (Moved from View)
+        const INITIAL_THREATS: Partial<Threat>[] = [
+            { title: 'Ransomware "BlackCat" Variant Detected', type: 'Ransomware', severity: 'Critical', country: 'United States', date: '2h ago', votes: 124, comments: 45, author: 'Sentinel Team', timestamp: Date.now() },
+            { title: 'Zero-day in popular CI/CD tool', type: 'Vulnerability', severity: 'High', country: 'Germany', date: '5h ago', votes: 89, comments: 12, author: 'Community', timestamp: Date.now() - 18000000 },
+            { title: 'Phishing Campaign targeting Finance', type: 'Phishing', severity: 'Medium', country: 'France', date: '1d ago', votes: 56, comments: 8, author: 'CyberAlliance', timestamp: Date.now() - 86400000 },
+            { title: 'DDoS attacks on Healthcare sector', type: 'DDoS', severity: 'High', country: 'India', date: '1d ago', votes: 230, comments: 67, author: 'Sentinel Team', timestamp: Date.now() - 90000000 },
+        ];
+
+        // Combine fetched threats with initial baseline if needed
+        // For demo stability, we always want the baseline 4 to appear
+        const baselineThreats = INITIAL_THREATS.map((t, index) => ({
+            id: `baseline-${index}`,
+            ...t,
+            active: true,
+            coordinates: [0, 0] // Will be enriched below
+        } as Threat));
+
+        threats = [...baselineThreats, ...threats];
 
         let threatsAdded = 0;
         let vulnsAdded = 0;
-
-
 
         // 1. Process Vulnerabilities
         // Strategy: We want global vulnerabilities potentially, but here we attach them to the org
@@ -126,18 +143,11 @@ export class ThreatFeedService {
             const snap = await getDocs(q);
 
             if (snap.empty) {
-
-                const docRef = addDoc(collection(db, 'vulnerabilities'), {
+                await addDoc(collection(db, 'vulnerabilities'), {
                     ...v,
                     organizationId,
                     createdAt: new Date().toISOString()
                 });
-                // We await addDoc individually or use batch.set. 
-                // Using addDoc is simpler for now but slower. let's use addDoc for logic simplicity
-                // Actually, let's use batch for performance if possible, but addDoc generates ID.
-                // We'll stick to parallel calls for simplicity of "not overwriting" logic without reading all first.
-                // Reverting to linear add for safety in this seed function.
-                await docRef;
                 vulnsAdded++;
             }
         }
@@ -152,8 +162,9 @@ export class ThreatFeedService {
 
             if (snap.empty) {
                 // Geo enrichment (basic random for visualization if missing)
-                // In a real app, we'd use a GeoIP service on the URL hosting IP
                 if (t.coordinates && t.coordinates[0] === 0) {
+                    // deterministic "random" based on title length for stability? 
+                    // No, random is fine for coverage in demo.
                     t.coordinates = [
                         (Math.random() * 360) - 180, // Long
                         (Math.random() * 160) - 80   // Lat
@@ -162,12 +173,9 @@ export class ThreatFeedService {
 
                 await addDoc(collection(db, 'threats'), {
                     ...t,
-                    // Threats are global in this system usually, but let's see. 
-                    // Type definition doesn't have organizationId for shared threats?
-                    // Checked types: Threat interface DOES NOT satisfy organizationId?
-                    // Let's re-verify Threat definition.
-                    // Line 812 of types.ts: No organizationId. It's a shared resource.
-                    // So we don't query by organizationId.
+                    // Ensure all required fields
+                    votes: t.votes || 0,
+                    comments: t.comments || 0,
                     createdAt: new Date().toISOString()
                 });
                 threatsAdded++;
