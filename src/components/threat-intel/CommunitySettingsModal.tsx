@@ -7,11 +7,6 @@ import { Button } from '../ui/button';
 import { SharingPreferences, TrustRelationship } from '../../types';
 
 // Export mock data for parent use
-export const MOCK_INITIAL_PARTNERS: TrustRelationship[] = [
-    { id: '1', sourceOrgId: 'me', targetOrgId: 'org_cyber_def', targetOrgName: 'CyberDefense Corp', status: 'trusted', createdAt: '2024-01-15' },
-    { id: '2', sourceOrgId: 'me', targetOrgId: 'org_fin_sec', targetOrgName: 'FinanceSecure Ltd', status: 'pending', createdAt: '2024-05-20' },
-    { id: '3', sourceOrgId: 'me', targetOrgId: 'org_spammer', targetOrgName: 'Spammy Inc', status: 'blocked', createdAt: '2024-03-10' },
-];
 
 interface CommunitySettingsModalProps {
     isOpen: boolean;

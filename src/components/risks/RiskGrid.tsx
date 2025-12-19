@@ -1,18 +1,18 @@
 import React from 'react';
-import { Server, TrendingDown, TrendingUp, ArrowRight, Clock } from 'lucide-react';
+import { Server, TrendingDown, TrendingUp, ArrowRight, Clock, LucideIcon, ShieldAlert } from 'lucide-react';
 import { CardSkeleton } from '../ui/Skeleton';
 import { Badge } from '../ui/Badge';
 import { SafeHTML } from '../ui/SafeHTML';
 import { EmptyState } from '../ui/EmptyState';
 import { Risk, Asset } from '../../types';
-import { ShieldAlert } from 'lucide-react';
+
 
 interface RiskGridProps {
     risks: Risk[];
     loading: boolean;
     onSelect: (risk: Risk) => void;
     assets: Asset[];
-    emptyStateIcon: any; // Assuming generic component
+    emptyStateIcon: LucideIcon; // Generic icon component
     emptyStateTitle: string;
     emptyStateDescription: string;
     onEmptyStateAction?: () => void;

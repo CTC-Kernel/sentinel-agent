@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Search, MoreVertical, LayoutGrid, List } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+
 
 interface PremiumPageControlProps {
     searchQuery: string;
@@ -64,8 +64,8 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                     <button
                         onClick={onToggleAdvancedSearch}
                         className={`p-3 rounded-xl transition-all duration-300 ${showAdvancedSearch
-                                ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400 shadow-inner'
-                                : 'bg-slate-50 text-slate-500 hover:bg-slate-100 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10'
+                            ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400 shadow-inner'
+                            : 'bg-slate-50 text-slate-500 hover:bg-slate-100 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10'
                             }`}
                         title="Filtres avancés"
                     >
@@ -79,8 +79,8 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                         <button
                             onClick={() => onViewModeChange('list')}
                             className={`p-2 rounded-lg transition-all duration-300 ${viewMode === 'list'
-                                    ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5'
+                                ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
+                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5'
                                 }`}
                             title="Vue Liste"
                         >
@@ -89,8 +89,8 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                         <button
                             onClick={() => onViewModeChange('grid')}
                             className={`p-2 rounded-lg transition-all duration-300 ${viewMode === 'grid'
-                                    ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
-                                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5'
+                                ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
+                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5'
                                 }`}
                             title="Vue Grille"
                         >

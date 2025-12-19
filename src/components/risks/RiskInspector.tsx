@@ -16,7 +16,7 @@ import { RelationshipGraph } from '../RelationshipGraph';
 // import { CustomSelect } from '../ui/CustomSelect';
 import { Comments } from '../ui/Comments';
 import { RiskTreatmentPlan } from './RiskTreatmentPlan';
-import { Risk, Asset, Control, Project, Audit, Supplier, MitreTechnique } from '../../types';
+import { Risk, Asset, Control, Project, Audit, Supplier, MitreTechnique, UserProfile, BusinessProcess } from '../../types';
 import { integrationService } from '../../services/integrationService';
 // import { useAuth } from '../../hooks/useAuth';
 import { toast } from 'sonner';
@@ -30,8 +30,8 @@ interface RiskInspectorProps {
     projects: Project[];
     audits: Audit[];
     suppliers: Supplier[];
-    usersList: any[]; // User[]
-    processes: any[]; // BusinessProcess[]
+    usersList: UserProfile[];
+    processes: BusinessProcess[];
     canEdit: boolean;
     demoMode: boolean;
     onUpdate: (id: string, data: Partial<Risk>) => Promise<boolean>;
@@ -136,7 +136,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
             {isEditing ? (
                 <div className="p-6">
                     <RiskForm
-                        onSubmit={(data) => handleLocalUpdate(data as any)}
+                        onSubmit={(data) => handleLocalUpdate(data as Partial<Risk>)}
                         onCancel={() => setIsEditing(false)}
                         initialData={risk}
                         existingRisk={risk}
@@ -187,7 +187,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
 
                                 <RiskAIAssistant
                                     risk={risk}
-                                    onUpdate={(updates) => handleLocalUpdate({ ...risk, ...updates } as any)}
+                                    onUpdate={(updates) => handleLocalUpdate({ ...risk, ...updates } as Risk)}
                                 />
 
                                 <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
@@ -286,10 +286,11 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                         {inspectorTab === 'history' && (
                             <div className="space-y-8">
                                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500">Journal d'Audit</h4>
-                                {risk.history?.map((log: any, i: number) => (
+                                {risk.history?.map((log, i: number) => (
                                     <div key={i} className="text-sm border-l-2 pl-4 py-1">
                                         <span className="text-xs text-slate-500">{new Date(log.date).toLocaleString()}</span>
-                                        <p>{log.action}</p>
+                                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                        <p>{(log as any).action || (log as any).details || 'Action inconnue'}</p>
                                     </div>
                                 ))}
                             </div>

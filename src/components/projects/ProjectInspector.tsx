@@ -34,7 +34,7 @@ interface ProjectInspectorProps {
     assets: Asset[];
     audits: Audit[];
 
-    updateTasks: (project: Project, tasks: ProjectTask[]) => Promise<any>;
+    updateTasks: (project: Project, tasks: ProjectTask[]) => Promise<void>;
     onDeleteProject: (id: string, name: string) => void;
     onDuplicateProject: (project: Project) => Promise<void>;
     onEditProject: (project: Project) => void;
@@ -81,9 +81,9 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     // Fetch Details on Open
     useEffect(() => {
         if (project) {
-            // eslint-disable-next-line react-hooks/exhaustive-deps
             fetchMilestones(project.id);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [project?.id, fetchMilestones]);
 
     // Derived Lists
@@ -275,7 +275,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                         {['A faire', 'En cours', 'Terminé'].map(status => (
                                             <KanbanColumn
                                                 key={status}
-                                                status={status as any}
+                                                status={status as 'A faire' | 'En cours' | 'Terminé'}
                                                 tasks={project.tasks?.filter(t => t.status === status) || []}
                                                 canEdit={canEdit}
                                                 draggedTaskId={draggedTaskId}

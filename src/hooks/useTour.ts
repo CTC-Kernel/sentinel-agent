@@ -79,5 +79,5 @@ export const useTour = () => {
         }, 1500);
 
         return () => clearTimeout(timer);
-    }, [user?.uid, user?.onboardingCompleted]);
+    }, [user?.uid, user?.onboardingCompleted, user]);
 };

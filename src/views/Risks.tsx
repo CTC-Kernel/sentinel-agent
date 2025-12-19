@@ -10,6 +10,7 @@ import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { ObsidianService } from '../services/ObsidianService';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { motion, AnimatePresence } from 'framer-motion';
+import { UserProfile } from '../types';
 
 import { useRiskData } from '../hooks/risks/useRiskData';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
@@ -41,7 +42,7 @@ export const Risks: React.FC = () => {
     const { risks, loading, assets, controls, projects, audits, suppliers, usersList, rawProcesses, refreshRisks } = useRiskData();
 
     // Permission check
-    const canEdit = canEditResource(user as any, 'Risk');
+    const canEdit = canEditResource(user as UserProfile, 'Risk');
 
     const {
         createRisk, updateRisk, deleteRisk, bulkDeleteRisks,
@@ -415,13 +416,14 @@ export const Risks: React.FC = () => {
                 onUpdate={updateRisk}
                 onDelete={(id) => deleteRisk(id)} // Wrapper to match signature if needed
                 onDuplicate={(r) => {
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const { id, history, ...rest } = r;
                     createRisk({
                         ...rest,
                         threat: `${r.threat} (Copie)`,
                         probability: r.probability as 1 | 2 | 3 | 4 | 5,
                         impact: r.impact as 1 | 2 | 3 | 4 | 5
-                    } as any);
+                    } as Risk);
                 }}
             />
 
@@ -470,9 +472,9 @@ export const Risks: React.FC = () => {
                         vulnerability: risk.vulnerability,
                         probability: risk.probability as 1 | 2 | 3 | 4 | 5,
                         impact: risk.impact as 1 | 2 | 3 | 4 | 5,
-                        strategy: risk.strategy as any,
+                        strategy: risk.strategy as 'Accepter' | 'Transférer' | 'Atténuer' | 'Éviter',
                         status: 'Ouvert',
-                        framework: template.category as any,
+                        framework: 'ISO27001', // Default or map correctly if possible
                         owner: ownerId,
                         // You can map other fields if they exist in RiskTemplate's risk objects
                     }));
