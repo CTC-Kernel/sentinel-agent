@@ -315,234 +315,234 @@ export const BackupRestore: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
 
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-w-0">
-          {/* Left Panel: Actions */}
-          <div className="lg:col-span-2 space-y-6 min-w-0">
-            {activeTab === 'backup' ? (
-              <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                  <Save className="h-5 w-5 text-indigo-500" /> Nouvelle Sauvegarde
-                </h2>
-                <form onSubmit={backupForm.handleSubmit(handleBackup)}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    {[
-                      { id: 'includeDocuments', label: 'Documents', icon: FileText },
-                      { id: 'includeAssets', label: 'Actifs', icon: HardDrive },
-                      { id: 'includeRisks', label: 'Risques', icon: AlertTriangle },
-                      { id: 'includeControls', label: 'Contrôles', icon: Shield },
-                      { id: 'includeAudits', label: 'Audits', icon: CheckCircle2 },
-                      { id: 'includeProjects', label: 'Projets', icon: Calendar },
-                      { id: 'includeSuppliers', label: 'Fournisseurs', icon: Users },
-                      { id: 'includeIncidents', label: 'Incidents', icon: AlertTriangle },
-                      { id: 'includeUsers', label: 'Utilisateurs', icon: Users },
-                      { id: 'includeComments', label: 'Commentaires', icon: FileText },
-                    ].map((item) => (
-                      <label key={item.id} className="flex items-center p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors group">
-                        <input
-                          type="checkbox"
-                          className="w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 transition-all"
-                          {...backupForm.register(item.id as keyof BackupConfigFormData)}
-                        />
-                        <div className="ml-3 flex items-center gap-2">
-                          <item.icon className="h-4 w-4 text-slate-500 group-hover:text-indigo-500 transition-colors" />
-                          <span className="font-medium text-slate-700 dark:text-slate-300">{item.label}</span>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mr-2">Planifier :</span>
-                      <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                        <button type="button" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Quotidien</button>
-                        <button type="button" onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Hebdo</button>
-                        <button type="button" onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Mensuel</button>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-w-0">
+        {/* Left Panel: Actions */}
+        <div className="lg:col-span-2 space-y-6 min-w-0">
+          {activeTab === 'backup' ? (
+            <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                <Save className="h-5 w-5 text-indigo-500" /> Nouvelle Sauvegarde
+              </h2>
+              <form onSubmit={backupForm.handleSubmit(handleBackup)}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                  {[
+                    { id: 'includeDocuments', label: 'Documents', icon: FileText },
+                    { id: 'includeAssets', label: 'Actifs', icon: HardDrive },
+                    { id: 'includeRisks', label: 'Risques', icon: AlertTriangle },
+                    { id: 'includeControls', label: 'Contrôles', icon: Shield },
+                    { id: 'includeAudits', label: 'Audits', icon: CheckCircle2 },
+                    { id: 'includeProjects', label: 'Projets', icon: Calendar },
+                    { id: 'includeSuppliers', label: 'Fournisseurs', icon: Users },
+                    { id: 'includeIncidents', label: 'Incidents', icon: AlertTriangle },
+                    { id: 'includeUsers', label: 'Utilisateurs', icon: Users },
+                    { id: 'includeComments', label: 'Commentaires', icon: FileText },
+                  ].map((item) => (
+                    <label key={item.id} className="flex items-center p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors group">
+                      <input
+                        type="checkbox"
+                        className="w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 transition-all"
+                        {...backupForm.register(item.id as keyof BackupConfigFormData)}
+                      />
+                      <div className="ml-3 flex items-center gap-2">
+                        <item.icon className="h-4 w-4 text-slate-500 group-hover:text-indigo-500 transition-colors" />
+                        <span className="font-medium text-slate-700 dark:text-slate-300">{item.label}</span>
                       </div>
+                    </label>
+                  ))}
+                </div>
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mr-2">Planifier :</span>
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                      <button type="button" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Quotidien</button>
+                      <button type="button" onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Hebdo</button>
+                      <button type="button" onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Mensuel</button>
                     </div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-primary px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-500/20 w-full sm:w-auto justify-center"
+                  >
+                    {loading ? <RefreshCw className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+                    Lancer la sauvegarde
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : (
+            <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                <RotateCcw className="h-5 w-5 text-indigo-500" /> Restauration
+              </h2>
+              {!selectedBackup ? (
+                <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
+                  <Database className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <p className="text-slate-600 font-medium">Sélectionnez une sauvegarde dans la liste pour commencer</p>
+                </div>
+              ) : (
+                <form onSubmit={restoreForm.handleSubmit(handleRestore)} className="space-y-6">
+                  <div className="p-4 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Sauvegarde sélectionnée</span>
+                      <span className="text-xs font-mono bg-white dark:bg-black/20 px-2 py-1 rounded text-slate-600">{selectedBackup.id}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold">
+                      <Clock className="h-4 w-4" />
+                      {format(new Date(selectedBackup.createdAt), "d MMMM yyyy 'à' HH:mm", { locale: fr })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Collections à restaurer</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {selectedBackup.collections.map((col) => (
+                        <label key={col} className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${restoreForm.watch('collections').includes(col) ? 'border-indigo-500 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
+                          <input
+                            type="checkbox"
+                            checked={restoreForm.watch('collections').includes(col)}
+                            onChange={() => toggleCollection(col)}
+                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <span className="ml-2 text-sm font-medium capitalize text-slate-700 dark:text-slate-300">{col}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {restoreForm.formState.errors.collections && <p className="text-red-500 text-xs mt-1">{restoreForm.formState.errors.collections.message}</p>}
+                  </div>
+
+                  <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <label className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+                      <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-indigo-600" {...restoreForm.register('overwriteExisting')} />
+                      <div>
+                        <span className="block font-medium text-slate-900 dark:text-white">Écraser les données existantes</span>
+                        <span className="text-xs text-slate-600">Si coché, les données actuelles seront remplacées par celles de la sauvegarde.</span>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+                      <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-indigo-600" {...restoreForm.register('dryRun')} />
+                      <div>
+                        <span className="block font-medium text-slate-900 dark:text-white">Simulation (Dry Run)</span>
+                        <span className="text-xs text-slate-600">Vérifie l'intégrité sans modifier les données.</span>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="flex justify-end pt-4">
                     <button
                       type="submit"
                       disabled={loading}
-                      className="btn-primary px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-500/20 w-full sm:w-auto justify-center"
+                      className={`px-6 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg transition-all ${restoreForm.watch('dryRun') ? 'bg-slate-800 text-white hover:bg-slate-900' : 'bg-red-600 text-white hover:bg-red-700 shadow-red-500/20'}`}
                     >
-                      {loading ? <RefreshCw className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                      Lancer la sauvegarde
+                      {loading ? <RefreshCw className="h-5 w-5 animate-spin" /> : <RotateCcw className="h-5 w-5" />}
+                      {restoreForm.watch('dryRun') ? 'Lancer la simulation' : 'Restaurer les données'}
                     </button>
                   </div>
                 </form>
-              </div>
-            ) : (
-              <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                  <RotateCcw className="h-5 w-5 text-indigo-500" /> Restauration
-                </h2>
-                {!selectedBackup ? (
-                  <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
-                    <Database className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-600 font-medium">Sélectionnez une sauvegarde dans la liste pour commencer</p>
-                  </div>
-                ) : (
-                  <form onSubmit={restoreForm.handleSubmit(handleRestore)} className="space-y-6">
-                    <div className="p-4 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Sauvegarde sélectionnée</span>
-                        <span className="text-xs font-mono bg-white dark:bg-black/20 px-2 py-1 rounded text-slate-600">{selectedBackup.id}</span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right Panel: History */}
+        <div className="space-y-6 min-w-0">
+          <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50 h-full max-h-[800px] flex flex-col">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-indigo-500" /> Historique
+            </h2>
+            <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+              {backups.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                  <Database className="h-10 w-10 opacity-20 mb-3" />
+                  <p className="font-medium">Aucune sauvegarde</p>
+                </div>
+              ) : (
+                backups.map((backup) => (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    key={backup.id}
+                    onClick={() => selectBackupForRestore(backup)}
+                    className={`p-4 rounded-xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-500/30 ring-1 ring-indigo-500/20' : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-md'}`}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">#{backup.id.slice(0, 6)}...</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(backup.status).replace('bg-', 'border-').replace('/20', '/30')}`}>
+                          {getStatusIcon(backup.status)}
+                          <span className="ml-1.5">{backup.status}</span>
+                        </span>
                       </div>
-                      <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold">
-                        <Clock className="h-4 w-4" />
-                        {format(new Date(selectedBackup.createdAt), "d MMMM yyyy 'à' HH:mm", { locale: fr })}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Collections à restaurer</label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {selectedBackup.collections.map((col) => (
-                          <label key={col} className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${restoreForm.watch('collections').includes(col) ? 'border-indigo-500 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
-                            <input
-                              type="checkbox"
-                              checked={restoreForm.watch('collections').includes(col)}
-                              onChange={() => toggleCollection(col)}
-                              className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                            <span className="ml-2 text-sm font-medium capitalize text-slate-700 dark:text-slate-300">{col}</span>
-                          </label>
-                        ))}
-                      </div>
-                      {restoreForm.formState.errors.collections && <p className="text-red-500 text-xs mt-1">{restoreForm.formState.errors.collections.message}</p>}
-                    </div>
-
-                    <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                      <label className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
-                        <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-indigo-600" {...restoreForm.register('overwriteExisting')} />
-                        <div>
-                          <span className="block font-medium text-slate-900 dark:text-white">Écraser les données existantes</span>
-                          <span className="text-xs text-slate-600">Si coché, les données actuelles seront remplacées par celles de la sauvegarde.</span>
-                        </div>
-                      </label>
-                      <label className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
-                        <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-indigo-600" {...restoreForm.register('dryRun')} />
-                        <div>
-                          <span className="block font-medium text-slate-900 dark:text-white">Simulation (Dry Run)</span>
-                          <span className="text-xs text-slate-600">Vérifie l'intégrité sans modifier les données.</span>
-                        </div>
-                      </label>
-                    </div>
-
-                    <div className="flex justify-end pt-4">
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className={`px-6 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg transition-all ${restoreForm.watch('dryRun') ? 'bg-slate-800 text-white hover:bg-slate-900' : 'bg-red-600 text-white hover:bg-red-700 shadow-red-500/20'}`}
-                      >
-                        {loading ? <RefreshCw className="h-5 w-5 animate-spin" /> : <RotateCcw className="h-5 w-5" />}
-                        {restoreForm.watch('dryRun') ? 'Lancer la simulation' : 'Restaurer les données'}
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Right Panel: History */}
-          <div className="space-y-6 min-w-0">
-            <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50 h-full max-h-[800px] flex flex-col">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                <Clock className="h-5 w-5 text-indigo-500" /> Historique
-              </h2>
-              <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                {backups.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                    <Database className="h-10 w-10 opacity-20 mb-3" />
-                    <p className="font-medium">Aucune sauvegarde</p>
-                  </div>
-                ) : (
-                  backups.map((backup) => (
-                    <motion.div
-                      layout
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      key={backup.id}
-                      onClick={() => selectBackupForRestore(backup)}
-                      className={`p-4 rounded-xl border transition-all cursor-pointer group relative ${selectedBackup?.id === backup.id ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-500/30 ring-1 ring-indigo-500/20' : 'bg-white/50 dark:bg-white/5 border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-md'}`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">#{backup.id.slice(0, 6)}...</span>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(backup.status).replace('bg-', 'border-').replace('/20', '/30')}`}>
-                            {getStatusIcon(backup.status)}
-                            <span className="ml-1.5">{backup.status}</span>
-                          </span>
-                        </div>
-                        <div className="flex gap-1">
-                          {backup.status === 'completed' && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleDownloadBackup(backup.id); }}
-                              className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                              title="Télécharger"
-                            >
-                              <Download className="h-4 w-4" />
-                            </button>
-                          )}
+                      <div className="flex gap-1">
+                        {backup.status === 'completed' && (
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setConfirmData({
-                                isOpen: true,
-                                title: 'Supprimer le backup',
-                                message: `Êtes-vous sûr de vouloir supprimer le backup ${backup.id} ?`,
-                                onConfirm: () => handleDeleteBackup(backup.id)
-                              });
-                            }}
-                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                            title="Supprimer"
+                            onClick={(e) => { e.stopPropagation(); handleDownloadBackup(backup.id); }}
+                            className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                            title="Télécharger"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Download className="h-4 w-4" />
                           </button>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2.5 bg-white dark:bg-slate-800 rounded-lg shadow-sm">
-                          <Database className="h-5 w-5 text-indigo-500" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-900 dark:text-white">
-                            {format(new Date(backup.createdAt), "d MMM yyyy", { locale: fr })}
-                          </p>
-                          <p className="text-xs text-slate-500 font-medium">
-                            {format(new Date(backup.createdAt), "HH:mm", { locale: fr })} • {backup.collections.length} collections
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {backup.collections.slice(0, 3).map(c => (
-                          <span key={c} className="text-[10px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 capitalize">{c}</span>
-                        ))}
-                        {backup.collections.length > 3 && (
-                          <span className="text-[10px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500">+{backup.collections.length - 3}</span>
                         )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmData({
+                              isOpen: true,
+                              title: 'Supprimer le backup',
+                              message: `Êtes-vous sûr de vouloir supprimer le backup ${backup.id} ?`,
+                              onConfirm: () => handleDeleteBackup(backup.id)
+                            });
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
-                    </motion.div>
-                  ))
-                )}
-              </div>
+                    </div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2.5 bg-white dark:bg-slate-800 rounded-lg shadow-sm">
+                        <Database className="h-5 w-5 text-indigo-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">
+                          {format(new Date(backup.createdAt), "d MMM yyyy", { locale: fr })}
+                        </p>
+                        <p className="text-xs text-slate-500 font-medium">
+                          {format(new Date(backup.createdAt), "HH:mm", { locale: fr })} • {backup.collections.length} collections
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {backup.collections.slice(0, 3).map(c => (
+                        <span key={c} className="text-[10px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500 capitalize">{c}</span>
+                      ))}
+                      {backup.collections.length > 3 && (
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-500">+{backup.collections.length - 3}</span>
+                      )}
+                    </div>
+                  </motion.div>
+                ))
+              )}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Modal de confirmation */}
-        <ConfirmModal
-          isOpen={confirmData.isOpen}
-          title={confirmData.title}
-          message={confirmData.message}
-          onConfirm={() => {
-            confirmData.onConfirm();
-            setConfirmData({ ...confirmData, isOpen: false });
-          }}
-          onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
-        />
-    </motion.div>
+      {/* Modal de confirmation */}
+      <ConfirmModal
+        isOpen={confirmData.isOpen}
+        title={confirmData.title}
+        message={confirmData.message}
+        onConfirm={() => {
+          confirmData.onConfirm();
+          setConfirmData({ ...confirmData, isOpen: false });
+        }}
+        onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+      />
+    </motion.div >
   );
 };

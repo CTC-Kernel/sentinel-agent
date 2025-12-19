@@ -155,7 +155,7 @@ export const Projects: React.FC = () => {
             <ScrollableTabs
                 tabs={tabs}
                 activeTab={activeTab}
-                onTabChange={(id) => setActiveTab(id as any)}
+                onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'board' | 'gantt')}
             />
 
             {/* OVERVIEW TAB */}

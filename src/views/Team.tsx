@@ -168,7 +168,6 @@ export const Team: React.FC = () => {
             setShowInviteModal(false);
             inviteForm.reset();
             addToast("Invitation envoyée par email", "success");
-            addToast("Invitation envoyée par email", "success");
             fetchUsers();
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Team.handleInvite', 'INVITE_FAILED');
@@ -208,7 +207,6 @@ export const Team: React.FC = () => {
             }));
             await logAction(user, 'UPDATE', 'User', `Modification utilisateur: ${selectedUser.email}`);
             setUsers(prev => prev.map(u => u.uid === selectedUser.uid ? { ...u, ...data } : u));
-            setShowEditModal(false);
             setShowEditModal(false);
             addToast("Utilisateur mis à jour", "success");
         } catch (error) {

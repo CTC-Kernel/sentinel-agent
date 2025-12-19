@@ -93,11 +93,11 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       case 'compliance': return hasPermission(user, 'Audit', 'read');
       case 'suppliers': return hasPermission(user, 'Supplier', 'read');
       case 'privacy': return hasPermission(user, 'Document', 'read'); // RGPD linked to Docs usually
-      case 'voxel': return user.role === 'admin' || user.role === 'rssi' || user.role === 'direction'; // Restricted to high-level for now
+      case 'voxel': return hasPermission(user, 'CTCEngine', 'read');
       case 'vulnerabilities': return hasPermission(user, 'Asset', 'read');
       case 'threat-intelligence': return true; // Open to all auth users
       case 'reports': return hasPermission(user, 'Risk', 'read');
-      case 'audit-trail': return user.role === 'admin' || user.role === 'rssi' || user.role === 'auditor'; // Specific to auditors
+      case 'audit-trail': return hasPermission(user, 'AuditTrail', 'read');
       case 'super_admin': return isSuperAdmin;
       default: return true;
     }

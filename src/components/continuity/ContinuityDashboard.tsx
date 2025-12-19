@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip,
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend
+    BarChart, Bar, Legend
 } from 'recharts';
-import { Activity, ShieldCheck, Zap, AlertTriangle, TrendingUp, History } from '../ui/Icons';
+import { Activity, ShieldCheck, Zap, TrendingUp, History } from '../ui/Icons';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { BusinessProcess, BcpDrill } from '../../types';
@@ -63,7 +63,7 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
         const counts = { Succès: 0, Partiel: 0, Échec: 0 };
         drills.forEach(d => {
             if (d.result === 'Succès') counts.Succès++;
-            else if (d.result === 'Partiel') counts.Partiel++;
+            else if (d.result === 'Succès partiel') counts.Partiel++;
             else if (d.result === 'Échec') counts.Échec++;
         });
         return [
@@ -223,7 +223,7 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
                                     align="right"
                                     layout="vertical"
                                     iconType="circle"
-                                    formatter={(value, entry: any) => (
+                                    formatter={(value) => (
                                         <span className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-2">{value}</span>
                                     )}
                                 />

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Project, UserProfile } from '../../types';
 import { Badge } from '../ui/Badge';
-import { Edit, Trash2, CalendarDays, CheckSquare } from '../ui/Icons';
+import { Edit, Trash2, CheckSquare } from '../ui/Icons';
 import { canDeleteResource } from '../../utils/permissions';
 
 interface ProjectCardProps {

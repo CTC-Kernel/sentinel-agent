@@ -92,11 +92,27 @@ export const Onboarding: React.FC = () => {
         }
     };
 
+    const isValidEmail = (email: string): boolean => {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
+
     const handleInviteUser = () => {
-        if (inviteEmail && !invitedUsers.includes(inviteEmail)) {
-            setInvitedUsers([...invitedUsers, inviteEmail]);
-            setInviteEmail('');
+        const trimmedEmail = inviteEmail.trim().toLowerCase();
+        if (!trimmedEmail) {
+            addToast("Veuillez saisir une adresse email.", "error");
+            return;
         }
+        if (!isValidEmail(trimmedEmail)) {
+            addToast("Adresse email invalide.", "error");
+            return;
+        }
+        if (invitedUsers.includes(trimmedEmail)) {
+            addToast("Cette adresse a déjà été ajoutée.", "info");
+            return;
+        }
+
+        setInvitedUsers([...invitedUsers, trimmedEmail]);
+        setInviteEmail('');
     };
 
     const handleRemoveInvite = (email: string) => {
@@ -317,7 +333,7 @@ export const Onboarding: React.FC = () => {
                     organizationId,
                     organizationName: data.organizationName || '',
                     role: 'admin',
-                    onboardingCompleted: true
+                    onboardingCompleted: false
                 });
             }
 

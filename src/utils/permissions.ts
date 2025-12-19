@@ -22,7 +22,9 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         BusinessProcess: ['manage'],
         ProcessingActivity: ['manage'],
         SupplierAssessment: ['manage'],
-        SupplierIncident: ['manage']
+        SupplierIncident: ['manage'],
+        CTCEngine: ['read'],
+        AuditTrail: ['read']
     },
     auditor: {
         Audit: ['read', 'create', 'update'],
@@ -36,7 +38,8 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         BusinessProcess: ['read', 'update'],
         ProcessingActivity: ['read', 'update'],
         SupplierAssessment: ['read', 'update'],
-        SupplierIncident: ['read']
+        SupplierIncident: ['read'],
+        AuditTrail: ['read']
     },
     project_manager: {
         Project: ['manage'],
@@ -64,7 +67,8 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         BusinessProcess: ['read'],
         ProcessingActivity: ['read'],
         SupplierAssessment: ['read'],
-        SupplierIncident: ['read']
+        SupplierIncident: ['read'],
+        CTCEngine: ['read']
     },
     user: {
         Document: ['read'],
