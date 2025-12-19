@@ -753,11 +753,25 @@ export interface SystemLog {
   id: string;
   organizationId: string;
   userId: string;
+  userDisplayName?: string;
   userEmail: string;
   action: string;
   resource: string;
   details?: string;
   timestamp: string;
+}
+
+export interface NotificationChannelPreferences {
+  email: boolean;
+  push: boolean;
+  inApp: boolean;
+}
+
+export interface NotificationPreferences {
+  risks: NotificationChannelPreferences;
+  audits: NotificationChannelPreferences;
+  tasks: NotificationChannelPreferences;
+  system: NotificationChannelPreferences;
 }
 
 export interface UserProfile {
@@ -774,6 +788,7 @@ export interface UserProfile {
   theme?: 'light' | 'dark';
   isPending?: boolean;
   createdAt?: string;
+  notificationPreferences?: NotificationPreferences;
 
   hasGeminiKey?: boolean;
   hasShodanKey?: boolean;

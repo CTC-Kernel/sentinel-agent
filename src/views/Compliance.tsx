@@ -41,12 +41,6 @@ import { ISO_DOMAINS, ISO_SEED_CONTROLS, NIS2_DOMAINS, NIS2_SEED_CONTROLS, DORA_
 import { FRAMEWORKS } from '../data/frameworks';
 import { integrationService, IntegrationProvider } from '../services/integrationService';
 import { Globe } from '../components/ui/Icons';
-
-
-
-
-
-
 import { canEditResource, hasPermission } from '../utils/permissions';
 
 import { SEO } from '../components/SEO';
@@ -106,13 +100,8 @@ export const Compliance: React.FC = () => {
     // Filter FRAMEWORKS for Compliance only
     const complianceFrameworks = FRAMEWORKS.filter(f => f.type === 'Compliance').map(f => ({ value: f.id, label: f.label }));
 
-    // ... (rest of imports/logic until the return) ...
-    // Note: I will only replace the top section to add import and the render section to fix width and usage.
-    // I need to split this into two replacements or one big one if I copy enough context.
-    // Actually, I can just replace the import and then the render. 
-    // First tool call: Import
 
-
+    // Effects
     useEffect(() => {
         const state = (location.state || {}) as { createForProject?: string; projectName?: string };
         if (state.createForProject) {

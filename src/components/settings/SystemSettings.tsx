@@ -35,9 +35,15 @@ export const SystemSettings: React.FC = () => {
                 // Sort on client side to avoid index issues
                 const logs = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as SystemLog[];
                 logs.sort((a, b) => {
-                    const tA = typeof a.timestamp === 'string' ? new Date(a.timestamp).getTime() : (a.timestamp as Timestamp)?.toMillis?.() || 0;
-                    const tB = typeof b.timestamp === 'string' ? new Date(b.timestamp).getTime() : (b.timestamp as Timestamp)?.toMillis?.() || 0;
-                    return tB - tA;
+                    const getMillis = (val: string | number | Timestamp | Date | undefined) => {
+                        if (!val) return 0;
+                        if (typeof val === 'object' && 'toMillis' in val && typeof val.toMillis === 'function') {
+                            return val.toMillis();
+                        }
+                        if (val instanceof Date) return val.getTime();
+                        return new Date(val as string | number).getTime();
+                    };
+                    return getMillis(b.timestamp) - getMillis(a.timestamp);
                 });
                 setAuditLogs(logs.slice(0, 50));
             } catch (error) {
@@ -98,10 +104,12 @@ export const SystemSettings: React.FC = () => {
             accessorKey: 'details',
             header: 'Détails',
             cell: ({ row }) => {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore - details might not exist in generic type
-                const details = row.original.details || (row.original as Record<string, unknown>).message;
-                const str = typeof details === 'string' ? details : JSON.stringify(details);
+                const details = row.original.details;
+                // Safely handle unknown details structure
+                const str = typeof details === 'string'
+                    ? details
+                    : JSON.stringify(details);
+
                 return (
                     <span className="text-slate-500 dark:text-slate-400 text-xs truncate max-w-[200px] block" title={str}>
                         {str}

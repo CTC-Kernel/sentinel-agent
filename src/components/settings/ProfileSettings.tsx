@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema, ProfileFormData } from '../../schemas/settingsSchema';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { Switch } from '../ui/Switch';
 import { Button } from '../ui/button';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { updateDoc, doc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -31,7 +32,13 @@ export const ProfileSettings: React.FC = () => {
             role: (user?.role as UserProfile['role']) || 'user',
             shodanApiKey: '',
             hibpApiKey: '',
-            safeBrowsingApiKey: ''
+            safeBrowsingApiKey: '',
+            notificationPreferences: user?.notificationPreferences || {
+                risks: { email: true, push: true, inApp: true },
+                audits: { email: true, push: true, inApp: true },
+                tasks: { email: true, push: true, inApp: true },
+                system: { email: true, push: true, inApp: true }
+            }
         }
     });
 
@@ -103,7 +110,8 @@ export const ProfileSettings: React.FC = () => {
                 await updateDoc(doc(db, 'users', docId), sanitizeData({
                     displayName: data.displayName,
                     department: data.department || '',
-                    role: updatedRole
+                    role: updatedRole,
+                    notificationPreferences: data.notificationPreferences
                 }));
             }
 
@@ -123,7 +131,8 @@ export const ProfileSettings: React.FC = () => {
                 role: updatedRole,
                 hasShodanKey: data.shodanApiKey ? true : user.hasShodanKey,
                 hasHibpKey: data.hibpApiKey ? true : user.hasHibpKey,
-                hasSafeBrowsingKey: data.safeBrowsingApiKey ? true : user.hasSafeBrowsingKey
+                hasSafeBrowsingKey: data.safeBrowsingApiKey ? true : user.hasSafeBrowsingKey,
+                notificationPreferences: data.notificationPreferences
             };
 
             setUser(userData);
@@ -235,6 +244,61 @@ export const ProfileSettings: React.FC = () => {
                                     value={language}
                                     onChange={(value) => setLanguage(value as 'fr' | 'en')}
                                 />
+                            </div>
+                        </div>
+
+                        <div className="border-t border-slate-200 dark:border-white/10 my-6"></div>
+
+                        {/* Notification Preferences */}
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('settings.notifications')}</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">{t('settings.notificationsDesc')}</p>
+                            </div>
+
+                            <div className="space-y-4">
+                                {[
+                                    { key: 'risks', label: t('common.risks') },
+                                    { key: 'audits', label: t('common.audits') },
+                                    { key: 'tasks', label: t('common.tasks') },
+                                    { key: 'system', label: t('common.system') }
+                                ].map((category) => (
+                                    <div key={category.key} className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                                        <h4 className="font-medium text-slate-900 dark:text-white mb-3 capitalize">{category.label}</h4>
+                                        <div className="flex gap-6 flex-wrap">
+                                            <Controller
+                                                name={`notificationPreferences.${category.key}.email` as any}
+                                                control={profileForm.control}
+                                                render={({ field }) => (
+                                                    <div className="flex items-center gap-2">
+                                                        <Switch checked={field.value} onChange={field.onChange} />
+                                                        <span className="text-sm text-slate-600 dark:text-slate-300">Email</span>
+                                                    </div>
+                                                )}
+                                            />
+                                            <Controller
+                                                name={`notificationPreferences.${category.key}.push` as any}
+                                                control={profileForm.control}
+                                                render={({ field }) => (
+                                                    <div className="flex items-center gap-2">
+                                                        <Switch checked={field.value} onChange={field.onChange} />
+                                                        <span className="text-sm text-slate-600 dark:text-slate-300">Push</span>
+                                                    </div>
+                                                )}
+                                            />
+                                            <Controller
+                                                name={`notificationPreferences.${category.key}.inApp` as any}
+                                                control={profileForm.control}
+                                                render={({ field }) => (
+                                                    <div className="flex items-center gap-2">
+                                                        <Switch checked={field.value} onChange={field.onChange} />
+                                                        <span className="text-sm text-slate-600 dark:text-slate-300">In-App</span>
+                                                    </div>
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 

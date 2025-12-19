@@ -29,6 +29,7 @@ import { CustomRole } from './types';
 import { VersionCheck } from './components/VersionCheck';
 import { ContentBlockerError } from './components/ui/ContentBlockerError';
 import { useAuth } from './hooks/useAuth';
+import { OnboardingOverlay } from './components/ui/onboarding/OnboardingOverlay';
 
 const Login = React.lazy(() => import('./views/Login').then(module => ({ default: module.Login })));
 const Onboarding = React.lazy(() => import('./views/Onboarding').then(module => ({ default: module.Onboarding })));
@@ -168,6 +169,7 @@ const AppLayout: React.FC = () => {
             <NotificationPermissionBanner />
             <CookieConsent />
             <OnboardingTrigger />
+            <OnboardingOverlay />
         </div>
     );
 };

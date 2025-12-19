@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
-import { Activity, Search } from 'lucide-react';
+import { Activity, Globe, User } from 'lucide-react';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -15,48 +15,73 @@ export const UserActivityLog: React.FC = () => {
     const { user, t } = useStore();
     const [logs, setLogs] = useState<SystemLog[]>([]);
     const [loading, setLoading] = useState(false);
+    const [viewMode, setViewMode] = useState<'my' | 'global'>('my');
+
+    const isAdmin = user?.role === 'admin' || user?.role === 'rssi';
 
     useEffect(() => {
-        if (!user?.uid) return;
+        if (!user?.organizationId) return;
 
         const fetchLogs = async () => {
             setLoading(true);
             const logsRef = collection(db, 'system_logs');
             try {
-                // Create a compound query for user-specific logs
-                // Note: Requires composite index on [userId, timestamp]
-                const q = query(
-                    logsRef,
-                    where('userId', '==', user.uid),
-                    where('organizationId', '==', user.organizationId),
-                    orderBy('timestamp', 'desc'),
-                    limit(50)
-                );
+                let q;
 
-                const snapshot = await getDocs(q);
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const fetchedLogs = snapshot.docs.map(d => ({ id: d.id, ...(d.data() as Record<string, any>) })) as SystemLog[];
-                setLogs(fetchedLogs);
-            } catch (error) {
-                // If index fails, try client-side sorting or simpler query
-                console.warn('Index missing or query failed, trying simpler query', error);
-                try {
-                    const simpleQ = query(
+                if (viewMode === 'global' && isAdmin) {
+                    // Global Query
+                    // Requires index: [organizationId, timestamp]
+                    q = query(
                         logsRef,
-                        where('userId', '==', user.uid),
+                        where('organizationId', '==', user.organizationId),
+                        orderBy('timestamp', 'desc'),
                         limit(100)
                     );
+                } else {
+                    // Personal Query
+                    // Requires index: [userId, timestamp] (or composite with orgId to be safe)
+                    // The original query used organizationId + userId.
+                    q = query(
+                        logsRef,
+                        where('userId', '==', user.uid),
+                        where('organizationId', '==', user.organizationId),
+                        orderBy('timestamp', 'desc'),
+                        limit(50)
+                    );
+                }
+
+                const snapshot = await getDocs(q);
+                const fetchedLogs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog));
+                setLogs(fetchedLogs);
+            } catch (error) {
+                console.warn('Query failed, falling back to simple query', error);
+                try {
+                    // Fallback strategy if indexes are missing
+                    const simpleQ = query(
+                        logsRef,
+                        where('organizationId', '==', user.organizationId),
+                        limit(200) // Fetch more then sort client side
+                    );
                     const snapshot = await getDocs(simpleQ);
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const fetchedLogs = snapshot.docs.map(d => ({ id: d.id, ...(d.data() as Record<string, any>) })) as SystemLog[];
+                    let fetchedLogs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog));
+
+                    // Client-side Filter for 'my'
+                    if (viewMode === 'my') {
+                        fetchedLogs = fetchedLogs.filter(l => l.userId === user.uid);
+                    }
+
+                    // Client-side Sort
                     fetchedLogs.sort((a, b) => {
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        const tA = (a.timestamp as any)?.toMillis?.() || new Date(a.timestamp as string).getTime() || 0;
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        const tB = (b.timestamp as any)?.toMillis?.() || new Date(b.timestamp as string).getTime() || 0;
-                        return tB - tA;
+                        const getMillis = (timestamp: any) => {
+                            if (typeof timestamp === 'object' && 'toMillis' in timestamp) return timestamp.toMillis();
+                            // Handle if it's already a date object or string
+                            return new Date(timestamp).getTime();
+                        };
+                        return getMillis(b.timestamp) - getMillis(a.timestamp);
                     });
-                    setLogs(fetchedLogs.slice(0, 50));
+
+                    setLogs(fetchedLogs.slice(0, 100));
+
                 } catch (retryError) {
                     ErrorLogger.handleErrorWithToast(retryError, 'UserActivityLog.fetchLogs', 'FETCH_FAILED');
                 }
@@ -66,58 +91,120 @@ export const UserActivityLog: React.FC = () => {
         };
 
         fetchLogs();
-    }, [user]);
+    }, [user, viewMode, isAdmin]);
 
-    const columns = useMemo<ColumnDef<SystemLog>[]>(() => [
-        {
-            accessorKey: 'timestamp',
-            header: t('common.date'),
-            cell: ({ row }) => {
-                const val = row.original.timestamp;
-                if (!val) return '-';
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const date = (val as any).toDate ? (val as any).toDate() : new Date(val as string | number);
-                return format(date, 'Pp', { locale: fr });
+    const columns = useMemo<ColumnDef<SystemLog>[]>(() => {
+        const cols: ColumnDef<SystemLog>[] = [
+            {
+                accessorKey: 'timestamp',
+                header: t('common.date'),
+                cell: ({ row }) => {
+                    const val = row.original.timestamp;
+                    if (!val) return '-';
+                    const date = (typeof val === 'object' && 'toDate' in val)
+                        ? (val as any).toDate()
+                        : new Date(val as string | number);
+                    try {
+                        // Check if date is valid
+                        if (isNaN(date.getTime())) return '-';
+                        return format(date, 'Pp', { locale: fr });
+                    } catch (e) { return '-'; }
+                }
             }
-        },
-        {
-            accessorKey: 'action',
-            header: t('common.action'),
-            cell: ({ getValue }) => (
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 border border-brand-100 dark:border-brand-800">
-                    {getValue() as string}
-                </span>
-            )
-        },
-        {
-            accessorKey: 'resource',
-            header: 'Module',
-            cell: ({ getValue }) => (
-                <span className="font-medium text-slate-600 dark:text-slate-400 text-xs">
-                    {getValue() as string}
-                </span>
-            )
-        },
-        {
-            accessorKey: 'details',
-            header: 'Détails',
-            cell: ({ row }) => {
-                const details = row.original.details || (row.original as any).message;
-                const str = typeof details === 'string' ? details : JSON.stringify(details);
-                return (
-                    <span className="text-slate-500 dark:text-slate-400 text-xs truncate max-w-[300px] block" title={str}>
-                        {str}
-                    </span>
-                );
-            }
+        ];
+
+        // Add User column if global view
+        if (viewMode === 'global') {
+            cols.push({
+                accessorKey: 'userDisplayName',
+                header: 'Utilisateur',
+                cell: ({ row }) => (
+                    <div className="flex flex-col">
+                        <span className="font-medium text-slate-900 dark:text-white text-sm">
+                            {row.original.userDisplayName || row.original.userEmail}
+                        </span>
+                        <span className="text-xs text-slate-500">{row.original.userEmail}</span>
+                    </div>
+                )
+            });
         }
-    ], [t]);
+
+        cols.push(
+            {
+                accessorKey: 'action',
+                header: t('common.action'),
+                cell: ({ getValue }) => (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 border border-brand-100 dark:border-brand-800">
+                        {getValue() as string}
+                    </span>
+                )
+            },
+            {
+                accessorKey: 'resource',
+                header: 'Module',
+                cell: ({ getValue }) => (
+                    <span className="font-medium text-slate-600 dark:text-slate-400 text-xs">
+                        {getValue() as string}
+                    </span>
+                )
+            },
+            {
+                accessorKey: 'details',
+                header: 'Détails',
+                cell: ({ getValue }) => {
+                    const val = getValue() as string;
+                    const displayVal = typeof val === 'object' ? JSON.stringify(val) : val;
+                    return (
+                        <span className="text-sm text-slate-600 dark:text-slate-300 truncate max-w-xs block" title={displayVal}>
+                            {displayVal || '-'}
+                        </span>
+                    );
+                }
+            }
+        );
+        return cols;
+    }, [t, viewMode]);
 
     return (
         <div className="space-y-8 animate-fade-in-up">
-            <div className="flex flex-col gap-2">
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white animate-slide-in-left">Mon Activité</h2>
-                <p className="text-slate-500 dark:text-slate-400">Historique de vos actions récentes sur la plateforme.</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex flex-col gap-2">
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent animate-slide-in-left">
+                        {isAdmin && viewMode === 'global' ? 'Journal d\'Activité Global' : 'Mon Activité'}
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400">
+                        {isAdmin && viewMode === 'global' ? 'Historique complet des actions de l\'organisation.' : 'Historique de vos actions récentes sur la plateforme.'}
+                    </p>
+                </div>
+
+                {isAdmin && (
+                    <div className="flex items-center bg-slate-100 dark:bg-slate-800/50 p-1 rounded-lg border border-slate-200 dark:border-white/10 self-start md:self-center">
+                        <button
+                            onClick={() => setViewMode('my')}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${viewMode === 'my'
+                                ? 'bg-white dark:bg-brand-600 text-brand-600 dark:text-white shadow-sm'
+                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                }`}
+                        >
+                            <span className="flex items-center gap-2">
+                                <User className="w-4 h-4" />
+                                Moi
+                            </span>
+                        </button>
+                        <button
+                            onClick={() => setViewMode('global')}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${viewMode === 'global'
+                                ? 'bg-white dark:bg-brand-600 text-brand-600 dark:text-white shadow-sm'
+                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                }`}
+                        >
+                            <span className="flex items-center gap-2">
+                                <Globe className="w-4 h-4" />
+                                Global
+                            </span>
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className="glass-panel p-0 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden transition-all duration-300 hover:shadow-lg">
@@ -127,7 +214,9 @@ export const UserActivityLog: React.FC = () => {
                         <div className="p-2.5 bg-brand-500/10 dark:bg-brand-500/20 rounded-xl text-brand-600 dark:text-brand-400 backdrop-blur-md shadow-sm">
                             <Activity className="w-5 h-5" />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Journal d'activité</h3>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                            {isAdmin && viewMode === 'global' ? 'Actions Récentes (Organisation)' : 'Vos Dernières Actions'}
+                        </h3>
                     </div>
                 </div>
                 <div className="relative z-10 p-2">
@@ -138,9 +227,9 @@ export const UserActivityLog: React.FC = () => {
                         className="bg-transparent border-none"
                         emptyState={
                             <EmptyState
-                                icon={Search}
+                                icon={viewMode === 'global' ? Globe : Activity}
                                 title="Aucune activité"
-                                description="Vous n'avez pas encore effectué d'actions enregistrées."
+                                description={viewMode === 'global' ? "Aucun journal d'activité trouvé pour l'organisation." : "Vous n'avez pas encore d'activité enregistrée."}
                                 color="slate"
                             />
                         }

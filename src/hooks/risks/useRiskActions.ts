@@ -53,7 +53,7 @@ export const useRiskActions = (onRefresh: () => void) => {
                 // So we can pass { uid: riskData.owner, organizationId: user.organizationId } as the target.
 
                 await NotificationService.create(
-                    { uid: riskData.owner, organizationId: user.organizationId } as any,
+                    { uid: riskData.owner, organizationId: user.organizationId },
                     'info',
                     'Nouveau Risque Assigné',
                     `Un nouveau risque vous a été assigné par ${user.displayName}`,

@@ -30,14 +30,14 @@ interface Article {
     id: string;
     title: string;
     description: string;
-    icon?: any;
+    icon?: React.ComponentType<{ className?: string }>;
     sections: Section[];
 }
 
 interface Category {
     id: string;
     title: string;
-    icon: any;
+    icon: React.ComponentType<{ className?: string }>;
     articles: Article[];
 }
 

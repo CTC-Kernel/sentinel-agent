@@ -167,6 +167,7 @@ export const Vulnerabilities: React.FC = () => {
             addToast("Supprimé avec succès", "success");
             refresh();
         } catch (error) {
+            ErrorLogger.error(error, 'Vulnerabilities.handleDelete');
             addToast("Erreur lors de la suppression", "error");
         }
     };
@@ -190,6 +191,7 @@ export const Vulnerabilities: React.FC = () => {
             logAction(user, 'CREATE_RISK', 'Vulnerabilities', `Created Risk for Vuln ${vuln.cveId}`);
             addToast("Risque associé créé", "success");
         } catch (e) {
+            ErrorLogger.error(e, 'Vulnerabilities.handleCreateRisk');
             addToast("Erreur création risque", "error");
         }
     };
@@ -257,7 +259,7 @@ export const Vulnerabilities: React.FC = () => {
                         {['Open', 'In Progress', 'Resolved', 'All'].map((tab) => (
                             <button
                                 key={tab}
-                                onClick={() => setActiveTab(tab as any)}
+                                onClick={() => setActiveTab(tab as typeof activeTab)}
                                 className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === tab ? 'bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                             >
                                 {tab === 'All' ? 'Tout' : tab === 'Open' ? 'Ouvertes' : tab === 'In Progress' ? 'En Cours' : 'Résolues'}

@@ -69,14 +69,19 @@ export const Dashboard: React.FC = () => {
 
     // Update local state when hook data changes
     useEffect(() => {
-        if (fetchedOrgName) setOrganizationName(fetchedOrgName);
-        if (fetchedOrgLogo) setOrganizationLogo(fetchedOrgLogo);
-        if (dataError && dataError !== 'permission-denied') {
-            // Toast handled in hook, but we can set local error state if needed
-            // setError(dataError);
-        } else if (dataError === 'permission-denied') {
-            setError('permission-denied');
-        }
+        const timer = setTimeout(() => {
+            if (fetchedOrgName) {
+                setOrganizationName(prev => prev !== fetchedOrgName ? fetchedOrgName : prev);
+            }
+            if (fetchedOrgLogo) {
+                setOrganizationLogo(prev => prev !== fetchedOrgLogo ? fetchedOrgLogo : prev);
+            }
+            if (dataError === 'permission-denied') {
+                setError('permission-denied');
+            }
+        }, 0);
+
+        return () => clearTimeout(timer);
     }, [fetchedOrgName, fetchedOrgLogo, dataError]);
 
     const { historyData, topRisks, stats, radarData, complianceScore, scoreGrade } = useDashboardMetrics({

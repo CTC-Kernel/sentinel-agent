@@ -4,7 +4,7 @@ import { functions } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 
 export const logAction = async (
-  user: { uid: string; email: string; organizationId?: string } | null,
+  user: { uid: string; email: string; organizationId?: string; displayName?: string } | null,
   action: string,
   resource: string,
   details?: string,
@@ -21,7 +21,9 @@ export const logAction = async (
       organizationId: orgId,
       action,
       resource,
-      details: details || ''
+      details: details || '',
+      userDisplayName: user.displayName || user.email, // Fallback to email
+      userEmail: user.email
     });
   } catch (error) {
     // Fallback or silent fail for logs to avoid crashing app

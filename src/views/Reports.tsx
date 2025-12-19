@@ -129,7 +129,7 @@ export const Reports: React.FC = () => {
                         addToast("Aucun audit disponible pour le rapport", "info");
                     }
                     break;
-                case 'assets_inventory':
+                case 'assets_inventory': {
                     if (!canReadAssets) throw new Error("Permission refusée");
                     const assetData = assets.map(a => [
                         a.name,
@@ -149,6 +149,7 @@ export const Reports: React.FC = () => {
                         assetData
                     );
                     break;
+                }
                 case 'compliance_soa':
                     if (!canReadControls) throw new Error("Permission refusée");
                     PdfService.generateComplianceExecutiveReport(controls, {
@@ -158,7 +159,7 @@ export const Reports: React.FC = () => {
                         filename: `soa_audit_${new Date().toISOString().split('T')[0]}.pdf`,
                     });
                     break;
-                case 'compliance_pack':
+                case 'compliance_pack': {
                     if (!canReadControls) throw new Error("Permission refusée");
                     // Fetch additional data required for the pack on-demand
                     const [incidentsSnap, allDocsSnap] = await Promise.all([
@@ -179,6 +180,7 @@ export const Reports: React.FC = () => {
                         assets
                     });
                     break;
+                }
                 default:
                     addToast("Type de rapport non supporté", "error");
             }
@@ -512,7 +514,7 @@ export const Reports: React.FC = () => {
 interface ReportCardProps {
     title: string;
     description: string;
-    icon: any;
+    icon: React.ComponentType<{ className?: string }>;
     gradient: string;
     onGenerate: () => void;
     loading?: boolean;

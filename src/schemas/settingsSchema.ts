@@ -7,6 +7,12 @@ export const profileSchema = z.object({
     shodanApiKey: z.string().optional(),
     hibpApiKey: z.string().optional(),
     safeBrowsingApiKey: z.string().optional(),
+    notificationPreferences: z.object({
+        risks: z.object({ email: z.boolean(), push: z.boolean(), inApp: z.boolean() }),
+        audits: z.object({ email: z.boolean(), push: z.boolean(), inApp: z.boolean() }),
+        tasks: z.object({ email: z.boolean(), push: z.boolean(), inApp: z.boolean() }),
+        system: z.object({ email: z.boolean(), push: z.boolean(), inApp: z.boolean() })
+    }).optional()
 });
 
 export type ProfileFormData = z.infer<typeof profileSchema>;

@@ -124,7 +124,7 @@ export const ThreatIntelligence: React.FC = () => {
             };
             seedData();
         }
-    }, [loading, threats.length]);
+    }, [loading, threats.length, user]);
 
     // Derive Map Data from Threats (Dynamic)
     const mapData = useMemo(() => {
@@ -133,7 +133,7 @@ export const ThreatIntelligence: React.FC = () => {
         // For this "Demo/Production" mix, we'll map a few key ones or just use the country name match if we had a geo-lookup.
         // To keep it simple and working: we'll simulate the "value" aggregation based on threat count per country.
 
-        const countryCounts: Record<string, { value: number, markers: any[] }> = {};
+        const countryCounts: Record<string, { value: number, markers: { coordinates: [number, number]; name: string }[] }> = {};
 
         // Default some countries to show activity even if no threats (for aesthetics)
         // or just rely on threats. Let's rely on threats + some baseline noise for "World Map" feel.

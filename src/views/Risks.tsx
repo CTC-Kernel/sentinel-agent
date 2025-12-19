@@ -23,7 +23,8 @@ import { SEO } from '../components/SEO';
 import { ShieldAlert } from 'lucide-react';
 import { PdfService } from '../services/PdfService';
 import { canEditResource } from '../utils/permissions';
-// @ts-ignore
+import { Risk } from '../types';
+// @ts-expect-error: Papaparse types might be missing in this environment
 import Papa from 'papaparse';
 import { aiService } from '../services/aiService';
 import { toast } from 'sonner';
@@ -60,7 +61,7 @@ export const Risks: React.FC = () => {
 
     // 5. Local UI State
     const [viewMode, setViewMode] = useState<'matrix' | 'list' | 'cards'>('cards');
-    const [selectedRisk, setSelectedRisk] = useState<any | null>(null);
+    const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
     const [creationMode, setCreationMode] = useState(false);
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
     const [importing, setImporting] = useState(false);
@@ -127,29 +128,25 @@ export const Risks: React.FC = () => {
         Papa.parse(file, {
             header: true,
             skipEmptyLines: true,
-            complete: async (results: any) => {
-                const data = results.data as any[];
-                let count = 0;
-                // Basic implementation: Create risks from CSV
-                // Assuming CSV headers match Risk fields loosely or map them
+            complete: async (results: { data: Record<string, string>[] }) => {
+                const data = results.data;
                 for (const row of data) {
                     if (row.Menace || row.Threat) {
                         await createRisk({
                             threat: row.Menace || row.Threat,
                             vulnerability: row.Vulnerability || row.Vulnérabilite || '',
-                            probability: parseInt(row.Probability || row.Probabilite || '1') as any,
-                            impact: parseInt(row.Impact || '1') as any,
-                            strategy: row.Strategy || row.Strategie || 'Atténuer',
-                            status: row.Status || row.Statut || 'Ouvert'
+                            probability: (parseInt(row.Probability || row.Probabilite || '1') as 1 | 2 | 3 | 4 | 5),
+                            impact: (parseInt(row.Impact || '1') as 1 | 2 | 3 | 4 | 5),
+                            strategy: (row.Strategy || row.Strategie || 'Atténuer') as Risk['strategy'],
+                            status: (row.Status || row.Statut || 'Ouvert') as Risk['status']
                         });
-                        count++;
                     }
                 }
                 setImporting(false);
                 refreshRisks();
                 if (fileInputRef.current) fileInputRef.current.value = '';
             },
-            error: (err: any) => {
+            error: (err: unknown) => {
                 console.error("Import Error", err);
                 setImporting(false);
             }
@@ -198,7 +195,7 @@ export const Risks: React.FC = () => {
                     }}
                     isAnalyzing={isAnalyzing}
                     onNewRisk={() => setCreationMode(true)}
-                    fileInputRef={fileInputRef as any}
+                    fileInputRef={fileInputRef as React.RefObject<HTMLInputElement>}
                 />
 
                 {/* Hidden File Input */}
@@ -280,7 +277,7 @@ export const Risks: React.FC = () => {
                 demoMode={demoMode}
                 onUpdate={updateRisk}
                 onDelete={deleteRisk}
-                onDuplicate={(r) => createRisk({ ...r, threat: `${r.threat} (Copie)` } as any)}
+                onDuplicate={(r) => createRisk({ ...r, threat: `${r.threat} (Copie)` } as Risk)}
             />
 
             <Drawer
@@ -292,12 +289,12 @@ export const Risks: React.FC = () => {
                 <div className="p-6">
                     <RiskForm
                         onSubmit={async (data) => {
-                            const success = await createRisk(data as any);
+                            const success = await createRisk(data as Risk);
                             if (success) setCreationMode(false);
                         }}
                         onCancel={() => setCreationMode(false)}
                         assets={assets}
-                        usersList={usersList as any}
+                        usersList={usersList}
                         processes={rawProcesses}
                         suppliers={suppliers}
                         controls={controls}
@@ -313,7 +310,7 @@ export const Risks: React.FC = () => {
                     // Adapter logic for template
                     setIsTemplateModalOpen(false);
                 }}
-                owners={usersList as any}
+                users={usersList}
             />
         </div>
     );

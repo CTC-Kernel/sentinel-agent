@@ -5,16 +5,18 @@ import { X, Zap, AlertTriangle, ShieldAlert } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { CustomSelect } from '../ui/CustomSelect';
 
+import { UserProfile } from '../../types';
+
 interface RiskTemplateModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSelectTemplate: (template: RiskTemplate, owner: string) => void;
 
-    owners: string[];
+    users: UserProfile[];
     isLoading?: boolean;
 }
 
-export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, onClose, onSelectTemplate, owners, isLoading = false }) => {
+export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, onClose, onSelectTemplate, users, isLoading = false }) => {
     const [selectedTemplate, setSelectedTemplate] = useState<RiskTemplate | null>(null);
     const [owner, setOwner] = useState('');
 
@@ -131,7 +133,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                     label="Responsable par Défaut"
                                     value={owner}
                                     onChange={(val) => setOwner(val as string)}
-                                    options={owners.map(o => ({ value: o, label: o }))}
+                                    options={users.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
                                     required
                                     placeholder="Sélectionner..."
                                 />

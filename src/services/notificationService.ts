@@ -1,6 +1,6 @@
 import { db } from '../firebase';
 import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit, getDoc, onSnapshot } from 'firebase/firestore';
-import { UserProfile, Audit, Document as GRCDocument, Asset, Risk, ProjectTask, Incident, Control, Supplier } from '../types';
+import { UserProfile, Audit, Document as GRCDocument, Asset, Risk, ProjectTask, Incident, Control, Supplier, NotificationPreferences, NotificationChannelPreferences } from '../types';
 import { sendEmail } from './emailService';
 import {
     getTaskAssignmentTemplate,
@@ -34,14 +34,37 @@ export class NotificationService {
      * Create a new notification
      */
     static async create(
-        user: UserProfile,
+        user: { uid: string; organizationId: string } | UserProfile,
         type: Notification['type'],
         title: string,
         message: string,
         link?: string,
-        expiresInDays?: number
+        expiresInDays?: number,
+        category: keyof NotificationPreferences = 'system'
     ): Promise<void> {
         if (!user.organizationId) return;
+
+        let preferences = (user as UserProfile).notificationPreferences;
+
+        if (!preferences) {
+            // Fetch target user to check preferences if not provided
+            try {
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data() as UserProfile;
+                    preferences = userData.notificationPreferences;
+                }
+            } catch (e) {
+                // Ignore fetch errors
+            }
+        }
+
+        if (preferences) {
+            // Check In-App preference
+            if (preferences[category] && !preferences[category].inApp) {
+                return; // Skip if disabled
+            }
+        }
 
         const expiresAt = expiresInDays
             ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
@@ -61,6 +84,14 @@ export class NotificationService {
     }
 
     /**
+     * Check if a notification should be sent based on user preferences
+     */
+    static shouldNotify(user: UserProfile, category: keyof NotificationPreferences, channel: keyof NotificationChannelPreferences): boolean {
+        if (!user.notificationPreferences) return true; // Default to true (opt-out)
+        return user.notificationPreferences[category]?.[channel] ?? true;
+    }
+
+    /**
      * Create notification for all users in an organization
      */
     static async createForOrganization(
@@ -68,24 +99,28 @@ export class NotificationService {
         type: Notification['type'],
         title: string,
         message: string,
-        link?: string
+        link?: string,
+        category: keyof NotificationPreferences = 'system'
     ): Promise<void> {
         const usersSnap = await getDocs(
             query(collection(db, 'users'), where('organizationId', '==', organizationId))
         );
 
-        const promises = usersSnap.docs.map((userDoc) =>
-            addDoc(collection(db, 'notifications'), sanitizeData({
-                organizationId,
-                userId: userDoc.id,
-                type,
-                title,
-                message,
-                link,
-                read: false,
-                createdAt: new Date().toISOString(),
-            }))
-        );
+        const promises = usersSnap.docs
+            .map(doc => ({ uid: doc.id, ...doc.data() } as unknown as UserProfile))
+            .filter(user => this.shouldNotify(user, category, 'inApp'))
+            .map((user) =>
+                addDoc(collection(db, 'notifications'), sanitizeData({
+                    organizationId,
+                    userId: user.uid,
+                    type,
+                    title,
+                    message,
+                    link,
+                    read: false,
+                    createdAt: new Date().toISOString(),
+                }))
+            );
 
         await Promise.all(promises);
     }
@@ -227,8 +262,8 @@ export class NotificationService {
                         }));
 
                         // Send Email
-                        const auditorData = auditorSnap.docs[0].data();
-                        if (auditorData.email) {
+                        const auditorData = auditorSnap.docs[0].data() as UserProfile;
+                        if (auditorData.email && this.shouldNotify(auditorData, 'audits', 'email')) {
                             await sendEmail(null, {
                                 to: auditorData.email,
                                 subject: `Rappel Audit : ${audit.name}`,
@@ -298,8 +333,8 @@ export class NotificationService {
                         }));
 
                         // Send Email
-                        const ownerData = ownerSnap.docs[0].data();
-                        if (ownerData.email) {
+                        const ownerData = ownerSnap.docs[0].data() as UserProfile;
+                        if (ownerData.email && this.shouldNotify(ownerData, 'tasks', 'email')) {
                             await sendEmail(null, {
                                 to: ownerData.email,
                                 subject: `Révision requise : ${doc.title}`,
@@ -375,8 +410,8 @@ export class NotificationService {
                             }));
 
                             // Send Email
-                            const ownerData = ownerSnap.docs[0].data();
-                            if (ownerData.email) {
+                            const ownerData = ownerSnap.docs[0].data() as UserProfile;
+                            if (ownerData.email && this.shouldNotify(ownerData, 'system', 'email')) {
                                 await sendEmail(null, {
                                     to: ownerData.email,
                                     subject: `Maintenance : ${asset.name}`,
@@ -435,20 +470,20 @@ export class NotificationService {
                 const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes('risque(s) critique(s)'));
 
                 if (!alreadyNotified) {
-                    await addDoc(collection(db, 'notifications'), sanitizeData({
-                        organizationId,
-                        userId: adminDoc.id,
-                        type: 'danger',
-                        title: `${criticalRisksWithoutMitigation.length} risque(s) critique(s) sans atténuation`,
-                        message: `Des risques critiques n'ont pas de contrôles d'atténuation associés`,
-                        link: '/risks',
-                        read: false,
-                        createdAt: new Date().toISOString(),
-                    }));
+                    const adminData = adminDoc.data() as UserProfile;
+
+                    await this.create(
+                        adminData,
+                        'danger',
+                        `${criticalRisksWithoutMitigation.length} risque(s) critique(s) sans atténuation`,
+                        `Des risques critiques n'ont pas de contrôles d'atténuation associés`,
+                        '/risks',
+                        undefined,
+                        'risks'
+                    );
 
                     // Send Email
-                    const adminData = adminDoc.data();
-                    if (adminData.email) {
+                    if (adminData.email && this.shouldNotify(adminData, 'risks', 'email')) {
                         await sendEmail(null, {
                             to: adminData.email,
                             subject: `Action requise : ${criticalRisksWithoutMitigation.length} Risques Critiques`,
@@ -481,15 +516,17 @@ export class NotificationService {
 
         // 2. Create Notification
         await this.create(
-            { uid: assigneeId, organizationId: task.organizationId } as UserProfile,
+            userData || { uid: assigneeId, organizationId: task.organizationId } as UserProfile,
             'info',
             'Nouvelle tâche assignée',
             `On vous a assigné la tâche : ${task.title}`,
-            '/projects'
+            '/projects',
+            undefined,
+            'tasks'
         );
 
         // 3. Send Email
-        if (userData && userData.email) {
+        if (userData && userData.email && this.shouldNotify(userData, 'tasks', 'email')) {
             await sendEmail(null, {
                 to: userData.email,
                 subject: `Nouvelle tâche : ${task.title}`,
@@ -514,7 +551,8 @@ export class NotificationService {
             'danger',
             'Nouvel Incident Signalé',
             `${incident.title} (${incident.severity})`,
-            `/incidents?id=${incident.id}`
+            `/incidents?id=${incident.id}`,
+            'risks'
         );
 
         // 2. Send Email to Admins
@@ -527,26 +565,23 @@ export class NotificationService {
                 )
             );
 
-            const emailPromises = adminsSnap.docs.map(adminDoc => {
-                const adminData = adminDoc.data();
-                if (adminData.email) {
-                    return sendEmail(null, {
-                        to: adminData.email,
-                        subject: `🚨 Incident : ${incident.title}`,
-                        html: getIncidentAlertTemplate(
-                            incident.title,
-                            incident.severity,
-                            incident.reporter || 'Un utilisateur',
-                            buildAppUrl(`/incidents?id=${incident.id}`)
-                        ),
-                        type: 'INCIDENT_ALERT'
-                    });
-                }
-                return Promise.resolve();
-            });
+            const emailPromises = adminsSnap.docs
+                .map(doc => doc.data() as UserProfile)
+                .filter(admin => admin.email && this.shouldNotify(admin, 'risks', 'email'))
+                .map(admin => sendEmail(null, {
+                    to: admin.email,
+                    subject: `🚨 Incident : ${incident.title}`,
+                    html: getIncidentAlertTemplate(
+                        incident.title,
+                        incident.severity,
+                        incident.reporter || 'Un utilisateur',
+                        buildAppUrl(`/incidents?id=${incident.id}`)
+                    ),
+                    type: 'INCIDENT_ALERT'
+                }));
 
             await Promise.all(emailPromises);
-        } catch (e) { ErrorLogger.error(e, 'NotificationService.notifyNewIncident'); }
+        } catch (e) { ErrorLogger.error(e, 'NotificationService.notifyNewIncident.sendEmail'); }
     }
 
     /**
@@ -564,15 +599,17 @@ export class NotificationService {
 
         // 2. Create Notification
         await this.create(
-            { uid: assigneeId, organizationId: control.organizationId } as UserProfile,
+            userData || { uid: assigneeId, organizationId: control.organizationId } as UserProfile,
             'info',
             'Contrôle assigné',
             `On vous a assigné le contrôle : ${control.code} - ${control.name}`,
-            '/compliance'
+            '/compliance',
+            undefined,
+            'audits' // Using 'audits' for compliance/controls
         );
 
         // 3. Send Email
-        if (userData && userData.email) {
+        if (userData && userData.email && this.shouldNotify(userData, 'audits', 'email')) {
             await sendEmail(null, {
                 to: userData.email,
                 subject: `Contrôle assigné : ${control.code}`,
@@ -652,8 +689,8 @@ export class NotificationService {
                     try {
                         const userSnap = await getDoc(doc(db, 'users', ownerId));
                         if (userSnap.exists()) {
-                            const userData = userSnap.data();
-                            if (userData.email) {
+                            const userData = userSnap.data() as UserProfile;
+                            if (userData.email && this.shouldNotify(userData, 'risks', 'email')) {
                                 await sendEmail(null, {
                                     to: userData.email,
                                     subject: `${msgTag} : ${risk.threat}`,
@@ -752,8 +789,8 @@ export class NotificationService {
                             try {
                                 const userSnap = await getDoc(doc(db, 'users', supplier.ownerId));
                                 if (userSnap.exists()) {
-                                    const userData = userSnap.data();
-                                    if (userData.email) {
+                                    const userData = userSnap.data() as UserProfile;
+                                    if (userData.email && this.shouldNotify(userData, 'system', 'email')) {
                                         await sendEmail(null, {
                                             to: userData.email,
                                             subject: `Expiration Contrat : ${supplier.name}`,

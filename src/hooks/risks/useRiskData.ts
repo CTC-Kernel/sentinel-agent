@@ -1,7 +1,7 @@
 import { useFirestoreCollection } from '../useFirestore';
 import { where } from 'firebase/firestore';
 import { useAuth } from '../useAuth';
-import { Risk, Asset, Control, BusinessProcess as Process, Supplier, Incident, Audit, Project } from '../../types';
+import { Risk, Asset, Control, BusinessProcess as Process, Supplier, Incident, Audit, Project, UserProfile } from '../../types';
 
 export const useRiskData = () => {
     const { user } = useAuth();
@@ -55,7 +55,7 @@ export const useRiskData = () => {
         { enabled: !!user?.organizationId }
     );
 
-    const { data: usersList } = useFirestoreCollection<{ uid: string; email: string; displayName: string; role: string }>(
+    const { data: usersList } = useFirestoreCollection<UserProfile>(
         'users',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
         { enabled: !!user?.organizationId }
