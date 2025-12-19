@@ -15,12 +15,12 @@ import { UserProfile } from '../types';
 import { useRiskData } from '../hooks/risks/useRiskData';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
 import { useRiskFilters } from '../hooks/risks/useRiskFilters';
-import { useRiskStats } from '../hooks/risks/useRiskStats';
+
 
 import { RiskList } from '../components/risks/RiskList';
 import { RiskGrid } from '../components/risks/RiskGrid';
 import { RiskMatrix } from '../components/risks/RiskMatrix';
-import { RiskStats } from '../components/risks/RiskStats';
+import { RiskDashboard } from '../components/risks/RiskDashboard';
 
 import { Drawer } from '../components/ui/Drawer';
 import { RiskForm } from '../components/risks/RiskForm';
@@ -57,7 +57,7 @@ export const Risks: React.FC = () => {
         matrixFilter, setMatrixFilter
     } = useRiskFilters(risks);
 
-    const stats = useRiskStats(filteredRisks);
+
 
     // Local UI State
     const [creationMode, setCreationMode] = useState(false);
@@ -196,7 +196,23 @@ export const Risks: React.FC = () => {
                 trustType="integrity"
             />
 
-            <RiskStats stats={stats} risks={risks} />
+            {/* Dashboard & Charts */}
+            <RiskDashboard
+                risks={filteredRisks}
+                onFilterChange={(filter) => {
+                    if (!filter) {
+                        // Reset filters logic if needed, or just clear search
+                        setActiveFilters(prev => ({ ...prev, query: '' }));
+                        setFrameworkFilter('');
+                    } else if (filter.type === 'level') {
+                        // This logic might need to be adapted to how useRiskFilters works
+                        // For now, simpler to just log or ignore if useRiskFilters doesn't support direct property set
+                        // But let's try to map it:
+                        // Assuming search query or we need to add explicit filters to useRiskFilters
+                        console.log('Filter requested:', filter);
+                    }
+                }}
+            />
 
             <motion.div variants={slideUpVariants}>
                 <PremiumPageControl

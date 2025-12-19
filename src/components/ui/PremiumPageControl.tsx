@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Search, MoreVertical, LayoutGrid, List } from 'lucide-react';
+import { Search, MoreVertical, LayoutGrid, List, LayoutDashboard } from 'lucide-react';
 
 
 interface PremiumPageControlProps {
@@ -95,6 +95,16 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                             title="Vue Grille"
                         >
                             <LayoutGrid className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={() => onViewModeChange('matrix')}
+                            className={`p-2 rounded-lg transition-all duration-300 ${viewMode === 'matrix'
+                                ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
+                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5'
+                                }`}
+                            title="Vue Matrice"
+                        >
+                            <LayoutDashboard className="w-5 h-5" />
                         </button>
                     </div>
                 )}
