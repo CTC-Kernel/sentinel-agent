@@ -37,7 +37,6 @@ import { EncryptionService } from '../services/encryptionService';
 import { PDFDocument, rgb, degrees, StandardFonts } from 'pdf-lib';
 import CryptoJS from 'crypto-js';
 import SignatureCanvas from 'react-signature-canvas';
-import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
 
 export const Documents: React.FC = () => {
@@ -667,7 +666,6 @@ export const Documents: React.FC = () => {
             animate="visible"
             className="space-y-8"
         >
-            <MasterpieceBackground />
             <SEO
                 title="Gestion Documentaire"
                 description="Centralisez et gérez le cycle de vie de vos politiques et procédures de sécurité."
