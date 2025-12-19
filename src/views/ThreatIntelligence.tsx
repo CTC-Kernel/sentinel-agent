@@ -9,6 +9,7 @@ import { RefreshCw, Settings } from 'lucide-react';
 import { Menu, Transition } from '@headlessui/react';
 import { Threat } from '../types';
 import { ThreatFeedService } from '../services/ThreatFeedService';
+import { ThreatDashboard } from '../components/threats/ThreatDashboard';
 import { WorldThreatMap } from '../components/map/WorldThreatMap';
 import { Tooltip } from 'react-tooltip';
 import { Badge } from '../components/ui/Badge';
@@ -201,42 +202,9 @@ export const ThreatIntelligence: React.FC = () => {
             <SubmitThreatModal isOpen={isSubmitModalOpen} onClose={() => setIsSubmitModalOpen(false)} onSuccess={() => addToast("Menace signalée !", "success")} />
             <ThreatToRiskModal isOpen={isRiskModalOpen} threat={threatForRisk} onClose={() => setIsRiskModalOpen(false)} />
 
-            {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
                 <motion.div variants={slideUpVariants} className="space-y-6">
-                    {/* Glass Dashboard */}
-                    <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent dark:border-white/5 overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
-                        <div className="flex items-center gap-6 relative z-10">
-                            <div className="p-4 bg-red-500/10 rounded-full border border-red-500/20 animate-pulse-slow">
-                                <Globe className="h-12 w-12 text-red-500" strokeWidth={1.5} />
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1">Menace Globale</h3>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">Niveau d'activité cybermondiale.</p>
-                                <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full bg-red-500 text-white text-xs font-bold uppercase tracking-wider">
-                                    Élevé
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex-1 grid grid-cols-3 gap-8 px-8 border-l border-slate-200 dark:border-white/10">
-                            <div>
-                                <div className="text-sm text-slate-500 mb-1">Menaces Actives</div>
-                                <div className="text-3xl font-black text-slate-900 dark:text-white">{threats.length}</div>
-                            </div>
-                            <div>
-                                <div className="text-sm text-slate-500 mb-1">Ransomware</div>
-                                <div className="text-3xl font-black text-orange-500">{threats.filter(t => t.type === 'Ransomware').length}</div>
-                            </div>
-                            <div>
-                                <div className="text-sm text-slate-500 mb-1">Communauté</div>
-                                <div className="text-3xl font-black text-blue-500">12k+</div>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* Preview of feed / map maybe? or just keep it clean */}
+                    <ThreatDashboard threats={threats} />
                 </motion.div>
             )}
 

@@ -15,7 +15,10 @@ import { Audit } from '../types';
 import { AuditFormData } from '../schemas/auditSchema';
 import { PageHeader } from '../components/ui/PageHeader';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
-import { Calendar, Download, BrainCircuit, Plus } from 'lucide-react';
+import { Calendar as CalendarIcon, Download, BrainCircuit, Plus, LayoutDashboard, List } from 'lucide-react';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { AuditDashboard } from '../components/audits/AuditDashboard';
+import { AuditCalendar } from '../components/audits/AuditCalendar'; // Will create this next
 
 export const Audits: React.FC = () => {
     const {
@@ -27,11 +30,23 @@ export const Audits: React.FC = () => {
     const { user } = useStore();
 
     // Local UI State
+    const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'calendar'>('list');
     const [creationMode, setCreationMode] = useState(false);
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [filter, setFilter] = useState('');
+
+    const tabs = [
+        { id: 'overview', label: "Tableau de Bord", icon: LayoutDashboard },
+        { id: 'list', label: "Liste des Audits", icon: List },
+        { id: 'calendar', label: "Calendrier", icon: CalendarIcon },
+    ];
+
+    // Compute all findings for Dashboard
+    const allFindings = useMemo(() => {
+        return audits.flatMap(a => a.findings || []);
+    }, [audits]);
 
     // Filter Logic
     const filteredAudits = useMemo(() => {
@@ -88,53 +103,86 @@ export const Audits: React.FC = () => {
                 subtitle={auditsSubtitle}
             />
 
-            <motion.div variants={slideUpVariants}>
-                <PremiumPageControl
-                    searchQuery={filter}
-                    onSearchChange={setFilter}
-                    searchPlaceholder="Rechercher un audit..."
-                    actions={
-                        <div className="flex gap-2">
-                            <button onClick={handleExportCalendar} className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors" title="Exporter Calendrier">
-                                <Calendar className="w-5 h-5" />
-                            </button>
-                            <button onClick={handleExportCSV} className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors" title="Exporter CSV">
-                                <Download className="w-5 h-5" />
-                            </button>
-                            {canEdit && (
-                                <>
-                                    <button
-                                        onClick={handleGeneratePlan}
-                                        className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium text-sm border border-purple-200 dark:border-purple-800"
-                                    >
-                                        <BrainCircuit className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Assistant IA</span>
-                                    </button>
-                                    <button
-                                        onClick={() => { setEditingAudit(null); setCreationMode(true); }}
-                                        className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors font-medium text-sm shadow-sm hover:shadow-md"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Nouvel Audit</span>
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    }
+            <div className="mb-6">
+                <ScrollableTabs
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'calendar')}
                 />
-            </motion.div>
+            </div>
 
-            <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-2xl border border-glass-border">
-                <AuditsList
-                    audits={filteredAudits}
-                    isLoading={loading}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onOpen={handleOpen}
-                    canEdit={canEdit}
-                    canDelete={canDelete}
-                />
-            </motion.div>
+            {activeTab === 'overview' && (
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible">
+                    <AuditDashboard
+                        audits={audits}
+                        findings={allFindings}
+                        onFilterChange={(f) => {
+                            if (f?.type === 'status') {
+                                setFilter(f.value);
+                                setActiveTab('list');
+                            }
+                        }}
+                    />
+                </motion.div>
+            )}
+
+            {activeTab === 'list' && (
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="space-y-6">
+                    <PremiumPageControl
+                        searchQuery={filter}
+                        onSearchChange={setFilter}
+                        searchPlaceholder="Rechercher un audit..."
+                        actions={
+                            <div className="flex gap-2">
+                                <button onClick={handleExportCalendar} className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors" title="Exporter Calendrier">
+                                    <CalendarIcon className="w-5 h-5" />
+                                </button>
+                                <button onClick={handleExportCSV} className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors" title="Exporter CSV">
+                                    <Download className="w-5 h-5" />
+                                </button>
+                                {canEdit && (
+                                    <>
+                                        <button
+                                            onClick={handleGeneratePlan}
+                                            className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium text-sm border border-purple-200 dark:border-purple-800"
+                                        >
+                                            <BrainCircuit className="w-4 h-4" />
+                                            <span className="hidden sm:inline">Assistant IA</span>
+                                        </button>
+                                        <button
+                                            onClick={() => { setEditingAudit(null); setCreationMode(true); }}
+                                            className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors font-medium text-sm shadow-sm hover:shadow-md"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            <span className="hidden sm:inline">Nouvel Audit</span>
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        }
+                    />
+                    <div className="glass-panel p-6 rounded-2xl border border-glass-border">
+                        <AuditsList
+                            audits={filteredAudits}
+                            isLoading={loading}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                            onOpen={handleOpen}
+                            canEdit={canEdit}
+                            canDelete={canDelete}
+                        />
+                    </div>
+                </motion.div>
+            )}
+
+            {activeTab === 'calendar' && (
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible">
+                    <AuditCalendar
+                        audits={audits}
+                        onAuditClick={handleOpen}
+                    />
+                </motion.div>
+            )}
 
             {/* Creation/Edit Drawer */}
             <Drawer

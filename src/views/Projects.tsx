@@ -14,10 +14,10 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
-import { ChartTooltip } from '../components/ui/ChartTooltip';
+
 import { Plus, MoreVertical, Zap, FileSpreadsheet } from '../components/ui/Icons';
 import { TemplateModal } from '../components/projects/TemplateModal';
+import { PortfolioDashboard } from '../components/projects/PortfolioDashboard';
 import { createProjectFromTemplate } from '../utils/projectTemplates';
 import { GanttChart } from '../components/projects/GanttChart';
 import jsPDF from 'jspdf';
@@ -161,145 +161,9 @@ export const Projects: React.FC = () => {
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
                 <motion.div variants={slideUpVariants} className="space-y-6">
-                    {/* Top Stats Cards */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Global Health - Radial */}
-                        <motion.div variants={slideUpVariants} className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent dark:border-white/5 overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
-                            <div className="flex items-center gap-6 relative z-10">
-                                <div className="relative">
-                                    <svg className="w-24 h-24 transform -rotate-90">
-                                        <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-200 dark:text-slate-700" />
-                                        <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * (projects.length > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length) : 0)) / 100} className="text-brand-500 transition-all duration-1000 ease-out" />
-                                    </svg>
-                                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                                        <span className="text-xl font-black text-slate-900 dark:text-white">
-                                            {projects.length > 0 ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length) : 0}%
-                                        </span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Santé du Portefeuille</h3>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[250px]">Moyenne d'avancement pondérée de tous les projets actifs.</p>
-                                </div>
-                            </div>
-                            {/* Key Metrics */}
-                            <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
-                                <div>
-                                    <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total</div>
-                                    <div className="text-2xl font-bold text-slate-900 dark:text-white">{projects.length}</div>
-                                </div>
-                                <div>
-                                    <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">En Cours</div>
-                                    <div className="text-2xl font-bold text-brand-600 dark:text-brand-400">{projects.filter(p => p.status === 'En cours').length}</div>
-                                </div>
-                                <div>
-                                    <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Critiques</div>
-                                    <div className="text-2xl font-bold text-red-500">{projects.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'Terminé').length}</div>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* Project Status Distribution */}
-                        <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
-                            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Statut des Projets</h3>
-                            <div className="h-[140px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={[
-                                                { name: 'En cours', value: projects.filter(p => p.status === 'En cours').length, color: '#3b82f6' },
-                                                { name: 'Terminé', value: projects.filter(p => p.status === 'Terminé').length, color: '#10b981' },
-                                                { name: 'Planifié', value: projects.filter(p => p.status === 'Planifié').length, color: '#f59e0b' },
-                                                { name: 'Suspendu', value: projects.filter(p => p.status === 'Suspendu').length, color: '#64748b' }
-                                            ]}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={40}
-                                            outerRadius={60}
-                                            paddingAngle={5}
-                                            dataKey="value"
-                                        >
-                                            {[
-                                                { name: 'En cours', value: projects.filter(p => p.status === 'En cours').length, color: '#3b82f6' },
-                                                { name: 'Terminé', value: projects.filter(p => p.status === 'Terminé').length, color: '#10b981' },
-                                                { name: 'Planifié', value: projects.filter(p => p.status === 'Planifié').length, color: '#f59e0b' },
-                                                { name: 'Suspendu', value: projects.filter(p => p.status === 'Suspendu').length, color: '#64748b' }
-                                            ].map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} />
-                                            ))}
-                                        </Pie>
-                                        <RechartsTooltip content={<ChartTooltip />} />
-                                        <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </motion.div>
-                    </div>
-
-                    {/* Secondary Row Charts */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Task Progress (Dummy data based on aggregate check) */}
-                        <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5">
-                            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Distribution des Tâches (Global)</h3>
-                            <div className="h-[200px] w-full flex items-center justify-center text-slate-400 text-sm italic">
-                                {/* Ideally we aggregate all tasks from all projects here */}
-                                {/* For now, simple mock chart since useProjectLogic might not return all tasks deeply populated */}
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={[
-                                                { name: 'A faire', value: 45, color: '#94a3b8' },
-                                                { name: 'En cours', value: 30, color: '#3b82f6' },
-                                                { name: 'Terminé', value: 25, color: '#10b981' }
-                                            ]}
-                                            cx="50%"
-                                            cy="50%"
-                                            outerRadius={70}
-                                            dataKey="value"
-                                            label
-                                        >
-                                            <Cell fill="#94a3b8" />
-                                            <Cell fill="#3b82f6" />
-                                            <Cell fill="#10b981" />
-                                        </Pie>
-                                        <RechartsTooltip content={<ChartTooltip />} />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </motion.div>
-
-                        <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5">
-                            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Risques Associés</h3>
-                            <div className="h-[200px] w-full flex items-center justify-center text-slate-400 text-sm italic">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={[
-                                                { name: 'Elevé', value: risks.filter(r => r.score >= 10).length, color: '#ef4444' },
-                                                { name: 'Moyen', value: risks.filter(r => r.score >= 5 && r.score < 10).length, color: '#f59e0b' },
-                                                { name: 'Faible', value: risks.filter(r => r.score < 5).length, color: '#22c55e' }
-                                            ]}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={50}
-                                            outerRadius={70}
-                                            dataKey="value"
-                                        >
-                                            <Cell fill="#ef4444" />
-                                            <Cell fill="#f59e0b" />
-                                            <Cell fill="#22c55e" />
-                                        </Pie>
-                                        <RechartsTooltip content={<ChartTooltip />} />
-                                        <Legend verticalAlign="bottom" height={36} />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </motion.div>
-                    </div>
+                    <PortfolioDashboard projects={projects} />
                 </motion.div>
             )}
-
 
             {/* Shared Controls for List, Board, Gantt */}
             {activeTab !== 'overview' && (

@@ -25,6 +25,7 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { Menu, Transition } from '@headlessui/react';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+import { VulnerabilityDashboard } from '../components/vulnerabilities/VulnerabilityDashboard';
 
 export const Vulnerabilities: React.FC = () => {
     const { user, organization, addToast } = useStore();
@@ -61,15 +62,7 @@ export const Vulnerabilities: React.FC = () => {
     const canManage = hasPermission(user, 'Vulnerability', 'manage', organization?.ownerId);
 
     // Derived State and KPIs
-    const stats = useMemo(() => {
-        const total = vulnerabilities.length;
-        const critical = vulnerabilities.filter(v => v.severity === 'Critical' && v.status !== 'Resolved').length;
-        const high = vulnerabilities.filter(v => v.severity === 'High' && v.status !== 'Resolved').length;
-        const resolved = vulnerabilities.filter(v => v.status === 'Resolved').length;
-        const remediationRate = total > 0 ? Math.round((resolved / total) * 100) : 0;
 
-        return { total, critical, high, resolved, remediationRate };
-    }, [vulnerabilities]);
 
     const filteredVulns = useMemo(() => {
         return vulnerabilities.filter(v => {
@@ -222,45 +215,9 @@ export const Vulnerabilities: React.FC = () => {
                 onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'board')}
             />
 
-            {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
-                <motion.div variants={slideUpVariants} className="space-y-6">
-                    <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group border border-transparent dark:border-white/5 overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
-                        <div className="flex items-center gap-6 relative z-10">
-                            <div className="relative">
-                                <svg className="w-24 h-24 transform -rotate-90">
-                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-200 dark:text-slate-700" />
-                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * stats.remediationRate) / 100} className="text-emerald-500 transition-all duration-1000 ease-out" />
-                                </svg>
-                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                                    <span className="text-xl font-black text-slate-900 dark:text-white">
-                                        {stats.remediationRate}%
-                                    </span>
-                                </div>
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Taux de Remédiation</h3>
-                                <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">Pourcentage de vulnérabilités résolues.</p>
-                            </div>
-                        </div>
-
-                        {/* Metrics */}
-                        <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/10 px-6 mx-2">
-                            <div>
-                                <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total</div>
-                                <div className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</div>
-                            </div>
-                            <div>
-                                <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Critiques</div>
-                                <div className="text-2xl font-bold text-red-600">{stats.critical}</div>
-                            </div>
-                            <div>
-                                <div className="text-sm text-slate-600 dark:text-slate-400 mb-1">Élevées</div>
-                                <div className="text-2xl font-bold text-orange-500">{stats.high}</div>
-                            </div>
-                        </div>
-                    </motion.div>
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible">
+                    <VulnerabilityDashboard vulnerabilities={filteredVulns} />
                 </motion.div>
             )}
 

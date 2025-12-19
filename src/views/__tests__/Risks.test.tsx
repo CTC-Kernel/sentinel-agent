@@ -16,9 +16,15 @@ vi.mock('../../hooks/useFirestore', () => ({
 
 vi.mock('../../hooks/useAuth', () => ({
     useAuth: () => ({
-        user: { uid: 'test-user', email: 'test@example.com', organizationId: 'test-org' },
+        user: { uid: 'test-user', email: 'test@example.com', organizationId: 'test-org', role: 'admin' },
         loading: false,
     }),
+}));
+
+vi.mock('../../utils/permissions', () => ({
+    canEditResource: vi.fn().mockReturnValue(true),
+    canDeleteResource: vi.fn(),
+    hasPermission: vi.fn(),
 }));
 
 
@@ -28,7 +34,7 @@ vi.mock('react-helmet-async', () => ({
     HelmetProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock('@/components/ui/Icons', () => ({
+vi.mock('../../components/ui/Icons', () => ({
     Plus: () => <span data-testid="icon-plus" />,
     Search: () => <span data-testid="icon-search" />,
     ShieldAlert: () => <span data-testid="icon-shield-alert" />,
@@ -59,6 +65,7 @@ vi.mock('@/components/ui/Icons', () => ({
     Activity: () => <span data-testid="icon-activity" />,
     AlertTriangle: () => <span data-testid="icon-alert" />,
     Layers: () => <span data-testid="icon-layers" />,
+    Target: () => <span data-testid="icon-target" />,
 }));
 // Mock other components to simplify test
 vi.mock('../../components/ui/PageHeader', () => ({
@@ -71,7 +78,7 @@ describe('Risks View', () => {
         vi.mocked(useStore).mockReturnValue({
             user: { organizationId: 'test-org', role: 'admin' },
             addToast: vi.fn(),
-            demoMode: false, // Add missing property if required by interface, or cast return as unknown
+            demoMode: false,
         } as unknown as ReturnType<typeof useStore>);
         vi.mocked(useFirestoreCollection).mockReturnValue({
             data: [],
@@ -108,8 +115,6 @@ describe('Risks View', () => {
                 <Risks />
             </MemoryRouter>
         );
-        // Assuming LoadingScreen renders something identifiable or we can check for absence of main content
-        // For now, let's just check if it doesn't crash
     });
 
     it('displays empty state when no risks found', async () => {
@@ -128,6 +133,6 @@ describe('Risks View', () => {
                 <Risks />
             </MemoryRouter>
         );
-        expect(screen.getByText(/Aucun risque trouvé/i)).toBeInTheDocument();
+        expect(screen.getByText(/Aucun risque identifié/i)).toBeInTheDocument();
     });
 });
