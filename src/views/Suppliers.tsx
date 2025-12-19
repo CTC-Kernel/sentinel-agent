@@ -6,7 +6,7 @@ import { sanitizeData } from '../utils/dataSanitizer';
 
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Supplier, SupplierIncident, Document, SystemLog, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
+import { Supplier, Document, SystemLog, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
 import { Plus, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, BrainCircuit, Loader2, MoreVertical } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
@@ -134,12 +134,6 @@ export const Suppliers: React.FC = () => {
 
     const { data: documentsRaw } = useFirestoreCollection<Document>(
         'documents',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, realtime: true }
-    );
-
-    const { data: incidentsRaw } = useFirestoreCollection<SupplierIncident>(
-        'supplierIncidents',
         [where('organizationId', '==', user?.organizationId)],
         { logError: true, realtime: true }
     );
@@ -737,7 +731,7 @@ export const Suppliers: React.FC = () => {
             <motion.div variants={slideUpVariants}>
                 <SupplierDashboard
                     suppliers={filteredSuppliers}
-                    incidents={incidentsRaw}
+
                     onFilterChange={(filter) => {
                         if (filter?.type === 'criticality') {
                             // Implement filter logic if needed, currently just visual
@@ -788,51 +782,56 @@ export const Suppliers: React.FC = () => {
                             const isExpired = supplier.contractEnd && new Date(supplier.contractEnd) < new Date();
 
                             return (
-                                <div key={supplier.id} onClick={() => openInspector(supplier)} className="glass-panel rounded-[2.5rem] border border-white/50 dark:border-white/5 p-7 shadow-sm card-hover relative group cursor-pointer flex flex-col h-full">
-                                    <div className="flex justify-between items-start mb-5">
-                                        <div className="p-3 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-800 rounded-2xl text-indigo-600 shadow-inner">
-                                            {supplier.category === 'Matériel' ? <Truck className="h-6 w-6" /> : <Building className="h-6 w-6" />}
-                                        </div>
-                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border ${getCriticalityColor(supplier.criticality || Criticality.MEDIUM)}`}>
-                                            {supplier.criticality}
-                                        </span>
-                                    </div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{supplier.name}</h3>
-                                    <div className="flex flex-wrap gap-2 mb-6">
-                                        <span className="px-2.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">{supplier.category}</span>
-                                        <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-slate-600 border-gray-200'}`}>{supplier.status}</span>
-                                        {supplier.isICTProvider && (
-                                            <span className="px-2.5 py-0.5 bg-indigo-100 dark:bg-slate-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold border border-indigo-200 dark:border-indigo-800">DORA ICT</span>
-                                        )}
-                                    </div>
+                                <div key={supplier.id} onClick={() => openInspector(supplier)} className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden h-full">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                    <div className="relative z-10 flex flex-col h-full">
 
-                                    <div className="mb-6 bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
-                                        <div className="flex justify-between text-xs mb-2">
-                                            <span className="text-slate-600 dark:text-slate-400 flex items-center font-bold uppercase tracking-wide"><ShieldAlert className="h-3.5 w-3.5 mr-1.5" /> Sécurité</span>
-                                            <span className={`font-black ${getScoreColor(supplier.securityScore || 0).replace('bg-', 'text-')}`}>{supplier.securityScore || 0}/100</span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
-                                            <div className={`h-2 rounded-full transition-all duration-500 ${getScoreColor(supplier.securityScore || 0)}`} style={{ width: `${supplier.securityScore || 0}%` }}></div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
-                                        <div className="flex items-center justify-between text-xs">
-                                            <div className="flex items-center font-medium text-slate-600 dark:text-slate-300">
-                                                <Handshake className="h-3.5 w-3.5 mr-2 text-slate-500" /> {supplier.contactName || 'Non spécifié'}
+                                        <div className="flex justify-between items-start mb-5">
+                                            <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300 shadow-inner group-hover:bg-brand-50 dark:group-hover:bg-brand-900/10 group-hover:text-brand-600 transition-colors">
+                                                {supplier.category === 'Matériel' ? <Truck className="h-6 w-6" /> : <Building className="h-6 w-6" />}
                                             </div>
-                                            {supplier.contractEnd && (
-                                                <div className={`flex items-center font-bold ${isExpired ? 'text-red-500' : 'text-slate-500'}`}>
-                                                    <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-                                                    {new Date(supplier.contractEnd).toLocaleDateString()}
-                                                </div>
+                                            <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border shadow-sm ${getCriticalityColor(supplier.criticality || Criticality.MEDIUM)}`}>
+                                                {supplier.criticality}
+                                            </span>
+                                        </div>
+
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{supplier.name}</h3>
+                                        <div className="flex flex-wrap gap-2 mb-6">
+                                            <span className="px-2.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">{supplier.category}</span>
+                                            <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-slate-600 border-gray-200'}`}>{supplier.status}</span>
+                                            {supplier.isICTProvider && (
+                                                <span className="px-2.5 py-0.5 bg-indigo-100 dark:bg-slate-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold border border-indigo-200 dark:border-indigo-800">DORA ICT</span>
                                             )}
                                         </div>
-                                        <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
-                                            <FileText className="h-3.5 w-3.5 mr-2 text-slate-500" />
-                                            {linkedDoc ? (
-                                                <span className="text-brand-600 truncate max-w-[180px] hover:underline">{linkedDoc.title}</span>
-                                            ) : <span className="text-slate-500 italic">Aucun contrat lié</span>}
+
+                                        <div className="mb-6 bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
+                                            <div className="flex justify-between text-xs mb-2">
+                                                <span className="text-slate-600 dark:text-slate-400 flex items-center font-bold uppercase tracking-wide"><ShieldAlert className="h-3.5 w-3.5 mr-1.5" /> Sécurité</span>
+                                                <span className={`font-black ${getScoreColor(supplier.securityScore || 0).replace('bg-', 'text-')}`}>{supplier.securityScore || 0}/100</span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                                                <div className={`h-2 rounded-full transition-all duration-500 ${getScoreColor(supplier.securityScore || 0)}`} style={{ width: `${supplier.securityScore || 0}%` }}></div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-white/10 mt-auto">
+                                            <div className="flex items-center justify-between text-xs">
+                                                <div className="flex items-center font-medium text-slate-600 dark:text-slate-300">
+                                                    <Handshake className="h-3.5 w-3.5 mr-2 text-slate-500" /> {supplier.contactName || 'Non spécifié'}
+                                                </div>
+                                                {supplier.contractEnd && (
+                                                    <div className={`flex items-center font-bold ${isExpired ? 'text-red-500' : 'text-slate-500'}`}>
+                                                        <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
+                                                        {new Date(supplier.contractEnd).toLocaleDateString()}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
+                                                <FileText className="h-3.5 w-3.5 mr-2 text-slate-500" />
+                                                {linkedDoc ? (
+                                                    <span className="text-brand-600 truncate max-w-[180px] hover:underline">{linkedDoc.title}</span>
+                                                ) : <span className="text-slate-500 italic">Aucun contrat lié</span>}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -840,10 +839,11 @@ export const Suppliers: React.FC = () => {
                         })
                     )}
                 </motion.div>
-            )}
+            )
+            }
 
             {/* Inspector Drawer */}
-            <Drawer
+            < Drawer
                 isOpen={!!selectedSupplier}
                 onClose={() => setSelectedSupplier(null)}
                 title={selectedSupplier?.name || ''}

@@ -981,21 +981,42 @@ export const Documents: React.FC = () => {
                                                         </div>
                                                     </td>
                                                     <td className="p-4 text-right">
-                                                        {docItem.url && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    if (docItem.isSecure) {
-                                                                        handleSecureView(docItem);
-                                                                    } else {
-                                                                        window.open(docItem.url, '_blank');
-                                                                    }
-                                                                }}
-                                                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                                            >
-                                                                {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
-                                                            </button>
-                                                        )}
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            {docItem.url && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        if (docItem.isSecure) {
+                                                                            handleSecureView(docItem);
+                                                                        } else {
+                                                                            window.open(docItem.url, '_blank');
+                                                                        }
+                                                                    }}
+                                                                    className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                                    title={docItem.isSecure ? "Consultation Sécurisée" : "Ouvrir le lien"}
+                                                                >
+                                                                    {docItem.isSecure ? <ShieldCheck className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
+                                                                </button>
+                                                            )}
+                                                            {canEditResource(user, 'Document', docItem.ownerId || docItem.owner) && (
+                                                                <>
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); openInspector(docItem); setIsEditing(true); }}
+                                                                        className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                                        title="Modifier"
+                                                                    >
+                                                                        <Edit className="h-4 w-4" />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); initiateDelete(docItem.id, docItem.title); }}
+                                                                        className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                                        title="Supprimer"
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))

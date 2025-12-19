@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { HeartPulse, LayoutDashboard, Server, ClipboardCheck } from '../ui/Icons';
+import { HeartPulse, LayoutDashboard, Server, ClipboardCheck, Edit, Trash2 } from '../ui/Icons';
 import { slideUpVariants } from '../ui/animationVariants';
 import { CardSkeleton } from '../ui/Skeleton';
 import { EmptyState } from '../ui/EmptyState';
@@ -12,9 +12,10 @@ interface ContinuityBIAProps {
     viewMode: 'grid' | 'list';
     onOpenInspector: (proc: BusinessProcess) => void;
     onNewProcess: () => void;
+    onDelete?: (id: string) => void;
 }
 
-export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading, viewMode, onOpenInspector, onNewProcess }) => {
+export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading, viewMode, onOpenInspector, onNewProcess, onDelete }) => {
 
     const getPriorityColor = (p: string) => {
         switch (p) {
@@ -54,6 +55,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                                 <th className="px-6 py-5">RPO</th>
                                 <th className="px-6 py-5">Responsable</th>
                                 <th className="px-6 py-5">Dernier Test</th>
+                                <th className="px-6 py-5 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -82,6 +84,26 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                                                 {proc.lastTestDate ? new Date(proc.lastTestDate).toLocaleDateString() : 'Jamais'}
                                             </span>
                                         </td>
+                                        <td className="px-6 py-5 text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onOpenInspector(proc); }}
+                                                    className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                    title="Modifier"
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </button>
+                                                {onDelete && (
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); onDelete(proc.id); }}
+                                                        className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                        title="Supprimer"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
                                     </tr>
                                 );
                             })}
@@ -93,7 +115,12 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
     }
 
     return (
-        <motion.div variants={slideUpVariants} className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <motion.div
+            variants={slideUpVariants}
+            initial="initial"
+            animate="visible"
+            className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
+        >
             {processes.map(proc => {
                 const lastTest = proc.lastTestDate ? new Date(proc.lastTestDate) : null;
                 const isOverdue = lastTest ? (new Date().getTime() - lastTest.getTime() > 31536000000) : true; // 1 year

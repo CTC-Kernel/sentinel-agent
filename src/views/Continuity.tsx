@@ -17,7 +17,7 @@ import { DrillModal } from '../components/continuity/DrillModal';
 import { doc, deleteDoc, updateDoc, addDoc, collection, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { generateContinuityReport } from '../utils/pdfGenerator';
-import { ContinuityStats } from '../components/continuity/ContinuityStats';
+import { ContinuityDashboard } from '../components/continuity/ContinuityDashboard';
 import { ContinuityBIA } from '../components/continuity/ContinuityBIA';
 import { ContinuityDrills } from '../components/continuity/ContinuityDrills';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
@@ -224,7 +224,7 @@ const Continuity: React.FC = () => {
                 >
                     {activeTab === 'overview' && (
                         <div className="space-y-6">
-                            <ContinuityStats processes={processes} drills={drills} />
+                            <ContinuityDashboard processes={processes} drills={drills} />
                             {/* Additional dashboard widgets could go here */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <div className="glass-panel p-6 rounded-2xl border border-white/10">
@@ -248,6 +248,7 @@ const Continuity: React.FC = () => {
                             viewMode={viewMode}
                             onOpenInspector={setSelectedProcess}
                             onNewProcess={() => { setEditingProcess(null); setIsProcessModalOpen(true); }}
+                            onDelete={handleDeleteProcess}
                         />
                     )}
 

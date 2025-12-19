@@ -37,6 +37,10 @@ const pageTransition = {
     duration: 0.5,
 } as const;
 
+import { LoadingScreen } from '../ui/LoadingScreen';
+
+// ...
+
 export const AnimatedPage: React.FC<AnimatedPageProps> = ({ children, className = '' }) => {
     return (
         <motion.div
@@ -47,7 +51,9 @@ export const AnimatedPage: React.FC<AnimatedPageProps> = ({ children, className 
             transition={pageTransition}
             className={`w-full flex flex-col p-6 md:p-8 max-w-[1920px] mx-auto space-y-8 pb-20 relative min-h-screen animate-fade-in ${className}`}
         >
-            {children}
+            <React.Suspense fallback={<LoadingScreen />}>
+                {children}
+            </React.Suspense>
         </motion.div>
     );
 };
