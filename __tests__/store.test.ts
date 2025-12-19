@@ -28,14 +28,14 @@ Object.defineProperty(window, 'document', {
 describe('store', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorageMock.getItem.mockReturnValue('light');
+    localStorageMock.getItem.mockReturnValue('dark');
   });
 
   describe('initial state', () => {
     it('should initialize with default values', () => {
       const store = useStore.getState();
       expect(store.user).toBeNull();
-      expect(store.theme).toBe('light');
+      expect(store.theme).toBe('dark');
       expect(store.isLoading).toBe(true);
       expect(store.toasts).toHaveLength(0);
     });
