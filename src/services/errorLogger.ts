@@ -84,9 +84,7 @@ class ErrorLoggerService {
    */
   info(message: string, context?: string, additionalContext?: ErrorContext): void {
     if (this.isDevelopment) {
-      if (import.meta.env.DEV) {
-        console.log(`ℹ️ INFO [${context || 'General'}]:`, message, additionalContext || '');
-      }
+      console.log(`ℹ️ INFO [${context || 'General'}]:`, message, additionalContext || '');
     }
 
     this.logToExternal('info', {
@@ -104,8 +102,7 @@ class ErrorLoggerService {
     if (this.isDevelopment) {
       console.log(`👤 USER ACTION [${action}]:`, details);
     }
-
-    // Analytics tracking
+    // Could expand to send to analytics here
     this.logToExternal('user_action', {
       timestamp: new Date().toISOString(),
       action,

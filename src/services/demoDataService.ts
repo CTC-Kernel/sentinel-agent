@@ -335,7 +335,7 @@ export const DemoDataService = {
             if (import.meta.env.DEV) console.log('Demo data generated successfully!');
             return { success: true, count: assets.length + risks.length + projects.length };
         } catch (error) {
-            console.error('Error generating demo data:', error);
+            if (import.meta.env.DEV) console.error('Error generating demo data:', error);
             throw error;
         }
     }

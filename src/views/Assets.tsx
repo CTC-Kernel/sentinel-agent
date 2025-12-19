@@ -3,6 +3,7 @@ import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
 import { Asset, Criticality } from '../types';
 import { canEditResource } from '../utils/permissions';
+import { toast } from 'sonner';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 import { useStore } from '../store';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
@@ -71,12 +72,14 @@ const Assets: React.FC = () => {
         }
     };
 
-    const handleGenerateLink = () => {
-        // Logic for Kiosque link generation (logging to console for now or keeping original if simple)
-        // Original was: console.log(...) and navigate.
-        // Since context of navigate is available, we can just log or implement later.
-        // Keeping it simple as per original behavior which might have been a placeholder.
-        console.log('Generate link');
+
+
+    const handleGenerateKioskLink = () => {
+        const url = `${window.location.origin}/intake`;
+        navigator.clipboard.writeText(url);
+        toast.success("Lien Kiosque copié", {
+            description: "Le lien vers le formulaire d'entrée a été copié."
+        });
     };
 
     const handleExportCSV = () => {
@@ -119,7 +122,7 @@ const Assets: React.FC = () => {
                         {/* Header */}
                         <motion.div variants={slideUpVariants}>
                             <AssetHeader
-                                onGenerateLink={handleGenerateLink}
+                                onGenerateLink={handleGenerateKioskLink}
                                 onExportCSV={handleExportCSV}
                                 onNewAsset={() => handleOpenInspector(undefined)}
                                 canEdit={canEdit}
@@ -200,9 +203,10 @@ const Assets: React.FC = () => {
                                     canEdit={canEdit}
                                     onEdit={handleOpenInspector}
                                     onDelete={(id, name) => { setAssetToDelete({ id, name }); setDeleteModalOpen(true); }}
-                                    onGenerateLabel={(asset) => {
-                                        // Keeping simplified version
-                                        console.log("Generate Label", asset);
+                                    onGenerateLabel={() => {
+                                        toast.info("Fonctionnalité à venir", {
+                                            description: "L'impression d'étiquettes sera disponible dans la v2.1"
+                                        });
                                     }}
                                     activeFiltersQuery={activeFilters.query}
                                 />

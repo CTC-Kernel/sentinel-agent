@@ -114,9 +114,9 @@ export const useRiskActions = (onRefresh: () => void) => {
         }
     };
 
-    const exportRisks = (risks: Risk[], format: 'csv' | 'pdf') => {
+    const exportRisks = (risks: Risk[], _format: 'csv' | 'pdf') => {
         return new Promise<void>((resolve) => {
-            console.log(`Exporting ${risks.length} risks as ${format}`);
+            // console.log(`Exporting ${risks.length} risks as ${format}`);
             addToast('Export démarré...', 'info');
             setTimeout(() => {
                 addToast('Export terminé (simulation)', 'success');
