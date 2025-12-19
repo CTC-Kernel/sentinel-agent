@@ -9,6 +9,7 @@ import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { BusinessProcess, BcpDrill, Asset, Risk, Supplier, UserProfile } from '../types';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { BusinessProcessFormData } from '../schemas/continuitySchema';
 import { ProcessFormModal } from '../components/continuity/ProcessFormModal';
 import { ProcessInspector } from '../components/continuity/ProcessInspector';
@@ -22,9 +23,11 @@ import { ContinuityDrills } from '../components/continuity/ContinuityDrills';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { EmptyState } from '../components/ui/EmptyState';
 
+type ContinuityTab = 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis';
+
 const Continuity: React.FC = () => {
     const { user, addToast } = useStore();
-    const [activeTab, setActiveTab] = useState<'overview' | 'strategies' | 'bia' | 'drills' | 'crisis'>('overview');
+    const [activeTab, setActiveTab] = useState<ContinuityTab>('overview');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
     const [isDrillModalOpen, setIsDrillModalOpen] = useState(false);
@@ -132,15 +135,15 @@ const Continuity: React.FC = () => {
         }
     };
 
-    const tabs = [
+
+    // Tabs Definition
+    const tabs = useMemo(() => [
         { id: 'overview', label: "Vue d'ensemble", icon: Activity },
         { id: 'bia', label: "Analyses d'Impact (BIA)", icon: ShieldCheck },
         { id: 'strategies', label: "Stratégies & Plans", icon: FileText },
         { id: 'drills', label: "Exercices & Tests", icon: Zap },
         { id: 'crisis', label: "Gestion de Crise", icon: AlertOctagon },
-    ] as const;
-
-    type ContinuityTab = typeof tabs[number]['id'];
+    ], []);
 
     return (
         <motion.div
@@ -158,34 +161,11 @@ const Continuity: React.FC = () => {
             />
 
             {/* Main Tabs Navigation */}
-            <div className="flex overflow-x-auto pb-2 gap-2 hide-scrollbar border-b border-slate-200 dark:border-white/10 px-1">
-                {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = activeTab === tab.id;
-                    return (
-                        <button
-                            key={tab.id}
-                            onClick={() => { setActiveTab(tab.id as ContinuityTab); setFilter(''); }}
-                            className={`
-                                relative flex items-center gap-2 px-4 py-3 text-sm font-bold rounded-t-xl transition-all whitespace-nowrap
-                                ${isActive
-                                    ? 'text-brand-600 dark:text-brand-400 bg-white dark:bg-white/5 border-t border-x border-slate-200 dark:border-white/10 shadow-sm'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5'
-                                }
-                            `}
-                        >
-                            <Icon className={`h-4 w-4 ${isActive ? 'text-brand-500' : 'text-slate-400'}`} />
-                            {tab.label}
-                            {isActive && (
-                                <motion.div
-                                    layoutId="activeTabIndicator"
-                                    className="absolute -bottom-px left-0 right-0 h-0.5 bg-brand-500"
-                                />
-                            )}
-                        </button>
-                    );
-                })}
-            </div>
+            <ScrollableTabs
+                tabs={tabs}
+                activeTab={activeTab}
+                onTabChange={(id) => { setActiveTab(id as ContinuityTab); setFilter(''); }}
+            />
 
             {/* Page Controls (Contextual) */}
             <motion.div variants={slideUpVariants}>
@@ -338,7 +318,7 @@ const Continuity: React.FC = () => {
                 risks={risks}
                 drills={drills.filter(d => d.processId === selectedProcess?.id)}
             />
-        </motion.div>
+        </motion.div >
     );
 };
 
