@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    ShieldCheck, Plus, Zap, Download, Activity
+    Activity, ShieldCheck, Zap, FileText, AlertOctagon,
+    Plus, Download
 } from 'lucide-react';
 import { PageHeader } from '../components/ui/PageHeader';
-import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { BusinessProcess, BcpDrill, Asset, Risk, Supplier, UserProfile } from '../types';
@@ -18,11 +19,13 @@ import { generateContinuityReport } from '../utils/pdfGenerator';
 import { ContinuityStats } from '../components/continuity/ContinuityStats';
 import { ContinuityBIA } from '../components/continuity/ContinuityBIA';
 import { ContinuityDrills } from '../components/continuity/ContinuityDrills';
-import { PremiumPageControl } from '../components/ui/PremiumPageControl';
+import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { EmptyState } from '../components/ui/EmptyState';
 
 const Continuity: React.FC = () => {
     const { user, addToast } = useStore();
-    const [activeTab, setActiveTab] = useState<'bia' | 'drills'>('bia');
+    const [activeTab, setActiveTab] = useState<'overview' | 'strategies' | 'bia' | 'drills' | 'crisis'>('overview');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
     const [isDrillModalOpen, setIsDrillModalOpen] = useState(false);
     const [selectedProcess, setSelectedProcess] = useState<BusinessProcess | null>(null);
@@ -84,7 +87,6 @@ const Continuity: React.FC = () => {
             setIsProcessModalOpen(false);
             setEditingProcess(null);
             refresh();
-            // Also update selectedProcess if inspector is open
             if (selectedProcess?.id === editingProcess.id) {
                 setSelectedProcess({ ...editingProcess, ...data });
             }
@@ -115,7 +117,6 @@ const Continuity: React.FC = () => {
 
             await addDoc(collection(db, 'bcp_drills'), newDrill);
 
-            // Update last test date on process
             if (data.processId) {
                 await updateDoc(doc(db, 'business_processes', data.processId), {
                     lastTestDate: data.date
@@ -131,96 +132,179 @@ const Continuity: React.FC = () => {
         }
     };
 
-    return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F1115] pb-20 font-sans">
-            <MasterpieceBackground />
+    const tabs = [
+        { id: 'overview', label: "Vue d'ensemble", icon: Activity },
+        { id: 'bia', label: "Analyses d'Impact (BIA)", icon: ShieldCheck },
+        { id: 'strategies', label: "Stratégies & Plans", icon: FileText },
+        { id: 'drills', label: "Exercices & Tests", icon: Zap },
+        { id: 'crisis', label: "Gestion de Crise", icon: AlertOctagon },
+    ] as const;
 
+    type ContinuityTab = typeof tabs[number]['id'];
+
+    return (
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="initial"
+            animate="visible"
+            className="space-y-6"
+        >
             <PageHeader
                 title="Continuité d'Activité"
-                subtitle="Gérez vos plans de continuité (PCA), analysez les impacts (BIA) et documentez vos exercices de crise."
+                subtitle="Pilotage des plans de continuité (PCA/PRA), analyses BIA et gestion de crise."
                 icon={<Activity className="h-6 w-6 text-white" />}
+                breadcrumbs={[{ label: 'Continuité' }]}
+                trustType="availability"
             />
 
-            <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
+            {/* Main Tabs Navigation */}
+            <div className="flex overflow-x-auto pb-2 gap-2 hide-scrollbar border-b border-slate-200 dark:border-white/10 px-1">
+                {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => { setActiveTab(tab.id as ContinuityTab); setFilter(''); }}
+                            className={`
+                                relative flex items-center gap-2 px-4 py-3 text-sm font-bold rounded-t-xl transition-all whitespace-nowrap
+                                ${isActive
+                                    ? 'text-brand-600 dark:text-brand-400 bg-white dark:bg-white/5 border-t border-x border-slate-200 dark:border-white/10 shadow-sm'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5'
+                                }
+                            `}
+                        >
+                            <Icon className={`h-4 w-4 ${isActive ? 'text-brand-500' : 'text-slate-400'}`} />
+                            {tab.label}
+                            {isActive && (
+                                <motion.div
+                                    layoutId="activeTabIndicator"
+                                    className="absolute -bottom-px left-0 right-0 h-0.5 bg-brand-500"
+                                />
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
 
-                <ContinuityStats processes={processes} drills={drills} />
+            {/* Page Controls (Contextual) */}
+            <motion.div variants={slideUpVariants}>
+                <PremiumPageControl
+                    searchQuery={filter}
+                    onSearchChange={setFilter}
+                    searchPlaceholder={
+                        activeTab === 'bia' ? "Rechercher un processus..." :
+                            activeTab === 'drills' ? "Rechercher un exercice..." :
+                                "Rechercher..."
+                    }
+                    viewMode={activeTab === 'bia' ? viewMode : undefined} // Only BIA supports grid/list for now
+                    onViewModeChange={activeTab === 'bia' ? (m) => setViewMode(m as 'grid' | 'list') : undefined}
+                    actions={
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => generateContinuityReport(processes, drills)}
+                                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/10 text-slate-700 dark:text-white rounded-xl text-sm font-bold border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/20 transition-all shadow-sm"
+                            >
+                                <Download className="h-4 w-4" />
+                                <span className="hidden sm:inline">Rapport</span>
+                            </button>
 
-                {/* Tabs */}
-                <div className="flex gap-6 mb-8 border-b border-slate-200 dark:border-white/10">
-                    <button
-                        onClick={() => { setActiveTab('bia'); setFilter(''); }}
-                        className={`pb-4 px-2 text-sm font-bold flex items-center gap-2 transition-all relative ${activeTab === 'bia' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                    >
-                        <ShieldCheck className="h-4 w-4" />
-                        Analyses d'Impact (BIA)
-                        {activeTab === 'bia' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600 dark:bg-brand-400 rounded-full" />}
-                    </button>
-                    <button
-                        onClick={() => { setActiveTab('drills'); setFilter(''); }}
-                        className={`pb-4 px-2 text-sm font-bold flex items-center gap-2 transition-all relative ${activeTab === 'drills' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                    >
-                        <Zap className="h-4 w-4" />
-                        Exercices & Tests
-                        {activeTab === 'drills' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-600 dark:bg-brand-400 rounded-full" />}
-                    </button>
-                </div>
-
-                <div className="mb-6">
-                    <PremiumPageControl
-                        searchQuery={filter}
-                        onSearchChange={setFilter}
-                        searchPlaceholder={activeTab === 'bia' ? "Rechercher un processus..." : "Rechercher un exercice..."}
-                        actions={
-                            <div className="flex gap-3">
+                            {activeTab === 'bia' && (
                                 <button
-                                    onClick={() => generateContinuityReport(processes, drills)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/10 text-slate-700 dark:text-white rounded-xl text-sm font-bold border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/20 transition-all shadow-sm"
+                                    onClick={() => { setEditingProcess(null); setIsProcessModalOpen(true); }}
+                                    className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                 >
-                                    <Download className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Rapport</span>
+                                    <Plus className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Nouveau Processus</span>
                                 </button>
-                                {activeTab === 'bia' ? (
-                                    <button
-                                        onClick={() => { setEditingProcess(null); setIsProcessModalOpen(true); }}
-                                        className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                        <span className="hidden sm:inline">Nouveau Processus</span>
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={() => setIsDrillModalOpen(true)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                        <span className="hidden sm:inline">Saisir un Exercice</span>
-                                    </button>
-                                )}
-                            </div>
-                        }
-                    />
-                </div>
+                            )}
 
-                <AnimatePresence mode="wait">
-                    {activeTab === 'bia' ? (
+                            {activeTab === 'drills' && (
+                                <button
+                                    onClick={() => setIsDrillModalOpen(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Nouvel Exercice</span>
+                                </button>
+                            )}
+                        </div>
+                    }
+                />
+            </motion.div>
+
+            {/* Content Area */}
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    {activeTab === 'overview' && (
+                        <div className="space-y-6">
+                            <ContinuityStats processes={processes} drills={drills} />
+                            {/* Additional dashboard widgets could go here */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="glass-panel p-6 rounded-2xl border border-white/10">
+                                    <h3 className="font-bold text-lg mb-4">Prochaines Revues</h3>
+                                    <EmptyState
+                                        icon={Activity}
+                                        title="Tout est à jour"
+                                        description="Aucune revue de processus BIA planifiée pour les 7 prochains jours."
+                                        color="emerald"
+                                    />
+                                </div>
+                                {/* More placeholders or summary charts */}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'bia' && (
                         <ContinuityBIA
-                            key="bia"
                             processes={filteredProcesses}
                             loading={loading}
+                            viewMode={viewMode}
                             onOpenInspector={setSelectedProcess}
                             onNewProcess={() => { setEditingProcess(null); setIsProcessModalOpen(true); }}
                         />
-                    ) : (
+                    )}
+
+                    {activeTab === 'strategies' && (
+                        <div className="glass-panel p-8 rounded-3xl border border-white/10 min-h-[400px] flex items-center justify-center">
+                            <EmptyState
+                                icon={FileText}
+                                title="Module Stratégies en cours de déploiement"
+                                description="La gestion des plans de continuité (PCA/PRA) sera bientôt disponible. Vous pourrez définir vos stratégies de reprise et procédures dégradées."
+                                actionLabel="En savoir plus"
+                                onAction={() => addToast('Fonctionnalité bientôt disponible', 'info')}
+                                color="blue"
+                            />
+                        </div>
+                    )}
+
+                    {activeTab === 'drills' && (
                         <ContinuityDrills
-                            key="drills"
-                            processes={processes} // Drills usually need raw processes for lookup, but the list is drills
+                            processes={processes}
                             drills={filteredDrills}
                             loading={loading}
                             onNewDrill={() => setIsDrillModalOpen(true)}
                         />
                     )}
-                </AnimatePresence>
-            </main>
+
+                    {activeTab === 'crisis' && (
+                        <div className="glass-panel p-8 rounded-3xl border border-white/10 min-h-[400px] flex items-center justify-center">
+                            <EmptyState
+                                icon={AlertOctagon}
+                                title="Module Gestion de Crise"
+                                description="Le centre de commandement de crise (Salle de Crise Virtuelle) est en cours de finalisation."
+                                color="rose"
+                            />
+                        </div>
+                    )}
+                </motion.div>
+            </AnimatePresence>
 
             {/* Modals */}
             <ProcessFormModal
@@ -254,7 +338,7 @@ const Continuity: React.FC = () => {
                 risks={risks}
                 drills={drills.filter(d => d.processId === selectedProcess?.id)}
             />
-        </div>
+        </motion.div>
     );
 };
 

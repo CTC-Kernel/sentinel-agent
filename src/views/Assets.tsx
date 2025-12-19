@@ -7,16 +7,16 @@ import { toast } from 'sonner';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 import { useStore } from '../store';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
-import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Pagination } from '../components/ui/Pagination';
 import { usePagination } from '../hooks/usePagination';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
+import { PageHeader } from '../components/ui/PageHeader';
 import { AssetList } from '../components/assets/AssetList';
-import { AssetHeader } from '../components/assets/AssetHeader';
 import { AssetInspector } from '../components/assets/AssetInspector';
 import { AssetDashboard } from '../components/assets/AssetDashboard';
 import { useAssets } from '../hooks/assets/useAssets';
-import { Search, MoreVertical } from 'lucide-react';
+import { Database, FileSpreadsheet, Link, Plus, Filter } from 'lucide-react';
 
 const Assets: React.FC = () => {
     const { user } = useStore();
@@ -24,7 +24,7 @@ const Assets: React.FC = () => {
     const { assets, loading, createAsset, updateAsset, deleteAsset, usersList, suppliers, processes } = useAssets();
 
     // UI State
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'list' | 'matrix'>('grid');
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
     const [activeFilters, setActiveFilters] = useState<SearchFilters>({ query: '', type: 'all' });
     const [inspectorOpen, setInspectorOpen] = useState(false);
@@ -107,122 +107,126 @@ const Assets: React.FC = () => {
     };
 
     return (
-        <>
-            <MasterpieceBackground />
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-6"
+        >
             <SEO title="Inventaire des Actifs" description="Gérez votre cartographie des actifs et votre analyse d'impact." />
 
-            <div className="relative min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-[1920px] mx-auto">
-                <motion.div
-                    variants={staggerContainerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="space-y-8"
-                >
-                    <div className="flex flex-col gap-8">
-                        {/* Header */}
-                        <motion.div variants={slideUpVariants}>
-                            <AssetHeader
-                                onGenerateLink={handleGenerateKioskLink}
-                                onExportCSV={handleExportCSV}
-                                onNewAsset={() => handleOpenInspector(undefined)}
-                                canEdit={canEdit}
-                            />
-                        </motion.div>
-
-                        {/* Dashboard KPIs */}
-                        <motion.div variants={slideUpVariants}>
-                            <AssetDashboard
-                                assets={filteredAssets}
-                                onFilterChange={(filter) => {
-                                    if (filter?.type === 'criticality') {
-                                        setActiveFilters(prev => ({ ...prev, criticality: filter.value as Criticality }));
-                                    } else if (filter === null) {
-                                        setActiveFilters(prev => ({ ...prev, criticality: undefined }));
-                                    }
-                                }}
-                            />
-                        </motion.div>
-
-                        {/* Search & List */}
-                        <motion.div variants={slideUpVariants}>
-                            {showAdvancedSearch && (
-                                <AdvancedSearch
-                                    onSearch={(filters) => {
-                                        setActiveFilters(filters);
-                                        setShowAdvancedSearch(false);
-                                    }}
-                                    onClose={() => setShowAdvancedSearch(false)}
-                                />
-                            )}
-
-                            <div className="flex flex-col gap-6">
-                                {/* Page Controls (Search Bar + View Toggle) */}
-                                {/* We can use PageControls component here if we want to match exact layout */}
-                                <div className="glass-panel p-4 rounded-3xl flex flex-col sm:flex-row justify-between items-center gap-4 dark:border-white/5">
-                                    <div className="w-full sm:w-96">
-                                        <div className="relative group">
-                                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-hover:text-brand-500 transition-colors" />
-                                            <input
-                                                type="text"
-                                                placeholder="Rechercher un actif..."
-                                                className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-black/20 border-none rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500/50 transition-all font-medium"
-                                                value={activeFilters.query || ''}
-                                                onChange={(e) => setActiveFilters(prev => ({ ...prev, query: e.target.value }))}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                                            className={`p-3 rounded-xl transition-all ${showAdvancedSearch ? 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400' : 'bg-slate-50 text-slate-500 hover:bg-slate-100 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10'}`}
-                                        >
-                                            <MoreVertical className="h-5 w-5" />
-                                        </button>
-                                        <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-xl flex">
-                                            <button
-                                                onClick={() => setViewMode('list')}
-                                                className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
-                                            >
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                                            </button>
-                                            <button
-                                                onClick={() => setViewMode('grid')}
-                                                className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
-                                            >
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <AssetList
-                                    assets={paginatedItems}
-                                    loading={loading}
-                                    viewMode={viewMode}
-                                    user={user}
-                                    canEdit={canEdit}
-                                    onEdit={handleOpenInspector}
-                                    onDelete={(id, name) => { setAssetToDelete({ id, name }); setDeleteModalOpen(true); }}
-                                    onGenerateLabel={() => {
-                                        toast.info("Fonctionnalité à venir", {
-                                            description: "L'impression d'étiquettes sera disponible dans la v2.1"
-                                        });
-                                    }}
-                                    activeFiltersQuery={activeFilters.query}
-                                />
-
-                                <Pagination
-                                    currentPage={currentPage}
-                                    totalItems={totalItems}
-                                    itemsPerPage={itemsPerPage}
-                                    onPageChange={setCurrentPage}
-                                    onItemsPerPageChange={setItemsPerPage}
-                                />
-                            </div>
-                        </motion.div>
-                    </div>
+            <div className="flex flex-col gap-8">
+                {/* Header */}
+                <motion.div variants={slideUpVariants}>
+                    <PageHeader
+                        title="Inventaire des Actifs"
+                        subtitle="Gérez votre cartographie des actifs et votre analyse d'impact."
+                        icon={<Database className="h-6 w-6 text-brand-500" />}
+                        breadcrumbs={[
+                            { label: 'Tableau de bord', path: '/' },
+                            { label: 'Inventaire', path: '/assets' }
+                        ]}
+                        trustType="integrity"
+                    />
                 </motion.div>
 
+                {/* Dashboard KPIs */}
+                <motion.div variants={slideUpVariants}>
+                    <AssetDashboard
+                        assets={filteredAssets}
+                        onFilterChange={(filter) => {
+                            if (filter?.type === 'criticality') {
+                                setActiveFilters(prev => ({ ...prev, criticality: filter.value as Criticality }));
+                            } else if (filter === null) {
+                                setActiveFilters(prev => ({ ...prev, criticality: undefined }));
+                            }
+                        }}
+                    />
+                </motion.div>
+
+                {/* Search & List */}
+                <motion.div variants={slideUpVariants} className="space-y-6">
+                    {showAdvancedSearch && (
+                        <AdvancedSearch
+                            onSearch={(filters) => {
+                                setActiveFilters(filters);
+                                setShowAdvancedSearch(false);
+                            }}
+                            onClose={() => setShowAdvancedSearch(false)}
+                        />
+                    )}
+
+                    <PremiumPageControl
+                        searchQuery={activeFilters.query || ''}
+                        onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
+                        searchPlaceholder="Rechercher par nom, type, propriétaire..."
+                        viewMode={viewMode}
+                        onViewModeChange={setViewMode}
+                        actions={
+                            <>
+                                <button
+                                    onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                                    className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
+                                        ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
+                                        }`}
+                                    title="Filtres avancés"
+                                >
+                                    <Filter className="h-5 w-5" />
+                                </button>
+                                <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+                                <button
+                                    onClick={handleGenerateKioskLink}
+                                    className="hidden sm:flex items-center px-4 py-2.5 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 text-sm font-bold rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all shadow-sm"
+                                >
+                                    <Link className="h-4 w-4 mr-2 text-slate-500" />
+                                    Kiosque
+                                </button>
+                                <button
+                                    onClick={handleExportCSV}
+                                    className="hidden sm:flex items-center px-4 py-2.5 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 text-sm font-bold rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all shadow-sm"
+                                >
+                                    <FileSpreadsheet className="h-4 w-4 mr-2 text-slate-500" />
+                                    Export
+                                </button>
+                                {canEdit && (
+                                    <button
+                                        onClick={() => handleOpenInspector(undefined)}
+                                        className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                    >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        <span className="hidden sm:inline">Nouvel Actif</span>
+                                        <span className="sm:hidden">Nouveau</span>
+                                    </button>
+                                )}
+                            </>
+                        }
+                    />
+
+                    <AssetList
+                        assets={paginatedItems}
+                        loading={loading}
+                        viewMode={viewMode}
+                        user={user}
+                        canEdit={canEdit}
+                        onEdit={handleOpenInspector}
+                        onDelete={(id, name) => { setAssetToDelete({ id, name }); setDeleteModalOpen(true); }}
+                        onGenerateLabel={() => {
+                            toast.info("Fonctionnalité à venir", {
+                                description: "L'impression d'étiquettes sera disponible dans la v2.1"
+                            });
+                        }}
+                        activeFiltersQuery={activeFilters.query}
+                    />
+
+                    <Pagination
+                        currentPage={currentPage}
+                        totalItems={totalItems}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={setCurrentPage}
+                        onItemsPerPageChange={setItemsPerPage}
+                    />
+                </motion.div>
                 {/* Inspector Drawer */}
                 <AssetInspector
                     isOpen={inspectorOpen}
@@ -246,8 +250,8 @@ const Assets: React.FC = () => {
                     confirmText="Supprimer"
                     cancelText="Annuler"
                 />
-            </div>
-        </>
+            </div >
+        </motion.div >
     );
 };
 

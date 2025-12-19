@@ -3,7 +3,7 @@ import { ShieldCheck, Lock, EyeOff, FileCheck } from './Icons';
 
 type SecurityBadgeIconComponent = React.ElementType<{ className?: string; strokeWidth?: number }>;
 
-export type SecurityFeature = 'general' | 'storage' | 'confidentiality' | 'integrity';
+export type SecurityFeature = 'general' | 'storage' | 'confidentiality' | 'integrity' | 'availability';
 
 interface SecurityBadgeProps {
     feature: SecurityFeature;
@@ -44,6 +44,13 @@ const BADGE_CONFIG: Record<SecurityFeature, {
         detail: "Traçabilité inaltérable des actions",
         subDetail: "Conforme aux normes d'audit",
         color: "purple"
+    },
+    availability: {
+        icon: ShieldCheck,
+        label: "Haute Disponibilité",
+        detail: "Garantie de continuité de service",
+        subDetail: "SLA 99.9% et réplication temps réel",
+        color: "emerald"
     }
 };
 
