@@ -3,352 +3,97 @@
 > eslint .
 
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/mobile/app/dashboard.tsx
-   5:16  warning  'db' is defined but never used                  @typescript-eslint/no-unused-vars
-   6:10  warning  'collection' is defined but never used          @typescript-eslint/no-unused-vars
-   6:22  warning  'query' is defined but never used               @typescript-eslint/no-unused-vars
-   6:29  warning  'where' is defined but never used               @typescript-eslint/no-unused-vars
-   6:36  warning  'getCountFromServer' is defined but never used  @typescript-eslint/no-unused-vars
-  11:12  warning  'loading' is assigned a value but never used    @typescript-eslint/no-unused-vars
-  54:18  warning  'error' is defined but never used               @typescript-eslint/no-unused-vars
-  59:63  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/continuity/ContinuityStrategies.tsx
+  185:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/mobile/app/index.tsx
-   2:89  warning  'Image' is defined but never used         @typescript-eslint/no-unused-vars
-  23:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/mobile/app/scanner.tsx
-  27:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/mobile/firebaseConfig.ts
-  2:1  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/mobile/services/offlineStorage.ts
-  10:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/IncidentPlaybookView.tsx
-  53:6  warning  React Hook useCallback has an unnecessary dependency: 'addToast'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/VoxelStudio.tsx
-    15:43   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
-    19:28   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
-   563:149  warning  'opacity' is defined but never used. Allowed unused args must match /^_/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
-   728:8    warning  React Hook useMemo has an unnecessary dependency: 'opacity'. Either exclude it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                react-hooks/exhaustive-deps
-  1073:7    error    Error: Calling setState synchronously within an effect can trigger cascading renders
-
-Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
-* Update external systems with the latest state from React.
-* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
-
-Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/VoxelStudio.tsx:1073:7
-  1071 |   useEffect(() => {
-  1072 |     if (!presentationMode) {
-> 1073 |       setPresentationIndex(0);
-       |       ^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
-  1074 |     }
-  1075 |   }, [presentationMode, setPresentationIndex]);
-  1076 |  react-hooks/set-state-in-effect
-  1313:6    warning  React Hook useMemo has an unnecessary dependency: 'applySceneOffset'. Either exclude it or remove the dependency array. Outer scope values like 'applySceneOffset' aren't valid dependencies because mutating them doesn't re-render the component                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-hooks/exhaustive-deps
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ai/GeminiAssistant.tsx
-   69:66   warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
-  147:25   warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
-  268:56   warning  'node' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
-  268:103  warning  Unexpected any. Specify a different type                                @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/assets/AssetAIAssistant.tsx
-   29:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  165:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/assets/AssetForm.tsx
-  113:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/audits/AuditForm.tsx
-  122:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/calendar/CalendarDashboard.tsx
-  133:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
-  145:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/views/AdminDashboardView.tsx
-  12:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  17:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  18:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  19:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  20:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  21:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/views/AuditorDashboardView.tsx
-  12:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  13:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  14:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  15:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/views/DirectionDashboardView.tsx
-   9:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  14:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  15:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  16:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/views/OperationalDashboardView.tsx
-  10:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  11:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/views/ProjectManagerDashboardView.tsx
-  10:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  11:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/widgets/ComplianceEvolutionWidget.tsx
-  9:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/widgets/DashboardHeader.tsx
-   7:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  53:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  56:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  57:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  63:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/widgets/MaturityRadarWidget.tsx
-  6:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/dashboard/widgets/RecentActivityWidget.tsx
-  41:66  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/documents/DocumentForm.tsx
-  136:32  warning  Compilation Skipped: Use of incompatible library
-
-This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/documents/DocumentForm.tsx:136:32
-  134 |                         label="Dossier"
-  135 |                         options={[{ value: '', label: 'Racine' }, ...folders.map(f => ({ value: f.id, label: f.name }))]}
-> 136 |                         value={watch('folderId') || ''}
-      |                                ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
-  137 |                         onChange={(val) => setValue('folderId', val as string)}
-  138 |                         error={errors.folderId?.message}
-  139 |                     />  react-hooks/incompatible-library
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/incidents/IncidentImportModal.tsx
-  33:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
-  48:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/incidents/IncidentPlaybook.tsx
-  26:8  warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/layout/CommandPalette.tsx
-  15:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/integrations/ScannerJobs.tsx
+  177:85  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  195:85  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
 /Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/projects/ProjectForm.tsx
-  75:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  53:9  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/risks/RiskAIAssistant.tsx
-   18:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  153:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/projects/TaskFormModal.tsx
+  38:9  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/risks/RiskForm.tsx
-  124:93  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  125:78  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  126:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  131:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  140:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  141:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  142:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  143:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/projects/TemplateModal.tsx
+  28:9  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/suppliers/SupplierForm.tsx
-  125:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  126:73  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/threats/ThreatDashboard.tsx
+  34:34  error  Error: Cannot call impure function during render
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/AIAssistantHeader.tsx
-  7:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/Animations.tsx
-   6:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-  15:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-  25:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/threats/ThreatDashboard.tsx:34:34
+  32 |     // Activity Trend (Real Data)
+  33 |     const activityData = React.useMemo(() => {
+> 34 |         const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+     |                                  ^^^^^^^^^^ Cannot call impure function
+  35 |         const buckets: Record<string, number> = {};
+  36 |
+  37 |         // Initialize buckets for last 6:4-hour blocks to show a 24h trend                            react-hooks/purity
+  39:32  error  Error: Cannot call impure function during render
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/Badge.tsx
-  9:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/Calendar.tsx
-  8:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/threats/ThreatDashboard.tsx:39:32
+  37 |         // Initialize buckets for last 6:4-hour blocks to show a 24h trend
+  38 |         for (let i = 0; i <= 24; i += 4) {
+> 39 |             const d = new Date(Date.now() - (24 - i) * 60 * 60 * 1000);
+     |                                ^^^^^^^^^^ Cannot call impure function
+  40 |             const key = d.getHours().toString().padStart(2, '0') + ':00';
+  41 |             buckets[key] = 0;
+  42 |         }  react-hooks/purity
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/DataTable.tsx
-  102:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/InspectorLayout.tsx
+  24:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/FloatingLabelInput.tsx
-  6:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/vulnerabilities/VulnerabilityImportModal.tsx
+  46:84  warning  'id' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  52:18  warning  'error' is defined but never used                                     @typescript-eslint/no-unused-vars
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/FloatingLabelSelect.tsx
-  7:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/useActivityLogs.ts
+   64:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   68:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   71:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  165:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/RichTextEditor.tsx
-  33:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/logger.ts
+  13:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/ScrollableTabs.tsx
-  7:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/onboardingService.ts
+  160:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/SecurityBadge.tsx
-  12:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  50:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/tokenService.ts
+  54:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  65:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/StatCard.tsx
-  7:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/types/express-rate-limit/index.d.ts
+  10:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/aceternity/Sparkles.tsx
-  45:9  warning  Compilation Skipped: Inline `class` declarations are not supported
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/types/express/index.d.ts
+  1:10  warning  'Request' is defined but never used  @typescript-eslint/no-unused-vars
 
-Move class declarations outside of components/hooks.
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/utils/csvUtils.ts
+   8:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  35:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  57:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  80:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  83:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/aceternity/Sparkles.tsx:45:9
-  43 |         const particleCount = particleDensity;
-  44 |
-> 45 |         class Particle {
-     |         ^^^^^^^^^^^^^^^^
-> 46 |             x: number;
-     | ^^^^^^^^^^^^^^^^^^^^^^
-> 47 |             y: number;
-     …
-     | ^^^^^^^^^^^^^^^^^^^^^^
-> 76 |             }
-     | ^^^^^^^^^^^^^^^^^^^^^^
-> 77 |         }
-     | ^^^^^^^^^^ Inline `class` declarations are not supported
-  78 |
-  79 |         const init = () => {
-  80 |             for (let i = 0; i < particleCount; i++) {
-
-  react-hooks/unsupported-syntax
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/button.tsx
-  36:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/firebase.ts
-  71:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  72:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/useFirestore.ts
-   86:31  error    Error: Calling setState synchronously within an effect can trigger cascading renders
-
-Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
-* Update external systems with the latest state from React.
-* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
-
-Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/useFirestore.ts:86:31
-  84 |         }
-  85 |
-> 86 |         if (!realtimeLoading) setRealtimeLoading(true);
-     |                               ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
-  87 |         const q = query(collection(db, collectionName), ...constraints);
-  88 |         const unsubscribe = onSnapshot(q,
-  89 |             (snapshot) => {                               react-hooks/set-state-in-effect
-  104:8   warning  React Hook useEffect has missing dependencies: 'constraints' and 'realtimeLoading'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/exhaustive-deps
-  225:35  error    Error: Calling setState synchronously within an effect can trigger cascading renders
-
-Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
-* Update external systems with the latest state from React.
-* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
-
-Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/useFirestore.ts:225:35
-  223 |
-  224 |         if (realtime) {
-> 225 |             if (!realtimeLoading) setRealtimeLoading(true);
-      |                                   ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
-  226 |             const docRef = doc(db, collectionName, docId);
-  227 |             const unsubscribe = onSnapshot(docRef,
-  228 |                 (snapshot) => {  react-hooks/set-state-in-effect
-  247:8   warning  React Hook useEffect has a missing dependency: 'realtimeLoading'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/PdfService.ts
-   83:22  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
-  265:22  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/aiService.ts
-  279:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/calendarService.ts
-  245:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/demoDataService.ts
-  302:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/incidentPlaybookService.ts
-  431:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/integrationService.ts
-   23:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-   99:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  465:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/types.ts
-  22:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Compliance.tsx
-   117:8   warning  React Hook useEffect has a missing dependency: 'addToast'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
-  1275:76  warning  Unexpected any. Specify a different type                                                                     @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Continuity.tsx
-  186:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Dashboard.tsx
-  377:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Help.tsx
-  19:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  27:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Pricing.tsx
-  71:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Projects.tsx
-  1165:76  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Onboarding.tsx
+  177:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  212:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
 /Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Risks.tsx
-  370:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  371:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  489:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  490:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  137:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
 /Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Suppliers.tsx
-  261:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  463:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/ThreatRegistry.tsx
-  105:41   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  106:18   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  110:29   warning  '_id' is assigned a value but never used  @typescript-eslint/no-unused-vars
-  332:105  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/__tests__/Assets.test.tsx
-   68:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-   73:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-   86:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  111:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/__tests__/Risks.test.tsx
-  59:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  63:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  80:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  95:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/tests/e2e/compliance.spec.ts
-  1:16  warning  'expect' is defined but never used  @typescript-eslint/no-unused-vars
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/tests/services/subscriptionService.test.ts
-  36:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  45:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  58:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  68:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  80:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  90:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/tests/setup.ts
-  7:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-✖ 139 problems (4 errors, 135 warnings)
+✖ 33 problems (2 errors, 31 warnings)
+  0 errors and 3 warnings potentially fixable with the `--fix` option.
 
