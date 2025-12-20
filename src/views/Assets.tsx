@@ -1,4 +1,5 @@
 import React, { useDeferredValue, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
 import { Asset, Criticality } from '../types';
@@ -36,9 +37,26 @@ const Assets: React.FC = () => {
     const [inspectorOpen, setInspectorOpen] = useState(false);
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
+    // URL Params for Deep Linking
+    const [searchParams] = useSearchParams();
+    const deepLinkAssetId = searchParams.get('id');
+
     // Delete Modal State
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [assetToDelete, setAssetToDelete] = useState<{ id: string, name: string } | null>(null);
+
+    // Deep Linking Effect
+    React.useEffect(() => {
+        if (!loading && deepLinkAssetId && assets.length > 0) {
+            const asset = assets.find(a => a.id === deepLinkAssetId);
+            if (asset) {
+                setSelectedAsset(asset);
+                setInspectorOpen(true);
+            }
+            // Optional: Clean URL after opening? Or keep it to allow sharing?
+            // Keep it for "Masterpiece" feel (refresh stays on item).
+        }
+    }, [loading, deepLinkAssetId, assets]);
 
     // Filtering Logic
     const deferredQuery = useDeferredValue(activeFilters.query);

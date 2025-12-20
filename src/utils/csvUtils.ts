@@ -5,7 +5,7 @@ export class CsvParser {
      * @param rows Array of objects or arrays matching the headers
      * @param filename Name of the file to download
      */
-    static downloadCSV(headers: string[], rows: any[], filename: string = 'export.csv') {
+    static downloadCSV(headers: string[], rows: (Record<string, unknown> | unknown[])[], filename: string = 'export.csv') {
         const csvContent = [
             headers.join(','),
             ...rows.map(row => {
@@ -32,7 +32,7 @@ export class CsvParser {
     /**
      * Escape cell content for CSV format
      */
-    private static escapeCSV(str: any): string {
+    private static escapeCSV(str: unknown): string {
         if (str === null || str === undefined) return '';
         const stringValue = String(str);
         if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
@@ -46,7 +46,7 @@ export class CsvParser {
      * @param content CSV string content
      * @returns Array of objects with keys from the header row
      */
-    static parseCSV(content: string): any[] {
+    static parseCSV(content: string): Record<string, string>[] {
         const lines = content.split('\n').filter(line => line.trim() !== '');
         if (lines.length < 2) return [];
 
@@ -54,7 +54,7 @@ export class CsvParser {
         const result = [];
 
         for (let i = 1; i < lines.length; i++) {
-            const obj: any = {};
+            const obj: Record<string, string> = {};
             // This simple split doesn't handle commas inside quotes perfectly, 
             // but for a basic utility it might be enough or we could enhance it.
             // A more robust regex split:
@@ -77,10 +77,10 @@ export class CsvParser {
      * @param filename Filename (without extension)
      * @param fields Array of field keys to export
      */
-    static exportToCsv(data: any[], filename: string, fields: string[]) {
+    static exportToCsv(data: Record<string, unknown>[], filename: string, fields: string[]) {
         const headers = fields;
         const rows = data.map(item => {
-            const row: any[] = [];
+            const row: unknown[] = [];
             fields.forEach(field => {
                 // Handle nested properties if needed, currently flat
                 row.push(item[field] !== undefined ? item[field] : '');

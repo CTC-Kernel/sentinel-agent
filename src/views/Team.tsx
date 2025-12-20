@@ -24,10 +24,18 @@ import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { Button } from '../components/ui/button';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userSchema, UserFormData } from '../schemas/userSchema';
+import { RoleBadge } from '../components/ui/RoleBadge';
+
+// ... (previous imports remain the same, just adding local import)
 import { RoleManager } from '../components/team/RoleManager';
+import { hasPermission } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
 
-import { hasPermission } from '../utils/permissions';
+
+// Removed getRoleBadge function
+
+// ... inside map or wherever used
+
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
@@ -332,22 +340,16 @@ export const Team: React.FC = () => {
             u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : ''
         ]);
         const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
+        link.href = url;
         link.download = `team_export_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
+        URL.revokeObjectURL(url);
     };
 
-    const getRoleBadge = (role: string) => {
-        switch (role) {
-            case 'admin': return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-200 dark:border-purple-800">Admin</span>;
-            case 'rssi': return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800">RSSI</span>;
-            case 'auditor': return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-slate-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800">Auditeur</span>;
-            case 'project_manager': return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800">Chef Projet</span>;
-            case 'direction': return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">Direction</span>;
-            default: return <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-gray-200 dark:border-slate-700">Utilisateur</span>;
-        }
-    };
+
 
     const [activeTab, setActiveTab] = useState<'members' | 'roles'>('members');
     const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
@@ -628,7 +630,7 @@ export const Team: React.FC = () => {
                                                 </div>
                                             )}
                                             <div className="absolute bottom-0 right-0 transform translate-x-2 translate-y-1">
-                                                {getRoleBadge(u.role)}
+                                                <RoleBadge role={u.role} />
                                             </div>
                                         </div>
 

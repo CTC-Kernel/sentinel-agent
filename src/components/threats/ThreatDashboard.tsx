@@ -16,6 +16,9 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
         ransomware: threats.filter(t => t.type === 'Ransomware').length,
     };
 
+    // Stable timestamp for calculations
+    const [now] = React.useState(() => Date.now());
+
     // Threat Types Data for Bar Chart
     const typeData = React.useMemo(() => {
         const types: Record<string, number> = {};
@@ -31,12 +34,12 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
 
     // Activity Trend (Real Data)
     const activityData = React.useMemo(() => {
-        const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const last24h = new Date(now - 24 * 60 * 60 * 1000);
         const buckets: Record<string, number> = {};
 
         // Initialize buckets for last 6 4-hour blocks to show a 24h trend
         for (let i = 0; i <= 24; i += 4) {
-            const d = new Date(Date.now() - (24 - i) * 60 * 60 * 1000);
+            const d = new Date(now - (24 - i) * 60 * 60 * 1000);
             const key = d.getHours().toString().padStart(2, '0') + ':00';
             buckets[key] = 0;
         }
@@ -53,7 +56,7 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
         });
 
         return Object.entries(buckets).map(([time, value]) => ({ time, value }));
-    }, [threats]);
+    }, [threats, now]);
 
     return (
         <div className="space-y-6">

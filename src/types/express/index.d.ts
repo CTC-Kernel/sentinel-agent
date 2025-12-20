@@ -1,4 +1,4 @@
-import { Request } from 'express';
+// import { Request } from 'express'; // Removed unused import
 
 declare global {
   namespace Express {

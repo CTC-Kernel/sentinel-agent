@@ -174,7 +174,7 @@ export const Onboarding: React.FC = () => {
                     displayName: user.displayName || user.email,
                     organizationId: user.organizationId,
                     organizationName: user.organizationName,
-                    role: user.role as any
+                    role: user.role
                 };
 
                 await OnboardingService.sendInvites(currentUserProfile, invitedUsers);
@@ -209,7 +209,7 @@ export const Onboarding: React.FC = () => {
                     email: user.email,
                     displayName: user.displayName || 'Admin',
                     organizationId: user.organizationId,
-                    role: user.role as any
+                    role: user.role
                 };
 
                 await OnboardingService.createInitialAssets(currentUserProfile, initialAssets);

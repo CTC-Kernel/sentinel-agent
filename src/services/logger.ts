@@ -10,7 +10,7 @@ export const logAction = async (
   details?: string,
   explicitOrgId?: string, // Allow explicit org ID for onboarding logs
   resourceId?: string, // ID for deep linking
-  metadata?: Record<string, any> // Additional context
+  metadata?: Record<string, unknown> // Additional context
 ) => {
   // SECURITY: Prefer explicit orgId, then user.organizationId
   const orgId = explicitOrgId || user?.organizationId;

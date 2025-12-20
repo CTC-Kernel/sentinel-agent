@@ -108,7 +108,7 @@ export const Projects: React.FC = () => {
     // Exports
     const handleExportCSV = () => {
         CsvParser.exportToCsv(
-            projects,
+            projects as unknown as Record<string, unknown>[],
             "projets_export",
             ["name", "status", "progress", "manager", "dueDate", "createdAt"]
         );

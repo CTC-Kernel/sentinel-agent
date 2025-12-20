@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { SEO } from '../components/SEO';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
@@ -43,17 +44,26 @@ export const Audits: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [typeFilter, setTypeFilter] = useState('');
 
+    // URL Params for Deep Linking
+    const [searchParams] = useSearchParams();
+    const deepLinkAuditId = searchParams.get('id');
+
+    // Deep Linking Effect
+    React.useEffect(() => {
+        if (!loading && deepLinkAuditId && audits.length > 0) {
+            const audit = audits.find(a => a.id === deepLinkAuditId);
+            if (audit) {
+                setSelectedAudit(audit);
+            }
+        }
+    }, [loading, deepLinkAuditId, audits]);
+
     const tabs = [
         { id: 'overview', label: "Tableau de Bord", icon: LayoutDashboard },
         { id: 'list', label: "Liste des Audits", icon: List },
         { id: 'calendar', label: "Calendrier", icon: CalendarIcon },
         { id: 'findings', label: "Constats", icon: ClipboardCheck },
     ];
-
-    // Compute all findings for Dashboard
-    const allFindings = useMemo(() => {
-        return audits.flatMap(a => a.findings || []);
-    }, [audits]);
 
     // Filter Logic
     const filteredAudits = useMemo(() => {
@@ -123,12 +133,85 @@ export const Audits: React.FC = () => {
                 />
             </div>
 
+            <PremiumPageControl
+                searchQuery={filter}
+                onSearchChange={setFilter}
+                searchPlaceholder="Rechercher un audit..."
+                actions={
+                    <div className="flex gap-2 items-center">
+                        <div className="hidden md:block w-40">
+                            <CustomSelect
+                                value={statusFilter}
+                                onChange={(val) => setStatusFilter(val as string)}
+                                options={[
+                                    { value: '', label: 'Tous les statuts' },
+                                    { value: 'Planifié', label: 'Planifié' },
+                                    { value: 'En cours', label: 'En cours' },
+                                    { value: 'Terminé', label: 'Terminé' },
+                                    { value: 'Validé', label: 'Validé' }
+                                ]}
+                                placeholder="Statut"
+                            />
+                        </div>
+                        <div className="hidden md:block w-40 mr-2">
+                            <CustomSelect
+                                value={typeFilter}
+                                onChange={(val) => setTypeFilter(val as string)}
+                                options={[
+                                    { value: '', label: 'Tous les types' },
+                                    { value: 'Interne', label: 'Interne' },
+                                    { value: 'Externe', label: 'Externe' },
+                                    { value: 'Certification', label: 'Certification' }
+                                ]}
+                                placeholder="Type"
+                            />
+                        </div>
+                        <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
+                        <Button
+                            variant="ghost"
+                            onClick={handleExportCalendar}
+                            title="Exporter Calendrier"
+                            className="p-2 h-10 w-10 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
+                        >
+                            <CalendarIcon className="w-5 h-5" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={handleExportCSV}
+                            title="Exporter CSV"
+                            className="p-2 h-10 w-10 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
+                        >
+                            <Download className="w-5 h-5" />
+                        </Button>
+                        {canEdit && (
+                            <>
+                                <Button
+                                    onClick={handleGeneratePlan}
+                                    variant="outline"
+                                    className="gap-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 font-medium"
+                                >
+                                    <BrainCircuit className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Assistant IA</span>
+                                </Button>
+                                <Button
+                                    onClick={() => { setEditingAudit(null); setCreationMode(true); }}
+                                    className="gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-medium shadow-sm hover:shadow-md transition-all"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Nouvel Audit</span>
+                                </Button>
+                            </>
+                        )}
+                    </div>
+                }
+            />
+
             {
                 activeTab === 'overview' && (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible">
                         <AuditDashboard
-                            audits={audits}
-                            findings={allFindings}
+                            audits={filteredAudits}
+                            findings={filteredAudits.flatMap(a => a.findings || [])}
                             onFilterChange={(f) => {
                                 if (f?.type === 'status') {
                                     setFilter(f.value);
@@ -143,78 +226,6 @@ export const Audits: React.FC = () => {
             {
                 activeTab === 'list' && (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="space-y-6">
-                        <PremiumPageControl
-                            searchQuery={filter}
-                            onSearchChange={setFilter}
-                            searchPlaceholder="Rechercher un audit..."
-                            actions={
-                                <div className="flex gap-2 items-center">
-                                    <div className="hidden md:block w-40">
-                                        <CustomSelect
-                                            value={statusFilter}
-                                            onChange={(val) => setStatusFilter(val as string)}
-                                            options={[
-                                                { value: '', label: 'Tous les statuts' },
-                                                { value: 'Planifié', label: 'Planifié' },
-                                                { value: 'En cours', label: 'En cours' },
-                                                { value: 'Terminé', label: 'Terminé' },
-                                                { value: 'Validé', label: 'Validé' }
-                                            ]}
-                                            placeholder="Statut"
-                                        />
-                                    </div>
-                                    <div className="hidden md:block w-40 mr-2">
-                                        <CustomSelect
-                                            value={typeFilter}
-                                            onChange={(val) => setTypeFilter(val as string)}
-                                            options={[
-                                                { value: '', label: 'Tous les types' },
-                                                { value: 'Interne', label: 'Interne' },
-                                                { value: 'Externe', label: 'Externe' },
-                                                { value: 'Certification', label: 'Certification' }
-                                            ]}
-                                            placeholder="Type"
-                                        />
-                                    </div>
-                                    <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
-                                    <Button
-                                        variant="ghost"
-                                        onClick={handleExportCalendar}
-                                        title="Exporter Calendrier"
-                                        className="p-2 h-10 w-10 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
-                                    >
-                                        <CalendarIcon className="w-5 h-5" />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        onClick={handleExportCSV}
-                                        title="Exporter CSV"
-                                        className="p-2 h-10 w-10 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
-                                    >
-                                        <Download className="w-5 h-5" />
-                                    </Button>
-                                    {canEdit && (
-                                        <>
-                                            <Button
-                                                onClick={handleGeneratePlan}
-                                                variant="outline"
-                                                className="gap-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 font-medium"
-                                            >
-                                                <BrainCircuit className="w-4 h-4" />
-                                                <span className="hidden sm:inline">Assistant IA</span>
-                                            </Button>
-                                            <Button
-                                                onClick={() => { setEditingAudit(null); setCreationMode(true); }}
-                                                className="gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-medium shadow-sm hover:shadow-md transition-all"
-                                            >
-                                                <Plus className="w-4 h-4" />
-                                                <span className="hidden sm:inline">Nouvel Audit</span>
-                                            </Button>
-                                        </>
-                                    )}
-                                </div>
-                            }
-                        />
                         <div className="glass-panel overflow-hidden rounded-2xl border border-white/20 dark:border-white/5">
                             <AuditsList
                                 audits={filteredAudits}
@@ -234,7 +245,7 @@ export const Audits: React.FC = () => {
                 activeTab === 'calendar' && (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible">
                         <AuditCalendar
-                            audits={audits}
+                            audits={filteredAudits}
                             onAuditClick={handleOpen}
                         />
                     </motion.div>
@@ -244,7 +255,7 @@ export const Audits: React.FC = () => {
             {
                 activeTab === 'findings' && (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible">
-                        <FindingsList audits={audits} />
+                        <FindingsList audits={filteredAudits} />
                     </motion.div>
                 )
             }
@@ -283,6 +294,10 @@ export const Audits: React.FC = () => {
                         documents={documents}
                         refreshAudits={refreshAudits}
                         canEdit={canEdit}
+                        onDelete={(id, name) => {
+                            setSelectedAudit(null);
+                            handleDelete({ id, name } as Audit);
+                        }}
                     />
                 )}
             </Drawer>

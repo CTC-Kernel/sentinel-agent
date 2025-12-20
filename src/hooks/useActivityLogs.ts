@@ -61,17 +61,20 @@ export const useActivityLogs = (limitCount: number = 50) => {
         // Date Range
         if (filter.dateRange && filter.dateRange !== 'all') {
             const now = new Date();
-            const logDate = (timestamp: any) => new Date(timestamp.seconds ? timestamp.seconds * 1000 : timestamp);
+            const logDate = (timestamp: { seconds: number } | string | Date) => {
+                const seconds = (timestamp as { seconds: number }).seconds;
+                return new Date(seconds ? seconds * 1000 : timestamp as string | Date);
+            };
 
             if (filter.dateRange === 'today') {
                 const startOfToday = new Date(now.setHours(0, 0, 0, 0));
-                result = result.filter(l => logDate(l.timestamp as any) >= startOfToday);
+                result = result.filter(l => logDate(l.timestamp) >= startOfToday);
             } else if (filter.dateRange === 'week') {
                 const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                result = result.filter(l => logDate(l.timestamp as any) >= weekAgo);
+                result = result.filter(l => logDate(l.timestamp) >= weekAgo);
             } else if (filter.dateRange === 'month') {
                 const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-                result = result.filter(l => logDate(l.timestamp as any) >= monthAgo);
+                result = result.filter(l => logDate(l.timestamp) >= monthAgo);
             }
         }
 
@@ -162,8 +165,8 @@ export const useActivityLogs = (limitCount: number = 50) => {
         const csvContent = [
             headers.join(','),
             ...filteredLogs.map(log => {
-                const ts = log.timestamp as any;
-                const date = new Date(ts.seconds ? ts.seconds * 1000 : ts).toLocaleString();
+                const ts = log.timestamp as { seconds?: number } | string | Date;
+                const date = new Date((ts as { seconds: number }).seconds ? (ts as { seconds: number }).seconds * 1000 : ts as string).toLocaleString();
                 return [
                     `"${date}"`,
                     `"${log.userEmail}"`,

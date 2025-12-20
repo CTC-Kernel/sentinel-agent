@@ -169,12 +169,12 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         if (!currentThreat) return;
         setIsGenerating(true);
         try {
-            const prompt = `Analayse le risque de menace "${currentThreat}".
+            const prompt = `Agis comme un expert en cybersécurité ISO 27005. Analyse le risque lié à la menace "${currentThreat}".
             Format JSON attendu avec des suggestions courtes:
             {
-                "description": "Description succincte du risque",
-                "vulnerability": "Vulnérabilité exploitée potentielle",
-                "consequences": "Impact principal"
+                "description": "Scénario de risque détaillé (cause, événement, conséquences)",
+                "vulnerability": "Vulnérabilité technique ou organisationnelle exploitée",
+                "consequences": "Impacts principaux sur la confidentialité, l'intégrité ou la disponibilité"
             }`;
             const resultText = await aiService.generateText(prompt);
             const jsonMatch = resultText.match(/\{[\s\S]*\}/);

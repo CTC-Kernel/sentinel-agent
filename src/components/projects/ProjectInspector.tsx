@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Badge } from '../ui/Badge';
 import { Project, ProjectTask, UserProfile, Risk, Control, Asset, Audit, ProjectMilestone } from '../../types';
@@ -51,7 +52,8 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     updateTasks, onDeleteProject, onDuplicateProject, onEditProject,
     onExportExecutiveReport, onGenerateReport, isSubmitting
 }) => {
-    // Navigate unused
+    // Navigate unused -> Now used!
+    const navigate = useNavigate();
     const [inspectorTab, setInspectorTab] = useState<InspectorTabId>('overview');
     const [viewMode, setViewMode] = useState<'list' | 'board'>('list'); // Task View Mode
     const [ganttViewMode, setGanttViewMode] = useState<'Month' | 'Week' | 'Day'>('Month');
@@ -337,13 +339,16 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     </div>
                                 ) : (
                                     linkedRisks.map(risk => (
-                                        <div key={risk.id} className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex justify-between items-center group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
+                                        <div key={risk.id} onClick={() => navigate(`/risks?id=${risk.id}`)} className="cursor-pointer glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex justify-between items-center group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
                                             <div>
-                                                <h4 className="font-bold text-slate-900 dark:text-white">{risk.threat}</h4>
+                                                <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{risk.threat}</h4>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${risk.score >= 12 ? 'bg-red-100 text-red-600' : risk.score >= 5 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>Score: {risk.score}</span>
                                                     <span className="text-xs text-slate-500">{risk.category}</span>
                                                 </div>
+                                            </div>
+                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Edit className="h-4 w-4 text-slate-400" />
                                             </div>
                                         </div>
                                     ))
@@ -383,12 +388,12 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     </div>
                                 ) : (
                                     linkedAssets.map(asset => (
-                                        <div key={asset.id} className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex items-center gap-4 bg-white/40 dark:bg-white/5">
-                                            <div className="h-10 w-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                                        <div key={asset.id} onClick={() => navigate(`/assets?id=${asset.id}`)} className="cursor-pointer glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex items-center gap-4 bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-colors group">
+                                            <div className="h-10 w-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
                                                 <Server className="h-5 w-5" />
                                             </div>
                                             <div>
-                                                <h4 className="font-bold text-slate-900 dark:text-white">{asset.name}</h4>
+                                                <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{asset.name}</h4>
                                                 <span className="text-xs text-slate-500">{asset.type}</span>
                                             </div>
                                         </div>
@@ -406,10 +411,10 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     </div>
                                 ) : (
                                     linkedAuditsList.map(audit => (
-                                        <div key={audit.id} className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 bg-white/40 dark:bg-white/5">
+                                        <div key={audit.id} onClick={() => navigate(`/audits?id=${audit.id}`)} className="cursor-pointer glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-colors group">
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <h4 className="font-bold text-slate-900 dark:text-white">{audit.name}</h4>
+                                                    <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{audit.name}</h4>
                                                     <p className="text-xs text-slate-500 mt-1">Ref: {audit.reference}</p>
                                                 </div>
                                                 <Badge status={audit.status === 'Validé' || audit.status === 'Terminé' ? 'success' : 'warning'}>{audit.status}</Badge>

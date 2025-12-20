@@ -460,7 +460,7 @@ export const Suppliers: React.FC = () => {
                 // Since we don't know the EXACT header names the user might use, maybe we just take the first 5 values of each object?
                 // OR we can update the template to require headers: Name, Category, Criticality, ContactName, ContactEmail.
 
-                lines.forEach((row: any) => {
+                lines.forEach((row: Record<string, string>) => {
                     const values = Object.values(row) as string[];
                     // Fallback to values by index if keys don't match or for flexibility
                     // Name is likely first, Category second...

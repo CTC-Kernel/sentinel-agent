@@ -16,6 +16,7 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 export const ThreatRegistry: React.FC = () => {
     const { user, addToast } = useStore();
@@ -28,6 +29,11 @@ export const ThreatRegistry: React.FC = () => {
     // Modal State
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState<Partial<ThreatTemplate>>({});
+
+    // Confirm Modal State
+    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
+        isOpen: false, title: '', message: '', onConfirm: () => { }
+    });
 
     useEffect(() => {
         if (!user?.organizationId) return;
@@ -47,49 +53,65 @@ export const ThreatRegistry: React.FC = () => {
 
     const handleSeed = async () => {
         if (!user?.organizationId) return;
-        if (threats.length > 0) {
-            if (!window.confirm("La bibliothèque contient déjà des menaces. Voulez-vous vraiment importer les modèles standards (doublons possibles) ?")) {
-                return;
+
+        const proceedWithSeed = async () => {
+            try {
+                setLoading(true);
+                const batch = writeBatch(db);
+                let count = 0;
+
+                RISK_TEMPLATES.forEach(template => {
+                    const docRef = doc(collection(db, 'threat_library'));
+                    batch.set(docRef, sanitizeData({
+                        ...template,
+                        organizationId: user.organizationId,
+                        source: 'Standard',
+                        createdAt: new Date().toISOString()
+                    }));
+                    count++;
+                });
+
+                await batch.commit();
+                addToast(`${count} menaces standard importées`, 'success');
+                await logAction(user, 'CREATE', 'ThreatLibrary', `Import de ${count} menaces standard`);
+                setConfirmData(prev => ({ ...prev, isOpen: false }));
+            } catch (error) {
+                console.error(error);
+                addToast("Erreur lors de l'import", "error");
+            } finally {
+                setLoading(false);
             }
-        }
+        };
 
-        try {
-            setLoading(true);
-            const batch = writeBatch(db);
-            let count = 0;
-
-            RISK_TEMPLATES.forEach(template => {
-                const docRef = doc(collection(db, 'threat_library'));
-                batch.set(docRef, sanitizeData({
-                    ...template,
-                    organizationId: user.organizationId,
-                    source: 'Standard',
-                    createdAt: new Date().toISOString()
-                }));
-                count++;
+        if (threats.length > 0) {
+            setConfirmData({
+                isOpen: true,
+                title: "Importer la bibliothèque standard ?",
+                message: "La bibliothèque contient déjà des menaces. Voulez-vous vraiment importer les modèles standards (doublons possibles) ?",
+                onConfirm: proceedWithSeed
             });
-
-            await batch.commit();
-            addToast(`${count} menaces standard importées`, 'success');
-            await logAction(user, 'CREATE', 'ThreatLibrary', `Import de ${count} menaces standard`);
-        } catch (error) {
-            console.error(error);
-            addToast("Erreur lors de l'import", "error");
-        } finally {
-            setLoading(false);
+        } else {
+            proceedWithSeed();
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette menace ?")) return;
-        try {
-            await deleteDoc(doc(db, 'threat_library', id));
-            addToast("Menace supprimée", "success");
-            await logAction(user!, 'DELETE', 'ThreatLibrary', `Suppression menace ${id}`);
-        } catch (error) {
-            console.error("Delete threat error:", error);
-            addToast("Erreur lors de la suppression", "error");
-        }
+        setConfirmData({
+            isOpen: true,
+            title: "Supprimer cette menace ?",
+            message: "Cette action est irréversible.",
+            onConfirm: async () => {
+                try {
+                    await deleteDoc(doc(db, 'threat_library', id));
+                    addToast("Menace supprimée", "success");
+                    await logAction(user!, 'DELETE', 'ThreatLibrary', `Suppression menace ${id}`);
+                    setConfirmData(prev => ({ ...prev, isOpen: false }));
+                } catch (error) {
+                    console.error("Delete threat error:", error);
+                    addToast("Erreur lors de la suppression", "error");
+                }
+            }
+        });
     };
 
     const handleEdit = (threat: ThreatTemplate) => {
@@ -172,6 +194,14 @@ export const ThreatRegistry: React.FC = () => {
                         </button>
                     </div>
                 }
+            />
+
+            <ConfirmModal
+                isOpen={confirmData.isOpen}
+                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+                onConfirm={confirmData.onConfirm}
+                title={confirmData.title}
+                message={confirmData.message}
             />
 
             <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-white/5 p-6 backdrop-blur-xl">

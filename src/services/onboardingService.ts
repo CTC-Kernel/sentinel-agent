@@ -6,7 +6,7 @@ import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { UserProfile, PlanType } from '../types';
-import { getRoleName } from '../utils/permissions';
+import { getRoleName, Role } from '../utils/permissions';
 import { sendEmail } from '../services/emailService';
 import { getInvitationTemplate } from '../services/emailTemplates';
 import { SubscriptionService } from '../services/subscriptionService';
@@ -157,7 +157,7 @@ export class OnboardingService {
                     const inviteLink = `${window.location.origin}/login?email=${encodeURIComponent(invite.email)}`;
                     const htmlContent = getInvitationTemplate(
                         user.displayName || user.email || 'Un administrateur',
-                        getRoleName(invite.role as any) || 'Collaborateur',
+                        getRoleName(invite.role as Role) || 'Collaborateur',
                         inviteLink
                     );
 

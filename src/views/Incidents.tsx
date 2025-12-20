@@ -272,16 +272,26 @@ export const Incidents: React.FC = () => {
 
     const handleBulkDelete = async (ids: string[]) => {
         if (!canDeleteResource(user, 'Incident')) return;
-        if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ces ${ids.length} incidents ?`)) return;
 
-        try {
-            await Promise.all(ids.map(performDelete));
-            const selectedId = selectedIncident?.id;
-            if (selectedId && ids.includes(selectedId)) setSelectedIncident(null);
-            addToast(`${ids.length} incidents supprimés`, "info");
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Incidents.handleBulkDelete', 'DELETE_FAILED');
-        }
+        setConfirmData({
+            isOpen: true,
+            title: "Supprimer ces incidents ?",
+            message: `Vous êtes sur le point de supprimer ${ids.length} incidents. Cette action est définitive.`,
+            onConfirm: async () => {
+                setConfirmData(prev => ({ ...prev, loading: true }));
+                try {
+                    await Promise.all(ids.map(performDelete));
+                    const selectedId = selectedIncident?.id;
+                    if (selectedId && ids.includes(selectedId)) setSelectedIncident(null);
+                    addToast(`${ids.length} incidents supprimés`, "info");
+                    setConfirmData(prev => ({ ...prev, isOpen: false }));
+                } catch (error) {
+                    ErrorLogger.handleErrorWithToast(error, 'Incidents.handleBulkDelete', 'DELETE_FAILED');
+                } finally {
+                    setConfirmData(prev => ({ ...prev, loading: false }));
+                }
+            }
+        });
     };
 
     const getTimeToResolve = (incident: Incident) => {

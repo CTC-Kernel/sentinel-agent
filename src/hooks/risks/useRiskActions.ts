@@ -98,7 +98,7 @@ export const useRiskActions = (onRefresh: () => void) => {
     };
 
     const deleteRisk = async (id: string) => {
-        if (!confirm('Êtes-vous sûr de vouloir supprimer ce risque ?')) return;
+        // Confirmation is now handled by the UI component (ConfirmModal)
         setSubmitting(true);
         try {
             await deleteDoc(doc(db, 'risks', id));
@@ -116,7 +116,7 @@ export const useRiskActions = (onRefresh: () => void) => {
 
     const exportRisks = (risks: Risk[], _format: 'csv' | 'pdf') => {
         return new Promise<void>((resolve) => {
-            // console.log(`Exporting ${risks.length} risks as ${format}`);
+
             toast.info('Export démarré...');
             setTimeout(() => {
                 toast.success('Export terminé (simulation)');
@@ -145,7 +145,7 @@ export const useRiskActions = (onRefresh: () => void) => {
     };
 
     const bulkDeleteRisks = async (ids: string[]) => {
-        if (!confirm(`Supprimer ${ids.length} risques ?`)) return;
+        // Confirmation handled by UI
         setSubmitting(true);
         try {
             const batch = writeBatch(db);

@@ -50,7 +50,6 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     isLoading = false,
 }) => {
     const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useForm<ProjectFormData>({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(projectSchema) as Resolver<ProjectFormData>,
         defaultValues: {
             name: '',

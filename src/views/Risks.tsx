@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Menu, Transition } from '@headlessui/react';
 import {
     FileText, FileSpreadsheet, FileCode, MoreVertical,
@@ -12,7 +13,7 @@ import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { ObsidianService } from '../services/ObsidianService';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserProfile } from '../types';
+import { UserProfile, Framework } from '../types';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { CsvParser } from '../utils/csvUtils';
 
@@ -75,6 +76,20 @@ export const Risks: React.FC = () => {
     const [isImporting, setIsImporting] = useState(false);
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
+    // URL Params for Deep Linking
+    const [searchParams] = useSearchParams();
+    const deepLinkRiskId = searchParams.get('id');
+
+    // Deep Linking Effect
+    React.useEffect(() => {
+        if (!loading && deepLinkRiskId && risks.length > 0) {
+            const risk = risks.find(r => r.id === deepLinkRiskId);
+            if (risk) {
+                setSelectedRisk(risk);
+            }
+        }
+    }, [loading, deepLinkRiskId, risks]);
+
 
     // Refs
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -134,7 +149,8 @@ export const Risks: React.FC = () => {
                 let importedCount = 0;
                 for (const rawRow of data) {
                     // Normalize keys to lowercase for robust matching
-                    const row: any = {};
+                    // Normalize keys to lowercase for robust matching
+                    const row: Record<string, string> = {};
                     Object.keys(rawRow).forEach(key => {
                         row[key.toLowerCase().trim()] = rawRow[key];
                     });
@@ -156,7 +172,7 @@ export const Risks: React.FC = () => {
                             impact: impact,
                             strategy: (row.strategy || row.strategie || 'Atténuer') as Risk['strategy'],
                             status: (row.status || row.statut || 'Ouvert') as Risk['status'],
-                            framework: (row.framework || row.reference || 'ISO27001')
+                            framework: (row.framework || row.reference || 'ISO27001') as Framework
                         });
                         importedCount++;
                     }
@@ -431,7 +447,10 @@ export const Risks: React.FC = () => {
                     <RiskMatrix
                         risks={filteredRisks}
                         matrixFilter={matrixFilter}
-                        setMatrixFilter={setMatrixFilter}
+                        setMatrixFilter={(filter) => {
+                            setMatrixFilter(filter);
+                            if (filter) setViewMode('list');
+                        }}
                         frameworkFilter={frameworkFilter}
                     />
                 )}
@@ -476,7 +495,7 @@ export const Risks: React.FC = () => {
                 canEdit={canEdit}
                 demoMode={demoMode}
                 onUpdate={updateRisk}
-                onDelete={(id) => deleteRisk(id)} // Wrapper to match signature if needed
+                onDelete={(id) => handleDelete({ id: id } as Risk)} // Wrapper to match signature if needed
                 onDuplicate={(r) => {
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const { id, history, ...rest } = r;

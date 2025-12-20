@@ -7,7 +7,7 @@ declare namespace RateLimit {
   interface RateLimitOptions {
     windowMs?: number;
     max?: number | ValueDeterminingMiddleware;
-    message?: any;
+    message?: unknown;
     statusCode?: number;
     headers?: boolean;
     draftPolliRatelimitHeaders?: boolean;
@@ -16,7 +16,7 @@ declare namespace RateLimit {
     requestWasSuccessful?: (req: Request, res: Response) => boolean;
     skip?: RequestSkipper;
     keyGenerator?: (req: Request, res: Response) => string | Promise<string>;
-    handler?: (req: Request, res: Response, next: (err?: any) => void, options: RateLimitOptions) => void;
+    handler?: (req: Request, res: Response, next: (err?: unknown) => void, options: RateLimitOptions) => void;
     onLimitReached?: (req: Request, res: Response, options: RateLimitOptions) => void;
     standardHeaders?: boolean;
     legacyHeaders?: boolean;

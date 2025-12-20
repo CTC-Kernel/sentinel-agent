@@ -19,7 +19,7 @@ export class TokenService {
     const sessionId = uuidv4();
     const accessToken = this.generateAccessToken(userId, sessionId, role);
     const refreshToken = this.generateRefreshToken(userId, sessionId, role);
-    
+
     return { accessToken, refreshToken, sessionId };
   }
 
@@ -51,7 +51,7 @@ export class TokenService {
   static verifyToken(token: string): TokenPayload {
     try {
       return verify(token, JWT_SECRET) as TokenPayload;
-    } catch (error) {
+    } catch {
       throw new Error('Invalid or expired token');
     }
   }
@@ -62,7 +62,7 @@ export class TokenService {
   static decodeToken(token: string): TokenPayload | null {
     try {
       return decode(token) as TokenPayload;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -81,11 +81,11 @@ export class TokenService {
    */
   static refreshTokens(refreshToken: string) {
     const decoded = this.verifyToken(refreshToken);
-    
+
     if (decoded.isRefreshToken) {
       return this.generateTokens(decoded.userId, decoded.role);
     }
-    
+
     throw new Error('Invalid refresh token');
   }
 }

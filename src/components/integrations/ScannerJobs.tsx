@@ -124,9 +124,9 @@ export const ScannerJobs: React.FC = () => {
                                     <div className="flex items-center gap-2">
                                         <span className="font-bold text-slate-900 dark:text-white capitalize">{job.scannerId}</span>
                                         <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-full ${job.status === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' :
-                                                job.status === 'failed' ? 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400' :
-                                                    job.status === 'running' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' :
-                                                        'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
+                                            job.status === 'failed' ? 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400' :
+                                                job.status === 'running' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' :
+                                                    'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
                                             }`}>
                                             {job.status}
                                         </span>
@@ -174,7 +174,7 @@ export const ScannerJobs: React.FC = () => {
                     <CustomSelect
                         label="Scanner"
                         value={newJob.scannerId}
-                        onChange={(val) => setNewJob({ ...newJob, scannerId: val as any })}
+                        onChange={(val) => setNewJob({ ...newJob, scannerId: val as ScannerJobCreate['scannerId'] })}
                         options={[
                             { value: 'nessus', label: 'Nessus' },
                             { value: 'qualys', label: 'Qualys' },
@@ -192,7 +192,7 @@ export const ScannerJobs: React.FC = () => {
                     <CustomSelect
                         label="Fréquence"
                         value={newJob.frequency}
-                        onChange={(val) => setNewJob({ ...newJob, frequency: val as any })}
+                        onChange={(val) => setNewJob({ ...newJob, frequency: val as ScannerJobCreate['frequency'] })}
                         options={[
                             { value: 'once', label: 'Une fois' },
                             { value: 'daily', label: 'Quotidien' },

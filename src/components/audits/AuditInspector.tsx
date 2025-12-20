@@ -20,9 +20,10 @@ interface AuditInspectorProps {
     documents: GRCDocument[];
     refreshAudits: () => void;
     canEdit: boolean;
+    onDelete: (id: string, name: string) => void;
 }
 
-export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, controls, documents, refreshAudits, canEdit }) => {
+export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, controls, documents, refreshAudits, canEdit, onDelete }) => {
     const { user } = useStore();
     const {
         findings, checklist, fetchDetails,
@@ -64,8 +65,8 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
             actions={
                 <div className="flex items-center gap-2">
                     {canDeleteResource(user, 'Audit') && (
-                        <CustomTooltip content="Supprimer l'audit (via liste)">
-                            <button className="p-2 text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50" disabled>
+                        <CustomTooltip content="Supprimer l'audit">
+                            <button onClick={() => onDelete(audit.id, audit.name)} className="p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-500 transition-colors">
                                 <Trash2 className="h-5 w-5" />
                             </button>
                         </CustomTooltip>

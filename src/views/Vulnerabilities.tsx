@@ -27,6 +27,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { VulnerabilityDashboard } from '../components/vulnerabilities/VulnerabilityDashboard';
 import { VulnerabilityImportModal } from '../components/vulnerabilities/VulnerabilityImportModal';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 export const Vulnerabilities: React.FC = () => {
     const { user, organization, addToast } = useStore();
@@ -39,9 +40,44 @@ export const Vulnerabilities: React.FC = () => {
     const [selectedVuln, setSelectedVuln] = useState<Vulnerability | null>(null);
     const [formData, setFormData] = useState<Partial<Vulnerability>>({});
 
+    // Confirm Dialog
+    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
+        isOpen: false, title: '', message: '', onConfirm: () => { }
+    });
+
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
+
+    // ... (keep intermediate code manually if needed, or target more precisely)
+    // Actually, I'll split into two replace calls again to be safe and precise.
+
+    // Filters
     const [filterSeverity, setFilterSeverity] = useState<string>('All');
+    // ...
+    const handleDelete = async (id: string, ownerId?: string) => {
+        if (!canDeleteResource(user, 'Vulnerability', ownerId, organization?.ownerId)) {
+            addToast("Permission refusée", "error");
+            return;
+        }
+
+        setConfirmData({
+            isOpen: true,
+            title: "Supprimer la vulnérabilité ?",
+            message: "Cette action est irréversible.",
+            onConfirm: async () => {
+                try {
+                    await deleteDoc(doc(db, 'vulnerabilities', id));
+                    logAction(user, 'DELETE', 'Vulnerabilities', `Deleted Vulnerability ID: ${id}`);
+                    addToast("Supprimé avec succès", "success");
+                    refresh();
+                } catch (error) {
+                    ErrorLogger.error(error, 'Vulnerabilities.handleDelete');
+                    addToast("Erreur lors de la suppression", "error");
+                }
+            }
+        });
+    };
+
 
     // Data Fetching
     const { data: vulnerabilities, loading: vulnLoading, refresh } = useFirestoreCollection<Vulnerability>(
@@ -83,7 +119,7 @@ export const Vulnerabilities: React.FC = () => {
 
     const handleExportCSV = () => {
         CsvParser.exportToCsv(
-            filteredVulns,
+            filteredVulns as unknown as Record<string, unknown>[],
             `vulnerabilities_export_${new Date().toISOString().slice(0, 10)}`,
             ["cveId", "title", "severity", "status", "assetName", "score", "createdAt"]
         );
@@ -140,22 +176,7 @@ export const Vulnerabilities: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: string, ownerId?: string) => {
-        if (!canDeleteResource(user, 'Vulnerability', ownerId, organization?.ownerId)) {
-            addToast("Permission refusée", "error");
-            return;
-        }
-        if (!confirm("Supprimer cette vulnérabilité ?")) return;
-        try {
-            await deleteDoc(doc(db, 'vulnerabilities', id));
-            logAction(user, 'DELETE', 'Vulnerabilities', `Deleted Vulnerability ID: ${id}`);
-            addToast("Supprimé avec succès", "success");
-            refresh();
-        } catch (error) {
-            ErrorLogger.error(error, 'Vulnerabilities.handleDelete');
-            addToast("Erreur lors de la suppression", "error");
-        }
-    };
+
 
     const handleCreateRisk = async (vuln: Vulnerability) => {
         if (!user?.organizationId) return;
@@ -212,6 +233,14 @@ export const Vulnerabilities: React.FC = () => {
                 subtitle="Centre de gestion des vulnérabilités et remédiation"
                 icon={<ShieldAlert className="h-6 w-6 text-white" />}
                 breadcrumbs={[{ label: 'Gouvernance' }, { label: 'Vulnérabilités' }]}
+            />
+
+            <ConfirmModal
+                isOpen={confirmData.isOpen}
+                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+                onConfirm={confirmData.onConfirm}
+                title={confirmData.title}
+                message={confirmData.message}
             />
 
             {/* Premium Control */}

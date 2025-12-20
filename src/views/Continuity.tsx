@@ -24,6 +24,7 @@ import { ContinuityStrategies } from '../components/continuity/ContinuityStrateg
 import { ContinuityCrisis } from '../components/continuity/ContinuityCrisis';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { EmptyState } from '../components/ui/EmptyState';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 type ContinuityTab = 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis';
 
@@ -37,10 +38,18 @@ const Continuity: React.FC = () => {
     const [editingProcess, setEditingProcess] = useState<BusinessProcess | null>(null);
     const [filter, setFilter] = useState('');
 
+    // Confirm Dialog
+    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
+        isOpen: false, title: '', message: '', onConfirm: () => { }
+    });
+
     // Data Fetching
     const { data: processes, loading, refresh } = useFirestoreCollection<BusinessProcess>('business_processes',
         user?.organizationId ? [where('organizationId', '==', user.organizationId)] : []
     );
+    // ... (keep intermediate code) ...
+
+
 
     const { data: drills, refresh: refreshDrills } = useFirestoreCollection<BcpDrill>('bcp_drills',
         user?.organizationId ? [where('organizationId', '==', user.organizationId), orderBy('date', 'desc')] : []
@@ -101,15 +110,21 @@ const Continuity: React.FC = () => {
     };
 
     const handleDeleteProcess = async (id: string) => {
-        if (!confirm('Êtes-vous sûr de vouloir supprimer ce processus ?')) return;
-        try {
-            await deleteDoc(doc(db, 'business_processes', id));
-            addToast('Processus supprimé', 'success');
-            setSelectedProcess(null);
-            refresh();
-        } catch {
-            addToast('Erreur suppression', 'error');
-        }
+        setConfirmData({
+            isOpen: true,
+            title: "Supprimer le processus ?",
+            message: "Cette action est irréversible et supprimera l'historique associé.",
+            onConfirm: async () => {
+                try {
+                    await deleteDoc(doc(db, 'business_processes', id));
+                    addToast('Processus supprimé', 'success');
+                    setSelectedProcess(null);
+                    refresh();
+                } catch {
+                    addToast('Erreur suppression', 'error');
+                }
+            }
+        });
     };
 
     const handleLogDrill = async (data: Partial<BcpDrill>) => {
@@ -160,6 +175,14 @@ const Continuity: React.FC = () => {
                 icon={<Activity className="h-6 w-6 text-white" />}
                 breadcrumbs={[{ label: 'Continuité' }]}
                 trustType="availability"
+            />
+
+            <ConfirmModal
+                isOpen={confirmData.isOpen}
+                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+                onConfirm={confirmData.onConfirm}
+                title={confirmData.title}
+                message={confirmData.message}
             />
 
             {/* Main Tabs Navigation */}

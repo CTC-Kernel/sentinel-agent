@@ -21,7 +21,7 @@ interface InspectorLayoutProps {
     actions?: React.ReactNode;
     tabs?: TabItem[];
     activeTab?: string;
-    onTabChange?: (tabId: any) => void;
+    onTabChange?: (tabId: string) => void;
     children: React.ReactNode;
     loading?: boolean;
     breadcrumbs?: { label: string; onClick?: () => void }[];
