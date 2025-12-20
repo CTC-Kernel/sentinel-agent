@@ -52,7 +52,8 @@ export const Onboarding: React.FC = () => {
 
     // Step 4: Team
     const [inviteEmail, setInviteEmail] = useState('');
-    const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
+    const [inviteRole, setInviteRole] = useState('user');
+    const [invitedUsers, setInvitedUsers] = useState<{ email: string, role: string }[]>([]);
 
     // Step 5: Assets
     const [assetName, setAssetName] = useState('');
@@ -117,17 +118,18 @@ export const Onboarding: React.FC = () => {
             addToast("Adresse email invalide.", "error");
             return;
         }
-        if (invitedUsers.includes(trimmedEmail)) {
+        if (invitedUsers.some(u => u.email === trimmedEmail)) {
             addToast("Cette adresse a déjà été ajoutée.", "info");
             return;
         }
 
-        setInvitedUsers([...invitedUsers, trimmedEmail]);
+        setInvitedUsers([...invitedUsers, { email: trimmedEmail, role: inviteRole }]);
         setInviteEmail('');
+        setInviteRole('user'); // Reset to default
     };
 
     const handleRemoveInvite = (email: string) => {
-        setInvitedUsers(invitedUsers.filter(e => e !== email));
+        setInvitedUsers(invitedUsers.filter(u => u.email !== email));
     };
 
     const handleStep4 = async () => {
@@ -476,39 +478,14 @@ export const Onboarding: React.FC = () => {
                                             error={form.formState.errors.displayName?.message}
                                         />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-5">
-                                        <div>
-                                            <FloatingLabelInput
-                                                label="Département"
-                                                icon={Briefcase}
-                                                {...form.register('department')}
-                                                placeholder="Ex: IT / Sécurité"
-                                                error={form.formState.errors.department?.message}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="role" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Rôle Principal</label>
-                                            <div className="relative">
-                                                <Controller
-                                                    name="role"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <CustomSelect
-                                                            options={[
-                                                                { value: "admin", label: "Administrateur" },
-                                                                { value: "rssi", label: "RSSI / CISO" },
-                                                                { value: "direction", label: "Direction / DPO" },
-                                                                { value: "project_manager", label: "Chef de Projet" },
-                                                                { value: "auditor", label: "Auditeur" }
-                                                            ]}
-                                                            value={field.value || 'admin'}
-                                                            onChange={field.onChange}
-                                                            placeholder="Sélectionner un rôle..."
-                                                        />
-                                                    )}
-                                                />
-                                            </div>
-                                        </div>
+                                    <div>
+                                        <FloatingLabelInput
+                                            label="Département"
+                                            icon={Briefcase}
+                                            {...form.register('department')}
+                                            placeholder="Ex: IT / Sécurité"
+                                            error={form.formState.errors.department?.message}
+                                        />
                                     </div>
                                     <div>
                                         <label htmlFor="industry" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Secteur</label>
@@ -695,8 +672,8 @@ export const Onboarding: React.FC = () => {
                                 <div className="space-y-6 animate-fade-in">
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Inviter des membres</label>
-                                        <div className="flex gap-2">
-                                            <div className="relative flex-1">
+                                        <div className="flex gap-2 items-start">
+                                            <div className="relative flex-[2]">
                                                 <FloatingLabelInput
                                                     label="Email du collaborateur"
                                                     icon={Mail}
@@ -707,7 +684,23 @@ export const Onboarding: React.FC = () => {
                                                     placeholder="email@entreprise.com"
                                                 />
                                             </div>
-                                            <button onClick={handleInviteUser} className="px-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold hover:opacity-90 transition-opacity">
+                                            <div className="relative flex-1">
+                                                <CustomSelect
+                                                    value={inviteRole}
+                                                    onChange={(val) => setInviteRole(val as string)}
+                                                    options={[
+                                                        { value: "user", label: "Collaborateur" },
+                                                        { value: "admin", label: "Admin" },
+                                                        { value: "rssi", label: "RSSI" },
+                                                        { value: "auditor", label: "Auditeur" },
+                                                        { value: "project_manager", label: "Chef Projet" },
+                                                        { value: "direction", label: "Direction" }
+                                                    ]}
+                                                    placeholder="Rôle"
+                                                    label=""
+                                                />
+                                            </div>
+                                            <button onClick={handleInviteUser} className="px-4 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold hover:opacity-90 transition-opacity h-[56px] flex items-center justify-center">
                                                 <Plus className="h-5 w-5" />
                                             </button>
                                         </div>
@@ -715,15 +708,18 @@ export const Onboarding: React.FC = () => {
 
                                     {invitedUsers.length > 0 && (
                                         <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar p-1">
-                                            {invitedUsers.map(email => (
-                                                <div key={email} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
+                                            {invitedUsers.map(userInvite => (
+                                                <div key={userInvite.email} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-600 flex items-center justify-center font-bold text-xs">
-                                                            {email.charAt(0).toUpperCase()}
+                                                            {userInvite.email.charAt(0).toUpperCase()}
                                                         </div>
-                                                        <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">{email}</span>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">{userInvite.email}</span>
+                                                            <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{userInvite.role}</span>
+                                                        </div>
                                                     </div>
-                                                    <button onClick={() => handleRemoveInvite(email)} className="text-slate-500 hover:text-red-500 transition-colors">
+                                                    <button onClick={() => handleRemoveInvite(userInvite.email)} className="text-slate-500 hover:text-red-500 transition-colors">
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
                                                 </div>

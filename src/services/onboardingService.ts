@@ -6,6 +6,7 @@ import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { UserProfile, PlanType } from '../types';
+import { getRoleName } from '../utils/permissions';
 import { sendEmail } from '../services/emailService';
 import { getInvitationTemplate } from '../services/emailTemplates';
 import { SubscriptionService } from '../services/subscriptionService';
@@ -132,19 +133,19 @@ export class OnboardingService {
     /**
      * Envoie des invitations aux collaborateurs (Step 4)
      */
-    static async sendInvites(user: UserProfile, emails: string[]): Promise<void> {
-        if (!user.organizationId || emails.length === 0) return;
+    static async sendInvites(user: UserProfile, invites: { email: string; role: string }[]): Promise<void> {
+        if (!user.organizationId || invites.length === 0) return;
 
         const batch = writeBatch(db);
         const invitePromises: Promise<void>[] = [];
 
-        for (const email of emails) {
+        for (const invite of invites) {
             const invitationRef = doc(collection(db, 'invitations'));
             batch.set(invitationRef, sanitizeData({
-                email,
+                email: invite.email,
                 organizationId: user.organizationId,
                 organizationName: user.organizationName || '',
-                role: 'user',
+                role: invite.role,
                 invitedBy: user.uid,
                 createdAt: new Date().toISOString(),
                 status: 'pending'
@@ -153,28 +154,28 @@ export class OnboardingService {
             // Email sending logic detached from batch to not block Firestore write
             const sendInviteEmail = async () => {
                 try {
-                    const inviteLink = `${window.location.origin}/login?email=${encodeURIComponent(email)}`;
+                    const inviteLink = `${window.location.origin}/login?email=${encodeURIComponent(invite.email)}`;
                     const htmlContent = getInvitationTemplate(
                         user.displayName || user.email || 'Un administrateur',
-                        'Collaborateur',
+                        getRoleName(invite.role as any) || 'Collaborateur',
                         inviteLink
                     );
 
                     const invitedUserContext = {
                         uid: invitationRef.id,
-                        email,
+                        email: invite.email,
                         displayName: 'Invité',
                         organizationId: user.organizationId
                     } as UserProfile;
 
                     await sendEmail(invitedUserContext, {
-                        to: email,
+                        to: invite.email,
                         subject: `Invitation à rejoindre ${user.organizationName || 'Sentinel GRC'}`,
                         html: htmlContent,
                         type: 'INVITATION'
                     }, false);
                 } catch (error) {
-                    console.error('Failed to send invite email to ' + email, error);
+                    console.error('Failed to send invite email to ' + invite.email, error);
                 }
             };
             invitePromises.push(sendInviteEmail());
