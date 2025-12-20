@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { organizationSchema, OrganizationFormData } from '../../schemas/settingsSchema';
 import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { CustomSelect } from '../ui/CustomSelect';
 import { updateDoc, doc, collection, query, where, getDocs, writeBatch, getDoc } from 'firebase/firestore';
 import { db, functions } from '../../firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -365,19 +366,22 @@ export const OrganizationSettings: React.FC = () => {
                                 </div>
 
                                 <div className="flex items-center gap-3 self-end sm:self-auto">
-                                    <select
-                                        value={u.role}
-                                        onChange={(e) => handleUpdateUserRole(u.uid, e.target.value as UserProfile['role'])}
-                                        disabled={u.uid === user.uid || currentOrg?.ownerId === u.uid || updatingUserIds.has(u.uid)}
-                                        className={`text-xs font-semibold bg-white/50 dark:bg-slate-900/50 border border-white/40 dark:border-white/10 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500/20 cursor-pointer backdrop-blur-sm ${updatingUserIds.has(u.uid) ? 'opacity-50 cursor-wait' : ''}`}
-                                    >
-                                        <option value="admin">{t('settings.roles.admin')}</option>
-                                        <option value="rssi">{t('settings.roles.rssi')}</option>
-                                        <option value="auditor">{t('settings.roles.auditor')}</option>
-                                        <option value="project_manager">{t('settings.roles.project_manager')}</option>
-                                        <option value="direction">{t('settings.roles.direction')}</option>
-                                        <option value="user">{t('settings.roles.user')}</option>
-                                    </select>
+                                    <div className="w-40">
+                                        <CustomSelect
+                                            value={u.role}
+                                            onChange={(val) => handleUpdateUserRole(u.uid, val as UserProfile['role'])}
+                                            options={[
+                                                { value: 'admin', label: t('settings.roles.admin') },
+                                                { value: 'rssi', label: t('settings.roles.rssi') },
+                                                { value: 'auditor', label: t('settings.roles.auditor') },
+                                                { value: 'project_manager', label: t('settings.roles.project_manager') },
+                                                { value: 'direction', label: t('settings.roles.direction') },
+                                                { value: 'user', label: t('settings.roles.user') }
+                                            ]}
+                                            disabled={u.uid === user.uid || currentOrg?.ownerId === u.uid || updatingUserIds.has(u.uid)}
+                                            label=""
+                                        />
+                                    </div>
 
                                     <div className="flex items-center border-l border-white/20 dark:border-white/10 pl-3 gap-1">
                                         {/* Transfer Ownership Button (Only for Owner) */}

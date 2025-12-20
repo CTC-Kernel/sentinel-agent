@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
-import { Shield, RefreshCw, Home } from 'lucide-react';
+import { Shield, RefreshCw, Home } from './ui/Icons';
+import { Button } from './ui/button';
 import { MasterpieceBackground } from './ui/MasterpieceBackground';
 
 interface Props {
@@ -41,7 +42,7 @@ export class ErrorBoundary extends Component<Props, State> {
                             ? 'bg-amber-500/10 text-amber-500'
                             : 'bg-red-500/10 text-red-500'
                             }`}>
-                            <Shield className="h-10 w-10" strokeWidth={1.5} />
+                            <Shield className="h-10 w-10" />
                         </div>
 
                         <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-4 font-display tracking-tight">
@@ -55,21 +56,22 @@ export class ErrorBoundary extends Component<Props, State> {
                         </p>
 
                         <div className="flex flex-col gap-4">
-                            <button
+                            <Button
                                 onClick={() => window.location.reload()}
-                                className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-[0.98]"
+                                className="w-full text-base py-6 rounded-xl font-bold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 transition-all duration-300"
                             >
-                                <RefreshCw size={18} />
+                                <RefreshCw className="mr-2 h-5 w-5" />
                                 Recharger la page
-                            </button>
+                            </Button>
 
-                            <button
+                            <Button
+                                variant="ghost"
                                 onClick={() => window.location.href = '/'}
-                                className="w-full py-4 bg-transparent text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/20 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                                className="w-full text-base py-6 rounded-xl font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
                             >
-                                <Home size={18} />
+                                <Home className="mr-2 h-5 w-5" />
                                 Retour au tableau de bord
-                            </button>
+                            </Button>
                         </div>
 
                         {!isPermissionError && process.env.NODE_ENV === 'development' && (

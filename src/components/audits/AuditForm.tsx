@@ -12,7 +12,7 @@ import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
 import type { Framework } from '../../types';
 import { FRAMEWORK_OPTIONS } from '../../data/frameworks';
-import { FloatingLabelSelect } from '../ui/FloatingLabelSelect';
+
 
 
 
@@ -202,12 +202,21 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                         )}
                     />
 
+
+
                     <div className="md:col-span-2">
-                        <FloatingLabelSelect
-                            label="Référentiel / Standard (Optionnel)"
-                            {...register('framework')}
-                            options={FRAMEWORK_OPTIONS}
-                            error={errors.framework?.message}
+                        <Controller
+                            name="framework"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Référentiel / Standard (Optionnel)"
+                                    value={field.value || ''}
+                                    onChange={(val) => field.onChange(val as Framework)}
+                                    options={FRAMEWORK_OPTIONS}
+                                    error={errors.framework?.message}
+                                />
+                            )}
                         />
                     </div>
 

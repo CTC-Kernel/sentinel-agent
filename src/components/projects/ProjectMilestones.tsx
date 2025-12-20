@@ -9,7 +9,7 @@ import { Plus, Edit, Trash2, Calendar } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
-import { CustomDatePicker } from '../ui/CustomDatePicker';
+import { DatePicker } from '../ui/DatePicker';
 import { CustomSelect } from '../ui/CustomSelect';
 import { Badge } from '../ui/Badge';
 import { EmptyState } from '../ui/EmptyState';
@@ -118,7 +118,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                             onChange={(e) => setCurrentMilestone({ ...currentMilestone, description: e.target.value })}
                         />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <CustomDatePicker
+                            <DatePicker
                                 label="Date cible"
                                 value={currentMilestone.targetDate || ''}
                                 onChange={(val) => setCurrentMilestone({ ...currentMilestone, targetDate: val })}

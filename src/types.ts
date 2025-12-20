@@ -685,6 +685,8 @@ export interface ProcessingActivity {
   status: 'Actif' | 'En projet' | 'Archivé';
   createdAt?: string;
   updatedAt?: string;
+  relatedAssetIds?: string[]; // Linked Assets (Storage, Processing, etc.)
+  relatedRiskIds?: string[]; // Linked Risks (DPIA)
 }
 
 export interface BusinessProcess {
@@ -757,6 +759,7 @@ export interface SystemLog {
   userEmail: string;
   action: string;
   resource: string;
+  resourceId?: string; // ID of the resource for deep linking
   details?: string;
   timestamp: string;
 }

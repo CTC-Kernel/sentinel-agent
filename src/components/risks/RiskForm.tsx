@@ -12,7 +12,9 @@ import { RiskMatrixSelector } from './RiskMatrixSelector';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { RiskTreatmentPlan } from './RiskTreatmentPlan';
 import { Button } from '../ui/button';
+
 import { RichTextEditor } from '../ui/RichTextEditor';
+import { DatePicker } from '../ui/DatePicker';
 import { STANDARD_THREATS, RISK_STRATEGIES, RISK_STATUSES } from '../../data/riskConstants';
 import { AIAssistantHeader } from '../ui/AIAssistantHeader';
 import { aiService } from '../../services/aiService';
@@ -376,6 +378,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                 required
                                 error={errors.threat?.message}
                                 placeholder="Ex: Attaque par ingénierie sociale..."
+                                icon={Search}
                             />
                             <div className="absolute right-2 top-2 z-10 flex gap-2">
                                 <button
@@ -420,18 +423,14 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             </div>
                         </div>
 
-                        <div className="relative">
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Scénario de Risque & Conséquences
-                            </label>
-                            <textarea
-                                {...control.register('scenario')}
-                                rows={4}
-                                className="w-full rounded-xl border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm focus:ring-2 focus:ring-brand-500"
-                                placeholder="Décrivez le déroulement de l'incident et ses impacts potentiels..."
-                            />
-                        </div>
+                        <FloatingLabelInput
+                            label="Scénario de Risque & Conséquences"
+                            {...control.register('scenario')}
+                            textarea
+                            rows={4}
+                        />
                     </div>
+
                 )}
 
                 {/* TAB: ASSESSMENT */}
@@ -522,10 +521,9 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                     name="treatmentDeadline"
                                     control={control}
                                     render={({ field }) => (
-                                        <FloatingLabelInput
+                                        <DatePicker
                                             label="Échéance du Traitement (SLA)"
-                                            type="date"
-                                            value={field.value || ''}
+                                            value={field.value}
                                             onChange={field.onChange}
                                             required={(strategy as string) !== 'Accepter'}
                                             error={errors.treatmentDeadline?.message}
@@ -558,11 +556,13 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                 <p className="text-xs text-orange-700 dark:text-orange-300">
                                     Vous vous apprêtez à accepter un risque critique (Score: {probability * impact}). Veuillez justifier cette décision pour le registre.
                                 </p>
-                                <textarea
+                                <FloatingLabelInput
+                                    label="Justification d'Acceptation"
                                     {...control.register('justification')}
+                                    textarea
                                     rows={3}
-                                    className="w-full rounded-lg border-orange-300 dark:border-orange-800 bg-white dark:bg-black/20 text-sm focus:ring-2 focus:ring-orange-500"
                                     placeholder="Expliquez pourquoi ce risque est accepté (ex: coût de traitement disproportionné, risque transitoire...)"
+                                    error={errors.justification?.message}
                                 />
                                 {errors.justification && (
                                     <p className="text-xs font-bold text-red-600 dark:text-red-400 mt-1">
@@ -668,13 +668,11 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             >
                 <div className="p-4">
                     <div className="relative mb-4">
-                        <Search className="h-5 w-5 text-slate-500 absolute left-3 top-3" />
-                        <input
-                            type="text"
-                            placeholder="Rechercher une menace type..."
-                            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
+                        <FloatingLabelInput
+                            label="Rechercher une menace..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
+                            icon={Search}
                         />
                     </div>
 

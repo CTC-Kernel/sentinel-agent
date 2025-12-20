@@ -1,9 +1,11 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { Modal } from '../ui/Modal';
 import { BusinessProcess, BcpDrill } from '../../types';
 import { Loader2 } from 'lucide-react';
-
+import { CustomSelect } from '../ui/CustomSelect';
+import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { DatePicker } from '../ui/DatePicker';
 interface DrillModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -12,49 +14,100 @@ interface DrillModalProps {
 }
 
 export const DrillModal: React.FC<DrillModalProps> = ({ isOpen, onClose, onSubmit, processes }) => {
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Partial<BcpDrill>>();
+    const { handleSubmit, control, formState: { errors, isSubmitting } } = useForm<Partial<BcpDrill>>();
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Enregistrer un Exercice">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Processus Testé</label>
-                    <select {...register('processId', { required: 'Requis' })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white sm:text-sm p-3">
-                        <option value="">Sélectionner un processus...</option>
-                        {processes.map(p => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
-                        ))}
-                    </select>
-                    {errors.processId && <span className="text-red-500 text-xs">Requis</span>}
+                    <Controller
+                        name="processId"
+                        control={control}
+                        rules={{ required: 'Requis' }}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Processus Testé"
+                                options={processes.map(p => ({ value: p.id, label: p.name }))}
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                error={errors.processId?.message}
+                            />
+                        )}
+                    />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Type d'Exercice</label>
-                    <select {...register('type', { required: 'Requis' })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white sm:text-sm p-3">
-                        <option value="Tabletop">Tabletop (Sur table)</option>
-                        <option value="Simulation">Simulation Technique</option>
-                        <option value="Full Scale">Grandeur Nature</option>
-                        <option value="Call Tree">Arbre d'Appel</option>
-                    </select>
+                    <Controller
+                        name="type"
+                        control={control}
+                        rules={{ required: 'Requis' }}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Type d'Exercice"
+                                options={[
+                                    { value: "Tabletop", label: "Tabletop (Sur table)" },
+                                    { value: "Simulation", label: "Simulation Technique" },
+                                    { value: "Full Scale", label: "Grandeur Nature" },
+                                    { value: "Call Tree", label: "Arbre d'Appel" }
+                                ]}
+                                value={field.value}
+                                onChange={field.onChange}
+                                error={errors.type?.message}
+                            />
+                        )}
+                    />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Date de l'Exercice</label>
-                    <input type="date" {...register('date', { required: 'Requis' })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white sm:text-sm p-3" />
+                    <Controller
+                        name="date"
+                        control={control}
+                        rules={{ required: 'Requis' }}
+                        render={({ field }) => (
+                            <DatePicker
+                                label="Date de l'Exercice"
+                                value={field.value}
+                                onChange={(d) => field.onChange(d)}
+                                error={errors.date?.message}
+                            />
+                        )}
+                    />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Résultat</label>
-                    <select {...register('result', { required: 'Requis' })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white sm:text-sm p-3">
-                        <option value="Succès">Succès</option>
-                        <option value="Partiel">Partiel</option>
-                        <option value="Échec">Échec</option>
-                    </select>
+                    <Controller
+                        name="result"
+                        control={control}
+                        rules={{ required: 'Requis' }}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Résultat"
+                                options={[
+                                    { value: "Succès", label: "Succès" },
+                                    { value: "Partiel", label: "Partiel" },
+                                    { value: "Échec", label: "Échec" }
+                                ]}
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                error={errors.result?.message}
+                            />
+                        )}
+                    />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Notes / Observations</label>
-                    <textarea {...register('notes')} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white sm:text-sm p-3" rows={3} placeholder="Observations, leçons apprises..." />
+                    <Controller
+                        name="notes"
+                        control={control}
+                        render={({ field }) => (
+                            <FloatingLabelInput
+                                label="Notes / Observations"
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                textarea
+                            />
+                        )}
+                    />
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4">

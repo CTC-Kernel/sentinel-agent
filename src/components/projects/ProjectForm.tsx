@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Project, Risk, Control, Asset } from '../../types';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { CustomSelect } from '../ui/CustomSelect';
-import { CustomDatePicker } from '../ui/CustomDatePicker';
+import { DatePicker } from '../ui/DatePicker';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectSchema, ProjectFormData } from '../../schemas/projectSchema';
@@ -243,7 +243,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                             name="startDate"
                             control={control}
                             render={({ field }) => (
-                                <CustomDatePicker
+                                <DatePicker
                                     label="Date de début"
                                     value={field.value || ''}
                                     onChange={field.onChange}
@@ -255,7 +255,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                             name="dueDate"
                             control={control}
                             render={({ field }) => (
-                                <CustomDatePicker
+                                <DatePicker
                                     label="Date de fin"
                                     value={field.value || ''}
                                     onChange={field.onChange}

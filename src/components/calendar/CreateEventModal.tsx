@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, Transition, Listbox } from '@headlessui/react';
-import { Fragment } from 'react';
-import { X, Calendar, Check, ChevronDown, Link as LinkIcon } from 'lucide-react';
+import { X, Calendar, Link as LinkIcon } from 'lucide-react';
+import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { CustomSelect } from '../ui/CustomSelect';
+import { DatePicker } from '../ui/DatePicker';
 import { useForm, Controller } from 'react-hook-form';
 import { useStore } from '../../store';
 import { CalendarService } from '../../services/calendarService';
 import { GoogleCalendarService } from '../../services/googleCalendarService';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
 import { Asset, Risk } from '../../types';
 import { toast } from 'sonner';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -201,78 +204,161 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                                     {/* Common Fields */}
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Titre</label>
-                                        <input
-                                            {...register('title', { required: true })}
-                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:text-white"
-                                            placeholder="Ex: Audit ISO 27001, Maintenance Serveur..."
+                                        <Controller
+                                            name="title"
+                                            rules={{ required: "Le titre est requis" }}
+                                            control={control}
+                                            render={({ field }) => (
+                                                <FloatingLabelInput
+                                                    label="Titre"
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    placeholder="Ex: Audit ISO 27001, Maintenance Serveur..."
+                                                />
+                                            )}
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Date de début</label>
                                             <div className="flex gap-2">
-                                                <input
-                                                    type="date"
-                                                    {...register('start', { required: true })}
-                                                    className="flex-1 px-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:text-white"
-                                                />
-                                                <input
-                                                    type="time"
-                                                    {...register('startTime', { required: true })}
-                                                    className="w-24 px-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:text-white"
-                                                />
+                                                <div className="flex-1">
+                                                    <Controller
+                                                        name="start"
+                                                        control={control}
+                                                        rules={{ required: true }}
+                                                        render={({ field }) => (
+                                                            <DatePicker
+                                                                label=""
+                                                                value={field.value}
+                                                                onChange={(date) => field.onChange(date)}
+                                                            />
+                                                        )}
+                                                    />
+                                                </div>
+                                                <div className="w-32">
+                                                    <Controller
+                                                        name="startTime"
+                                                        control={control}
+                                                        rules={{ required: true }}
+                                                        render={({ field }) => (
+                                                            <FloatingLabelInput
+                                                                label=""
+                                                                type="time"
+                                                                value={field.value}
+                                                                onChange={field.onChange}
+                                                            />
+                                                        )}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Date de fin / Échéance</label>
                                             <div className="flex gap-2">
-                                                <input
-                                                    type="date"
-                                                    {...register('end', { required: true })}
-                                                    className="flex-1 px-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:text-white"
-                                                />
-                                                <input
-                                                    type="time"
-                                                    {...register('endTime', { required: true })}
-                                                    className="w-24 px-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:text-white"
-                                                />
+                                                <div className="flex-1">
+                                                    <Controller
+                                                        name="end"
+                                                        control={control}
+                                                        rules={{ required: true }}
+                                                        render={({ field }) => (
+                                                            <DatePicker
+                                                                label=""
+                                                                value={field.value}
+                                                                onChange={(date) => field.onChange(date)}
+                                                            />
+                                                        )}
+                                                    />
+                                                </div>
+                                                <div className="w-32">
+                                                    <Controller
+                                                        name="endTime"
+                                                        control={control}
+                                                        rules={{ required: true }}
+                                                        render={({ field }) => (
+                                                            <FloatingLabelInput
+                                                                label=""
+                                                                type="time"
+                                                                value={field.value}
+                                                                onChange={field.onChange}
+                                                            />
+                                                        )}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Type Specific Fields */}
                                     {eventType === 'audit' && (
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Type d'audit</label>
-                                                <select {...register('subType')} className="w-full px-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:text-white">
-                                                    <option value="Interne">Interne</option>
-                                                    <option value="Externe">Externe</option>
-                                                    <option value="Certification">Certification</option>
-                                                </select>
+                                                <Controller
+                                                    name="subType"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <CustomSelect
+                                                            label="Type d'audit"
+                                                            options={[
+                                                                { value: "Interne", label: "Interne" },
+                                                                { value: "Externe", label: "Externe" },
+                                                                { value: "Certification", label: "Certification" }
+                                                            ]}
+                                                            value={field.value}
+                                                            onChange={field.onChange}
+                                                        />
+                                                    )}
+                                                />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Auditeur</label>
-                                                <input {...register('auditor')} className="w-full px-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:text-white" />
+                                                <Controller
+                                                    name="auditor"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <FloatingLabelInput
+                                                            label="Auditeur"
+                                                            value={field.value}
+                                                            onChange={field.onChange}
+                                                        />
+                                                    )}
+                                                />
                                             </div>
                                         </div>
                                     )}
 
                                     {eventType === 'maintenance' && (
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Type de maintenance</label>
-                                                <select {...register('subType')} className="w-full px-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:text-white">
-                                                    <option value="Préventive">Préventive</option>
-                                                    <option value="Corrective">Corrective</option>
-                                                    <option value="Mise à jour">Mise à jour</option>
-                                                </select>
+                                                <Controller
+                                                    name="subType"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <CustomSelect
+                                                            label="Type de maintenance"
+                                                            options={[
+                                                                { value: "Préventive", label: "Préventive" },
+                                                                { value: "Corrective", label: "Corrective" },
+                                                                { value: "Mise à jour", label: "Mise à jour" }
+                                                            ]}
+                                                            value={field.value}
+                                                            onChange={field.onChange}
+                                                        />
+                                                    )}
+                                                />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Technicien</label>
-                                                <input {...register('technician')} className="w-full px-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:text-white" />
+                                                <Controller
+                                                    name="technician"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <FloatingLabelInput
+                                                            label="Technicien"
+                                                            value={field.value}
+                                                            onChange={field.onChange}
+                                                        />
+                                                    )}
+                                                />
                                             </div>
                                         </div>
                                     )}
@@ -287,102 +373,36 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                         <div className="space-y-4">
                                             {/* Asset Linking */}
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wider">Actifs concernés</label>
                                                 <Controller
                                                     control={control}
                                                     name="linkedAssetIds"
                                                     render={({ field }) => (
-                                                        <Listbox value={field.value} onChange={field.onChange} multiple>
-                                                            <div className="relative mt-1">
-                                                                <Listbox.Button className="relative w-full cursor-default rounded-xl bg-slate-50 dark:bg-black/20 py-2 pl-3 pr-10 text-left border border-slate-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-500 sm:text-sm dark:text-white min-h-[42px]">
-                                                                    <span className="block truncate">
-                                                                        {field.value.length === 0
-                                                                            ? 'Sélectionner des actifs...'
-                                                                            : `${field.value.length} actif(s) sélectionné(s)`}
-                                                                    </span>
-                                                                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                        <ChevronDown className="h-4 w-4 text-slate-500" aria-hidden="true" />
-                                                                    </span>
-                                                                </Listbox.Button>
-                                                                <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
-                                                                    <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white dark:bg-slate-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-50">
-                                                                        {assets.map((asset) => (
-                                                                            <Listbox.Option
-                                                                                key={asset.id}
-                                                                                className={({ active }) =>
-                                                                                    `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-900 dark:text-brand-100' : 'text-slate-900 dark:text-slate-100'}`
-                                                                                }
-                                                                                value={asset.id}
-                                                                            >
-                                                                                {({ selected }) => (
-                                                                                    <>
-                                                                                        <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                                                                            {asset.name}
-                                                                                        </span>
-                                                                                        {selected ? (
-                                                                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-brand-600 dark:text-brand-400">
-                                                                                                <Check className="h-4 w-4" aria-hidden="true" />
-                                                                                            </span>
-                                                                                        ) : null}
-                                                                                    </>
-                                                                                )}
-                                                                            </Listbox.Option>
-                                                                        ))}
-                                                                    </Listbox.Options>
-                                                                </Transition>
-                                                            </div>
-                                                        </Listbox>
+                                                        <CustomSelect
+                                                            label="Actifs concernés"
+                                                            value={field.value}
+                                                            onChange={field.onChange}
+                                                            options={assets.map(a => ({ value: a.id, label: a.name }))}
+                                                            multiple
+                                                            placeholder="Sélectionner des actifs..."
+                                                        />
                                                     )}
                                                 />
                                             </div>
 
                                             {/* Risk Linking */}
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 uppercase tracking-wider">Risques associés</label>
                                                 <Controller
                                                     control={control}
                                                     name="linkedRiskIds"
                                                     render={({ field }) => (
-                                                        <Listbox value={field.value} onChange={field.onChange} multiple>
-                                                            <div className="relative mt-1">
-                                                                <Listbox.Button className="relative w-full cursor-default rounded-xl bg-slate-50 dark:bg-black/20 py-2 pl-3 pr-10 text-left border border-slate-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-500 sm:text-sm dark:text-white min-h-[42px]">
-                                                                    <span className="block truncate">
-                                                                        {field.value.length === 0
-                                                                            ? 'Sélectionner des risques...'
-                                                                            : `${field.value.length} risque(s) sélectionné(s)`}
-                                                                    </span>
-                                                                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                        <ChevronDown className="h-4 w-4 text-slate-500" aria-hidden="true" />
-                                                                    </span>
-                                                                </Listbox.Button>
-                                                                <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
-                                                                    <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white dark:bg-slate-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-50">
-                                                                        {risks.map((risk) => (
-                                                                            <Listbox.Option
-                                                                                key={risk.id}
-                                                                                className={({ active }) =>
-                                                                                    `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-900 dark:text-brand-100' : 'text-slate-900 dark:text-slate-100'}`
-                                                                                }
-                                                                                value={risk.id}
-                                                                            >
-                                                                                {({ selected }) => (
-                                                                                    <>
-                                                                                        <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                                                                            {risk.threat}
-                                                                                        </span>
-                                                                                        {selected ? (
-                                                                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-brand-600 dark:text-brand-400">
-                                                                                                <Check className="h-4 w-4" aria-hidden="true" />
-                                                                                            </span>
-                                                                                        ) : null}
-                                                                                    </>
-                                                                                )}
-                                                                            </Listbox.Option>
-                                                                        ))}
-                                                                    </Listbox.Options>
-                                                                </Transition>
-                                                            </div>
-                                                        </Listbox>
+                                                        <CustomSelect
+                                                            label="Risques associés"
+                                                            value={field.value}
+                                                            onChange={field.onChange}
+                                                            options={risks.map(r => ({ value: r.id, label: r.threat }))}
+                                                            multiple
+                                                            placeholder="Sélectionner des risques..."
+                                                        />
                                                     )}
                                                 />
                                             </div>
@@ -416,12 +436,19 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                     )}
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
-                                        <textarea
-                                            {...register('description')}
-                                            rows={3}
-                                            className="w-full px-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none dark:text-white"
-                                            placeholder="Détails supplémentaires..."
+                                        <Controller
+                                            name="description"
+                                            rules={{ required: false }}
+                                            control={control}
+                                            render={({ field }) => (
+                                                <FloatingLabelInput
+                                                    label="Description details"
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    textarea
+                                                    placeholder="Détails supplémentaires..."
+                                                />
+                                            )}
                                         />
                                     </div>
 

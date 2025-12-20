@@ -11,6 +11,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SEO } from '../components/SEO';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 
 export const Integrations: React.FC = () => {
     const { user, demoMode } = useStore();
@@ -208,19 +209,17 @@ export const Integrations: React.FC = () => {
                     </p>
 
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Clé API / Token
-                        </label>
-                        <div className="relative">
-                            <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                            <input
-                                type="password"
-                                value={apiKey}
-                                onChange={(e) => setApiKey(e.target.value)}
-                                placeholder="sk_live_..."
-                                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all"
-                            />
-                        </div>
+                        <FloatingLabelInput
+                            label="Clé API / Token"
+                            type="password"
+                            value={apiKey}
+                            onChange={(e) => {
+                                if (typeof e === 'string') setApiKey(e);
+                                else if (e && e.target) setApiKey(e.target.value);
+                            }}
+                            icon={Key}
+                            placeholder="sk_live_..."
+                        />
                         <p className="text-xs text-slate-500">
                             Cette clé sera stockée de manière sécurisée et utilisée uniquement pour la synchronisation.
                         </p>

@@ -5,7 +5,8 @@ import { BackupService, BackupMetadata } from '../services/backupService';
 import { Save, RotateCcw, Clock, CheckCircle2, AlertTriangle, FileText, Shield, Users, Database, Download, Trash2, RefreshCw, HardDrive, Calendar, CalendarDays } from '../components/ui/Icons';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+import { Switch } from '../components/ui/Switch';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { backupConfigSchema, restoreConfigSchema, BackupConfigFormData, RestoreConfigFormData } from '../schemas/backupSchema';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -339,16 +340,21 @@ export const BackupRestore: React.FC = () => {
                     { id: 'includeUsers', label: 'Utilisateurs', icon: Users },
                     { id: 'includeComments', label: 'Commentaires', icon: FileText },
                   ].map((item) => (
-                    <label key={item.id} className="flex items-center p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors group">
-                      <input
-                        type="checkbox"
-                        className="w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 transition-all"
-                        {...backupForm.register(item.id as keyof BackupConfigFormData)}
-                      />
-                      <div className="ml-3 flex items-center gap-2">
+                    <label key={item.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors group">
+                      <div className="flex items-center gap-2">
                         <item.icon className="h-4 w-4 text-slate-500 group-hover:text-indigo-500 transition-colors" />
                         <span className="font-medium text-slate-700 dark:text-slate-300">{item.label}</span>
                       </div>
+                      <Controller
+                        control={backupForm.control}
+                        name={item.id as keyof BackupConfigFormData}
+                        render={({ field: { value, onChange } }) => (
+                          <Switch
+                            checked={!!value}
+                            onChange={onChange}
+                          />
+                        )}
+                      />
                     </label>
                   ))}
                 </div>
@@ -399,14 +405,12 @@ export const BackupRestore: React.FC = () => {
                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Collections à restaurer</label>
                     <div className="grid grid-cols-2 gap-3">
                       {selectedBackup.collections.map((col) => (
-                        <label key={col} className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${restoreForm.watch('collections').includes(col) ? 'border-indigo-500 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
-                          <input
-                            type="checkbox"
+                        <label key={col} className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${restoreForm.watch('collections').includes(col) ? 'border-indigo-500 bg-indigo-50 dark:bg-slate-900 dark:bg-slate-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
+                          <span className="text-sm font-medium capitalize text-slate-700 dark:text-slate-300">{col}</span>
+                          <Switch
                             checked={restoreForm.watch('collections').includes(col)}
                             onChange={() => toggleCollection(col)}
-                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                           />
-                          <span className="ml-2 text-sm font-medium capitalize text-slate-700 dark:text-slate-300">{col}</span>
                         </label>
                       ))}
                     </div>
@@ -414,19 +418,31 @@ export const BackupRestore: React.FC = () => {
                   </div>
 
                   <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                    <label className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
-                      <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-indigo-600" {...restoreForm.register('overwriteExisting')} />
+                    <label className="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
                       <div>
                         <span className="block font-medium text-slate-900 dark:text-white">Écraser les données existantes</span>
                         <span className="text-xs text-slate-600">Si coché, les données actuelles seront remplacées par celles de la sauvegarde.</span>
                       </div>
+                      <Controller
+                        control={restoreForm.control}
+                        name="overwriteExisting"
+                        render={({ field: { value, onChange } }) => (
+                          <Switch checked={!!value} onChange={onChange} />
+                        )}
+                      />
                     </label>
-                    <label className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
-                      <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-indigo-600" {...restoreForm.register('dryRun')} />
+                    <label className="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
                       <div>
                         <span className="block font-medium text-slate-900 dark:text-white">Simulation (Dry Run)</span>
                         <span className="text-xs text-slate-600">Vérifie l'intégrité sans modifier les données.</span>
                       </div>
+                      <Controller
+                        control={restoreForm.control}
+                        name="dryRun"
+                        render={({ field: { value, onChange } }) => (
+                          <Switch checked={!!value} onChange={onChange} />
+                        )}
+                      />
                     </label>
                   </div>
 

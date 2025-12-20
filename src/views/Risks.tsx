@@ -24,6 +24,7 @@ import { RiskList } from '../components/risks/RiskList';
 import { RiskGrid } from '../components/risks/RiskGrid';
 import { RiskMatrix } from '../components/risks/RiskMatrix';
 import { RiskDashboard } from '../components/risks/RiskDashboard';
+import { CustomSelect } from '../components/ui/CustomSelect';
 
 import { Drawer } from '../components/ui/Drawer';
 import { RiskForm } from '../components/risks/RiskForm';
@@ -218,18 +219,19 @@ export const Risks: React.FC = () => {
                     actions={
                         <>
                             {/* Framework Filter */}
-                            <div className="hidden md:block">
-                                <select
-                                    className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 outline-none hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                            <div className="hidden md:block w-48">
+                                <CustomSelect
                                     value={frameworkFilter}
-                                    onChange={(e) => setFrameworkFilter(e.target.value)}
-                                >
-                                    <option value="">Tous les référentiels</option>
-                                    <option value="ISO 27001">ISO 27001</option>
-                                    <option value="ISO 27005">ISO 27005</option>
-                                    <option value="EBIOS">EBIOS RM</option>
-                                    <option value="NIST">NIST</option>
-                                </select>
+                                    onChange={(val) => setFrameworkFilter(val as string)}
+                                    options={[
+                                        { value: '', label: 'Tous les référentiels' },
+                                        { value: 'ISO 27001', label: 'ISO 27001' },
+                                        { value: 'ISO 27005', label: 'ISO 27005' },
+                                        { value: 'EBIOS', label: 'EBIOS RM' },
+                                        { value: 'NIST', label: 'NIST' }
+                                    ]}
+                                    placeholder="Référentiel"
+                                />
                             </div>
 
                             <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />

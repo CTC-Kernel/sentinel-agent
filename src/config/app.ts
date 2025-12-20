@@ -1,6 +1,6 @@
 import express, { Express } from 'express';
 import cors from 'cors';
-import { configureSecurity, corsOptions } from './security';
+import { configureSecurity, corsOptions, authLimiter } from './security';
 import { authenticate } from '../middleware/authMiddleware';
 
 /**
@@ -9,12 +9,18 @@ import { authenticate } from '../middleware/authMiddleware';
 export const configureApp = (): Express => {
   const app = express();
 
+  // Support des environnements derrière un proxy (ex: Firebase Hosting, reverse proxy)
+  app.set('trust proxy', 1);
+
   // Middleware de base
   app.use(express.json({ limit: '10kb' }));
   app.use(express.urlencoded({ extended: true, limit: '10kb' }));
   
   // Configuration CORS
   app.use(cors(corsOptions));
+
+  // Limitation dédiée aux routes d'authentification sensibles
+  app.use(['/api/auth', '/api/login', '/api/session'], authLimiter);
   
   // Configuration de la sécurité
   configureSecurity(app);

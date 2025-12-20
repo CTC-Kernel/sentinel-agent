@@ -315,27 +315,48 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                     )}
 
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Catégorie</label>
-                        <select className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium"
-                            {...register('category')}>
-                            {SUPPLIER_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
+                        <Controller
+                            name="category"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Catégorie"
+                                    options={SUPPLIER_CATEGORIES.map(c => ({ value: c, label: c }))}
+                                    value={field.value || ''}
+                                    onChange={field.onChange}
+                                />
+                            )}
+                        />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Criticité</label>
-                        <select className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium"
-                            {...register('criticality')}>
-                            {Object.values(Criticality).map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
+                        <Controller
+                            name="criticality"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Criticité"
+                                    options={Object.values(Criticality).map(c => ({ value: c, label: c }))}
+                                    value={field.value || ''}
+                                    onChange={field.onChange}
+                                />
+                            )}
+                        />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Statut</label>
-                        <select className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium"
-                            {...register('status')}>
-                            {SUPPLIER_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
+                        <Controller
+                            name="status"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Statut"
+                                    options={SUPPLIER_STATUSES.map(s => ({ value: s, label: s }))}
+                                    value={field.value || ''}
+                                    onChange={field.onChange}
+                                />
+                            )}
+                        />
                     </div>
 
                     <div>
@@ -397,18 +418,32 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Type de Service</label>
-                        <select className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium"
-                            {...register('serviceType')}>
-                            {DORA_SERVICE_TYPES.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
+                        <Controller
+                            name="serviceType"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Type de Service"
+                                    options={DORA_SERVICE_TYPES.map(c => ({ value: c, label: c }))}
+                                    value={field.value || ''}
+                                    onChange={field.onChange}
+                                />
+                            )}
+                        />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Criticité DORA</label>
-                        <select className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none appearance-none font-medium"
-                            {...register('doraCriticality')}>
-                            {DORA_CRITICALITIES.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
+                        <Controller
+                            name="doraCriticality"
+                            control={control}
+                            render={({ field }) => (
+                                <CustomSelect
+                                    label="Criticité DORA"
+                                    options={DORA_CRITICALITIES.map(c => ({ value: c, label: c }))}
+                                    value={field.value || ''}
+                                    onChange={field.onChange}
+                                />
+                            )}
+                        />
                     </div>
                 </div>
             </div>

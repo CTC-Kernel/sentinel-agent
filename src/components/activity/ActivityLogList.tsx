@@ -1,5 +1,6 @@
 
 import React, { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { DataTable } from '../ui/DataTable';
 import { SystemLog } from '../../types';
 import { ColumnDef } from '@tanstack/react-table';
@@ -73,12 +74,59 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
         {
             accessorKey: 'resource',
             header: 'Ressource',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                    <Shield className="h-4 w-4" />
-                    <span>{row.original.resource}</span>
-                </div>
-            )
+            cell: ({ row }) => {
+                const { resource, resourceId } = row.original;
+                let linkPath = null;
+
+                if (resourceId) {
+                    switch (resource) {
+                        case 'Risk':
+                        case 'Risque':
+                            linkPath = `/risks?open=${resourceId}`;
+                            break;
+                        case 'Asset':
+                        case 'Actif':
+                            linkPath = `/assets?open=${resourceId}`;
+                            break;
+                        case 'Control':
+                        case 'Contrôle':
+                            linkPath = `/compliance?open=${resourceId}`;
+                            break;
+                        case 'Audit':
+                            linkPath = `/audits?open=${resourceId}`;
+                            break;
+                        case 'Document':
+                            linkPath = `/documents?open=${resourceId}`;
+                            break;
+                        case 'Incident':
+                            linkPath = `/incidents?open=${resourceId}`;
+                            break;
+                        case 'Project':
+                        case 'Projet':
+                            linkPath = `/projects?open=${resourceId}`;
+                            break;
+                        case 'Supplier':
+                        case 'Fournisseur':
+                            linkPath = `/suppliers?open=${resourceId}`;
+                            break;
+                        default:
+                            linkPath = null;
+                    }
+                }
+
+                return (
+                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                        <Shield className="h-4 w-4" />
+                        {linkPath ? (
+                            <Link to={linkPath} className="hover:text-brand-600 hover:underline transition-colors font-medium">
+                                {resource}
+                            </Link>
+                        ) : (
+                            <span>{resource}</span>
+                        )}
+                    </div>
+                );
+            }
         },
         {
             accessorKey: 'details',

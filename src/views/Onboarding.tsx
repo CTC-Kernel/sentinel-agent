@@ -5,7 +5,7 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { doc, setDoc, collection, query, where, getDocs, addDoc, writeBatch, updateDoc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { auth, db, functions } from '../firebase';
-import { ArrowRight, User as UserIcon, Building, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2 } from '../components/ui/Icons';
+import { ArrowRight, User as UserIcon, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2 } from '../components/ui/Icons';
 import { sendEmail } from '../services/emailService';
 import { getInvitationTemplate } from '../services/emailTemplates';
 import { PLANS } from '../config/plans';
@@ -19,6 +19,9 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { onboardingSchema, OnboardingFormData } from '../schemas/onboardingSchema';
 import { LegalModal } from '../components/ui/LegalModal';
+import { CustomSelect } from '../components/ui/CustomSelect';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
+import { Controller } from 'react-hook-form';
 
 
 
@@ -48,6 +51,7 @@ export const Onboarding: React.FC = () => {
             industry: ''
         }
     });
+    const { control } = form;
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -525,64 +529,81 @@ export const Onboarding: React.FC = () => {
                                 <form onSubmit={form.handleSubmit(handleStep1)} className="space-y-6">
                                     {!user?.organizationId && (
                                         <div>
-                                            <label htmlFor="organizationName" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Nom de l'Organisation</label>
-                                            <div className="relative">
-                                                <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                                <input id="organizationName" autoComplete="organization" type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500" placeholder="Ex: Acme Corp"
-                                                    {...form.register('organizationName')} />
-                                                {form.formState.errors.organizationName && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.organizationName.message}</p>}
-                                            </div>
+                                            <FloatingLabelInput
+                                                label="Nom de l'Organisation"
+                                                icon={ShieldCheck}
+                                                {...form.register('organizationName')}
+                                                placeholder="Ex: Acme Corp"
+                                                error={form.formState.errors.organizationName?.message}
+                                            />
                                         </div>
                                     )}
                                     <div>
-                                        <label htmlFor="displayName" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Nom complet</label>
-                                        <div className="relative">
-                                            <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                            <input id="displayName" autoComplete="name" type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500" placeholder="Votre nom"
-                                                {...form.register('displayName')} />
-                                            {form.formState.errors.displayName && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.displayName.message}</p>}
-                                        </div>
+                                        <FloatingLabelInput
+                                            label="Nom complet"
+                                            icon={UserIcon}
+                                            {...form.register('displayName')}
+                                            placeholder="Votre nom"
+                                            error={form.formState.errors.displayName?.message}
+                                        />
                                     </div>
                                     <div className="grid grid-cols-2 gap-5">
                                         <div>
-                                            <label htmlFor="department" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Département</label>
-                                            <div className="relative">
-                                                <Briefcase className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                                <input id="department" autoComplete="organization" type="text" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500" placeholder="Ex: IT / Sécurité"
-                                                    {...form.register('department')} />
-                                                {form.formState.errors.department && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.department.message}</p>}
-                                            </div>
+                                            <FloatingLabelInput
+                                                label="Département"
+                                                icon={Briefcase}
+                                                {...form.register('department')}
+                                                placeholder="Ex: IT / Sécurité"
+                                                error={form.formState.errors.department?.message}
+                                            />
                                         </div>
                                         <div>
                                             <label htmlFor="role" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Rôle Principal</label>
                                             <div className="relative">
-                                                <UserIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                                <select id="role" autoComplete="off" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer"
-                                                    {...form.register('role')}>
-                                                    <option value="admin">Administrateur</option>
-                                                    <option value="rssi">RSSI / CISO</option>
-                                                    <option value="direction">Direction / DPO</option>
-                                                    <option value="project_manager">Chef de Projet</option>
-                                                    <option value="auditor">Auditeur</option>
-                                                </select>
+                                                <Controller
+                                                    name="role"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <CustomSelect
+                                                            options={[
+                                                                { value: "admin", label: "Administrateur" },
+                                                                { value: "rssi", label: "RSSI / CISO" },
+                                                                { value: "direction", label: "Direction / DPO" },
+                                                                { value: "project_manager", label: "Chef de Projet" },
+                                                                { value: "auditor", label: "Auditeur" }
+                                                            ]}
+                                                            value={field.value || 'admin'}
+                                                            onChange={field.onChange}
+                                                            placeholder="Sélectionner un rôle..."
+                                                        />
+                                                    )}
+                                                />
                                             </div>
                                         </div>
                                     </div>
                                     <div>
                                         <label htmlFor="industry" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Secteur</label>
                                         <div className="relative">
-                                            <Building className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                            <select id="industry" autoComplete="off" className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none appearance-none font-medium cursor-pointer"
-                                                {...form.register('industry')}>
-                                                <option value="">Sélectionner...</option>
-                                                <option value="tech">Technologie / SaaS</option>
-                                                <option value="finance">Finance / Banque</option>
-                                                <option value="health">Santé</option>
-                                                <option value="retail">Retail / E-commerce</option>
-                                                <option value="public">Secteur Public</option>
-                                                <option value="other">Autre</option>
-                                            </select>
-                                            {form.formState.errors.industry && <p className="text-red-500 text-xs mt-1 ml-1">{form.formState.errors.industry.message}</p>}
+                                            <Controller
+                                                name="industry"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <CustomSelect
+                                                        options={[
+                                                            { value: "tech", label: "Technologie / SaaS" },
+                                                            { value: "finance", label: "Finance / Banque" },
+                                                            { value: "health", label: "Santé" },
+                                                            { value: "retail", label: "Retail / E-commerce" },
+                                                            { value: "public", label: "Secteur Public" },
+                                                            { value: "other", label: "Autre" }
+                                                        ]}
+                                                        value={field.value || ''}
+                                                        onChange={field.onChange}
+                                                        placeholder="Sélectionner..."
+                                                        error={form.formState.errors.industry?.message}
+                                                    />
+                                                )}
+                                            />
                                         </div>
                                     </div>
 
@@ -720,10 +741,14 @@ export const Onboarding: React.FC = () => {
 
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Périmètre (Scope)</label>
-                                        <textarea
+                                        <FloatingLabelInput
                                             value={scope}
-                                            onChange={e => setScope(e.target.value)}
-                                            className="w-full p-4 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500 min-h-[100px]"
+                                            onChange={e => {
+                                                if (typeof e === 'string') setScope(e);
+                                                else if (e && e.target) setScope(e.target.value);
+                                            }}
+                                            label="Périmètre (Scope)"
+                                            textarea
                                             placeholder="Décrivez le périmètre de votre ISMS (ex: Toute l'entreprise, Service IT uniquement...)"
                                         />
                                     </div>
@@ -743,13 +768,13 @@ export const Onboarding: React.FC = () => {
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Inviter des membres</label>
                                         <div className="flex gap-2">
                                             <div className="relative flex-1">
-                                                <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                                <input
+                                                <FloatingLabelInput
+                                                    label="Email du collaborateur"
+                                                    icon={Mail}
                                                     type="email"
                                                     value={inviteEmail}
                                                     onChange={e => setInviteEmail(e.target.value)}
                                                     onKeyDown={e => e.key === 'Enter' && handleInviteUser()}
-                                                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white outline-none font-medium"
                                                     placeholder="email@entreprise.com"
                                                 />
                                             </div>
@@ -792,25 +817,25 @@ export const Onboarding: React.FC = () => {
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Ajouter un actif critique</label>
                                         <div className="grid grid-cols-3 gap-2">
                                             <div className="col-span-2 relative">
-                                                <Server className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                                <input
-                                                    type="text"
+                                                <FloatingLabelInput
+                                                    label="Nom (ex: Serveur Prod)"
+                                                    icon={Server}
                                                     value={assetName}
                                                     onChange={e => setAssetName(e.target.value)}
-                                                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white outline-none font-medium"
                                                     placeholder="Nom (ex: Serveur Prod)"
                                                 />
                                             </div>
-                                            <select
+                                            <CustomSelect
                                                 value={assetType}
-                                                onChange={e => setAssetType(e.target.value)}
-                                                className="w-full px-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white outline-none font-medium appearance-none cursor-pointer"
-                                            >
-                                                <option value="SaaS">SaaS</option>
-                                                <option value="Server">Serveur</option>
-                                                <option value="Laptop">Ordinateur</option>
-                                                <option value="Data">Données</option>
-                                            </select>
+                                                onChange={(val) => setAssetType(val as string)}
+                                                options={[
+                                                    { value: 'SaaS', label: 'SaaS' },
+                                                    { value: 'Server', label: 'Serveur' },
+                                                    { value: 'Laptop', label: 'Ordinateur' },
+                                                    { value: 'Data', label: 'Données' }
+                                                ]}
+                                                label=""
+                                            />
                                         </div>
                                         <button onClick={handleAddAsset} disabled={!assetName} className="mt-2 w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50">
                                             <Plus className="h-4 w-4" /> Ajouter à la liste

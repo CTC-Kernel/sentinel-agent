@@ -11,6 +11,8 @@ export const processingActivitySchema = z.object({
     retentionPeriod: z.string().min(1, "La durée de conservation est requise"),
     hasDPIA: z.boolean(),
     status: z.enum(['Actif', 'En projet', 'Archivé']),
+    relatedAssetIds: z.array(z.string()).optional(),
+    relatedRiskIds: z.array(z.string()).optional(),
 });
 
 export type ProcessingActivityFormData = z.infer<typeof processingActivitySchema>;

@@ -5,8 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { processingActivitySchema, ProcessingActivityFormData } from '../schemas/privacySchema';
 import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
-import { ProcessingActivity, SystemLog, UserProfile } from '../types';
-import { Plus, Search, Fingerprint, Trash2, Edit, GlobeLock, Scale, FileSpreadsheet, CheckCircle2, Clock, AlertTriangle, History, MessageSquare, Save, LayoutDashboard, Upload } from '../components/ui/Icons';
+import { ProcessingActivity, SystemLog, UserProfile, Asset, Risk } from '../types';
+import { Plus, Fingerprint, Trash2, Edit, GlobeLock, Scale, FileSpreadsheet, CheckCircle2, Clock, AlertTriangle, History, MessageSquare, Save, LayoutDashboard, Upload, Shield, AlertOctagon } from '../components/ui/Icons';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
+import { CustomSelect } from '../components/ui/CustomSelect';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -19,17 +22,20 @@ import { ErrorLogger } from '../services/errorLogger';
 import { Drawer } from '../components/ui/Drawer';
 import { Badge } from '../components/ui/Badge';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
-import { Target } from 'lucide-react';
+import { Target, Link as LinkIcon } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { Link } from 'react-router-dom';
 
 import { canEditResource } from '../utils/permissions';
 
 export const Privacy: React.FC = () => {
     const [activities, setActivities] = useState<ProcessingActivity[]>([]);
     const [usersList, setUsersList] = useState<UserProfile[]>([]);
+    const [assetsList, setAssetsList] = useState<Asset[]>([]);
+    const [risksList, setRisksList] = useState<Risk[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [filter, setFilter] = useState('');
@@ -39,7 +45,7 @@ export const Privacy: React.FC = () => {
 
     // Inspector State
     const [selectedActivity, setSelectedActivity] = useState<ProcessingActivity | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'data' | 'history' | 'comments'>('details');
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'data' | 'history' | 'comments' | 'links'>('details');
     const [activityHistory, setActivityHistory] = useState<SystemLog[]>([]);
     const [isEditing, setIsEditing] = useState(false);
 
@@ -56,7 +62,8 @@ export const Privacy: React.FC = () => {
         defaultValues: {
             name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '',
             legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [],
-            retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif'
+            retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif',
+            relatedAssetIds: [], relatedRiskIds: []
         }
     });
 
@@ -65,7 +72,8 @@ export const Privacy: React.FC = () => {
         defaultValues: {
             name: '', purpose: '', manager: '', managerId: '',
             legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [],
-            retentionPeriod: '', hasDPIA: false, status: 'Actif'
+            retentionPeriod: '', hasDPIA: false, status: 'Actif',
+            relatedAssetIds: [], relatedRiskIds: []
         }
     });
 
@@ -78,7 +86,9 @@ export const Privacy: React.FC = () => {
         try {
             const results = await Promise.allSettled([
                 getDocs(query(collection(db, 'processing_activities'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId)))
+                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
+                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId)))
             ]);
 
             const getDocsData = <T,>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
@@ -90,6 +100,8 @@ export const Privacy: React.FC = () => {
 
             const userData = getDocsData<UserProfile>(results[1]);
             setUsersList(userData);
+            setAssetsList(getDocsData<Asset>(results[2]));
+            setRisksList(getDocsData<Risk>(results[3]));
 
             const data = getDocsData<ProcessingActivity>(results[0]);
             // Resolve managerId
@@ -133,7 +145,9 @@ export const Privacy: React.FC = () => {
             dataSubjects: activity.dataSubjects,
             retentionPeriod: activity.retentionPeriod,
             hasDPIA: activity.hasDPIA,
-            status: activity.status
+            status: activity.status,
+            relatedAssetIds: activity.relatedAssetIds || [],
+            relatedRiskIds: activity.relatedRiskIds || []
         });
         setInspectorTab('details');
         setIsEditing(false);
@@ -268,23 +282,7 @@ export const Privacy: React.FC = () => {
         reader.readAsText(file);
     };
 
-    const handleMultiSelectChange = (field: 'dataCategories' | 'dataSubjects', value: string) => {
-        const current = editActivityForm.getValues(field) || [];
-        if (current.includes(value)) {
-            editActivityForm.setValue(field, current.filter(v => v !== value));
-        } else {
-            editActivityForm.setValue(field, [...current, value]);
-        }
-    };
 
-    const handleNewMultiSelectChange = (field: 'dataCategories' | 'dataSubjects', value: string) => {
-        const current = createActivityForm.getValues(field) || [];
-        if (current.includes(value)) {
-            createActivityForm.setValue(field, current.filter(v => v !== value));
-        } else {
-            createActivityForm.setValue(field, [...current, value]);
-        }
-    };
 
     const filteredActivities = activities.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()));
 
@@ -394,14 +392,16 @@ export const Privacy: React.FC = () => {
                 </div>
             </motion.div>
 
-            <div className="glass-panel p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-purple-500/20 transition-all border border-slate-200 dark:border-white/5">
-                <Search className="h-5 w-5 text-slate-500" />
-                <input type="text" placeholder="Rechercher un traitement (ex: Paie, CRM)..." className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2.5 font-medium placeholder-gray-400"
-                    value={filter} onChange={e => setFilter(e.target.value)} />
-                <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter le Registre">
-                    <FileSpreadsheet className="h-4 w-4" />
-                </button>
-            </div>
+            <PremiumPageControl
+                searchQuery={filter}
+                onSearchChange={setFilter}
+                searchPlaceholder="Rechercher un traitement (ex: Paie, CRM)..."
+                actions={
+                    <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter le Registre">
+                        <FileSpreadsheet className="h-4 w-4" />
+                    </button>
+                }
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
@@ -508,6 +508,7 @@ export const Privacy: React.FC = () => {
                                 tabs={[
                                     { id: 'details', label: 'Fiche Registre', icon: LayoutDashboard },
                                     { id: 'data', label: 'Données', icon: FileSpreadsheet },
+                                    { id: 'links', label: 'Liens (Actifs/Risques)', icon: Shield },
                                     { id: 'history', label: 'Historique', icon: History },
                                     { id: 'comments', label: 'Discussion', icon: MessageSquare },
                                 ]}
@@ -523,45 +524,46 @@ export const Privacy: React.FC = () => {
                                         <>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 <div>
-                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom</label>
-                                                    <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...editActivityForm.register('name')} />
+                                                    <FloatingLabelInput label="Nom" {...editActivityForm.register('name')} />
                                                 </div>
                                                 <div>
                                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Responsable</label>
-                                                    <select
-                                                        className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none"
+                                                    <CustomSelect
                                                         value={editActivityForm.watch('managerId') || ''}
-                                                        onChange={(e) => {
-                                                            const selectedUser = usersList.find(u => u.uid === e.target.value);
-                                                            editActivityForm.setValue('managerId', e.target.value);
+                                                        onChange={(val) => {
+                                                            const value = Array.isArray(val) ? val[0] : val;
+                                                            const selectedUser = usersList.find(u => u.uid === value);
+                                                            editActivityForm.setValue('managerId', value);
                                                             editActivityForm.setValue('manager', selectedUser?.displayName || '');
                                                         }}
-                                                    >
-                                                        <option value="">Sélectionner...</option>
-                                                        {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
-                                                    </select>
+                                                        options={usersList.map(u => ({ value: u.uid, label: u.displayName }))}
+                                                        placeholder="Sélectionner..."
+                                                    />
                                                 </div>
                                             </div>
 
-                                            <div>
-                                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Finalité</label>
-                                                <textarea className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium resize-none" rows={3} {...editActivityForm.register('purpose')} />
-                                            </div>
+                                            <FloatingLabelInput label="Finalité" textarea rows={3} {...editActivityForm.register('purpose')} />
 
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 <div>
                                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Base Légale</label>
-                                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...editActivityForm.register('legalBasis')}>
-                                                        {['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime', 'Sauvegarde Intérêts', 'Mission Publique'].map(c => <option key={c} value={c}>{c}</option>)}
-                                                    </select>
+                                                    <CustomSelect
+                                                        value={editActivityForm.watch('legalBasis')}
+                                                        onChange={(val) => editActivityForm.setValue('legalBasis', (Array.isArray(val) ? val[0] : val) as 'Consentement' | 'Contrat' | 'Obligation Légale' | 'Intérêt Légitime' | 'Sauvegarde Intérêts' | 'Mission Publique')}
+                                                        options={['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime', 'Sauvegarde Intérêts', 'Mission Publique'].map(c => ({ value: c, label: c }))}
+                                                    />
                                                 </div>
                                                 <div>
                                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Statut</label>
-                                                    <select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...editActivityForm.register('status')}>
-                                                        <option value="Actif">Actif</option>
-                                                        <option value="En projet">En projet</option>
-                                                        <option value="Archivé">Archivé</option>
-                                                    </select>
+                                                    <CustomSelect
+                                                        value={editActivityForm.watch('status')}
+                                                        onChange={(val) => editActivityForm.setValue('status', Array.isArray(val) ? val[0] as 'Actif' | 'En projet' | 'Archivé' : val as 'Actif' | 'En projet' | 'Archivé')}
+                                                        options={[
+                                                            { value: 'Actif', label: 'Actif' },
+                                                            { value: 'En projet', label: 'En projet' },
+                                                            { value: 'Archivé', label: 'Archivé' }
+                                                        ]}
+                                                    />
                                                 </div>
                                             </div>
                                         </>
@@ -591,26 +593,32 @@ export const Privacy: React.FC = () => {
                                     {isEditing ? (
                                         <>
                                             <div>
-                                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">Catégories de données</label>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                    {['État civil', 'Vie personnelle', 'Bancaire / Financier', 'Connexion / Trace', 'Santé (Sensible)', 'Biométrique', 'Judiciaire'].map(cat => (
-                                                        <label key={cat} className={`flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition-all ${editActivityForm.watch('dataCategories')?.includes(cat) ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800' : 'border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-                                                            <input type="checkbox" className="rounded-md text-purple-600 focus:ring-purple-500 border-gray-300" checked={editActivityForm.watch('dataCategories')?.includes(cat)} onChange={() => handleMultiSelectChange('dataCategories', cat)} />
-                                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{cat}</span>
-                                                        </label>
-                                                    ))}
+                                                    <div className="col-span-2">
+                                                        <CustomSelect
+                                                            label="Catégories de données"
+                                                            multiple
+                                                            value={editActivityForm.watch('dataCategories')}
+                                                            onChange={(val) => editActivityForm.setValue('dataCategories', Array.isArray(val) ? val : [val])}
+                                                            options={['État civil', 'Vie personnelle', 'Bancaire / Financier', 'Connexion / Trace', 'Santé (Sensible)', 'Biométrique', 'Judiciaire'].map(c => ({ value: c, label: c }))}
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 <div>
-                                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Durée Conservation</label>
-                                                    <input className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...editActivityForm.register('retentionPeriod')} />
+                                                    <FloatingLabelInput label="Durée Conservation" {...editActivityForm.register('retentionPeriod')} />
                                                 </div>
-                                                <div className="flex items-end pb-4">
-                                                    <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 w-full transition-colors">
-                                                        <input type="checkbox" className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500 border-gray-300" checked={editActivityForm.watch('hasDPIA')} onChange={e => editActivityForm.setValue('hasDPIA', e.target.checked)} />
-                                                        <span className="text-sm font-bold text-slate-900 dark:text-white">DPIA Requis ?</span>
-                                                    </label>
+                                                <div>
+                                                    <CustomSelect
+                                                        label="DPIA Requis ?"
+                                                        value={editActivityForm.watch('hasDPIA') ? 'yes' : 'no'}
+                                                        onChange={(val) => editActivityForm.setValue('hasDPIA', val === 'yes')}
+                                                        options={[
+                                                            { value: 'yes', label: 'Oui - Requis' },
+                                                            { value: 'no', label: 'Non - Pas nécessaire' }
+                                                        ]}
+                                                    />
                                                 </div>
                                             </div>
                                         </>
@@ -663,6 +671,98 @@ export const Privacy: React.FC = () => {
                                     <Comments collectionName="processing_activities" documentId={selectedActivity.id} />
                                 </div>
                             )}
+
+                            {inspectorTab === 'links' && (
+                                <div className="space-y-8">
+                                    {isEditing ? (
+                                        <div className="space-y-6">
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                <h4 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">
+                                                    <Shield className="h-4 w-4" /> Actifs Liés
+                                                </h4>
+                                                <CustomSelect
+                                                    label="Sélectionner des actifs (Stockage, Support...)"
+                                                    multiple
+                                                    value={editActivityForm.watch('relatedAssetIds') || []}
+                                                    onChange={(val) => editActivityForm.setValue('relatedAssetIds', Array.isArray(val) ? val : [val])}
+                                                    options={assetsList.map(a => ({ value: a.id, label: a.name }))}
+                                                    placeholder="Associer des actifs..."
+                                                />
+                                            </div>
+
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                <h4 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">
+                                                    <AlertOctagon className="h-4 w-4" /> Risques Associés
+                                                </h4>
+                                                <CustomSelect
+                                                    label="Sélectionner des risques (DPIA, Menaces...)"
+                                                    multiple
+                                                    value={editActivityForm.watch('relatedRiskIds') || []}
+                                                    onChange={(val) => editActivityForm.setValue('relatedRiskIds', Array.isArray(val) ? val : [val])}
+                                                    options={risksList.map(r => ({ value: r.id, label: r.threat.substring(0, 50) + (r.threat.length > 50 ? '...' : '') }))}
+                                                    placeholder="Associer des risques..."
+                                                />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-6">
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                <h4 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">
+                                                    <Shield className="h-4 w-4 text-brand-500" /> Actifs Liés (supports)
+                                                </h4>
+                                                {selectedActivity.relatedAssetIds && selectedActivity.relatedAssetIds.length > 0 ? (
+                                                    <div className="grid grid-cols-1 gap-3">
+                                                        {selectedActivity.relatedAssetIds.map(assetId => {
+                                                            const asset = assetsList.find(a => a.id === assetId);
+                                                            if (!asset) return null;
+                                                            return (
+                                                                <Link to={`/assets?open=${asset.id}`} key={assetId} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/10 transition-colors group">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400 group-hover:text-brand-500 transition-colors">
+                                                                            <Shield className="h-4 w-4" />
+                                                                        </div>
+                                                                        <span className="font-bold text-slate-700 dark:text-slate-200">{asset.name}</span>
+                                                                    </div>
+                                                                    <LinkIcon className="h-4 w-4 text-slate-400 group-hover:text-brand-500 transition-colors" />
+                                                                </Link>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <EmptyState icon={Shield} title="Aucun actif lié" description="Associez des actifs (serveurs, logiciels) à ce traitement." />
+                                                )}
+                                            </div>
+
+                                            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
+                                                <h4 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">
+                                                    <AlertOctagon className="h-4 w-4 text-red-500" /> Risques Identifiés
+                                                </h4>
+                                                {selectedActivity.relatedRiskIds && selectedActivity.relatedRiskIds.length > 0 ? (
+                                                    <div className="grid grid-cols-1 gap-3">
+                                                        {selectedActivity.relatedRiskIds.map(riskId => {
+                                                            const risk = risksList.find(r => r.id === riskId);
+                                                            if (!risk) return null;
+                                                            return (
+                                                                <Link to={`/risks?open=${risk.id}`} key={riskId} className="flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors group border border-red-100 dark:border-red-900/20">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="p-2 bg-white dark:bg-slate-800 rounded-xl text-red-500">
+                                                                            <AlertOctagon className="h-4 w-4" />
+                                                                        </div>
+                                                                        <p className="font-bold text-slate-700 dark:text-slate-200 line-clamp-1 flex-1">{risk.threat}</p>
+                                                                    </div>
+                                                                    <LinkIcon className="h-4 w-4 text-slate-400 group-hover:text-red-500 transition-colors" />
+                                                                </Link>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <EmptyState icon={AlertOctagon} title="Aucun risque associé" description="Liez les risques identifiés pour ce traitement." />
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -679,49 +779,95 @@ export const Privacy: React.FC = () => {
                 <form onSubmit={createActivityForm.handleSubmit(handleCreate)} className="p-4 sm:p-8 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label htmlFor="privacy-activity-name" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Nom du traitement</label>
-                            <input id="privacy-activity-name" autoComplete="off" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium"
-                                {...createActivityForm.register('name')} placeholder="ex: Gestion Paie" />
-                            {createActivityForm.formState.errors.name && <p className="text-red-500 text-xs mt-1">{createActivityForm.formState.errors.name.message}</p>}
+                            <FloatingLabelInput label="Nom du traitement" {...createActivityForm.register('name')} placeholder="ex: Gestion Paie" error={createActivityForm.formState.errors.name?.message} />
                         </div>
                         <div>
                             <label htmlFor="privacy-activity-managerId" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Responsable</label>
-                            <select id="privacy-activity-managerId" autoComplete="off" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none"
-                                {...createActivityForm.register('managerId')}
-                                onChange={e => {
-                                    const selectedUser = usersList.find(u => u.uid === e.target.value);
-                                    createActivityForm.setValue('managerId', e.target.value);
+                            <CustomSelect
+                                value={createActivityForm.watch('managerId') || ''}
+                                onChange={(val) => {
+                                    const value = Array.isArray(val) ? val[0] : val;
+                                    const selectedUser = usersList.find(u => u.uid === value);
+                                    createActivityForm.setValue('managerId', value);
                                     createActivityForm.setValue('manager', selectedUser?.displayName || '');
-                                }}>
-                                <option value="">Sélectionner...</option>
-                                {usersList.map(u => <option key={u.uid} value={u.uid}>{u.displayName}</option>)}
-                            </select>
+                                }}
+                                options={usersList.map(u => ({ value: u.uid, label: u.displayName }))}
+                                placeholder="Sélectionner..."
+                            />
                         </div>
                     </div>
                     <div>
-                        <label htmlFor="privacy-activity-purpose" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Finalité principale</label>
-                        <textarea id="privacy-activity-purpose" autoComplete="off" rows={2} className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium resize-none"
-                            {...createActivityForm.register('purpose')} placeholder="ex: Payer les salaires et déclarations sociales" />
+                        <FloatingLabelInput label="Finalité principale" textarea rows={2} {...createActivityForm.register('purpose')} placeholder="ex: Payer les salaires et déclarations sociales" />
                     </div>
                     <div className="grid grid-cols-2 gap-6">
-                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Base Légale</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...createActivityForm.register('legalBasis')}>{['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime'].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                        <div><label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Statut</label><select className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium appearance-none" {...createActivityForm.register('status')}> <option value="Actif">Actif</option><option value="En projet">En projet</option><option value="Archivé">Archivé</option></select></div>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">Catégories de données</label>
-                        <div className="grid grid-cols-2 gap-3">
-                            {['État civil', 'Vie personnelle', 'Bancaire / Financier', 'Connexion / Trace', 'Santé (Sensible)', 'Biométrique', 'Judiciaire'].map(cat => (
-                                <label key={cat} className={`flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition-all ${createActivityForm.watch('dataCategories')?.includes(cat) ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800' : 'border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-                                    <input type="checkbox" className="rounded-md text-purple-600 focus:ring-purple-500 border-gray-300" checked={createActivityForm.watch('dataCategories')?.includes(cat)} onChange={() => handleNewMultiSelectChange('dataCategories', cat)} />
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{cat}</span>
-                                </label>
-                            ))}
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Base Légale</label>
+                            <CustomSelect
+                                value={createActivityForm.watch('legalBasis')}
+                                onChange={(val) => createActivityForm.setValue('legalBasis', (Array.isArray(val) ? val[0] : val) as 'Consentement' | 'Contrat' | 'Obligation Légale' | 'Intérêt Légitime' | 'Sauvegarde Intérêts' | 'Mission Publique')}
+                                options={['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime'].map(c => ({ value: c, label: c }))}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Statut</label>
+                            <CustomSelect
+                                value={createActivityForm.watch('status')}
+                                onChange={(val) => createActivityForm.setValue('status', Array.isArray(val) ? val[0] as 'Actif' | 'En projet' | 'Archivé' : val as 'Actif' | 'En projet' | 'Archivé')}
+                                options={[
+                                    { value: 'Actif', label: 'Actif' },
+                                    { value: 'En projet', label: 'En projet' },
+                                    { value: 'Archivé', label: 'Archivé' }
+                                ]}
+                            />
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-6">
-                        <div><label htmlFor="privacy-activity-retentionPeriod" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Durée Conservation</label><input id="privacy-activity-retentionPeriod" autoComplete="off" className="w-full px-4 py-3.5 rounded-2xl border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none font-medium" {...createActivityForm.register('retentionPeriod')} placeholder="ex: 5 ans après départ" /></div>
-                        <div className="flex items-end pb-4"><label className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 w-full transition-colors"><input type="checkbox" className="w-5 h-5 rounded text-purple-600 focus:ring-purple-500 border-gray-300" checked={createActivityForm.watch('hasDPIA')} onChange={e => createActivityForm.setValue('hasDPIA', e.target.checked)} /><span className="text-sm font-bold text-slate-900 dark:text-white">DPIA Requis ?</span></label></div>
+                    <div>
+                        <CustomSelect
+                            label="Catégories de données"
+                            multiple
+                            value={createActivityForm.watch('dataCategories')}
+                            onChange={(val) => createActivityForm.setValue('dataCategories', Array.isArray(val) ? val : [val])}
+                            options={['État civil', 'Vie personnelle', 'Bancaire / Financier', 'Connexion / Trace', 'Santé (Sensible)', 'Biométrique', 'Judiciaire'].map(c => ({ value: c, label: c }))}
+                        />
                     </div>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div><FloatingLabelInput label="Durée Conservation" {...createActivityForm.register('retentionPeriod')} placeholder="ex: 5 ans après départ" /></div>
+                        <div>
+                            <CustomSelect
+                                label="DPIA Requis ?"
+                                value={createActivityForm.watch('hasDPIA') ? 'yes' : 'no'}
+                                onChange={(val) => createActivityForm.setValue('hasDPIA', val === 'yes')}
+                                options={[
+                                    { value: 'yes', label: 'Oui - Requis' },
+                                    { value: 'no', label: 'Non - Pas nécessaire' }
+                                ]}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100 dark:border-white/5">
+                        <div>
+                            <CustomSelect
+                                label="Actifs liés"
+                                multiple
+                                value={createActivityForm.watch('relatedAssetIds') || []}
+                                onChange={(val) => createActivityForm.setValue('relatedAssetIds', Array.isArray(val) ? val : [val])}
+                                options={assetsList.map(a => ({ value: a.id, label: a.name }))}
+                                placeholder="Associer des actifs..."
+                            />
+                        </div>
+                        <div>
+                            <CustomSelect
+                                label="Risques liés"
+                                multiple
+                                value={createActivityForm.watch('relatedRiskIds') || []}
+                                onChange={(val) => createActivityForm.setValue('relatedRiskIds', Array.isArray(val) ? val : [val])}
+                                options={risksList.map(r => ({ value: r.id, label: r.threat.substring(0, 50) + '...' }))}
+                                placeholder="Associer des risques..."
+                            />
+                        </div>
+                    </div>
+
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                         <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
                         <button type="submit" className="px-8 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-purple-500/30">Enregistrer</button>

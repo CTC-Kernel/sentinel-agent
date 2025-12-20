@@ -1243,7 +1243,7 @@ exports.logEvent = onCall(async (request) => {
         throw new HttpsError('unauthenticated', 'User must be logged in to log events.');
     }
 
-    const { action, resource, details, organizationId } = request.data;
+    const { action, resource, details, organizationId, resourceId, metadata } = request.data;
 
     if (!action || !resource || !organizationId) {
         throw new HttpsError('invalid-argument', 'Missing required log fields.');
@@ -1275,6 +1275,8 @@ exports.logEvent = onCall(async (request) => {
             userEmail: request.auth.token.email,
             action,
             resource,
+            resourceId: resourceId || null,
+            metadata: metadata || null,
             details: details || '',
             timestamp: new Date().toISOString(),
             source: 'client_secure',

@@ -16,6 +16,9 @@ import {
     Siren, Flame, FolderKanban, CheckSquare, CalendarClock,
     AlertTriangle, FileText, ExternalLink, History, Search, Plus, Server
 } from '../ui/Icons';
+import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { CustomSelect } from '../ui/CustomSelect';
+import { DatePicker } from '../ui/DatePicker';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { AreaChart, Area, XAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, YAxis } from 'recharts';
 import { useNavigate } from 'react-router-dom';
@@ -292,13 +295,35 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                             <div className="flex items-center justify-between mb-4 px-1"><h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center"><ClipboardList className="h-4 w-4 mr-2 text-brand-500" /> Historique Maintenance</h3></div>
                             {canEdit && (
                                 <div className="bg-white dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-200 dark:border-white/5 mb-6 shadow-sm">
-                                    <div className="grid grid-cols-2 gap-4 mb-4">
-                                        <input type="date" className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.date} onChange={e => setNewMaintenance({ ...newMaintenance, date: e.target.value })} />
-                                        <select className="p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.type} onChange={e => setNewMaintenance({ ...newMaintenance, type: e.target.value as MaintenanceRecord['type'] })}>{['Préventive', 'Corrective', 'Mise à jour', 'Inspection'].map(t => <option key={t} value={t}>{t}</option>)}</select>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                        <DatePicker
+                                            label="Date"
+                                            value={newMaintenance.date}
+                                            onChange={(date) => setNewMaintenance({ ...newMaintenance, date: date || '' })}
+                                        />
+                                        <CustomSelect
+                                            label="Type"
+                                            options={['Préventive', 'Corrective', 'Mise à jour', 'Inspection'].map(t => ({ value: t, label: t }))}
+                                            value={newMaintenance.type || ''}
+                                            onChange={(val) => setNewMaintenance({ ...newMaintenance, type: val as MaintenanceRecord['type'] })}
+                                        />
                                     </div>
-                                    <div className="flex gap-4 mb-4">
-                                        <input type="text" placeholder="Description..." className="flex-1 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.description} onChange={e => setNewMaintenance({ ...newMaintenance, description: e.target.value })} />
-                                        <input type="number" placeholder="Coût (€)..." className="w-24 p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newMaintenance.cost || ''} onChange={e => setNewMaintenance({ ...newMaintenance, cost: parseFloat(e.target.value) })} />
+                                    <div className="flex flex-col md:flex-row gap-4 mb-4">
+                                        <div className="flex-1">
+                                            <FloatingLabelInput
+                                                label="Description"
+                                                value={newMaintenance.description}
+                                                onChange={e => setNewMaintenance({ ...newMaintenance, description: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="w-full md:w-32">
+                                            <FloatingLabelInput
+                                                type="number"
+                                                label="Coût (€)"
+                                                value={newMaintenance.cost || ''}
+                                                onChange={e => setNewMaintenance({ ...newMaintenance, cost: parseFloat(e.target.value) })}
+                                            />
+                                        </div>
                                     </div>
                                     <button onClick={handleAddMaintenance} disabled={isAddingMaintenance} className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:opacity-50 flex justify-center items-center">{isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}Ajouter Intervention</button>
                                 </div>

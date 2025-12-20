@@ -28,6 +28,7 @@ import { Drawer } from '../components/ui/Drawer';
 import { getPlanLimits } from '../config/plans';
 import { Comments } from '../components/ui/Comments';
 import { CustomSelect } from '../components/ui/CustomSelect';
+import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { NotificationService } from '../services/notificationService';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { RiskForm } from '../components/risks/RiskForm';
@@ -1621,12 +1622,16 @@ export const Compliance: React.FC = () => {
                                         </div>
                                         {canEdit ? (
                                             <div className="relative group">
-                                                <textarea
-                                                    className="w-full p-5 text-sm bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-3xl text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-brand-500 outline-none shadow-sm font-medium leading-relaxed resize-none"
+                                                <FloatingLabelInput
+                                                    textarea
+                                                    label="Justification de l'implémentation"
                                                     rows={6}
-                                                    placeholder="Décrivez comment ce contrôle est implémenté, ou justifiez son exclusion..."
                                                     value={editJustification}
-                                                    onChange={e => setEditJustification(e.target.value)}
+                                                    onChange={e => {
+                                                        if (typeof e === 'string') setEditJustification(e);
+                                                        else if (e && e.target) setEditJustification(e.target.value);
+                                                    }}
+                                                    placeholder="Décrivez comment ce contrôle est implémenté..."
                                                 />
                                                 <button
                                                     onClick={handleJustificationSave}
@@ -1703,23 +1708,26 @@ export const Compliance: React.FC = () => {
                                                     <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-200/50 dark:border-white/5">
                                                         <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3">Ajouter une source</h4>
                                                         <div className="flex flex-col sm:flex-row gap-3">
-                                                            <select
-                                                                value={selectedProviderId}
-                                                                onChange={(e) => setSelectedProviderId(e.target.value)}
-                                                                className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-500"
-                                                            >
-                                                                <option value="">Sélectionner un fournisseur...</option>
-                                                                {providers.map(p => (
-                                                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                                                ))}
-                                                            </select>
-                                                            <input
-                                                                type="text"
-                                                                placeholder="ID de la ressource (ex: bucket-name)"
-                                                                value={selectedResourceId}
-                                                                onChange={(e) => setSelectedResourceId(e.target.value)}
-                                                                className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-500"
-                                                            />
+                                                            <div className="flex-1">
+                                                                <CustomSelect
+                                                                    value={selectedProviderId}
+                                                                    onChange={(val) => setSelectedProviderId(val as string)}
+                                                                    options={providers.map(p => ({ value: p.id, label: p.name }))}
+                                                                    placeholder="Sélectionner un fournisseur..."
+                                                                />
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <FloatingLabelInput
+                                                                    label="ID Ressource"
+                                                                    type="text"
+                                                                    placeholder="ex: bucket-name"
+                                                                    value={selectedResourceId}
+                                                                    onChange={(e) => {
+                                                                        if (typeof e === 'string') setSelectedResourceId(e);
+                                                                        else if (e && e.target) setSelectedResourceId(e.target.value);
+                                                                    }}
+                                                                />
+                                                            </div>
                                                             <button
                                                                 onClick={handleLinkAutomatedEvidence}
                                                                 disabled={!selectedProviderId || !selectedResourceId || isLinkingEvidence}
