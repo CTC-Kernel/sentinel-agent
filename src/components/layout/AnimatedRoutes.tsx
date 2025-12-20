@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AnimatedPage } from './AnimatedPage';
+import { RoleGuard } from '../auth/RoleGuard';
 
 // Lazy Imports (Copied from App.tsx)
 const Dashboard = React.lazy(() => import('../../views/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -64,7 +65,6 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/team" element={<AnimatedPage><Team /></AnimatedPage>} />
                 <Route path="/settings" element={<AnimatedPage><Settings /></AnimatedPage>} />
                 <Route path="/suppliers" element={<AnimatedPage><Suppliers /></AnimatedPage>} />
-                <Route path="/backup" element={<AnimatedPage><BackupRestore /></AnimatedPage>} />
                 <Route path="/privacy" element={<AnimatedPage><Privacy /></AnimatedPage>} />
                 <Route path="/continuity" element={<AnimatedPage><Continuity /></AnimatedPage>} />
                 {/* Voxel View might have its own canvas/context needs, but wrapping in AnimatedPage usually fine */}
@@ -76,8 +76,25 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/calendar" element={<AnimatedPage><CalendarView /></AnimatedPage>} />
                 <Route path="/pricing" element={<AnimatedPage><Pricing /></AnimatedPage>} />
                 <Route path="/system-health" element={<AnimatedPage><SystemHealth /></AnimatedPage>} />
-                <Route path="/admin_management" element={<AnimatedPage><AdminDashboard /></AnimatedPage>} />
-                <Route path="/integrations" element={<AnimatedPage><Integrations /></AnimatedPage>} />
+
+                {/* Restricted Routes */}
+                <Route path="/backup" element={
+                    <RoleGuard allowedRoles={['admin', 'rssi']}>
+                        <AnimatedPage><BackupRestore /></AnimatedPage>
+                    </RoleGuard>
+                } />
+                <Route path="/admin_management" element={
+                    // AdminDashboard handles its own super-admin check, but we add basic role check too
+                    <RoleGuard allowedRoles={['admin']}>
+                        <AnimatedPage><AdminDashboard /></AnimatedPage>
+                    </RoleGuard>
+                } />
+                <Route path="/integrations" element={
+                    <RoleGuard allowedRoles={['admin', 'rssi']}>
+                        <AnimatedPage><Integrations /></AnimatedPage>
+                    </RoleGuard>
+                } />
+
                 <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
             </Routes>
         </AnimatePresence>
