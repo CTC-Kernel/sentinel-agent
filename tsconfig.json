@@ -23,6 +23,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "express-rate-limit": [
+        "./src/types/express-rate-limit"
       ]
     },
     "typeRoots": [
