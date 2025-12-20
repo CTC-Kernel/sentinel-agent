@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from 'react';
-import { where, collection, addDoc, doc, updateDoc, deleteDoc, arrayUnion } from 'firebase/firestore';
+import { where, collection, addDoc, doc, updateDoc, deleteDoc, arrayUnion, increment } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
@@ -11,9 +11,11 @@ import { sanitizeData } from '../../utils/dataSanitizer';
 import { assetSchema } from '../../schemas/assetSchema';
 import { z } from 'zod';
 import { ErrorLogger } from '../../services/errorLogger';
+import { usePlanLimits } from '../usePlanLimits';
 
 export function useAssets() {
     const { user, addToast } = useStore();
+    const { limits } = usePlanLimits();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Fetch Assets
@@ -65,6 +67,10 @@ export function useAssets() {
     // Actions
     const createAsset = async (data: AssetFormData, preSelectedProjectId?: string | null) => {
         if (!user?.organizationId) return false;
+        if (assets.length >= limits.maxAssets) {
+            addToast(`Limite atteinte (${limits.maxAssets} actifs). Passez au plan supérieur pour ajouter plus d'actifs.`, "error");
+            return false;
+        }
         setIsSubmitting(true);
         try {
             const validatedData = assetSchema.parse(data);
@@ -76,6 +82,17 @@ export function useAssets() {
                 relatedProjectIds: preSelectedProjectId ? [preSelectedProjectId] : []
             };
             const docRef = await addDoc(collection(db, 'assets'), newDoc);
+
+            // track storage usage if size provided
+            if ((cleanData as Partial<AssetFormData> & { estimatedSizeMB?: number }).estimatedSizeMB && user.organizationId) {
+                const estSize = (cleanData as Partial<AssetFormData> & { estimatedSizeMB?: number }).estimatedSizeMB || 0;
+                const orgRef = doc(db, 'organizations', user.organizationId);
+                await updateDoc(orgRef, {
+                    storageUsed: increment(estSize * 1024 * 1024)
+                }).catch((error) => {
+                    ErrorLogger.warn('Failed to increment storage usage', 'useAssets.createAsset', { metadata: { error } });
+                });
+            }
 
             if (preSelectedProjectId) {
                 const projectRef = doc(db, 'projects', preSelectedProjectId);

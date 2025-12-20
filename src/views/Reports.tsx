@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -33,17 +34,21 @@ import { PdfService } from '../services/PdfService';
 import { CompliancePackService } from '../services/CompliancePackService';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
-import { getPlanLimits } from '../config/plans';
 import { db } from '../firebase';
 import { hasPermission, canDeleteResource } from '../utils/permissions';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Badge } from '../components/ui/Badge';
+import { usePlanLimits } from '../hooks/usePlanLimits';
 
 export const Reports: React.FC = () => {
     const { user, organization, addToast } = useStore();
     const [activeTab, setActiveTab] = useState('generate');
     const [generating, setGenerating] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const navigate = useNavigate();
+    const { hasFeature } = usePlanLimits();
+    const hasWhiteLabel = hasFeature('whiteLabelReports');
+    const hasCompliancePack = hasFeature('customTemplates');
 
     // Data Fetching
     const { data: risks, loading: risksLoading } = useFirestoreCollection<Risk>(
@@ -89,14 +94,24 @@ export const Reports: React.FC = () => {
     const canReadControls = hasPermission(user, 'Control', 'read', organization?.ownerId);
     const canManageDocuments = hasPermission(user, 'Document', 'manage', organization?.ownerId);
 
+    const handleUpgradeClick = () => {
+        addToast("Fonctionnalité réservée au plan Professional. Contactez-nous pour mettre à niveau.", "info");
+        navigate('/pricing');
+    };
+
     const handleGenerateReport = async (type: string, title?: string) => {
         if (generating) return;
+
+        if (type === 'compliance_pack' && !hasCompliancePack) {
+            handleUpgradeClick();
+            return;
+        }
+
         setGenerating(type);
         addToast("Génération du rapport en cours... Cela peut prendre quelques secondes.", "info");
 
         try {
-            const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
-            const canWhiteLabel = limits.features.whiteLabelReports;
+            const canWhiteLabel = hasWhiteLabel;
 
             const baseOptions = {
                 organizationName: canWhiteLabel ? (organization?.name || 'Sentinel GRC') : 'Sentinel GRC',
@@ -311,12 +326,9 @@ export const Reports: React.FC = () => {
                                                 gradient="from-blue-500 to-cyan-500"
                                                 onGenerate={() => {
                                                     setGenerating(`audit_${audit.id}`);
-                                                    const limits = getPlanLimits(organization?.subscription?.planId || 'discovery');
-                                                    const canWhiteLabel = limits.features.whiteLabelReports;
-
                                                     PdfService.generateAuditExecutiveReport(audit, [], {
-                                                        organizationName: canWhiteLabel ? (organization?.name || 'Sentinel GRC') : 'Sentinel GRC',
-                                                        organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
+                                                        organizationName: hasWhiteLabel ? (organization?.name || 'Sentinel GRC') : 'Sentinel GRC',
+                                                        organizationLogo: hasWhiteLabel ? organization?.logoUrl : undefined,
                                                         author: user?.displayName || 'Auditeur',
                                                         title: `RAPPORT D'AUDIT: ${audit.name}`,
                                                         filename: `audit_${audit.id}.pdf`,
@@ -383,6 +395,9 @@ export const Reports: React.FC = () => {
                                         onGenerate={() => handleGenerateReport('compliance_pack')}
                                         loading={generating === 'compliance_pack'}
                                         disabled={!canReadControls}
+                                        locked={!hasCompliancePack}
+                                        lockMessage="Disponible à partir du plan Professional (Custom Templates)."
+                                        onLockedClick={handleUpgradeClick}
                                     />
                                 </div>
                             </motion.section>
@@ -520,34 +535,53 @@ interface ReportCardProps {
     loading?: boolean;
     disabled?: boolean;
     color?: string;
+    locked?: boolean;
+    lockMessage?: string;
+    onLockedClick?: () => void;
 }
 
-const ReportCard: React.FC<ReportCardProps> = ({ title, description, icon: Icon, gradient, onGenerate, loading, disabled }) => {
+const ReportCard: React.FC<ReportCardProps> = ({ title, description, icon: Icon, gradient, onGenerate, loading, disabled, locked, lockMessage, onLockedClick }) => {
+    const effectiveDisabled = disabled;
+    const showLock = locked;
+    const handleClick = () => {
+        if (showLock) {
+            onLockedClick?.();
+            return;
+        }
+        onGenerate();
+    };
+
     return (
         <motion.div
-            whileHover={disabled ? {} : { y: -8, scale: 1.02 }}
-            className={`group relative flex flex-col p-8 bg-white/60 dark:bg-[#0B1120]/60 backdrop-blur-xl rounded-3xl border border-white/40 dark:border-white/5 shadow-lg shadow-slate-200/50 dark:shadow-none transition-all duration-300 ${disabled ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-2xl hover:border-brand-500/30 dark:hover:border-white/20'}`}
+            whileHover={effectiveDisabled ? {} : { y: -8, scale: 1.02 }}
+            className={`group relative flex flex-col p-8 bg-white/60 dark:bg-[#0B1120]/60 backdrop-blur-xl rounded-3xl border border-white/40 dark:border-white/5 shadow-lg shadow-slate-200/50 dark:shadow-none transition-all duration-300 ${effectiveDisabled && !showLock ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-2xl hover:border-brand-500/30 dark:hover:border-white/20'} ${showLock ? 'ring-1 ring-amber-500/20' : ''}`}
         >
             {/* Inner Glow Effect */}
             <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/50 to-transparent dark:from-white/5 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
-            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-6 shadow-lg transform group-hover:scale-110 transition-transform duration-300 ${disabled ? 'grayscale opacity-50' : ''}`}>
+            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-6 shadow-lg transform group-hover:scale-110 transition-transform duration-300 ${effectiveDisabled && !showLock ? 'grayscale opacity-50' : ''}`}>
                 <Icon className="w-7 h-7 text-white" />
             </div>
 
             <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors flex items-center justify-between">
                 {title}
-                {disabled && <Lock className="w-5 h-5 opacity-40" />}
+                {(effectiveDisabled || showLock) && <Lock className="w-5 h-5 opacity-40" />}
             </h4>
 
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 flex-1 leading-relaxed">
                 {description}
             </p>
+            {showLock && lockMessage && (
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-3 flex items-center gap-2">
+                    <Lock className="w-3 h-3" />
+                    {lockMessage}
+                </p>
+            )}
 
             <Button
-                onClick={onGenerate}
-                disabled={loading || disabled}
-                className={`w-full h-12 rounded-xl font-bold tracking-wide transition-all shadow-md group-hover:shadow-lg ${disabled ? 'bg-slate-100 text-slate-400 dark:bg-white/5 dark:text-slate-500 border-none' : 'bg-white dark:bg-white/10 text-slate-900 dark:text-white hover:bg-brand-600 hover:text-white dark:hover:bg-brand-500 border border-slate-200 dark:border-white/10'}`}
+                onClick={handleClick}
+                disabled={(loading || effectiveDisabled) && !showLock}
+                className={`w-full h-12 rounded-xl font-bold tracking-wide transition-all shadow-md group-hover:shadow-lg ${showLock ? 'bg-amber-500 text-white hover:bg-amber-600 border-none' : (effectiveDisabled ? 'bg-slate-100 text-slate-400 dark:bg-white/5 dark:text-slate-500 border-none' : 'bg-white dark:bg-white/10 text-slate-900 dark:text-white hover:bg-brand-600 hover:text-white dark:hover:bg-brand-500 border border-slate-200 dark:border-white/10')}`}
                 variant="outline"
             >
                 {loading ? (
@@ -555,7 +589,12 @@ const ReportCard: React.FC<ReportCardProps> = ({ title, description, icon: Icon,
                         <span className="w-5 h-5 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
                         Génération...
                     </>
-                ) : disabled ? (
+                ) : showLock ? (
+                    <>
+                        <Lock className="w-4 h-4 mr-2" />
+                        Mettre à niveau
+                    </>
+                ) : effectiveDisabled ? (
                     <>
                         <Lock className="w-4 h-4 mr-2" />
                         Accès restreint

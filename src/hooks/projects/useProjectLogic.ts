@@ -12,11 +12,13 @@ import { sanitizeData } from '../../utils/dataSanitizer';
 import { z } from 'zod';
 import { SubscriptionService } from '../../services/subscriptionService';
 import { canEditResource, canDeleteResource } from '../../utils/permissions';
+import { usePlanLimits } from '../usePlanLimits';
 
 export const useProjectLogic = () => {
     const { user, addToast, organization } = useStore();
     const role = user?.role || 'user';
     const canEdit = canEditResource(user, 'Project');
+    const { limits } = usePlanLimits();
 
     // Data Fetching
     const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true });
@@ -76,6 +78,12 @@ export const useProjectLogic = () => {
 
             } else {
                 // Create
+                const canAddProject = await SubscriptionService.checkLimit(user.organizationId, 'projects', projects.length);
+                if (!canAddProject) {
+                    addToast(`Nombre maximum de projets atteint pour votre plan (${projects.length}/${limits?.maxProjects ?? '…'}).`, "error");
+                    setIsSubmitting(false);
+                    return;
+                }
                 const finalData = { ...cleanData };
                 if (preSelectedContext) {
                     if (preSelectedContext.type === 'risk') finalData.relatedRiskIds = [...(finalData.relatedRiskIds || []), preSelectedContext.id];

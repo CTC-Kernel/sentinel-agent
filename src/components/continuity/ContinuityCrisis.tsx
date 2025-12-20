@@ -1,0 +1,140 @@
+import React, { useState } from 'react';
+import { AlertTriangle, Phone, ShieldAlert, CheckCircle2, User, Megaphone, Lock } from 'lucide-react';
+import { Button } from '../ui/button';
+import { UserProfile } from '../../types';
+import { useStore } from '../../store';
+
+interface ContinuityCrisisProps {
+    users: UserProfile[];
+}
+
+export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => {
+    const { addToast } = useStore();
+    const [crisisActive, setCrisisActive] = useState(false);
+    const [activationStep, setActivationStep] = useState(0);
+
+    const crisisTeam = users.filter(u => u.role === 'admin' || u.role === 'rssi' || u.role === 'direction');
+
+    const handleActivateCrisis = () => {
+        if (activationStep < 2) {
+            setActivationStep(prev => prev + 1);
+            return;
+        }
+        setCrisisActive(true);
+        addToast("⚠️ MODE CRISE ACTIVÉ : Notifications envoyées à la cellule de crise.", "error");
+        // Here we would trigger real notifications via Cloud Functions
+    };
+
+    const handleDeactivate = () => {
+        if (confirm("Confirmer la fin de la crise ? Un rapport sera généré automatically.")) {
+            setCrisisActive(false);
+            setActivationStep(0);
+            addToast("Mode crise désactivé. Retour à la normale.", "success");
+        }
+    };
+
+    return (
+        <div className="space-y-8">
+            {/* Status Header */}
+            <div className={`p-8 rounded-[2rem] border-2 transition-all duration-500 overflow-hidden relative ${crisisActive ? 'bg-red-950/30 border-red-500/50 shadow-[0_0_50px_rgba(239,68,68,0.2)]' : 'glass-panel border-white/10'}`}>
+                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-6">
+                        <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg ${crisisActive ? 'bg-red-600 text-white animate-pulse' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20'}`}>
+                            {crisisActive ? <AlertTriangle className="w-10 h-10" /> : <ShieldAlert className="w-10 h-10" />}
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-black tracking-tight mb-2 text-slate-900 dark:text-white">
+                                {crisisActive ? "CELLULE DE CRISE ACTIVÉE" : "Surveillance Normale"}
+                            </h2>
+                            <p className="text-lg opacity-80 max-w-xl">
+                                {crisisActive
+                                    ? "Protocole d'urgence en cours. Toutes les actions sont logguées. Le P.C.A est activé."
+                                    : "Aucun incident critique en cours. Les systèmes sont nominaux."}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-3">
+                        {!crisisActive ? (
+                            <Button
+                                onClick={handleActivateCrisis}
+                                className={`h-16 px-8 text-lg font-bold rounded-2xl transition-all ${activationStep === 0 ? 'bg-slate-900 dark:bg-white text-white dark:text-black' :
+                                    activationStep === 1 ? 'bg-amber-500 hover:bg-amber-600 text-white' :
+                                        'bg-red-600 hover:bg-red-700 text-white shadow-xl shadow-red-500/30 animate-pulse'
+                                    }`}
+                            >
+                                {activationStep === 0 && <span className="flex items-center gap-2"><Megaphone className="w-5 h-5" /> Signaler Incident</span>}
+                                {activationStep === 1 && "Confirmer l'alerte ?"}
+                                {activationStep === 2 && "ACTIVER MAINTENANT"}
+                            </Button>
+                        ) : (
+                            <Button onClick={handleDeactivate} variant="outline" className="h-16 px-8 text-lg border-red-500 text-red-500 hover:bg-red-500/10 font-bold rounded-2xl">
+                                <CheckCircle2 className="w-6 h-6 mr-2" /> Clôturer la Crise
+                            </Button>
+                        )}
+                        {activationStep > 0 && !crisisActive && (
+                            <button onClick={() => setActivationStep(0)} className="text-sm text-slate-500 hover:text-slate-700">Annuler</button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Background Pattern */}
+                {crisisActive && (
+                    <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(239,68,68,0.05)_10px,rgba(239,68,68,0.05)_20px)] pointer-events-none" />
+                )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Contacts Card */}
+                <div className="md:col-span-2 glass-panel p-6 rounded-2xl border border-white/10">
+                    <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                        <Phone className="w-5 h-5 text-blue-500" /> Annuaire de Crise (Décideurs)
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {crisisTeam.map(member => (
+                            <div key={member.uid} className="flex items-center p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
+                                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 mr-3">
+                                    <User className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="font-bold text-sm text-slate-900 dark:text-white">{member.displayName || member.email}</p>
+                                    <p className="text-xs text-slate-500 uppercase font-bold">{member.role}</p>
+                                </div>
+                                <Button size="sm" variant="ghost" className="ml-auto text-blue-600 hover:bg-blue-50">
+                                    <Phone className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Secure Room Access */}
+                <div className="glass-panel p-6 rounded-2xl border border-white/10 flex flex-col items-center justify-center text-center">
+                    <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
+                        <Lock className="w-8 h-8 text-slate-400" />
+                    </div>
+                    <h3 className="font-bold text-lg mb-2">War Room Virtuelle</h3>
+                    <p className="text-sm text-slate-500 mb-6">Accès sécurisé aux documents confidentiels et au chat crypté de crise.</p>
+                    <Button disabled={!crisisActive} className="w-full">
+                        Accéder
+                    </Button>
+                </div>
+            </div>
+
+            {/* Event Log Placeholder */}
+            {crisisActive && (
+                <div className="glass-panel p-6 rounded-2xl border border-red-500/20">
+                    <h3 className="font-bold mb-4">Journal des Événements (Main Courante)</h3>
+                    <div className="space-y-4">
+                        <div className="flex gap-4 items-start">
+                            <span className="text-xs font-mono text-slate-500 mt-1">{new Date().toLocaleTimeString()}</span>
+                            <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 rounded-lg text-sm flex-1">
+                                <strong>SYSTÈME :</strong> Activation de la cellule de crise par {useStore.getState().user?.role}.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};

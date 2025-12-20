@@ -15,11 +15,12 @@ import { Audit } from '../types';
 import { AuditFormData } from '../schemas/auditSchema';
 import { PageHeader } from '../components/ui/PageHeader';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
-import { Calendar as CalendarIcon, Download, BrainCircuit, Plus, LayoutDashboard, List } from 'lucide-react';
+import { Calendar as CalendarIcon, Download, BrainCircuit, Plus, LayoutDashboard, List, ClipboardCheck } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { AuditDashboard } from '../components/audits/AuditDashboard';
-import { AuditCalendar } from '../components/audits/AuditCalendar'; // Will create this next
+import { AuditCalendar } from '../components/audits/AuditCalendar';
+import { FindingsList } from '../components/audits/FindingsList'; // Will create this next
 
 export const Audits: React.FC = () => {
     const {
@@ -31,7 +32,7 @@ export const Audits: React.FC = () => {
     const { user } = useStore();
 
     // Local UI State
-    const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'calendar'>('list');
+    const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'calendar' | 'findings'>('list');
     const [creationMode, setCreationMode] = useState(false);
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
@@ -42,6 +43,7 @@ export const Audits: React.FC = () => {
         { id: 'overview', label: "Tableau de Bord", icon: LayoutDashboard },
         { id: 'list', label: "Liste des Audits", icon: List },
         { id: 'calendar', label: "Calendrier", icon: CalendarIcon },
+        { id: 'findings', label: "Constats", icon: ClipboardCheck },
     ];
 
     // Compute all findings for Dashboard
@@ -108,93 +110,107 @@ export const Audits: React.FC = () => {
                 <ScrollableTabs
                     tabs={tabs}
                     activeTab={activeTab}
-                    onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'calendar')}
+                    onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'calendar' | 'findings')}
                 />
             </div>
 
-            {activeTab === 'overview' && (
-                <motion.div variants={slideUpVariants} initial="initial" animate="visible">
-                    <AuditDashboard
-                        audits={audits}
-                        findings={allFindings}
-                        onFilterChange={(f) => {
-                            if (f?.type === 'status') {
-                                setFilter(f.value);
-                                setActiveTab('list');
-                            }
-                        }}
-                    />
-                </motion.div>
-            )}
-
-            {activeTab === 'list' && (
-                <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="space-y-6">
-                    <PremiumPageControl
-                        searchQuery={filter}
-                        onSearchChange={setFilter}
-                        searchPlaceholder="Rechercher un audit..."
-                        actions={
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="ghost"
-                                    onClick={handleExportCalendar}
-                                    title="Exporter Calendrier"
-                                    className="p-2 h-10 w-10 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
-                                >
-                                    <CalendarIcon className="w-5 h-5" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    onClick={handleExportCSV}
-                                    title="Exporter CSV"
-                                    className="p-2 h-10 w-10 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
-                                >
-                                    <Download className="w-5 h-5" />
-                                </Button>
-                                {canEdit && (
-                                    <>
-                                        <Button
-                                            onClick={handleGeneratePlan}
-                                            variant="outline"
-                                            className="gap-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 font-medium"
-                                        >
-                                            <BrainCircuit className="w-4 h-4" />
-                                            <span className="hidden sm:inline">Assistant IA</span>
-                                        </Button>
-                                        <Button
-                                            onClick={() => { setEditingAudit(null); setCreationMode(true); }}
-                                            className="gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-medium shadow-sm hover:shadow-md transition-all"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                            <span className="hidden sm:inline">Nouvel Audit</span>
-                                        </Button>
-                                    </>
-                                )}
-                            </div>
-                        }
-                    />
-                    <div className="glass-panel overflow-hidden rounded-2xl border border-white/20 dark:border-white/5">
-                        <AuditsList
-                            audits={filteredAudits}
-                            isLoading={loading}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                            onOpen={handleOpen}
-                            canEdit={canEdit}
-                            canDelete={canDelete}
+            {
+                activeTab === 'overview' && (
+                    <motion.div variants={slideUpVariants} initial="initial" animate="visible">
+                        <AuditDashboard
+                            audits={audits}
+                            findings={allFindings}
+                            onFilterChange={(f) => {
+                                if (f?.type === 'status') {
+                                    setFilter(f.value);
+                                    setActiveTab('list');
+                                }
+                            }}
                         />
-                    </div>
-                </motion.div>
-            )}
+                    </motion.div>
+                )
+            }
 
-            {activeTab === 'calendar' && (
-                <motion.div variants={slideUpVariants} initial="initial" animate="visible">
-                    <AuditCalendar
-                        audits={audits}
-                        onAuditClick={handleOpen}
-                    />
-                </motion.div>
-            )}
+            {
+                activeTab === 'list' && (
+                    <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="space-y-6">
+                        <PremiumPageControl
+                            searchQuery={filter}
+                            onSearchChange={setFilter}
+                            searchPlaceholder="Rechercher un audit..."
+                            actions={
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={handleExportCalendar}
+                                        title="Exporter Calendrier"
+                                        className="p-2 h-10 w-10 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
+                                    >
+                                        <CalendarIcon className="w-5 h-5" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        onClick={handleExportCSV}
+                                        title="Exporter CSV"
+                                        className="p-2 h-10 w-10 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
+                                    >
+                                        <Download className="w-5 h-5" />
+                                    </Button>
+                                    {canEdit && (
+                                        <>
+                                            <Button
+                                                onClick={handleGeneratePlan}
+                                                variant="outline"
+                                                className="gap-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 font-medium"
+                                            >
+                                                <BrainCircuit className="w-4 h-4" />
+                                                <span className="hidden sm:inline">Assistant IA</span>
+                                            </Button>
+                                            <Button
+                                                onClick={() => { setEditingAudit(null); setCreationMode(true); }}
+                                                className="gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-medium shadow-sm hover:shadow-md transition-all"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                <span className="hidden sm:inline">Nouvel Audit</span>
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
+                            }
+                        />
+                        <div className="glass-panel overflow-hidden rounded-2xl border border-white/20 dark:border-white/5">
+                            <AuditsList
+                                audits={filteredAudits}
+                                isLoading={loading}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                                onOpen={handleOpen}
+                                canEdit={canEdit}
+                                canDelete={canDelete}
+                            />
+                        </div>
+                    </motion.div>
+                )
+            }
+
+            {
+                activeTab === 'calendar' && (
+                    <motion.div variants={slideUpVariants} initial="initial" animate="visible">
+                        <AuditCalendar
+                            audits={audits}
+                            onAuditClick={handleOpen}
+                        />
+                    </motion.div>
+                )
+            }
+
+            {
+                activeTab === 'findings' && (
+                    <motion.div variants={slideUpVariants} initial="initial" animate="visible">
+                        <FindingsList audits={audits} />
+                    </motion.div>
+                )
+            }
 
             {/* Creation/Edit Drawer */}
             <Drawer

@@ -6,11 +6,14 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '../components/ui/PageHeader';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
+import { AdvancedSearch } from '../components/ui/AdvancedSearch';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { ObsidianService } from '../services/ObsidianService';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserProfile } from '../types';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { CsvParser } from '../utils/csvUtils';
 
 import { useRiskData } from '../hooks/risks/useRiskData';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
@@ -124,19 +127,7 @@ export const Risks: React.FC = () => {
                 const text = e.target?.result as string;
                 if (!text) return;
 
-                // Simple CSV Parser
-                const lines = text.split('\n').filter(l => l.trim());
-                if (lines.length < 2) return;
-
-                const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-
-                const data = lines.slice(1).map(line => {
-                    const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-                    return headers.reduce((obj, header, i) => {
-                        obj[header] = values[i] || '';
-                        return obj;
-                    }, {} as Record<string, string>);
-                });
+                const data = CsvParser.parseCSV(text);
 
                 let importedCount = 0;
                 for (const row of data) {
@@ -188,6 +179,7 @@ export const Risks: React.FC = () => {
 
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-6">
+            <MasterpieceBackground />
             <PageHeader
                 title={risksTitle}
                 subtitle={risksSubtitle}
@@ -364,9 +356,22 @@ export const Risks: React.FC = () => {
             {/* Advanced Search Panel Placeholder */}
             <AnimatePresence>
                 {showAdvancedSearch && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="p-4 glass-panel border border-slate-200 dark:border-white/10 rounded-xl mt-4">
-                        <p className="text-sm text-slate-500">Recherche avancée (Implémentation future - le composant a été désactivé temporairement)</p>
-                    </motion.div>
+                    <AdvancedSearch
+                        onSearch={(filters) => {
+                            // Map generic filters to risk specific filters if needed
+                            setActiveFilters(prev => ({
+                                ...prev,
+                                query: filters.query,
+                                // Add other mappings if useRiskFilters supports them
+                            }));
+                            setShowAdvancedSearch(false);
+                            // Optional: Add toast for unsupported filters if necessary
+                            if (filters.status || filters.owner || filters.criticality) {
+                                // toast.info("Filtres avancés appliqués sur la recherche textuelle");
+                            }
+                        }}
+                        onClose={() => setShowAdvancedSearch(false)}
+                    />
                 )}
             </AnimatePresence>
 

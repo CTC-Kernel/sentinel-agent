@@ -34,6 +34,7 @@ import { SupplierDashboard } from '../components/suppliers/SupplierDashboard';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { SupplierAIAssistant } from '../components/suppliers/SupplierAIAssistant';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { CsvParser } from '../utils/csvUtils';
 
 const getCriticalityColor = (c: Criticality) => {
     switch (c) {
@@ -383,7 +384,7 @@ export const Suppliers: React.FC = () => {
         setIsExportingCSV(true);
         try {
             const headers = ["Nom", "Catégorie", "Criticité", "Score Sécurité", "Contact", "Fin Contrat", "Statut"];
-            const rows = filteredSuppliers.map(s => [
+            const rows = filteredSuppliers.map(s => ([
                 s.name,
                 s.category,
                 s.criticality,
@@ -391,12 +392,8 @@ export const Suppliers: React.FC = () => {
                 s.contactEmail,
                 s.contractEnd ? new Date(s.contractEnd).toLocaleDateString() : '',
                 s.status
-            ]);
-            const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `suppliers_export_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
+            ]));
+            CsvParser.downloadCSV(headers, rows, `suppliers_export_${new Date().toISOString().split('T')[0]}.csv`);
         } finally {
             setTimeout(() => setIsExportingCSV(false), 0);
         }
@@ -407,7 +404,7 @@ export const Suppliers: React.FC = () => {
         setIsExportingDORA(true);
         try {
             const headers = ["Nom Fournisseur", "Type Service", "Prestataire TIC", "Fonction Critique", "Criticité DORA", "Localisation Données", "Date Contrat"];
-            const rows = filteredSuppliers.filter(s => s.isICTProvider).map(s => [
+            const rows = filteredSuppliers.filter(s => s.isICTProvider).map(s => ([
                 s.name,
                 s.serviceType || 'N/A',
                 s.isICTProvider ? 'OUI' : 'NON',
@@ -415,12 +412,8 @@ export const Suppliers: React.FC = () => {
                 s.doraCriticality || 'None',
                 'UE (Simulé)', // Placeholder as we don't have location field yet
                 s.contractEnd ? new Date(s.contractEnd).toLocaleDateString() : ''
-            ]);
-            const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `dora_register_of_information_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
+            ]));
+            CsvParser.downloadCSV(headers, rows, `dora_register_of_information_${new Date().toISOString().split('T')[0]}.csv`);
         } finally {
             setTimeout(() => setIsExportingDORA(false), 0);
         }
@@ -435,25 +428,59 @@ export const Suppliers: React.FC = () => {
         reader.onload = async (e) => {
             const text = e.target?.result as string;
             if (!text) return;
-            const lines = text.split('\n').slice(1).filter(line => line.trim() !== '');
-            if (lines.length === 0) { addToast("Fichier vide", "error"); return; }
+
+            const lines = CsvParser.parseCSV(text);
+            if (lines.length === 0) { addToast("Fichier vide ou invalide", "error"); return; }
 
             setIsImporting(true);
             addToast("Import en cours...", "info");
             try {
                 const batch = writeBatch(db);
                 let count = 0;
-                lines.forEach(line => {
-                    const cols = line.split(',');
-                    if (cols.length >= 3) {
+
+                // Only process first 50 rows for safety in batch, or we could chunk it 
+                // but let's stick to the simpler logic for now, iterating all parsed objects.
+                // The CsvParser returns objects with keys from headers.
+                // The previous logic assumed no headers or columns index access.
+                // WE MUST ADAPT: If the CSV has headers, CsvParser uses them.
+                // If the user's CSV format is fixed columns without headers, existing logic relied on splits.
+                // Let's assume the user now provides a CSV with headers OR we map values by index if no headers were expected?
+                // Looking at the original code: 
+                // "const lines = text.split('\n').slice(1)..." -> Implies there WAS a header row.
+                // "const cols = line.split(',');" -> "cols[0]", "cols[1]"...
+                // So the CSV structure was: Name, Category, Criticality, ContactName, ContactEmail.
+
+                // With CsvParser.parseCSV, we get an array of objects.
+                // We should check if the keys match expected header names OR iterate values if the keys are generic.
+                // Since CsvParser uses the first row as headers, the objects will have keys like 'Name', 'Category' etc.
+                // IF the CSV truly has those headers. 
+
+                // Let's make it robust: Iterate the objects.
+                // If objects have properties, we try to guess or use the values.
+                // Since we don't know the EXACT header names the user might use, maybe we just take the first 5 values of each object?
+                // OR we can update the template to require headers: Name, Category, Criticality, ContactName, ContactEmail.
+
+                lines.forEach((row: any) => {
+                    const values = Object.values(row) as string[];
+                    // Fallback to values by index if keys don't match or for flexibility
+                    // Name is likely first, Category second...
+
+                    // Actually, let's try to look for specific keys, else fallback to index.
+                    const name = row['Nom'] || row['Name'] || values[0] || 'Inconnu';
+                    const category = row['Catégorie'] || row['Category'] || values[1] || 'Autre';
+                    const criticality = row['Criticité'] || row['Criticality'] || values[2] || 'Moyenne';
+                    const contactName = row['Contact'] || row['ContactName'] || values[3] || '';
+                    const contactEmail = row['Email'] || row['ContactEmail'] || values[4] || '';
+
+                    if (name) {
                         const newRef = doc(collection(db, 'suppliers'));
                         const newSupplierData: Partial<Supplier> = {
                             organizationId: user.organizationId,
-                            name: cols[0]?.trim() || 'Inconnu',
-                            category: (cols[1]?.trim() || 'Autre') as Supplier['category'],
-                            criticality: (cols[2]?.trim() || 'Moyenne') as Criticality,
-                            contactName: cols[3]?.trim() || '',
-                            contactEmail: cols[4]?.trim() || '',
+                            name: name.trim(),
+                            category: (category.trim() || 'Autre') as Supplier['category'],
+                            criticality: (criticality.trim() || 'Moyenne') as Criticality,
+                            contactName: contactName.trim(),
+                            contactEmail: contactEmail.trim(),
                             status: 'Actif',
                             securityScore: 0,
                             assessment: {

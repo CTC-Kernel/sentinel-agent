@@ -17,11 +17,16 @@ import { AssetInspector } from '../components/assets/AssetInspector';
 import { AssetDashboard } from '../components/assets/AssetDashboard';
 import { useAssets } from '../hooks/assets/useAssets';
 import { Database, FileSpreadsheet, Link, Plus, Filter } from 'lucide-react';
+import { usePlanLimits } from '../hooks/usePlanLimits';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { CsvParser } from '../utils/csvUtils';
 
 const Assets: React.FC = () => {
     const { user } = useStore();
     const canEdit = canEditResource(user, 'Asset');
     const { assets, loading, createAsset, updateAsset, deleteAsset, usersList, suppliers, processes } = useAssets();
+    const { limits } = usePlanLimits();
+    const reachedAssetLimit = assets.length >= limits.maxAssets;
 
     // UI State
     const [viewMode, setViewMode] = useState<'grid' | 'list' | 'matrix'>('grid');
@@ -55,6 +60,12 @@ const Assets: React.FC = () => {
 
     // Handlers
     const handleOpenInspector = (asset?: Asset) => {
+        if (!asset && reachedAssetLimit) {
+            toast.info("Limite d'actifs atteinte", {
+                description: `Votre plan permet ${limits.maxAssets} actifs. Passez à l'offre supérieure pour en ajouter davantage.`
+            });
+            return;
+        }
         setSelectedAsset(asset || null);
         setInspectorOpen(true);
     };
@@ -83,27 +94,19 @@ const Assets: React.FC = () => {
     };
 
     const handleExportCSV = () => {
-        // Simple CSV export logic from original file
         const headers = ['Nom', 'Type', 'Statut', 'Criticité', 'Propriétaire', 'Localisation', 'Valeur', 'Fin Garantie'];
-        const csvContent = [
-            headers.join(','),
-            ...filteredAssets.map(a => [
-                `"${a.name}"`,
-                `"${a.type}"`,
-                `"${a.lifecycleStatus || ''}"`,
-                `"${a.confidentiality}"`,
-                `"${a.owner}"`,
-                `"${a.location || ''}"`,
-                `"${a.purchasePrice || ''}"`,
-                `"${a.warrantyEnd || ''}"`
-            ].join(','))
-        ].join('\n');
+        const data = filteredAssets.map(a => ({
+            'Nom': a.name,
+            'Type': a.type,
+            'Statut': a.lifecycleStatus || '',
+            'Criticité': a.confidentiality,
+            'Propriétaire': a.owner,
+            'Localisation': a.location || '',
+            'Valeur': a.purchasePrice || '',
+            'Fin Garantie': a.warrantyEnd || ''
+        }));
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `assets_export_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
+        CsvParser.downloadCSV(headers, data, `assets_export_${new Date().toISOString().split('T')[0]}.csv`);
     };
 
     return (
@@ -113,6 +116,7 @@ const Assets: React.FC = () => {
             animate="visible"
             className="space-y-6"
         >
+            <MasterpieceBackground />
             <SEO title="Inventaire des Actifs" description="Gérez votre cartographie des actifs et votre analyse d'impact." />
 
             <div className="flex flex-col gap-8">
@@ -132,6 +136,17 @@ const Assets: React.FC = () => {
 
                 {/* Dashboard KPIs */}
                 <motion.div variants={slideUpVariants}>
+                    {reachedAssetLimit && (
+                        <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 text-amber-900 px-4 py-3 text-sm font-semibold flex items-center justify-between">
+                            <span>Limite atteinte : {assets.length}/{limits.maxAssets} actifs.</span>
+                            <button
+                                onClick={() => toast.info("Contactez-nous pour mettre à niveau votre plan.")}
+                                className="text-amber-900 underline font-bold"
+                            >
+                                Mettre à niveau
+                            </button>
+                        </div>
+                    )}
                     <AssetDashboard
                         assets={filteredAssets}
                         onFilterChange={(filter) => {
@@ -192,7 +207,8 @@ const Assets: React.FC = () => {
                                 {canEdit && (
                                     <button
                                         onClick={() => handleOpenInspector(undefined)}
-                                        className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                        disabled={reachedAssetLimit}
+                                        className={`flex items-center px-5 py-2.5 text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-500/20 ${reachedAssetLimit ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
                                     >
                                         <Plus className="h-4 w-4 mr-2" />
                                         <span className="hidden sm:inline">Nouvel Actif</span>

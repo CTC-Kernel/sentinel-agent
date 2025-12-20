@@ -20,6 +20,8 @@ import { generateContinuityReport } from '../utils/pdfGenerator';
 import { ContinuityDashboard } from '../components/continuity/ContinuityDashboard';
 import { ContinuityBIA } from '../components/continuity/ContinuityBIA';
 import { ContinuityDrills } from '../components/continuity/ContinuityDrills';
+import { ContinuityStrategies } from '../components/continuity/ContinuityStrategies';
+import { ContinuityCrisis } from '../components/continuity/ContinuityCrisis';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { EmptyState } from '../components/ui/EmptyState';
 
@@ -253,16 +255,7 @@ const Continuity: React.FC = () => {
                     )}
 
                     {activeTab === 'strategies' && (
-                        <div className="glass-panel p-8 rounded-3xl border border-white/10 min-h-[400px] flex items-center justify-center">
-                            <EmptyState
-                                icon={FileText}
-                                title="Module Stratégies en cours de déploiement"
-                                description="La gestion des plans de continuité (PCA/PRA) sera bientôt disponible. Vous pourrez définir vos stratégies de reprise et procédures dégradées."
-                                actionLabel="En savoir plus"
-                                onAction={() => addToast('Fonctionnalité bientôt disponible', 'info')}
-                                color="blue"
-                            />
-                        </div>
+                        <ContinuityStrategies assets={assets} />
                     )}
 
                     {activeTab === 'drills' && (
@@ -275,14 +268,7 @@ const Continuity: React.FC = () => {
                     )}
 
                     {activeTab === 'crisis' && (
-                        <div className="glass-panel p-8 rounded-3xl border border-white/10 min-h-[400px] flex items-center justify-center">
-                            <EmptyState
-                                icon={AlertOctagon}
-                                title="Module Gestion de Crise"
-                                description="Le centre de commandement de crise (Salle de Crise Virtuelle) est en cours de finalisation."
-                                color="rose"
-                            />
-                        </div>
+                        <ContinuityCrisis users={users} />
                     )}
                 </motion.div>
             </AnimatePresence>
