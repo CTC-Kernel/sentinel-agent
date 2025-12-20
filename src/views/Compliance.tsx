@@ -144,21 +144,22 @@ export const Compliance: React.FC = () => {
     const { data: documents, loading: docsLoading } = useFirestoreCollection<Document>(
         'documents',
         orgConstraints,
-        { logError: true, enabled: !!orgId, realtime: true }
+        { logError: true, enabled: !!orgId && isDrawerOpen, realtime: true }
     );
 
     const { data: risks, loading: risksLoading } = useFirestoreCollection<Risk>(
         'risks',
         orgConstraints,
-        { logError: true, enabled: !!orgId, realtime: true }
+        { logError: true, enabled: !!orgId && isDrawerOpen, realtime: true }
     );
 
     const { data: findings, loading: findingsLoading } = useFirestoreCollection<Finding>(
         'findings',
         orgConstraints,
-        { logError: true, enabled: !!orgId, realtime: true }
+        { logError: true, enabled: !!orgId && isDrawerOpen, realtime: true }
     );
 
+    // Users needed for assignee resolution in table
     const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
         'users',
         orgConstraints,
@@ -168,31 +169,31 @@ export const Compliance: React.FC = () => {
     const { data: assets, loading: assetsLoading } = useFirestoreCollection<Asset>(
         'assets',
         orgConstraints,
-        { logError: true, enabled: !!orgId, realtime: true }
+        { logError: true, enabled: !!orgId && isDrawerOpen, realtime: true }
     );
 
     const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
         'suppliers',
         orgConstraints,
-        { logError: true, enabled: !!orgId, realtime: true }
+        { logError: true, enabled: !!orgId && isDrawerOpen, realtime: true }
     );
 
     const { data: projects, loading: projectsLoading } = useFirestoreCollection<Project>(
         'projects',
         orgConstraints,
-        { logError: true, enabled: !!orgId, realtime: true }
+        { logError: true, enabled: !!orgId && isDrawerOpen, realtime: true }
     );
 
     const { data: audits, loading: auditsLoading } = useFirestoreCollection<Audit>(
         'audits',
         orgConstraints,
-        { logError: true, enabled: !!orgId, realtime: true }
+        { logError: true, enabled: !!orgId && isDrawerOpen, realtime: true }
     );
 
     const { data: processes, loading: processesLoading } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
         orgConstraints,
-        { logError: true, enabled: !!orgId, realtime: true }
+        { logError: true, enabled: !!orgId && isDrawerOpen, realtime: true }
     );
 
     const loading = controlsLoading || docsLoading || risksLoading || findingsLoading || usersLoading || assetsLoading || suppliersLoading || projectsLoading || auditsLoading || processesLoading;

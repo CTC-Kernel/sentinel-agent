@@ -20,7 +20,7 @@ import { Button } from '../components/ui/button';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { AuditDashboard } from '../components/audits/AuditDashboard';
 import { AuditCalendar } from '../components/audits/AuditCalendar';
-import { FindingsList } from '../components/audits/FindingsList'; // Will create this next
+import { FindingsList } from '../components/audits/FindingsList';
 
 export const Audits: React.FC = () => {
     const {

@@ -71,4 +71,23 @@ export class CsvParser {
         }
         return result;
     }
+    /**
+     * Export an array of objects to CSV with specific fields
+     * @param data Array of data objects
+     * @param filename Filename (without extension)
+     * @param fields Array of field keys to export
+     */
+    static exportToCsv(data: any[], filename: string, fields: string[]) {
+        const headers = fields;
+        const rows = data.map(item => {
+            const row: any[] = [];
+            fields.forEach(field => {
+                // Handle nested properties if needed, currently flat
+                row.push(item[field] !== undefined ? item[field] : '');
+            });
+            return row;
+        });
+
+        this.downloadCSV(headers, rows, `${filename}.csv`);
+    }
 }

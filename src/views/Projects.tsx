@@ -20,7 +20,8 @@ import { TemplateModal } from '../components/projects/TemplateModal';
 import { PortfolioDashboard } from '../components/projects/PortfolioDashboard';
 import { createProjectFromTemplate } from '../utils/projectTemplates';
 import { GanttChart } from '../components/projects/GanttChart';
-import jsPDF from 'jspdf';
+import { CsvParser } from '../utils/csvUtils';
+import { PdfService } from '../services/PdfService';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { Menu, Transition } from '@headlessui/react';
@@ -104,40 +105,33 @@ export const Projects: React.FC = () => {
         }
     };
 
-    // Reports (Simplified inline for now, ideally moved to service)
+    // Exports
     const handleExportCSV = () => {
-        const headers = ["Nom", "Statut", "Progression", "Responsable", "Echeance", "Creation"];
-        const csvContent = [
-            headers.join(','),
-            ...projects.map(p => [
-                `"${p.name.replace(/"/g, '""')}"`,
-                p.status,
-                `${p.progress}%`,
-                `"${p.manager?.replace(/"/g, '""') || ''}"`,
-                new Date(p.dueDate).toLocaleDateString(),
-                new Date(p.createdAt).toLocaleDateString()
-            ].join(','))
-        ].join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `projets_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
+        CsvParser.exportToCsv(
+            projects,
+            "projets_export",
+            ["name", "status", "progress", "manager", "dueDate", "createdAt"]
+        );
     };
 
     const generateReport = () => {
         if (!selectedProject) return;
-        const doc = new jsPDF();
-        doc.text(`Rapport Projet: ${selectedProject.name}`, 14, 20);
-        // Minimal implementation to satisfy compilation. Real impl needs PdfService or full logic.
-        doc.save(`${selectedProject.name}_report.pdf`);
+        try {
+            PdfService.generateProjectExecutiveReport(selectedProject, {
+                title: selectedProject.name,
+                author: user?.displayName || 'Utilisateur',
+                organizationName: user?.organizationId || 'Sentinel'
+            });
+            addToast("Rapport généré avec succès", "success");
+        } catch (error) {
+            console.error(error);
+            addToast("Erreur lors de la génération du rapport", "error");
+        }
     };
 
     const handleExportExecutiveReport = async () => {
         if (!selectedProject) return;
-        // Call PDF Service
-        addToast("Génération du rapport...", "info");
+        generateReport();
     };
 
     return (

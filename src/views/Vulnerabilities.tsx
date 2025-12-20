@@ -12,6 +12,7 @@ import { where, addDoc, collection, updateDoc, doc, deleteDoc } from 'firebase/f
 import { db } from '../firebase';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { logAction } from '../services/logger';
+import { CsvParser } from '../utils/csvUtils';
 import { hasPermission, canDeleteResource } from '../utils/permissions';
 import { ErrorLogger } from '../services/errorLogger';
 import { Modal } from '../components/ui/Modal';
@@ -80,29 +81,11 @@ export const Vulnerabilities: React.FC = () => {
     }, [vulnerabilities, searchTerm, filterSeverity]);
 
     const handleExportCSV = () => {
-        const headers = ["ID", "Titre", "Sévérité", "Statut", "Actif", "Score", "Date"];
-        const rows = filteredVulns.map(v => [
-            v.cveId,
-            `"${v.title || v.description}"`,
-            v.severity,
-            v.status,
-            v.assetName || "N/A",
-            v.score || "0",
-            v.createdAt || ""
-        ]);
-
-        const csvContent = "data:text/csv;charset=utf-8,"
-            + headers.join(",") + "\n"
-            + rows.map(e => e.join(",")).join("\n");
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `vulnerabilities_export_${new Date().toISOString().slice(0, 10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
+        CsvParser.exportToCsv(
+            filteredVulns,
+            `vulnerabilities_export_${new Date().toISOString().slice(0, 10)}`,
+            ["cveId", "title", "severity", "status", "assetName", "score", "createdAt"]
+        );
         logAction(user, 'EXPORT', 'Vulnerabilities', `Exported ${filteredVulns.length} vulnerabilities`);
     };
 

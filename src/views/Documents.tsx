@@ -36,6 +36,8 @@ import { useFirestoreCollection } from '../hooks/useFirestore';
 import { EncryptionService } from '../services/encryptionService';
 import { PDFDocument, rgb, degrees, StandardFonts } from 'pdf-lib';
 import CryptoJS from 'crypto-js';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { CsvParser } from '../utils/csvUtils';
 import SignatureCanvas from 'react-signature-canvas';
 
 
@@ -559,21 +561,14 @@ export const Documents: React.FC = () => {
         if (isExportingCSV) return;
         setIsExportingCSV(true);
         try {
-            const headers = ["Titre", "Type", "Version", "Statut", "Propriétaire", "Prochaine Révision", "Fichier Joint"];
-            const rows = filteredDocuments.map(d => [
-                d.title,
-                d.type,
-                d.version,
-                d.status,
-                d.owner,
-                d.nextReviewDate ? new Date(d.nextReviewDate).toLocaleDateString() : '',
-                d.url ? 'Oui' : 'Non'
-            ]);
-            const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(','))].join('\n');
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `documents_export_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
+            CsvParser.exportToCsv(
+                filteredDocuments,
+                `documents_export_${new Date().toISOString().split('T')[0]}`,
+                ['title', 'type', 'version', 'status', 'owner', 'nextReviewDate', 'url']
+            );
+            logAction(user, 'EXPORT', 'Documents', `Exported ${filteredDocuments.length} documents`);
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Documents.handleExportCSV');
         } finally {
             setTimeout(() => setIsExportingCSV(false), 0);
         }
@@ -666,6 +661,7 @@ export const Documents: React.FC = () => {
             animate="visible"
             className="space-y-8"
         >
+            <MasterpieceBackground />
             <SEO
                 title="Gestion Documentaire"
                 description="Centralisez et gérez le cycle de vie de vos politiques et procédures de sécurité."

@@ -434,35 +434,59 @@ export const Incidents: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full md:w-auto relative z-10">
-                    <div className="rounded-2xl bg-red-50/50 dark:bg-red-900/10 border border-red-100/50 dark:border-red-900/40 px-5 py-4 flex flex-col justify-between backdrop-blur-sm">
-                        <div className="flex items-center justify-between mb-2">
+                    {/* Active Incidents Card */}
+                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-red-50/50 dark:hover:bg-red-900/20">
+                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+
+                        <div className="flex items-center justify-between mb-3">
                             <span className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">Actifs</span>
-                            <ShieldAlert className="h-4 w-4 text-red-500" />
+                            <div className="p-1.5 rounded-lg bg-red-100/50 dark:bg-red-500/20 text-red-600 dark:text-red-400">
+                                <ShieldAlert className="h-4 w-4" />
+                            </div>
                         </div>
-                        <p className="text-2xl font-black text-red-600 dark:text-red-300">{incidentStats.open}</p>
-                        <p className="text-[10px] font-bold text-red-600/70 dark:text-red-300/70 mt-1 uppercase tracking-wider">à traiter</p>
+                        <div className="space-y-1">
+                            <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{incidentStats.open}</p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">à traiter</p>
+                        </div>
                     </div>
 
-                    <div className="rounded-2xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100/50 dark:border-emerald-900/40 px-5 py-4 flex flex-col justify-between backdrop-blur-sm">
-                        <div className="flex items-center justify-between mb-2">
+                    {/* MTTR Card */}
+                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20">
+                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+
+                        <div className="flex items-center justify-between mb-3">
                             <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">MTTR</span>
-                            <Clock className="h-4 w-4 text-emerald-500" />
+                            <div className="p-1.5 rounded-lg bg-emerald-100/50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                                <Clock className="h-4 w-4" />
+                            </div>
                         </div>
-                        <p className="text-2xl font-black text-slate-900 dark:text-white leading-none">
-                            {incidentStats.avgMttrHours !== null ? `${incidentStats.avgMttrHours}h` : '-'}
-                        </p>
-                        <p className="text-[10px] font-bold text-emerald-600/70 dark:text-emerald-300/70 mt-1 uppercase tracking-wider">délai moyen</p>
+                        <div className="space-y-1">
+                            <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                                {incidentStats.avgMttrHours !== null ? `${incidentStats.avgMttrHours}h` : '-'}
+                            </p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">délai moyen</p>
+                        </div>
                     </div>
 
-                    <div className="rounded-2xl bg-orange-50/50 dark:bg-orange-900/10 border border-orange-100/50 dark:border-orange-900/40 px-5 py-4 flex flex-col justify-between backdrop-blur-sm">
-                        <div className="flex items-center justify-between mb-2">
+                    {/* Critical Ratio Card */}
+                    <div className="group/card relative rounded-2xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 p-5 backdrop-blur-md shadow-sm transition-all hover:scale-[1.02] hover:shadow-md hover:bg-orange-50/50 dark:hover:bg-orange-900/20">
+                        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                        <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+
+                        <div className="flex items-center justify-between mb-3">
                             <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">Critiques</span>
-                            <AlertTriangle className="h-4 w-4 text-orange-500" />
+                            <div className="p-1.5 rounded-lg bg-orange-100/50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
+                                <AlertTriangle className="h-4 w-4" />
+                            </div>
                         </div>
-                        <p className="text-2xl font-black text-slate-900 dark:text-white leading-none">
-                            {incidentStats.criticalRatio !== null ? `${incidentStats.criticalRatio}%` : '-'}
-                        </p>
-                        <p className="text-[10px] font-bold text-orange-600/70 dark:text-orange-300/70 mt-1 uppercase tracking-wider">du volume total</p>
+                        <div className="space-y-1">
+                            <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                                {incidentStats.criticalRatio !== null ? `${incidentStats.criticalRatio}%` : '-'}
+                            </p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">du volume total</p>
+                        </div>
                     </div>
                 </div>
             </motion.div>

@@ -30,6 +30,7 @@ import { VersionCheck } from './components/VersionCheck';
 import { ContentBlockerError } from './components/ui/ContentBlockerError';
 import { useAuth } from './hooks/useAuth';
 import { OnboardingOverlay } from './components/ui/onboarding/OnboardingOverlay';
+import { MasterpieceBackground } from './components/ui/MasterpieceBackground';
 
 const Login = React.lazy(() => import('./views/Login').then(module => ({ default: module.Login })));
 const Onboarding = React.lazy(() => import('./views/Onboarding').then(module => ({ default: module.Onboarding })));
@@ -126,10 +127,7 @@ const AppLayout: React.FC = () => {
 
     return (
         <div className="flex h-[100dvh] overflow-hidden bg-background text-foreground font-sans relative selection:bg-brand-500 selection:text-white transition-colors duration-300 pb-safe">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[100px] animate-blob" />
-                <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] animate-blob animation-delay-2000" />
-            </div>
+            <MasterpieceBackground />
 
             <div>
                 <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
