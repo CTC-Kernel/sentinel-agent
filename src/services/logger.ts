@@ -10,7 +10,8 @@ export const logAction = async (
   details?: string,
   explicitOrgId?: string, // Allow explicit org ID for onboarding logs
   resourceId?: string, // ID for deep linking
-  metadata?: Record<string, unknown> // Additional context
+  metadata?: Record<string, unknown>, // Additional context
+  changes?: Array<{ field: string; oldValue: unknown; newValue: unknown }> // Granular diffs
 ) => {
   // SECURITY: Prefer explicit orgId, then user.organizationId
   const orgId = explicitOrgId || user?.organizationId;
@@ -27,7 +28,8 @@ export const logAction = async (
       userDisplayName: user.displayName || user.email, // Fallback to email
       userEmail: user.email,
       resourceId: resourceId || null,
-      metadata: metadata || null
+      metadata: metadata || null,
+      changes: changes || null
     });
   } catch (error) {
     // Fallback or silent fail for logs to avoid crashing app

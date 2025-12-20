@@ -320,6 +320,92 @@ export class ReportEnrichmentService {
                 : "Accelerate the implementation of planned controls to reach a minimum viable posture for certification."}
     `.trim();
     }
+    // --- GLOBAL MODULE ENRICHMENT ---
+
+    /**
+     * Calculate global metrics aggregating all domains
+     */
+    static calculateGlobalMetrics(
+        riskMetrics: ReportMetrics,
+        complianceMetrics: ComplianceMetrics,
+        auditMetrics: AuditMetrics[],
+        projectMetrics: ProjectMetrics[]
+    ): GlobalMetrics {
+        // 1. Risk Component (30%)
+        // Risk Score is already 0-100 (where 0 is best). We want Health (100 is best).
+        // So Risk Health = 100 - Risk Score.
+        const riskHealth = Math.max(0, 100 - riskMetrics.risk_score);
+
+        // 2. Compliance Component (30%)
+        const complianceHealth = complianceMetrics.compliance_coverage;
+
+        // 3. Audit Component (20%)
+        // Average of all audit scores
+        const auditHealth = auditMetrics.length > 0
+            ? auditMetrics.reduce((acc, a) => acc + a.conformity_score, 0) / auditMetrics.length
+            : 100; // Default to 100 if no audits
+
+        // 4. Project Component (20%)
+        // Based on completion vs delay
+        const projectHealth = projectMetrics.length > 0
+            ? projectMetrics.reduce((acc, p) => {
+                let score = p.completion_percentage;
+                // Penalize for delays
+                if (p.delay_risk === 'Critical') score -= 50;
+                else if (p.delay_risk === 'High') score -= 25;
+                else if (p.delay_risk === 'Medium') score -= 10;
+                return acc + Math.max(0, score);
+            }, 0) / projectMetrics.length
+            : 100; // Default to 100 if no projects
+
+        // Weighted Average
+        const globalScore = Math.round(
+            (riskHealth * 0.30) +
+            (complianceHealth * 0.30) +
+            (auditHealth * 0.20) +
+            (projectHealth * 0.20)
+        );
+
+        return {
+            global_score: globalScore,
+            risk_health: riskHealth,
+            compliance_health: complianceHealth,
+            audit_health: Math.round(auditHealth),
+            project_health: Math.round(projectHealth),
+            total_projects: projectMetrics.length,
+            total_audits: auditMetrics.length
+        };
+    }
+
+    /**
+     * Generate Executive Summary for Global Report
+     */
+    static generateGlobalExecutiveSummary(metrics: GlobalMetrics): string {
+        const grade = metrics.global_score >= 90 ? 'A'
+            : metrics.global_score >= 80 ? 'B'
+                : metrics.global_score >= 60 ? 'C'
+                    : metrics.global_score >= 40 ? 'D' : 'F';
+
+        return `
+      Global Executive Summary: Cyber Governance Status
+      
+      Overall Governance Grade: ${grade} (Score: ${metrics.global_score}/100)
+      
+      Strategic Overview:
+      The organization's global governance posture is currently rated at ${metrics.global_score}%. This score reflects a weighted assessment of Risk Management (30%), ISO 27001 Compliance (30%), Audit Results (20%), and Strategic Initiatives (20%).
+      
+      Key Performance Indicators:
+      • Risk Resilience: ${metrics.risk_health}% - ${metrics.risk_health > 80 ? 'Robust defense posture.' : 'Requires attention to reduce exposure.'}
+      • Compliance Maturity: ${metrics.compliance_health}% - ${metrics.compliance_health > 80 ? 'High alignment with ISO standards.' : 'Gaps in control implementation.'}
+      • Audit Conformity: ${metrics.audit_health}% - Based on ${metrics.total_audits} recent audits.
+      • Strategic Execution: ${metrics.project_health}% - Progress across ${metrics.total_projects} active initiatives.
+      
+      Recommendation:
+      ${grade === 'A' || grade === 'B'
+                ? "Maintain the current momentum. Focus on continuous improvement and emerging threats."
+                : "Initiate a remediation plan focusing on the lowest performing domains to improve the overall grade."}
+    `.trim();
+    }
 }
 
 export interface AuditMetrics {
@@ -350,4 +436,14 @@ export interface ComplianceMetrics {
     not_started: number;
     compliance_coverage: number;
     audit_readiness: number;
+}
+
+export interface GlobalMetrics {
+    global_score: number;
+    risk_health: number;
+    compliance_health: number;
+    audit_health: number;
+    project_health: number;
+    total_projects: number;
+    total_audits: number;
 }

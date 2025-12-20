@@ -159,6 +159,24 @@ export function useAssets() {
         }
     };
 
+    const bulkDeleteAssets = async (ids: string[]) => {
+        if (!user?.organizationId) return false;
+        try {
+            // Delete sequentially to ensure triggers/logs work (Firestore batch has limits and cleaner logging per item is often preferred for audit trail)
+            // Ideally use batch for atomic, but here keeping consistent with single delete logic for now or simple parallel
+            // Let's use Promise.all for speed, but individual logs
+            await Promise.all(ids.map(id => deleteDoc(doc(db, 'assets', id))));
+
+            await logAction(user, 'DELETE', 'Asset', `Suppression en masse de ${ids.length} actifs`);
+            addToast(`${ids.length} actifs supprimés avec succès`, "success");
+            refreshAssets();
+            return true;
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'useAssets.bulkDeleteAssets', 'DELETE_FAILED');
+            return false;
+        }
+    };
+
     return {
         assets,
         usersList,
@@ -168,6 +186,7 @@ export function useAssets() {
         createAsset,
         updateAsset,
         deleteAsset,
+        bulkDeleteAssets,
         isSubmitting,
         refreshAssets
     };

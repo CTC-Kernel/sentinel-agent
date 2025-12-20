@@ -778,6 +778,163 @@ export class PdfService {
     }
 
     /**
+    * Generate Unified Global Report
+    */
+    static generateGlobalReport(
+        data: {
+            risks: Risk[];
+            controls: Control[];
+            audits: Audit[];
+            projects: Project[];
+        },
+        options: ReportOptions & { author?: string }
+    ): jsPDF {
+        const riskMetrics = ReportEnrichmentService.calculateMetrics(data.risks);
+        const complianceMetrics = ReportEnrichmentService.calculateComplianceMetrics(data.controls);
+        const auditMetrics = data.audits.map(a => ReportEnrichmentService.calculateAuditMetrics(a.findings || []));
+        const projectMetrics = data.projects.map(p => ReportEnrichmentService.calculateProjectMetrics(p));
+
+        const globalMetrics = ReportEnrichmentService.calculateGlobalMetrics(
+            riskMetrics,
+            complianceMetrics,
+            auditMetrics,
+            projectMetrics
+        );
+        const executiveSummary = ReportEnrichmentService.generateGlobalExecutiveSummary(globalMetrics);
+
+        return this.generateExecutiveReport({
+            ...options,
+            title: "RAPPORT DE GOUVERNANCE GLOBAL",
+            subtitle: "Vue unifiée : Risques, Conformité, Audits, Projets",
+            summary: executiveSummary,
+            metrics: [
+                { label: "Score Global", value: globalMetrics.global_score + "/100", subtext: "performance systémique" },
+                { label: "Santé Risques", value: globalMetrics.risk_health + "%", subtext: "maturité de défense" },
+                { label: "Conformité", value: globalMetrics.compliance_health + "%", subtext: "ISO 27001 / SoA" },
+                { label: "Audits & Projets", value: `${globalMetrics.audit_health}% / ${globalMetrics.project_health}%`, subtext: "exécution opérationnelle" }
+            ],
+            stats: [
+                { label: "Risques", value: globalMetrics.risk_health, color: '#F59E0B' },
+                { label: "Conformité", value: globalMetrics.compliance_health, color: '#10B981' },
+                { label: "Audits", value: globalMetrics.audit_health, color: '#3B82F6' },
+                { label: "Projets", value: globalMetrics.project_health, color: '#8B5CF6' }
+            ]
+        }, (doc, startY) => {
+            let currentY = startY;
+
+            // 1. Domain Breakdown
+            doc.setFontSize(14);
+            doc.setTextColor(this.BRAND_SECONDARY);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Détail par Domaine", 14, currentY);
+            currentY += 15;
+
+            this.drawProgressBar(doc, 14, currentY, 160, 8, globalMetrics.risk_health, "Maturité Gestion des Risques", '#F59E0B');
+            currentY += 20;
+            this.drawProgressBar(doc, 14, currentY, 160, 8, globalMetrics.compliance_health, "Conformité Règlementaire", '#10B981');
+            currentY += 20;
+            this.drawProgressBar(doc, 14, currentY, 160, 8, globalMetrics.audit_health, "Qualité des Audits", '#3B82F6');
+            currentY += 20;
+            this.drawProgressBar(doc, 14, currentY, 160, 8, globalMetrics.project_health, "Performance Projets", '#8B5CF6');
+
+            currentY += 25;
+
+            // 2. Critical Alerts Table
+            doc.setFontSize(14);
+            doc.setTextColor(this.BRAND_SECONDARY);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Alertes Critiques", 14, currentY);
+            currentY += 10;
+
+            const alerts = [];
+            if (riskMetrics.critical_risks > 0) alerts.push(['RISQUE', `${riskMetrics.critical_risks} risques critiques actifs`, 'NON TRAITÉ']);
+            if (globalMetrics.compliance_health < 50) alerts.push(['CONFORMITÉ', 'Niveau de conformité critique (<50%)', 'ACTION REQUISE']);
+            data.projects.filter(p => ReportEnrichmentService.calculateProjectMetrics(p).delay_risk === 'Critical').forEach(p => {
+                alerts.push(['PROJET', `Retard critique sur le projet "${p.name}"`, 'EN DANGER']);
+            });
+
+            if (alerts.length > 0) {
+                doc.autoTable({
+                    startY: currentY,
+                    head: [['Domaine', 'Alerte', 'Statut']],
+                    body: alerts,
+                    theme: 'grid',
+                    headStyles: { fillColor: '#EF4444' },
+                    styles: { fontSize: 9 },
+                    margin: { left: 14, right: 14 }
+                });
+            } else {
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'italic');
+                doc.setTextColor(this.TEXT_SECONDARY);
+                doc.text("Aucune alerte critique majeure à signaler.", 14, currentY);
+            }
+        });
+    }
+
+    /**
+    * Generate Project Report
+    */
+    static generateProjectReport(
+        project: Project,
+        options: ReportOptions & { author?: string }
+    ): jsPDF {
+        const metrics = ReportEnrichmentService.calculateProjectMetrics(project);
+        const executiveSummary = ReportEnrichmentService.generateProjectExecutiveSummary(metrics, project.name);
+
+        return this.generateExecutiveReport({
+            ...options,
+            title: `Rapport de Projet: ${project.name}`,
+            subtitle: `Chef de Projet: ${project.manager || 'Non assigné'} | Échéance: ${project.dueDate ? format(new Date(project.dueDate), 'dd/MM/yyyy') : 'N/A'}`,
+            summary: executiveSummary,
+            metrics: [
+                { label: "Progression", value: metrics.completion_percentage + "%", subtext: "avancement global" },
+                { label: "Tâches", value: metrics.total_tasks, subtext: "total du projet" },
+                { label: "Terminées", value: metrics.completed_tasks, subtext: "tâches livrées" },
+                { label: "Risque Délai", value: metrics.delay_risk, subtext: "impact planning" }
+            ],
+            stats: [
+                { label: "Terminé", value: metrics.completed_tasks, color: '#10B981' },
+                { label: "En cours", value: metrics.in_progress_tasks, color: '#3B82F6' },
+                { label: "À faire", value: metrics.pending_tasks, color: '#94A3B8' }
+            ]
+        }, (doc, startY) => {
+            let currentY = startY;
+
+            // 1. Task List
+            doc.setFontSize(14);
+            doc.setTextColor(this.BRAND_SECONDARY);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Liste des Tâches", 14, currentY);
+            currentY += 10;
+
+            const activeTasks = (project.tasks || []).map(t => [
+                t.title,
+                t.status,
+                t.priority,
+                t.assignee || 'Non assigné'
+            ]);
+
+            if (activeTasks.length > 0) {
+                doc.autoTable({
+                    startY: currentY,
+                    head: [['Tâche', 'Statut', 'Priorité', 'Ressource']],
+                    body: activeTasks,
+                    theme: 'grid',
+                    headStyles: { fillColor: this.BRAND_PRIMARY },
+                    styles: { fontSize: 9 },
+                    margin: { left: 14, right: 14 }
+                });
+            } else {
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'italic');
+                doc.setTextColor(this.TEXT_SECONDARY);
+                doc.text("Aucune tâche active à afficher.", 14, currentY);
+            }
+        });
+    }
+
+    /**
      * Generate an Enriched AI-Powered Risk Report
      * Uses ReportEnrichmentService to analyze data and produce a high-value PDF
      */

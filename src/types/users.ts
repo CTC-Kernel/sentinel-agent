@@ -11,6 +11,8 @@ export interface SystemLog {
     timestamp: string;
     severity?: 'info' | 'warning' | 'danger' | 'success';
     ip?: string;
+    metadata?: Record<string, unknown>;
+    changes?: Array<{ field: string; oldValue: unknown; newValue: unknown }>;
 }
 
 export interface NotificationChannelPreferences {
@@ -89,4 +91,14 @@ export interface Comment {
     userName: string;
     content: string;
     createdAt: string;
+}
+
+export interface UserGroup {
+    id: string;
+    organizationId: string;
+    name: string;
+    description?: string;
+    members: string[]; // List of User UIDs
+    createdAt: string;
+    updatedAt: string;
 }

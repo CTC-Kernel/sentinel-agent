@@ -28,13 +28,9 @@ import { RoleBadge } from '../components/ui/RoleBadge';
 
 // ... (previous imports remain the same, just adding local import)
 import { RoleManager } from '../components/team/RoleManager';
+import { GroupManager } from '../components/team/GroupManager';
 import { hasPermission } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
-
-
-// Removed getRoleBadge function
-
-// ... inside map or wherever used
 
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
@@ -49,6 +45,7 @@ export const Team: React.FC = () => {
     const [filter, setFilter] = useState('');
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [activeTab, setActiveTab] = useState<'members' | 'roles' | 'groups'>('members');
     const { user, addToast } = useStore();
 
     // State for creating user
@@ -351,7 +348,6 @@ export const Team: React.FC = () => {
 
 
 
-    const [activeTab, setActiveTab] = useState<'members' | 'roles'>('members');
     const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
 
     const fetchRoles = useCallback(async () => {
@@ -523,6 +519,14 @@ export const Team: React.FC = () => {
                         }`}
                 >
                     Rôles & Permissions
+                </button>                <button
+                    onClick={() => setActiveTab('groups')}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'groups'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
+                        }`}
+                >
+                    Groupes
                 </button>
             </motion.div>
 
@@ -532,6 +536,10 @@ export const Team: React.FC = () => {
                 activeTab === 'roles' ? (
                     <motion.div variants={slideUpVariants}>
                         <RoleManager roles={customRoles} onRefresh={fetchRoles} />
+                    </motion.div>
+                ) : activeTab === 'groups' ? (
+                    <motion.div variants={slideUpVariants}>
+                        <GroupManager users={users} />
                     </motion.div>
                 ) : (
                     <motion.div variants={slideUpVariants} className="flex flex-col gap-6">

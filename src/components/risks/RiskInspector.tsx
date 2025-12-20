@@ -15,6 +15,7 @@ import { RelationshipGraph } from '../RelationshipGraph';
 // import { CustomSelect } from '../ui/CustomSelect';
 import { Comments } from '../ui/Comments';
 import { RiskTreatmentPlan } from './RiskTreatmentPlan';
+import { AuditTrail } from '../common/AuditTrail';
 import { Risk, Asset, Control, Project, Audit, Supplier, MitreTechnique, UserProfile, BusinessProcess } from '../../types';
 import { integrationService } from '../../services/integrationService';
 // import { useAuth } from '../../hooks/useAuth';
@@ -284,14 +285,8 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                     )}
 
                     {inspectorTab === 'history' && (
-                        <div className="space-y-8">
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500">Journal d'Audit</h4>
-                            {risk.history?.map((log, i: number) => (
-                                <div key={i} className="text-sm border-l-2 pl-4 py-1">
-                                    <span className="text-xs text-slate-500">{new Date(log.date).toLocaleString()}</span>
-                                    <p>{log.action || log.details || 'Action inconnue'}</p>
-                                </div>
-                            ))}
+                        <div className="space-y-6">
+                            <AuditTrail resourceId={risk.id} resourceType="Risk" />
                         </div>
                     )}
 

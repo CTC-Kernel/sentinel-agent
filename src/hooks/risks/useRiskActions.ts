@@ -70,7 +70,7 @@ export const useRiskActions = (onRefresh: () => void) => {
         }
     };
 
-    const updateRisk = async (id: string, data: Partial<Risk>) => {
+    const updateRisk = async (id: string, data: Partial<Risk>, currentRisk?: Risk) => {
         setSubmitting(true);
         try {
             const riskRef = doc(db, 'risks', id);
@@ -79,10 +79,35 @@ export const useRiskActions = (onRefresh: () => void) => {
                 updatedAt: new Date().toISOString()
             });
 
-            if (data.status && user) {
-                logAction(user, 'UPDATE_RISK_STATUS', 'Risk', `Status updated to ${data.status}`);
-            }
+            if (user) {
+                // Calculate diffs if currentRisk provided
+                const changes: Array<{ field: string; oldValue: unknown; newValue: unknown }> = [];
+                if (currentRisk) {
+                    Object.keys(data).forEach(key => {
+                        const k = key as keyof Risk;
+                        if (data[k] !== currentRisk[k] && typeof data[k] !== 'object') {
+                            // Basic toggle/string/number comparison
+                            changes.push({
+                                field: k,
+                                oldValue: currentRisk[k] || 'N/A',
+                                newValue: data[k]
+                            });
+                        }
+                    });
+                }
 
+                // Log with granular diffs
+                logAction(
+                    user,
+                    'UPDATE_RISK',
+                    'Risk',
+                    changes.length > 0 ? `Updated ${changes.length} fields` : `Risk updated`,
+                    undefined,
+                    id,
+                    undefined,
+                    changes
+                );
+            }
 
             toast.success('Risque mis à jour');
             onRefresh();

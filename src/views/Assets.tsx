@@ -26,7 +26,7 @@ import { OnboardingService } from '../services/onboardingService';
 const Assets: React.FC = () => {
     const { user } = useStore();
     const canEdit = canEditResource(user, 'Asset');
-    const { assets, loading, createAsset, updateAsset, deleteAsset, usersList, suppliers, processes } = useAssets();
+    const { assets, loading, createAsset, updateAsset, deleteAsset, bulkDeleteAssets, usersList, suppliers, processes } = useAssets();
     const { limits } = usePlanLimits();
     const reachedAssetLimit = assets.length >= limits.maxAssets;
 
@@ -262,7 +262,9 @@ const Assets: React.FC = () => {
                                     description: "L'impression d'étiquettes sera disponible dans la v2.1"
                                 });
                             }}
+                            isGeneratingLabels={false}
                             activeFiltersQuery={activeFilters.query}
+                            onBulkDelete={bulkDeleteAssets}
                         />
                     </div>
 
