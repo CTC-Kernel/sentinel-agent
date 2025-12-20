@@ -24,7 +24,12 @@
       "@/*": [
         "./src/*"
       ]
-    }
+    },
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
+    "types": ["vite/client", "node"]
   },
   "include": [
     "src",
@@ -36,7 +41,8 @@
     "vite.config.d.ts",
     "node_modules",
     "dist",
-    "mobile"
+    "mobile",
+    "**/node_modules/**"
   ],
   "references": [
     {
