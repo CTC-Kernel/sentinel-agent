@@ -13,9 +13,8 @@ import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { ObsidianService } from '../services/ObsidianService';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserProfile, Framework } from '../types';
+import { UserProfile } from '../types';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
-import { CsvParser } from '../utils/csvUtils';
 
 import { useRiskData } from '../hooks/risks/useRiskData';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
@@ -52,7 +51,8 @@ export const Risks: React.FC = () => {
 
     const {
         createRisk, updateRisk, deleteRisk, bulkDeleteRisks,
-        exportCSV, isGeneratingReport, setIsGeneratingReport, submitting, isExportingCSV
+        exportCSV, isGeneratingReport, setIsGeneratingReport, submitting, isExportingCSV,
+        importRisks, isImporting
     } = useRiskActions(refreshRisks);
 
     const {
@@ -73,14 +73,14 @@ export const Risks: React.FC = () => {
     const [viewMode, setViewMode] = useState<'matrix' | 'list' | 'grid' | 'kanban'>('grid'); // Fixed type to match PremiumPageControl
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-    const [isImporting, setIsImporting] = useState(false);
+    // const [isImporting, setIsImporting] = useState(false); // Removed local state
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
-    // URL Params for Deep Linking
+    // ... URL Params ...
     const [searchParams] = useSearchParams();
     const deepLinkRiskId = searchParams.get('id');
 
-    // Deep Linking Effect
+    // ... Deep Linking Effect ...
     React.useEffect(() => {
         if (!loading && deepLinkRiskId && risks.length > 0) {
             const risk = risks.find(r => r.id === deepLinkRiskId);
@@ -136,55 +136,13 @@ export const Risks: React.FC = () => {
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
-        setIsImporting(true);
 
         const reader = new FileReader();
         reader.onload = async (e) => {
-            try {
-                const text = e.target?.result as string;
-                if (!text) return;
-
-                const data = CsvParser.parseCSV(text);
-
-                let importedCount = 0;
-                for (const rawRow of data) {
-                    // Normalize keys to lowercase for robust matching
-                    // Normalize keys to lowercase for robust matching
-                    const row: Record<string, string> = {};
-                    Object.keys(rawRow).forEach(key => {
-                        row[key.toLowerCase().trim()] = rawRow[key];
-                    });
-
-                    // Check for mandatory fields (Menace/Threat)
-                    const threat = row.menace || row.threat || row.titre || row.title;
-
-                    if (threat) {
-                        const probInput = row.probability || row.probabilite || row.likelihood || '1';
-                        const impactInput = row.impact || row.gravite || row.severity || '1';
-
-                        const prob = Math.min(Math.max(parseInt(probInput), 1), 5) as 1 | 2 | 3 | 4 | 5;
-                        const impact = Math.min(Math.max(parseInt(impactInput), 1), 5) as 1 | 2 | 3 | 4 | 5;
-
-                        await createRisk({
-                            threat: threat,
-                            vulnerability: row.vulnerability || row.vulnerabilite || row.cause || '',
-                            probability: prob,
-                            impact: impact,
-                            strategy: (row.strategy || row.strategie || 'Atténuer') as Risk['strategy'],
-                            status: (row.status || row.statut || 'Ouvert') as Risk['status'],
-                            framework: (row.framework || row.reference || 'ISO27001') as Framework
-                        });
-                        importedCount++;
-                    }
-                }
-                setIsImporting(false);
-                refreshRisks();
+            const text = e.target?.result as string;
+            if (text) {
+                await importRisks(text);
                 if (fileInputRef.current) fileInputRef.current.value = '';
-                toast.success(`${importedCount} risques importés avec succès`);
-            } catch (error) {
-                console.error("Import Error", error);
-                setIsImporting(false);
-                toast.error("Erreur lors de l'importation");
             }
         };
         reader.readAsText(file);

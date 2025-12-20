@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { Control, UserProfile, Asset, Supplier, Risk, Project, Document, Finding, SystemLog } from '../../types';
+import { Control, UserProfile, Asset, Supplier, Risk, Project, Document, Finding } from '../../types';
 import { ScrollableTabs } from '../../components/ui/ScrollableTabs';
 import { ComplianceAIAssistant } from './ComplianceAIAssistant';
 import { CustomSelect } from '../../components/ui/CustomSelect';
-import { Loader2, Link, FileText, Paperclip, MessageSquare, RefreshCw, User, X, ShieldAlert, AlertOctagon } from '../../components/ui/Icons';
-import { Tooltip as CustomTooltip } from '../../components/ui/Tooltip';
-import { formatDate } from '../../utils/date'; // Assuming available or I use Date directly
-// We can use native Date for now to avoid dependency on utils
-import { Comments } from '../../components/ui/Comments'; // Need to confirm if this exists and works
+import { Loader2, Link, FileText, Paperclip, MessageSquare, User, X, ShieldAlert, AlertOctagon, ExternalLink, FolderKanban } from '../../components/ui/Icons';
+import { formatDate } from '@/utils/date';
+import { Comments } from '../../components/ui/Comments';
+import { EmptyState } from '../../components/ui/EmptyState';
 
 interface ComplianceInspectorProps {
     control: Control;
@@ -253,7 +252,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                         <div key={pid} className="flex items-center justify-between p-3 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
-                                                    <FolderKanban className="h-4 w-4" /> // Assuming FolderKanban is not imported, using Link for now
+                                                    <FolderKanban className="h-4 w-4" />
                                                 </div>
                                                 <div>
                                                     <span className="block font-medium text-slate-900 dark:text-white">{project.name}</span>
@@ -288,8 +287,8 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                 <div className="space-y-2">
                                     {risks.filter(r => r.mitigationControlIds?.includes(control.id)).map(risk => (
                                         <div key={risk.id} className="p-2 bg-white/60 dark:bg-black/20 rounded-lg text-xs border border-red-100 dark:border-red-900/30">
-                                            <div className="font-bold truncate">{risk.name}</div>
-                                            <div className="text-slate-500">Risque brut: {risk.initialRiskScore}</div>
+                                            <div className="font-bold truncate">{risk.threat}</div>
+                                            <div className="text-slate-500">Risque brut: {risk.score}</div>
                                         </div>
                                     ))}
                                     {riskCount === 0 && <p className="text-xs text-slate-500">Aucun risque atténué par ce contrôle.</p>}
@@ -304,7 +303,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                     {findings.filter(f => f.relatedControlId === control.id && f.status === 'Ouvert').map(finding => (
                                         <div key={finding.id} className="p-2 bg-white/60 dark:bg-black/20 rounded-lg text-xs border border-orange-100 dark:border-orange-900/30">
                                             <div className="font-bold truncate">{finding.description}</div>
-                                            <div className="text-slate-500">Severité: {finding.severity}</div>
+                                            <div className="text-slate-500">Type: {finding.type}</div>
                                         </div>
                                     ))}
                                     {findingsCount === 0 && <p className="text-xs text-slate-500">Aucune non-conformité ouverte.</p>}
@@ -317,7 +316,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
 
                 {activeTab === 'comments' && (
                     <div className="max-w-3xl mx-auto">
-                        <Comments entityId={control.id} entityType="controls" />
+                        <Comments collectionName="controls" documentId={control.id} />
                     </div>
                 )}
 
@@ -338,7 +337,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                                 <FileText className="h-5 w-5" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">{doc.name}</h4>
+                                                <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">{doc.title}</h4>
                                                 <p className="text-xs text-slate-500">{formatDate(doc.createdAt)}</p>
                                             </div>
                                             <div className="flex gap-2">
@@ -365,7 +364,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                         label="Ajouter une preuve existante"
                                         value=""
                                         onChange={(val) => handleLinkDocument(control, val as string)}
-                                        options={documents.filter(d => !control.evidenceIds?.includes(d.id)).map(d => ({ value: d.id, label: d.name }))}
+                                        options={documents.filter(d => !control.evidenceIds?.includes(d.id)).map(d => ({ value: d.id, label: d.title }))}
                                         placeholder="Sélectionner un document..."
                                         disabled={updating}
                                     />
@@ -378,7 +377,3 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
         </div>
     );
 };
-
-// Missing Imports fallback
-const ExternalLink = ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>;
-const FolderKanban = ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="20" height="14" x="2" y="6" rx="2" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>;

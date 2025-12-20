@@ -6,6 +6,7 @@ import { Risk } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
 import { toast } from 'sonner'; // Integrated sonner
 import { logAction } from '../../services/logger';
+import { ImportService } from '../../services/ImportService';
 import { NotificationService } from '../../services/notificationService';
 
 export const useRiskActions = (onRefresh: () => void) => {
@@ -13,9 +14,10 @@ export const useRiskActions = (onRefresh: () => void) => {
     const [submitting, setSubmitting] = useState(false);
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [isExportingCSV, setIsExportingCSV] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
 
     const createRisk = async (data: Partial<Risk>) => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId) return false;
         setSubmitting(true);
         try {
             const riskData = {
@@ -23,7 +25,7 @@ export const useRiskActions = (onRefresh: () => void) => {
                 organizationId: user.organizationId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                status: 'Ouvert',
+                status: data.status || 'Ouvert',
                 owner: user.uid,
                 history: [{
                     date: new Date().toISOString(),
@@ -42,17 +44,8 @@ export const useRiskActions = (onRefresh: () => void) => {
 
             // Notify owner if different from creator
             if (riskData.owner && riskData.owner !== user.uid) {
-                // We need to fetch owner details potentially, or just trust the ID for the notification service which handles it?
-                // NotificationService.create takes a UserProfile... wait, create takes 'user' to GET organizationId.
-                // But we want to send TO the owner.
-                // We should use a method that sends to a target userID.
-                // NotificationService.create uses 'user.uid' as target 'userId'.
-                // So we need to construct a target user object or use a different method.
-                // The service has `create(user, ...)` where user is the TARGET.
-                // So we can pass { uid: riskData.owner, organizationId: user.organizationId } as the target.
-
                 await NotificationService.create(
-                    { uid: riskData.owner, organizationId: user.organizationId },
+                    { uid: riskData.owner, organizationId: user.organizationId } as any, // Cast/Struct fix for target
                     'info',
                     'Nouveau Risque Assigné',
                     `Un nouveau risque vous a été assigné par ${user.displayName}`,
@@ -86,7 +79,6 @@ export const useRiskActions = (onRefresh: () => void) => {
                     Object.keys(data).forEach(key => {
                         const k = key as keyof Risk;
                         if (data[k] !== currentRisk[k] && typeof data[k] !== 'object') {
-                            // Basic toggle/string/number comparison
                             changes.push({
                                 field: k,
                                 oldValue: currentRisk[k] || 'N/A',
@@ -96,7 +88,6 @@ export const useRiskActions = (onRefresh: () => void) => {
                     });
                 }
 
-                // Log with granular diffs
                 logAction(
                     user,
                     'UPDATE_RISK',
@@ -123,7 +114,6 @@ export const useRiskActions = (onRefresh: () => void) => {
     };
 
     const deleteRisk = async (id: string) => {
-        // Confirmation is now handled by the UI component (ConfirmModal)
         setSubmitting(true);
         try {
             await deleteDoc(doc(db, 'risks', id));
@@ -141,11 +131,9 @@ export const useRiskActions = (onRefresh: () => void) => {
 
     const exportRisks = (risks: Risk[], _format: 'csv' | 'pdf') => {
         return new Promise<void>((resolve) => {
-
             toast.info('Export démarré...');
             setTimeout(() => {
                 toast.success('Export terminé (simulation)');
-
                 if (user?.uid && user?.organizationId) {
                     NotificationService.create(
                         user,
@@ -158,7 +146,7 @@ export const useRiskActions = (onRefresh: () => void) => {
                 resolve();
             }, 1000);
         });
-    }
+    };
 
     const exportCSV = async (risks: Risk[]) => {
         setIsExportingCSV(true);
@@ -170,7 +158,6 @@ export const useRiskActions = (onRefresh: () => void) => {
     };
 
     const bulkDeleteRisks = async (ids: string[]) => {
-        // Confirmation handled by UI
         setSubmitting(true);
         try {
             const batch = writeBatch(db);
@@ -188,15 +175,53 @@ export const useRiskActions = (onRefresh: () => void) => {
         }
     };
 
+    const importRisks = async (csvContent: string) => {
+        setIsImporting(true);
+        try {
+            const { data, errors } = ImportService.parseRisks(csvContent);
+
+            if (errors.length > 0) {
+                toast.error(`Erreurs de validation (${errors.length}): ${errors.slice(0, 3).join(', ')}`);
+                if (data.length === 0) return false;
+            }
+
+            let importedCount = 0;
+            for (const item of data) {
+                // Using internal createRisk for consistency
+                await createRisk({
+                    ...item,
+                    strategy: item.strategy as Risk['strategy'],
+                    status: item.status as Risk['status'],
+                    framework: item.framework as any,
+                    probability: item.probability as any,
+                    impact: item.impact as any
+                });
+                importedCount++;
+            }
+
+            toast.success(`${importedCount} risques importés avec succès`);
+            onRefresh();
+            return true;
+        } catch (error) {
+            console.error('Import error process:', error);
+            toast.error("Erreur critique lors de l'import");
+            return false;
+        } finally {
+            setIsImporting(false);
+        }
+    };
+
     return {
         createRisk,
         updateRisk,
         deleteRisk,
         exportCSV,
         bulkDeleteRisks,
+        importRisks,
         isGeneratingReport,
         setIsGeneratingReport,
         isExportingCSV,
+        isImporting,
         submitting
     };
 };

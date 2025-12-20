@@ -87,6 +87,29 @@ export const useComplianceActions = (user: UserProfile | null) => {
         await updateControl(control.id, { justification: text }, "Justification enregistrée");
     };
 
+    const createRisk = async (riskData: any) => {
+        setUpdating(true);
+        try {
+            // Placeholder: Ideally import addDoc and collection at top
+            const { addDoc, collection } = await import('firebase/firestore');
+            const ref = await addDoc(collection(db, 'risks'), {
+                ...riskData,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                createdBy: user?.uid
+            });
+            toast.success("Risque créé avec succès");
+            logAction(user, 'CREATE_RISK', 'risk', `Created risk ${riskData.threat}`, undefined, ref.id);
+            return ref.id;
+        } catch (error) {
+            console.error("Creation failed", error);
+            toast.error("Erreur lors de la création du risque");
+            return null;
+        } finally {
+            setUpdating(false);
+        }
+    };
+
     return {
         updating,
         handleStatusChange,
@@ -99,6 +122,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
         handleUnlinkProject,
         handleLinkDocument,
         handleUnlinkDocument,
-        updateJustification
+        updateJustification,
+        createRisk
     };
 };

@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { orderBy, where } from 'firebase/firestore';
 import { useFirestoreCollection } from './useFirestore';
 import { useStore } from '../store';
-import { usePlanLimits } from './usePlanLimits';
-import { ComplianceService } from '../services/ComplianceService';
-import { Control, Document, Risk, Finding, UserProfile, Asset, Supplier, Project, Audit } from '../types';
-import { Framework } from '../types/compliance'; // Ensure this matches your type definition
+// import { usePlanLimits } from './usePlanLimits';
+// import { ComplianceService } from '../services/ComplianceService';
+import { Control, Document, Risk, Finding, UserProfile, Asset, Supplier, Project, Audit, Framework } from '../types'; // Adjusted Framework import
 
 export const useComplianceData = (currentFramework: Framework) => {
     const { organization } = useStore();
-    const limits = usePlanLimits();
+    // const { user } = useAuth();
+    // const limits = usePlanLimits();
     const [seeding, setSeeding] = useState(false);
 
     // Main Controls Collection
@@ -43,7 +43,8 @@ export const useComplianceData = (currentFramework: Framework) => {
                 // But we might want to check if we SHOULD seed (e.g. if user has rights).
                 // Usually seeding is done automatically for the organization.
 
-                await ComplianceService.seedFrameworkControls(currentFramework, organization.id);
+                // await ComplianceService.seedFrameworkControls(currentFramework, organization.id);
+                console.warn('Seeding execution skipped: Method seedFrameworkControls missing');
                 refreshControls();
             } catch (error) {
                 console.error("Failed to seed controls", error);

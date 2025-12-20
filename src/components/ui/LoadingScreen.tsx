@@ -2,7 +2,11 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { Lock } from 'lucide-react';
 
-export const LoadingScreen: React.FC = () => {
+interface LoadingScreenProps {
+    message?: string;
+}
+
+export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
     const [showTimeout, setShowTimeout] = React.useState(false);
 
     React.useEffect(() => {
@@ -33,7 +37,7 @@ export const LoadingScreen: React.FC = () => {
                 ) : (
                     <div className="flex flex-col items-center animate-fade-in">
                         <p className="text-sm text-slate-500 mb-4 text-center px-4">
-                            Le chargement prend plus de temps que prévu...
+                            {message || 'Le chargement prend plus de temps que prévu...'}
                         </p>
                         <button
                             onClick={() => window.location.reload()}
