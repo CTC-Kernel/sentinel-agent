@@ -49,7 +49,7 @@ export const Projects: React.FC = () => {
     } = useProjectLogic();
 
     // UI State
-    const [viewMode, setViewMode] = useState<'list' | 'grid' | 'matrix'>('grid');
+    const [viewMode, setViewMode] = useState<'list' | 'grid' | 'matrix' | 'kanban'>('grid');
     const [filter, setFilter] = useState('');
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [creationMode, setCreationMode] = useState(false);
@@ -166,7 +166,7 @@ export const Projects: React.FC = () => {
                     onSearchChange={setFilter}
                     searchPlaceholder="Rechercher un projet..."
                     viewMode={activeTab === 'list' ? viewMode : undefined}
-                    onViewModeChange={activeTab === 'list' ? (mode) => setViewMode(mode as 'list' | 'grid' | 'matrix') : undefined}
+                    onViewModeChange={activeTab === 'list' ? setViewMode : undefined}
                     actions={canEdit && (
                         <>
                             <CustomTooltip content="Créer un nouveau projet">

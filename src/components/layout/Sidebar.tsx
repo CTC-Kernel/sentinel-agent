@@ -165,6 +165,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                       key={item.to} // Changed key to 'to' because 'name' is now dynamic
                       to={item.to}
                       onClick={() => setMobileOpen(false)}
+                      data-tour={`${item.key}-nav`}
                       className={({ isActive }) => `
                          group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
                          ${isActive
@@ -216,6 +217,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
         <div className="mt-auto pt-4 px-3 mx-3 mb-2 bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-white/20 dark:border-white/5 space-y-1">
           <NavLink
             to="/settings"
+            data-tour="settings"
             className={({ isActive }) => `
                 group flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
                 ${isActive ? 'bg-white/60 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm' : 'text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white'}

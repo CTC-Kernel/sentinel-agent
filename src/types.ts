@@ -400,6 +400,8 @@ export interface RiskHistory {
   mitreTechniques?: MitreTechnique[];
   changedBy: string;
   reason?: string;
+  action?: string; // Compatibility with generic logs
+  details?: string; // Compatibility with legacy history
 }
 
 export interface AuditQuestion {
@@ -721,7 +723,7 @@ export interface BcpDrill {
   organizationId: string;
   processId: string;
   date: string;
-  type: 'Tabletop' | 'Simulation' | 'Bascule réelle';
+  type: 'Tabletop' | 'Simulation' | 'Bascule réelle' | 'Full Scale' | 'Call Tree';
   result: 'Succès' | 'Succès partiel' | 'Échec';
   notes?: string;
   createdAt: string;

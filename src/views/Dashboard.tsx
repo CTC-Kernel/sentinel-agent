@@ -9,6 +9,7 @@ import { useDashboardMetrics } from '../hooks/dashboard/useDashboardMetrics';
 import { useDashboardInsights } from '../hooks/dashboard/useDashboardInsights';
 
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
+import { hasPermission } from '../utils/permissions';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useTour } from '../hooks/useTour';
 
@@ -216,7 +217,7 @@ export const Dashboard: React.FC = () => {
                 {(() => {
                     const role = user?.role || 'user';
 
-                    if (['admin', 'rssi'].includes(role)) {
+                    if (hasPermission(user, 'Risk', 'manage')) {
                         return (
                             <AdminDashboardView
                                 stats={stats}

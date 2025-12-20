@@ -39,56 +39,10 @@ export class OnboardingService {
     });
 
     /**
-     * Initialise et démarre le tour guidé principal
+     * Initialise et démarre le tour guidé principal basé sur le rôle
      */
-    static startMainTour() {
-        const steps: DriveStep[] = [
-            {
-                element: '[data-tour="dashboard"]',
-                popover: {
-                    title: '👋 Bienvenue sur Sentinel GRC',
-                    description: 'Votre plateforme complète de gestion des risques et de la conformité ISO 27001. Commençons par un tour rapide!',
-                    side: 'bottom',
-                    align: 'center'
-                }
-            },
-            {
-                element: '[data-tour="sidebar"]',
-                popover: {
-                    title: '📋 Navigation Principale',
-                    description: 'Accédez rapidement à tous les modules: Risques, Actifs, Conformité, Audits, et plus encore.',
-                    side: 'right',
-                    align: 'start'
-                }
-            },
-            {
-                element: '[data-tour="command-palette"]', // Needs to be visible
-                popover: {
-                    title: '⚡ Palette de Commandes',
-                    description: 'Appuyez sur Cmd/Ctrl + K pour ouvrir la palette de commandes et naviguer ultra-rapidement!',
-                    side: 'bottom',
-                    align: 'center'
-                }
-            },
-            {
-                element: '[data-tour="notifications"]',
-                popover: {
-                    title: '🔔 Notifications',
-                    description: 'Restez informé des incidents critiques, audits imminents et alertes importantes.',
-                    side: 'bottom',
-                    align: 'end'
-                }
-            },
-            {
-                element: '[data-tour="theme-toggle"]',
-                popover: {
-                    title: '🌓 Thème',
-                    description: 'Basculez entre le mode clair et sombre selon vos préférences.',
-                    side: 'bottom',
-                    align: 'end'
-                }
-            }
-        ];
+    static startMainTour(role: string = 'user') {
+        const steps = this.getStepsForRole(role);
 
         this.driverInstance.setConfig({
             ...this.driverInstance.getConfig(),
@@ -96,6 +50,123 @@ export class OnboardingService {
         });
 
         this.driverInstance.drive();
+    }
+
+    private static getStepsForRole(role: string): DriveStep[] {
+        const commonSteps: DriveStep[] = [
+            {
+                element: '[data-tour="dashboard"]',
+                popover: {
+                    title: '👋 Bienvenue sur Sentinel GRC',
+                    description: 'Votre plateforme de gouvernance. Commençons par un tour rapide!',
+                    side: 'bottom',
+                    align: 'center'
+                }
+            },
+            {
+                element: '[data-tour="sidebar"]',
+                popover: {
+                    title: '📋 Navigation',
+                    description: 'Accédez à vos modules principaux ici.',
+                    side: 'right',
+                    align: 'start'
+                }
+            }
+        ];
+
+        const adminSteps: DriveStep[] = [
+            {
+                element: '[data-tour="command-palette"]',
+                popover: {
+                    title: '⚡ Palette de Commandes',
+                    description: 'Cmd/Ctrl + K pour tout trouver instantanément.',
+                    side: 'bottom',
+                    align: 'center'
+                }
+            },
+            {
+                element: '[data-tour="notifications"]',
+                popover: {
+                    title: '🔔 Centre de Notifications',
+                    description: 'Gérez les alertes de sécurité et les échéances.',
+                    side: 'bottom',
+                    align: 'end'
+                }
+            },
+            {
+                element: '[data-tour="settings"]',
+                popover: {
+                    title: '⚙️ Administration',
+                    description: 'Configurez les utilisateurs, les rôles et les intégrations.',
+                    side: 'top',
+                    align: 'start'
+                }
+            }
+        ];
+
+        const directionSteps: DriveStep[] = [
+            {
+                element: '[data-tour="dashboard-reports"]',
+                popover: {
+                    title: '📊 Reporting Exécutif',
+                    description: 'Consultez les tableaux de bord décisionnels et exportez les rapports PDF.',
+                    side: 'bottom',
+                    align: 'center'
+                }
+            },
+            {
+                element: '[data-tour="risks-overview"]',
+                popover: {
+                    title: '🛡️ Vue Macro des Risques',
+                    description: 'Surveillez l\'exposition globale et les risques majeurs.',
+                    side: 'right',
+                    align: 'start'
+                }
+            }
+        ];
+
+        const auditorSteps: DriveStep[] = [
+            {
+                element: '[data-tour="compliance-nav"]',
+                popover: {
+                    title: '✓ Conformité',
+                    description: 'Accédez au score de conformité et aux déclarations d\'applicabilité (SoA).',
+                    side: 'right',
+                    align: 'center'
+                }
+            },
+            {
+                element: '[data-tour="audits-nav"]',
+                popover: {
+                    title: '📋 Gestion des Audits',
+                    description: 'Planifiez et documentez vos revues d\'audit.',
+                    side: 'right',
+                    align: 'center'
+                }
+            }
+        ];
+
+        // Combine steps based on role
+        if (role === 'admin' || role === 'rssi') {
+            return [...commonSteps, ...adminSteps, {
+                element: '[data-tour="theme-toggle"]',
+                popover: { title: '🌓 Thème', description: 'Mode clair ou sombre.', side: 'bottom', align: 'end' }
+            }];
+        }
+
+        if (role === 'direction') {
+            return [...commonSteps, ...directionSteps];
+        }
+
+        if (role === 'auditor') {
+            return [...commonSteps, ...auditorSteps];
+        }
+
+        // Default / User
+        return [...commonSteps, {
+            element: '[data-tour="notifications"]',
+            popover: { title: '🔔 Alertes', description: 'Vos notifications importantes.', side: 'bottom', align: 'end' }
+        }];
     }
 
     /**

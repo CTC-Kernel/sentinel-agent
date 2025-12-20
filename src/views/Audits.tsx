@@ -22,6 +22,8 @@ import { AuditDashboard } from '../components/audits/AuditDashboard';
 import { AuditCalendar } from '../components/audits/AuditCalendar';
 import { FindingsList } from '../components/audits/FindingsList';
 
+import { CustomSelect } from '../components/ui/CustomSelect';
+
 export const Audits: React.FC = () => {
     const {
         audits, loading, canEdit, canDelete, controls, documents, assets, risks, usersList, projects,
@@ -38,6 +40,8 @@ export const Audits: React.FC = () => {
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [filter, setFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+    const [typeFilter, setTypeFilter] = useState('');
 
     const tabs = [
         { id: 'overview', label: "Tableau de Bord", icon: LayoutDashboard },
@@ -53,12 +57,17 @@ export const Audits: React.FC = () => {
 
     // Filter Logic
     const filteredAudits = useMemo(() => {
-        return audits.filter(audit =>
-            audit.name.toLowerCase().includes(filter.toLowerCase()) ||
-            audit.auditor?.toLowerCase().includes(filter.toLowerCase()) ||
-            audit.type?.toLowerCase().includes(filter.toLowerCase())
-        );
-    }, [audits, filter]);
+        return audits.filter(audit => {
+            const matchesSearch =
+                audit.name.toLowerCase().includes(filter.toLowerCase()) ||
+                audit.auditor?.toLowerCase().includes(filter.toLowerCase()) ||
+                audit.type?.toLowerCase().includes(filter.toLowerCase());
+            const matchesStatus = statusFilter ? audit.status === statusFilter : true;
+            const matchesType = typeFilter ? audit.type === typeFilter : true;
+
+            return matchesSearch && matchesStatus && matchesType;
+        });
+    }, [audits, filter, statusFilter, typeFilter]);
 
     // Handle "View" or "Edit" Logic
     const handleEdit = (audit: Audit) => {
@@ -139,7 +148,35 @@ export const Audits: React.FC = () => {
                             onSearchChange={setFilter}
                             searchPlaceholder="Rechercher un audit..."
                             actions={
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 items-center">
+                                    <div className="hidden md:block w-40">
+                                        <CustomSelect
+                                            value={statusFilter}
+                                            onChange={(val) => setStatusFilter(val as string)}
+                                            options={[
+                                                { value: '', label: 'Tous les statuts' },
+                                                { value: 'Planifié', label: 'Planifié' },
+                                                { value: 'En cours', label: 'En cours' },
+                                                { value: 'Terminé', label: 'Terminé' },
+                                                { value: 'Validé', label: 'Validé' }
+                                            ]}
+                                            placeholder="Statut"
+                                        />
+                                    </div>
+                                    <div className="hidden md:block w-40 mr-2">
+                                        <CustomSelect
+                                            value={typeFilter}
+                                            onChange={(val) => setTypeFilter(val as string)}
+                                            options={[
+                                                { value: '', label: 'Tous les types' },
+                                                { value: 'Interne', label: 'Interne' },
+                                                { value: 'Externe', label: 'Externe' },
+                                                { value: 'Certification', label: 'Certification' }
+                                            ]}
+                                            placeholder="Type"
+                                        />
+                                    </div>
+                                    <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
                                     <Button
                                         variant="ghost"
                                         onClick={handleExportCalendar}

@@ -192,7 +192,7 @@ export const ThreatIntelligence: React.FC = () => {
 
             <PremiumPageControl
                 activeView={activeTab}
-                onViewChange={(view) => setActiveTab(view as any)}
+                onViewChange={(view) => setActiveTab(view as 'overview' | 'map' | 'feed' | 'community')}
                 viewOptions={[
                     { id: 'overview', label: 'Vue Globale', icon: LayoutDashboard },
                     { id: 'map', label: 'Carte Live', icon: Globe },

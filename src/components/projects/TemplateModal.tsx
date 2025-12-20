@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PROJECT_TEMPLATES } from '../../utils/projectTemplates';
 import { ProjectTemplate } from '../../types';
@@ -26,7 +26,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
         formState: { errors }
     } = useForm<TemplateFormData>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resolver: zodResolver(templateFormSchema) as any,
+        resolver: zodResolver(templateFormSchema) as Resolver<TemplateFormData>,
         defaultValues: {
             projectName: '',
             startDate: new Date().toISOString().split('T')[0],

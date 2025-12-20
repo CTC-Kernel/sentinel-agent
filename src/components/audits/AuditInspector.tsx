@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Audit, Control, Document as GRCDocument } from '../../types';
 import { useAuditDetails } from '../../hooks/audits/useAuditDetails';
-import { ScrollableTabs } from '../ui/ScrollableTabs';
-import { AlertOctagon, ClipboardCheck, BrainCircuit, FileText, Target, Plus, Trash2, ArrowRight, CheckCheck, Loader2, Download } from 'lucide-react';
+import { InspectorLayout } from '../ui/InspectorLayout';
+import { AlertOctagon, ClipboardCheck, BrainCircuit, FileText, Target, Plus, Trash2, CheckCheck, Loader2, Download } from 'lucide-react';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelInput';
 import { AIAssistButton } from '../ai/AIAssistButton';
@@ -48,14 +48,20 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
         findingForm.reset();
     };
 
+    const tabs = [
+        { id: 'findings', label: 'Constats', icon: AlertOctagon },
+        { id: 'checklist', label: 'Checklist', icon: ClipboardCheck },
+        { id: 'dashboard', label: 'Tableau de bord', icon: Target },
+    ];
+
     return (
-        <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900/50">
-            {/* Header Actions */}
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900">
-                <div className="flex flex-col">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">{audit.name}</h2>
-                    <p className="text-sm text-slate-500">{audit.type} • {audit.status}</p>
-                </div>
+        <InspectorLayout
+            isOpen={true}
+            onClose={onClose}
+            title={audit.name}
+            subtitle={`${audit.type} • ${audit.status}`}
+            width="max-w-6xl"
+            actions={
                 <div className="flex items-center gap-2">
                     {canDeleteResource(user, 'Audit') && (
                         <CustomTooltip content="Supprimer l'audit (via liste)">
@@ -87,28 +93,13 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                             <Download className="h-5 w-5" />
                         </button>
                     </CustomTooltip>
-
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500">
-                        <ArrowRight className="h-5 w-5" />
-                    </button>
                 </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="px-6 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900">
-                <ScrollableTabs
-                    tabs={[
-                        { id: 'findings', label: 'Constats', icon: AlertOctagon },
-                        { id: 'checklist', label: 'Checklist', icon: ClipboardCheck },
-                        { id: 'dashboard', label: 'Tableau de bord', icon: Target },
-                    ]}
-                    activeTab={activeTab}
-                    onTabChange={setActiveTab}
-                />
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            }
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+        >
+            <div className="space-y-6 max-w-7xl mx-auto">
                 {activeTab === 'findings' && (
                     <>
                         {canEdit && (
@@ -215,6 +206,6 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                     <AuditDashboard audits={[audit]} findings={findings} />
                 )}
             </div>
-        </div>
+        </InspectorLayout>
     );
 };

@@ -28,16 +28,16 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
     },
     auditor: {
         Audit: ['read', 'create', 'update'],
-        Document: ['read', 'create', 'update'],
-        Risk: ['read', 'update'],
+        Document: ['read', 'create'], // Can upload reports/evidence
+        Risk: ['read'], // Read-only
         Project: ['read'],
-        Asset: ['read', 'update'],
-        Control: ['read', 'update'],
+        Asset: ['read'], // Read-only
+        Control: ['read'], // Read-only
         Incident: ['read'],
-        Supplier: ['read', 'update'],
-        BusinessProcess: ['read', 'update'],
-        ProcessingActivity: ['read', 'update'],
-        SupplierAssessment: ['read', 'update'],
+        Supplier: ['read'],
+        BusinessProcess: ['read'],
+        ProcessingActivity: ['read'],
+        SupplierAssessment: ['read'],
         SupplierIncident: ['read'],
         AuditTrail: ['read']
     },

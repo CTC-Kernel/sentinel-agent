@@ -6,17 +6,19 @@ interface MaturityRadarWidgetProps {
     radarData: { subject: string; A: number; fullMark?: number }[];
     t: (key: string) => string;
     navigate: (path: string) => void;
+    theme: string;
 }
 
-export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarData, t, navigate }) => {
+export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarData, t, navigate, theme }) => {
     const radarGradientId = React.useId();
+    const isDark = theme === 'dark';
 
     const chartColors = {
         stroke: 'hsl(var(--primary))',
         fill: 'hsl(var(--primary))',
-        grid: 'hsl(var(--border) / 0.3)',
-        text: 'hsl(var(--muted-foreground))',
-        cursor: 'hsl(var(--muted-foreground) / 0.1)'
+        grid: isDark ? '#334155' : 'hsl(var(--border) / 0.3)', // slate-700 vs border
+        text: isDark ? '#94a3b8' : 'hsl(var(--muted-foreground))', // slate-400 vs muted
+        cursor: isDark ? 'rgba(255,255,255,0.1)' : 'hsl(var(--muted-foreground) / 0.1)'
     };
 
     return (

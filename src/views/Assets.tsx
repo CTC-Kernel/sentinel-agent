@@ -29,7 +29,7 @@ const Assets: React.FC = () => {
     const reachedAssetLimit = assets.length >= limits.maxAssets;
 
     // UI State
-    const [viewMode, setViewMode] = useState<'grid' | 'list' | 'matrix'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'list' | 'matrix' | 'kanban'>('grid');
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
     const [activeFilters, setActiveFilters] = useState<SearchFilters>({ query: '', type: 'all' });
     const [inspectorOpen, setInspectorOpen] = useState(false);

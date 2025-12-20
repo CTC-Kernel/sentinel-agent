@@ -67,7 +67,7 @@ export const OnboardingTrigger: React.FC = () => {
 
     const handleStart = () => {
         setShowBanner(false);
-        OnboardingService.startMainTour();
+        OnboardingService.startMainTour(user?.role || 'user');
     };
 
     const handleDismiss = () => {

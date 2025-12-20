@@ -56,7 +56,7 @@ export const Suppliers: React.FC = () => {
     const { user, addToast } = useStore();
     const location = useLocation();
     const canEdit = canEditResource(user, 'Supplier');
-    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix'>('suppliers_view_mode', 'grid');
+    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix' | 'kanban'>('suppliers_view_mode', 'grid');
 
     const [creationMode, setCreationMode] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);

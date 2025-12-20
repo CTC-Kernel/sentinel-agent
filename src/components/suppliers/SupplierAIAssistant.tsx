@@ -168,7 +168,6 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                                                 // Map risk level to Criticality if possible, or just ignore for now as Criticality is enum
                                                 // Assuming AI returns compatible string or we map it.
                                                 // For now just logging or simple update if matches
-                                                // onUpdate({ criticality: response.riskLevel as any }); 
                                                 // Better to just show it for now as Criticality enum is strict (Faible, Moyenne, etc)
                                             }
                                         }}

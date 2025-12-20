@@ -1,10 +1,9 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Drawer } from '../ui/Drawer';
+import { InspectorLayout } from '../ui/InspectorLayout';
 import { Badge } from '../ui/Badge';
 import { Project, ProjectTask, UserProfile, Risk, Control, Asset, Audit, ProjectMilestone } from '../../types';
 import { CalendarDays, LayoutDashboard, CheckSquare, Target, FileSpreadsheet, ShieldAlert, Server, ClipboardCheck, BrainCircuit, History, MessageSquare, FileText, Download, Copy, Edit, Trash2, Plus, Loader2 } from '../ui/Icons';
-import { ScrollableTabs } from '../ui/ScrollableTabs';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { ProjectDashboard } from './ProjectDashboard';
 import { ProjectMilestones } from './ProjectMilestones';
@@ -146,15 +145,44 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
         { label: project.name }
     ];
 
+    const tabs = [
+        { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
+        { id: 'tasks', label: 'Tâches', icon: CheckSquare, count: project.tasks?.length },
+        { id: 'gantt', label: 'Gantt', icon: CalendarDays },
+        { id: 'milestones', label: 'Jalons', icon: Target, count: projectMilestones.length },
+        { id: 'dashboard', label: 'Tableau de bord', icon: FileSpreadsheet },
+        { id: 'risks', label: 'Risques', icon: ShieldAlert, count: linkedRisks.length },
+        { id: 'controls', label: 'Contrôles', icon: CheckSquare, count: linkedControls.length },
+        { id: 'assets', label: 'Actifs', icon: Server, count: linkedAssets.length },
+        { id: 'audits', label: 'Audits', icon: ClipboardCheck, count: linkedAuditsList.length },
+        { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
+        { id: 'history', label: 'Historique', icon: History },
+        { id: 'comments', label: 'Commentaires', icon: MessageSquare }
+    ];
+
     return (
         <>
-            <Drawer
+            <InspectorLayout
                 isOpen={isOpen}
                 onClose={onClose}
                 title={project.name}
                 subtitle="Gestion et suivi du projet"
                 width="max-w-6xl"
                 breadcrumbs={breadcrumbs}
+                statusBadge={
+                    <>
+                        <Badge status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'} variant="soft">
+                            {project.status}
+                        </Badge>
+                        <span className="ml-4 text-xs font-bold text-slate-600 flex items-center gap-2">
+                            <CalendarDays className="h-4 w-4" />
+                            Échéance: {new Date(project.dueDate).toLocaleDateString()}
+                        </span>
+                    </>
+                }
+                tabs={tabs}
+                activeTab={inspectorTab}
+                onTabChange={(id) => setInspectorTab(id as InspectorTabId)}
                 actions={
                     <>
                         <CustomTooltip content="Générer un rapport exécutif PDF">
@@ -185,40 +213,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                 }
             >
                 <div className="flex flex-col h-full">
-                    {/* Status Header */}
-                    <div className="px-4 sm:px-8 py-4 bg-slate-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5 flex flex-wrap items-center gap-4">
-                        <Badge status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'} variant="soft">
-                            {project.status}
-                        </Badge>
-                        <span className="text-xs font-bold text-slate-600 flex items-center gap-2">
-                            <CalendarDays className="h-4 w-4" />
-                            Échéance: {new Date(project.dueDate).toLocaleDateString()}
-                        </span>
-                    </div>
-
-                    {/* Tabs */}
-                    <div className="px-4 sm:px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
-                        <ScrollableTabs
-                            tabs={[
-                                { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
-                                { id: 'tasks', label: 'Tâches', icon: CheckSquare, count: project.tasks?.length },
-                                { id: 'gantt', label: 'Gantt', icon: CalendarDays },
-                                { id: 'milestones', label: 'Jalons', icon: Target, count: projectMilestones.length },
-                                { id: 'dashboard', label: 'Tableau de bord', icon: FileSpreadsheet },
-                                { id: 'risks', label: 'Risques', icon: ShieldAlert, count: linkedRisks.length },
-                                { id: 'controls', label: 'Contrôles', icon: CheckSquare, count: linkedControls.length },
-                                { id: 'assets', label: 'Actifs', icon: Server, count: linkedAssets.length },
-                                { id: 'audits', label: 'Audits', icon: ClipboardCheck, count: linkedAuditsList.length },
-                                { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
-                                { id: 'history', label: 'Historique', icon: History },
-                                { id: 'comments', label: 'Commentaires', icon: MessageSquare }
-                            ]}
-                            activeTab={inspectorTab}
-                            onTabChange={(id) => setInspectorTab(id as InspectorTabId)}
-                        />
-                    </div>
-
-                    <div className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
+                    <div className="flex-1 min-w-0 mx-auto w-full max-w-7xl">
                         {/* Render content based on tab - replicating Projects.tsx logic simplified */}
                         {inspectorTab === 'overview' && (
                             <div className="space-y-8">
@@ -331,9 +326,9 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     linkedRisks.map(risk => (
                                         <div key={risk.id} className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex justify-between items-center group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
                                             <div>
-                                                <h4 className="font-bold text-slate-900 dark:text-white">{risk.description}</h4>
+                                                <h4 className="font-bold text-slate-900 dark:text-white">{risk.threat}</h4>
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${risk.level >= 8 ? 'bg-red-100 text-red-600' : risk.level >= 4 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>Score: {risk.level}</span>
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${risk.score >= 12 ? 'bg-red-100 text-red-600' : risk.score >= 5 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>Score: {risk.score}</span>
                                                     <span className="text-xs text-slate-500">{risk.category}</span>
                                                 </div>
                                             </div>
@@ -404,7 +399,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                                     <h4 className="font-bold text-slate-900 dark:text-white">{audit.name}</h4>
                                                     <p className="text-xs text-slate-500 mt-1">Ref: {audit.reference}</p>
                                                 </div>
-                                                <Badge status={audit.status === 'Clôturé' ? 'success' : 'warning'}>{audit.status}</Badge>
+                                                <Badge status={audit.status === 'Validé' || audit.status === 'Terminé' ? 'success' : 'warning'}>{audit.status}</Badge>
                                             </div>
                                         </div>
                                     ))
@@ -417,7 +412,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                         )}
                     </div>
                 </div>
-            </Drawer>
+            </InspectorLayout>
 
             <TaskFormModal
                 isOpen={showTaskModal}

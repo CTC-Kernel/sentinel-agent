@@ -68,7 +68,7 @@ export const Risks: React.FC = () => {
     const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
     const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
     const [confirmData, setConfirmData] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-    const [viewMode, setViewMode] = useState<'matrix' | 'list' | 'grid'>('grid'); // Fixed type to match PremiumPageControl
+    const [viewMode, setViewMode] = useState<'matrix' | 'list' | 'grid' | 'kanban'>('grid'); // Fixed type to match PremiumPageControl
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     const [isImporting, setIsImporting] = useState(false);

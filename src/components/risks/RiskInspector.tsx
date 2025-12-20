@@ -5,8 +5,7 @@ import {
     Server, Plus, CalendarDays, Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Drawer } from '../ui/Drawer';
-import { ScrollableTabs } from '../ui/ScrollableTabs';
+import { InspectorLayout } from '../ui/InspectorLayout';
 import { Badge } from '../ui/Badge';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { RiskAIAssistant } from './RiskAIAssistant';
@@ -100,8 +99,20 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
     const linkedProjects = projects.filter(p => p.relatedRiskIds?.includes(risk.id));
     const linkedAudits = audits.filter(a => a.relatedRiskIds?.includes(risk.id));
 
+    const tabs = [
+        { id: 'details', label: 'Détails', icon: ShieldAlert },
+        { id: 'treatment', label: 'Traitement', icon: CheckCircle2 },
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'projects', label: 'Projets', icon: FolderKanban },
+        { id: 'audits', label: 'Audits', icon: CheckCircle2 },
+        { id: 'history', label: 'Historique', icon: History },
+        { id: 'comments', label: 'Discussion', icon: MessageSquare },
+        { id: 'graph', label: 'Graphe', icon: Network },
+        { id: 'threats', label: 'Menaces', icon: ShieldAlert }
+    ];
+
     return (
-        <Drawer
+        <InspectorLayout
             isOpen={isOpen}
             onClose={handleClose}
             title={risk.threat}
@@ -111,6 +122,14 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                 </div>
             }
             width={isEditing ? "max-w-4xl" : "max-w-6xl"}
+            statusBadge={
+                <Badge status={risk.status === 'Fermé' ? 'success' : risk.status === 'En cours' ? 'warning' : 'error'}>
+                    {risk.status}
+                </Badge>
+            }
+            tabs={isEditing ? [] : tabs}
+            activeTab={inspectorTab}
+            onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
             actions={
                 !isEditing && canEdit ? (
                     <>
@@ -150,191 +169,170 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                     />
                 </div>
             ) : (
-                <>
-                    <div className="px-4 md:px-8 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-transparent">
-                        <ScrollableTabs
-                            tabs={[
-                                { id: 'details', label: 'Détails', icon: ShieldAlert },
-                                { id: 'treatment', label: 'Traitement', icon: CheckCircle2 },
-                                { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-                                { id: 'projects', label: 'Projets', icon: FolderKanban },
-                                { id: 'audits', label: 'Audits', icon: CheckCircle2 },
-                                { id: 'history', label: 'Historique', icon: History },
-                                { id: 'comments', label: 'Discussion', icon: MessageSquare },
-                                { id: 'graph', label: 'Graphe', icon: Network },
-                                { id: 'threats', label: 'Menaces', icon: ShieldAlert }
-                            ]}
-                            activeTab={inspectorTab}
-                            onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
-                        />
-                    </div>
-
-                    <div className="p-4 md:p-8 space-y-8">
-                        {inspectorTab === 'details' && (
-                            <div className="space-y-8">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                    <div className="p-6 bg-red-50/80 dark:bg-red-900/10 rounded-[2rem] border border-red-100 dark:border-red-900/30 shadow-sm">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4">Risque Brut</h4>
-                                        <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{risk.score}</div>
-                                        <div className="text-xs font-medium text-slate-600">Prob: {risk.probability} × Impact: {risk.impact}</div>
-                                    </div>
-                                    <div className="p-6 bg-emerald-50/80 dark:bg-emerald-900/10 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4">Risque Résiduel</h4>
-                                        <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{risk.residualScore || risk.score}</div>
-                                        <div className="text-xs font-medium text-slate-600">Prob: {risk.residualProbability || risk.probability} × Impact: {risk.residualImpact || risk.impact}</div>
-                                    </div>
+                <div className="p-4 md:p-8 space-y-8 bg-slate-50/50 dark:bg-transparent min-h-full">
+                    {inspectorTab === 'details' && (
+                        <div className="space-y-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div className="p-6 bg-red-50/80 dark:bg-red-900/10 rounded-[2rem] border border-red-100 dark:border-red-900/30 shadow-sm">
+                                    <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4">Risque Brut</h4>
+                                    <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{risk.score}</div>
+                                    <div className="text-xs font-medium text-slate-600">Prob: {risk.probability} × Impact: {risk.impact}</div>
                                 </div>
-
-                                <RiskAIAssistant
-                                    risk={risk}
-                                    onUpdate={(updates) => handleLocalUpdate({ ...risk, ...updates } as Risk)}
-                                />
-
-                                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
-                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Stratégie de Traitement</h4>
-                                    <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{risk.strategy}</div>
-                                </div>
-                                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
-                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Propriétaire</h4>
-                                    <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{risk.owner || 'Non assigné'}</div>
-                                </div>
-                                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
-                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Statut Actuel</h4>
-                                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                                        {canEdit ? (
-                                            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                                                {['Ouvert', 'En cours', 'Fermé'].map(s => (
-                                                    <button
-                                                        key={s}
-                                                        onClick={() => handleStatusChange(s as Risk['status'])}
-                                                        disabled={updating}
-                                                        className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'} ${updating ? 'opacity-50 cursor-wait' : ''}`}
-                                                    >
-                                                        {s}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        ) : <Badge status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : 'success'} variant="soft">{risk.status}</Badge>}
-                                        {canEdit && (
-                                            <button
-                                                onClick={handleReview}
-                                                disabled={updating}
-                                                className={`flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors w-full sm:w-auto ${updating ? 'opacity-70 cursor-wait' : ''}`}
-                                            >
-                                                {updating ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <CalendarDays className="h-3.5 w-3.5 mr-2" />}
-                                                Valider la revue
-                                            </button>
-                                        )}
-                                    </div>
-                                    {risk.lastReviewDate && (<p className="text-xs text-slate-500 mt-3 text-right">Dernière revue le : {new Date(risk.lastReviewDate).toLocaleDateString()}</p>)}
+                                <div className="p-6 bg-emerald-50/80 dark:bg-emerald-900/10 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
+                                    <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4">Risque Résiduel</h4>
+                                    <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{risk.residualScore || risk.score}</div>
+                                    <div className="text-xs font-medium text-slate-600">Prob: {risk.residualProbability || risk.probability} × Impact: {risk.residualImpact || risk.impact}</div>
                                 </div>
                             </div>
-                        )}
 
-                        {inspectorTab === 'treatment' && (
-                            <RiskTreatmentPlan
+                            <RiskAIAssistant
                                 risk={risk}
-                                onUpdate={(treatment) => handleLocalUpdate({ treatment })}
-                                users={usersList}
+                                onUpdate={(updates) => handleLocalUpdate({ ...risk, ...updates } as Risk)}
                             />
-                        )}
 
-                        {inspectorTab === 'dashboard' && <RiskDashboard risks={[risk]} />}
-
-                        {inspectorTab === 'projects' && (
-                            <div className="space-y-8">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
+                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Stratégie de Traitement</h4>
+                                <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{risk.strategy}</div>
+                            </div>
+                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Propriétaire</h4>
+                                <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{risk.owner || 'Non assigné'}</div>
+                            </div>
+                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Statut Actuel</h4>
+                                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                                    {canEdit ? (
+                                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                                            {['Ouvert', 'En cours', 'Fermé'].map(s => (
+                                                <button
+                                                    key={s}
+                                                    onClick={() => handleStatusChange(s as Risk['status'])}
+                                                    disabled={updating}
+                                                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'} ${updating ? 'opacity-50 cursor-wait' : ''}`}
+                                                >
+                                                    {s}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : <Badge status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : 'success'} variant="soft">{risk.status}</Badge>}
                                     {canEdit && (
                                         <button
-                                            onClick={() => navigate('/projects', { state: { createForRisk: risk.id, riskName: risk.threat } })}
-                                            className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                            onClick={handleReview}
+                                            disabled={updating}
+                                            className={`flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors w-full sm:w-auto ${updating ? 'opacity-70 cursor-wait' : ''}`}
                                         >
-                                            <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouveau Projet
+                                            {updating ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <CalendarDays className="h-3.5 w-3.5 mr-2" />}
+                                            Valider la revue
                                         </button>
                                     )}
                                 </div>
-                                <div className="grid gap-4">
-                                    {linkedProjects.length === 0 ? <p className="text-sm text-slate-500 italic">Aucun projet.</p> : linkedProjects.map(p => (
-                                        <div key={p.id} className="glass-panel p-4">{p.name}</div>
-                                    ))}
-                                </div>
+                                {risk.lastReviewDate && (<p className="text-xs text-slate-500 mt-3 text-right">Dernière revue le : {new Date(risk.lastReviewDate).toLocaleDateString()}</p>)}
                             </div>
-                        )}
+                        </div>
+                    )}
 
-                        {inspectorTab === 'audits' && (
-                            <div className="space-y-8">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><CheckCircle2 className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
-                                    {canEdit && (
-                                        <button
-                                            onClick={() => navigate('/audits', { state: { createForRisk: risk.id, riskName: risk.threat } })}
-                                            className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
-                                        >
-                                            <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouvel Audit
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="grid gap-4">
-                                    {linkedAudits.length === 0 ? <p className="text-sm text-slate-500 italic">Aucun audit.</p> : linkedAudits.map(a => (
-                                        <div key={a.id} className="glass-panel p-4">{a.name}</div>
-                                    ))}
-                                </div>
+                    {inspectorTab === 'treatment' && (
+                        <RiskTreatmentPlan
+                            risk={risk}
+                            onUpdate={(treatment) => handleLocalUpdate({ treatment })}
+                            users={usersList}
+                        />
+                    )}
+
+                    {inspectorTab === 'dashboard' && <RiskDashboard risks={[risk]} />}
+
+                    {inspectorTab === 'projects' && (
+                        <div className="space-y-8">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
+                                {canEdit && (
+                                    <button
+                                        onClick={() => navigate('/projects', { state: { createForRisk: risk.id, riskName: risk.threat } })}
+                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                    >
+                                        <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouveau Projet
+                                    </button>
+                                )}
                             </div>
-                        )}
-
-                        {inspectorTab === 'history' && (
-                            <div className="space-y-8">
-                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500">Journal d'Audit</h4>
-                                {risk.history?.map((log, i: number) => (
-                                    <div key={i} className="text-sm border-l-2 pl-4 py-1">
-                                        <span className="text-xs text-slate-500">{new Date(log.date).toLocaleString()}</span>
-                                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                                        <p>{(log as any).action || (log as any).details || 'Action inconnue'}</p>
-                                    </div>
+                            <div className="grid gap-4">
+                                {linkedProjects.length === 0 ? <p className="text-sm text-slate-500 italic">Aucun projet.</p> : linkedProjects.map(p => (
+                                    <div key={p.id} className="glass-panel p-4">{p.name}</div>
                                 ))}
                             </div>
-                        )}
+                        </div>
+                    )}
 
-                        {inspectorTab === 'comments' && <div className="h-[400px]"><Comments collectionName="risks" documentId={risk.id} /></div>}
+                    {inspectorTab === 'audits' && (
+                        <div className="space-y-8">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><CheckCircle2 className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
+                                {canEdit && (
+                                    <button
+                                        onClick={() => navigate('/audits', { state: { createForRisk: risk.id, riskName: risk.threat } })}
+                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                    >
+                                        <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouvel Audit
+                                    </button>
+                                )}
+                            </div>
+                            <div className="grid gap-4">
+                                {linkedAudits.length === 0 ? <p className="text-sm text-slate-500 italic">Aucun audit.</p> : linkedAudits.map(a => (
+                                    <div key={a.id} className="glass-panel p-4">{a.name}</div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
-                        {inspectorTab === 'graph' && <div className="h-[500px]"><RelationshipGraph rootId={risk.id} rootType="Risk" /></div>}
+                    {inspectorTab === 'history' && (
+                        <div className="space-y-8">
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500">Journal d'Audit</h4>
+                            {risk.history?.map((log, i: number) => (
+                                <div key={i} className="text-sm border-l-2 pl-4 py-1">
+                                    <span className="text-xs text-slate-500">{new Date(log.date).toLocaleString()}</span>
+                                    <p>{log.action || log.details || 'Action inconnue'}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
-                        {inspectorTab === 'threats' && (
-                            <div className="space-y-6">
-                                <div className="space-y-4">
-                                    <h3 className="text-lg font-bold">MITRE ATT&CK</h3>
-                                    <div className="flex gap-2">
-                                        <input
-                                            className="flex-1 px-4 py-2 border rounded-xl"
-                                            placeholder="Rechercher une technique..."
-                                            value={mitreQuery}
-                                            onChange={e => setMitreQuery(e.target.value)}
-                                        />
-                                        <button
-                                            className="px-4 py-2 bg-slate-900 text-white rounded-xl"
-                                            onClick={() => integrationService.getCommonMitreTechniques(mitreQuery, demoMode).then(setMitreResults)}
-                                        >
-                                            Chercher
-                                        </button>
-                                    </div>
-                                    <div className="space-y-2">
-                                        {mitreResults.map(t => (
-                                            <div key={t.id} className="flex justify-between p-2 border rounded-lg">
-                                                <span>{t.name}</span>
-                                                <button onClick={() => {
-                                                    const current = risk.mitreTechniques || [];
-                                                    handleLocalUpdate({ mitreTechniques: [...current, t] });
-                                                }}>Ajouter</button>
-                                            </div>
-                                        ))}
-                                    </div>
+                    {inspectorTab === 'comments' && <div className="h-[400px]"><Comments collectionName="risks" documentId={risk.id} /></div>}
+
+                    {inspectorTab === 'graph' && <div className="h-[500px]"><RelationshipGraph rootId={risk.id} rootType="Risk" /></div>}
+
+                    {inspectorTab === 'threats' && (
+                        <div className="space-y-6">
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-bold">MITRE ATT&CK</h3>
+                                <div className="flex gap-2">
+                                    <input
+                                        className="flex-1 px-4 py-2 border rounded-xl"
+                                        placeholder="Rechercher une technique..."
+                                        value={mitreQuery}
+                                        onChange={e => setMitreQuery(e.target.value)}
+                                    />
+                                    <button
+                                        className="px-4 py-2 bg-slate-900 text-white rounded-xl"
+                                        onClick={() => integrationService.getCommonMitreTechniques(mitreQuery, demoMode).then(setMitreResults)}
+                                    >
+                                        Chercher
+                                    </button>
+                                </div>
+                                <div className="space-y-2">
+                                    {mitreResults.map(t => (
+                                        <div key={t.id} className="flex justify-between p-2 border rounded-lg">
+                                            <span>{t.name}</span>
+                                            <button onClick={() => {
+                                                const current = risk.mitreTechniques || [];
+                                                handleLocalUpdate({ mitreTechniques: [...current, t] });
+                                            }}>Ajouter</button>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-                        )}
-                    </div>
-                </>
+                        </div>
+                    )}
+                </div>
             )}
-        </Drawer>
+        </InspectorLayout>
     );
 };

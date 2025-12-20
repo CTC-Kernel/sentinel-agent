@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react';
 import { useStore } from '../store';
 
 /**
@@ -34,20 +35,17 @@ class ErrorLoggerService {
     }
 
     // En production : envoyer à Sentry (si configuré)
-    if (this.isProduction && typeof window !== 'undefined') {
+    if (this.isProduction) {
       try {
-        // @ts-expect-error - Sentry will be added later
-        if (window.Sentry) {
-          // @ts-expect-error - Sentry type not defined on window
-          window.Sentry.captureException(error, {
-            tags: {
-              context,
-              component: additionalContext?.component,
-              action: additionalContext?.action
-            },
-            extra: additionalContext
-          });
-        }
+        Sentry.captureException(error, {
+          tags: {
+            context,
+            component: additionalContext?.component,
+            action: additionalContext?.action
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          extra: additionalContext as any
+        });
       } catch {
         // Fail silently si Sentry n'est pas disponible
       }

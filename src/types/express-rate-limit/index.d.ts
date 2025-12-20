@@ -22,7 +22,7 @@ declare namespace RateLimit {
     legacyHeaders?: boolean;
   }
 
-  interface RateLimitRequestHandler extends RequestHandler {}
+  type RateLimitRequestHandler = RequestHandler;
 }
 
 declare function rateLimit(options?: RateLimit.RateLimitOptions): RateLimit.RateLimitRequestHandler;

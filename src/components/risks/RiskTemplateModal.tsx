@@ -150,7 +150,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                                 {risk.threat}
                                             </span>
                                             <div className="flex items-center gap-2">
-                                                {/* <span className="text-slate-600">{(risk as any).category || 'N/A'}</span> */}
+                                                {/* <span className="text-slate-600">{risk.category || 'N/A'}</span> */}
                                                 <span className={`px-2 py-0.5 rounded font-bold ${risk.score >= 15 ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
                                                     risk.score >= 10 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400' :
                                                         risk.score >= 5 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400' :

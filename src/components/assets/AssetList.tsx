@@ -11,7 +11,7 @@ import { canDeleteResource } from '../../utils/permissions';
 interface AssetListProps {
     assets: Asset[];
     loading: boolean;
-    viewMode: 'grid' | 'list' | 'matrix';
+    viewMode: 'grid' | 'list' | 'matrix' | 'kanban';
     user: UserProfile | null;
     onEdit: (asset: Asset) => void;
     onDelete: (id: string, name: string) => void;

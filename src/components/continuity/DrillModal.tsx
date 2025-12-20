@@ -50,7 +50,7 @@ export const DrillModal: React.FC<DrillModalProps> = ({ isOpen, onClose, onSubmi
                                     { value: "Full Scale", label: "Grandeur Nature" },
                                     { value: "Call Tree", label: "Arbre d'Appel" }
                                 ]}
-                                value={field.value}
+                                value={field.value || ''}
                                 onChange={field.onChange}
                                 error={errors.type?.message}
                             />

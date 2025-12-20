@@ -1,7 +1,5 @@
-
 import React, { useState } from 'react';
-import { Drawer } from '../ui/Drawer';
-import { ScrollableTabs } from '../ui/ScrollableTabs';
+import { InspectorLayout } from '../ui/InspectorLayout';
 import { Asset, UserProfile, Supplier, BusinessProcess, MaintenanceRecord } from '../../types';
 import { AssetFormData } from '../../schemas/assetSchema';
 import { AssetForm } from './AssetForm';
@@ -139,21 +137,23 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
     ];
 
     return (
-        <Drawer
+        <InspectorLayout
             isOpen={isOpen}
             onClose={onClose}
             title={selectedAsset ? selectedAsset.name : "Nouvel Actif"}
             subtitle={selectedAsset ? "Détails et configuration de l'actif" : "Ajouter un nouvel actif à l'inventaire"}
-            width="max-w-6xl"
+            icon={selectedAsset ? Server : Plus}
+            statusBadge={selectedAsset ? (
+                <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${selectedAsset.lifecycleStatus === 'En service' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400'}`}>
+                    {selectedAsset.lifecycleStatus || 'Neuf'}
+                </span>
+            ) : null}
+            tabs={tabs}
+            activeTab={inspectorTab}
+            onTabChange={setInspectorTab}
         >
-            <ScrollableTabs
-                tabs={tabs}
-                activeTab={inspectorTab}
-                onTabChange={setInspectorTab}
-                className="mb-6 sticky top-0 bg-white dark:bg-slate-900 z-10 pt-2"
-            />
 
-            <div className="space-y-8 pb-20">
+            <div className="space-y-8 max-w-7xl mx-auto">
                 {inspectorTab === 'details' && (
                     <div className="space-y-8">
                         <AssetForm
@@ -645,6 +645,6 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                     </div>
                 )}
             </div>
-        </Drawer>
+        </InspectorLayout>
     );
 };

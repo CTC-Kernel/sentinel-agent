@@ -261,15 +261,30 @@ export const Onboarding: React.FC = () => {
         if (!searchQuery.trim()) return;
         setLoading(true);
         try {
-            // Simple case-insensitive search simulation (Firestore doesn't support native case-insensitive without plugins)
-            // Ideally use Algolia or a normalized 'slug' field. Here we search by exact slug or name prefix.
-            const q = query(
+            // IMPROVED SEARCH: Try exact match OR Capitalized match since we don't have a lowercase field
+            const capitalizedQuery = searchQuery.charAt(0).toUpperCase() + searchQuery.slice(1);
+
+            const q1 = query(
                 collection(db, 'organizations'),
                 where('name', '>=', searchQuery),
                 where('name', '<=', searchQuery + '\uf8ff')
             );
-            const snap = await getDocs(q);
-            setSearchResults(snap.docs.map(d => ({ id: d.id, ...d.data() } as SearchResult)));
+
+            // Parallel query for capitalized version if different
+            const [snap1, snap2] = await Promise.all([
+                getDocs(q1),
+                (searchQuery !== capitalizedQuery) ? getDocs(query(
+                    collection(db, 'organizations'),
+                    where('name', '>=', capitalizedQuery),
+                    where('name', '<=', capitalizedQuery + '\uf8ff')
+                )) : Promise.resolve(null)
+            ]);
+
+            const allDocs = [...snap1.docs, ...(snap2?.docs || [])];
+            // Deduplicate by ID
+            const uniqueDocs = Array.from(new Map(allDocs.map(item => [item.id, item])).values());
+
+            setSearchResults(uniqueDocs.map(d => ({ id: d.id, ...d.data() } as SearchResult)));
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleSearchOrg', 'FETCH_FAILED');
         } finally {
@@ -436,10 +451,10 @@ export const Onboarding: React.FC = () => {
 
                             <button
                                 onClick={() => setMode('join')}
-                                className="group relative p-6 rounded-3xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg transition-all text-left"
+                                className="group relative p-6 rounded-3xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-500 dark:hover:border-brand-400 hover:shadow-lg transition-all text-left"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-slate-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-slate-900/20 text-brand-600 dark:text-brand-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <Users className="h-6 w-6" />
                                     </div>
                                     <div>
@@ -483,7 +498,7 @@ export const Onboarding: React.FC = () => {
                                                 <button
                                                     onClick={() => handleJoinRequest(org.id, org.name)}
                                                     disabled={loading}
-                                                    className="px-4 py-2 bg-blue-50 dark:bg-slate-900 text-blue-600 dark:bg-slate-900/20 dark:text-blue-400 rounded-xl text-sm font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors disabled:opacity-50"
+                                                    className="px-4 py-2 bg-brand-50 dark:bg-slate-900 text-brand-600 dark:bg-slate-900/20 dark:text-brand-400 rounded-xl text-sm font-bold hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors disabled:opacity-50"
                                                 >
                                                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Rejoindre'}
                                                 </button>
@@ -648,13 +663,13 @@ export const Onboarding: React.FC = () => {
                                                     key={planId}
                                                     onClick={() => setSelectedPlan(planId)}
                                                     className={`relative p-6 rounded-3xl border transition-all duration-300 cursor-pointer group ${isSelected
-                                                        ? 'bg-blue-50/50 dark:bg-slate-900/10 border-blue-500 ring-1 ring-blue-500 shadow-lg shadow-blue-500/10'
-                                                        : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md'
+                                                        ? 'bg-brand-50/50 dark:bg-slate-900/10 border-brand-500 ring-1 ring-brand-500 shadow-lg shadow-brand-500/10'
+                                                        : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md'
                                                         }`}
                                                 >
                                                     <div className="flex justify-between items-start mb-3">
                                                         <div>
-                                                            <h3 className={`font-bold text-lg ${isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
+                                                            <h3 className={`font-bold text-lg ${isSelected ? 'text-brand-700 dark:text-brand-400' : 'text-slate-900 dark:text-white'}`}>
                                                                 {plan.name}
                                                             </h3>
                                                             <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mt-1">
@@ -662,7 +677,7 @@ export const Onboarding: React.FC = () => {
                                                             </p>
                                                         </div>
                                                         <div className="text-right">
-                                                            <span className={`block text-xl font-bold font-display tracking-tight ${isSelected ? 'text-blue-700 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
+                                                            <span className={`block text-xl font-bold font-display tracking-tight ${isSelected ? 'text-brand-700 dark:text-brand-400' : 'text-slate-900 dark:text-white'}`}>
                                                                 {plan.priceMonthly === 0 ? 'Gratuit' : `${plan.priceMonthly}€`}
                                                             </span>
                                                             {plan.priceMonthly > 0 && <span className="text-xs text-slate-500 font-medium">/ mois</span>}
@@ -674,7 +689,7 @@ export const Onboarding: React.FC = () => {
                                                     <ul className="space-y-2">
                                                         {plan.featuresList.slice(0, 3).map((f, i) => (
                                                             <li key={i} className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
-                                                                <div className={`mr-2 p-0.5 rounded-full ${isSelected ? 'bg-blue-100 dark:bg-slate-900/30 text-blue-600 dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-600'}`}>
+                                                                <div className={`mr-2 p-0.5 rounded-full ${isSelected ? 'bg-brand-100 dark:bg-slate-900/30 text-brand-600 dark:text-brand-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-600'}`}>
                                                                     <Check className="h-2.5 w-2.5" strokeWidth={3} />
                                                                 </div>
                                                                 {f}
@@ -684,7 +699,7 @@ export const Onboarding: React.FC = () => {
 
                                                     {isSelected && (
                                                         <div className="absolute top-4 right-4 animate-scale-in">
-                                                            <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                                                            <div className="w-6 h-6 bg-brand-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
                                                                 <Check className="h-3.5 w-3.5" strokeWidth={3} />
                                                             </div>
                                                         </div>

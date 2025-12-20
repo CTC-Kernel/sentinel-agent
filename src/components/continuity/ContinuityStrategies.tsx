@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Plus, Save, Trash2, Server, Shield, Clock } from 'lucide-react';
 import { Asset } from '../../types';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
-import { addDoc, collection, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
@@ -87,7 +87,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                         <select
                             className="input-field"
                             value={newStrategy.type || ''}
-                            onChange={e => setNewStrategy({ ...newStrategy, type: e.target.value as any })}
+                            onChange={e => setNewStrategy({ ...newStrategy, type: e.target.value as 'Active-Active' | 'Active-Passive' | 'Cold Standby' | 'Cloud DR' })}
                         >
                             <option value="">Sélectionner un type...</option>
                             <option value="Active-Active">Active-Active (Haute Dispo)</option>

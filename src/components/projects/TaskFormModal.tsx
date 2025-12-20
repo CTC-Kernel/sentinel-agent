@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Target } from 'lucide-react';
 import { ProjectTask, UserProfile } from '../../types';
 import { AddToCalendar } from '../../components/ui/AddToCalendar';
-import { useForm, useWatch, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller, Resolver } from 'react-hook-form';
 import { CustomSelect } from '../ui/CustomSelect';
 import { DatePicker } from '../ui/DatePicker';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -36,7 +36,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         formState: { errors }
     } = useForm<ProjectTaskFormData>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resolver: zodResolver(projectTaskSchema) as any,
+        resolver: zodResolver(projectTaskSchema) as Resolver<ProjectTaskFormData>,
         defaultValues: {
             title: '',
             description: '',
@@ -262,7 +262,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                         label="Heures estimées"
                                         type="number"
                                         value={field.value?.toString() || ''}
-                                        onChange={(e: any) => field.onChange(parseFloat(e.target.value))}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(parseFloat(e.target.value))}
                                         error={errors.estimatedHours?.message}
                                     />
                                 )}
@@ -278,7 +278,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                         label="Heures réelles"
                                         type="number"
                                         value={field.value?.toString() || ''}
-                                        onChange={(e: any) => field.onChange(parseFloat(e.target.value))}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(parseFloat(e.target.value))}
                                         error={errors.actualHours?.message}
                                     />
                                 )}

@@ -4,6 +4,7 @@ import { httpsCallable } from 'firebase/functions';
 import { collection, doc, getDocs, setDoc, deleteDoc } from 'firebase/firestore';
 import { ErrorLogger } from './errorLogger';
 import { MitreTechnique, Vulnerability, CyberNewsItem, CompanySearchResult } from '../types';
+import { ScannerJob, ScannerJobCreate } from '../types/job';
 export type { CyberNewsItem, CompanySearchResult } from '../types';
 
 export interface IntegrationProvider {
@@ -509,6 +510,81 @@ class IntegrationService {
             ErrorLogger.error(error, 'IntegrationService.fetchScannerVulnerabilities');
             throw error;
         }
+    }
+
+
+    async getScannerJobs(isDemoMode: boolean = false): Promise<ScannerJob[]> {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
+            await new Promise(resolve => setTimeout(resolve, 800));
+            // Mock Data
+            return [
+                {
+                    id: 'job-1',
+                    scannerId: 'nessus',
+                    status: 'completed',
+                    target: '192.168.1.0/24',
+                    frequency: 'weekly',
+                    lastRun: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+                    nextRun: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5).toISOString(),
+                    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
+                    resultsCount: 12,
+                    duration: '45m'
+                },
+                {
+                    id: 'job-2',
+                    scannerId: 'qualys',
+                    status: 'running',
+                    target: 'app-prod-01',
+                    frequency: 'daily',
+                    lastRun: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+                    nextRun: new Date(Date.now() + 1000 * 60 * 60 * 23).toISOString(),
+                    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
+                    resultsCount: 0,
+                    duration: 'Running...'
+                },
+                {
+                    id: 'job-3',
+                    scannerId: 'openvas',
+                    status: 'scheduled',
+                    target: '10.0.0.5',
+                    frequency: 'monthly',
+                    lastRun: undefined,
+                    nextRun: new Date(Date.now() + 1000 * 60 * 60 * 24 * 15).toISOString(),
+                    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+                }
+            ];
+        }
+
+        // Production: Call Cloud Function (Mocked for now as backend requires implementation)
+        // return [];
+        throw new Error('Backend not implemented for Scanner Jobs');
+    }
+
+    async scheduleScannerJob(job: ScannerJobCreate, isDemoMode: boolean = false): Promise<ScannerJob> {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return {
+                id: `job-${Date.now()}`,
+                scannerId: job.scannerId,
+                status: 'scheduled',
+                target: job.target,
+                frequency: job.frequency,
+                createdAt: new Date().toISOString(),
+                nextRun: job.scheduledDate || new Date().toISOString()
+            };
+        }
+        throw new Error('Backend not implemented for Scanner Jobs');
+    }
+
+    async deleteScannerJob(_jobId: string, isDemoMode: boolean = false): Promise<void> {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return;
+        }
+        throw new Error('Backend not implemented for Scanner Jobs');
     }
 }
 

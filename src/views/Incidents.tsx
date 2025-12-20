@@ -24,6 +24,7 @@ import { IncidentPlaybook } from '../components/incidents/IncidentPlaybook';
 import { IncidentKanban } from '../components/incidents/IncidentKanban';
 import { IncidentAIAssistant } from '../components/incidents/IncidentAIAssistant';
 import { IncidentForm } from '../components/incidents/IncidentForm';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import { SafeHTML } from '../components/ui/SafeHTML';
 import { ThreatIntelChecker } from '../components/incidents/ThreatIntelChecker';
 import { IncidentFormData } from '../schemas/incidentSchema';
@@ -78,13 +79,7 @@ export const Incidents: React.FC = () => {
         { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
-    // Derived State
-    const incidents = React.useMemo(() => [...rawIncidents].sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime()), [rawIncidents]);
-    const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
-    const risks = React.useMemo(() => [...rawRisks].sort((a, b) => a.threat.localeCompare(b.threat)), [rawRisks]);
-
-    const loading = loadingIncidents || loadingAssets || loadingRisks || loadingUsers || loadingProcesses;
-
+    // State Declarations
     const [creationMode, setCreationMode] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
@@ -94,6 +89,23 @@ export const Incidents: React.FC = () => {
     const [importModalOpen, setImportModalOpen] = useState(false);
     const [viewMode, setViewMode] = useState<'list' | 'grid' | 'kanban'>('grid');
     const [filter, setFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+    const [severityFilter, setSeverityFilter] = useState('');
+
+    // Derived State
+    const sortedIncidents = React.useMemo(() => [...rawIncidents].sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime()), [rawIncidents]);
+    const incidents = React.useMemo(() => {
+        return sortedIncidents.filter(incident => {
+            const matchesStatus = statusFilter ? incident.status === statusFilter : true;
+            const matchesSeverity = severityFilter ? incident.severity === severityFilter : true;
+            return matchesStatus && matchesSeverity;
+        });
+    }, [sortedIncidents, statusFilter, severityFilter]);
+
+    const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
+    const risks = React.useMemo(() => [...rawRisks].sort((a, b) => a.threat.localeCompare(b.threat)), [rawRisks]);
+
+    const loading = loadingIncidents || loadingAssets || loadingRisks || loadingUsers || loadingProcesses;
 
     const handleImportFromEvents = async (events: SecurityEvent[]) => {
         if (!user?.organizationId) return;
@@ -456,6 +468,37 @@ export const Incidents: React.FC = () => {
                 actions={
                     canEdit && (
                         <>
+                            <div className="hidden md:block w-40 mr-2">
+                                <CustomSelect
+                                    value={statusFilter}
+                                    onChange={(val) => setStatusFilter(val as string)}
+                                    options={[
+                                        { value: '', label: 'Tous les statuts' },
+                                        { value: 'Nouveau', label: 'Nouveau' },
+                                        { value: 'Analyse', label: 'Analyse' },
+                                        { value: 'Contenu', label: 'Contenu' },
+                                        { value: 'Résolu', label: 'Résolu' },
+                                        { value: 'Fermé', label: 'Fermé' }
+                                    ]}
+                                    placeholder="Statut"
+                                />
+                            </div>
+                            <div className="hidden md:block w-40 mr-4">
+                                <CustomSelect
+                                    value={severityFilter}
+                                    onChange={(val) => setSeverityFilter(val as string)}
+                                    options={[
+                                        { value: '', label: 'Toutes sévérités' },
+                                        { value: Criticality.CRITICAL, label: 'Critique' },
+                                        { value: Criticality.HIGH, label: 'Élevé' },
+                                        { value: Criticality.MEDIUM, label: 'Moyen' },
+                                        { value: Criticality.LOW, label: 'Faible' }
+                                    ]}
+                                    placeholder="Sévérité"
+                                />
+                            </div>
+                            <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
+
                             <Menu as="div" className="relative inline-block text-left">
                                 <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
                                     <MoreVertical className="h-5 w-5" />

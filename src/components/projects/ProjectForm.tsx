@@ -3,7 +3,7 @@ import { Project, Risk, Control, Asset } from '../../types';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { CustomSelect } from '../ui/CustomSelect';
 import { DatePicker } from '../ui/DatePicker';
-import { useForm, Controller, useWatch } from 'react-hook-form';
+import { useForm, Controller, useWatch, Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectSchema, ProjectFormData } from '../../schemas/projectSchema';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -51,7 +51,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
 }) => {
     const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useForm<ProjectFormData>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resolver: zodResolver(projectSchema) as any,
+        resolver: zodResolver(projectSchema) as Resolver<ProjectFormData>,
         defaultValues: {
             name: '',
             description: '',

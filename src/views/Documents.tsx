@@ -114,7 +114,7 @@ export const Documents: React.FC = () => {
 
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [filter, setFilter] = useState('');
-    const [viewMode, setViewMode] = useState<'grid' | 'list' | 'matrix'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'list' | 'matrix' | 'kanban'>('grid');
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
     const [isDigitalSafeMode, setIsDigitalSafeMode] = useState(false);
     const [isExportingCSV, setIsExportingCSV] = useState(false);
