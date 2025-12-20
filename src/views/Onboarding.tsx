@@ -1,35 +1,20 @@
 import React, { useState } from 'react';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useStore } from '../store';
-import { sanitizeData } from '../utils/dataSanitizer';
-import { doc, setDoc, collection, query, where, getDocs, addDoc, writeBatch, updateDoc } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { auth, db, functions } from '../firebase';
+import { auth } from '../firebase';
 import { ArrowRight, User as UserIcon, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2 } from '../components/ui/Icons';
-import { sendEmail } from '../services/emailService';
-import { getInvitationTemplate } from '../services/emailTemplates';
 import { PLANS } from '../config/plans';
 import { PlanType, UserProfile } from '../types';
-import { SubscriptionService } from '../services/subscriptionService';
-import { analyticsService } from '../services/analyticsService';
+import { OnboardingService, SearchResult } from '../services/onboardingService';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { ErrorLogger } from '../services/errorLogger';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { onboardingSchema, OnboardingFormData } from '../schemas/onboardingSchema';
 import { LegalModal } from '../components/ui/LegalModal';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
-import { Controller } from 'react-hook-form';
-
-
-
-interface SearchResult {
-    id: string;
-    name: string;
-    industry?: string;
-}
 
 export const Onboarding: React.FC = () => {
     const { user, setUser, addToast } = useStore();
@@ -79,15 +64,37 @@ export const Onboarding: React.FC = () => {
     const [showLegalModal, setShowLegalModal] = useState(false);
     const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms' | 'cgv'>('terms');
 
+    const handleFinalize = async () => {
+        if (!user?.organizationId) {
+            addToast("Erreur : Organisation manquante", "error");
+            return;
+        }
+        setLoading(true);
+        try {
+            const userProfile: UserProfile = {
+                ...user,
+                uid: user.uid,
+                organizationId: user.organizationId
+            } as UserProfile;
+
+            await OnboardingService.finalizeOnboarding(userProfile, selectedPlan);
+            await refreshSession();
+            setUser({ ...user, onboardingCompleted: true });
+
+            if (selectedPlan === 'discovery') {
+                navigate('/');
+            }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleFinalize', 'UPDATE_FAILED');
+            setLoading(false);
+        }
+    };
+
     const handleStep3 = async () => {
         if (!user?.organizationId || user.role !== 'admin') return;
         setLoading(true);
         try {
-            await updateDoc(doc(db, 'organizations', user.organizationId), sanitizeData({
-                standards,
-                scope,
-                onboardingStep: 3
-            }));
+            await OnboardingService.updateOrganizationConfiguration(user.organizationId, standards, scope);
             setStep(4);
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Onboarding.step3', 'UPDATE_FAILED');
@@ -127,50 +134,17 @@ export const Onboarding: React.FC = () => {
         if (invitedUsers.length > 0 && user?.organizationId && user.role === 'admin') {
             setLoading(true);
             try {
-                const batch = writeBatch(db);
-                for (const email of invitedUsers) {
-                    // Create invitation document instead of user document
-                    const invitationRef = doc(collection(db, 'invitations'));
-                    batch.set(invitationRef, sanitizeData({
-                        email,
-                        organizationId: user.organizationId,
-                        organizationName: user.organizationName || '',
-                        role: 'user',
-                        invitedBy: user.uid,
-                        createdAt: new Date().toISOString(),
-                        status: 'pending'
-                    }));
+                // Use the UserProfile type for the user object passed to sendInvites
+                const currentUserProfile: UserProfile = {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName || user.email,
+                    organizationId: user.organizationId,
+                    organizationName: user.organizationName,
+                    role: user.role as any
+                };
 
-                    // Trigger email via Cloud Function or API (using client-side service for now)
-                    try {
-                        // Link points to login/register, backend handles the rest via email matching
-                        const inviteLink = `${window.location.origin}/login?email=${encodeURIComponent(email)}`;
-                        const htmlContent = getInvitationTemplate(
-                            user.displayName || user.email || 'Un administrateur',
-                            'Collaborateur',
-                            inviteLink
-                        );
-
-                        // Create a minimal user object for the email service
-                        const invitedUserContext = {
-                            uid: invitationRef.id, // Use invitation ID as temporary UID for logging/tracking
-                            email,
-                            displayName: 'Invité',
-                            organizationId: user.organizationId
-                        } as UserProfile;
-
-                        await sendEmail(invitedUserContext, {
-                            to: email,
-                            subject: `Invitation à rejoindre ${user.organizationName || 'Sentinel GRC'}`,
-                            html: htmlContent,
-                            type: 'INVITATION'
-                        }, false);
-                    } catch (emailError) {
-                        ErrorLogger.error(emailError as Error, 'Onboarding.step4.sendEmail');
-                        // Don't block the flow if email fails, but log it
-                    }
-                }
-                await batch.commit();
+                await OnboardingService.sendInvites(currentUserProfile, invitedUsers);
                 addToast(`${invitedUsers.length} invitations envoyées`, "success");
             } catch (e) {
                 ErrorLogger.handleErrorWithToast(e, 'Onboarding.step4', 'INVITE_FAILED');
@@ -196,22 +170,16 @@ export const Onboarding: React.FC = () => {
         if (initialAssets.length > 0 && user?.organizationId && user.role === 'admin') {
             setLoading(true);
             try {
-                const batch = writeBatch(db);
-                initialAssets.forEach(asset => {
-                    const ref = doc(collection(db, 'assets'));
-                    batch.set(ref, sanitizeData({
-                        name: asset.name,
-                        type: asset.type,
-                        organizationId: user.organizationId,
-                        createdAt: new Date().toISOString(),
-                        lifecycleStatus: 'En service',
-                        confidentiality: 'Medium',
-                        integrity: 'Medium',
-                        availability: 'Medium',
-                        owner: user.displayName || 'Admin'
-                    }));
-                });
-                await batch.commit();
+                // Ensure user profile is valid
+                const currentUserProfile: UserProfile = {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName || 'Admin',
+                    organizationId: user.organizationId,
+                    role: user.role as any
+                };
+
+                await OnboardingService.createInitialAssets(currentUserProfile, initialAssets);
                 addToast(`${initialAssets.length} actifs créés`, "success");
             } catch (e) {
                 ErrorLogger.handleErrorWithToast(e, 'Onboarding.step5', 'CREATE_FAILED');
@@ -235,7 +203,13 @@ export const Onboarding: React.FC = () => {
             if (user.role !== 'admin') {
                 const completeOnboarding = async () => {
                     try {
-                        await setDoc(doc(db, 'users', user.uid), { onboardingCompleted: true }, { merge: true });
+                        const userProfile: UserProfile = { ...user } as UserProfile;
+                        // Use default logic to just mark complete, or re-use finalize with 'discovery' valid?
+                        // Actually better to just explicit set onboardingCompleted.
+                        // But we can use finalizeOnboarding passing 'discovery' as dummy or create a specific method.
+                        // For invited user, no subscription choice, they just join.
+                        await OnboardingService.finalizeOnboarding(userProfile, 'discovery');
+
                         await refreshSession();
                         setUser({ ...user, onboardingCompleted: true });
                         navigate('/', { replace: true });
@@ -258,33 +232,10 @@ export const Onboarding: React.FC = () => {
 
     const handleSearchOrg = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!searchQuery.trim()) return;
         setLoading(true);
         try {
-            // IMPROVED SEARCH: Try exact match OR Capitalized match since we don't have a lowercase field
-            const capitalizedQuery = searchQuery.charAt(0).toUpperCase() + searchQuery.slice(1);
-
-            const q1 = query(
-                collection(db, 'organizations'),
-                where('name', '>=', searchQuery),
-                where('name', '<=', searchQuery + '\uf8ff')
-            );
-
-            // Parallel query for capitalized version if different
-            const [snap1, snap2] = await Promise.all([
-                getDocs(q1),
-                (searchQuery !== capitalizedQuery) ? getDocs(query(
-                    collection(db, 'organizations'),
-                    where('name', '>=', capitalizedQuery),
-                    where('name', '<=', capitalizedQuery + '\uf8ff')
-                )) : Promise.resolve(null)
-            ]);
-
-            const allDocs = [...snap1.docs, ...(snap2?.docs || [])];
-            // Deduplicate by ID
-            const uniqueDocs = Array.from(new Map(allDocs.map(item => [item.id, item])).values());
-
-            setSearchResults(uniqueDocs.map(d => ({ id: d.id, ...d.data() } as SearchResult)));
+            const results = await OnboardingService.searchOrganizations(searchQuery);
+            setSearchResults(results);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleSearchOrg', 'FETCH_FAILED');
         } finally {
@@ -296,15 +247,15 @@ export const Onboarding: React.FC = () => {
         if (!user) return;
         setLoading(true);
         try {
-            await addDoc(collection(db, 'join_requests'), sanitizeData({
-                userId: user.uid,
-                userEmail: user.email,
+            // Need a full UserProfile object here, or at least the parts used by sendJoinRequest
+            const userProfile: UserProfile = {
+                uid: user.uid,
+                email: user.email,
                 displayName: form.getValues('displayName') || user.displayName || user.email,
-                organizationId: orgId,
-                organizationName: orgName,
-                status: 'pending',
-                createdAt: new Date().toISOString()
-            }));
+                role: 'user' // Default role for joiners
+            } as UserProfile;
+
+            await OnboardingService.sendJoinRequest(userProfile, orgId, orgName, form.getValues('displayName'));
             setJoinRequestSent(true);
             addToast("Demande envoyée avec succès", "success");
         } catch (error) {
@@ -317,7 +268,6 @@ export const Onboarding: React.FC = () => {
 
 
     const handleStep1: SubmitHandler<OnboardingFormData> = async (data) => {
-
         const targetUser = currentUser || user;
 
         if (!targetUser || !targetUser.uid) {
@@ -330,9 +280,8 @@ export const Onboarding: React.FC = () => {
         setError('');
 
         try {
-            // Call the Secure Cloud Function
-            const createOrganizationFn = httpsCallable(functions, 'createOrganization');
-            const result = await createOrganizationFn({
+            // Call the Service provided method
+            const result = await OnboardingService.createOrganization({
                 organizationName: data.organizationName || user?.organizationName || 'Mon Organisation',
                 displayName: data.displayName || '',
                 department: data.department || '',
@@ -340,7 +289,7 @@ export const Onboarding: React.FC = () => {
                 industry: data.industry || ''
             });
 
-            const { organizationId } = result.data as { organizationId: string };
+            const { organizationId } = result;
 
             // Force refresh session to get new claims
             await refreshSession();
@@ -365,41 +314,6 @@ export const Onboarding: React.FC = () => {
             const errorMessage = error instanceof Error ? error.message : String(error);
             setError(errorMessage || "Une erreur est survenue lors de la création de l'organisation.");
         } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleFinalize = async () => {
-        if (!user?.organizationId) {
-            addToast("Erreur : Organisation manquante", "error");
-            return;
-        }
-        setLoading(true);
-        try {
-            // Update user onboarding status
-
-            await setDoc(doc(db, 'users', user.uid), { onboardingCompleted: true }, { merge: true });
-
-            // Force refresh session to ensure claims and context are up to date
-            await refreshSession();
-
-            // Update local user state to unlock app access immediately for free plan
-            setUser({ ...user, onboardingCompleted: true });
-
-            analyticsService.logEvent('complete_onboarding', {
-                plan: selectedPlan,
-                organization_id: user.organizationId
-            });
-
-            if (selectedPlan === 'discovery') {
-                // Free plan: Direct access
-                navigate('/');
-            } else {
-                // Paid plan: Redirect to Stripe
-                await SubscriptionService.startSubscription(user.organizationId, selectedPlan, 'month'); // Default to monthly for onboarding
-            }
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleFinalize', 'UPDATE_FAILED');
             setLoading(false);
         }
     };

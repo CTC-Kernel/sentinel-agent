@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
-import { Activity, Trash2, AlertTriangle } from 'lucide-react';
+import { Activity, Trash2, AlertTriangle, Download } from 'lucide-react';
 import { Button } from '../ui/button';
 import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
+import { DataExportService } from '../../services/dataExportService';
 import { hasPermission } from '../../utils/permissions';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -16,8 +17,21 @@ export const SystemSettings: React.FC = () => {
     const { user, addToast, t } = useStore();
     const [auditLogs, setAuditLogs] = useState<SystemLog[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
-    // const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    // const [isDeleting, setIsDeleting] = useState(false);
+    const [exporting, setExporting] = useState(false);
+
+    const handleExportData = async () => {
+        if (!user?.organizationId) return;
+        setExporting(true);
+        try {
+            await DataExportService.exportOrganizationData(user.organizationId);
+            addToast("Export réussi ! Le téléchargement a démarré.", "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'SystemSettings.handleExportData', 'UNKNOWN_ERROR');
+        } finally {
+            setExporting(false);
+        }
+    };
+
 
     useEffect(() => {
         if (!hasPermission(user, 'Settings', 'read')) return;
@@ -139,18 +153,50 @@ export const SystemSettings: React.FC = () => {
                             columns={columns}
                             data={auditLogs}
                             loading={loadingLogs}
-                            // emptyMessage is not part of props based on previous view, check if it's rendered inside?
-                            // Checked DataTable.tsx: it renders "Aucune donnée à afficher" if rows.length === 0.
-                            // The prop 'emptyMessage' does NOT exist in the interface in DataTable.tsx view!
-                            // So I will omit it to be safe, or check if it supports it.
-                            // ... wait, I saw line 238 "Aucune donnée à afficher" hardcoded?
-                            // DataTable.tsx line 238: Aucune donnée à afficher. It does NOT take a prop.
-                            // Check DataTableProps lines 16-28: no emptyMessage.
                             className="bg-transparent border-none"
                         />
                     </div>
                 </div>
             )}
+
+            {/* Data Export */}
+            <div className="glass-panel p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
+                <div className="relative z-10">
+                    <div className="flex items-start gap-4">
+                        <div className="p-3 bg-brand-500/10 dark:bg-brand-500/20 rounded-2xl text-brand-600 dark:text-brand-400 shrink-0 backdrop-blur-md">
+                            <Download className="h-6 w-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                                Export de Données
+                            </h3>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-2xl">
+                                Téléchargez une archive complète (ZIP) de toutes les données de votre organisation (Actifs, Risques, Contrôles, Documents).
+                                Idéal pour vos sauvegardes ou pour la portabilité des données.
+                            </p>
+                            <Button
+                                variant="outline"
+                                onClick={handleExportData}
+                                disabled={exporting}
+                                className="w-full sm:w-auto shadow-lg shadow-brand-500/10"
+                            >
+                                {exporting ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                                        Export en cours...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="h-4 w-4 mr-2" />
+                                        Exporter tout (.zip)
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Danger Zone */}
             <div className="glass-panel p-8 rounded-[2.5rem] border border-red-500/30 dark:border-red-500/20 shadow-sm relative overflow-hidden group">

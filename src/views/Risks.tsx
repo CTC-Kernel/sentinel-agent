@@ -2,8 +2,9 @@ import React, { useState, useRef } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import {
     FileText, FileSpreadsheet, FileCode, MoreVertical,
-    Loader2, Plus, BrainCircuit, ShieldAlert, Copy
+    Loader2, Plus, BrainCircuit, ShieldAlert, Copy, HelpCircle, Filter
 } from 'lucide-react';
+import { OnboardingService } from '../services/onboardingService';
 import { PageHeader } from '../components/ui/PageHeader';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { AdvancedSearch } from '../components/ui/AdvancedSearch';
@@ -190,22 +191,24 @@ export const Risks: React.FC = () => {
             />
 
             {/* Dashboard & Charts */}
-            <RiskDashboard
-                risks={filteredRisks}
-                onFilterChange={(filter) => {
-                    if (!filter) {
-                        // Reset filters logic if needed, or just clear search
-                        setActiveFilters(prev => ({ ...prev, query: '' }));
-                        setFrameworkFilter('');
-                    } else if (filter.type === 'level') {
-                        // This logic might need to be adapted to how useRiskFilters works
-                        // For now, simpler to just log or ignore if useRiskFilters doesn't support direct property set
-                        // But let's try to map it:
-                        // Assuming search query or we need to add explicit filters to useRiskFilters
+            <div data-tour="risks-stats">
+                <RiskDashboard
+                    risks={filteredRisks}
+                    onFilterChange={(filter) => {
+                        if (!filter) {
+                            // Reset filters logic if needed, or just clear search
+                            setActiveFilters(prev => ({ ...prev, query: '' }));
+                            setFrameworkFilter('');
+                        } else if (filter.type === 'level') {
+                            // This logic might need to be adapted to how useRiskFilters works
+                            // For now, simpler to just log or ignore if useRiskFilters doesn't support direct property set
+                            // But let's try to map it:
+                            // Assuming search query or we need to add explicit filters to useRiskFilters
 
-                    }
-                }}
-            />
+                        }
+                    }}
+                />
+            </div>
 
             <motion.div variants={slideUpVariants}>
                 <PremiumPageControl
@@ -214,8 +217,6 @@ export const Risks: React.FC = () => {
                     searchPlaceholder="Rechercher une menace, une vulnérabilité..."
                     viewMode={viewMode}
                     onViewModeChange={(mode) => setViewMode(mode)}
-                    showAdvancedSearch={showAdvancedSearch}
-                    onToggleAdvancedSearch={() => setShowAdvancedSearch(!showAdvancedSearch)}
                     actions={
                         <>
                             {/* Framework Filter */}
@@ -235,6 +236,30 @@ export const Risks: React.FC = () => {
                             </div>
 
                             <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
+
+                            <button
+                                onClick={() => OnboardingService.startRisksTour()}
+                                className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
+                                title="Lancer le tour guidé"
+                            >
+                                <HelpCircle className="h-5 w-5" />
+                            </button>
+
+                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+
+                            <button
+                                data-tour="risks-filters"
+                                onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                                className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
+                                    ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
+                                    }`}
+                                title="Filtres avancés"
+                            >
+                                <Filter className="h-5 w-5" />
+                            </button>
+
+                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
 
                             {/* Actions Menu */}
                             <Menu as="div" className="relative inline-block text-left">
@@ -338,6 +363,7 @@ export const Risks: React.FC = () => {
                                     </CustomTooltip>
                                     <CustomTooltip content="Créer un nouveau risque">
                                         <button
+                                            data-tour="risks-create"
                                             onClick={() => { setEditingRisk(null); setCreationMode(true); }}
                                             className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                         >

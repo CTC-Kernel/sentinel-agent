@@ -29,13 +29,31 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
             .map(([name, value]) => ({ name, value }));
     }, [threats]);
 
-    // Activity Trend (Mocked)
-    const activityData = [
-        { time: '00:00', value: 12 }, { time: '04:00', value: 8 },
-        { time: '08:00', value: 34 }, { time: '12:00', value: 54 },
-        { time: '16:00', value: 45 }, { time: '20:00', value: 23 },
-        { time: '23:59', value: 15 }
-    ];
+    // Activity Trend (Real Data)
+    const activityData = React.useMemo(() => {
+        const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const buckets: Record<string, number> = {};
+
+        // Initialize buckets for last 6 4-hour blocks to show a 24h trend
+        for (let i = 0; i <= 24; i += 4) {
+            const d = new Date(Date.now() - (24 - i) * 60 * 60 * 1000);
+            const key = d.getHours().toString().padStart(2, '0') + ':00';
+            buckets[key] = 0;
+        }
+
+        threats.forEach(t => {
+            const date = t.timestamp ? new Date(t.timestamp) : new Date(t.date);
+            if (date >= last24h) {
+                // Find closest 4h bucket
+                const hours = date.getHours();
+                const bucketHour = Math.floor(hours / 4) * 4;
+                const key = bucketHour.toString().padStart(2, '0') + ':00';
+                if (buckets[key] !== undefined) buckets[key]++;
+            }
+        });
+
+        return Object.entries(buckets).map(([time, value]) => ({ time, value }));
+    }, [threats]);
 
     return (
         <div className="space-y-6">

@@ -1,11 +1,25 @@
 import { driver, DriveStep } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import { useStore } from '../store';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { doc, updateDoc, collection, query, where, getDocs, addDoc, writeBatch } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
+import { db, functions } from '../firebase';
+import { sanitizeData } from '../utils/dataSanitizer';
+import { UserProfile, PlanType } from '../types';
+import { sendEmail } from '../services/emailService';
+import { getInvitationTemplate } from '../services/emailTemplates';
+import { SubscriptionService } from '../services/subscriptionService';
+import { analyticsService } from '../services/analyticsService';
+
+export interface SearchResult {
+    id: string;
+    name: string;
+    industry?: string;
+}
 
 /**
  * Service pour gérer le tour guidé interactif via driver.js
+ * ET la logique métier de l'onboarding (création org, invites, assets)
  * "Masterpiece" Edition
  */
 export class OnboardingService {
@@ -37,6 +51,186 @@ export class OnboardingService {
             }
         }
     });
+
+    // --- Business Logic Methods ---
+
+    /**
+     * Crée une nouvelle organisation via Cloud Function
+     */
+    static async createOrganization(data: {
+        organizationName: string;
+        displayName: string;
+        department: string;
+        role: string;
+        industry: string;
+    }): Promise<{ organizationId: string }> {
+        const createOrganizationFn = httpsCallable(functions, 'createOrganization');
+        const result = await createOrganizationFn(data);
+        return result.data as { organizationId: string };
+    }
+
+    /**
+     * Recherche des organisations par nom (case-insensitive via double query)
+     */
+    static async searchOrganizations(searchQuery: string): Promise<SearchResult[]> {
+        if (!searchQuery.trim()) return [];
+
+        const capitalizedQuery = searchQuery.charAt(0).toUpperCase() + searchQuery.slice(1);
+
+        const q1 = query(
+            collection(db, 'organizations'),
+            where('name', '>=', searchQuery),
+            where('name', '<=', searchQuery + '\uf8ff')
+        );
+
+        const promises = [getDocs(q1)];
+        if (searchQuery !== capitalizedQuery) {
+            promises.push(
+                getDocs(query(
+                    collection(db, 'organizations'),
+                    where('name', '>=', capitalizedQuery),
+                    where('name', '<=', capitalizedQuery + '\uf8ff')
+                ))
+            );
+        }
+
+        const snapshots = await Promise.all(promises);
+        const allDocs = snapshots.flatMap(snap => snap.docs);
+
+        // Deduplicate by ID
+        const uniqueDocs = Array.from(new Map(allDocs.map(item => [item.id, item])).values());
+
+        return uniqueDocs.map(d => ({ id: d.id, ...d.data() } as SearchResult));
+    }
+
+    /**
+     * Envoie une demande pour rejoindre une organisation
+     */
+    static async sendJoinRequest(user: UserProfile, orgId: string, orgName: string, displayName?: string): Promise<void> {
+        await addDoc(collection(db, 'join_requests'), sanitizeData({
+            userId: user.uid,
+            userEmail: user.email,
+            displayName: displayName || user.displayName || user.email,
+            organizationId: orgId,
+            organizationName: orgName,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        }));
+    }
+
+    /**
+     * Met à jour les étapes de configuration de l'organisation (Step 3)
+     */
+    static async updateOrganizationConfiguration(orgId: string, standards: string[], scope: string): Promise<void> {
+        await updateDoc(doc(db, 'organizations', orgId), sanitizeData({
+            standards,
+            scope,
+            onboardingStep: 3
+        }));
+    }
+
+    /**
+     * Envoie des invitations aux collaborateurs (Step 4)
+     */
+    static async sendInvites(user: UserProfile, emails: string[]): Promise<void> {
+        if (!user.organizationId || emails.length === 0) return;
+
+        const batch = writeBatch(db);
+        const invitePromises: Promise<void>[] = [];
+
+        for (const email of emails) {
+            const invitationRef = doc(collection(db, 'invitations'));
+            batch.set(invitationRef, sanitizeData({
+                email,
+                organizationId: user.organizationId,
+                organizationName: user.organizationName || '',
+                role: 'user',
+                invitedBy: user.uid,
+                createdAt: new Date().toISOString(),
+                status: 'pending'
+            }));
+
+            // Email sending logic detached from batch to not block Firestore write
+            const sendInviteEmail = async () => {
+                try {
+                    const inviteLink = `${window.location.origin}/login?email=${encodeURIComponent(email)}`;
+                    const htmlContent = getInvitationTemplate(
+                        user.displayName || user.email || 'Un administrateur',
+                        'Collaborateur',
+                        inviteLink
+                    );
+
+                    const invitedUserContext = {
+                        uid: invitationRef.id,
+                        email,
+                        displayName: 'Invité',
+                        organizationId: user.organizationId
+                    } as UserProfile;
+
+                    await sendEmail(invitedUserContext, {
+                        to: email,
+                        subject: `Invitation à rejoindre ${user.organizationName || 'Sentinel GRC'}`,
+                        html: htmlContent,
+                        type: 'INVITATION'
+                    }, false);
+                } catch (error) {
+                    console.error('Failed to send invite email to ' + email, error);
+                }
+            };
+            invitePromises.push(sendInviteEmail());
+        }
+
+        await batch.commit();
+        await Promise.all(invitePromises);
+    }
+
+    /**
+     * Crée les actifs initiaux (Step 5)
+     */
+    static async createInitialAssets(user: UserProfile, assets: { name: string, type: string }[]): Promise<void> {
+        if (!user.organizationId || assets.length === 0) return;
+
+        const batch = writeBatch(db);
+        assets.forEach(asset => {
+            const ref = doc(collection(db, 'assets'));
+            batch.set(ref, sanitizeData({
+                name: asset.name,
+                type: asset.type,
+                organizationId: user.organizationId,
+                createdAt: new Date().toISOString(),
+                lifecycleStatus: 'En service',
+                confidentiality: 'Medium',
+                integrity: 'Medium',
+                availability: 'Medium',
+                owner: user.displayName || 'Admin'
+            }));
+        });
+        await batch.commit();
+    }
+
+    /**
+     * Finalise l'onboarding pour l'utilisateur et gère l'abonnement
+     */
+    static async finalizeOnboarding(user: UserProfile, plan: PlanType): Promise<void> {
+        if (!user.organizationId) throw new Error("Organization ID missing");
+
+        // 1. Mark user as onboarded
+        await updateDoc(doc(db, 'users', user.uid), { onboardingCompleted: true });
+
+        // 2. Track event
+        analyticsService.logEvent('complete_onboarding', {
+            plan: plan,
+            organization_id: user.organizationId
+        });
+
+        // 3. Handle Subscription if not free
+        if (plan !== 'discovery') {
+            await SubscriptionService.startSubscription(user.organizationId, plan, 'month');
+        }
+    }
+
+
+    // --- Tour Logic Methods ---
 
     /**
      * Initialise et démarre le tour guidé principal basé sur le rôle
@@ -184,10 +378,10 @@ export class OnboardingService {
                 }
             },
             {
-                element: '[data-tour="risks-matrix"]',
+                element: '[data-tour="risks-stats"]',
                 popover: {
-                    title: '📊 Matrice des Risques',
-                    description: 'Visualisez vos risques selon leur probabilité et impact (méthode ISO 27005).',
+                    title: '📊 Vue d\'ensemble',
+                    description: 'Visualisez la répartition de vos risques et les indicateurs clés.',
                     side: 'left',
                     align: 'start'
                 }
@@ -198,6 +392,44 @@ export class OnboardingService {
                     title: '🔍 Filtres',
                     description: 'Filtrez les risques par statut, score, ou responsable pour une vue ciblée.',
                     side: 'bottom',
+                    align: 'start'
+                }
+            }
+        ];
+
+        this.driverInstance.setSteps(steps);
+        this.driverInstance.drive();
+    }
+
+    /**
+     * Tour guidé pour le module Actifs
+     */
+    static startAssetsTour() {
+        const steps: DriveStep[] = [
+            {
+                element: '[data-tour="assets-add"]',
+                popover: {
+                    title: '📦 Ajouter un Actif',
+                    description: 'Déclarez vos serveurs, applications, ou données sensibles ici.',
+                    side: 'bottom',
+                    align: 'start'
+                }
+            },
+            {
+                element: '[data-tour="assets-export"]',
+                popover: {
+                    title: '📤 Export Données',
+                    description: 'Exportez votre inventaire en CSV pour vos rapports ou analyses externes.',
+                    side: 'bottom',
+                    align: 'center'
+                }
+            },
+            {
+                element: '[data-tour="assets-list"]',
+                popover: {
+                    title: '📋 Inventaire',
+                    description: 'Retrouvez la liste complète de vos actifs avec leur criticité (CIA).',
+                    side: 'top',
                     align: 'start'
                 }
             }

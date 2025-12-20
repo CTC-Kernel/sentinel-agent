@@ -16,10 +16,11 @@ import { AssetList } from '../components/assets/AssetList';
 import { AssetInspector } from '../components/assets/AssetInspector';
 import { AssetDashboard } from '../components/assets/AssetDashboard';
 import { useAssets } from '../hooks/assets/useAssets';
-import { Database, FileSpreadsheet, Link, Plus, Filter } from 'lucide-react';
+import { Database, FileSpreadsheet, Link, Plus, Filter, HelpCircle } from 'lucide-react';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { CsvParser } from '../utils/csvUtils';
+import { OnboardingService } from '../services/onboardingService';
 
 const Assets: React.FC = () => {
     const { user } = useStore();
@@ -180,6 +181,14 @@ const Assets: React.FC = () => {
                         actions={
                             <>
                                 <button
+                                    onClick={() => OnboardingService.startAssetsTour()}
+                                    className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
+                                    title="Lancer le tour guidé"
+                                >
+                                    <HelpCircle className="h-5 w-5" />
+                                </button>
+                                <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+                                <button
                                     onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
                                     className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
                                         ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
@@ -198,6 +207,7 @@ const Assets: React.FC = () => {
                                     Kiosque
                                 </button>
                                 <button
+                                    data-tour="assets-export"
                                     onClick={handleExportCSV}
                                     className="hidden sm:flex items-center px-4 py-2.5 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 text-sm font-bold rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all shadow-sm"
                                 >
@@ -206,6 +216,7 @@ const Assets: React.FC = () => {
                                 </button>
                                 {canEdit && (
                                     <button
+                                        data-tour="assets-add"
                                         onClick={() => handleOpenInspector(undefined)}
                                         disabled={reachedAssetLimit}
                                         className={`flex items-center px-5 py-2.5 text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-500/20 ${reachedAssetLimit ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
@@ -219,21 +230,23 @@ const Assets: React.FC = () => {
                         }
                     />
 
-                    <AssetList
-                        assets={paginatedItems}
-                        loading={loading}
-                        viewMode={viewMode}
-                        user={user}
-                        canEdit={canEdit}
-                        onEdit={handleOpenInspector}
-                        onDelete={(id, name) => { setAssetToDelete({ id, name }); setDeleteModalOpen(true); }}
-                        onGenerateLabel={() => {
-                            toast.info("Fonctionnalité à venir", {
-                                description: "L'impression d'étiquettes sera disponible dans la v2.1"
-                            });
-                        }}
-                        activeFiltersQuery={activeFilters.query}
-                    />
+                    <div data-tour="assets-list">
+                        <AssetList
+                            assets={paginatedItems}
+                            loading={loading}
+                            viewMode={viewMode}
+                            user={user}
+                            canEdit={canEdit}
+                            onEdit={handleOpenInspector}
+                            onDelete={(id, name) => { setAssetToDelete({ id, name }); setDeleteModalOpen(true); }}
+                            onGenerateLabel={() => {
+                                toast.info("Fonctionnalité à venir", {
+                                    description: "L'impression d'étiquettes sera disponible dans la v2.1"
+                                });
+                            }}
+                            activeFiltersQuery={activeFilters.query}
+                        />
+                    </div>
 
                     <Pagination
                         currentPage={currentPage}

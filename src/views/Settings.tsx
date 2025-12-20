@@ -8,7 +8,7 @@ import { SecuritySettings } from '../components/settings/SecuritySettings';
 import { OrganizationSettings } from '../components/settings/OrganizationSettings';
 import { IntegrationSettings } from '../components/settings/IntegrationSettings';
 import { SystemSettings } from '../components/settings/SystemSettings';
-import { PageHeader } from '../components/ui/PageHeader';
+
 import { SEO } from '../components/SEO';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
@@ -39,9 +39,7 @@ const Settings: React.FC = () => {
             <MasterpieceBackground />
             <SEO title={t('settings.title')} />
 
-            <PageHeader
-                title={t('settings.title')}
-            />
+
 
             <SettingsLayout currentTab={activeTab} onTabChange={setActiveTab}>
                 <AnimatePresence mode="wait">
