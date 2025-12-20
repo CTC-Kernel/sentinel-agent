@@ -11,7 +11,7 @@ import { ProjectAIAssistant } from './ProjectAIAssistant';
 import { KanbanColumn } from './KanbanColumn';
 import { GanttChart } from './GanttChart';
 import { Comments } from '../ui/Comments';
-import { generateICS, downloadICS } from '../../utils/calendar';
+import { generateICS, downloadICS } from '../../utils/calendarUtils';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { TaskFormModal } from './TaskFormModal';
@@ -256,7 +256,15 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                                 {canEdit && (
                                                     <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <button onClick={() => {
-                                                            const ics = generateICS([{ title: `Tâche: ${task.title}`, description: '', startDate: new Date(), location: '' }]);
+                                                            const startDate = task.startDate ? new Date(task.startDate) : new Date();
+                                                            const endDate = task.dueDate ? new Date(task.dueDate) : new Date(startDate.getTime() + 60 * 60 * 1000);
+                                                            const ics = generateICS([{
+                                                                title: `Tâche: ${task.title}`,
+                                                                description: task.description || '',
+                                                                startTime: startDate,
+                                                                endTime: endDate,
+                                                                location: 'Sentinel GRC'
+                                                            }]);
                                                             downloadICS(`task_${task.id}.ics`, ics);
                                                         }} className="p-1.5 text-slate-500 hover:text-blue-500 transition-all"><CalendarDays className="h-3.5 w-3.5" /></button>
                                                         <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-500 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>

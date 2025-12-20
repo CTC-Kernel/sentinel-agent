@@ -14,6 +14,7 @@ import { getAuditReminderTemplate } from '../../services/emailTemplates';
 import { buildAppUrl } from '../../config/appConfig';
 import { sendEmail } from '../../services/emailService';
 import { analyticsService } from '../../services/analyticsService';
+import { generateICS, downloadICS } from '../../utils/calendarUtils';
 
 export const useAudits = () => {
     const { user, addToast } = useStore();
@@ -212,30 +213,17 @@ export const useAudits = () => {
             return;
         }
 
-        let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Sentinel GRC//NONSGML v1.0//EN\n";
+        const events = scheduledAudits.map(audit => ({
+            title: `Audit: ${audit.name}`,
+            description: `Audit de type ${audit.type} assigné à ${audit.auditor || 'Non assigné'}.`,
+            startTime: new Date(audit.dateScheduled!),
+            endTime: new Date(new Date(audit.dateScheduled!).getTime() + 3600000), // Default 1 hour
+            location: 'Sentinel GRC',
+            url: buildAppUrl(`/audits/${audit.id}`)
+        }));
 
-        scheduledAudits.forEach(audit => {
-            const date = new Date(audit.dateScheduled!);
-            const dateStr = date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-
-            icsContent += "BEGIN:VEVENT\n";
-            icsContent += `UID:${audit.id}@sentinel.grc\n`;
-            icsContent += `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'}\n`;
-            icsContent += `DTSTART;VALUE=DATE:${dateStr.substring(0, 8)}\n`;
-            icsContent += `SUMMARY:Audit ${audit.name}\n`;
-            icsContent += `DESCRIPTION:Audit de type ${audit.type} assigné à ${audit.auditor || 'Non assigné'}.\n`;
-            icsContent += "END:VEVENT\n";
-        });
-
-        icsContent += "END:VCALENDAR";
-
-        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.setAttribute('download', 'audit_calendar.ics');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const icsContent = generateICS(events);
+        downloadICS('audit_calendar.ics', icsContent);
 
         addToast(`${scheduledAudits.length} audits exportés vers le calendrier.`, "success");
     };

@@ -14,6 +14,7 @@ import { CommandPalette } from './components/layout/CommandPalette';
 import { TopBar } from './components/layout/TopBar';
 import { ErrorLogger } from './services/errorLogger';
 import { NotificationPermissionBanner } from './components/ui/NotificationPermissionBanner';
+import { OfflineBanner } from './components/ui/OfflineBanner';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { OnboardingTrigger } from './components/onboarding/OnboardingTrigger';
 import { GeminiAssistant } from './components/ai/GeminiAssistant';
@@ -162,6 +163,7 @@ const AppLayout: React.FC = () => {
                 </SmoothScroll>
             </div>
 
+            <OfflineBanner />
             <NotificationPermissionBanner />
             <CookieConsent />
             <OnboardingTrigger />
