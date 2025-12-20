@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { generateICS, downloadICS } from '@/utils/calendar';
-import { CalendarEvent } from '@/utils/calendar';
+import { generateICS, downloadICS } from '@/utils/calendarUtils';
+import { CalendarEvent } from '@/utils/calendarUtils';
 
 // Mock DOM methods
 Object.defineProperty(window, 'URL', {
@@ -38,8 +38,8 @@ describe('calendar', () => {
       const event: CalendarEvent = {
         title: 'Annual Security Audit',
         description: 'Complete security audit including all controls',
-        startDate: new Date('2024-06-15T09:00:00Z'),
-        endDate: new Date('2024-06-16T17:00:00Z'),
+        startTime: new Date('2024-06-15T09:00:00Z'),
+        endTime: new Date('2024-06-16T17:00:00Z'),
         location: 'Main Office'
       };
 
