@@ -3,7 +3,7 @@ import { ShieldCheck, Lock, EyeOff, FileCheck } from './Icons';
 
 type SecurityBadgeIconComponent = React.ElementType<{ className?: string; strokeWidth?: number }>;
 
-export type SecurityFeature = 'general' | 'storage' | 'confidentiality' | 'integrity' | 'availability';
+export type SecurityFeature = 'general' | 'storage' | 'confidentiality' | 'integrity' | 'availability' | 'admin';
 
 interface SecurityBadgeProps {
     feature: SecurityFeature;
@@ -51,6 +51,13 @@ const BADGE_CONFIG: Record<SecurityFeature, {
         detail: "Garantie de continuité de service",
         subDetail: "SLA 99.9% et réplication temps réel",
         color: "emerald"
+    },
+    admin: {
+        icon: Lock,
+        label: "Zone Administration",
+        detail: "Accès réservé aux administrateurs",
+        subDetail: "Actions critiques auditées",
+        color: "red"
     }
 };
 
@@ -62,7 +69,8 @@ export const SecurityBadge: React.FC<SecurityBadgeProps> = ({ feature, className
         emerald: "bg-emerald-50/50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-200/50 dark:ring-emerald-500/20 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/20",
         blue: "bg-blue-50/50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-200/50 dark:ring-blue-500/20 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/20",
         indigo: "bg-indigo-50/50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 ring-indigo-200/50 dark:ring-indigo-500/20 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20",
-        purple: "bg-purple-50/50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 ring-purple-200/50 dark:ring-purple-500/20 group-hover:bg-purple-100 dark:group-hover:bg-purple-500/20"
+        purple: "bg-purple-50/50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 ring-purple-200/50 dark:ring-purple-500/20 group-hover:bg-purple-100 dark:group-hover:bg-purple-500/20",
+        red: "bg-red-50/50 dark:bg-red-500/10 text-red-700 dark:text-red-400 ring-red-200/50 dark:ring-red-500/20 group-hover:bg-red-100 dark:group-hover:bg-red-500/20"
     };
 
     return (

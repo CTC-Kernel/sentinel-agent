@@ -9,6 +9,8 @@ export interface SystemLog {
     resourceId?: string; // ID of the resource for deep linking
     details?: string;
     timestamp: string;
+    severity?: 'info' | 'warning' | 'danger' | 'success';
+    ip?: string;
 }
 
 export interface NotificationChannelPreferences {

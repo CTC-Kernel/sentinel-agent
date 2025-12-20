@@ -46,7 +46,7 @@ interface ProjectInspectorProps {
 }
 
 export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
-    isOpen, project, onClose, canEdit, usersList,
+    isOpen, project, onClose, canEdit, usersList, user,
     risks, controls, assets, audits,
     updateTasks, onDeleteProject, onDuplicateProject, onEditProject,
     onExportExecutiveReport, onGenerateReport, isSubmitting
@@ -67,23 +67,28 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
 
     const fetchMilestones = useCallback(async (projectId: string) => {
+        if (!user?.organizationId) return;
         try {
-            const q = query(collection(db, 'projectMilestones'), where('projectId', '==', projectId));
+            const q = query(
+                collection(db, 'project_milestones'),
+                where('projectId', '==', projectId),
+                where('organizationId', '==', user.organizationId)
+            );
             const snap = await getDocs(q);
             setProjectMilestones(snap.docs.map(d => ({ id: d.id, ...d.data() } as ProjectMilestone)));
         } catch (e) {
             console.error("Error fetching milestones", e);
         }
-    }, []);
+    }, [user?.organizationId]);
 
     // Fetch Details on Open
     // Fetch Details on Open
     useEffect(() => {
-        if (project) {
+        if (project && user?.organizationId) {
             fetchMilestones(project.id);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [project?.id, fetchMilestones]);
+    }, [project?.id, user?.organizationId, fetchMilestones]);
 
     // Derived Lists
     const linkedRisks = useMemo(() => risks.filter(r => project?.relatedRiskIds?.includes(r.id)), [risks, project?.relatedRiskIds]);

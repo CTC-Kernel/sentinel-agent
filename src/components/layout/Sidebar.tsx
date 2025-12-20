@@ -2,13 +2,33 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
-import { LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity, Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse, LogOut, Settings as Settings3D, ChevronRight, Database, Calendar, Loader2, Bug, Globe, History as HistoryIcon } from '../ui/Icons';
+import {
+  LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity,
+  Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
+  LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe, History,
+  Scale, Shield, Printer, LucideIcon
+} from 'lucide-react';
 import { LegalModal } from '../ui/LegalModal';
 import { Button } from '../ui/button';
-import { Scale, Shield, Printer } from 'lucide-react';
 import { hasPermission } from '../../utils/permissions';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
+import { ResourceType, ActionType } from '../../types';
+
+interface NavItem {
+  key: string;
+  name: string;
+  to: string;
+  icon: LucideIcon;
+  resource?: ResourceType;
+  action?: ActionType;
+  superAdminOnly?: boolean;
+}
+
+interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
 
 export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean) => void }> = ({ mobileOpen, setMobileOpen }) => {
   const { user, t } = useStore();
@@ -26,81 +46,68 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
     checkSuperAdmin();
   }, [user?.uid]);
 
-  const navGroups = [
+  const navGroups: NavGroup[] = [
     {
       title: t('common.pilotage'),
       items: [
-        { key: 'dashboard', name: t('sidebar.dashboard'), to: '/', icon: LayoutDashboard },
-        { key: 'projects', name: t('sidebar.projects'), to: '/projects', icon: FolderKanban },
-        { key: 'reports', name: 'Rapports', to: '/reports', icon: Printer },
+        { key: 'dashboard', name: t('sidebar.dashboard'), to: '/', icon: LayoutDashboard }, // No resource = visible to all
+        { key: 'projects', name: t('sidebar.projects'), to: '/projects', icon: FolderKanban, resource: 'Project' },
+        { key: 'reports', name: 'Rapports', to: '/reports', icon: Printer, resource: 'Risk' }, // Often linked to Risk/Audit
         { key: 'calendar', name: t('common.calendar'), to: '/calendar', icon: Calendar },
       ]
     },
     {
       title: "OPÉRATIONS",
       items: [
-        { key: 'incidents', name: t('sidebar.incidents'), to: '/incidents', icon: Siren },
-        { key: 'vulnerabilities', name: 'Vulnérabilités', to: '/vulnerabilities', icon: Bug },
-        { key: 'threat-intelligence', name: 'Threat Intel', to: '/threat-intelligence', icon: Globe },
-        { key: 'voxel', name: t('common.ctcEngine'), to: '/ctc-engine', icon: Settings3D },
+        { key: 'incidents', name: t('sidebar.incidents'), to: '/incidents', icon: Siren, resource: 'Incident' },
+        { key: 'vulnerabilities', name: 'Vulnérabilités', to: '/vulnerabilities', icon: Bug, resource: 'Asset' },
+        { key: 'threat-intelligence', name: 'Threat Intel', to: '/threat-intelligence', icon: Globe }, // Open feature
+        { key: 'voxel', name: t('common.ctcEngine'), to: '/ctc-engine', icon: Box, resource: 'CTCEngine' },
       ]
     },
     {
       title: t('common.governance'),
       items: [
-        { key: 'risks', name: t('common.riskManagement'), to: '/risks', icon: ShieldAlert },
-        { key: 'compliance', name: t('common.complianceDda'), to: '/compliance', icon: FileText },
-        { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity },
-        { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse },
-        { key: 'privacy', name: t('common.privacyGdpr'), to: '/privacy', icon: Fingerprint },
+        { key: 'risks', name: t('common.riskManagement'), to: '/risks', icon: ShieldAlert, resource: 'Risk' },
+        { key: 'compliance', name: t('common.complianceDda'), to: '/compliance', icon: FileText, resource: 'Audit' }, // Compliance often mapped to Audit roles
+        { key: 'audits', name: t('sidebar.audits'), to: '/audits', icon: Activity, resource: 'Audit' },
+        { key: 'continuity', name: t('sidebar.continuity'), to: '/continuity', icon: HeartPulse, resource: 'Risk' }, // BCP
+        { key: 'privacy', name: t('common.privacyGdpr'), to: '/privacy', icon: Fingerprint, resource: 'Document' }, // Privacy
       ]
     },
     {
       title: t('common.repository'),
       items: [
-        { key: 'assets', name: t('sidebar.assets'), to: '/assets', icon: Server },
-        { key: 'suppliers', name: t('sidebar.suppliers'), to: '/suppliers', icon: Building },
-        { key: 'documents', name: t('sidebar.documents'), to: '/documents', icon: Briefcase },
+        { key: 'assets', name: t('sidebar.assets'), to: '/assets', icon: Server, resource: 'Asset' },
+        { key: 'suppliers', name: t('sidebar.suppliers'), to: '/suppliers', icon: Building, resource: 'Supplier' },
+        { key: 'documents', name: t('sidebar.documents'), to: '/documents', icon: Briefcase, resource: 'Document' },
       ]
     },
     {
       title: t('common.administration'),
       items: [
-        { key: 'team', name: t('sidebar.team'), to: '/team', icon: Users },
-        { key: 'audit-trail', name: "Journal d'Audit", to: '/audit-trail', icon: HistoryIcon },
-        { key: 'backup', name: t('common.backup'), to: '/backup', icon: Database },
-        ...(isSuperAdmin ? [{ key: 'super_admin', name: t('sidebar.superAdmin'), to: '/admin_management', icon: Shield }] : [])
+        { key: 'team', name: t('sidebar.team'), to: '/team', icon: Users, resource: 'User' },
+        { key: 'audit-trail', name: "Journal d'Audit", to: '/audit-trail', icon: History, resource: 'AuditTrail' },
+        { key: 'system-health', name: 'État du Système', to: '/system-health', icon: Activity, resource: 'Organization', action: 'manage' },
+        { key: 'backup', name: t('common.backup'), to: '/backup', icon: Database, resource: 'Settings', action: 'manage' },
+        { key: 'super_admin', name: t('sidebar.superAdmin'), to: '/admin_management', icon: Shield, superAdminOnly: true }
       ]
     }
   ];
 
-  const filterItem = (item: { key: string; name: string }) => {
+  const filterItem = (item: NavItem) => {
     if (!user) return false;
 
-    // STRICT RBAC FILTERING - Source of Truth: permissions.ts
-    // Admin/RSSI check is handled INSIDE hasPermission, no need to duplicate here.
-    switch (item.key) {
-      case 'dashboard': return true; // Always visible
-      case 'incidents': return hasPermission(user, 'Incident', 'read');
-      case 'projects': return hasPermission(user, 'Project', 'read');
-      case 'risks': return hasPermission(user, 'Risk', 'read');
-      case 'audits': return hasPermission(user, 'Audit', 'read');
-      case 'documents': return hasPermission(user, 'Document', 'read');
-      case 'assets': return hasPermission(user, 'Asset', 'read');
-      case 'team': return hasPermission(user, 'User', 'read');
-      case 'backup': return hasPermission(user, 'Settings', 'manage');
-      case 'continuity': return hasPermission(user, 'Risk', 'read'); // BCP often linked to Risk/Admin
-      case 'compliance': return hasPermission(user, 'Audit', 'read');
-      case 'suppliers': return hasPermission(user, 'Supplier', 'read');
-      case 'privacy': return hasPermission(user, 'Document', 'read'); // RGPD linked to Docs usually
-      case 'voxel': return hasPermission(user, 'CTCEngine', 'read');
-      case 'vulnerabilities': return hasPermission(user, 'Asset', 'read');
-      case 'threat-intelligence': return true; // Open to all auth users
-      case 'reports': return hasPermission(user, 'Risk', 'read');
-      case 'audit-trail': return hasPermission(user, 'AuditTrail', 'read');
-      case 'super_admin': return isSuperAdmin;
-      default: return true;
+    // 1. Super Admin Check
+    if (item.superAdminOnly) return isSuperAdmin;
+
+    // 2. Dynamic Resource Check
+    if (item.resource) {
+      return hasPermission(user, item.resource, item.action || 'read');
     }
+
+    // 3. Default: Visible if no resource constraint
+    return true;
   };
 
   const handleLogout = async () => {
@@ -162,7 +169,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                 <div className="space-y-1">
                   {visibleItems.map((item) => (
                     <NavLink
-                      key={item.to} // Changed key to 'to' because 'name' is now dynamic
+                      key={item.to}
                       to={item.to}
                       onClick={() => setMobileOpen(false)}
                       data-tour={`${item.key}-nav`}

@@ -9,6 +9,24 @@
                     "order": "ASCENDING"
                 },
                 {
+                    "fieldPath": "userId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "timestamp",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "system_logs",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "organizationId",
+                    "order": "ASCENDING"
+                },
+                {
                     "fieldPath": "timestamp",
                     "order": "DESCENDING"
                 }
@@ -246,6 +264,19 @@
                 },
                 {
                     "fieldPath": "auditId",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "projectId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "organizationId",
                     "order": "ASCENDING"
                 }
             ]

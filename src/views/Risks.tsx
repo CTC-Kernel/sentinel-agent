@@ -132,18 +132,31 @@ export const Risks: React.FC = () => {
                 const data = CsvParser.parseCSV(text);
 
                 let importedCount = 0;
-                for (const row of data) {
-                    if (row.Menace || row.Threat) {
-                        const prob = Math.min(Math.max(parseInt(row.Probability || row.Probabilite || '1'), 1), 5) as 1 | 2 | 3 | 4 | 5;
-                        const impact = Math.min(Math.max(parseInt(row.Impact || '1'), 1), 5) as 1 | 2 | 3 | 4 | 5;
+                for (const rawRow of data) {
+                    // Normalize keys to lowercase for robust matching
+                    const row: any = {};
+                    Object.keys(rawRow).forEach(key => {
+                        row[key.toLowerCase().trim()] = rawRow[key];
+                    });
+
+                    // Check for mandatory fields (Menace/Threat)
+                    const threat = row.menace || row.threat || row.titre || row.title;
+
+                    if (threat) {
+                        const probInput = row.probability || row.probabilite || row.likelihood || '1';
+                        const impactInput = row.impact || row.gravite || row.severity || '1';
+
+                        const prob = Math.min(Math.max(parseInt(probInput), 1), 5) as 1 | 2 | 3 | 4 | 5;
+                        const impact = Math.min(Math.max(parseInt(impactInput), 1), 5) as 1 | 2 | 3 | 4 | 5;
 
                         await createRisk({
-                            threat: row.Menace || row.Threat,
-                            vulnerability: row.Vulnerability || row.Vulnérabilite || '',
+                            threat: threat,
+                            vulnerability: row.vulnerability || row.vulnerabilite || row.cause || '',
                             probability: prob,
                             impact: impact,
-                            strategy: (row.Strategy || row.Strategie || 'Atténuer') as Risk['strategy'],
-                            status: (row.Status || row.Statut || 'Ouvert') as Risk['status'],
+                            strategy: (row.strategy || row.strategie || 'Atténuer') as Risk['strategy'],
+                            status: (row.status || row.statut || 'Ouvert') as Risk['status'],
+                            framework: (row.framework || row.reference || 'ISO27001')
                         });
                         importedCount++;
                     }

@@ -11,7 +11,7 @@ import { GoogleCalendarService } from '../../services/googleCalendarService';
 import { AddToCalendar } from '../ui/AddToCalendar';
 import { Drawer } from '../ui/Drawer';
 import { CreateEventModal } from './CreateEventModal';
-import { generateICS, downloadICS } from '../../utils/calendar';
+import { generateICS, downloadICS } from '../../utils/calendarUtils';
 import { Clock, ChevronLeft, ChevronRight, Plus, ShieldAlert, FileText, Briefcase, Wrench, Siren, ShieldCheck, Filter, MapPin, Download } from 'lucide-react';
 import { ErrorLogger } from '../../services/errorLogger';
 import { toast } from 'sonner';
@@ -255,8 +255,8 @@ export const CalendarDashboard: React.FC = () => {
                                     const mappedEvents = allEvents.map(e => ({
                                         title: e.title,
                                         description: e.description,
-                                        startDate: e.start,
-                                        endDate: e.end,
+                                        startTime: e.start,
+                                        endTime: e.end,
                                         location: e.location
                                     }));
                                     const icsContent = generateICS(mappedEvents);

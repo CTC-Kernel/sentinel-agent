@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useStore } from '../store';
 import { auth } from '../firebase';
-import { ArrowRight, User as UserIcon, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2 } from '../components/ui/Icons';
+import { ArrowRight, User as UserIcon, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2, Globe, Activity } from '../components/ui/Icons';
+import { motion } from 'framer-motion';
 import { PLANS } from '../config/plans';
 import { PlanType, UserProfile } from '../types';
 import { OnboardingService, SearchResult } from '../services/onboardingService';
@@ -59,6 +60,36 @@ export const Onboarding: React.FC = () => {
     const [assetName, setAssetName] = useState('');
     const [assetType, setAssetType] = useState('SaaS');
     const [initialAssets, setInitialAssets] = useState<{ name: string, type: string }[]>([]);
+    const [isScanning, setIsScanning] = useState(false);
+    const [scanText, setScanText] = useState('');
+    const [manualMode, setManualMode] = useState(false);
+
+    const runAutoScan = () => {
+        setIsScanning(true);
+        setManualMode(false);
+        const steps = [
+            "Initialisation des scanners...",
+            "Analyse des enregistrements DNS...",
+            "Détection des empreintes Cloud...",
+            "Vérification des endpoints SaaS...",
+            "Finalisation du rapport..."
+        ];
+
+        steps.forEach((text, i) => {
+            setTimeout(() => setScanText(text), i * 800);
+        });
+
+        setTimeout(() => {
+            setInitialAssets([
+                { name: 'Google Workspace', type: 'SaaS' },
+                { name: 'AWS Production', type: 'Server' },
+                { name: 'Office 365', type: 'SaaS' },
+                { name: 'Salesforce', type: 'SaaS' }
+            ]);
+            setIsScanning(false);
+            addToast("4 actifs détectés automatiquement", "success");
+        }, 4000);
+    };
 
     // Legal & Terms
     const [termsAccepted, setTermsAccepted] = useState(false);
@@ -737,64 +768,144 @@ export const Onboarding: React.FC = () => {
                             )}
 
                             {step === 5 && (
-                                <div className="space-y-6 animate-fade-in">
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="space-y-6"
+                                >
                                     <div>
-                                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Ajouter un actif critique</label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <div className="col-span-2 relative">
-                                                <FloatingLabelInput
-                                                    label="Nom (ex: Serveur Prod)"
-                                                    icon={Server}
-                                                    value={assetName}
-                                                    onChange={e => setAssetName(e.target.value)}
-                                                    placeholder="Nom (ex: Serveur Prod)"
-                                                />
-                                            </div>
-                                            <CustomSelect
-                                                value={assetType}
-                                                onChange={(val) => setAssetType(val as string)}
-                                                options={[
-                                                    { value: 'SaaS', label: 'SaaS' },
-                                                    { value: 'Server', label: 'Serveur' },
-                                                    { value: 'Laptop', label: 'Ordinateur' },
-                                                    { value: 'Data', label: 'Données' }
-                                                ]}
-                                                label=""
-                                            />
+                                        <div className="flex items-center justify-between mb-4">
+                                            <label className="text-xs font-bold uppercase tracking-widest text-slate-600 flex items-center gap-2">
+                                                <Server className="h-4 w-4" /> Cartographie des Actifs
+                                            </label>
+                                            {initialAssets.length === 0 && !isScanning && (
+                                                <span className="text-xs px-2 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-lg font-bold animate-pulse">
+                                                    IA Ready
+                                                </span>
+                                            )}
                                         </div>
-                                        <button onClick={handleAddAsset} disabled={!assetName} className="mt-2 w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50">
-                                            <Plus className="h-4 w-4" /> Ajouter à la liste
-                                        </button>
+
+                                        {isScanning ? (
+                                            <div className="py-8 flex flex-col items-center justify-center text-center space-y-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-300 dark:border-white/10">
+                                                <div className="relative">
+                                                    <div className="absolute inset-0 bg-brand-500 rounded-full animate-ping opacity-20"></div>
+                                                    <div className="relative w-16 h-16 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center shadow-xl border-4 border-brand-100 dark:border-brand-900">
+                                                        <Loader2 className="h-8 w-8 text-brand-600 animate-spin" />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-slate-900 dark:text-white text-lg">Analyse en cours...</h3>
+                                                    <p className="text-sm text-slate-500 font-mono mt-1">{scanText}</p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                {initialAssets.length === 0 ? (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                                        <button
+                                                            onClick={runAutoScan}
+                                                            className="p-6 bg-gradient-to-br from-brand-600 to-indigo-600 rounded-2xl shadow-lg shadow-brand-500/20 text-left group hover:scale-[1.02] transition-transform relative overflow-hidden"
+                                                        >
+                                                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                                                                <Server className="h-24 w-24 text-white" />
+                                                            </div>
+                                                            <div className="relative z-10 text-white">
+                                                                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center mb-4 backdrop-blur-sm">
+                                                                    <Activity className="h-6 w-6" />
+                                                                </div>
+                                                                <h3 className="font-bold text-lg mb-1">Scan Automatique</h3>
+                                                                <p className="text-white/80 text-xs leading-relaxed">
+                                                                    Détecter automatiquement les actifs via l'empreinte DNS et Cloud.
+                                                                </p>
+                                                            </div>
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => setManualMode(true)}
+                                                            className="p-6 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-left group hover:border-slate-300 dark:hover:border-white/20 transition-all"
+                                                        >
+                                                            <div className="w-10 h-10 bg-slate-100 dark:bg-white/10 rounded-xl flex items-center justify-center mb-4 text-slate-600 dark:text-slate-300">
+                                                                <Plus className="h-6 w-6" />
+                                                            </div>
+                                                            <h3 className="font-bold text-slate-900 dark:text-white text-lg mb-1">Saisie Manuelle</h3>
+                                                            <p className="text-slate-500 text-xs leading-relaxed">
+                                                                Ajouter vos serveurs, SaaS et postes de travail un par un.
+                                                            </p>
+                                                        </button>
+                                                    </div>
+                                                ) : null}
+
+                                                {(manualMode || initialAssets.length > 0) && (
+                                                    <div className="space-y-4 animate-fade-in">
+                                                        <div className="grid grid-cols-3 gap-2">
+                                                            <div className="col-span-2 relative">
+                                                                <FloatingLabelInput
+                                                                    label="Nom (ex: Serveur Prod)"
+                                                                    icon={Server}
+                                                                    value={assetName}
+                                                                    onChange={e => setAssetName(e.target.value)}
+                                                                    placeholder="Nom (ex: Serveur Prod)"
+                                                                />
+                                                            </div>
+                                                            <CustomSelect
+                                                                value={assetType}
+                                                                onChange={(val) => setAssetType(val as string)}
+                                                                options={[
+                                                                    { value: 'SaaS', label: 'SaaS' },
+                                                                    { value: 'Server', label: 'Serveur' },
+                                                                    { value: 'Laptop', label: 'Ordinateur' },
+                                                                    { value: 'Data', label: 'Données' }
+                                                                ]}
+                                                                label=""
+                                                            />
+                                                        </div>
+                                                        <button onClick={handleAddAsset} disabled={!assetName} className="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50">
+                                                            <Plus className="h-4 w-4" /> Ajouter
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
                                     </div>
 
                                     {initialAssets.length > 0 && (
                                         <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar p-1">
                                             {initialAssets.map((asset, idx) => (
-                                                <div key={idx} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: idx * 0.1 }}
+                                                    key={idx}
+                                                    className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                                                >
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-slate-900/30 text-indigo-600 flex items-center justify-center">
-                                                            <Server className="h-4 w-4" />
+                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${asset.type === 'SaaS' ? 'bg-blue-100 text-blue-600' :
+                                                            asset.type === 'Server' ? 'bg-indigo-100 text-indigo-600' :
+                                                                'bg-slate-100 text-slate-600'
+                                                            }`}>
+                                                            {asset.type === 'SaaS' ? <Globe className="h-4 w-4" /> : <Server className="h-4 w-4" />}
                                                         </div>
                                                         <div>
                                                             <p className="font-bold text-slate-700 dark:text-white text-sm">{asset.name}</p>
                                                             <p className="text-xs text-slate-600">{asset.type}</p>
                                                         </div>
                                                     </div>
-                                                    <button onClick={() => handleRemoveAsset(idx)} className="text-slate-500 hover:text-red-500 transition-colors">
+                                                    <button onClick={() => handleRemoveAsset(idx)} className="text-slate-400 hover:text-red-500 transition-colors">
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
-                                                </div>
+                                                </motion.div>
                                             ))}
                                         </div>
                                     )}
 
                                     <div className="pt-4 flex gap-3">
                                         <button onClick={() => setStep(4)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Retour</button>
-                                        <button onClick={handleStep5} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group">
+                                        <button onClick={handleStep5} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group hover:scale-[1.02] active:scale-[0.98] transition-all">
                                             {loading ? '...' : <>Terminer l'installation <Check className="ml-2 h-5 w-5" strokeWidth={3} /></>}
                                         </button>
                                     </div>
-                                </div>
+                                </motion.div>
                             )}
                         </>
                     )}

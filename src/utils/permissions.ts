@@ -184,7 +184,9 @@ export const PERMISSIONS = ROLE_PERMISSIONS;
 
 const isResourceOwner = (user: UserProfile, ownerId?: string): boolean => {
     if (!ownerId) return false;
-    return ownerId === user.uid || ownerId === user.displayName || ownerId === user.email;
+    // SECURITY FIX: Only allow ownership verification via immutable UID.
+    // Removed displayName and email to prevent impersonation attacks via profile updates.
+    return ownerId === user.uid;
 };
 
 import { PLANS, PlanConfig } from '../config/plans';
@@ -212,17 +214,10 @@ export const canEditResource = (user: UserProfile | null, resource: ResourceType
         return true;
     }
 
-    // Explicit check for Auditor to match backend rules
-    // Backend: canWrite(orgId) -> belongsToOrganization && (isAdmin || isAuditor || isRSSI)
-    if (user.role === 'auditor') {
-        // Auditors can edit most core GRC resources
-        const auditorEditableResources: ResourceType[] = [
-            'Risk', 'Asset', 'Control', 'Audit', 'Document',
-            'Supplier', 'BusinessProcess', 'ProcessingActivity', 'Incident',
-            'SupplierAssessment', 'SupplierIncident'
-        ];
-        if (auditorEditableResources.includes(resource)) return true;
-    }
+    // AUDIT FIX: Centralized Permission Logic
+    // Previously, Auditors had hardcoded exceptions here.
+    // Now, we rely strictly on the ROLE_PERMISSIONS matrix or hasPermission function.
+    // This ensures that if we change the matrix, the logic here updates automatically.
 
     return hasPermission(user, resource, 'update', orgOwnerId);
 };
