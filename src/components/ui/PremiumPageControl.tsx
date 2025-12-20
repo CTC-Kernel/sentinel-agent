@@ -10,8 +10,13 @@ interface PremiumPageControlProps {
     showAdvancedSearch?: boolean;
     onToggleAdvancedSearch?: () => void;
 
-    viewMode?: 'grid' | 'list' | 'matrix';
-    onViewModeChange?: (mode: 'grid' | 'list' | 'matrix') => void;
+    viewMode?: 'grid' | 'list' | 'matrix' | 'kanban';
+    onViewModeChange?: (mode: 'grid' | 'list' | 'matrix' | 'kanban') => void;
+
+    // Generic View Props
+    activeView?: string;
+    onViewChange?: (view: string) => void;
+    viewOptions?: { id: string; label: string; icon?: React.ComponentType<{ className?: string }> }[];
 
     /**
      * Additional actions to render on the right side
@@ -28,6 +33,9 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
     onToggleAdvancedSearch,
     viewMode,
     onViewModeChange,
+    activeView,
+    onViewChange,
+    viewOptions,
     actions,
     children
 }) => {
@@ -71,8 +79,31 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                     </button>
                 )}
 
-                {/* View Mode Toggles */}
-                {onViewModeChange && viewMode && (
+                {/* Custom View Options (Generic) */}
+                {viewOptions && activeView && onViewChange && (
+                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
+                        {viewOptions.map((option) => {
+                            const Icon = option.icon;
+                            return (
+                                <button
+                                    key={option.id}
+                                    onClick={() => onViewChange(option.id)}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-300 ${activeView === option.id
+                                        ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
+                                        : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
+                                        }`}
+                                    title={option.label}
+                                >
+                                    {Icon && <Icon className="w-4 h-4" />}
+                                    <span className="hidden md:inline text-sm font-medium">{option.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Legacy View Mode Toggles */}
+                {onViewModeChange && viewMode && !viewOptions && (
                     <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
                         <button
                             onClick={() => onViewModeChange?.('list')}
@@ -103,6 +134,16 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
                             title="Vue Matrice"
                         >
                             <LayoutDashboard className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => onViewModeChange?.('kanban')}
+                            className={`p-1.5 rounded-lg transition-all duration-300 ${viewMode === 'kanban'
+                                ? 'bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400'
+                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/10'
+                                }`}
+                            title="Vue Kanban"
+                        >
+                            <LayoutGrid className="w-4 h-4 rotate-90" />
                         </button>
                     </div>
                 )}

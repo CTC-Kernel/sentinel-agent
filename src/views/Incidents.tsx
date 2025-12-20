@@ -12,6 +12,7 @@ import { NotificationService } from '../services/notificationService';
 
 import { PageHeader } from '../components/ui/PageHeader';
 import { Siren, Plus, ShieldAlert, Edit, Trash2, CalendarDays, BookOpen, BrainCircuit, Server, Activity, Clock, AlertTriangle, MoreVertical } from '../components/ui/Icons';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { Badge } from '../components/ui/Badge';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -20,6 +21,7 @@ import { Drawer } from '../components/ui/Drawer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { IncidentTimeline } from '../components/incidents/IncidentTimeline';
 import { IncidentPlaybook } from '../components/incidents/IncidentPlaybook';
+import { IncidentKanban } from '../components/incidents/IncidentKanban';
 import { IncidentAIAssistant } from '../components/incidents/IncidentAIAssistant';
 import { IncidentForm } from '../components/incidents/IncidentForm';
 import { SafeHTML } from '../components/ui/SafeHTML';
@@ -90,6 +92,8 @@ export const Incidents: React.FC = () => {
     const [inspectorTab, setInspectorTab] = useState<'details' | 'playbook' | 'timeline' | 'ai'>('details');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [importModalOpen, setImportModalOpen] = useState(false);
+    const [viewMode, setViewMode] = useState<'list' | 'grid' | 'kanban'>('grid');
+    const [filter, setFilter] = useState('');
 
     const handleImportFromEvents = async (events: SecurityEvent[]) => {
         if (!user?.organizationId) return;
@@ -358,56 +362,7 @@ export const Incidents: React.FC = () => {
                     subtitle="Détection, analyse et réponse aux incidents de sécurité"
                     icon={<Siren className="h-6 w-6 text-white" strokeWidth={2.5} />}
                     trustType="confidentiality"
-                    actions={
-                        hasPermission(user, 'Incident', 'create') && (
-                            <div className="flex gap-3">
-                                <Menu as="div" className="relative inline-block text-left">
-                                    <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
-                                        <MoreVertical className="h-5 w-5" />
-                                    </Menu.Button>
-                                    <Transition
-                                        as={React.Fragment}
-                                        enter="transition ease-out duration-100"
-                                        enterFrom="transform opacity-0 scale-95"
-                                        enterTo="transform opacity-100 scale-100"
-                                        leave="transition ease-in duration-75"
-                                        leaveFrom="transform opacity-100 scale-100"
-                                        leaveTo="transform opacity-0 scale-95"
-                                    >
-                                        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                            <div className="p-1">
-                                                <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                                    Outils
-                                                </div>
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <button
-                                                            onClick={() => setImportModalOpen(true)}
-                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                                } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
-                                                        >
-                                                            <BrainCircuit className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
-                                                            Importer SIEM/EDR
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                            </div>
-                                        </Menu.Items>
-                                    </Transition>
-                                </Menu>
-
-                                <CustomTooltip content="Déclarer un nouvel incident de sécurité">
-                                    <button
-                                        onClick={() => setCreationMode(true)}
-                                        className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
-                                    >
-                                        <Plus className="h-5 w-5 mr-2" />
-                                        Déclarer un incident
-                                    </button>
-                                </CustomTooltip>
-                            </div>
-                        )
-                    }
+                    breadcrumbs={[{ label: 'Opérations' }, { label: 'Incidents' }]}
                 />
             </motion.div>
 
@@ -491,15 +446,83 @@ export const Incidents: React.FC = () => {
                 </div>
             </motion.div>
 
-            <motion.div variants={slideUpVariants}>
-                <IncidentDashboard
-                    incidents={incidents}
-                    onCreate={() => setCreationMode(true)}
-                    onSelect={(inc: Incident) => { setSelectedIncident(inc); setIsEditing(false); }}
-                    loading={loading}
-                    onDelete={initiateDelete}
-                    onBulkDelete={handleBulkDelete}
-                />
+            {/* Standardized Page Control */}
+            <PremiumPageControl
+                searchQuery={filter}
+                onSearchChange={setFilter}
+                searchPlaceholder="Rechercher par titre, description..."
+                viewMode={viewMode}
+                onViewModeChange={(mode) => setViewMode(mode as 'list' | 'grid' | 'kanban')}
+                actions={
+                    canEdit && (
+                        <>
+                            <Menu as="div" className="relative inline-block text-left">
+                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                    <MoreVertical className="h-5 w-5" />
+                                </Menu.Button>
+                                <Transition
+                                    as={React.Fragment}
+                                    enter="transition ease-out duration-100"
+                                    enterFrom="transform opacity-0 scale-95"
+                                    enterTo="transform opacity-100 scale-100"
+                                    leave="transition ease-in duration-75"
+                                    leaveFrom="transform opacity-100 scale-100"
+                                    leaveTo="transform opacity-0 scale-95"
+                                >
+                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                        <div className="p-1">
+                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                Outils
+                                            </div>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button
+                                                        onClick={() => setImportModalOpen(true)}
+                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                    >
+                                                        <BrainCircuit className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                        Importer SIEM/EDR
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                        </div>
+                                    </Menu.Items>
+                                </Transition>
+                            </Menu>
+
+                            <CustomTooltip content="Déclarer un nouvel incident de sécurité">
+                                <button
+                                    onClick={() => setCreationMode(true)}
+                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
+                                >
+                                    <Plus className="h-5 w-5 mr-2" />
+                                    <span className="hidden sm:inline">Déclarer un incident</span>
+                                </button>
+                            </CustomTooltip>
+                        </>
+                    )
+                }
+            />
+
+            <motion.div variants={slideUpVariants} className={viewMode === 'kanban' ? 'h-[600px]' : ''}>
+                {viewMode === 'kanban' ? (
+                    <IncidentKanban
+                        incidents={incidents.filter(i => i.title.toLowerCase().includes(filter.toLowerCase()))}
+                        onSelect={(inc: Incident) => { setSelectedIncident(inc); setIsEditing(false); }}
+                    />
+                ) : (
+                    <IncidentDashboard
+                        incidents={incidents}
+                        filter={filter}
+                        viewMode={viewMode}
+                        onCreate={() => setCreationMode(true)}
+                        onSelect={(inc: Incident) => { setSelectedIncident(inc); setIsEditing(false); }}
+                        loading={loading}
+                        onDelete={initiateDelete}
+                        onBulkDelete={handleBulkDelete}
+                    />
+                )}
             </motion.div>
 
             {/* Inspector Drawer */}
@@ -651,6 +674,39 @@ export const Incidents: React.FC = () => {
                                                                     </div>
                                                                 ) : (
                                                                     <p className="text-sm text-slate-600 italic">Aucun service lié</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden md:col-span-2">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                                                            <div className="relative z-10">
+                                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
+                                                                    <AlertTriangle className="h-4 w-4" />
+                                                                    Risque Lié
+                                                                </h3>
+                                                                {selectedIncident.relatedRiskId ? (
+                                                                    <div className="space-y-2">
+                                                                        {(() => {
+                                                                            const risk = risks.find(r => r.id === selectedIncident.relatedRiskId);
+                                                                            return risk ? (
+                                                                                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
+                                                                                    <div className="flex flex-col">
+                                                                                        <span className="font-medium text-slate-700 dark:text-slate-200">{risk.threat}</span>
+                                                                                        <span className="text-xs text-slate-500">{risk.scenario}</span>
+                                                                                    </div>
+                                                                                    <div className="text-right">
+                                                                                        <span className="block text-xs font-bold uppercase text-slate-500">Score</span>
+                                                                                        <span className={`font-bold ${risk.score >= 15 ? 'text-red-500' : risk.score >= 8 ? 'text-orange-500' : 'text-emerald-500'}`}>
+                                                                                            {risk.score}/25
+                                                                                        </span>
+                                                                                    </div>
+                                                                                </div>
+                                                                            ) : <p className="text-sm text-slate-600 italic">Risque introuvable</p>;
+                                                                        })()}
+                                                                    </div>
+                                                                ) : (
+                                                                    <p className="text-sm text-slate-600 italic">Aucun risque lié</p>
                                                                 )}
                                                             </div>
                                                         </div>

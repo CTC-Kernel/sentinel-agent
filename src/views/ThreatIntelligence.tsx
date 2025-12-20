@@ -24,7 +24,7 @@ import { db } from '../firebase';
 import { logAction } from '../services/logger';
 import { useStore } from '../store';
 import { TrustRelationship } from '../types';
-import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -34,12 +34,7 @@ export const ThreatIntelligence: React.FC = () => {
 
     // UI State
     const [activeTab, setActiveTab] = useState<'overview' | 'map' | 'feed' | 'community'>('overview');
-    const tabs = [
-        { id: 'overview', label: "Vue Globale", icon: LayoutDashboard },
-        { id: 'map', label: "Carte Live", icon: Globe },
-        { id: 'feed', label: "Flux Menaces", icon: List },
-        { id: 'community', label: "Communauté", icon: Users },
-    ];
+
 
     const [tooltipContent, setTooltipContent] = useState('');
     const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
@@ -195,7 +190,43 @@ export const ThreatIntelligence: React.FC = () => {
                 }
             />
 
-            <ScrollableTabs tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as 'overview' | 'map' | 'feed' | 'community')} />
+            <PremiumPageControl
+                activeView={activeTab}
+                onViewChange={(view) => setActiveTab(view as any)}
+                viewOptions={[
+                    { id: 'overview', label: 'Vue Globale', icon: LayoutDashboard },
+                    { id: 'map', label: 'Carte Live', icon: Globe },
+                    { id: 'feed', label: 'Flux Menaces', icon: List },
+                    { id: 'community', label: 'Communauté', icon: Users },
+                ]}
+                searchQuery={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder="Rechercher une menace..."
+                actions={
+                    activeTab === 'feed' && (
+                        <Menu as="div" className="relative inline-block text-left">
+                            <Menu.Button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors text-sm font-medium">
+                                <Network className="h-4 w-4 text-slate-500" />
+                                <span className="hidden md:inline">Filtre:</span> <span className="font-bold ml-1">{activeTypeFilter}</span>
+                            </Menu.Button>
+                            <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" />
+                            <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                <div className="p-1">
+                                    {['All', 'Ransomware', 'Vulnerability', 'Malware'].map(f => (
+                                        <Menu.Item key={f}>
+                                            {({ active }) => (
+                                                <button onClick={() => setActiveTypeFilter(f)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                    {f}
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                    ))}
+                                </div>
+                            </Menu.Items>
+                        </Menu>
+                    )
+                }
+            />
 
             <CommunitySettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} partners={myPartners} onTrustAction={handleTrustAction} />
             <ThreatDiscussion threatId={selectedThreatId || ''} threatTitle={selectedThreatTitle} isOpen={!!selectedThreatId} onClose={() => setSelectedThreatId(null)} />
@@ -237,33 +268,7 @@ export const ThreatIntelligence: React.FC = () => {
             {/* FEED TAB */}
             {activeTab === 'feed' && (
                 <motion.div variants={slideUpVariants} className="space-y-6">
-                    <PremiumPageControl
-                        searchQuery={searchTerm}
-                        onSearchChange={setSearchTerm}
-                        searchPlaceholder="Rechercher une menace (titre, pays, type)..."
-                        actions={
-                            <Menu as="div" className="relative inline-block text-left">
-                                <Menu.Button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors text-sm font-medium">
-                                    <Network className="h-4 w-4 text-slate-500" />
-                                    Filtre: <span className="font-bold ml-1">{activeTypeFilter}</span>
-                                </Menu.Button>
-                                <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" />
-                                <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                    <div className="p-1">
-                                        {['All', 'Ransomware', 'Vulnerability', 'Malware'].map(f => (
-                                            <Menu.Item key={f}>
-                                                {({ active }) => (
-                                                    <button onClick={() => setActiveTypeFilter(f)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                        {f}
-                                                    </button>
-                                                )}
-                                            </Menu.Item>
-                                        ))}
-                                    </div>
-                                </Menu.Items>
-                            </Menu>
-                        }
-                    />
+
 
                     <div className="grid grid-cols-1 gap-4">
                         {threatsLoading ? (

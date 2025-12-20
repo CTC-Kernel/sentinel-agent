@@ -318,7 +318,7 @@ export const Onboarding: React.FC = () => {
             // Call the Secure Cloud Function
             const createOrganizationFn = httpsCallable(functions, 'createOrganization');
             const result = await createOrganizationFn({
-                organizationName: data.organizationName || (user as unknown as { organizationName?: string })?.organizationName || 'Mon Organisation',
+                organizationName: data.organizationName || user?.organizationName || 'Mon Organisation',
                 displayName: data.displayName || '',
                 department: data.department || '',
                 role: data.role || 'admin',

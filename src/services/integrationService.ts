@@ -459,6 +459,57 @@ class IntegrationService {
             return { valid: false, message: 'Impossible de vérifier la TVA (Service indisponible)' };
         }
     }
+    async fetchScannerVulnerabilities(scanner: 'nessus' | 'qualys' | 'openvas', isDemoMode: boolean = false): Promise<Vulnerability[]> {
+        const demoMode = this.normalizeDemoMode(isDemoMode);
+        if (demoMode) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            const now = new Date();
+
+            // Mock Data Generator
+            const generateVuln = (id: number, cve: string, title: string, sev: Vulnerability['severity'], score: number, asset: string) => ({
+                cveId: cve,
+                title: title,
+                description: `Vulnerability detected by ${scanner}. Impact analysis required.`,
+                severity: sev,
+                score: score,
+                status: 'Open' as const,
+                source: scanner,
+                assetName: asset,
+                publishedDate: new Date(now.getTime() - 1000 * 60 * 60 * 24 * id).toISOString().split('T')[0],
+                detectedAt: new Date().toISOString()
+            });
+
+            if (scanner === 'nessus') {
+                return [
+                    generateVuln(1, 'CVE-2023-4863', 'Heap buffer overflow in libwebp', 'Critical', 9.8, 'Web-Server-01'),
+                    generateVuln(2, 'CVE-2023-29325', 'OData Injection Vulnerability', 'High', 8.1, 'DB-Prod-02'),
+                    generateVuln(3, 'CVE-2023-32001', 'Race condition in file system', 'Medium', 5.5, 'FileShare-01'),
+                    generateVuln(5, 'CVE-2021-44228', 'Log4Shell (Legacy)', 'Critical', 10.0, 'Legacy-App-03'),
+                ];
+            } else if (scanner === 'qualys') {
+                return [
+                    generateVuln(1, 'CVE-2024-21410', 'Exchange Server Elevation of Privilege', 'Critical', 9.8, 'Exchange-01'),
+                    generateVuln(2, 'CVE-2024-21413', 'Outlook RCE Moniker Link', 'High', 8.5, 'Workstation-HR-04'),
+                    generateVuln(3, 'CVE-2023-22527', 'Confluence Data Center RCE', 'Critical', 9.9, 'Wiki-Server'),
+                ];
+            } else {
+                return [
+                    generateVuln(1, 'CVE-2023-0466', 'OpenSSL verification bypass', 'Medium', 4.3, 'Gateway-VPN'),
+                    generateVuln(2, 'CVE-2023-0465', 'OpenSSL invalid certificate policy', 'Low', 3.1, 'Gateway-VPN'),
+                ];
+            }
+        }
+
+        // Production: Call Cloud Function
+        try {
+            const fetchScannerVulnsFn = httpsCallable<{ scanner: string }, Vulnerability[]>(functions, 'fetchScannerVulnerabilities');
+            const result = await fetchScannerVulnsFn({ scanner });
+            return result.data;
+        } catch (error) {
+            ErrorLogger.error(error, 'IntegrationService.fetchScannerVulnerabilities');
+            throw error;
+        }
+    }
 }
 
 export const integrationService = new IntegrationService();

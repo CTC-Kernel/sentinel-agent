@@ -153,6 +153,7 @@ export interface Vulnerability {
   source: string;
   remediationPlan?: string;
   relatedRiskId?: string;
+  assignee?: string;
   createdAt?: string;
   updatedAt?: string;
 }

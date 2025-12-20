@@ -1,11 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
-import { ShieldAlert, CalendarDays, Search, FileSpreadsheet, Siren, Trash2, LayoutGrid, List, CheckCircle2 } from '../ui/Icons';
+import { ShieldAlert, CalendarDays, Siren, Trash2, CheckCircle2 } from '../ui/Icons';
 import { Incident, Criticality } from '../../types';
 import { useStore } from '../../store';
 import { EmptyState } from '../ui/EmptyState';
 import { CardSkeleton } from '../ui/Skeleton';
-import { usePersistedState } from '../../hooks/usePersistedState';
 import { hasPermission } from '../../utils/permissions';
 import { DataTable } from '../ui/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
@@ -17,6 +16,8 @@ interface IncidentDashboardProps {
     loading?: boolean;
     onDelete?: (id: string) => void;
     onBulkDelete?: (ids: string[]) => void;
+    viewMode: 'list' | 'grid';
+    filter: string;
 }
 
 const getSeverityColor = (s: Criticality) => {
@@ -39,40 +40,15 @@ const getStatusColor = (s: string) => {
     }
 };
 
-export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents, onCreate, onSelect, loading = false, onDelete, onBulkDelete }) => {
+export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents, onCreate, onSelect, loading = false, onDelete, onBulkDelete, viewMode, filter }) => {
     const { user } = useStore();
     const canEdit = !!user && (hasPermission(user, 'Incident', 'update') || hasPermission(user, 'Incident', 'delete'));
-    const [filter, setFilter] = useState('');
-    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list'>('incidents_view_mode', 'grid');
 
     const filteredIncidents = useMemo(() => {
         return incidents.filter(i => i.title.toLowerCase().includes(filter.toLowerCase()));
     }, [incidents, filter]);
 
-    const handleExportCSV = () => {
-        const headers = ['Titre', 'Sévérité', 'Statut', 'Date', 'Reporter', 'Description'];
-        const rows = filteredIncidents.map(inc => [
-            inc.title,
-            inc.severity,
-            inc.status,
-            new Date(inc.dateReported).toLocaleDateString(),
-            inc.reporter,
-            inc.description || ''
-        ]);
 
-        const csvContent = [
-            headers.join(','),
-            ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-        ].join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `incidents_${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
 
 
 
@@ -255,33 +231,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 </div>
             </div>
 
-            {/* Search Bar */}
-            <div className="glass-panel p-2 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm border border-white/60 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md focus-within:ring-2 focus-within:ring-brand-500/20 transition-all">
-                <Search className="h-5 w-5 text-slate-500" />
-                <input
-                    type="text"
-                    placeholder="Rechercher un incident..."
-                    className="flex-1 bg-transparent border-none focus:ring-0 text-sm dark:text-white py-2 font-medium placeholder-slate-400 text-slate-700"
-                    value={filter}
-                    onChange={e => setFilter(e.target.value)}
-                />
-                <CustomTooltip content="Exporter CSV">
-                    <button
-                        onClick={handleExportCSV}
-                        className="p-2 bg-slate-50/50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors border border-transparent hover:border-slate-200 dark:hover:border-white/10"
-                    >
-                        <FileSpreadsheet className="h-4 w-4" />
-                    </button>
-                </CustomTooltip>
-                <div className="flex bg-slate-50/50 dark:bg-white/5 p-1 rounded-xl border border-slate-200/50 dark:border-white/10 shadow-sm ml-2">
-                    <CustomTooltip content="Vue Grille">
-                        <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}><LayoutGrid className="h-4 w-4" /></button>
-                    </CustomTooltip>
-                    <CustomTooltip content="Vue Liste">
-                        <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-600'}`}><List className="h-4 w-4" /></button>
-                    </CustomTooltip>
-                </div>
-            </div>
+
 
             {/* Incident list */}
             {viewMode === 'list' ? (
