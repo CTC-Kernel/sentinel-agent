@@ -77,7 +77,7 @@ export class ReportEnrichmentService {
     static analyzeRiskPortfolio(risks: Risk[]): RiskAnalysis {
         const metrics = this.calculateMetrics(risks);
 
-        // Auto-generate recommendations based on heuristics (since we lack direct OpenAI access here)
+        // Auto-generate recommendations based on heuristics
         const recommendations: string[] = [];
 
         if (metrics.critical_risks > 0) {
@@ -101,9 +101,7 @@ export class ReportEnrichmentService {
             .sort((a, b) => ((b.probability || 0) * (b.impact || 0)) - ((a.probability || 0) * (a.impact || 0)))
             .slice(0, 5);
 
-        // Mock trend analysis (would be real if we had historical data)
-        // Assuming some randomization for demo purposes if dates aren't available, 
-        // but using created_at if possible.
+        // Trend analysis based on creation date
         const recentCount = risks.filter(r => {
             if (!r.createdAt) return false;
             const date = new Date(r.createdAt);

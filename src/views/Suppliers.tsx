@@ -4,7 +4,7 @@ import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
 
-import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, writeBatch, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, writeBatch, getDocs, arrayRemove } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Supplier, Document, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
 import { Plus, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, BrainCircuit, Loader2, MoreVertical, ChevronRight } from '../components/ui/Icons';
@@ -203,25 +203,45 @@ export const Suppliers: React.FC = () => {
 
     // Hook Definitions (Moved up to avoid conditional hook errors)
     const performDelete = React.useCallback(async (id: string) => {
-        // 1. Delete related assessments
+        // 1. Dependencies Cleanup
+        // Cleanup Controls
+        const controlQuery = query(collection(db, 'controls'), where('organizationId', '==', user?.organizationId), where('relatedSupplierIds', 'array-contains', id));
+        const riskQuery = query(collection(db, 'risks'), where('organizationId', '==', user?.organizationId), where('relatedSupplierIds', 'array-contains', id));
+
+        const [controlsSnap, risksSnap] = await Promise.all([
+            getDocs(controlQuery),
+            getDocs(riskQuery)
+        ]);
+
+        const cleanupPromises: Promise<void>[] = [];
+        controlsSnap.docs.forEach(docSnap => {
+            cleanupPromises.push(updateDoc(doc(db, 'controls', docSnap.id), { relatedSupplierIds: arrayRemove(id) }));
+        });
+        risksSnap.docs.forEach(docSnap => {
+            cleanupPromises.push(updateDoc(doc(db, 'risks', docSnap.id), { relatedSupplierIds: arrayRemove(id) }));
+        });
+
+        await Promise.all(cleanupPromises);
+
+        // 2. Delete related assessments
         const assessmentsQuery = query(collection(db, 'supplierAssessments'), where('supplierId', '==', id));
         const assessmentsSnap = await getDocs(assessmentsQuery);
         const deleteAssessments = assessmentsSnap.docs.map(doc => deleteDoc(doc.ref));
 
-        // 2. Delete related incidents
+        // 3. Delete related incidents
         const incidentsQuery = query(collection(db, 'supplierIncidents'), where('supplierId', '==', id));
         const incidentsSnap = await getDocs(incidentsQuery);
         const deleteIncidents = incidentsSnap.docs.map(doc => deleteDoc(doc.ref));
 
-        // 3. Delete the supplier itself
+        // 4. Delete the supplier itself
         await Promise.all([...deleteAssessments, ...deleteIncidents, deleteDoc(doc(db, 'suppliers', id))]);
-    }, []);
+    }, [user?.organizationId]);
 
-    const handleDelete = React.useCallback(async (id: string) => {
+    const handleDelete = React.useCallback(async (id: string, name: string) => {
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await performDelete(id);
-            await logAction(user, 'DELETE', 'Supplier', `Suppression Fournisseur: ${selectedSupplier?.name || id}`);
+            await logAction(user, 'DELETE', 'Supplier', `Suppression Fournisseur: ${name}`);
             addToast('Fournisseur et données associées supprimés', 'success');
             if (selectedSupplier?.id === id) setSelectedSupplier(null);
             setConfirmData(prev => ({ ...prev, isOpen: false }));
@@ -232,16 +252,42 @@ export const Suppliers: React.FC = () => {
         }
     }, [performDelete, user, addToast, selectedSupplier]);
 
-    const initiateDelete = React.useCallback((id: string, name: string) => {
+    const initiateDelete = React.useCallback(async (id: string, name: string) => {
         if (!canEdit) return;
+
+        // Check dependencies
+        let message = "Cette action est définitive et supprimera toutes les données associées à ce fournisseur.";
+        try {
+            const controlQuery = query(collection(db, 'controls'), where('organizationId', '==', user?.organizationId), where('relatedSupplierIds', 'array-contains', id));
+            const riskQuery = query(collection(db, 'risks'), where('organizationId', '==', user?.organizationId), where('relatedSupplierIds', 'array-contains', id));
+
+            const [controlsSnap, risksSnap] = await Promise.all([
+                getDocs(controlQuery),
+                getDocs(riskQuery)
+            ]);
+
+            if (!controlsSnap.empty || !risksSnap.empty) {
+                const controlNames = controlsSnap.docs.slice(0, 3).map(d => d.data().code).join(', ');
+                const riskNames = risksSnap.docs.slice(0, 3).map(d => d.data().threat || 'Risque').join(', ');
+
+                let msg = "Attention : Ce fournisseur est lié aux éléments suivants :";
+                if (!controlsSnap.empty) msg += `\n- ${controlsSnap.size} contrôle(s) (${controlNames}...)`;
+                if (!risksSnap.empty) msg += `\n- ${risksSnap.size} risque(s) (${riskNames}...)`;
+                msg += "\nLa suppression retirera le fournisseur de ces éléments.";
+                message = msg;
+            }
+        } catch (e) {
+            console.error("Dependency check failed", e);
+        }
+
         setConfirmData({
             isOpen: true,
             title: `Supprimer ${name} ?`,
-            message: "Cette action est définitive et supprimera toutes les données associées à ce fournisseur.",
-            onConfirm: () => handleDelete(id),
+            message: message,
+            onConfirm: () => handleDelete(id, name),
             closeOnConfirm: false
         });
-    }, [canEdit, handleDelete]);
+    }, [canEdit, handleDelete, user?.organizationId]);
 
     const deferredFilter = useDeferredValue(filter);
     const filteredSuppliers = useMemo(() => {

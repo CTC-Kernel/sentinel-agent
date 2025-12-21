@@ -30,7 +30,7 @@ export const Audits: React.FC = () => {
     const {
         audits, loading, canEdit, canDelete, controls, documents, assets, risks, usersList, projects,
         handleDeleteAudit, handleGeneratePlan, handleCreateAudit, handleUpdateAudit,
-        refreshAudits, handleExportCSV, handleExportCalendar, bulkDeleteAudits
+        refreshAudits, handleExportCSV, handleExportCalendar, bulkDeleteAudits, checkDependencies // Destructured
     } = useAudits();
 
     const { user } = useStore();
@@ -87,11 +87,21 @@ export const Audits: React.FC = () => {
         setCreationMode(true);
     };
 
-    const handleDelete = (audit: Audit) => {
+    const handleDelete = async (audit: Audit) => {
+        // Dependencies check
+        const { hasDependencies, dependencies } = await checkDependencies(audit.id);
+
+        let message = "Cette action est irréversible et supprimera tous les constats associés.";
+        if (hasDependencies && dependencies && dependencies.length > 0) {
+            const depDetails = dependencies.slice(0, 5).map((d: any) => `${d.type}: ${d.name}`).join(', ');
+            const count = dependencies.length;
+            message = `Attention: Cet audit est lié à ${count} élément(s) (${depDetails}${count > 5 ? '...' : ''}). La suppression le retirera de ces éléments.`;
+        }
+
         setConfirmData({
             isOpen: true,
             title: "Supprimer l'audit ?",
-            message: "Cette action est irréversible et supprimera tous les constats associés.",
+            message: message,
             onConfirm: () => handleDeleteAudit(audit.id, audit.name)
         });
     };

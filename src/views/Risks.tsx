@@ -53,8 +53,39 @@ export const Risks: React.FC = () => {
     const {
         createRisk, updateRisk, deleteRisk, bulkDeleteRisks,
         exportCSV, isGeneratingReport, setIsGeneratingReport, submitting, isExportingCSV,
-        importRisks, isImporting
+        importRisks, isImporting, checkDependencies // Destructured here
     } = useRiskActions(refreshRisks);
+
+    // ... existing code ...
+
+    const handleDelete = async (risk: { id: string, name: string }) => {
+        // Optimistic UI or Loading state could be added here if checkDependencies is slow
+        // For now, we just await it.
+        const { hasDependencies, dependencies } = await checkDependencies(risk.id);
+
+        let message = "Cette action est irréversible.";
+        if (hasDependencies && dependencies && dependencies.length > 0) {
+            const depDetails = dependencies.map((d: any) => `${d.type}: ${d.name}`).join(', ');
+            message = `Attention: Ce risque est lié à ${dependencies.length} élément(s) (${depDetails.slice(0, 100)}${depDetails.length > 100 ? '...' : ''}). La suppression retirera ce risque de ces éléments.`;
+        }
+
+        setConfirmData({
+            isOpen: true,
+            title: "Supprimer le risque ?",
+            message: message,
+            onConfirm: () => deleteRisk(risk.id, risk.name)
+        });
+    };
+
+    // ... existing code ...
+
+    // Usage in RiskList
+    // onDelete={(id) => { const r = risks.find(x=>x.id===id); handleDelete({ id, name: r?.threat || 'Risque' }); }}
+    // Actually usually RiskList returns id.
+    // Let's modify RiskList usage below in the same file.
+
+    // Usage in RiskInspector
+    // onDelete={(id) => handleDelete({ id, name: selectedRisk?.threat || 'Risque' })}
 
     const {
         activeFilters, setActiveFilters,
@@ -101,14 +132,7 @@ export const Risks: React.FC = () => {
         setCreationMode(true);
     };
 
-    const handleDelete = (risk: Pick<Risk, 'id'>) => {
-        setConfirmData({
-            isOpen: true,
-            title: "Supprimer le risque ?",
-            message: "Cette action est irréversible.",
-            onConfirm: () => deleteRisk(risk.id)
-        });
-    };
+
 
     const handleExportExecutive = async () => {
         setIsGeneratingReport(true);
@@ -418,7 +442,7 @@ export const Risks: React.FC = () => {
                         risks={filteredRisks}
                         loading={loading}
                         onEdit={handleEdit}
-                        onDelete={(id) => handleDelete({ id })}
+                        onDelete={(id) => { const r = risks.find(x => x.id === id); handleDelete({ id, name: r?.threat || 'Inconnu' }); }}
                         onSelect={setSelectedRisk}
                         canEdit={canEdit}
                         onBulkDelete={bulkDeleteRisks}
@@ -454,7 +478,7 @@ export const Risks: React.FC = () => {
                 canEdit={canEdit}
                 demoMode={demoMode}
                 onUpdate={updateRisk}
-                onDelete={(id) => handleDelete({ id: id } as Risk)} // Wrapper to match signature if needed
+                onDelete={(id, name) => handleDelete({ id, name })}
                 onDuplicate={(r) => {
                     // Remove id and history for the new copy
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars

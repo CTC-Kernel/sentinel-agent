@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc, where, increment, query } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc, where, increment, query, arrayRemove } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Document, DocumentFolder, UserProfile, Control } from '../../types';
 import { DocumentFormData } from '../../schemas/documentSchema';
@@ -124,7 +124,7 @@ export const useDocumentActions = () => {
         try {
             const id = docItem.id;
 
-            // Check Controls (evidence)
+            // Check Controls (evidence) - we use passed controls for quick UI feedback
             const linkedControls = controls.filter(c => c.evidenceIds?.includes(id));
 
             // Check Suppliers (contracts)
@@ -142,25 +142,25 @@ export const useDocumentActions = () => {
                 getDocs(findingsQ)
             ]);
 
+            let message = "Cette action est définitive.";
+
             if (linkedControls.length > 0 || !suppliersSnap.empty || !bcpSnap.empty || !findingsSnap.empty) {
-                const controlNames = linkedControls.map(c => c.code).join(', ');
-                const supplierNames = suppliersSnap.docs.map(d => d.data().name).join(', ');
-                const bcpNames = bcpSnap.docs.map(d => d.data().name).join(', ');
+                const controlNames = linkedControls.slice(0, 3).map(c => c.code).join(', ');
+                const supplierNames = suppliersSnap.docs.slice(0, 3).map(d => d.data().name).join(', ');
 
-                let msg = "Impossible de supprimer ce document car il est utilisé :";
-                if (linkedControls.length > 0) msg += `\n- Preuve pour ${linkedControls.length} contrôle(s) (${controlNames})`;
-                if (!suppliersSnap.empty) msg += `\n- Contrat pour ${suppliersSnap.size} fournisseur(s) (${supplierNames})`;
-                if (!bcpSnap.empty) msg += `\n- DRP pour ${bcpSnap.size} processus (${bcpNames})`;
-                if (!findingsSnap.empty) msg += `\n- Preuve pour ${findingsSnap.size} constat(s) d'audit`;
+                let msg = "Attention : Ce document est utilisé dans les éléments suivants. La suppression le retirera de ces éléments :";
+                if (linkedControls.length > 0) msg += `\n- ${linkedControls.length} contrôle(s) (${controlNames}...)`;
+                if (!suppliersSnap.empty) msg += `\n- ${suppliersSnap.size} fournisseur(s) (${supplierNames}...)`;
+                if (!bcpSnap.empty) msg += `\n- ${bcpSnap.size} processus`;
+                if (!findingsSnap.empty) msg += `\n- ${findingsSnap.size} constat(s)`;
 
-                addToast(msg, "error");
-                return;
+                message = msg;
             }
 
             setConfirmData({
                 isOpen: true,
                 title: "Supprimer le document ?",
-                message: "Cette action est définitive.",
+                message: message,
                 onConfirm: async () => await handleDelete(id, docItem.title),
                 closeOnConfirm: false
             });
@@ -170,12 +170,45 @@ export const useDocumentActions = () => {
     };
 
     const handleDelete = async (id: string, title: string) => {
-        if (!user) return;
+        if (!user || !user.organizationId) return;
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
+            // Cleanup Dependencies Logic (Re-query to be safe and consistent during atomic delete phase)
+            const [controlsSnap, suppliersSnap, bcpSnap, findingsSnap] = await Promise.all([
+                getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId), where('evidenceIds', 'array-contains', id))),
+                getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', user.organizationId), where('contractDocumentId', '==', id))),
+                getDocs(query(collection(db, 'business_processes'), where('organizationId', '==', user.organizationId), where('drpDocumentId', '==', id))),
+                getDocs(query(collection(db, 'findings'), where('organizationId', '==', user.organizationId), where('evidenceIds', 'array-contains', id)))
+            ]);
+
+            const cleanupPromises: Promise<void>[] = [];
+
+            // Remove from Controls
+            controlsSnap.docs.forEach(docSnap => {
+                cleanupPromises.push(updateDoc(doc(db, 'controls', docSnap.id), { evidenceIds: arrayRemove(id) }));
+            });
+
+            // Remove from Suppliers (set contractDocumentId to null)
+            suppliersSnap.docs.forEach(docSnap => {
+                cleanupPromises.push(updateDoc(doc(db, 'suppliers', docSnap.id), { contractDocumentId: null }));
+            });
+
+            // Remove from BCP (set drpDocumentId to null)
+            bcpSnap.docs.forEach(docSnap => {
+                cleanupPromises.push(updateDoc(doc(db, 'business_processes', docSnap.id), { drpDocumentId: null }));
+            });
+
+            // Remove from Findings
+            findingsSnap.docs.forEach(docSnap => {
+                cleanupPromises.push(updateDoc(doc(db, 'findings', docSnap.id), { evidenceIds: arrayRemove(id) }));
+            });
+
+            await Promise.all(cleanupPromises);
+
+            // Finally Delete Document
             await deleteDoc(doc(db, 'documents', id));
             await logAction(user, 'DELETE', 'Document', `Suppression: ${title}`);
-            addToast("Document supprimé", "info");
+            addToast("Document et liens supprimés", "info");
             setConfirmData(prev => ({ ...prev, isOpen: false }));
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.handleDelete', 'DELETE_FAILED');

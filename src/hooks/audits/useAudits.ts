@@ -1,7 +1,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { useFirestoreCollection } from '../useFirestore';
-import { where, collection, addDoc, updateDoc, doc, deleteDoc, query, getDocs, arrayUnion, writeBatch } from 'firebase/firestore';
+import { where, collection, addDoc, updateDoc, doc, deleteDoc, query, getDocs, arrayUnion, writeBatch, arrayRemove } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Audit, Control, Asset, Risk, UserProfile, Document, Project, Finding, AuditChecklist } from '../../types';
@@ -129,9 +129,40 @@ export const useAudits = () => {
         }
     };
 
+    const checkDependencies = async (auditId: string) => {
+        if (!user?.organizationId) return { hasDependencies: false, dependencies: [] };
+
+        // Projects have relatedAuditIds
+        const projectsSnap = await getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId), where('relatedAuditIds', 'array-contains', auditId)));
+
+        // Assets? Checked type, typically Assets don't link back to Audits in this codebase, but let's assume valid based on other patterns. 
+        // If Asset had relatedAuditIds, we would check it. 
+        // Based on previous steps, Project definitely has it. 
+        // Let's stick to Projects for now to be safe.
+
+        const dependencies = [
+            ...projectsSnap.docs.map(d => ({ id: d.id, name: d.data().name || 'Projet', type: 'Projet' }))
+        ];
+
+        return { hasDependencies: dependencies.length > 0, dependencies };
+    };
+
     const handleDeleteAudit = async (id: string, name: string) => {
         if (!canDelete || !user?.organizationId) return;
         try {
+            // Check & Cleanup Dependencies
+            const { hasDependencies, dependencies } = await checkDependencies(id);
+
+            if (hasDependencies && dependencies.length > 0) {
+                const cleanupPromises = [];
+                // Projects
+                const projectDeps = dependencies.filter(d => d.type === 'Projet');
+                for (const dep of projectDeps) {
+                    cleanupPromises.push(updateDoc(doc(db, 'projects', dep.id), { relatedAuditIds: arrayRemove(id) }));
+                }
+                await Promise.all(cleanupPromises);
+            }
+
             // Cascade delete findings
             const findingsQ = query(collection(db, 'findings'), where('organizationId', '==', user.organizationId), where('auditId', '==', id));
             const findingsSnap = await getDocs(findingsQ);
@@ -251,6 +282,7 @@ export const useAudits = () => {
         handleUpdateAudit,
         handleDeleteAudit,
         bulkDeleteAudits,
+        checkDependencies,
         handleGeneratePlan,
         refreshAudits,
         handleExportCSV,

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { db } from '../../firebase';
-import { collection, addDoc, updateDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, deleteDoc, writeBatch, getDocs, query, where, arrayRemove } from 'firebase/firestore';
 import { useAuth } from '../../hooks/useAuth';
 import { Risk } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -99,10 +99,67 @@ export const useRiskActions = (onRefresh: () => void) => {
         }
     };
 
-    const deleteRisk = async (id: string) => {
+    const checkDependencies = async (riskId: string) => {
+        if (!user?.organizationId) return { hasDependencies: false, details: [] };
+
+        const [controlsSnap, projectsSnap, auditsSnap] = await Promise.all([
+            getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId), where('relatedRiskIds', 'array-contains', riskId))),
+            getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId), where('relatedRiskIds', 'array-contains', riskId))),
+            getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId), where('relatedRiskIds', 'array-contains', riskId)))
+        ]);
+
+        const dependencies = [
+            ...controlsSnap.docs.map(d => ({ id: d.id, name: d.data().code || d.data().name || 'Contrôle', type: 'Contrôle' })),
+            ...projectsSnap.docs.map(d => ({ id: d.id, name: d.data().name || 'Projet', type: 'Projet' })),
+            ...auditsSnap.docs.map(d => ({ id: d.id, name: d.data().name || 'Audit', type: 'Audit' }))
+        ];
+
+        return {
+            hasDependencies: dependencies.length > 0,
+            dependencies
+        };
+    };
+
+    const deleteRisk = async (id: string, name?: string) => {
         setSubmitting(true);
         try {
+            // Cleanup references
+            const { dependencies } = await checkDependencies(id);
+            if (dependencies && dependencies.length > 0) {
+
+                // Note: We are not using batch here because we might need to query many different collections
+                // and 'checkDependencies' already fetched them, but for deletion/update we just need IDs.
+                // A simple loop of updates is safer for now.
+
+                // However, checkDependencies gave us the docs.
+                // Let's just run the updates.
+                const cleanupPromises = [];
+
+                // Controls
+                const controlDeps = dependencies.filter(d => d.type === 'Contrôle');
+                for (const dep of controlDeps) {
+                    cleanupPromises.push(updateDoc(doc(db, 'controls', dep.id), { relatedRiskIds: arrayRemove(id) }));
+                }
+                // Projects
+                const projectDeps = dependencies.filter(d => d.type === 'Projet');
+                for (const dep of projectDeps) {
+                    cleanupPromises.push(updateDoc(doc(db, 'projects', dep.id), { relatedRiskIds: arrayRemove(id) }));
+                }
+                // Audits
+                const auditDeps = dependencies.filter(d => d.type === 'Audit');
+                for (const dep of auditDeps) {
+                    cleanupPromises.push(updateDoc(doc(db, 'audits', dep.id), { relatedRiskIds: arrayRemove(id) }));
+                }
+
+                await Promise.all(cleanupPromises);
+            }
+
             await deleteDoc(doc(db, 'risks', id));
+
+            if (user) {
+                logAction(user, 'DELETE_RISK', 'Risk', `Suppression risque: ${name || id}`);
+            }
+
             toast.success('Risque supprimé');
             onRefresh();
             return true;
@@ -146,6 +203,8 @@ export const useRiskActions = (onRefresh: () => void) => {
     const bulkDeleteRisks = async (ids: string[]) => {
         setSubmitting(true);
         try {
+            // Simple batch delete, no cleanup for now as bulk is heavy. 
+            // Ideally we should warn user that bulk delete might leave orphans or handle it via Cloud Functions.
             const batch = writeBatch(db);
             ids.forEach(id => {
                 batch.delete(doc(db, 'risks', id));
@@ -205,6 +264,7 @@ export const useRiskActions = (onRefresh: () => void) => {
         exportCSV,
         bulkDeleteRisks,
         importRisks,
+        checkDependencies,
         isGeneratingReport,
         setIsGeneratingReport,
         isExportingCSV,

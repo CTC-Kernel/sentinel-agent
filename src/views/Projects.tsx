@@ -45,7 +45,7 @@ export const Projects: React.FC = () => {
     const {
         projects, risks, controls, assets, audits, usersList, loading,
         handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks,
-        isSubmitting, canEdit
+        isSubmitting, canEdit, checkDependencies // Destructured
     } = useProjectLogic();
 
     // UI State
@@ -76,13 +76,24 @@ export const Projects: React.FC = () => {
         // creationMode implicitly handled by Drawer 'isOpen' logic check
     };
 
-    const onDeleteRequest = (id: string, name: string) => {
+    const onDeleteRequest = async (id: string, name: string) => {
+        // Dependencies check
+        const { hasDependencies, dependencies } = await checkDependencies(id);
+
+        let message = `Êtes-vous sûr de vouloir supprimer le projet "${name}" ? Cette action est irréversible.`;
+
+        if (hasDependencies && dependencies && dependencies.length > 0) {
+            const depDetails = dependencies.slice(0, 5).map(d => `${d.type}: ${d.name}`).join(', ');
+            const count = dependencies.length;
+            message = `Attention: Ce projet est lié à ${count} élément(s) (${depDetails}${count > 5 ? '...' : ''}). La suppression le retirera de ces éléments.`;
+        }
+
         setConfirmData({
             isOpen: true,
             title: 'Supprimer le projet',
-            message: `Êtes-vous sûr de vouloir supprimer le projet "${name}" ? Cette action est irréversible.`,
+            message: message,
             onConfirm: async () => {
-                await deleteProject(id);
+                await deleteProject(id, name);
                 setConfirmData({ ...confirmData, isOpen: false });
                 if (selectedProject?.id === id) setSelectedProject(null);
             }

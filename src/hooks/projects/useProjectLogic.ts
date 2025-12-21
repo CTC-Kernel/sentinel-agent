@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react';
 import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
-import { where, doc, updateDoc, addDoc, collection, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { where, doc, updateDoc, addDoc, collection, deleteDoc, arrayUnion, arrayRemove, getDocs, query } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Project, ProjectTask, Risk, Control, Asset, Audit, UserProfile } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -155,10 +155,59 @@ export const useProjectLogic = () => {
         }
     };
 
-    const deleteProject = async (id: string) => {
+    const checkDependencies = async (projectId: string) => {
+        if (!user?.organizationId) return { hasDependencies: false, dependencies: [] };
+
+        const [rSnap, cSnap, aSnap, auSnap] = await Promise.all([
+            getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId))),
+            getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId))),
+            getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId))),
+            getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId)))
+        ]);
+
+        const dependencies = [
+            ...rSnap.docs.map(d => ({ id: d.id, name: d.data().threat || 'Risque', type: 'Risque' })),
+            ...cSnap.docs.map(d => ({ id: d.id, name: d.data().code || d.data().name || 'Contrôle', type: 'Contrôle' })),
+            ...aSnap.docs.map(d => ({ id: d.id, name: d.data().name || 'Actif', type: 'Actif' })),
+            ...auSnap.docs.map(d => ({ id: d.id, name: d.data().name || 'Audit', type: 'Audit' }))
+        ];
+
+        return { hasDependencies: dependencies.length > 0, dependencies };
+    };
+
+    const deleteProject = async (id: string, name?: string) => {
         if (!canDeleteResource(user, 'Project')) return;
         try {
+            const { hasDependencies, dependencies } = await checkDependencies(id);
+
+            if (hasDependencies && dependencies.length > 0) {
+                const cleanupPromises = [];
+                // Risks
+                const riskDeps = dependencies.filter(d => d.type === 'Risque');
+                for (const dep of riskDeps) {
+                    cleanupPromises.push(updateDoc(doc(db, 'risks', dep.id), { relatedProjectIds: arrayRemove(id) }));
+                }
+                // Controls
+                const controlDeps = dependencies.filter(d => d.type === 'Contrôle');
+                for (const dep of controlDeps) {
+                    cleanupPromises.push(updateDoc(doc(db, 'controls', dep.id), { relatedProjectIds: arrayRemove(id) }));
+                }
+                // Assets
+                const assetDeps = dependencies.filter(d => d.type === 'Actif');
+                for (const dep of assetDeps) {
+                    cleanupPromises.push(updateDoc(doc(db, 'assets', dep.id), { relatedProjectIds: arrayRemove(id) }));
+                }
+                // Audits
+                const auditDeps = dependencies.filter(d => d.type === 'Audit');
+                for (const dep of auditDeps) {
+                    cleanupPromises.push(updateDoc(doc(db, 'audits', dep.id), { relatedProjectIds: arrayRemove(id) }));
+                }
+
+                await Promise.all(cleanupPromises);
+            }
+
             await deleteDoc(doc(db, 'projects', id));
+            await logAction(user, 'DELETE', 'Project', `Suppression projet: ${name || id}`);
             addToast("Projet supprimé", "info");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Projects.deleteProject', 'DELETE_FAILED');
@@ -181,7 +230,7 @@ export const useProjectLogic = () => {
 
     return {
         projects, risks, audits, controls, assets, usersList, loading,
-        handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks,
+        handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks, checkDependencies,
         isSubmitting, role, canEdit, user, organization
     };
 };

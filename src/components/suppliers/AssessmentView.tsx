@@ -68,6 +68,10 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
             }
 
             await updateDoc(doc(db, 'questionnaire_responses', responseId), updates);
+
+            // Update local state to reflect changes immediately in UI
+            setResponse(prev => prev ? ({ ...prev, ...updates } as SupplierQuestionnaireResponse) : null);
+
             addToast(submit ? 'Évaluation soumise' : 'Sauvegardé', 'success');
             if (submit) onClose();
         } catch (error) {
@@ -125,7 +129,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                     <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700">
                         <p className="text-xs text-center text-slate-400">Score Global</p>
                         <div className="text-3xl font-bold text-center text-indigo-600 dark:text-indigo-400 mt-1">
-                            {response.overallScore || 0}% // todo: update logic
+                            {response.overallScore || 0}%
                         </div>
                     </div>
                 </div>
