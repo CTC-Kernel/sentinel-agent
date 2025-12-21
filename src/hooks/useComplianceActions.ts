@@ -4,6 +4,8 @@ import { db } from '../firebase';
 import { Control, UserProfile } from '../types';
 import { logAction } from '../services/logger';
 import { toast } from 'sonner';
+import { controlSchema } from '../schemas/controlSchema';
+import { z } from 'zod';
 
 export const useComplianceActions = (user: UserProfile | null) => {
     const [updating, setUpdating] = useState(false);
@@ -11,6 +13,10 @@ export const useComplianceActions = (user: UserProfile | null) => {
     const updateControl = async (controlId: string, updates: Partial<Control>, successMessage?: string) => {
         setUpdating(true);
         try {
+            // Validate updates against schema (partial)
+            // Note: We use .partial() because updates might not contain all required fields
+            controlSchema.partial().parse(updates);
+
             const ref = doc(db, 'controls', controlId);
             await updateDoc(ref, {
                 ...updates,
@@ -21,7 +27,13 @@ export const useComplianceActions = (user: UserProfile | null) => {
             return true;
         } catch (error) {
             console.error("Update failed", error);
-            toast.error("Erreur lors de la mise à jour");
+            if (error instanceof z.ZodError) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const zodError = error as any;
+                toast.error(zodError.errors[0].message);
+            } else {
+                toast.error("Erreur lors de la mise à jour");
+            }
             return false;
         } finally {
             setUpdating(false);

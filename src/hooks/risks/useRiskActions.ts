@@ -112,14 +112,14 @@ export const useRiskActions = (onRefresh: () => void) => {
     };
 
     const checkDependencies = async (riskId: string) => {
-        if (!user?.organizationId) return { hasDependencies: false, details: [] };
+        if (!user?.organizationId) return { hasDependencies: false, dependencies: [] };
 
         // Use the new service
         const result = await DependencyService.checkRiskDependencies(riskId, user.organizationId);
 
         return {
             hasDependencies: result.hasDependencies,
-            details: result.dependencies
+            dependencies: result.dependencies
         };
     };
 

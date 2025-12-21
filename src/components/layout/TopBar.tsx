@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Menu, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command, Shield, MessageSquare } from '../ui/Icons';
 import { NotificationCenter } from '../notifications/NotificationCenter';
+import { Breadcrumbs } from '../ui/Breadcrumbs';
 
 import { signOut } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -73,6 +74,9 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                     >
                         <Menu className="h-5 w-5" />
                     </button>
+
+                    {/* Breadcrumbs (Desktop) */}
+                    <Breadcrumbs />
 
                     {/* Modern Search Bar Trigger */}
                     <button

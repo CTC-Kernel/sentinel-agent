@@ -4,8 +4,8 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 export interface Dependency {
     id: string;
     name: string;
-    type: 'Contrôle' | 'Projet' | 'Audit';
-    collectionName: 'controls' | 'projects' | 'audits';
+    type: 'Contrôle' | 'Projet' | 'Audit' | 'Risque';
+    collectionName: 'controls' | 'projects' | 'audits' | 'risks';
 }
 
 export interface DependencyCheckResult {
@@ -86,6 +86,79 @@ export class DependencyService {
                 canDelete: false,
                 blockingReasons: ['Erreur lors de la vérification des dépendances.']
             };
+        }
+    }
+
+
+    /**
+     * Checks for dependencies linked to an Asset.
+     */
+    static async checkAssetDependencies(assetId: string, organizationId: string): Promise<DependencyCheckResult> {
+        if (!assetId || !organizationId) {
+            return { hasDependencies: false, dependencies: [], canDelete: true, blockingReasons: [] };
+        }
+
+        try {
+            // Check Risks linked to this asset
+            const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('assetId', '==', assetId)));
+
+            const dependencies: Dependency[] = risksSnap.docs.map(d => ({
+                id: d.id,
+                name: d.data().threat || 'Risque sans nom',
+                type: 'Risque',
+                collectionName: 'risks'
+            } as Dependency));
+
+            return {
+                hasDependencies: dependencies.length > 0,
+                dependencies,
+                canDelete: true,
+                blockingReasons: dependencies.length > 0 ? [`Cet actif est lié à ${dependencies.length} risques.`] : []
+            };
+        } catch (error) {
+            console.error('Error checking asset dependencies:', error);
+            return { hasDependencies: true, dependencies: [], canDelete: false, blockingReasons: ['Erreur lors de la vérification.'] };
+        }
+    }
+
+    /**
+     * Checks for dependencies linked to a Control.
+     */
+    static async checkControlDependencies(controlId: string, organizationId: string): Promise<DependencyCheckResult> {
+        if (!controlId || !organizationId) {
+            return { hasDependencies: false, dependencies: [], canDelete: true, blockingReasons: [] };
+        }
+
+        try {
+            const [risksSnap, auditsSnap] = await Promise.all([
+                getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId), where('controlIds', 'array-contains', controlId))),
+                getDocs(query(collection(db, 'audits'), where('organizationId', '==', organizationId), where('controlIds', 'array-contains', controlId)))
+            ]);
+
+            const dependencies: Dependency[] = [
+                ...risksSnap.docs.map(d => ({
+                    id: d.id,
+                    name: d.data().threat || 'Risque sans nom',
+                    type: 'Risque',
+                    collectionName: 'risks'
+                } as Dependency)),
+                ...auditsSnap.docs.map(d => ({
+                    id: d.id,
+                    name: d.data().name || 'Audit sans nom',
+                    type: 'Audit',
+                    collectionName: 'audits'
+                } as Dependency))
+            ];
+
+            return {
+                hasDependencies: dependencies.length > 0,
+                dependencies,
+                canDelete: true,
+                blockingReasons: dependencies.length > 0 ? [`Ce contrôle est lié à ${dependencies.length} éléments.`] : []
+            };
+        } catch (error) {
+            console.error('Error checking control dependencies:', error);
+            return { hasDependencies: true, dependencies: [], canDelete: false, blockingReasons: ['Erreur lors de la vérification.'] };
         }
     }
 }

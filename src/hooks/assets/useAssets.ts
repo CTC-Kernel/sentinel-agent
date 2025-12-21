@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from 'react';
-import { where, collection, addDoc, doc, updateDoc, deleteDoc, arrayUnion, increment, query, getDocs } from 'firebase/firestore';
+import { where, collection, addDoc, doc, updateDoc, deleteDoc, arrayUnion, increment } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
@@ -12,6 +12,7 @@ import { assetSchema } from '../../schemas/assetSchema';
 import { z } from 'zod';
 import { ErrorLogger } from '../../services/errorLogger';
 import { usePlanLimits } from '../usePlanLimits';
+import { DependencyService } from '../../services/dependencyService';
 
 export function useAssets() {
     const { user, addToast } = useStore();
@@ -146,40 +147,22 @@ export function useAssets() {
     };
 
     const checkDependencies = async (assetId: string) => {
-        if (!user?.organizationId) return { hasDependencies: false, details: [] };
-
-        // Check Risks
-        const risksQ = query(
-            collection(db, 'risks'),
-            where('organizationId', '==', user.organizationId),
-            where('assetIds', 'array-contains', assetId) // Assuming Many-to-Many or Array
-        );
-        // Fallback check if simple 'assetId' is used in legacy
-        const risksSimpleQ = query(
-            collection(db, 'risks'),
-            where('organizationId', '==', user.organizationId),
-            where('assetId', '==', assetId)
-        );
-
-        const [risksSnap, risksSimpleSnap] = await Promise.all([getDocs(risksQ), getDocs(risksSimpleQ)]);
-
-        const linkedRisks = [...risksSnap.docs, ...risksSimpleSnap.docs].map(d => ({
-            id: d.id,
-            name: d.data().name || 'Risque sans nom',
-            type: 'Risk'
-        }));
-
-        // Remove duplicates if any logic overlap
-        const uniqueRisks = Array.from(new Map(linkedRisks.map(item => [item.id, item])).values());
-
-        return {
-            hasDependencies: uniqueRisks.length > 0,
-            dependencies: uniqueRisks
-        };
+        if (!user?.organizationId) return { hasDependencies: false, dependencies: [], canDelete: true, blockingReasons: [] };
+        // Use global DependencyService
+        // Note: The service returns 'dependencies' array, logic is same
+        return await DependencyService.checkAssetDependencies(assetId, user.organizationId);
     };
 
     const deleteAsset = async (id: string, name: string) => {
         if (!user?.organizationId) return false;
+
+        // Check dependencies before delete
+        const depCheck = await DependencyService.checkAssetDependencies(id, user.organizationId);
+        if (depCheck.hasDependencies) {
+            addToast(`Impossible de supprimer ${name}: lié à ${depCheck.dependencies.length} risque(s).`, "error");
+            return false;
+        }
+
         try {
             await deleteDoc(doc(db, 'assets', id));
             await logAction(user, 'DELETE', 'Asset', `Suppression Actif: ${name}`);
@@ -194,10 +177,21 @@ export function useAssets() {
 
     const bulkDeleteAssets = async (ids: string[]) => {
         if (!user?.organizationId) return false;
+
+        // Pre-check all assets for dependencies
+        // We do this in parallel to be fast
+        const checks = await Promise.all(ids.map(async (id) => {
+            const check = await DependencyService.checkAssetDependencies(id, user.organizationId!);
+            return { id, check };
+        }));
+
+        const blocked = checks.filter(c => c.check.hasDependencies);
+        if (blocked.length > 0) {
+            addToast(`${blocked.length} actif(s) ne peuvent pas être supprimés car ils sont liés à des risques.`, "error");
+            return false;
+        }
+
         try {
-            // Delete sequentially to ensure triggers/logs work (Firestore batch has limits and cleaner logging per item is often preferred for audit trail)
-            // Ideally use batch for atomic, but here keeping consistent with single delete logic for now or simple parallel
-            // Let's use Promise.all for speed, but individual logs
             await Promise.all(ids.map(id => deleteDoc(doc(db, 'assets', id))));
 
             await logAction(user, 'DELETE', 'Asset', `Suppression en masse de ${ids.length} actifs`);

@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Asset, Criticality, UserProfile } from '../../types';
 import { DataTable } from '../ui/DataTable';
 import { Server, Edit, Trash2, Tag } from '../ui/Icons';
 import { TableSkeleton } from '../ui/Skeleton';
 import { EmptyState } from '../ui/EmptyState';
 import { canDeleteResource } from '../../utils/permissions';
+import { ColumnDef } from '@tanstack/react-table';
 
 
 interface AssetListProps {
@@ -22,8 +23,6 @@ interface AssetListProps {
     onBulkDelete?: (ids: string[]) => void;
 }
 
-// ...
-
 const getCriticalityColor = (level: Criticality) => {
     switch (level) {
         case Criticality.CRITICAL: return 'bg-red-100/80 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
@@ -33,7 +32,7 @@ const getCriticalityColor = (level: Criticality) => {
     }
 };
 
-export const AssetList: React.FC<AssetListProps> = ({
+export const AssetList = React.memo<AssetListProps>(({
     assets,
     loading,
     viewMode,
@@ -48,62 +47,64 @@ export const AssetList: React.FC<AssetListProps> = ({
 }) => {
     const canDelete = canDeleteResource(user, 'Asset');
 
+    const columns = useMemo<ColumnDef<Asset>[]>(() => [
+        { header: 'Nom', accessorKey: 'name', cell: ({ row }) => <span className="font-bold text-slate-900 dark:text-white">{row.original.name}</span> },
+        { header: 'Type', accessorKey: 'type' },
+        { header: 'Criticité', accessorKey: 'confidentiality', cell: ({ row }) => <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span> },
+        { header: 'Propriétaire', accessorKey: 'owner' },
+        {
+            header: 'Statut',
+            accessorKey: 'lifecycleStatus',
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${row.original.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>
+                    <span>{row.original.lifecycleStatus || 'Neuf'}</span>
+                </div>
+            )
+        },
+        {
+            header: 'Actions',
+            id: 'actions',
+            cell: ({ row }) => (
+                <div className="flex items-center justify-end gap-2">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onGenerateLabel(row.original); }}
+                        className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                        title="Imprimer Etiquette"
+                        disabled={isGeneratingLabels}
+                    >
+                        <Tag className="h-4 w-4" />
+                    </button>
+                    {canEdit && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onEdit(row.original); }}
+                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                            title="Modifier"
+                        >
+                            <Edit className="h-4 w-4" />
+                        </button>
+                    )}
+                    {canDeleteResource(user, 'Asset') && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(row.original.id, row.original.name); }}
+                            className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            title="Supprimer"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </button>
+                    )}
+                </div>
+            )
+        }
+    ], [canEdit, canDelete, isGeneratingLabels, onEdit, onDelete, onGenerateLabel, user]);
+
     if (viewMode === 'list') {
         return (
             <div className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="relative z-10">
                     <DataTable
-                        columns={[
-                            { header: 'Nom', accessorKey: 'name', cell: ({ row }) => <span className="font-bold text-slate-900 dark:text-white">{row.original.name}</span> },
-                            { header: 'Type', accessorKey: 'type' },
-                            { header: 'Criticité', accessorKey: 'confidentiality', cell: ({ row }) => <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span> },
-                            { header: 'Propriétaire', accessorKey: 'owner' },
-                            {
-                                header: 'Statut',
-                                accessorKey: 'lifecycleStatus',
-                                cell: ({ row }) => (
-                                    <div className="flex items-center gap-2">
-                                        <span className={`w-2 h-2 rounded-full ${row.original.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>
-                                        <span>{row.original.lifecycleStatus || 'Neuf'}</span>
-                                    </div>
-                                )
-                            },
-                            {
-                                header: 'Actions',
-                                id: 'actions',
-                                cell: ({ row }) => (
-                                    <div className="flex items-center justify-end gap-2">
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); onGenerateLabel(row.original); }}
-                                            className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
-                                            title="Imprimer Etiquette"
-                                            disabled={isGeneratingLabels}
-                                        >
-                                            <Tag className="h-4 w-4" />
-                                        </button>
-                                        {canEdit && (
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); onEdit(row.original); }}
-                                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                                title="Modifier"
-                                            >
-                                                <Edit className="h-4 w-4" />
-                                            </button>
-                                        )}
-                                        {canDeleteResource(user, 'Asset') && (
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); onDelete(row.original.id, row.original.name); }}
-                                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                                title="Supprimer"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
-                                        )}
-                                    </div>
-                                )
-                            }
-                        ]}
+                        columns={columns}
                         data={assets}
                         selectable={canDelete}
                         onRowClick={(asset) => onEdit(asset)}
@@ -183,4 +184,4 @@ export const AssetList: React.FC<AssetListProps> = ({
             )}
         </div>
     );
-};
+});
