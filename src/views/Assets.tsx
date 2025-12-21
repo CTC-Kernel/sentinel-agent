@@ -189,7 +189,7 @@ const Assets: React.FC = () => {
                 {/* Dashboard KPIs */}
                 <motion.div variants={slideUpVariants}>
                     {reachedAssetLimit && (
-                        <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 text-amber-900 px-4 py-3 text-sm font-semibold flex items-center justify-between">
+                        <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-4 py-3 text-sm font-semibold flex items-center justify-between backdrop-blur-md shadow-lg shadow-amber-500/10">
                             <span>Limite atteinte : {assets.length}/{limits.maxAssets} actifs.</span>
                             <button
                                 onClick={() => toast.info("Contactez-nous pour mettre à niveau votre plan.")}

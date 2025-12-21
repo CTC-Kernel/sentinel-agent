@@ -251,7 +251,7 @@ export const Audits: React.FC = () => {
                                 </Button>
                                 <Button
                                     onClick={() => { setEditingAudit(null); setCreationMode(true); }}
-                                    className="gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-medium shadow-sm hover:shadow-md transition-all"
+                                    className="gap-2 bg-brand-600 text-white hover:bg-brand-700 font-bold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 transition-all"
                                 >
                                     <Plus className="w-4 h-4" />
                                     <span className="hidden sm:inline">Nouvel Audit</span>
