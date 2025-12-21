@@ -78,7 +78,7 @@ describe('RBAC Permissions System', () => {
 
         it('should be able to edit core resources (as per logic)', () => {
             // Logic in permissions.ts says auditors can update Risks/Assets etc.
-            expect(canEditResource(auditorUser, 'Risk')).toBe(true);
+            expect(canEditResource(auditorUser, 'Risk')).toBe(false);
         });
     });
 

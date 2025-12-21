@@ -60,6 +60,7 @@ vi.mock('../../components/ui/PageHeader', () => ({
 vi.mock('react-router-dom', () => ({
     useNavigate: () => vi.fn(),
     useLocation: () => ({ state: {} }),
+    useSearchParams: () => [new URLSearchParams()],
 }));
 
 vi.mock('react-helmet-async', () => ({
@@ -89,7 +90,7 @@ describe('Assets View', () => {
 
     it('renders the assets inventory title', () => {
         const { getByText } = render(<Assets />);
-        expect(getByText(/Actifs & Inventaire/i)).toBeInTheDocument();
+        expect(getByText(/Inventaire des Actifs/i)).toBeInTheDocument();
     });
 
     it('displays empty state when no assets found', () => {

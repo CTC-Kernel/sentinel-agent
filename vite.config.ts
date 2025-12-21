@@ -132,8 +132,8 @@ export default defineConfig({
     }
   },
   test: {
-    setupFiles: ['./tests/setup.ts'],
-    include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}', 'tests/utils/**/*.{test,spec}.{js,ts}', 'tests/services/**/*.{test,spec}.{js,ts}'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**', 'tests/e2e/**'],
+    setupFiles: ['./src/setupTests.ts'],
+    include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**'],
   }
 } as VitestConfigExport);

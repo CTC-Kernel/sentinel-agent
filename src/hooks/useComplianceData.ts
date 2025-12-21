@@ -79,7 +79,6 @@ export const useComplianceData = (currentFramework: Framework) => {
 
     // Framework filtering
     const filteredControls = controls.filter(c => {
-        if (currentFramework === 'ISO27001') return true; // Show all for ISO view
         return c.framework === currentFramework;
     });
 

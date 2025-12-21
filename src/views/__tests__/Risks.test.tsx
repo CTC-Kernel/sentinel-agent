@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { Risks } from '../Risks'; // Adjust import if necessary (likely index or default)
@@ -66,6 +66,7 @@ vi.mock('../../components/ui/Icons', () => ({
     AlertTriangle: () => <span data-testid="icon-alert" />,
     Layers: () => <span data-testid="icon-layers" />,
     Target: () => <span data-testid="icon-target" />,
+    PieChart: () => <span data-testid="icon-pie-chart" />,
 }));
 // Mock other components to simplify test
 vi.mock('../../components/ui/PageHeader', () => ({
@@ -133,6 +134,10 @@ describe('Risks View', () => {
                 <Risks />
             </MemoryRouter>
         );
+        // Switch to List view
+        const listTab = screen.getByText("Registre");
+        fireEvent.click(listTab);
+
         expect(screen.getByText(/Aucun risque identifié/i)).toBeInTheDocument();
     });
 });

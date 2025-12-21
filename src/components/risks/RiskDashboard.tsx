@@ -59,7 +59,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
     }, {} as Record<string, number>);
 
     // Normalize for Radar (needs at least 3 points usually for good look, but handled by Recharts)
-    let radarData = Object.entries(categoryDataMap).map(([subject, A]) => ({ subject, A, fullMark: totalRisks }));
+    const radarData = Object.entries(categoryDataMap).map(([subject, A]) => ({ subject, A, fullMark: totalRisks }));
     if (radarData.length < 3) {
         // Fill with dummy data if not enough categories to make a nice polygon
         const existing = new Set(radarData.map(d => d.subject));

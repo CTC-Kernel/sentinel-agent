@@ -60,7 +60,7 @@ export const useRiskActions = (onRefresh: () => void) => {
 
             // Notify owner if different from creator
             if (riskData.owner && riskData.owner !== user.uid) {
-                await NotificationService.notifyRiskAssigned(riskData as any, riskData.owner, user.displayName || user.email || 'Admin');
+                await NotificationService.notifyRiskAssigned(riskData as Risk, riskData.owner, user.displayName || user.email || 'Admin');
             }
             return true;
         } catch (error) {
@@ -216,7 +216,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             // A safer approach for bulk is to simply block if dependencies exist, OR carefully batch update.
             // Given "Protection en masse", cleaning is better.
 
-            const updateOps: Promise<any>[] = [];
+            const updateOps: Promise<void>[] = [];
 
             checks.forEach((check, index) => {
                 const riskId = ids[index];

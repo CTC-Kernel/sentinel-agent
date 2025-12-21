@@ -66,7 +66,7 @@ export const Risks: React.FC = () => {
 
         let message = "Cette action est irréversible.";
         if (hasDependencies && dependencies && dependencies.length > 0) {
-            const depDetails = dependencies.map((d: any) => `${d.type}: ${d.name}`).join(', ');
+            const depDetails = dependencies.map((d: { type: string; name: string }) => `${d.type}: ${d.name}`).join(', ');
             message = `Attention: Ce risque est lié à ${dependencies.length} élément(s) (${depDetails.slice(0, 100)}${depDetails.length > 100 ? '...' : ''}). La suppression retirera ce risque de ces éléments.`;
         }
 

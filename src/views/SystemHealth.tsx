@@ -54,7 +54,7 @@ export const SystemHealth: React.FC = () => {
         }, 3000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [user?.organizationId]);
 
     const getStatusColor = (status: string) => {
         return status === 'operational' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]';

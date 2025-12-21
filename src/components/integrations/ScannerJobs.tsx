@@ -10,7 +10,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 
 export const ScannerJobs: React.FC = () => {
-    const { demoMode } = useStore();
+    const { demoMode, user } = useStore();
     const [jobs, setJobs] = useState<ScannerJob[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -24,7 +24,7 @@ export const ScannerJobs: React.FC = () => {
     const loadJobs = React.useCallback(async () => {
         try {
             setLoading(true);
-            const data = await integrationService.getScannerJobs(demoMode);
+            const data = await integrationService.getScannerJobs(user?.organizationId, demoMode);
             setJobs(data);
         } catch {
             toast.error('Erreur lors du chargement des tâches de scan');
@@ -45,7 +45,7 @@ export const ScannerJobs: React.FC = () => {
 
         setIsSubmitting(true);
         try {
-            await integrationService.scheduleScannerJob(newJob, demoMode);
+            await integrationService.scheduleScannerJob(newJob, user?.organizationId, demoMode);
             toast.success('Tâche de scan programmée avec succès');
             setIsCreateModalOpen(false);
             loadJobs();
@@ -60,7 +60,7 @@ export const ScannerJobs: React.FC = () => {
     const handleDeleteJob = async (id: string) => {
         if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) return;
         try {
-            await integrationService.deleteScannerJob(id, demoMode);
+            await integrationService.deleteScannerJob(id, user?.organizationId, demoMode);
             toast.success('Tâche supprimée');
             // Optimistic update
             setJobs(prev => prev.filter(j => j.id !== id));

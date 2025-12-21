@@ -94,7 +94,7 @@ export const Audits: React.FC = () => {
 
         let message = "Cette action est irréversible et supprimera tous les constats associés.";
         if (hasDependencies && dependencies && dependencies.length > 0) {
-            const depDetails = dependencies.slice(0, 5).map((d: any) => `${d.type}: ${d.name}`).join(', ');
+            const depDetails = dependencies.slice(0, 5).map((d: { type: string; name: string }) => `${d.type}: ${d.name}`).join(', ');
             const count = dependencies.length;
             message = `Attention: Cet audit est lié à ${count} élément(s) (${depDetails}${count > 5 ? '...' : ''}). La suppression le retirera de ces éléments.`;
         }

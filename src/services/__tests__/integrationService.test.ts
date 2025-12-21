@@ -50,7 +50,8 @@ describe('IntegrationService', () => {
                     { id: 'job-2', data: () => ({ scannerId: 'qualys', status: 'completed' }) }
                 ]
             };
-            (getDocs as any).mockResolvedValue(mockSnapshot);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            vi.mocked(getDocs).mockResolvedValue(mockSnapshot as any);
 
             const jobs = await integrationService.getScannerJobs(mockOrgId);
 
@@ -76,7 +77,8 @@ describe('IntegrationService', () => {
                 target: '10.0.0.1',
                 frequency: 'daily' as const
             };
-            (addDoc as any).mockResolvedValue({ id: 'new-job-id' });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            vi.mocked(addDoc).mockResolvedValue({ id: 'new-job-id' } as any);
 
             const result = await integrationService.scheduleScannerJob(mockJobCreate, mockOrgId);
 
@@ -89,7 +91,7 @@ describe('IntegrationService', () => {
 
     describe('syncProvider', () => {
         it('should update provider status and lastSync in firestore', async () => {
-            (updateDoc as any).mockResolvedValue(undefined);
+            vi.mocked(updateDoc).mockResolvedValue(undefined);
 
             await integrationService.syncProvider('aws', mockOrgId);
 
@@ -109,7 +111,7 @@ describe('IntegrationService', () => {
 
     describe('deleteScannerJob', () => {
         it('should delete job from firestore', async () => {
-            (deleteDoc as any).mockResolvedValue(undefined);
+            vi.mocked(deleteDoc).mockResolvedValue(undefined);
 
             await integrationService.deleteScannerJob('job-1', mockOrgId);
 

@@ -256,7 +256,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                         />
                     )}
 
-                    {inspectorTab === 'dashboard' && <RiskDashboard risks={[risk]} />}
+                    {inspectorTab === 'dashboard' && <RiskDashboard risks={[risk]} assets={assets} />}
 
                     {inspectorTab === 'projects' && (
                         <div className="space-y-8">

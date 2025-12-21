@@ -96,7 +96,7 @@ export const Compliance: React.FC = () => {
             <MasterpieceBackground />
             <SEO title={`Conformité ${currentFramework} - Sentinel GRC`} description="Gestion de la conformité et des contrôles" />
 
-            <div className="relative z-10 p-6 space-y-8 max-w-[1920px] mx-auto pb-24">
+            <div className="relative z-10 p-6 space-y-8 max-w-[1920px] mx-auto pb-24 overflow-x-hidden">
                 <PageHeader
                     title="Conformité"
                     subtitle="Pilotez votre conformité normative et réglementaire"
@@ -141,7 +141,7 @@ export const Compliance: React.FC = () => {
                 {/* Tab Content */}
                 {activeTab === 'overview' && (
                     <div className="animate-fade-in space-y-6">
-                        <ComplianceDashboard controls={controls} />
+                        <ComplianceDashboard controls={filteredControls} currentFramework={currentFramework} />
                     </div>
                 )}
 

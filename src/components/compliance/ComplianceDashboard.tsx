@@ -10,9 +10,10 @@ import { ErrorLogger } from '../../services/errorLogger';
 interface ComplianceDashboardProps {
     controls: Control[];
     onFilterChange?: (status: string | null) => void;
+    currentFramework?: string;
 }
 
-export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ controls }) => {
+export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ controls, currentFramework = 'ISO27001' }) => {
     const { user } = useStore();
     const [trend, setTrend] = useState<number | undefined>(undefined);
 
@@ -154,7 +155,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                         </div>
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-foreground">Score Global</h3>
+                        <h3 className="text-lg font-bold text-foreground">Score {currentFramework}</h3>
                         <p className="text-sm text-muted-foreground mt-0.5">Conformité moyenne</p>
                         {trend !== undefined && (
                             <div className={`text-xs font-bold mt-2 px-2.5 py-1 rounded-lg w-fit inline-flex items-center gap-1 ${trend >= 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-rose-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
@@ -167,33 +168,39 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
                 {/* Middle: Frameworks Mini-Cards */}
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 min-w-0">
-                    <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
-                        <div className="flex justify-between items-start mb-3">
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">ISO 27001</span>
-                            <span className="text-sm font-black text-blue-600 dark:text-blue-400">{Math.round(isoScore)}%</span>
+                    {(currentFramework === 'ISO27001' || isoScore > 0) && (
+                        <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
+                            <div className="flex justify-between items-start mb-3">
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">ISO 27001</span>
+                                <span className="text-sm font-black text-blue-600 dark:text-blue-400">{Math.round(isoScore)}%</span>
+                            </div>
+                            <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${isoScore}%` }}></div>
+                            </div>
                         </div>
-                        <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${isoScore}%` }}></div>
+                    )}
+                    {(currentFramework === 'GDPR' || rgpdScore > 0) && (
+                        <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
+                            <div className="flex justify-between items-start mb-3">
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">RGPD</span>
+                                <span className="text-sm font-black text-purple-600 dark:text-purple-400">{Math.round(rgpdScore)}%</span>
+                            </div>
+                            <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-full bg-purple-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${rgpdScore}%` }}></div>
+                            </div>
                         </div>
-                    </div>
-                    <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
-                        <div className="flex justify-between items-start mb-3">
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">RGPD</span>
-                            <span className="text-sm font-black text-purple-600 dark:text-purple-400">{Math.round(rgpdScore)}%</span>
+                    )}
+                    {(currentFramework === 'DORA' || doraScore > 0) && (
+                        <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
+                            <div className="flex justify-between items-start mb-3">
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">DORA</span>
+                                <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{Math.round(doraScore)}%</span>
+                            </div>
+                            <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${doraScore}%` }}></div>
+                            </div>
                         </div>
-                        <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-purple-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${rgpdScore}%` }}></div>
-                        </div>
-                    </div>
-                    <div className="bg-slate-50/50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 flex flex-col justify-between hover:scale-105 transition-transform duration-300">
-                        <div className="flex justify-between items-start mb-3">
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">DORA</span>
-                            <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{Math.round(doraScore)}%</span>
-                        </div>
-                        <div className="h-2 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${doraScore}%` }}></div>
-                        </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Right: Quick Stats */}
@@ -267,7 +274,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
                         <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
                             <BarChartIcon className="w-4 h-4 text-brand-500" />
-                            Conformité par Domaine (Annexe A)
+                            Conformité par Domaine ({currentFramework})
                         </h4>
                         <div className="h-[280px] w-full min-h-[280px] relative z-10">
                             <ResponsiveContainer width="100%" height="100%">
@@ -387,7 +394,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
                 <h4 className="text-sm font-bold text-foreground mb-4 relative z-10 flex items-center gap-2">
                     <ShieldAlert className="w-4 h-4 text-brand-500" />
-                    Détail par Domaine ISO 27001
+                    Détail par Domaine {currentFramework}
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
                     {Object.entries(domainData).map(([domain, data]) => {
