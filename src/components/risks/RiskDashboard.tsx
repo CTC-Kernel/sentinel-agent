@@ -4,12 +4,13 @@ import { Risk, Asset } from '../../types';
 import { ShieldAlert, AlertTriangle, Target, Clock, TrendingUp, Layers, PieChart as PieIcon, Activity } from '../ui/Icons';
 import {
     PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-    AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
+    AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ReferenceLine
 } from 'recharts';
+import { RISK_ACCEPTANCE_THRESHOLD } from '../../constants/RiskConstants';
 
 interface RiskDashboardProps {
     risks: Risk[];
-    assets: Asset[]; // Added assets prop
+    assets: Asset[];
     onFilterChange?: (filter: { type: 'level' | 'strategy' | 'category', value: string } | null) => void;
 }
 
@@ -38,6 +39,9 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
     const mediumRisks = risks.filter(r => r.score >= 5 && r.score < 10).length;
     const lowRisks = risks.filter(r => r.score < 5).length;
     const untreatedRisks = risks.filter(r => r.strategy === 'Accepter').length;
+
+    // Risks above appetite threshold
+    const risksAboveAppetite = risks.filter(r => (r.residualScore || r.score) > RISK_ACCEPTANCE_THRESHOLD).length;
 
     const avgScore = risks.length > 0 ? risks.reduce((sum, r) => sum + r.score, 0) / risks.length : 0;
     const avgResidual = risks.length > 0 ? risks.reduce((sum, r) => sum + ((r.residualProbability || 0) * (r.residualImpact || 0)), 0) / risks.length : 0;
@@ -147,12 +151,14 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
                     <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mt-1">Risques Critiques</span>
                 </div>
 
-                <div className="glass-panel p-5 rounded-2xl border border-white/60 dark:border-white/5 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/10 dark:to-transparent">
-                    <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center mb-3">
-                        <Activity className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <div className={`glass-panel p-5 rounded-2xl border flex flex-col items-center justify-center bg-gradient-to-br transition-colors ${risksAboveAppetite > 0 ? 'border-orange-200 dark:border-orange-500/30 from-orange-50 to-white dark:from-orange-900/10 dark:to-transparent' : 'border-white/60 dark:border-white/5 from-indigo-50 to-white dark:from-indigo-900/10 dark:to-transparent'}`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 ${risksAboveAppetite > 0 ? 'bg-orange-100 dark:bg-orange-500/20' : 'bg-indigo-100 dark:bg-indigo-500/20'}`}>
+                        <Activity className={`h-5 w-5 ${risksAboveAppetite > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
                     </div>
-                    <span className="text-3xl font-black text-slate-800 dark:text-slate-100">{avgScore.toFixed(1)}</span>
-                    <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mt-1">Score Moyen</span>
+                    <span className={`text-3xl font-black ${risksAboveAppetite > 0 ? 'text-orange-700 dark:text-orange-200' : 'text-slate-800 dark:text-slate-100'}`}>{risksAboveAppetite}</span>
+                    <span className={`text-xs font-bold uppercase tracking-wider mt-1 ${risksAboveAppetite > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
+                        Hors Appétence (&gt;{RISK_ACCEPTANCE_THRESHOLD})
+                    </span>
                 </div>
 
                 <div className="glass-panel p-5 rounded-2xl border border-white/60 dark:border-white/5 flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/10 dark:to-transparent">
@@ -290,6 +296,17 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
                             <XAxis dataKey="date" stroke={chartTheme.text} fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
                             <YAxis stroke={chartTheme.text} fontSize={11} tickLine={false} axisLine={false} />
                             <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3', stroke: chartTheme.cursor }} />
+                            <ReferenceLine
+                                y={RISK_ACCEPTANCE_THRESHOLD}
+                                stroke="hsl(var(--destructive))"
+                                strokeDasharray="3 3"
+                                label={{
+                                    value: 'Seuil Acceptable',
+                                    position: 'insideTopRight',
+                                    fill: 'hsl(var(--destructive))',
+                                    fontSize: 10
+                                }}
+                            />
                             <Area
                                 type="monotone"
                                 dataKey="avgScore"

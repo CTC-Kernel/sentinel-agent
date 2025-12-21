@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Risk, RiskTreatment, Criticality } from '../../types';
-import { Calendar, AlertTriangle, CheckCircle2, Clock, User, DollarSign } from '../ui/Icons';
+import { Calendar, AlertTriangle, CheckCircle2, Clock, User } from '../ui/Icons';
 import { format, addDays, isAfter, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -78,19 +78,19 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 space-y-6">
+        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm space-y-6">
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-indigo-500" />
+                    <CheckCircle2 className="h-5 w-5 text-brand-500" />
                     Plan de Traitement
                 </h3>
                 {treatment.slaStatus === 'Breached' && (
-                    <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1">
+                    <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1 border border-red-200">
                         <AlertTriangle className="h-3 w-3" /> SLA Dépassé
                     </span>
                 )}
                 {treatment.slaStatus === 'At Risk' && (
-                    <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold flex items-center gap-1">
+                    <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold flex items-center gap-1 border border-orange-200">
                         <Clock className="h-3 w-3" /> SLA À Risque
                     </span>
                 )}
@@ -98,44 +98,50 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Strategy */}
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Stratégie</label>
-                    <select
-                        value={treatment.strategy}
-                        onChange={(e) => handleChange('strategy', e.target.value)}
-                        className="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm"
-                    >
-                        <option value="Atténuer">Atténuer (Réduire)</option>
-                        <option value="Transférer">Transférer (Assurance/Sous-traitance)</option>
-                        <option value="Éviter">Éviter (Supprimer l'activité)</option>
-                        <option value="Accepter">Accepter (Risque résiduel)</option>
-                    </select>
+                <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Stratégie</label>
+                    <div className="relative group">
+                        <select
+                            value={treatment.strategy}
+                            onChange={(e) => handleChange('strategy', e.target.value)}
+                            className="w-full appearance-none rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none"
+                        >
+                            <option value="Atténuer">Atténuer (Réduire)</option>
+                            <option value="Transférer">Transférer (Assurance/Sous-traitance)</option>
+                            <option value="Éviter">Éviter (Supprimer l'activité)</option>
+                            <option value="Accepter">Accepter (Risque résiduel)</option>
+                        </select>
+                        <AlertTriangle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none group-hover:text-brand-500 transition-colors" />
+                    </div>
                 </div>
 
                 {/* Status */}
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Statut</label>
-                    <select
-                        value={treatment.status}
-                        onChange={(e) => handleChange('status', e.target.value)}
-                        className="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm"
-                    >
-                        <option value="Planifié">Planifié</option>
-                        <option value="En cours">En cours</option>
-                        <option value="Terminé">Terminé</option>
-                        <option value="Retard">En retard</option>
-                    </select>
+                <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Statut</label>
+                    <div className="relative group">
+                        <select
+                            value={treatment.status}
+                            onChange={(e) => handleChange('status', e.target.value)}
+                            className="w-full appearance-none rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none"
+                        >
+                            <option value="Planifié">Planifié</option>
+                            <option value="En cours">En cours</option>
+                            <option value="Terminé">Terminé</option>
+                            <option value="Retard">En retard</option>
+                        </select>
+                        <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none group-hover:text-brand-500 transition-colors" />
+                    </div>
                 </div>
 
                 {/* Owner */}
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Responsable</label>
-                    <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Responsable</label>
+                    <div className="relative group">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                         <select
                             value={treatment.ownerId || ''}
                             onChange={(e) => handleChange('ownerId', e.target.value)}
-                            className="w-full pl-9 rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm"
+                            className="w-full pl-10 pr-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none appearance-none"
                         >
                             <option value="">Sélectionner un responsable</option>
                             {users.map(u => (
@@ -146,50 +152,53 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                 </div>
 
                 {/* Due Date */}
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Échéance (SLA)</label>
-                    <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Échéance (SLA)</label>
+                    <div className="relative group">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                         <input
                             type="date"
                             value={treatment.dueDate || ''}
                             onChange={(e) => handleChange('dueDate', e.target.value)}
-                            className={`w-full pl-9 rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm ${treatment.slaStatus === 'Breached' ? 'border-red-500 text-red-600' : ''
+                            className={`w-full pl-10 pr-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none ${treatment.slaStatus === 'Breached' ? 'border-red-500 text-red-600' : ''
                                 }`}
                         />
                     </div>
                     {treatment.dueDate && (
-                        <p className="text-xs text-slate-600 mt-1">
+                        <p className="text-xs text-slate-500 ml-1 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
                             {format(parseISO(treatment.dueDate), 'dd MMMM yyyy', { locale: fr })}
                         </p>
                     )}
                 </div>
 
                 {/* Estimated Cost */}
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Coût Estimé (€)</label>
-                    <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Coût Estimé (€)</label>
+                    <div className="relative group">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold group-focus-within:text-brand-500 transition-colors">€</span>
                         <input
                             type="number"
                             value={treatment.estimatedCost || ''}
                             onChange={(e) => handleChange('estimatedCost', parseFloat(e.target.value))}
-                            className="w-full pl-9 rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm"
+                            className="w-full pl-8 pr-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none placeholder:text-slate-400"
                             placeholder="0.00"
+                            min="0"
+                            step="0.01"
                         />
                     </div>
                 </div>
             </div>
 
             {/* Description */}
-            <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description du plan</label>
+            <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Description du plan</label>
                 <textarea
                     value={treatment.description}
                     onChange={(e) => handleChange('description', e.target.value)}
-                    rows={3}
-                    className="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm"
-                    placeholder="Détaillez les actions à entreprendre..."
+                    rows={4}
+                    className="w-full rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-4 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none placeholder:text-slate-400 resize-none"
+                    placeholder="Détaillez les actions à entreprendre pour traiter ce risque..."
                 />
             </div>
         </div>
