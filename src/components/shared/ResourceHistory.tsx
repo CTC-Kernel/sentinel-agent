@@ -39,10 +39,24 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
 
             <div className="relative border-l-2 border-slate-200 dark:border-slate-700 ml-3 space-y-8 pb-4">
                 {logs.map((log) => {
-                    const timestamp = log.timestamp as { seconds: number } | number | string | Date;
-                    const date = timestamp instanceof Date ? timestamp :
-                        (typeof timestamp === 'object' && 'seconds' in timestamp) ? new Date(timestamp.seconds * 1000) :
-                            new Date(timestamp);
+                    let date: Date;
+                    try {
+                        const timestamp = log.timestamp as { seconds: number } | number | string | Date;
+                        if (timestamp instanceof Date) {
+                            date = timestamp;
+                        } else if (typeof timestamp === 'object' && timestamp !== null && 'seconds' in timestamp) {
+                            date = new Date(timestamp.seconds * 1000);
+                        } else if (timestamp) {
+                            date = new Date(timestamp);
+                        } else {
+                            date = new Date(); // Fallback to now or handle invalid
+                        }
+                    } catch (e) {
+                        date = new Date(); // Fallback
+                    }
+
+                    const isValidDate = (d: Date) => d instanceof Date && !isNaN(d.getTime());
+
 
                     return (
                         <div key={log.id} className="relative pl-6">
@@ -55,7 +69,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                                 <div className="space-y-1">
                                     <p className="text-sm font-medium text-slate-900 dark:text-gray-100">
-                                        {format(date, "d MMMM yyyy à HH:mm", { locale: fr })}
+                                        {isValidDate(date) ? format(date, "d MMMM yyyy à HH:mm", { locale: fr }) : '-'}
                                     </p>
                                     <p className="text-sm text-slate-600 dark:text-slate-400">
                                         <span className={`font-bold uppercase text-xs mr-2 px-1.5 py-0.5 rounded ${log.action === 'CREATE' ? 'bg-green-100 text-green-700' :

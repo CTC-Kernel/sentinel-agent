@@ -4,13 +4,15 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Activity, Database, Server, Shield, Globe, Cpu, HardDrive, Users, Zap, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
-import { collection, getCountFromServer } from 'firebase/firestore';
+import { collection, getCountFromServer, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useStore } from '../store';
 
 export const SystemHealth: React.FC = () => {
     // Real metrics state
     const [userCount, setUserCount] = useState<number>(0);
     const [loading, setLoading] = useState(true);
+    const { user } = useStore();
 
     // Simulated system stats
     const [systemLoad, setSystemLoad] = useState(24);
@@ -29,10 +31,11 @@ export const SystemHealth: React.FC = () => {
 
     useEffect(() => {
         const fetchMetrics = async () => {
+            if (!user?.organizationId) return;
             try {
-                // Fetch real user count
-                const coll = collection(db, 'users');
-                const snapshot = await getCountFromServer(coll);
+                // Fetch real user count filtered by Org
+                const q = query(collection(db, 'users'), where('organizationId', '==', user.organizationId));
+                const snapshot = await getCountFromServer(q);
                 setUserCount(snapshot.data().count);
             } catch (error) {
                 console.error("Error fetching metrics:", error);

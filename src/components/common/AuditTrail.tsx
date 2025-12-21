@@ -58,7 +58,18 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className })
                                     {log.action}
                                 </span>
                                 <span className="text-xs text-slate-500">
-                                    {format(new Date(typeof log.timestamp === 'string' ? log.timestamp : (log.timestamp as unknown as { seconds: number }).seconds * 1000), "d MMM yyyy 'à' HH:mm", { locale: fr })}
+                                    {(() => {
+                                        try {
+                                            const ts = log.timestamp as any;
+                                            let d: Date;
+                                            if (ts instanceof Date) d = ts;
+                                            else if (typeof ts === 'object' && ts && 'seconds' in ts) d = new Date(ts.seconds * 1000);
+                                            else if (ts) d = new Date(ts);
+                                            else return '-';
+
+                                            return !isNaN(d.getTime()) ? format(d, "d MMM yyyy 'à' HH:mm", { locale: fr }) : '-';
+                                        } catch { return '-'; }
+                                    })()}
                                 </span>
                             </div>
                             <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">

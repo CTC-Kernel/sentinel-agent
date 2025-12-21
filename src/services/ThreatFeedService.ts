@@ -3,8 +3,8 @@ import { db } from '../firebase';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { Threat, Vulnerability } from '../types';
 
-const CISA_KEV_URL = 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json';
-const URLHAUS_API_URL = 'https://urlhaus-api.abuse.ch/v1/urls/recent/';
+const CISA_KEV_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json');
+const URLHAUS_API_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://urlhaus-api.abuse.ch/v1/urls/recent/');
 
 interface CisaVulnerability {
     cveID: string;
