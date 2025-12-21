@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Menu, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command, Shield, MessageSquare } from '../ui/Icons';
-import { NotificationCenter } from '../layout/NotificationCenter';
+import { NotificationCenter } from '../notifications/NotificationCenter';
 
 import { signOut } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';

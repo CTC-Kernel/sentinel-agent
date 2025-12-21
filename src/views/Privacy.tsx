@@ -10,7 +10,7 @@ import { CustomSelect } from '../components/ui/CustomSelect';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { useStore } from '../store';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { Comments } from '../components/ui/Comments';
+import { CommentSection } from '../components/collaboration/CommentSection';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -557,7 +557,7 @@ export const Privacy: React.FC = () => {
 
                             {inspectorTab === 'comments' && selectedActivity && (
                                 <div className="h-full flex flex-col">
-                                    <Comments collectionName="processing_activities" documentId={selectedActivity.id} />
+                                    <CommentSection collectionName="processing_activities" documentId={selectedActivity.id} />
                                 </div>
                             )}
 

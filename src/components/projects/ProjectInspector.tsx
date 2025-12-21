@@ -11,7 +11,7 @@ import { ProjectMilestones } from './ProjectMilestones';
 import { ProjectAIAssistant } from './ProjectAIAssistant';
 import { KanbanColumn } from './KanbanColumn';
 import { GanttChart } from './GanttChart';
-import { Comments } from '../ui/Comments';
+import { CommentSection } from '../collaboration/CommentSection';
 import { generateICS, downloadICS } from '../../utils/calendarUtils';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -426,7 +426,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                         )}
 
                         {inspectorTab === 'comments' && (
-                            <Comments collectionName="projects" documentId={project.id} />
+                            <CommentSection collectionName="projects" documentId={project.id} />
                         )}
                     </div>
                 </div>

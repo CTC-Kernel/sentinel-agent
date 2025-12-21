@@ -9,14 +9,14 @@ import { useStore } from '../store';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { CardSkeleton } from '../components/ui/Skeleton';
-import { NotificationRecord } from '../types';
+import { Notification } from '../types/notification';
 import { NotificationService } from '../services/notificationService';
 import { ErrorLogger } from '../services/errorLogger';
 import { Button } from '../components/ui/button';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 
 export const Notifications: React.FC = () => {
-    const [notifications, setNotifications] = useState<NotificationRecord[]>([]);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState<'all' | 'unread'>('all');
@@ -58,8 +58,11 @@ export const Notifications: React.FC = () => {
     const getIcon = (type: string) => {
         switch (type) {
             case 'warning': return <AlertTriangle className="h-5 w-5 text-amber-500" />;
-            case 'danger': return <X className="h-5 w-5 text-red-500" />;
+            case 'danger':
+            case 'error': return <X className="h-5 w-5 text-red-500" />;
             case 'success': return <CheckCircle2 className="h-5 w-5 text-emerald-500" />;
+            case 'mention': return <div className="h-5 w-5 text-brand-500 font-bold flex items-center justify-center">@</div>;
+            case 'assignment': return <Bell className="h-5 w-5 text-blue-500" />;
             default: return <Info className="h-5 w-5 text-blue-500" />;
         }
     };

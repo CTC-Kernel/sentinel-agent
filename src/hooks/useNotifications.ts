@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { NotificationService, Notification } from '../services/notificationService';
 import { toast } from 'sonner';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const useNotifications = () => {
     const { user } = useAuth();
@@ -32,7 +33,7 @@ export const useNotifications = () => {
             await NotificationService.markAsRead(id);
             // Optimistic update handled by subscription
         } catch (error) {
-            console.error('Failed to mark as read', error);
+            ErrorLogger.handleErrorWithToast(error, 'useNotifications.markAsRead', 'UPDATE_FAILED');
         }
     };
 
@@ -41,8 +42,8 @@ export const useNotifications = () => {
         try {
             await NotificationService.markAllAsRead(user.uid);
             toast.success('Toutes les notifications marquées comme lues');
-        } catch {
-            toast.error('Erreur lors de la mise à jour');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useNotifications.markAllAsRead', 'UPDATE_FAILED');
         }
     };
 

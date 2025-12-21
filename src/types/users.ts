@@ -91,6 +91,9 @@ export interface Comment {
     userName: string;
     content: string;
     createdAt: string;
+    updatedAt?: string;
+    parentId?: string;
+    mentions?: string[]; // User IDs mentioned
 }
 
 export interface UserGroup {

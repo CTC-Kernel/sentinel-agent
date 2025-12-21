@@ -5,7 +5,8 @@ import { ComplianceAIAssistant } from './ComplianceAIAssistant';
 import { CustomSelect } from '../../components/ui/CustomSelect';
 import { Loader2, Link, FileText, Paperclip, MessageSquare, User, X, ShieldAlert, AlertOctagon, ExternalLink, FolderKanban } from '../../components/ui/Icons';
 import { formatDate } from '@/utils/date';
-import { Comments } from '../../components/ui/Comments';
+import { CommentSection } from '../collaboration/CommentSection';
+import { TimelineView } from '../shared/TimelineView';
 import { EmptyState } from '../../components/ui/EmptyState';
 
 interface ComplianceInspectorProps {
@@ -101,7 +102,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                         { id: 'evidence', label: `Preuves (${control.evidenceIds?.length || 0})`, icon: Paperclip },
                         { id: 'linkedItems', label: 'Éléments Liés', icon: Link },
                         { id: 'comments', label: 'Discussion', icon: MessageSquare },
-                        // { id: 'history', label: 'Historique', icon: RefreshCw }, // History requires fetching specific logs, keep for later or pass prop.
+                        { id: 'history', label: 'Historique', icon: FileText },
                     ]}
                     activeTab={activeTab}
                     onTabChange={(id) => setActiveTab(id as InspectorTabId)}
@@ -316,7 +317,13 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
 
                 {activeTab === 'comments' && (
                     <div className="max-w-3xl mx-auto">
-                        <Comments collectionName="controls" documentId={control.id} />
+                        <CommentSection collectionName="controls" documentId={control.id} />
+                    </div>
+                )}
+
+                {activeTab === 'history' && (
+                    <div className="max-w-3xl mx-auto">
+                        <TimelineView resourceId={control.id} resourceType="Control" />
                     </div>
                 )}
 

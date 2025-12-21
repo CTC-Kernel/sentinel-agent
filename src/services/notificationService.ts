@@ -16,18 +16,10 @@ import { ErrorLogger } from './errorLogger';
 import { buildAppUrl } from '../config/appConfig';
 import { sanitizeData } from '../utils/dataSanitizer';
 
-export interface Notification {
-    id: string;
-    organizationId: string;
-    userId: string;
-    type: 'warning' | 'danger' | 'info' | 'success';
-    title: string;
-    message: string;
-    link?: string;
-    read: boolean;
-    createdAt: string;
-    expiresAt?: string;
-}
+import { Notification as GRCNotification } from '../types/notification';
+
+// Re-export for backward compatibility if needed, or just use the imported one
+export type Notification = GRCNotification;
 
 export class NotificationService {
     /**
@@ -808,6 +800,95 @@ export class NotificationService {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Notify user about a risk assignment
+     */
+    static async notifyRiskAssigned(risk: Partial<Risk>, assigneeId: string, assignerName: string): Promise<void> {
+        // 1. Fetch User Profile
+        let userData: UserProfile | undefined;
+        try {
+            const userSnap = await getDoc(doc(db, 'users', assigneeId));
+            if (userSnap.exists()) {
+                userData = userSnap.data() as UserProfile;
+            }
+        } catch (e) { ErrorLogger.error(e, 'NotificationService.notifyRiskAssigned'); }
+
+        // 2. Create Notification
+        if (!userData && risk.organizationId) {
+            // Fallback if userData fetch failed or didn't need full profile for basic notif
+            userData = { uid: assigneeId, organizationId: risk.organizationId } as UserProfile;
+        }
+
+        if (userData) {
+            await this.create(
+                userData,
+                'info',
+                'Nouveau Risque Assigné',
+                `Un nouveau risque vous a été assigné par ${assignerName}`,
+                '/risks'
+            );
+
+            // 3. Send Email
+            if (userData.email && this.shouldNotify(userData, 'risks', 'email')) {
+                await sendEmail(null, {
+                    to: userData.email,
+                    subject: `Risque assigné : ${risk.threat || 'Nouveau risque'}`,
+                    html: getRiskTreatmentDueTemplate(
+                        risk.threat || 'Nouveau risque',
+                        new Date().toISOString(),
+                        userData.displayName || 'Propriétaire',
+                        buildAppUrl('/risks')
+                    ),
+                    type: 'RISK_TREATMENT_DUE'
+                });
+            }
+        }
+    }
+
+    /**
+     * Notify user about an audit assignment
+     */
+    static async notifyAuditAssigned(audit: Partial<Audit>, assigneeId: string, assignerName: string): Promise<void> {
+        // 1. Fetch User Profile
+        let userData: UserProfile | undefined;
+        try {
+            const userSnap = await getDoc(doc(db, 'users', assigneeId));
+            if (userSnap.exists()) {
+                userData = userSnap.data() as UserProfile;
+            }
+        } catch (e) { ErrorLogger.error(e, 'NotificationService.notifyAuditAssigned'); }
+
+        // 2. Create Notification
+        if (!userData && audit.organizationId) {
+            userData = { uid: assigneeId, organizationId: audit.organizationId } as UserProfile;
+        }
+
+        if (userData) {
+            await this.create(
+                userData,
+                'info',
+                'Nouvel Audit Assigné',
+                `On vous a assigné l'audit : ${audit.name} par ${assignerName}`,
+                '/audits'
+            );
+
+            // 3. Send Email
+            if (userData.email && this.shouldNotify(userData, 'audits', 'email')) {
+                await sendEmail(null, {
+                    to: userData.email,
+                    subject: `[Sentinel] Nouvel audit assigné: ${audit.name}`,
+                    html: getAuditReminderTemplate(
+                        audit.name || 'Audit',
+                        userData.displayName || 'Auditeur',
+                        audit.dateScheduled || '',
+                        buildAppUrl('/audits')
+                    ),
+                    type: 'AUDIT_REMINDER'
+                });
             }
         }
     }

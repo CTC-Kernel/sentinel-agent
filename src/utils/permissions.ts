@@ -42,7 +42,7 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         AuditTrail: ['read']
     },
     project_manager: {
-        Project: ['manage'],
+        Project: ['manage'], // 'manage' includes 'delete', centralized here instead of hardcoded exception
         Document: ['create', 'read', 'update'],
         Risk: ['read'],
         Asset: ['read'],
@@ -234,11 +234,9 @@ export const canDeleteResource = (user: UserProfile | null, resource: ResourceTy
         return true;
     }
 
-    if (user.role === 'project_manager' && resource === 'Project') {
-        // Project Managers can delete their own projects (or all projects if belongsToOrg, logic in rules is broad)
-        // Rules: allow delete: if canDelete(orgId) || (isProjectManager() && belongsToOrganization(orgId));
-        return true;
-    }
+
+    // Project Managers permission is now handled by the matrix (manage = delete)
+
 
     // Auditors generally cannot delete, except maybe Drafts? Rules say NO for Risks/Assets/Controls.
     // Rules say YES for Audits?

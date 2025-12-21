@@ -8,5 +8,6 @@ export * from './projects';
 export * from './incidents';
 export * from './business';
 export * from './users';
+export * from './notification';
 export * from './analytics';
 export * from './subscriptions';

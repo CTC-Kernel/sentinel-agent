@@ -45,13 +45,7 @@ export const useRiskActions = (onRefresh: () => void) => {
 
             // Notify owner if different from creator
             if (riskData.owner && riskData.owner !== user.uid) {
-                await NotificationService.create(
-                    { uid: riskData.owner, organizationId: user.organizationId } as any, // Cast/Struct fix for target
-                    'info',
-                    'Nouveau Risque Assigné',
-                    `Un nouveau risque vous a été assigné par ${user.displayName}`,
-                    '/risks'
-                );
+                await NotificationService.notifyRiskAssigned(riskData, riskData.owner, user.displayName || user.email || 'Admin');
             }
             return true;
         } catch (error) {

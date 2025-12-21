@@ -12,7 +12,7 @@ import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { logAction } from '../services/logger';
-import { Comments } from '../components/ui/Comments';
+import { CommentSection } from '../components/collaboration/CommentSection';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { DataTable } from '../components/ui/DataTable';
@@ -1259,7 +1259,7 @@ export const Suppliers: React.FC = () => {
                             {
                                 inspectorTab === 'comments' && (
                                     <div className="h-full flex flex-col">
-                                        <Comments collectionName="suppliers" documentId={selectedSupplier.id} />
+                                        <CommentSection collectionName="suppliers" documentId={selectedSupplier.id} />
                                     </div>
                                 )
                             }

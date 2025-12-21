@@ -37,8 +37,9 @@ export const Compliance: React.FC = () => {
     const [showMissingEvidence, setShowMissingEvidence] = useState(false);
 
     // Initial Link State (from navigation)
-    const [linkingToProjectId, setLinkingToProjectId] = useState<string | null>(null);
-    const [linkingToProjectName, setLinkingToProjectName] = useState<string | null>(null);
+    const initialState = (location.state || {}) as { createForProject?: string; projectName?: string };
+    const linkingToProjectId = initialState.createForProject || null;
+    const linkingToProjectName = initialState.projectName || null;
 
     // Creation Mode State (Risks, Projects, Audits from Drawer)
     const [creationMode, setCreationMode] = useState<'risk' | 'project' | 'audit' | null>(null);
@@ -51,13 +52,14 @@ export const Compliance: React.FC = () => {
 
     // Effects
     useEffect(() => {
-        const state = (location.state || {}) as { createForProject?: string; projectName?: string };
-        if (state.createForProject) {
-            setLinkingToProjectId(state.createForProject);
-            setLinkingToProjectName(state.projectName || 'Projet');
-            addToast(`Mode liaison actif: Sélectionnez un contrôle pour le lier au projet ${state.projectName || ''}`, 'info');
+        if (initialState.createForProject) {
+            // Only toast if we actually have a project ID newly linked (managed via mounting, or we could track previous id)
+            // Ideally we just show it on mount.
+            // Using a ref to ensure we don't toast repeatedly if location object changes but state doesn't is cleaner,
+            // but for now, dependency on location.state which usually comes from pushState is acceptable if we stripped the setState.
+            addToast(`Mode liaison actif: Sélectionnez un contrôle pour le lier au projet ${initialState.projectName || ''}`, 'info');
         }
-    }, [location.state, addToast]);
+    }, [initialState.createForProject, initialState.projectName, addToast]);
 
     // Filtering Logic
     const filteredControls = useMemo(() => {

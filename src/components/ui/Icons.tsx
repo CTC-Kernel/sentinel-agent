@@ -135,7 +135,9 @@ import {
   ThumbsUp,
   Share2,
   Box,
-  GripVertical
+  GripVertical,
+  Reply,
+  Award
 } from 'lucide-react';
 
 export {
@@ -274,5 +276,7 @@ export {
   ThumbsUp,
   Share2,
   Box,
-  GripVertical
+  GripVertical,
+  Reply,
+  Award
 };

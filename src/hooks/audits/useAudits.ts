@@ -10,11 +10,10 @@ import { logAction } from '../../services/logger';
 import { ErrorLogger } from '../../services/errorLogger';
 import { AuditPlannerService } from '../../services/AuditPlannerService';
 import { sanitizeData } from '../../utils/dataSanitizer';
-import { getAuditReminderTemplate } from '../../services/emailTemplates';
 import { buildAppUrl } from '../../config/appConfig';
-import { sendEmail } from '../../services/emailService';
 import { analyticsService } from '../../services/analyticsService';
 import { generateICS, downloadICS } from '../../utils/calendarUtils';
+import { NotificationService } from '../../services/notificationService';
 
 export const useAudits = () => {
     const { user, addToast } = useStore();
@@ -106,8 +105,7 @@ export const useAudits = () => {
             if (data.auditor) {
                 const auditorUser = usersList.find(u => u.displayName === data.auditor);
                 if (auditorUser) {
-                    const emailContent = getAuditReminderTemplate(data.name || 'Audit', auditorUser.displayName || 'Auditeur', data.dateScheduled || '', buildAppUrl('/audits'));
-                    await sendEmail(user, { to: auditorUser.email, subject: `[Sentinel] Nouvel audit assigné: ${data.name} `, html: emailContent, type: 'AUDIT_REMINDER' });
+                    await NotificationService.notifyAuditAssigned(newDocData, auditorUser.uid, user.displayName || 'Admin');
                 }
             }
             refreshAudits();

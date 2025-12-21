@@ -7,7 +7,7 @@ export const formatDate = (date: string | Date | undefined | null): string => {
             month: 'short',
             year: 'numeric'
         }).format(d);
-    } catch (e) {
+    } catch {
         return String(date);
     }
 };
@@ -23,7 +23,7 @@ export const formatDateTime = (date: string | Date | undefined | null): string =
             hour: '2-digit',
             minute: '2-digit'
         }).format(d);
-    } catch (e) {
+    } catch {
         return String(date);
     }
 };

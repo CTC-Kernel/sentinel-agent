@@ -6,7 +6,8 @@ import { AssetForm } from './AssetForm';
 import { LifecycleTimeline } from './LifecycleTimeline';
 import { RelationshipGraph } from '../RelationshipGraph';
 import { AssetAIAssistant } from './AssetAIAssistant';
-import { Comments } from '../ui/Comments';
+import { CommentSection } from '../collaboration/CommentSection';
+import { TimelineView } from '../shared/TimelineView';
 import { useAssetDetails } from '../../hooks/assets/useAssetDetails';
 import { useAssetSecurity } from '../../hooks/assets/useAssetSecurity';
 import {
@@ -48,7 +49,6 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
     const navigate = useNavigate();
     const [inspectorTab, setInspectorTab] = useState('details');
     const {
-        history: assetHistory,
         maintenanceRecords,
         linkedRisks,
         linkedIncidents,
@@ -606,20 +606,8 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                             )}
                         </div>
 
-                        <div className="relative border-l-2 border-slate-200 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                            {assetHistory.map((log, i) => (
-                                <div key={i} className="relative">
-                                    <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-900">
-                                        <div className="h-2 w-2 rounded-full bg-brand-500"></div>
-                                    </span>
-                                    <div>
-                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
-                                        <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{log.details}</p>
-                                        <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-[10px] font-medium text-slate-600">{log.userEmail}</div>
-                                    </div>
-                                </div>
-                            ))}
+                        <div className="px-1">
+                            <TimelineView resourceId={selectedAsset.id} resourceType="Asset" />
                         </div>
                     </div>
                 )}
@@ -641,7 +629,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
 
                 {inspectorTab === 'comments' && selectedAsset && (
                     <div className="h-full flex flex-col">
-                        <Comments collectionName="assets" documentId={selectedAsset.id} />
+                        <CommentSection collectionName="assets" documentId={selectedAsset.id} />
                     </div>
                 )}
             </div>

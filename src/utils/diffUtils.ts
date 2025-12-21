@@ -2,7 +2,9 @@ import { isEqual, isObject } from 'lodash';
 
 export interface DiffChange {
     field: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     oldValue: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     newValue: any;
 }
 
@@ -14,7 +16,9 @@ export interface DiffChange {
  * @returns Array of changes
  */
 export const getDiff = (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     object: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     base: any,
     ignore: string[] = ['updatedAt', 'lastUpdated', 'modifiedAt']
 ): DiffChange[] => {

@@ -5,7 +5,7 @@ import { useStore } from '../../store';
 import CryptoJS from 'crypto-js';
 
 interface FileUploaderProps {
-    onUploadComplete: (url: string, fileName: string, hash?: string, isSecure?: boolean, size?: number) => void;
+    onUploadComplete: (url: string, fileName: string, hash?: string, isSecure?: boolean, size?: number, type?: string) => void;
     category: string;
     maxSizeMB?: number;
     allowedTypes?: string[];
@@ -111,7 +111,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             setProgress(100);
 
             setTimeout(() => {
-                onUploadComplete(downloadURL, selectedFile.name, hash, isSecure, selectedFile.size);
+                onUploadComplete(downloadURL, selectedFile.name, hash, isSecure, selectedFile.size, selectedFile.type);
                 setSelectedFile(null);
                 setProgress(0);
                 setUploading(false);
