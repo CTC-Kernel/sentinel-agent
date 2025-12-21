@@ -26,7 +26,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 }) => {
 
   return (
-    <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 min-w-0 ${className}`}>
+    <div className={`relative z-40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 min-w-0 ${className}`}>
       <div className="flex-1 min-w-0 animate-in fade-in slide-in-from-left-4 duration-500">
 
         {/* Title Section with Icon */}

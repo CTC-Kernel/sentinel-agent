@@ -5,6 +5,7 @@ import { DataTable } from '../ui/DataTable';
 import { Server, Edit, Trash2, Tag } from '../ui/Icons';
 import { TableSkeleton } from '../ui/Skeleton';
 import { EmptyState } from '../ui/EmptyState';
+import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { canDeleteResource } from '../../utils/permissions';
 import { ColumnDef } from '@tanstack/react-table';
 
@@ -67,31 +68,34 @@ export const AssetList = React.memo<AssetListProps>(({
             id: 'actions',
             cell: ({ row }) => (
                 <div className="flex items-center justify-end gap-2">
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onGenerateLabel(row.original); }}
-                        className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
-                        title="Imprimer Etiquette"
-                        disabled={isGeneratingLabels}
-                    >
-                        <Tag className="h-4 w-4" />
-                    </button>
-                    {canEdit && (
+                    <CustomTooltip content="Imprimer une étiquette">
                         <button
-                            onClick={(e) => { e.stopPropagation(); onEdit(row.original); }}
-                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                            title="Modifier"
+                            onClick={(e) => { e.stopPropagation(); onGenerateLabel(row.original); }}
+                            className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                            disabled={isGeneratingLabels}
                         >
-                            <Edit className="h-4 w-4" />
+                            <Tag className="h-4 w-4" />
                         </button>
+                    </CustomTooltip>
+                    {canEdit && (
+                        <CustomTooltip content="Modifier l'actif">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onEdit(row.original); }}
+                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                            >
+                                <Edit className="h-4 w-4" />
+                            </button>
+                        </CustomTooltip>
                     )}
                     {canDeleteResource(user, 'Asset') && (
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onDelete(row.original.id, row.original.name); }}
-                            className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                            title="Supprimer"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
+                        <CustomTooltip content="Supprimer l'actif">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onDelete(row.original.id, row.original.name); }}
+                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </CustomTooltip>
                     )}
                 </div>
             )
@@ -150,14 +154,15 @@ export const AssetList = React.memo<AssetListProps>(({
                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                             <div className="relative z-10 flex flex-col h-full">
                                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); onGenerateLabel(asset); }}
-                                        className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-indigo-600 shadow-sm backdrop-blur-sm"
-                                        title="Imprimer Etiquette"
-                                        disabled={isGeneratingLabels}
-                                    >
-                                        <Tag className="h-4 w-4" />
-                                    </button>
+                                    <CustomTooltip content="Imprimer une étiquette">
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); onGenerateLabel(asset); }}
+                                            className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-indigo-600 shadow-sm backdrop-blur-sm"
+                                            disabled={isGeneratingLabels}
+                                        >
+                                            <Tag className="h-4 w-4" />
+                                        </button>
+                                    </CustomTooltip>
                                 </div>
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300">

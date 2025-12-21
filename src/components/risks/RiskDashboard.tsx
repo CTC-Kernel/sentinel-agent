@@ -105,11 +105,13 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
         const chartData = [];
         const now = new Date();
         for (let i = 11; i >= 0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            // Use last day of the month to include risks created during the month
+            const d = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
             const timestamp = d.getTime();
             let totalScore = 0;
             let count = 0;
             timelines.forEach(t => {
+                // Check if risk existed at that time (creation date <= timestamp)
                 if (t.points.length > 0 && timestamp >= t.points[0].date) {
                     const validPoints = t.points.filter(p => p.date <= timestamp);
                     if (validPoints.length > 0) {

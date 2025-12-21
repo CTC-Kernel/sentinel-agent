@@ -17,7 +17,7 @@ import { AssetList } from '../components/assets/AssetList';
 import { AssetInspector } from '../components/assets/AssetInspector';
 import { AssetDashboard } from '../components/assets/AssetDashboard';
 import { useAssets } from '../hooks/assets/useAssets';
-import { Database, FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, Loader2, MoreVertical } from 'lucide-react';
+import { Database, FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, Loader2, MoreVertical, List, LayoutGrid } from 'lucide-react';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { CsvParser } from '../utils/csvUtils';
@@ -227,8 +227,12 @@ const Assets: React.FC = () => {
                         searchQuery={activeFilters.query || ''}
                         onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
                         searchPlaceholder="Rechercher par nom, type, propriétaire..."
-                        viewMode={viewMode}
-                        onViewModeChange={setViewMode}
+                        activeView={viewMode}
+                        onViewChange={(mode) => setViewMode(mode as 'grid' | 'list' | 'matrix' | 'kanban')}
+                        viewOptions={[
+                            { id: 'list', label: 'Liste', icon: List },
+                            { id: 'grid', label: 'Grille', icon: LayoutGrid }
+                        ]}
                         actions={
                             <>
                                 <button

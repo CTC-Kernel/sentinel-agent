@@ -42,7 +42,7 @@ export const PremiumPageControl: React.FC<PremiumPageControlProps> = ({
     const inputRef = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-[#0B1120]/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl">
+        <div className="relative z-30 flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-[#0B1120]/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl">
             {/* Search Bar */}
             <div className="relative flex-1 min-w-0 group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />

@@ -6,6 +6,7 @@ import { useOnClickOutside } from '../../hooks/useOnClickOutside';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { cn } from '../../utils/cn';
+import { Tooltip } from '../ui/Tooltip';
 
 export const NotificationCenter: React.FC = () => {
     const {
@@ -57,26 +58,28 @@ export const NotificationCenter: React.FC = () => {
                         <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-[#151e32] shrink-0">
                             <h3 className="font-semibold text-slate-900 dark:text-white">Notifications</h3>
                             <div className="flex gap-2">
-                                <button
-                                    onClick={() => setFilter(f => f === 'all' ? 'unread' : 'all')}
-                                    className={cn(
-                                        "p-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1",
-                                        filter === 'unread'
-                                            ? "bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"
-                                            : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
-                                    )}
-                                    title="Filtrer les non-lus"
-                                >
-                                    <Filter className="h-3.5 w-3.5" />
-                                    {filter === 'unread' ? 'Non-lus' : 'Tout'}
-                                </button>
-                                <button
-                                    onClick={() => markAllAsRead()}
-                                    className="p-1.5 text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
-                                    title="Tout marquer comme lu"
-                                >
-                                    <CheckCheck className="h-4 w-4" />
-                                </button>
+                                <Tooltip content={filter === 'unread' ? 'Afficher tout' : 'Filtrer les non-lus'}>
+                                    <button
+                                        onClick={() => setFilter(f => f === 'all' ? 'unread' : 'all')}
+                                        className={cn(
+                                            "p-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1",
+                                            filter === 'unread'
+                                                ? "bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"
+                                                : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+                                        )}
+                                    >
+                                        <Filter className="h-3.5 w-3.5" />
+                                        {filter === 'unread' ? 'Non-lus' : 'Tout'}
+                                    </button>
+                                </Tooltip>
+                                <Tooltip content="Tout marquer comme lu">
+                                    <button
+                                        onClick={() => markAllAsRead()}
+                                        className="p-1.5 text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                                    >
+                                        <CheckCheck className="h-4 w-4" />
+                                    </button>
+                                </Tooltip>
                             </div>
                         </div>
 

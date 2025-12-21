@@ -247,8 +247,12 @@ export const Risks: React.FC = () => {
                         searchQuery={activeFilters.query}
                         onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
                         searchPlaceholder="Rechercher une menace, une vulnérabilité..."
-                        viewMode={activeTab === 'list' ? viewMode : undefined}
-                        onViewModeChange={activeTab === 'list' ? (mode) => setViewMode(mode as 'list' | 'grid') : undefined}
+                        activeView={activeTab === 'list' ? viewMode : undefined}
+                        onViewChange={activeTab === 'list' ? (mode) => setViewMode(mode as 'list' | 'grid') : undefined}
+                        viewOptions={[
+                            { id: 'list', label: 'Liste', icon: List },
+                            { id: 'grid', label: 'Grille', icon: Grid3x3 }
+                        ]}
                         actions={
                             <>
                                 {/* Framework Filter */}
@@ -269,27 +273,29 @@ export const Risks: React.FC = () => {
 
                                 <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
 
-                                <button
-                                    onClick={() => OnboardingService.startRisksTour()}
-                                    className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
-                                    title="Lancer le tour guidé"
-                                >
-                                    <HelpCircle className="h-5 w-5" />
-                                </button>
+                                <CustomTooltip content="Lancer le tour guidé">
+                                    <button
+                                        onClick={() => OnboardingService.startRisksTour()}
+                                        className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
+                                    >
+                                        <HelpCircle className="h-5 w-5" />
+                                    </button>
+                                </CustomTooltip>
 
                                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
 
-                                <button
-                                    data-tour="risks-filters"
-                                    onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                                    className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
-                                        ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
-                                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
-                                        }`}
-                                    title="Filtres avancés"
-                                >
-                                    <Filter className="h-5 w-5" />
-                                </button>
+                                <CustomTooltip content="Filtres avancés">
+                                    <button
+                                        data-tour="risks-filters"
+                                        onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                                        className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
+                                            ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
+                                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
+                                            }`}
+                                    >
+                                        <Filter className="h-5 w-5" />
+                                    </button>
+                                </CustomTooltip>
 
                                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
 
@@ -424,7 +430,7 @@ export const Risks: React.FC = () => {
 
             {/* LIST TAB CONTENT */}
             {activeTab === 'list' && (
-                <motion.div variants={slideUpVariants} className={viewMode === 'list' ? "glass-panel p-6 rounded-2xl border border-glass-border" : ""}>
+                <motion.div variants={slideUpVariants} className="">
                     {viewMode === 'list' ? (
                         <RiskList
                             risks={filteredRisks}
