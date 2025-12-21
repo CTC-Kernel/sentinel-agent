@@ -219,6 +219,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                         )}
                     </>
                 }
+                disableFocusTrap={showTaskModal}
             >
                 <div className="flex flex-col h-full">
                     <div className="flex-1 min-w-0 mx-auto w-full max-w-7xl">

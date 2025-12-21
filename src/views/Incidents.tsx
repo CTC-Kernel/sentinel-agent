@@ -11,23 +11,24 @@ import { logAction } from '../services/logger';
 import { NotificationService } from '../services/notificationService';
 
 import { PageHeader } from '../components/ui/PageHeader';
-import { Siren, Plus, ShieldAlert, Edit, Trash2, CalendarDays, BookOpen, BrainCircuit, Server, Activity, Clock, AlertTriangle, MoreVertical } from '../components/ui/Icons';
+import { Siren, Plus, ShieldAlert, BrainCircuit, Clock, AlertTriangle, MoreVertical } from '../components/ui/Icons';
+
+
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
-import { Badge } from '../components/ui/Badge';
+
+
+
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { useLocation } from 'react-router-dom';
 import { Drawer } from '../components/ui/Drawer';
-import { ScrollableTabs } from '../components/ui/ScrollableTabs';
-import { IncidentTimeline } from '../components/incidents/IncidentTimeline';
-import { IncidentPlaybook } from '../components/incidents/IncidentPlaybook';
 import { IncidentKanban } from '../components/incidents/IncidentKanban';
-import { IncidentAIAssistant } from '../components/incidents/IncidentAIAssistant';
 import { IncidentForm } from '../components/incidents/IncidentForm';
+import { IncidentInspector } from '../components/incidents/IncidentInspector';
 import { CustomSelect } from '../components/ui/CustomSelect';
-import { SafeHTML } from '../components/ui/SafeHTML';
-import { ThreatIntelChecker } from '../components/incidents/ThreatIntelChecker';
 import { IncidentFormData } from '../schemas/incidentSchema';
+
+
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { canEditResource, hasPermission, canDeleteResource } from '../utils/permissions';
@@ -81,10 +82,12 @@ export const Incidents: React.FC = () => {
 
     // State Declarations
     const [creationMode, setCreationMode] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
+
     const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void, loading?: boolean, closeOnConfirm?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'playbook' | 'timeline' | 'ai'>('details');
+
+
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [importModalOpen, setImportModalOpen] = useState(false);
     const [viewMode, setViewMode] = useState<'list' | 'grid' | 'kanban'>('grid');
@@ -226,8 +229,8 @@ export const Incidents: React.FC = () => {
 
             addToast("Incident mis à jour", "success");
             setSelectedIncident({ ...selectedIncident, ...incidentData } as Incident);
-            setIsEditing(false);
         } catch (error) {
+
             ErrorLogger.handleErrorWithToast(error, 'Incidents.handleUpdate', 'UPDATE_FAILED');
         } finally {
             setIsSubmitting(false);
@@ -294,18 +297,7 @@ export const Incidents: React.FC = () => {
         });
     };
 
-    const getTimeToResolve = (incident: Incident) => {
-        if (!incident.dateResolved || !incident.dateReported) return null;
-        const start = new Date(incident.dateReported).getTime();
-        const end = new Date(incident.dateResolved).getTime();
-        const diff = end - start;
 
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-
-        if (days > 0) return `${days}j ${hours}h`;
-        return `${hours}h`;
-    };
 
     const canEdit = canEditResource(user, 'Incident');
 
@@ -346,9 +338,10 @@ export const Incidents: React.FC = () => {
 
 
     const getBreadcrumbs = () => {
-        const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Incidents', onClick: () => { setSelectedIncident(null); setCreationMode(false); setIsEditing(false); } }];
+        const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Incidents', onClick: () => { setSelectedIncident(null); setCreationMode(false); } }];
 
         if (creationMode) {
+
             crumbs.push({ label: 'Déclaration' });
             return crumbs;
         }
@@ -562,7 +555,7 @@ export const Incidents: React.FC = () => {
                 {viewMode === 'kanban' ? (
                     <IncidentKanban
                         incidents={incidents.filter(i => i.title.toLowerCase().includes(filter.toLowerCase()))}
-                        onSelect={(inc: Incident) => { setSelectedIncident(inc); setIsEditing(false); }}
+                        onSelect={(inc: Incident) => { setSelectedIncident(inc); }}
                     />
                 ) : (
                     <IncidentDashboard
@@ -570,7 +563,7 @@ export const Incidents: React.FC = () => {
                         filter={filter}
                         viewMode={viewMode}
                         onCreate={() => setCreationMode(true)}
-                        onSelect={(inc: Incident) => { setSelectedIncident(inc); setIsEditing(false); }}
+                        onSelect={(inc: Incident) => { setSelectedIncident(inc); }}
                         loading={loading}
                         onDelete={initiateDelete}
                         onBulkDelete={handleBulkDelete}
@@ -578,274 +571,21 @@ export const Incidents: React.FC = () => {
                 )}
             </motion.div>
 
-            {/* Inspector Drawer */}
-            <Drawer
+
+            {/* Inspector */}
+            <IncidentInspector
                 isOpen={!!selectedIncident}
-                onClose={() => { setSelectedIncident(null); setIsEditing(false); }}
-                title={selectedIncident?.title || 'Détails de l\'incident'}
-                subtitle={selectedIncident?.category}
-                width="max-w-6xl"
-                breadcrumbs={getBreadcrumbs()}
-            >
-                {selectedIncident && (
-                    <div className="flex flex-col h-full">
-                        {isEditing ? (
-                            <div className="p-6">
-                                <IncidentForm
-                                    onSubmit={handleUpdate}
-                                    onCancel={() => setIsEditing(false)}
-                                    initialData={selectedIncident}
-                                    users={usersList}
-                                    processes={rawProcesses}
-                                    assets={assets}
-                                    risks={risks}
-                                    isLoading={isSubmitting}
-                                />
-                            </div>
-                        ) : (
-                            <>
-                                <div className="px-6 border-b border-gray-100 dark:border-white/5">
-                                    <ScrollableTabs
-                                        tabs={[
-                                            { id: 'details', label: 'Détails', icon: Siren },
-                                            { id: 'playbook', label: 'Playbook', icon: BookOpen },
-                                            { id: 'timeline', label: 'Timeline', icon: CalendarDays },
-                                            { id: 'ai', label: 'Analyse IA', icon: BrainCircuit },
-                                        ]}
-                                        activeTab={inspectorTab}
-                                        onTabChange={(id) => setInspectorTab(id as 'details' | 'playbook' | 'timeline' | 'ai')}
-                                    />
-                                </div>
+                onClose={() => { setSelectedIncident(null); }}
+                incident={selectedIncident}
 
-                                <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50 dark:bg-transparent">
-                                    {inspectorTab === 'details' && (
-                                        <div className="p-4 sm:p-8 space-y-8">
-                                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                                <div className="lg:col-span-2 space-y-8">
-                                                    <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                                                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                        <div className="relative z-10">
-                                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                                                                <BookOpen className="h-5 w-5 text-brand-500" />
-                                                                Description
-                                                            </h3>
-                                                            {selectedIncident.description ? (
-                                                                <SafeHTML content={selectedIncident.description} />
-                                                            ) : (
-                                                                <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-                                                                    Aucune description.
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Badges & Status */}
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                        <div className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                            <div className="relative z-10">
-                                                                <span className="text-xs text-slate-500 block mb-1">Sévérité</span>
-                                                                <Badge
-                                                                    status={selectedIncident.severity === Criticality.CRITICAL ? 'error' : selectedIncident.severity === Criticality.HIGH ? 'warning' : 'info'}
-                                                                    variant="soft"
-                                                                >
-                                                                    {selectedIncident.severity}
-                                                                </Badge>
-                                                            </div>
-                                                        </div>
-                                                        <div className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                            <div className="relative z-10">
-                                                                <span className="text-xs text-slate-500 block mb-1">Statut</span>
-                                                                <Badge status={selectedIncident.status === 'Résolu' ? 'success' : 'info'} variant="outline">
-                                                                    {selectedIncident.status}
-                                                                </Badge>
-                                                            </div>
-                                                        </div>
-                                                        <div className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                            <div className="relative z-10">
-                                                                <span className="text-xs text-slate-500 block mb-1">Impact Financier</span>
-                                                                <span className="font-bold text-slate-900 dark:text-white">{selectedIncident.financialImpact ? `${selectedIncident.financialImpact} €` : '-'}</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                            <div className="relative z-10">
-                                                                <span className="text-xs text-slate-500 block mb-1">Reporter</span>
-                                                                <span className="font-bold text-slate-900 dark:text-white">{selectedIncident.reporter}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-
-
-                                                    {/* Impact & Assets */}
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                        <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                            <div className="relative z-10">
-                                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
-                                                                    <Server className="h-4 w-4" />
-                                                                    Actif Impacté
-                                                                </h3>
-                                                                {selectedIncident.affectedAssetId ? (
-                                                                    <div className="space-y-2">
-                                                                        {(() => {
-                                                                            const asset = assets.find(a => a.id === selectedIncident.affectedAssetId);
-                                                                            return asset ? (
-                                                                                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
-                                                                                    <span className="font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
-                                                                                    <Badge status="neutral" size="sm">{asset.type}</Badge>
-                                                                                </div>
-                                                                            ) : <p className="text-sm text-slate-600 italic">Actif introuvable</p>;
-                                                                        })()}
-                                                                    </div>
-                                                                ) : (
-                                                                    <p className="text-sm text-slate-600 italic">Aucun actif lié</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                            <div className="relative z-10">
-                                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
-                                                                    <Activity className="h-4 w-4" />
-                                                                    Service Impacté
-                                                                </h3>
-                                                                {selectedIncident.affectedProcessId ? (
-                                                                    <div className="space-y-2">
-                                                                        {(() => {
-                                                                            const proc = rawProcesses.find(p => p.id === selectedIncident.affectedProcessId);
-                                                                            return proc ? (
-                                                                                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
-                                                                                    <span className="font-medium text-slate-700 dark:text-slate-200">{proc.name}</span>
-                                                                                </div>
-                                                                            ) : <p className="text-sm text-slate-600 italic">Processus introuvable</p>;
-                                                                        })()}
-                                                                    </div>
-                                                                ) : (
-                                                                    <p className="text-sm text-slate-600 italic">Aucun service lié</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden md:col-span-2">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                            <div className="relative z-10">
-                                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
-                                                                    <AlertTriangle className="h-4 w-4" />
-                                                                    Risque Lié
-                                                                </h3>
-                                                                {selectedIncident.relatedRiskId ? (
-                                                                    <div className="space-y-2">
-                                                                        {(() => {
-                                                                            const risk = risks.find(r => r.id === selectedIncident.relatedRiskId);
-                                                                            return risk ? (
-                                                                                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5">
-                                                                                    <div className="flex flex-col">
-                                                                                        <span className="font-medium text-slate-700 dark:text-slate-200">{risk.threat}</span>
-                                                                                        <span className="text-xs text-slate-500">{risk.scenario}</span>
-                                                                                    </div>
-                                                                                    <div className="text-right">
-                                                                                        <span className="block text-xs font-bold uppercase text-slate-500">Score</span>
-                                                                                        <span className={`font-bold ${risk.score >= 15 ? 'text-red-500' : risk.score >= 8 ? 'text-orange-500' : 'text-emerald-500'}`}>
-                                                                                            {risk.score}/25
-                                                                                        </span>
-                                                                                    </div>
-                                                                                </div>
-                                                                            ) : <p className="text-sm text-slate-600 italic">Risque introuvable</p>;
-                                                                        })()}
-                                                                    </div>
-                                                                ) : (
-                                                                    <p className="text-sm text-slate-600 italic">Aucun risque lié</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-6">
-                                                    {/* Meta Info */}
-                                                    <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm space-y-4 relative overflow-hidden">
-                                                        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                                        <div className="relative z-10">
-                                                            <div>
-                                                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Déclaré le</label>
-                                                                <p className="font-medium text-slate-900 dark:text-white mt-1">
-                                                                    {new Date(selectedIncident.dateReported).toLocaleString()}
-                                                                </p>
-                                                            </div>
-                                                            <div className="mt-4">
-                                                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Déclaré par</label>
-                                                                <div className="flex items-center gap-2 mt-1">
-                                                                    <div className="h-6 w-6 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-xs font-bold text-brand-600 dark:text-brand-400">
-                                                                        {selectedIncident.reporter.charAt(0)}
-                                                                    </div>
-                                                                    <span className="font-medium text-slate-900 dark:text-white">{selectedIncident.reporter}</span>
-                                                                </div>
-                                                            </div>
-                                                            {/* Assignee Removed */}
-                                                        </div>
-                                                    </div>
-
-
-                                                    {/* Threat Intel Check */}
-                                                    <ThreatIntelChecker />
-                                                </div>
-                                            </div>
-
-                                            <div className="flex gap-3 pt-4">
-                                                {canEdit && (
-                                                    <CustomTooltip content="Modifier l'incident">
-                                                        <button
-                                                            onClick={() => setIsEditing(true)}
-                                                            className="flex-1 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                            Modifier
-                                                        </button>
-                                                    </CustomTooltip>
-                                                )}
-                                                {canDeleteResource(user, 'Incident') && (
-                                                    <CustomTooltip content="Supprimer l'incident">
-                                                        <button
-                                                            onClick={() => initiateDelete(selectedIncident.id)}
-                                                            className="p-2.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                                                        >
-                                                            <Trash2 className="h-5 w-5" />
-                                                        </button>
-                                                    </CustomTooltip>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'playbook' && (
-                                        <div className="animate-fade-in">
-                                            <IncidentPlaybook
-                                                incident={selectedIncident}
-                                                readOnly={!canEdit}
-                                            />
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'timeline' && (
-                                        <div className="animate-fade-in h-full">
-                                            <IncidentTimeline selectedIncident={selectedIncident} getTimeToResolve={getTimeToResolve} />
-                                        </div>
-                                    )}
-
-                                    {inspectorTab === 'ai' && (
-                                        <IncidentAIAssistant incident={selectedIncident} />
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </div>
-                )}
-            </Drawer>
+                users={usersList}
+                processes={rawProcesses}
+                assets={assets}
+                risks={risks}
+                canEdit={canEdit}
+                onUpdate={handleUpdate}
+                isSubmitting={isSubmitting}
+            />
 
             {/* Create Drawer */}
             <Drawer

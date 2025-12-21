@@ -25,6 +25,7 @@ interface InspectorLayoutProps {
     children: React.ReactNode;
     loading?: boolean;
     breadcrumbs?: { label: string; onClick?: () => void }[];
+    disableFocusTrap?: boolean;
 }
 
 export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
@@ -41,7 +42,8 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
     onTabChange,
     children,
     loading = false,
-    breadcrumbs
+    breadcrumbs,
+    disableFocusTrap = false
 }) => {
     return (
         <Drawer
@@ -49,6 +51,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
             onClose={onClose}
             width={width}
             breadcrumbs={breadcrumbs}
+            disableFocusTrap={disableFocusTrap}
             title={
                 <div className="flex items-center gap-3">
                     {Icon && (

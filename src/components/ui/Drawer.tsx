@@ -12,6 +12,7 @@ interface DrawerProps {
     children: React.ReactNode;
     width?: string; // e.g., 'max-w-2xl', 'max-w-4xl'
     breadcrumbs?: { label: string; onClick?: () => void }[];
+    disableFocusTrap?: boolean;
 }
 
 export const Drawer: React.FC<DrawerProps> = ({
@@ -22,7 +23,8 @@ export const Drawer: React.FC<DrawerProps> = ({
     actions,
     children,
     width = 'max-w-2xl',
-    breadcrumbs
+    breadcrumbs,
+    disableFocusTrap = false
 }) => {
     const [isVisible, setIsVisible] = useState(false);
     const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -83,7 +85,7 @@ export const Drawer: React.FC<DrawerProps> = ({
             />
 
             {/* Drawer Panel */}
-            <FocusTrap active={isOpen}>
+            <FocusTrap active={isOpen && !disableFocusTrap}>
                 <div className="absolute inset-y-0 right-0 left-0 sm:left-auto sm:pl-10 max-w-full flex pointer-events-none min-w-0">
                     <div
                         className={`w-full ${width} pointer-events-auto transform transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
