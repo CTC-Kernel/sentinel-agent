@@ -12,6 +12,9 @@ interface VitestConfigExport extends UserConfig {
 }
 
 export default defineConfig({
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
   plugins: [
     react(),
     tsconfigPaths({ ignoreConfigErrors: true }),

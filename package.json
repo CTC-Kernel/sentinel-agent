@@ -74,6 +74,7 @@
     "express-rate-limit": "^8.2.1",
     "file-saver": "^2.0.5",
     "firebase": "^11.0.2",
+    "focus-trap-react": "^11.0.4",
     "framer-motion": "^12.23.25",
     "gantt-task-react": "^0.3.9",
     "helmet": "^8.1.0",
