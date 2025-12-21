@@ -46,15 +46,31 @@ const createAuditLog = async (event, collectionName, resourceNameField = 'name')
         return; // Can't log if we don't know the org (or maybe log to a global admin log?)
     }
 
+    // Attempt to identify actor from document fields (if available)
+    // Most GRC apps store 'updatedBy' or 'lastModifiedBy' in the doc
+    let userId = 'SYSTEM';
+    let userEmail = 'system@sentinel-grc.com';
+
+    if (action === 'CREATE' && data.createdBy) {
+        userId = data.createdBy.uid || data.createdBy.id || data.createdBy;
+        userEmail = data.createdBy.email || 'unknown@email.com';
+    } else if (data.updatedBy) { // Standard field in our app
+        userId = data.updatedBy.uid || data.updatedBy.id || data.updatedBy;
+        userEmail = data.updatedBy.email || 'unknown@email.com';
+    } else if (data.lastModifiedBy) { // Alternative field
+        userId = data.lastModifiedBy;
+        userEmail = 'unknown@email.com'; // We might not have email here
+    }
+
     try {
         await admin.firestore().collection('system_logs').add({
             organizationId,
-            userId: 'SYSTEM', // Automated trigger has no auth context of the specific user implicitly unless we track "updatedBy" field
-            userEmail: 'system@sentinel-grc.com',
+            userId: userId,
+            userEmail: userEmail,
             action: `${collectionName.toUpperCase()}_${action}`,
             resource: resourceName,
             resourceId: docId,
-            details: `Automated audit log for ${action} on ${collectionName}`,
+            details: `Audit log for ${action} on ${collectionName}`,
             timestamp,
             source: 'backend_trigger',
             meta: {
@@ -63,7 +79,7 @@ const createAuditLog = async (event, collectionName, resourceNameField = 'name')
                 collection: collectionName
             }
         });
-        logger.info(`Audit logged: ${action} on ${collectionName}/${docId} for Org ${organizationId}`);
+        logger.info(`Audit logged: ${action} on ${collectionName}/${docId} for Org ${organizationId} by ${userEmail}`);
     } catch (error) {
         logger.error(`Failed to create audit log for ${collectionName}/${docId}`, error);
     }
