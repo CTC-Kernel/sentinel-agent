@@ -10,7 +10,7 @@ interface SoAViewProps {
     controls: Control[];
     risks: Risk[];
     handlers: {
-        updateControl: (id: string, updates: Partial<Control>) => Promise<any>;
+        updateControl: (id: string, updates: Partial<Control>) => Promise<boolean>;
         handleApplicabilityChange: (control: Control, isApplicable: boolean) => Promise<void>;
         updateJustification: (control: Control, text: string) => Promise<void>;
     };

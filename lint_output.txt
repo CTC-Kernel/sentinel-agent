@@ -3,97 +3,136 @@
 > eslint .
 
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/continuity/ContinuityStrategies.tsx
-  185:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/audits/AuditsList.tsx
+   35:49  error    Compilation Skipped: Existing memoization could not be preserved
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/integrations/ScannerJobs.tsx
-  177:85  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  195:85  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `onSelect`, but the source dependencies were [canEdit, canDelete, onEdit, onDelete, onOpen]. Inferred different dependency than source.
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/projects/ProjectForm.tsx
-  53:9  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/audits/AuditsList.tsx:35:49
+   33 |     };
+   34 |
+>  35 |     const columns = useMemo<ColumnDef<Audit>[]>(() => [
+      |                                                 ^^^^^^^
+>  36 |         {
+      | ^^^^^^^^^
+>  37 |             id: 'select',
+      …
+      | ^^^^^^^^^
+> 150 |         }
+      | ^^^^^^^^^
+> 151 |     ], [canEdit, canDelete, onEdit, onDelete, onOpen]);
+      | ^^^^^^ Could not preserve existing manual memoization
+  152 |
+  153 |     return (
+  154 |         <DataTable     react-hooks/preserve-manual-memoization
+   35:49  error    Compilation Skipped: Existing memoization could not be preserved
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/projects/TaskFormModal.tsx
-  38:9  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `audits`, but the source dependencies were [canEdit, canDelete, onEdit, onDelete, onOpen]. Inferred different dependency than source.
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/projects/TemplateModal.tsx
-  28:9  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/audits/AuditsList.tsx:35:49
+   33 |     };
+   34 |
+>  35 |     const columns = useMemo<ColumnDef<Audit>[]>(() => [
+      |                                                 ^^^^^^^
+>  36 |         {
+      | ^^^^^^^^^
+>  37 |             id: 'select',
+      …
+      | ^^^^^^^^^
+> 150 |         }
+      | ^^^^^^^^^
+> 151 |     ], [canEdit, canDelete, onEdit, onDelete, onOpen]);
+      | ^^^^^^ Could not preserve existing manual memoization
+  152 |
+  153 |     return (
+  154 |         <DataTable       react-hooks/preserve-manual-memoization
+   35:49  error    Compilation Skipped: Existing memoization could not be preserved
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/threats/ThreatDashboard.tsx
-  34:34  error  Error: Cannot call impure function during render
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `selectedIds`, but the source dependencies were [canEdit, canDelete, onEdit, onDelete, onOpen]. Inferred different dependency than source.
 
-`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/audits/AuditsList.tsx:35:49
+   33 |     };
+   34 |
+>  35 |     const columns = useMemo<ColumnDef<Audit>[]>(() => [
+      |                                                 ^^^^^^^
+>  36 |         {
+      | ^^^^^^^^^
+>  37 |             id: 'select',
+      …
+      | ^^^^^^^^^
+> 150 |         }
+      | ^^^^^^^^^
+> 151 |     ], [canEdit, canDelete, onEdit, onDelete, onOpen]);
+      | ^^^^^^ Could not preserve existing manual memoization
+  152 |
+  153 |     return (
+  154 |         <DataTable  react-hooks/preserve-manual-memoization
+   35:49  error    Compilation Skipped: Existing memoization could not be preserved
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/threats/ThreatDashboard.tsx:34:34
-  32 |     // Activity Trend (Real Data)
-  33 |     const activityData = React.useMemo(() => {
-> 34 |         const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-     |                                  ^^^^^^^^^^ Cannot call impure function
-  35 |         const buckets: Record<string, number> = {};
-  36 |
-  37 |         // Initialize buckets for last 6:4-hour blocks to show a 24h trend                            react-hooks/purity
-  39:32  error  Error: Cannot call impure function during render
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `onSelect`, but the source dependencies were [canEdit, canDelete, onEdit, onDelete, onOpen]. Inferred different dependency than source.
 
-`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/audits/AuditsList.tsx:35:49
+   33 |     };
+   34 |
+>  35 |     const columns = useMemo<ColumnDef<Audit>[]>(() => [
+      |                                                 ^^^^^^^
+>  36 |         {
+      | ^^^^^^^^^
+>  37 |             id: 'select',
+      …
+      | ^^^^^^^^^
+> 150 |         }
+      | ^^^^^^^^^
+> 151 |     ], [canEdit, canDelete, onEdit, onDelete, onOpen]);
+      | ^^^^^^ Could not preserve existing manual memoization
+  152 |
+  153 |     return (
+  154 |         <DataTable     react-hooks/preserve-manual-memoization
+  151:8   warning  React Hook useMemo has missing dependencies: 'audits', 'onSelect', and 'selectedIds'. Either include them or remove the dependency array. If 'onSelect' changes too often, find the parent component that defines it and wrap that definition in useCallback                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react-hooks/exhaustive-deps
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/threats/ThreatDashboard.tsx:39:32
-  37 |         // Initialize buckets for last 6:4-hour blocks to show a 24h trend
-  38 |         for (let i = 0; i <= 24; i += 4) {
-> 39 |             const d = new Date(Date.now() - (24 - i) * 60 * 60 * 1000);
-     |                                ^^^^^^^^^^ Cannot call impure function
-  40 |             const key = d.getHours().toString().padStart(2, '0') + ':00';
-  41 |             buckets[key] = 0;
-  42 |         }  react-hooks/purity
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/collaboration/CommentSection.tsx
+  131:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/ui/InspectorLayout.tsx
-  24:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/compliance/SoAView.tsx
+  13:75  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/vulnerabilities/VulnerabilityImportModal.tsx
-  46:84  warning  'id' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
-  52:18  warning  'error' is defined but never used                                     @typescript-eslint/no-unused-vars
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/documents/DocumentInspector.tsx
+   52:11  error    Unexpected empty object pattern                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-empty-pattern
+   58:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/useActivityLogs.ts
-   64:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-   68:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-   71:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-   74:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  165:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/logger.ts
-  13:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/onboardingService.ts
-  160:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/documents/DocumentInspector.tsx:58:13
+  56 |     useEffect(() => {
+  57 |         if (!isOpen || !selectedDocument) {
+> 58 |             setVersions([]);
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  59 |             setActiveTab('details');
+  60 |         }
+  61 |     }, [isOpen, selectedDocument]);  react-hooks/set-state-in-effect
+  172:61  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-explicit-any
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/tokenService.ts
-  54:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
-  65:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/settings/ActiveSessions.tsx
+  26:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/types/express-rate-limit/index.d.ts
-  10:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  19:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/types/express/index.d.ts
-  1:10  warning  'Request' is defined but never used  @typescript-eslint/no-unused-vars
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/utils/csvUtils.ts
-   8:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  35:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  49:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  57:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  80:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  83:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/components/settings/ActiveSessions.tsx:26:9
+  24 |
+  25 |     useEffect(() => {
+> 26 |         setSessions([
+     |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  27 |             {
+  28 |                 id: '1',
+  29 |                 device: 'MacBook Pro 16"',  react-hooks/set-state-in-effect
 
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Onboarding.tsx
-  177:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  212:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Risks.tsx
-  137:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Suppliers.tsx
-  463:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-✖ 33 problems (2 errors, 31 warnings)
-  0 errors and 3 warnings potentially fixable with the `--fix` option.
+✖ 11 problems (7 errors, 4 warnings)
 

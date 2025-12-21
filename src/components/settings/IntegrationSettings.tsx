@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useStore } from '../../store';
 import { BrainCircuit, Key, Calendar, CheckCircle2, Download, LogOut, ShieldCheck } from '../ui/Icons';
 import { useForm, SubmitHandler } from 'react-hook-form';
@@ -13,9 +13,23 @@ import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 
 export const IntegrationSettings: React.FC = () => {
-    const { user, setUser, addToast, t } = useStore();
+    const { user, setUser, addToast, t, googleAccessToken, googleTokenExpiry, setGoogleToken, clearGoogleToken } = useStore(state => ({
+        user: state.user,
+        setUser: state.setUser,
+        addToast: state.addToast,
+        t: state.t,
+        googleAccessToken: state.googleAccessToken,
+        googleTokenExpiry: state.googleTokenExpiry,
+        setGoogleToken: state.setGoogleToken,
+        clearGoogleToken: state.clearGoogleToken
+    }));
     const [savingKeys, setSavingKeys] = useState(false);
     const [exportingCalendar, setExportingCalendar] = useState(false);
+    const hasGoogleCalendarSession = useMemo(() => {
+        if (!googleAccessToken) return false;
+        if (!googleTokenExpiry) return true;
+        return googleTokenExpiry > Date.now();
+    }, [googleAccessToken, googleTokenExpiry]);
 
     // AI Keys Form
     const { register, handleSubmit } = useForm({
@@ -47,9 +61,11 @@ export const IntegrationSettings: React.FC = () => {
 
     const loginToGoogle = useGoogleLogin({
         onSuccess: tokenResponse => {
-            sessionStorage.setItem('google_access_token', tokenResponse.access_token);
+            setGoogleToken(tokenResponse.access_token, tokenResponse.expires_in);
             addToast(t('settings.googleCalendarConnected'), "success");
-            window.location.reload(); // Quick way to refresh UI state for this demo
+        },
+        onError: () => {
+            addToast(t('settings.googleCalendarFailed'), "error");
         },
         scope: 'https://www.googleapis.com/auth/calendar'
     });
@@ -161,7 +177,7 @@ export const IntegrationSettings: React.FC = () => {
                             {t('settings.googleCalendarDescription')}
                         </p>
 
-                        {sessionStorage.getItem('google_access_token') ? (
+                        {hasGoogleCalendarSession ? (
                             <div className="flex items-center justify-between p-4 bg-green-500/10 dark:bg-green-500/20 rounded-xl border border-green-500/20 backdrop-blur-sm">
                                 <span className="text-sm font-bold text-green-700 dark:text-green-400 flex items-center">
                                     <CheckCircle2 className="h-5 w-5 mr-2" />
@@ -170,9 +186,8 @@ export const IntegrationSettings: React.FC = () => {
                                 <Button
                                     type="button"
                                     onClick={() => {
-                                        sessionStorage.removeItem('google_access_token');
+                                        clearGoogleToken();
                                         addToast(t('settings.disconnectGoogle'), "info");
-                                        window.location.reload();
                                     }}
                                     variant="outline"
                                     size="sm"

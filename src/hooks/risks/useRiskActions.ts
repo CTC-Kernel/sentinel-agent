@@ -175,7 +175,6 @@ export const useRiskActions = (onRefresh: () => void) => {
             let importedCount = 0;
             for (const item of data) {
                 // Using internal createRisk for consistency
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 await createRisk({
                     ...item,
                     strategy: item.strategy as Risk['strategy'],

@@ -39,7 +39,10 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
 
             <div className="relative border-l-2 border-slate-200 dark:border-slate-700 ml-3 space-y-8 pb-4">
                 {logs.map((log) => {
-                    const date = log.timestamp ? new Date((log.timestamp as any).seconds ? (log.timestamp as any).seconds * 1000 : log.timestamp) : new Date();
+                    const timestamp = log.timestamp as { seconds: number } | number | string | Date;
+                    const date = timestamp instanceof Date ? timestamp :
+                        (typeof timestamp === 'object' && 'seconds' in timestamp) ? new Date(timestamp.seconds * 1000) :
+                            new Date(timestamp);
 
                     return (
                         <div key={log.id} className="relative pl-6">

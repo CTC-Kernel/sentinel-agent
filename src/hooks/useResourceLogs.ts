@@ -59,7 +59,7 @@ export const useResourceLogs = (_resourceType: string, resourceId?: string, limi
             console.error('Error fetching resource logs:', error);
             // Silent error or specific handling? 
             // For a history tab, we might want to show empty state rather than error toast if it's just index missing
-            if ((error as any)?.code === 'failed-precondition') {
+            if ((error as { code?: string })?.code === 'failed-precondition') {
                 console.warn("Missing index for resource logs query");
             } else {
                 toast.error('Impossible de charger l\'historique');

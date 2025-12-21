@@ -128,7 +128,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                     organizedComments.map((root) => (
                         <div key={root.id}>
                             {renderComment(root)}
-                            {(root as any).replies?.map((reply: Comment) => renderComment(reply, true))}
+                            {(root as Comment & { replies?: Comment[] }).replies?.map((reply: Comment) => renderComment(reply, true))}
                         </div>
                     ))
                 )}

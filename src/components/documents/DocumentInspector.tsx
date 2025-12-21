@@ -22,7 +22,7 @@ import { TimelineView } from '../shared/TimelineView';
 // If so, we don't need FilePreview directly in Inspector.
 // DocumentInspector is independent.
 
-import { useStore } from '../../store';
+
 
 interface DocumentInspectorProps {
     isOpen: boolean;
@@ -49,12 +49,13 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
     onWorkflowAction,
     onSecureView
 }) => {
-    const { } = useStore(); // user is unused now.
+    // user is unused now.
     const [activeTab, setActiveTab] = useState<'details' | 'versions' | 'history' | 'comments'>('details');
     const [versions, setVersions] = useState<DocumentVersion[]>([]);
 
     useEffect(() => {
         if (!isOpen || !selectedDocument) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setVersions([]);
             setActiveTab('details');
         }
@@ -169,7 +170,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                         { id: 'comments', label: 'Commentaires', icon: MessageSquare }
                     ]}
                     activeTab={activeTab}
-                    onTabChange={(id) => setActiveTab(id as any)}
+                    onTabChange={(id) => setActiveTab(id as 'details' | 'versions' | 'history' | 'comments')}
                 />
 
                 <div className="mt-6">

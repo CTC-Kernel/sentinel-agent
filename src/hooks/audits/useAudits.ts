@@ -165,7 +165,7 @@ export const useAudits = () => {
             // Actually, let's just accept the multiple toasts or refine later.
             // Better: update handleDeleteAudit to take options.
             // But let's simple iterate for now to minimize risk.
-        } catch (error) {
+        } catch {
             // handled inside
         }
     };

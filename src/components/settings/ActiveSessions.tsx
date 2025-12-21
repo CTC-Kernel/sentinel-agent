@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Monitor, Smartphone, Globe, Trash2, ShieldCheck, Clock } from 'lucide-react';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
@@ -20,42 +20,38 @@ interface Session {
 export const ActiveSessions: React.FC = () => {
     const { t, addToast } = useStore();
 
-    const [sessions, setSessions] = useState<Session[]>([]);
-
-    useEffect(() => {
-        setSessions([
-            {
-                id: '1',
-                device: 'MacBook Pro 16"',
-                type: 'desktop',
-                location: 'Paris, France',
-                ip: '192.168.1.1',
-                lastActive: new Date(),
-                isCurrent: true,
-                browser: 'Chrome 120.0'
-            },
-            {
-                id: '2',
-                device: 'iPhone 15 Pro',
-                type: 'mobile',
-                location: 'Lyon, France',
-                ip: '10.0.0.1',
-                lastActive: new Date(Date.now() - 1000 * 60 * 45), // 45 mins ago
-                isCurrent: false,
-                browser: 'Safari Mobile'
-            },
-            {
-                id: '3',
-                device: 'Windows Workstation',
-                type: 'desktop',
-                location: 'Bordeaux, France',
-                ip: '172.16.0.5',
-                lastActive: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-                isCurrent: false,
-                browser: 'Edge'
-            }
-        ]);
-    }, []);
+    const [sessions, setSessions] = useState<Session[]>(() => [
+        {
+            id: '1',
+            device: 'MacBook Pro 16"',
+            type: 'desktop',
+            location: 'Paris, France',
+            ip: '192.168.1.1',
+            lastActive: new Date(),
+            isCurrent: true,
+            browser: 'Chrome 120.0'
+        },
+        {
+            id: '2',
+            device: 'iPhone 15 Pro',
+            type: 'mobile',
+            location: 'Lyon, France',
+            ip: '10.0.0.1',
+            lastActive: new Date(Date.now() - 1000 * 60 * 45), // 45 mins ago
+            isCurrent: false,
+            browser: 'Safari Mobile'
+        },
+        {
+            id: '3',
+            device: 'Windows Workstation',
+            type: 'desktop',
+            location: 'Bordeaux, France',
+            ip: '172.16.0.5',
+            lastActive: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
+            isCurrent: false,
+            browser: 'Edge'
+        }
+    ]);
 
     const handleRevokeSession = (sessionId: string) => {
         // Here we would call an API to revoke the refresh token
