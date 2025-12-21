@@ -291,7 +291,9 @@ export class IncidentPlaybookService {
     stepId: string,
     completed: boolean,
     evidence?: Record<string, unknown>,
-    note?: string
+    note?: string,
+    userId?: string,
+    userName?: string
   ): Promise<void> {
     try {
       const response = await this.getResponseByDocId(responseId);
@@ -325,8 +327,8 @@ export class IncidentPlaybookService {
           ...response.notes,
           {
             id: `note_${Date.now()} `,
-            userId: 'current_user', // Should be passed as parameter
-            userName: 'Current User',
+            userId: userId || 'unknown',
+            userName: userName || 'Unknown User',
             content: note,
             createdAt: new Date().toISOString(),
             category: 'action'
