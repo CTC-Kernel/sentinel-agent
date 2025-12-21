@@ -11,6 +11,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SEO } from '../components/SEO';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 
 import { ScannerJobs } from '../components/integrations/ScannerJobs';
@@ -22,7 +23,7 @@ export const Integrations: React.FC = () => {
     const [connectingId, setConnectingId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
-    const [activeTab, setActiveTab] = useState<'providers' | 'jobs'>('providers');
+    const [activeTab, setActiveTab] = usePersistedState<'providers' | 'jobs'>('integrations_active_tab', 'providers');
 
     // Modal State
     const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);

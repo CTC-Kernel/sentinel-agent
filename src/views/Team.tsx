@@ -31,6 +31,7 @@ import { RoleManager } from '../components/team/RoleManager';
 import { GroupManager } from '../components/team/GroupManager';
 import { hasPermission } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { usePersistedState } from '../hooks/usePersistedState';
 
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
@@ -45,7 +46,7 @@ export const Team: React.FC = () => {
     const [filter, setFilter] = useState('');
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [activeTab, setActiveTab] = useState<'members' | 'roles' | 'groups'>('members');
+    const [activeTab, setActiveTab] = usePersistedState<'members' | 'roles' | 'groups'>('team_active_tab', 'members');
     const { user, addToast } = useStore();
 
     // State for creating user

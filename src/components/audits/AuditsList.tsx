@@ -126,7 +126,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
         {
             id: 'actions',
             cell: ({ row }) => (
-                <div className="flex items-center gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-2 justify-end transition-opacity">
                     <Tooltip content="Ouvrir">
                         <button onClick={() => onOpen(row.original)} className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                             <ClipboardCheck className="w-4 h-4" />

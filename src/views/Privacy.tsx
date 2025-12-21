@@ -26,6 +26,7 @@ import { Link } from 'react-router-dom';
 import { AssessmentView } from '../components/suppliers/AssessmentView';
 import { canEditResource } from '../utils/permissions';
 import { usePrivacy } from '../hooks/usePrivacy';
+import { usePersistedState } from '../hooks/usePersistedState';
 
 export const Privacy: React.FC = () => {
     const { user } = useStore();
@@ -55,7 +56,7 @@ export const Privacy: React.FC = () => {
     } = usePrivacy();
 
     const [filter, setFilter] = useState('');
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'data' | 'links' | 'history' | 'comments'>('details');
+    const [inspectorTab, setInspectorTab] = usePersistedState<'details' | 'data' | 'links' | 'history' | 'comments'>('privacy_inspector_tab', 'details');
 
     // Forms
     const createActivityForm = useForm<ProcessingActivityFormData>({

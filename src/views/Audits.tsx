@@ -11,6 +11,7 @@ import { Drawer } from '../components/ui/Drawer';
 import { AuditForm } from '../components/audits/AuditForm';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useStore } from '../store';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { AuditInspector } from '@/components/audits/AuditInspector';
 import { Audit } from '../types';
 import { AuditFormData } from '../schemas/auditSchema';
@@ -36,7 +37,7 @@ export const Audits: React.FC = () => {
     const { user } = useStore();
 
     // Local UI State
-    const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'calendar' | 'findings'>('list');
+    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'calendar' | 'findings'>('audits-active-tab', 'overview');
     const [creationMode, setCreationMode] = useState(false);
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
@@ -337,27 +338,20 @@ export const Audits: React.FC = () => {
             </Drawer>
 
             {/* Inspection Drawer */}
-            <Drawer
-                isOpen={!!selectedAudit}
-                onClose={() => setSelectedAudit(null)}
-                title={selectedAudit?.name || "Détails de l'audit"}
-                width="max-w-6xl"
-            >
-                {selectedAudit && (
-                    <AuditInspector
-                        audit={selectedAudit}
-                        onClose={() => setSelectedAudit(null)}
-                        controls={controls}
-                        documents={documents}
-                        refreshAudits={refreshAudits}
-                        canEdit={canEdit}
-                        onDelete={(id, name) => {
-                            setSelectedAudit(null);
-                            handleDelete({ id, name } as Audit);
-                        }}
-                    />
-                )}
-            </Drawer>
+            {selectedAudit && (
+                <AuditInspector
+                    audit={selectedAudit}
+                    onClose={() => setSelectedAudit(null)}
+                    controls={controls}
+                    documents={documents}
+                    refreshAudits={refreshAudits}
+                    canEdit={canEdit}
+                    onDelete={(id, name) => {
+                        setSelectedAudit(null);
+                        handleDelete({ id, name } as Audit);
+                    }}
+                />
+            )}
 
             <ConfirmModal
                 isOpen={confirmData.isOpen}

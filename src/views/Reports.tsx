@@ -39,10 +39,11 @@ import { hasPermission, canDeleteResource } from '../utils/permissions';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Badge } from '../components/ui/Badge';
 import { usePlanLimits } from '../hooks/usePlanLimits';
+import { usePersistedState } from '../hooks/usePersistedState';
 
 export const Reports: React.FC = () => {
     const { user, organization, addToast } = useStore();
-    const [activeTab, setActiveTab] = useState('generate');
+    const [activeTab, setActiveTab] = usePersistedState('reports_active_tab', 'generate');
     const [generating, setGenerating] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();

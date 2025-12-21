@@ -137,7 +137,8 @@ import {
   Box,
   GripVertical,
   Reply,
-  Award
+  Award,
+  ListChecks
 } from 'lucide-react';
 
 export {
@@ -278,5 +279,6 @@ export {
   Box,
   GripVertical,
   Reply,
-  Award
+  Award,
+  ListChecks
 };

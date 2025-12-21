@@ -183,6 +183,7 @@ const AppContent: React.FC = () => {
 };
 
 import { RouteProgressBar } from './components/ui/RouteProgressBar';
+import { NavigationLoader } from './components/ui/NavigationLoader';
 
 const AppInner: React.FC = () => {
     const { isBlocked } = useAuth();
@@ -193,6 +194,7 @@ const AppInner: React.FC = () => {
 
     return (
         <>
+            <NavigationLoader />
             <RouteProgressBar />
             <SkipLink />
             <VersionCheck />

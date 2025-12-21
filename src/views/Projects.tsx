@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useStore } from '../store';
 import { Project } from '../types';
 import { useProjectLogic } from '../hooks/projects/useProjectLogic';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { ProjectList } from '../components/projects/ProjectList';
 import { ProjectCard } from '../components/projects/ProjectCard';
 import { ProjectInspector } from '../components/projects/ProjectInspector';
@@ -33,7 +34,7 @@ export const Projects: React.FC = () => {
     const { user, addToast } = useStore();
 
     // Tabs
-    const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'board' | 'gantt'>('list');
+    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'board' | 'gantt'>('projects_active_tab', 'overview');
     const [ganttViewMode, setGanttViewMode] = useState<'Day' | 'Week' | 'Month'>('Month');
 
     const tabs = [

@@ -13,13 +13,14 @@ import { ComplianceFilters } from '../components/compliance/ComplianceFilters';
 import { ComplianceInspector } from '../components/compliance/ComplianceInspector';
 import { useComplianceData } from '../hooks/useComplianceData';
 import { useComplianceActions } from '../hooks/useComplianceActions';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { canEditResource } from '../utils/permissions';
 import { FRAMEWORKS } from '../data/frameworks';
 import { RiskForm } from '../components/risks/RiskForm';
 import { ProjectForm } from '../components/projects/ProjectForm';
 import { AuditForm } from '../components/audits/AuditForm';
 
-import { ShieldCheck, Download } from '../components/ui/Icons';
+import { ShieldCheck, Download, LayoutDashboard, ListChecks, FileText } from '../components/ui/Icons';
 import { toast } from 'sonner';
 import { SoAView } from '../components/compliance/SoAView';
 
@@ -30,6 +31,7 @@ export const Compliance: React.FC = () => {
 
     // UI State
     const [currentFramework, setCurrentFramework] = useState<Framework>('ISO27001');
+    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'controls' | 'soa'>('compliance-active-tab', 'overview');
     const [selectedControlId, setSelectedControlId] = useState<string | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [filter, setFilter] = useState('');
@@ -48,15 +50,9 @@ export const Compliance: React.FC = () => {
     const { controls, documents, risks, findings, usersList, assets, suppliers, projects, loading } = useComplianceData(currentFramework);
     const complianceActions = useComplianceActions(user);
 
-    const [viewMode, setViewMode] = useState<'controls' | 'soa'>('controls');
-
     // Effects
     useEffect(() => {
         if (initialState.createForProject) {
-            // Only toast if we actually have a project ID newly linked (managed via mounting, or we could track previous id)
-            // Ideally we just show it on mount.
-            // Using a ref to ensure we don't toast repeatedly if location object changes but state doesn't is cleaner,
-            // but for now, dependency on location.state which usually comes from pushState is acceptable if we stripped the setState.
             addToast(`Mode liaison actif: Sélectionnez un contrôle pour le lier au projet ${initialState.projectName || ''}`, 'info');
         }
     }, [initialState.createForProject, initialState.projectName, addToast]);
@@ -95,8 +91,6 @@ export const Compliance: React.FC = () => {
 
     const selectedControl = controls.find(c => c.id === selectedControlId);
 
-    // ... (existing code)
-
     return (
         <>
             <MasterpieceBackground />
@@ -121,41 +115,38 @@ export const Compliance: React.FC = () => {
                     }
                 />
 
-                {/* Framework Tabs */}
+                {/* Framework Selector (Top Level) */}
                 <ScrollableTabs
                     tabs={FRAMEWORKS.filter(f => f.type === 'Compliance').map(f => ({
                         id: f.id,
                         label: f.label,
-                        // icon: Globe // Optional
                     }))}
                     activeTab={currentFramework}
                     onTabChange={(id) => setCurrentFramework(id as Framework)}
                 />
 
-                {/* Dashboard Stats */}
-                <ComplianceDashboard
-                    controls={controls}
-                />
-
-                {/* View Toggler */}
-                <div className="flex border-b border-gray-200 dark:border-white/10">
-                    <button
-                        onClick={() => setViewMode('controls')}
-                        className={`px-4 py-2 border-b-2 text-sm font-medium transition-colors ${viewMode === 'controls' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
-                    >
-                        Contrôles & Preuves
-                    </button>
-                    <button
-                        onClick={() => setViewMode('soa')}
-                        className={`px-4 py-2 border-b-2 text-sm font-medium transition-colors ${viewMode === 'soa' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
-                    >
-                        Déclaration d'Applicabilité (SoA)
-                    </button>
+                {/* Main Navigation Tabs (Feature Level) */}
+                <div className="mt-2">
+                    <ScrollableTabs
+                        tabs={[
+                            { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
+                            { id: 'controls', label: "Contrôles & Preuves", icon: ListChecks },
+                            { id: 'soa', label: "Déclaration d'Applicabilité (SoA)", icon: FileText }
+                        ]}
+                        activeTab={activeTab}
+                        onTabChange={(id) => setActiveTab(id as 'overview' | 'controls' | 'soa')}
+                    />
                 </div>
 
-                {/* Content */}
-                {viewMode === 'controls' ? (
-                    <div className="space-y-6">
+                {/* Tab Content */}
+                {activeTab === 'overview' && (
+                    <div className="animate-fade-in space-y-6">
+                        <ComplianceDashboard controls={controls} />
+                    </div>
+                )}
+
+                {activeTab === 'controls' && (
+                    <div className="animate-fade-in space-y-6">
                         <ComplianceFilters
                             searchQuery={filter}
                             onSearchChange={setFilter}
@@ -176,12 +167,16 @@ export const Compliance: React.FC = () => {
                             filter={filter}
                         />
                     </div>
-                ) : (
-                    <SoAView
-                        controls={filteredControls}
-                        risks={risks}
-                        handlers={complianceActions}
-                    />
+                )}
+
+                {activeTab === 'soa' && (
+                    <div className="animate-fade-in space-y-6">
+                        <SoAView
+                            controls={filteredControls}
+                            risks={risks}
+                            handlers={complianceActions}
+                        />
+                    </div>
                 )}
             </div>
 

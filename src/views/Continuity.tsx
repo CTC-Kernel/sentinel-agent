@@ -10,6 +10,7 @@ import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { BusinessProcess, BcpDrill, Asset, Risk, Supplier, UserProfile } from '../types';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { BusinessProcessFormData } from '../schemas/continuitySchema';
 import { ProcessFormModal } from '../components/continuity/ProcessFormModal';
 import { ProcessInspector } from '../components/continuity/ProcessInspector';
@@ -30,7 +31,7 @@ type ContinuityTab = 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis';
 
 const Continuity: React.FC = () => {
     const { user, addToast } = useStore();
-    const [activeTab, setActiveTab] = useState<ContinuityTab>('overview');
+    const [activeTab, setActiveTab] = usePersistedState<ContinuityTab>('continuity_active_tab', 'overview');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
     const [isDrillModalOpen, setIsDrillModalOpen] = useState(false);

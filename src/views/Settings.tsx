@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { SettingsLayout } from '../components/settings/SettingsLayout';
 import { ProfileSettings } from '../components/settings/ProfileSettings';
 import { UserActivityLog } from '../components/settings/UserActivityLog';
@@ -15,7 +16,7 @@ import { staggerContainerVariants } from '../components/ui/animationVariants';
 
 const Settings: React.FC = () => {
     const { t } = useStore();
-    const [activeTab, setActiveTab] = useState('profile');
+    const [activeTab, setActiveTab] = usePersistedState('settings_active_tab', 'profile');
 
     const renderContent = () => {
         switch (activeTab) {

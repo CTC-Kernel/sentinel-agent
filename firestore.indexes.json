@@ -341,19 +341,6 @@
             ]
         },
         {
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "projectId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "organizationId",
-                    "order": "ASCENDING"
-                }
-            ]
-        },
-        {
             "collectionGroup": "project_milestones",
             "queryScope": "COLLECTION",
             "fields": [

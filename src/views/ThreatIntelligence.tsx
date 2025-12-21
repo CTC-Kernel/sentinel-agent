@@ -24,6 +24,7 @@ import { db } from '../firebase';
 import { logAction } from '../services/logger';
 import { useStore } from '../store';
 import { TrustRelationship } from '../types';
+import { usePersistedState } from '../hooks/usePersistedState';
 
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -33,7 +34,7 @@ export const ThreatIntelligence: React.FC = () => {
     const { user, addToast } = useStore();
 
     // UI State
-    const [activeTab, setActiveTab] = useState<'overview' | 'map' | 'feed' | 'community'>('overview');
+    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'map' | 'feed' | 'community'>('threat_intelligence_active_tab', 'overview');
 
 
     const [tooltipContent, setTooltipContent] = useState('');

@@ -16,6 +16,7 @@ import { staggerContainerVariants } from '../components/ui/animationVariants';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SEO } from '../components/SEO';
+import { usePersistedState } from '../hooks/usePersistedState';
 
 export const BackupRestore: React.FC = () => {
   const { user, addToast } = useStore();
@@ -23,7 +24,7 @@ export const BackupRestore: React.FC = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [backups, setBackups] = useState<BackupMetadata[]>([]);
   const [selectedBackup, setSelectedBackup] = useState<BackupMetadata | null>(null);
-  const [activeTab, setActiveTab] = useState<'backup' | 'restore'>('backup');
+  const [activeTab, setActiveTab] = usePersistedState<'backup' | 'restore'>('backup_restore_active_tab', 'backup');
   const [stats, setStats] = useState<{ totalBackups: number; totalSize: number; lastBackup?: string }>({ totalBackups: 0, totalSize: 0 });
 
   const [confirmData, setConfirmData] = useState<{
