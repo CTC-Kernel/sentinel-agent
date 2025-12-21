@@ -1,0 +1,91 @@
+import { db } from '../firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+
+export interface Dependency {
+    id: string;
+    name: string;
+    type: 'Contrôle' | 'Projet' | 'Audit';
+    collectionName: 'controls' | 'projects' | 'audits';
+}
+
+export interface DependencyCheckResult {
+    hasDependencies: boolean;
+    dependencies: Dependency[];
+    canDelete: boolean;
+    blockingReasons: string[];
+}
+
+export class DependencyService {
+    /**
+     * Checks for dependencies linked to a Risk.
+     * @param riskId The ID of the risk to check
+     * @param organizationId The organization ID (for security scoping)
+     */
+    static async checkRiskDependencies(riskId: string, organizationId: string): Promise<DependencyCheckResult> {
+        if (!riskId || !organizationId) {
+            return { hasDependencies: false, dependencies: [], canDelete: true, blockingReasons: [] };
+        }
+
+        try {
+            const [controlsSnap, projectsSnap, auditsSnap] = await Promise.all([
+                getDocs(query(collection(db, 'controls'), where('organizationId', '==', organizationId), where('relatedRiskIds', 'array-contains', riskId))),
+                getDocs(query(collection(db, 'projects'), where('organizationId', '==', organizationId), where('relatedRiskIds', 'array-contains', riskId))),
+                getDocs(query(collection(db, 'audits'), where('organizationId', '==', organizationId), where('relatedRiskIds', 'array-contains', riskId)))
+            ]);
+
+            const dependencies: Dependency[] = [
+                ...controlsSnap.docs.map(d => {
+                    const data = d.data();
+                    return {
+                        id: d.id,
+                        name: data.code || data.name || 'Contrôle sans nom',
+                        type: 'Contrôle',
+                        collectionName: 'controls'
+                    } as Dependency;
+                }),
+                ...projectsSnap.docs.map(d => {
+                    const data = d.data();
+                    return {
+                        id: d.id,
+                        name: data.name || 'Projet sans nom',
+                        type: 'Projet',
+                        collectionName: 'projects'
+                    } as Dependency;
+                }),
+                ...auditsSnap.docs.map(d => {
+                    const data = d.data();
+                    return {
+                        id: d.id,
+                        name: data.name || 'Audit sans nom',
+                        type: 'Audit',
+                        collectionName: 'audits'
+                    } as Dependency;
+                })
+            ];
+
+            // Define blocking rules (e.g., if a risk is linked to active audits, maybe we shouldn't delete?)
+            // For now, we will flag them but allow deletion if handling cleanup, but strict mode might block.
+            // The request says "corruption de données" implies we must handle them.
+            // Safe approach: Block if linked to closed audits (history), or handle cleanup gracefully.
+            // The requirement specifically mentioned: "L'application permet la suppression... sans vérification".
+            // We will return information so the UI can decide (or the hook).
+
+            return {
+                hasDependencies: dependencies.length > 0,
+                dependencies,
+                canDelete: true, // We will allow delete but with cleanup warnings/actions
+                blockingReasons: dependencies.length > 0 ? [`Ce risque est lié à ${dependencies.length} éléments.`] : []
+            };
+
+        } catch (error) {
+            console.error('Error checking dependencies:', error);
+            // Fail safe: assume dependencies exist if error to prevent accidental deletion
+            return {
+                hasDependencies: true,
+                dependencies: [],
+                canDelete: false,
+                blockingReasons: ['Erreur lors de la vérification des dépendances.']
+            };
+        }
+    }
+}

@@ -49,6 +49,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         value={value}
                         aria-invalid={!!error}
                         aria-describedby={describedBy}
+                        aria-required={props.required}
                         rows={rows}
                         className={`
                             peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
@@ -65,6 +66,7 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         value={value}
                         aria-invalid={!!error}
                         aria-describedby={describedBy}
+                        aria-required={props.required}
                         className={`
                             peer w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
                             placeholder-transparent rounded-2xl

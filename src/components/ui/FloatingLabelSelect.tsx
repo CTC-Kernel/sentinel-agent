@@ -75,6 +75,7 @@ export const FloatingLabelSelect = React.forwardRef<HTMLSelectElement, FloatingL
                     onChange={handleChange}
                     aria-invalid={!!error}
                     aria-describedby={describedBy}
+                    aria-required={props.required}
                     className={`
                         w-full px-4 py-3.5 bg-transparent outline-none font-medium text-slate-900 dark:text-white
                         placeholder-transparent rounded-2xl appearance-none

@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { db } from '../../firebase';
-import { collection, addDoc, updateDoc, doc, deleteDoc, writeBatch, getDocs, query, where, arrayRemove } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, deleteDoc, writeBatch, arrayRemove } from 'firebase/firestore';
 import { useAuth } from '../../hooks/useAuth';
 import { Risk } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
-import { toast } from 'sonner'; // Integrated sonner
+import { toast } from 'sonner';
 import { logAction } from '../../services/logger';
 import { getDiff } from '../../utils/diffUtils';
 import { ImportService } from '../../services/ImportService';
 import { NotificationService } from '../../services/notificationService';
+import { DependencyService } from '../../services/dependencyService';
+import { riskSchema } from '../../schemas/riskSchema';
 
 export const useRiskActions = (onRefresh: () => void) => {
     const { user } = useAuth();
@@ -21,8 +23,18 @@ export const useRiskActions = (onRefresh: () => void) => {
         if (!user?.organizationId) return false;
         setSubmitting(true);
         try {
+            // Validation Zod
+            const validationResult = riskSchema.safeParse(data);
+            if (!validationResult.success) {
+                const errorMessage = validationResult.error.issues[0]?.message || 'Données invalides';
+                toast.error(errorMessage);
+                console.error('Validation error:', validationResult.error);
+                return false;
+            }
+
             const riskData = {
-                ...data,
+                ...data, // Use original data or validated data? Ideally validated but schema might strip extra fields if not set to passthrough. Schema looks comprehensive.
+                // Keeping spread of data for now to be safe, but validation passed.
                 organizationId: user.organizationId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
@@ -48,7 +60,7 @@ export const useRiskActions = (onRefresh: () => void) => {
 
             // Notify owner if different from creator
             if (riskData.owner && riskData.owner !== user.uid) {
-                await NotificationService.notifyRiskAssigned(riskData, riskData.owner, user.displayName || user.email || 'Admin');
+                await NotificationService.notifyRiskAssigned(riskData as any, riskData.owner, user.displayName || user.email || 'Admin');
             }
             return true;
         } catch (error) {
@@ -102,55 +114,31 @@ export const useRiskActions = (onRefresh: () => void) => {
     const checkDependencies = async (riskId: string) => {
         if (!user?.organizationId) return { hasDependencies: false, details: [] };
 
-        const [controlsSnap, projectsSnap, auditsSnap] = await Promise.all([
-            getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId), where('relatedRiskIds', 'array-contains', riskId))),
-            getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId), where('relatedRiskIds', 'array-contains', riskId))),
-            getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId), where('relatedRiskIds', 'array-contains', riskId)))
-        ]);
-
-        const dependencies = [
-            ...controlsSnap.docs.map(d => ({ id: d.id, name: d.data().code || d.data().name || 'Contrôle', type: 'Contrôle' })),
-            ...projectsSnap.docs.map(d => ({ id: d.id, name: d.data().name || 'Projet', type: 'Projet' })),
-            ...auditsSnap.docs.map(d => ({ id: d.id, name: d.data().name || 'Audit', type: 'Audit' }))
-        ];
+        // Use the new service
+        const result = await DependencyService.checkRiskDependencies(riskId, user.organizationId);
 
         return {
-            hasDependencies: dependencies.length > 0,
-            dependencies
+            hasDependencies: result.hasDependencies,
+            details: result.dependencies
         };
     };
 
     const deleteRisk = async (id: string, name?: string) => {
         setSubmitting(true);
         try {
-            // Cleanup references
-            const { dependencies } = await checkDependencies(id);
-            if (dependencies && dependencies.length > 0) {
+            // Cleanup references using service
+            if (!user?.organizationId) throw new Error("No org");
 
-                // Note: We are not using batch here because we might need to query many different collections
-                // and 'checkDependencies' already fetched them, but for deletion/update we just need IDs.
-                // A simple loop of updates is safer for now.
+            const check = await DependencyService.checkRiskDependencies(id, user.organizationId);
 
-                // However, checkDependencies gave us the docs.
-                // Let's just run the updates.
+            if (check.hasDependencies) {
                 const cleanupPromises = [];
-
-                // Controls
-                const controlDeps = dependencies.filter(d => d.type === 'Contrôle');
-                for (const dep of controlDeps) {
-                    cleanupPromises.push(updateDoc(doc(db, 'controls', dep.id), { relatedRiskIds: arrayRemove(id) }));
+                // Clean references
+                for (const dep of check.dependencies) {
+                    cleanupPromises.push(updateDoc(doc(db, dep.collectionName, dep.id), {
+                        relatedRiskIds: arrayRemove(id)
+                    }));
                 }
-                // Projects
-                const projectDeps = dependencies.filter(d => d.type === 'Projet');
-                for (const dep of projectDeps) {
-                    cleanupPromises.push(updateDoc(doc(db, 'projects', dep.id), { relatedRiskIds: arrayRemove(id) }));
-                }
-                // Audits
-                const auditDeps = dependencies.filter(d => d.type === 'Audit');
-                for (const dep of auditDeps) {
-                    cleanupPromises.push(updateDoc(doc(db, 'audits', dep.id), { relatedRiskIds: arrayRemove(id) }));
-                }
-
                 await Promise.all(cleanupPromises);
             }
 
@@ -202,15 +190,55 @@ export const useRiskActions = (onRefresh: () => void) => {
 
     const bulkDeleteRisks = async (ids: string[]) => {
         setSubmitting(true);
+        if (!user?.organizationId) {
+            setSubmitting(false);
+            return;
+        }
+
+        const orgId = user.organizationId;
+
         try {
-            // Simple batch delete, no cleanup for now as bulk is heavy. 
-            // Ideally we should warn user that bulk delete might leave orphans or handle it via Cloud Functions.
+            // 1. Verify dependencies
+            const checks = await Promise.all(ids.map(id => DependencyService.checkRiskDependencies(id, orgId)));
+
+            // Check if any has too many dependencies to safe delete automatically?
+            // Current req: "Suppression en masse sans vérification de dépendances -> CORRUPTION DE DONNÉES".
+            // We should Clean them up.
+
             const batch = writeBatch(db);
-            ids.forEach(id => {
-                batch.delete(doc(db, 'risks', id));
+            let cleanedDependenciesCount = 0;
+
+            // Prepare dependency cleanups (cannot use batch for reads, but can for updates if ids known)
+            // DependencyService gave us the IDs.
+
+            // WARNING: Batch limit is 500. If we have many deps, might overflow.
+            // For now, let's process updates individually if too many, or assume reasonable count.
+            // A safer approach for bulk is to simply block if dependencies exist, OR carefully batch update.
+            // Given "Protection en masse", cleaning is better.
+
+            const updateOps: Promise<any>[] = [];
+
+            checks.forEach((check, index) => {
+                const riskId = ids[index];
+                if (check.hasDependencies) {
+                    check.dependencies.forEach(dep => {
+                        // Cannot duplicate refs in batch easily if multiple risks point to same doc.
+                        // Firestore batch supports multiple writes to same doc? No.
+                        // So we must use arrayRemove atomically.
+                        // Safest is independent updates for dependencies.
+                        updateOps.push(updateDoc(doc(db, dep.collectionName, dep.id), {
+                            relatedRiskIds: arrayRemove(riskId)
+                        }));
+                        cleanedDependenciesCount++;
+                    });
+                }
+                batch.delete(doc(db, 'risks', riskId));
             });
-            await batch.commit();
-            toast.success(`${ids.length} risques supprimés`);
+
+            await Promise.all(updateOps); // Run dependency updates
+            await batch.commit(); // Run risk deletions
+
+            toast.success(`${ids.length} risques supprimés` + (cleanedDependenciesCount > 0 ? ` (${cleanedDependenciesCount} liens nettoyés)` : ''));
             onRefresh();
         } catch (error) {
             console.error('Bulk delete error', error);
@@ -253,7 +281,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             toast.error("Erreur critique lors de l'import");
             return false;
         } finally {
-            setIsImporting(false);
+            setSubmitting(false);
         }
     };
 

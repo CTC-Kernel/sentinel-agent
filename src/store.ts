@@ -31,11 +31,7 @@ interface AppState {
   demoMode: boolean;
   toggleDemoMode: () => void;
 
-  googleAccessToken: string | null;
-  googleTokenExpiry: number | null;
-  setGoogleToken: (token: string, expiresInSeconds?: number) => void;
-  clearGoogleToken: () => void;
-  hasValidGoogleToken: () => boolean;
+
 }
 
 import { translations } from './i18n/translations';
@@ -118,23 +114,5 @@ export const useStore = create<AppState>((set, get) => ({
     return { demoMode: next };
   }),
 
-  googleAccessToken: null,
-  googleTokenExpiry: null,
-  setGoogleToken: (token, expiresInSeconds) => set(() => {
-    const now = Date.now();
-    const expiry = typeof expiresInSeconds === 'number'
-      ? now + Math.max(expiresInSeconds * 1000 - 5000, 0)
-      : null;
-    return { googleAccessToken: token, googleTokenExpiry: expiry };
-  }),
-  clearGoogleToken: () => set(() => ({
-    googleAccessToken: null,
-    googleTokenExpiry: null
-  })),
-  hasValidGoogleToken: () => {
-    const { googleAccessToken, googleTokenExpiry } = get();
-    if (!googleAccessToken) return false;
-    if (!googleTokenExpiry) return true;
-    return googleTokenExpiry > Date.now();
-  }
+
 }));

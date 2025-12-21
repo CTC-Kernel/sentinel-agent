@@ -33,10 +33,14 @@ export const NotificationCenter: React.FC = () => {
             <button
                 onClick={toggle}
                 className="relative p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-white/5"
+                aria-label={unreadCount > 0 ? `Notifications - ${unreadCount} non lues` : "Notifications"}
             >
-                <Bell className="h-5 w-5" />
+                <Bell className="h-5 w-5" aria-hidden="true" />
                 {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-[#0B1120]" />
+                    <>
+                        <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-[#0B1120]" />
+                        <span className="sr-only" aria-live="polite">{unreadCount} notifications non lues</span>
+                    </>
                 )}
             </button>
 

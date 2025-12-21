@@ -23,6 +23,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
     const [coords, setCoords] = useState({ top: 0, left: 0 });
     const triggerRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const tooltipId = React.useId();
 
     const updatePosition = React.useCallback(() => {
         if (triggerRef.current) {
@@ -64,6 +65,24 @@ export const Tooltip: React.FC<TooltipProps> = ({
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         setIsVisible(false);
     };
+
+    const toggleTooltip = () => {
+        if (isVisible) hideTooltip();
+        else showTooltip();
+    };
+
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isVisible) {
+                setIsVisible(false);
+            }
+        };
+
+        if (isVisible) {
+            window.addEventListener('keydown', handleEscape);
+        }
+        return () => window.removeEventListener('keydown', handleEscape);
+    }, [isVisible]);
 
     useEffect(() => {
         window.addEventListener('resize', updatePosition);
@@ -114,12 +133,23 @@ export const Tooltip: React.FC<TooltipProps> = ({
             onMouseLeave={hideTooltip}
             onFocus={showTooltip}
             onBlur={hideTooltip}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleTooltip();
+                }
+            }}
+            tabIndex={0}
+            role="button"
+            aria-describedby={isVisible ? tooltipId : undefined}
         >
             {children}
             {createPortal(
                 <AnimatePresence>
                     {isVisible && (
                         <motion.div
+                            id={tooltipId}
+                            role="tooltip"
                             initial={variants.initial}
                             animate={variants.animate}
                             exit={variants.exit}

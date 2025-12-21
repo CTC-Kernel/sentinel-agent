@@ -177,7 +177,16 @@ export function DataTable<TData extends { id: string }, TValue>({
 
             {/* Table */}
             <div className="w-full overflow-x-auto rounded-4xl glass-panel overflow-hidden">
-                <table className="w-full">
+                <table
+                    className="w-full"
+                    role="table"
+                    aria-label={exportFilename || "Tableau de données"}
+                    aria-rowcount={table.getFilteredRowModel().rows.length}
+                    aria-colcount={table.getAllColumns().length}
+                >
+                    <caption className="sr-only">
+                        {exportFilename ? `Tableau de ${exportFilename}` : "Tableau de données"} avec {data.length} éléments, triable et filtrable
+                    </caption>
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <tr key={headerGroup.id} className="border-b border-slate-200/50 dark:border-white/5 bg-slate-50/30 dark:bg-white/5">

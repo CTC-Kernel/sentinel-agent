@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import FocusTrap from 'focus-trap-react';
 import { X } from './Icons';
 
 interface DrawerProps {
@@ -82,57 +83,59 @@ export const Drawer: React.FC<DrawerProps> = ({
             />
 
             {/* Drawer Panel */}
-            <div className="absolute inset-y-0 right-0 left-0 sm:left-auto sm:pl-10 max-w-full flex pointer-events-none min-w-0">
-                <div
-                    className={`w-full ${width} pointer-events-auto transform transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
-                    style={{ transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)' }}
-                >
-                    <div className="h-full flex flex-col glass-panel border-t-0 border-b-0 border-r-0 rounded-l-2xl">
+            <FocusTrap active={isOpen}>
+                <div className="absolute inset-y-0 right-0 left-0 sm:left-auto sm:pl-10 max-w-full flex pointer-events-none min-w-0">
+                    <div
+                        className={`w-full ${width} pointer-events-auto transform transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                        style={{ transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)' }}
+                    >
+                        <div className="h-full flex flex-col glass-panel border-t-0 border-b-0 border-r-0 rounded-l-2xl">
 
-                        {/* Header */}
-                        <div className="px-6 py-5 border-b border-slate-200/60 dark:border-white/5 flex flex-wrap items-start justify-between gap-y-4 shrink-0 transition-colors duration-300">
-                            <div className="flex-1 min-w-0 mr-4">
-                                {breadcrumbs && breadcrumbs.length > 0 && (
-                                    <nav className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 mb-2" aria-label="Breadcrumb">
-                                        <ol className="flex items-center space-x-2">
-                                            {breadcrumbs.map((crumb, index) => (
-                                                <li key={index} className="flex items-center">
-                                                    {index > 0 && <span className="mx-2 text-slate-300 dark:text-slate-600">/</span>}
-                                                    {crumb.onClick ? (
-                                                        <button onClick={crumb.onClick} className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-                                                            {crumb.label}
-                                                        </button>
-                                                    ) : (
-                                                        <span className="text-slate-900 dark:text-white font-semibold tracking-wide">{crumb.label}</span>
-                                                    )}
-                                                </li>
-                                            ))}
-                                        </ol>
-                                    </nav>
-                                )}
-                                {title && <h2 id="drawer-title" className="text-xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight truncate filter drop-shadow-sm">{title}</h2>}
-                                {subtitle && <div className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">{subtitle}</div>}
+                            {/* Header */}
+                            <div className="px-6 py-5 border-b border-slate-200/60 dark:border-white/5 flex flex-wrap items-start justify-between gap-y-4 shrink-0 transition-colors duration-300">
+                                <div className="flex-1 min-w-0 mr-4">
+                                    {breadcrumbs && breadcrumbs.length > 0 && (
+                                        <nav className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 mb-2" aria-label="Breadcrumb">
+                                            <ol className="flex items-center space-x-2">
+                                                {breadcrumbs.map((crumb, index) => (
+                                                    <li key={index} className="flex items-center">
+                                                        {index > 0 && <span className="mx-2 text-slate-300 dark:text-slate-600">/</span>}
+                                                        {crumb.onClick ? (
+                                                            <button onClick={crumb.onClick} className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                                                                {crumb.label}
+                                                            </button>
+                                                        ) : (
+                                                            <span className="text-slate-900 dark:text-white font-semibold tracking-wide">{crumb.label}</span>
+                                                        )}
+                                                    </li>
+                                                ))}
+                                            </ol>
+                                        </nav>
+                                    )}
+                                    {title && <h2 id="drawer-title" className="text-xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight truncate filter drop-shadow-sm">{title}</h2>}
+                                    {subtitle && <div className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">{subtitle}</div>}
+                                </div>
+                                <div className="flex items-center gap-3 shrink-0">
+                                    {actions}
+                                    <button
+                                        ref={closeButtonRef}
+                                        onClick={onClose}
+                                        className="p-2 text-slate-400 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                                        aria-label="Fermer"
+                                    >
+                                        <X className="h-5 w-5" />
+                                    </button>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-3 shrink-0">
-                                {actions}
-                                <button
-                                    ref={closeButtonRef}
-                                    onClick={onClose}
-                                    className="p-2 text-slate-400 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
-                                    aria-label="Fermer"
-                                >
-                                    <X className="h-5 w-5" />
-                                </button>
-                            </div>
-                        </div>
 
-                        {/* Content */}
-                        <div className="flex-1 min-w-0 overflow-y-auto custom-scrollbar relative">
-                            {children}
+                            {/* Content */}
+                            <div className="flex-1 min-w-0 overflow-y-auto custom-scrollbar relative">
+                                {children}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </FocusTrap>
         </div>,
         document.body
     );

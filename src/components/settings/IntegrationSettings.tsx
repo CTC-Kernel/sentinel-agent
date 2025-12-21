@@ -13,18 +13,32 @@ import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 
 export const IntegrationSettings: React.FC = () => {
-    const { user, setUser, addToast, t, googleAccessToken, googleTokenExpiry, setGoogleToken, clearGoogleToken } = useStore(state => ({
+    const { user, setUser, addToast, t } = useStore(state => ({
         user: state.user,
         setUser: state.setUser,
         addToast: state.addToast,
-        t: state.t,
-        googleAccessToken: state.googleAccessToken,
-        googleTokenExpiry: state.googleTokenExpiry,
-        setGoogleToken: state.setGoogleToken,
-        clearGoogleToken: state.clearGoogleToken
+        t: state.t
     }));
+
+    // Local state for Google Token (removed from global store for security)
+    const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(null);
+    const [googleTokenExpiry, setGoogleTokenExpiry] = useState<number | null>(null);
+
     const [savingKeys, setSavingKeys] = useState(false);
     const [exportingCalendar, setExportingCalendar] = useState(false);
+
+    const setGoogleToken = (token: string, expiresInSeconds: number) => {
+        const now = Date.now();
+        const expiry = now + Math.max(expiresInSeconds * 1000 - 5000, 0);
+        setGoogleAccessToken(token);
+        setGoogleTokenExpiry(expiry);
+    };
+
+    const clearGoogleToken = () => {
+        setGoogleAccessToken(null);
+        setGoogleTokenExpiry(null);
+    };
+
     const hasGoogleCalendarSession = useMemo(() => {
         if (!googleAccessToken) return false;
         if (!googleTokenExpiry) return true;

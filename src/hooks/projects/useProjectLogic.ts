@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react';
 import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
-import { where, doc, updateDoc, addDoc, collection, deleteDoc, arrayUnion, arrayRemove, getDocs, query } from 'firebase/firestore';
+import { where, doc, updateDoc, addDoc, collection, arrayUnion, arrayRemove, getDocs, query, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Project, ProjectTask, Risk, Control, Asset, Audit, UserProfile } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -50,31 +50,31 @@ export const useProjectLogic = () => {
         try {
             const validatedData = projectSchema.parse(projectData);
             const cleanData = sanitizeData(validatedData);
+            const batch = writeBatch(db);
 
             if (editingProject) {
                 // Update
-                await updateDoc(doc(db, 'projects', editingProject.id), { ...cleanData });
-                await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${validatedData.name}`);
+                const projectRef = doc(db, 'projects', editingProject.id);
+                batch.update(projectRef, { ...cleanData });
 
-                // Bidirectional Sync Logic (Risks, Controls, Assets)
                 // Helper for sync
-                const syncLinks = async (collectionName: string, fieldName: string, newIds: string[] = [], oldIds: string[] = []) => {
+                const syncLinks = (collectionName: string, fieldName: string, newIds: string[] = [], oldIds: string[] = []) => {
                     const added = newIds.filter(id => !oldIds.includes(id));
                     const removed = oldIds.filter(id => !newIds.includes(id));
-                    for (const id of added) await updateDoc(doc(db, collectionName, id), { [fieldName]: arrayUnion(editingProject.id) });
-                    for (const id of removed) await updateDoc(doc(db, collectionName, id), { [fieldName]: arrayRemove(editingProject.id) });
+                    added.forEach(id => {
+                        batch.update(doc(db, collectionName, id), { [fieldName]: arrayUnion(editingProject.id) });
+                    });
+                    removed.forEach(id => {
+                        batch.update(doc(db, collectionName, id), { [fieldName]: arrayRemove(editingProject.id) });
+                    });
                 };
 
-                await syncLinks('risks', 'relatedProjectIds', validatedData.relatedRiskIds, editingProject.relatedRiskIds);
-                await syncLinks('controls', 'relatedProjectIds', validatedData.relatedControlIds, editingProject.relatedControlIds);
-                await syncLinks('assets', 'relatedProjectIds', validatedData.relatedAssetIds, editingProject.relatedAssetIds);
-                // Note: Audits sync was missing in original update code for editing? Adding for consistency if needed, but original code didn't have it explicitly for Update, only Create. Keeping as is or adding? Original code didn't show Audit sync in Update block.
+                syncLinks('risks', 'relatedProjectIds', validatedData.relatedRiskIds, editingProject.relatedRiskIds);
+                syncLinks('controls', 'relatedProjectIds', validatedData.relatedControlIds, editingProject.relatedControlIds);
+                syncLinks('assets', 'relatedProjectIds', validatedData.relatedAssetIds, editingProject.relatedAssetIds);
 
-                // Check Completion
-                if (validatedData.status === 'Terminé' && editingProject.status !== 'Terminé' && validatedData.relatedControlIds?.length) {
-                    // Logic for completion confirmation handled in component usually, or return a flag?
-                    // For refactor simplicity, we might keep the ConfirmModal logic in the View, or returning a promise/result here.
-                }
+                await batch.commit();
+                await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${validatedData.name}`);
 
             } else {
                 // Create
@@ -92,7 +92,8 @@ export const useProjectLogic = () => {
                     if (preSelectedContext.type === 'audit') finalData.relatedAuditIds = [...(finalData.relatedAuditIds || []), preSelectedContext.id];
                 }
 
-                const ref = await addDoc(collection(db, 'projects'), {
+                const newProjectRef = doc(collection(db, 'projects'));
+                batch.set(newProjectRef, {
                     ...finalData,
                     organizationId: user.organizationId,
                     progress: 0,
@@ -101,15 +102,18 @@ export const useProjectLogic = () => {
                 });
 
                 // Sync for Create
-                const pId = ref.id;
-                const syncNew = async (coll: string, ids: string[]) => {
-                    for (const id of ids) await updateDoc(doc(db, coll, id), { relatedProjectIds: arrayUnion(pId) });
+                const pId = newProjectRef.id;
+                const syncNew = (coll: string, ids: string[]) => {
+                    ids.forEach(id => {
+                        batch.update(doc(db, coll, id), { relatedProjectIds: arrayUnion(pId) });
+                    });
                 }
-                if (finalData.relatedRiskIds) await syncNew('risks', finalData.relatedRiskIds);
-                if (finalData.relatedControlIds) await syncNew('controls', finalData.relatedControlIds);
-                if (finalData.relatedAssetIds) await syncNew('assets', finalData.relatedAssetIds);
-                if (finalData.relatedAuditIds) await syncNew('audits', finalData.relatedAuditIds);
+                if (finalData.relatedRiskIds) syncNew('risks', finalData.relatedRiskIds);
+                if (finalData.relatedControlIds) syncNew('controls', finalData.relatedControlIds);
+                if (finalData.relatedAssetIds) syncNew('assets', finalData.relatedAssetIds);
+                if (finalData.relatedAuditIds) syncNew('audits', finalData.relatedAuditIds);
 
+                await batch.commit();
                 await logAction(user, 'CREATE', 'Project', `Nouveau projet: ${validatedData.name}`);
                 addToast("Projet créé avec succès", "success");
             }
@@ -119,7 +123,7 @@ export const useProjectLogic = () => {
             } else {
                 ErrorLogger.handleErrorWithToast(e, 'useProjectLogic.submit', 'UPDATE_FAILED');
             }
-            throw e; // Re-throw to let component know
+            throw e;
         } finally {
             setIsSubmitting(false);
         }
@@ -180,33 +184,34 @@ export const useProjectLogic = () => {
         try {
             const { hasDependencies, dependencies } = await checkDependencies(id);
 
+            const batch = writeBatch(db);
+
             if (hasDependencies && dependencies.length > 0) {
-                const cleanupPromises = [];
                 // Risks
                 const riskDeps = dependencies.filter(d => d.type === 'Risque');
-                for (const dep of riskDeps) {
-                    cleanupPromises.push(updateDoc(doc(db, 'risks', dep.id), { relatedProjectIds: arrayRemove(id) }));
-                }
+                riskDeps.forEach(dep => {
+                    batch.update(doc(db, 'risks', dep.id), { relatedProjectIds: arrayRemove(id) });
+                });
                 // Controls
                 const controlDeps = dependencies.filter(d => d.type === 'Contrôle');
-                for (const dep of controlDeps) {
-                    cleanupPromises.push(updateDoc(doc(db, 'controls', dep.id), { relatedProjectIds: arrayRemove(id) }));
-                }
+                controlDeps.forEach(dep => {
+                    batch.update(doc(db, 'controls', dep.id), { relatedProjectIds: arrayRemove(id) });
+                });
                 // Assets
                 const assetDeps = dependencies.filter(d => d.type === 'Actif');
-                for (const dep of assetDeps) {
-                    cleanupPromises.push(updateDoc(doc(db, 'assets', dep.id), { relatedProjectIds: arrayRemove(id) }));
-                }
+                assetDeps.forEach(dep => {
+                    batch.update(doc(db, 'assets', dep.id), { relatedProjectIds: arrayRemove(id) });
+                });
                 // Audits
                 const auditDeps = dependencies.filter(d => d.type === 'Audit');
-                for (const dep of auditDeps) {
-                    cleanupPromises.push(updateDoc(doc(db, 'audits', dep.id), { relatedProjectIds: arrayRemove(id) }));
-                }
-
-                await Promise.all(cleanupPromises);
+                auditDeps.forEach(dep => {
+                    batch.update(doc(db, 'audits', dep.id), { relatedProjectIds: arrayRemove(id) });
+                });
             }
 
-            await deleteDoc(doc(db, 'projects', id));
+            batch.delete(doc(db, 'projects', id));
+            await batch.commit();
+
             await logAction(user, 'DELETE', 'Project', `Suppression projet: ${name || id}`);
             addToast("Projet supprimé", "info");
         } catch (e) {
