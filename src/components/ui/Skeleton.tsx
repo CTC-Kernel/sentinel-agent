@@ -17,6 +17,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className = '', variant = 'd
   return (
     <div className={`relative overflow-hidden bg-gray-200 dark:bg-white/5 ${variantClasses[variant]} ${className}`}>
       <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent"></div>
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-blue-400/30 to-transparent w-1/2 blur-sm" style={{ animationDelay: '0.1s' }}></div>
     </div>
   );
 };

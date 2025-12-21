@@ -285,13 +285,32 @@ export const GeminiAssistant: React.FC = () => {
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-4 right-4 md:bottom-6 md:right-6 p-4 bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-full shadow-2xl hover:shadow-indigo-500/40 hover:scale-110 transition-all duration-300 z-50 group border border-white/20"
+                className="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-50 group flex items-center justify-center"
                 aria-label="Ouvrir l'assistant IA"
             >
-                <Sparkles className="h-6 w-6 animate-pulse" />
-                <span className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap pointer-events-none translate-x-2 group-hover:translate-x-0 shadow-lg hidden md:block">
-                    Assistant IA
-                </span>
+                {/* Holographic Ring Animation */}
+                <div className="absolute inset-0 -m-2 rounded-full border border-indigo-500/30 w-20 h-20 animate-[spin_10s_linear_infinite] opacity-50 pointer-events-none"></div>
+                <div className="absolute inset-0 -m-1 rounded-full border border-indigo-500/20 w-18 h-18 animate-ping opacity-20 pointer-events-none"></div>
+
+                {/* Core Orb */}
+                <div className="relative w-16 h-16 rounded-full bg-slate-950/80 backdrop-blur-md border border-indigo-500/50 flex items-center justify-center shadow-[0_0_20px_-5px_rgba(99,102,241,0.6)] group-hover:shadow-[0_0_30px_-5px_rgba(99,102,241,0.9)] transition-all duration-500 overflow-hidden">
+
+                    {/* Inner Energy Flow */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-900/50 via-transparent to-purple-900/50 group-hover:rotate-45 transition-transform duration-1000"></div>
+                    <div className="absolute inset-0 bg-indigo-500/10 blur-xl animate-pulse"></div>
+
+                    {/* Icon */}
+                    <Sparkles className="h-6 w-6 text-indigo-400 drop-shadow-[0_0_5px_rgba(129,140,248,0.8)] relative z-10 transition-transform duration-500 group-hover:scale-110" />
+                </div>
+
+                {/* High-Tech Status Label */}
+                <div className="absolute right-full mr-6 top-1/2 -translate-y-1/2 px-4 py-2 bg-slate-950/90 backdrop-blur border border-indigo-500/30 text-indigo-100 text-[10px] font-mono tracking-widest uppercase rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-2xl flex items-center gap-3">
+                    <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span>AI Systems Online</span>
+                </div>
             </button>
         );
     }

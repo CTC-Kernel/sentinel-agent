@@ -487,6 +487,18 @@ body.voxel-fullscreen header {
   animation: shine 5s linear infinite;
 }
 
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+
+.shadow-glow {
+  box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.4);
+}
+
+.dark .shadow-glow {
+  box-shadow: 0 0 30px -10px rgba(59, 130, 246, 0.5);
+}
+
 /* Driver.js Theme Overrides for Masterpiece */
 .driver-popover.driverjs-theme {
   background-color: transparent !important;
@@ -571,4 +583,91 @@ body.voxel-fullscreen header {
 
 .animation-delay-4000 {
   animation-delay: 4s;
+}
+
+/* --- COMMAND CENTER UPGRADES --- */
+
+/* Grid Pattern for Background */
+.bg-grid-slate-900\/5 {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(15 23 42 / 0.05)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
+}
+
+.dark .bg-grid-white\/5 {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(255 255 255 / 0.05)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
+}
+
+/* Subtle Scanline Animation */
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+.animate-scanline {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  /* larger scan bar */
+  background: linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.1), transparent);
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Pulse Glow for Cards */
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 20px 0 rgba(59, 130, 246, 0.1);
+  }
+}
+
+.hover\:animate-pulse-glow:hover {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Refined Glassmorphism for Command Center */
+.glass-panel-command {
+  background: rgba(15, 23, 42, 0.7);
+  /* Darker base */
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.light .glass-panel-command {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+}
+
+/* Active Monitoring Dot */
+@keyframes monitoring-ping {
+
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-monitoring-ping {
+  animation: monitoring-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }

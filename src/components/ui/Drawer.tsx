@@ -23,7 +23,6 @@ export const Drawer: React.FC<DrawerProps> = ({
     actions,
     children,
     width = 'max-w-2xl',
-    breadcrumbs,
     disableFocusTrap = false
 }) => {
     const [isVisible, setIsVisible] = useState(false);
@@ -96,24 +95,6 @@ export const Drawer: React.FC<DrawerProps> = ({
                             {/* Header */}
                             <div className="px-6 py-5 border-b border-slate-200/60 dark:border-white/5 flex flex-wrap items-start justify-between gap-y-4 shrink-0 transition-colors duration-300">
                                 <div className="flex-1 min-w-0 mr-4">
-                                    {breadcrumbs && breadcrumbs.length > 0 && (
-                                        <nav className="flex items-center text-xs font-medium text-slate-500 dark:text-slate-400 mb-2" aria-label="Breadcrumb">
-                                            <ol className="flex items-center space-x-2">
-                                                {breadcrumbs.map((crumb, index) => (
-                                                    <li key={index} className="flex items-center">
-                                                        {index > 0 && <span className="mx-2 text-slate-300 dark:text-slate-600">/</span>}
-                                                        {crumb.onClick ? (
-                                                            <button onClick={crumb.onClick} className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-                                                                {crumb.label}
-                                                            </button>
-                                                        ) : (
-                                                            <span className="text-slate-900 dark:text-white font-semibold tracking-wide">{crumb.label}</span>
-                                                        )}
-                                                    </li>
-                                                ))}
-                                            </ol>
-                                        </nav>
-                                    )}
                                     {title && <h2 id="drawer-title" className="text-xl font-bold text-slate-900 dark:text-white leading-tight tracking-tight truncate filter drop-shadow-sm">{title}</h2>}
                                     {subtitle && <div className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">{subtitle}</div>}
                                 </div>

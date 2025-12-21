@@ -131,11 +131,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         {/* Left: Organization & Welcome */}
                         <div className="flex items-center gap-5 min-w-[280px]">
                             <div className="relative shrink-0">
-                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getGradeColor(scoreGrade)} flex items-center justify-center shadow-lg`}>
-                                    <span className="text-xl font-black text-white font-display">{scoreGrade || '-'}</span>
+                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getGradeColor(scoreGrade)} flex items-center justify-center shadow-lg relative overflow-hidden`}>
+                                    <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                                    <span className="text-xl font-black text-white font-display relative z-10">{scoreGrade || '-'}</span>
                                 </div>
                                 <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-background flex items-center justify-center">
-                                    <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+                                    <div className="w-3 h-3 rounded-full bg-emerald-500 animate-monitoring-ping absolute" />
+                                    <div className="w-3 h-3 rounded-full bg-emerald-500 relative z-10" />
                                 </div>
                             </div>
                             <div>

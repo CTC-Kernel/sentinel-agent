@@ -118,6 +118,17 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                                     fillOpacity={1}
                                     fill={`url(#${gradientId})`}
                                     animationDuration={1500}
+                                    dot={(props: any) => {
+                                        const { cx, cy, index } = props;
+                                        const isLast = index === filteredData.length - 1;
+                                        if (!isLast) return <circle cx={cx} cy={cy} r={0} />;
+                                        return (
+                                            <g>
+                                                <circle cx={cx} cy={cy} r={6} fill={chartColors.stroke} className="animate-ping opacity-75" />
+                                                <circle cx={cx} cy={cy} r={4} fill={chartColors.fill} stroke={chartColors.stroke} strokeWidth={2} />
+                                            </g>
+                                        );
+                                    }}
                                 />
                             </AreaChart>
                         </ResponsiveContainer>

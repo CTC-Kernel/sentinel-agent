@@ -25,10 +25,13 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
         <div className="relative group/chart flex items-center justify-center w-full h-full min-h-[320px]">
             <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-purple-500/5 rounded-full blur-2xl opacity-0 group-hover/chart:opacity-100 transition-opacity duration-700"></div>
             <div
-                className="relative w-[260px] h-[260px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-500 hover:scale-[1.02] bg-card/40 backdrop-blur-sm rounded-full border border-border shadow-inner p-4 flex items-center justify-center"
+                className="relative w-[260px] h-[260px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-500 hover:scale-[1.02] bg-card/40 backdrop-blur-sm rounded-full border border-border shadow-inner p-4 flex items-center justify-center overflow-hidden"
                 onClick={() => navigate('/compliance')}
             >
-                <div className="w-full h-full">
+                {/* Radar Sweep Effect */}
+                <div className="absolute inset-0 rounded-full animate-spin-slow pointer-events-none opacity-20 dark:opacity-10 bg-[conic-gradient(from_0deg,transparent_0deg,transparent_270deg,hsl(var(--primary))_360deg)]" style={{ animationDuration: '4s' }}></div>
+
+                <div className="w-full h-full relative z-10">
                     <ResponsiveContainer width="100%" height="100%">
                         <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                             <defs>
@@ -67,7 +70,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                         </RadarChart>
                     </ResponsiveContainer>
                 </div>
-                <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center">
+                <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center z-20">
                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-background/70 backdrop-blur-md border border-border text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest shadow-sm whitespace-nowrap">
                         {t('dashboard.isoMaturity')}
                     </span>
