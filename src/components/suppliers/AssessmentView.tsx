@@ -41,7 +41,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
             }
         };
         loadData();
-    }, [responseId]);
+    }, [responseId, addToast]);
 
     const handleSave = async (submit = false) => {
         if (!response || !template) return;

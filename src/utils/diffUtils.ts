@@ -2,10 +2,8 @@ import { isEqual, isObject } from 'lodash';
 
 export interface DiffChange {
     field: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    oldValue: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    newValue: any;
+    oldValue: unknown;
+    newValue: unknown;
 }
 
 /**
@@ -16,10 +14,8 @@ export interface DiffChange {
  * @returns Array of changes
  */
 export const getDiff = (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    object: any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    base: any,
+    object: Record<string, unknown>,
+    base: Record<string, unknown> | undefined,
     ignore: string[] = ['updatedAt', 'lastUpdated', 'modifiedAt']
 ): DiffChange[] => {
 
@@ -28,7 +24,7 @@ export const getDiff = (
 
     const changes: DiffChange[] = [];
 
-    const compare = (obj: any, b: any, path: string = '') => {
+    const compare = (obj: Record<string, unknown>, b: Record<string, unknown> | undefined, path: string = '') => {
         // Loop through all keys in the new object
         Object.keys(obj).forEach((key) => {
             if (ignore.includes(key)) return;
@@ -41,7 +37,7 @@ export const getDiff = (
             if (isObject(value) && isObject(baseValue) && !Array.isArray(value) && !Array.isArray(baseValue)) {
                 // For now, we only deeply compare simple logic, or if we want flattened keys "risk.details.value"
                 // Let's implement recursion
-                compare(value, baseValue, newPath);
+                compare(value as Record<string, unknown>, baseValue as Record<string, unknown>, newPath);
             } else if (!isEqual(value, baseValue)) {
                 // If distinct simple values or arrays (arrays treated as value replacement for now)
                 changes.push({

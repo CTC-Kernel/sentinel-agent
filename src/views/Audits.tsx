@@ -16,7 +16,8 @@ import { Audit } from '../types';
 import { AuditFormData } from '../schemas/auditSchema';
 import { PageHeader } from '../components/ui/PageHeader';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
-import { Calendar as CalendarIcon, Download, BrainCircuit, Plus, LayoutDashboard, List, ClipboardCheck } from 'lucide-react';
+import { Menu, Transition } from '@headlessui/react';
+import { Calendar as CalendarIcon, Download, BrainCircuit, Plus, LayoutDashboard, List, ClipboardCheck, MoreVertical } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { AuditDashboard } from '../components/audits/AuditDashboard';
@@ -167,22 +168,42 @@ export const Audits: React.FC = () => {
                             />
                         </div>
                         <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
-                        <Button
-                            variant="ghost"
-                            onClick={handleExportCalendar}
-                            title="Exporter Calendrier"
-                            className="p-2 h-10 w-10 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
-                        >
-                            <CalendarIcon className="w-5 h-5" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            onClick={handleExportCSV}
-                            title="Exporter CSV"
-                            className="p-2 h-10 w-10 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white"
-                        >
-                            <Download className="w-5 h-5" />
-                        </Button>
+
+                        {/* Actions Menu (Mobile & Desktop consolidated for specific secondary actions) */}
+                        <Menu as="div" className="relative inline-block text-left">
+                            <Menu.Button className="p-2 h-10 w-10 flex items-center justify-center bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                <MoreVertical className="h-5 w-5" />
+                            </Menu.Button>
+                            <Transition
+                                as={React.Fragment}
+                                enter="transition ease-out duration-100"
+                                enterFrom="transform opacity-0 scale-95"
+                                enterTo="transform opacity-100 scale-100"
+                                leave="transition ease-in duration-75"
+                                leaveFrom="transform opacity-100 scale-100"
+                                leaveTo="transform opacity-0 scale-95"
+                            >
+                                <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                    <div className="p-1">
+                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Exports</div>
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button onClick={handleExportCalendar} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                    <CalendarIcon className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> Export Calendrier
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button onClick={handleExportCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                    <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> Export CSV
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                    </div>
+                                </Menu.Items>
+                            </Transition>
+                        </Menu>
                         {canEdit && (
                             <>
                                 <Button

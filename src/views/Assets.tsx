@@ -26,7 +26,7 @@ import { OnboardingService } from '../services/onboardingService';
 const Assets: React.FC = () => {
     const { user } = useStore();
     const canEdit = canEditResource(user, 'Asset');
-    const { assets, loading, createAsset, updateAsset, deleteAsset, bulkDeleteAssets, usersList, suppliers, processes } = useAssets();
+    const { assets, loading, createAsset, updateAsset, deleteAsset, bulkDeleteAssets, usersList, suppliers, processes, checkDependencies } = useAssets();
     const { limits } = usePlanLimits();
     const reachedAssetLimit = assets.length >= limits.maxAssets;
 
@@ -94,11 +94,25 @@ const Assets: React.FC = () => {
         setSelectedAsset(null);
     };
 
+    const [dependencies, setDependencies] = useState<{ id: string; name: string; type: string }[]>([]);
+
+    const handleDeleteClick = async (id: string, name: string) => {
+        const depCheck = await checkDependencies(id);
+        if (depCheck.hasDependencies) {
+            setDependencies((depCheck.dependencies || []) as { id: string; name: string; type: string }[]);
+        } else {
+            setDependencies([]);
+        }
+        setAssetToDelete({ id, name });
+        setDeleteModalOpen(true);
+    };
+
     const handleConfirmDelete = async () => {
         if (assetToDelete) {
             await deleteAsset(assetToDelete.id, assetToDelete.name);
             setDeleteModalOpen(false);
             setAssetToDelete(null);
+            setDependencies([]);
         }
     };
 
@@ -256,7 +270,7 @@ const Assets: React.FC = () => {
                             user={user}
                             canEdit={canEdit}
                             onEdit={handleOpenInspector}
-                            onDelete={(id, name) => { setAssetToDelete({ id, name }); setDeleteModalOpen(true); }}
+                            onDelete={(id, name) => handleDeleteClick(id, name)}
                             onGenerateLabel={() => {
                                 toast.info("Fonctionnalité à venir", {
                                     description: "L'impression d'étiquettes sera disponible dans la v2.1"
@@ -295,9 +309,14 @@ const Assets: React.FC = () => {
                     onClose={() => setDeleteModalOpen(false)}
                     onConfirm={handleConfirmDelete}
                     title="Supprimer l'actif ?"
-                    message={`Êtes-vous sûr de vouloir supprimer l'actif "${assetToDelete?.name}" ? Cette action est irréversible.`}
+                    message={
+                        dependencies.length > 0
+                            ? `Attention: Cet actif est lié à ${dependencies.length} risque(s) (ex: ${dependencies[0].name}). La suppression peut entraîner des incohérences.`
+                            : `Êtes-vous sûr de vouloir supprimer l'actif "${assetToDelete?.name}" ? Cette action est irréversible.`
+                    }
                     confirmText="Supprimer"
                     cancelText="Annuler"
+
                 />
             </div >
         </motion.div >

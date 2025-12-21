@@ -9,7 +9,7 @@ export interface Notification {
     read: boolean;
     createdAt: string;
     expiresAt?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
     actionPayload?: {
         type: 'navigate' | 'modal';
         destination: string;

@@ -11,6 +11,8 @@ import { updatePassword } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
 import QRCode from 'qrcode';
+import { ActiveSessions } from './ActiveSessions';
+import { SSOPlaceholder } from './SSOPlaceholder';
 
 export const SecuritySettings: React.FC = () => {
     const { addToast, t } = useStore();
@@ -212,6 +214,12 @@ export const SecuritySettings: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* Active Sessions */}
+            <ActiveSessions />
+
+            {/* SSO Placeholder */}
+            <SSOPlaceholder />
         </div>
     );
 };

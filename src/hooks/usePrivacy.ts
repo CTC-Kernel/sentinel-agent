@@ -121,19 +121,27 @@ export function usePrivacy() {
     }, [selectedActivity, fetchHistory]);
 
     // Handlers
-    const handleCreate = async (data: any) => {
+    const handleCreate = async (data: Partial<ProcessingActivity>) => {
         if (!user?.organizationId) return;
         try {
             const newActivity: Omit<ProcessingActivity, 'id'> = {
+                // Default values & Partial overrides
+                name: data.name || 'Nouveau Traitement',
+                purpose: data.purpose || 'Objectif non défini',
+                manager: data.manager || 'Non assigné',
+                status: data.status || 'Actif',
+                legalBasis: data.legalBasis || 'Intérêt Légitime',
+                hasDPIA: data.hasDPIA || false,
+                dataCategories: data.dataCategories || [],
+                dataSubjects: data.dataSubjects || [],
+                retentionPeriod: data.retentionPeriod || '5 ans',
+                // Spread remaining data (if any other fields exist in Partial)
                 ...data,
+                // Critical system overrides (must come last to prevent overwrite)
                 organizationId: user.organizationId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 createdBy: user.uid,
-                dataSubjects: [],
-                status: data.status || 'Actif',
-                legalBasis: data.legalBasis || 'Intérêt Légitime',
-                hasDPIA: data.hasDPIA || false
             };
 
             const docRef = await addDoc(collection(db, 'processing_activities'), sanitizeData(newActivity));
@@ -155,7 +163,7 @@ export function usePrivacy() {
         }
     };
 
-    const handleUpdate = async (data: any) => {
+    const handleUpdate = async (data: Partial<ProcessingActivity>) => {
         if (!selectedActivity || !user?.organizationId) return;
         try {
             const updatedDoc = {
@@ -323,8 +331,9 @@ export function usePrivacy() {
             const snapshot = await getDocs(q);
 
             if (!snapshot.empty) {
-
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 docs.sort((a: any, b: any) => new Date(b.sentDate).getTime() - new Date(a.sentDate).getTime());
                 setViewingAssessmentId(docs[0].id);
             } else {

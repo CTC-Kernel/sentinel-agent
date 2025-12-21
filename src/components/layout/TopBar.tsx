@@ -10,6 +10,7 @@ import { auth, db } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
 import { FeedbackModal } from '../ui/FeedbackModal';
 import { Tooltip } from '../ui/Tooltip';
+import { SyncIndicator } from '../ui/SyncIndicator';
 
 interface TopBarProps {
     setMobileOpen: (open: boolean) => void;
@@ -107,6 +108,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                             {t('common.adminShort')}
                         </Link>
                     )}
+                    <SyncIndicator />
                     <span data-tour="notifications">
                         <NotificationCenter />
                     </span>

@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from 'react';
-import { where, collection, addDoc, doc, updateDoc, deleteDoc, arrayUnion, increment } from 'firebase/firestore';
+import { where, collection, addDoc, doc, updateDoc, deleteDoc, arrayUnion, increment, query, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
@@ -145,6 +145,39 @@ export function useAssets() {
         }
     };
 
+    const checkDependencies = async (assetId: string) => {
+        if (!user?.organizationId) return { hasDependencies: false, details: [] };
+
+        // Check Risks
+        const risksQ = query(
+            collection(db, 'risks'),
+            where('organizationId', '==', user.organizationId),
+            where('assetIds', 'array-contains', assetId) // Assuming Many-to-Many or Array
+        );
+        // Fallback check if simple 'assetId' is used in legacy
+        const risksSimpleQ = query(
+            collection(db, 'risks'),
+            where('organizationId', '==', user.organizationId),
+            where('assetId', '==', assetId)
+        );
+
+        const [risksSnap, risksSimpleSnap] = await Promise.all([getDocs(risksQ), getDocs(risksSimpleQ)]);
+
+        const linkedRisks = [...risksSnap.docs, ...risksSimpleSnap.docs].map(d => ({
+            id: d.id,
+            name: d.data().name || 'Risque sans nom',
+            type: 'Risk'
+        }));
+
+        // Remove duplicates if any logic overlap
+        const uniqueRisks = Array.from(new Map(linkedRisks.map(item => [item.id, item])).values());
+
+        return {
+            hasDependencies: uniqueRisks.length > 0,
+            dependencies: uniqueRisks
+        };
+    };
+
     const deleteAsset = async (id: string, name: string) => {
         if (!user?.organizationId) return false;
         try {
@@ -188,6 +221,7 @@ export function useAssets() {
         deleteAsset,
         bulkDeleteAssets,
         isSubmitting,
-        refreshAssets
+        refreshAssets,
+        checkDependencies
     };
 }

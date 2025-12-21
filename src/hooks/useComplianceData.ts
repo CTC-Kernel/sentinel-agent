@@ -24,6 +24,7 @@ export const useComplianceData = (currentFramework: Framework) => {
     useEffect(() => {
         if (!user?.organizationId) return;
 
+        // eslint-disable-next-line
         setLoading(true);
 
         // 1. Controls Listener

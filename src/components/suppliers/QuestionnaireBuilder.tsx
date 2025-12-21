@@ -126,7 +126,8 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
     );
 };
 
-const SectionEditor = ({ control, register, sIndex, onRemove }: any) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SectionEditor = ({ control, register, sIndex, onRemove }: { control: any, register: any, sIndex: number, onRemove: () => void }) => {
     const { fields: questions, append, remove } = useFieldArray({
         control,
         name: `sections.${sIndex}.questions`

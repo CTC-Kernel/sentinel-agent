@@ -106,6 +106,7 @@ export interface ProcessingActivity {
     status: 'Actif' | 'En projet' | 'Archivé';
     createdAt?: string;
     updatedAt?: string;
+    createdBy?: string;
     relatedAssetIds?: string[]; // Linked Assets (Storage, Processing, etc.)
     relatedRiskIds?: string[]; // Linked Risks (DPIA)
 }

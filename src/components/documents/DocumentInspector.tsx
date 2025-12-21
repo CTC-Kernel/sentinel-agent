@@ -57,8 +57,11 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
         if (!isOpen || !selectedDocument) {
             setVersions([]);
             setActiveTab('details');
-            return;
         }
+    }, [isOpen, selectedDocument]);
+
+    useEffect(() => {
+        if (!isOpen || !selectedDocument) return;
 
         const qVersions = query(
             collection(db, 'document_versions'),

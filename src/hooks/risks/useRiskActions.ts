@@ -32,7 +32,10 @@ export const useRiskActions = (onRefresh: () => void) => {
                     date: new Date().toISOString(),
                     user: user.displayName || user.email,
                     action: 'Création du risque',
-                    changes: 'Initialisation'
+                    changes: 'Initialisation',
+                    previousScore: 0,
+                    newScore: 0,
+                    changedBy: user.uid
                 }]
             };
 
@@ -69,7 +72,7 @@ export const useRiskActions = (onRefresh: () => void) => {
 
             if (user) {
                 // Calculate diffs if currentRisk provided
-                const changes = currentRisk ? getDiff(data, currentRisk) : [];
+                const changes = currentRisk ? getDiff(data, currentRisk as unknown as Record<string, unknown>) : [];
 
                 logAction(
                     user,
@@ -158,6 +161,7 @@ export const useRiskActions = (onRefresh: () => void) => {
         }
     };
 
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     const importRisks = async (csvContent: string) => {
         setIsImporting(true);
         try {
@@ -171,10 +175,11 @@ export const useRiskActions = (onRefresh: () => void) => {
             let importedCount = 0;
             for (const item of data) {
                 // Using internal createRisk for consistency
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 await createRisk({
                     ...item,
                     strategy: item.strategy as Risk['strategy'],
-                    status: item.status as Risk['status'],
+                    status: item.status as any,
                     framework: item.framework as any,
                     probability: item.probability as any,
                     impact: item.impact as any

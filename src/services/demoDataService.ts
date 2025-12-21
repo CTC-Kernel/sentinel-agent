@@ -8,10 +8,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const DemoDataService = {
     async generateDemoData(organizationId: string, currentUser: UserProfile) {
-        if (!import.meta.env.DEV) {
+        const isDemoUser = currentUser.email === 'demo@sentinel-grc.com';
+        if (!import.meta.env.DEV && !isDemoUser) {
             throw new Error('Demo data generation is disabled in production');
         }
-        if (import.meta.env.DEV) console.log('Starting Demo Data Generation...');
+        if (import.meta.env.DEV || isDemoUser) console.log('Starting Demo Data Generation...');
         const batch = writeBatch(db);
         const now = new Date();
         const userId = currentUser.uid;

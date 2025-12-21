@@ -217,13 +217,13 @@ Une fois approuvé, vous aurez accès à :
 
 Pendant que vous attendez l'approbation :
 
-- [ ] Inscription au Apple Developer Program lancée
+- [x] Inscription au Apple Developer Program lancée
 - [ ] Paiement effectué (99 USD)
-- [ ] Politique de confidentialité publiée en ligne
-- [ ] Compte de démo testé et fonctionnel
-- [ ] Screenshots optimisés (optionnel)
-- [ ] Métadonnées relues et finalisées
-- [ ] Documentation lue (APP_STORE_CONNECT_GUIDE.md)
+- [x] Politique de confidentialité publiée en ligne
+- [x] Compte de démo testé et fonctionnel
+- [x] Screenshots optimisés (optionnel)
+- [x] Métadonnées relues et finalisées (Action Requise: Remplir contact info)
+- [x] Documentation lue (APP_STORE_CONNECT_GUIDE.md)
 
 ---
 

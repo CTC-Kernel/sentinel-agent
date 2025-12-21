@@ -1,6 +1,5 @@
-
-import React, { useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useRef } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { AlertTriangle, Info } from './Icons';
 import { Button } from './button';
 
@@ -33,30 +32,6 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 }) => {
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleEscape);
-
-    const t = window.setTimeout(() => {
-      cancelButtonRef.current?.focus();
-    }, 0);
-
-    return () => {
-      window.clearTimeout(t);
-      window.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
   const Icon = type === 'info' ? Info : AlertTriangle;
   const colorClass = type === 'danger' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
     type === 'warning' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' :
@@ -66,43 +41,78 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     type === 'warning' ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20' :
       'text-blue-600 hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-blue-900/20';
 
-  return createPortal(
-    <div className="fixed inset-0 z-max flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px] p-4 animate-fade-in">
-      <div role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" className="glass-panel rounded-[2rem] w-full max-w-md overflow-hidden animate-scale-in mx-4 sm:mx-0">
-        <div className="p-6 text-center">
-          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg ${colorClass}`}>
-            <Icon className="h-8 w-8" />
+  return (
+    <Transition.Root show={isOpen} as={React.Fragment}>
+      <Dialog as="div" className="relative z-50" initialFocus={cancelButtonRef} onClose={onClose}>
+        <Transition.Child
+          as={React.Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <Transition.Child
+              as={React.Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              enterTo="opacity-100 translate-y-0 sm:scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            >
+              <Dialog.Panel className="relative transform overflow-hidden rounded-[2rem] bg-white dark:bg-slate-950 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200 dark:border-white/5">
+                <div className="p-6 text-center">
+                  <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl mb-4 ${colorClass}`}>
+                    <Icon className="h-8 w-8" aria-hidden="true" />
+                  </div>
+                  <Dialog.Title as="h3" className="text-xl font-bold leading-6 text-slate-900 dark:text-white mb-2">
+                    {title}
+                  </Dialog.Title>
+                  <div className="mt-2 text-center">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                      {message}
+                    </p>
+                    {details && (
+                      <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5 text-left">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{details}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex border-t border-slate-200 dark:border-white/5">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+                    onClick={onClose}
+                    disabled={loading}
+                    ref={cancelButtonRef}
+                  >
+                    {cancelText}
+                  </Button>
+                  <div className="w-px bg-slate-200 dark:bg-white/5"></div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    isLoading={loading}
+                    className={`flex-1 py-4 h-auto rounded-none text-sm font-bold ${buttonClass} transition-colors disabled:opacity-50 flex items-center justify-center gap-2`}
+                    onClick={() => { onConfirm(); if (closeOnConfirm) onClose(); }}
+                  >
+                    {confirmText}
+                  </Button>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
           </div>
-          <h3 id="confirm-modal-title" className="text-xl font-bold text-slate-900 dark:text-white mb-2">{title}</h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400 font-medium leading-relaxed">{message}</p>
-          {details && (
-            <div className="mt-4 p-3 bg-background/50 rounded-xl border border-border">
-              <p className="text-xs text-muted-foreground font-medium">{details}</p>
-            </div>
-          )}
         </div>
-        <div className="flex border-t border-border">
-          <Button
-            onClick={onClose}
-            disabled={loading}
-            variant="ghost"
-            ref={cancelButtonRef}
-            className="flex-1 py-4 h-auto rounded-none text-sm font-bold text-slate-600 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
-          >
-            {cancelText}
-          </Button>
-          <div className="w-px bg-border"></div>
-          <Button
-            onClick={() => { onConfirm(); if (closeOnConfirm) onClose(); }}
-            isLoading={loading}
-            variant="ghost"
-            className={`flex-1 py-4 h-auto rounded-none text-sm font-bold ${buttonClass} transition-colors disabled:opacity-50 flex items-center justify-center gap-2`}
-          >
-            {confirmText}
-          </Button>
-        </div>
-      </div>
-    </div>,
-    document.body
+      </Dialog>
+    </Transition.Root>
   );
 };

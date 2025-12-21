@@ -198,6 +198,59 @@ export const SystemSettings: React.FC = () => {
                 </div>
             </div>
 
+            {/* Demo Zone - Visible only to demo user or in dev */}
+            {(user?.email === 'demo@sentinel-grc.com' || import.meta.env.DEV) && (
+                <div className="glass-panel p-8 rounded-[2.5rem] border border-indigo-500/30 dark:border-indigo-500/20 shadow-sm relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
+                    <div className="relative z-10">
+                        <div className="flex items-start gap-4">
+                            <div className="p-3 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-2xl text-indigo-600 dark:text-indigo-400 shrink-0 backdrop-blur-md">
+                                <Activity className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-indigo-900 dark:text-indigo-400 mb-2 flex items-center gap-2">
+                                    Zone de Démonstration
+                                </h3>
+                                <p className="text-sm text-indigo-700/80 dark:text-indigo-300/70 mb-6 leading-relaxed max-w-2xl">
+                                    Générez un jeu de données complet (Risques, Actifs, Audits) pour peupler cet environnement de démonstration.
+                                    Attention : les données seront ajoutées à l'existant.
+                                </p>
+                                <Button
+                                    variant="outline"
+                                    onClick={async () => {
+                                        if (!user?.organizationId) return;
+                                        setExporting(true); // Reusing loading state for simplicity or create new one
+                                        try {
+                                            const { DemoDataService } = await import('../../services/demoDataService');
+                                            const result = await DemoDataService.generateDemoData(user.organizationId, user);
+                                            addToast(`Succès ! ${result.count} éléments générés.`, "success");
+                                        } catch (e) {
+                                            ErrorLogger.handleErrorWithToast(e, 'GenerateDemoData', 'UNKNOWN_ERROR');
+                                        } finally {
+                                            setExporting(false);
+                                        }
+                                    }}
+                                    disabled={exporting}
+                                    className="w-full sm:w-auto shadow-lg shadow-indigo-500/20 rounded-xl border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
+                                >
+                                    {exporting ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                                            Génération en cours...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Activity className="h-4 w-4 mr-2" />
+                                            Générer Données Démo
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Danger Zone */}
             <div className="glass-panel p-8 rounded-[2.5rem] border border-red-500/30 dark:border-red-500/20 shadow-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-100 opacity-60" />
