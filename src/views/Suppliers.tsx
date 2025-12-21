@@ -7,7 +7,7 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Supplier, Document, SystemLog, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
-import { Plus, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, BrainCircuit, Loader2, MoreVertical } from '../components/ui/Icons';
+import { Plus, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, BrainCircuit, Loader2, MoreVertical, ChevronRight } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
@@ -35,6 +35,10 @@ import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { SupplierAIAssistant } from '../components/suppliers/SupplierAIAssistant';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { CsvParser } from '../utils/csvUtils';
+import { QuestionnaireBuilder } from '../components/suppliers/QuestionnaireBuilder';
+import { AssessmentView } from '../components/suppliers/AssessmentView';
+import { QuestionnaireTemplate, SupplierQuestionnaireResponse } from '../types/business';
+import { SupplierService } from '../services/SupplierService';
 
 const getCriticalityColor = (c: Criticality) => {
     switch (c) {
@@ -59,14 +63,15 @@ export const Suppliers: React.FC = () => {
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix' | 'kanban'>('suppliers_view_mode', 'grid');
 
     const [creationMode, setCreationMode] = useState(false);
+    const [templateMode, setTemplateMode] = useState(false);
+    const [assessmentMode, setAssessmentMode] = useState<string | null>(null); // responseId
+
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
     const [isExportingCSV, setIsExportingCSV] = useState(false);
     const [isExportingDORA, setIsExportingDORA] = useState(false);
-
-
 
     // Inspector State
     const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'incidents' | 'history' | 'comments' | 'intelligence'>('profile');
@@ -97,20 +102,18 @@ export const Suppliers: React.FC = () => {
                 contractDocumentId: selectedSupplier.contractDocumentId,
                 contractEnd: selectedSupplier.contractEnd,
                 securityScore: selectedSupplier.securityScore,
-
                 assessment: selectedSupplier.assessment,
                 isICTProvider: selectedSupplier.isICTProvider,
                 supportsCriticalFunction: selectedSupplier.supportsCriticalFunction,
                 doraCriticality: selectedSupplier.doraCriticality,
                 serviceType: selectedSupplier.serviceType,
+                supportedProcessIds: selectedSupplier.supportedProcessIds,
                 relatedAssetIds: selectedSupplier.relatedAssetIds || [],
                 relatedRiskIds: selectedSupplier.relatedRiskIds || [],
                 relatedProjectIds: selectedSupplier.relatedProjectIds || []
             });
         }
     }, [selectedSupplier, editForm]);
-
-
 
     const { data: suppliersRaw, loading: loadingSuppliers } = useFirestoreCollection<Supplier>(
         'suppliers',
@@ -129,7 +132,7 @@ export const Suppliers: React.FC = () => {
     useEffect(() => {
         if (selectedOwnerId) {
             const selectedUser = usersRaw.find(u => u.uid === selectedOwnerId);
-            editForm.setValue('owner', selectedUser?.displayName || '');
+            if (selectedUser) editForm.setValue('owner', selectedUser.displayName || '');
         }
     }, [selectedOwnerId, usersRaw, editForm]);
 
@@ -197,7 +200,154 @@ export const Suppliers: React.FC = () => {
         suppliersSubtitle = "Consultez les fournisseurs et contacts qui concernent votre périmètre.";
     }
 
+    // Hook Definitions (Moved up to avoid conditional hook errors)
+    const performDelete = React.useCallback(async (id: string) => {
+        // 1. Delete related assessments
+        const assessmentsQuery = query(collection(db, 'supplierAssessments'), where('supplierId', '==', id));
+        const assessmentsSnap = await getDocs(assessmentsQuery);
+        const deleteAssessments = assessmentsSnap.docs.map(doc => deleteDoc(doc.ref));
 
+        // 2. Delete related incidents
+        const incidentsQuery = query(collection(db, 'supplierIncidents'), where('supplierId', '==', id));
+        const incidentsSnap = await getDocs(incidentsQuery);
+        const deleteIncidents = incidentsSnap.docs.map(doc => deleteDoc(doc.ref));
+
+        // 3. Delete the supplier itself
+        await Promise.all([...deleteAssessments, ...deleteIncidents, deleteDoc(doc(db, 'suppliers', id))]);
+    }, []);
+
+    const handleDelete = React.useCallback(async (id: string) => {
+        setConfirmData(prev => ({ ...prev, loading: true }));
+        try {
+            await performDelete(id);
+            await logAction(user, 'DELETE', 'Supplier', `Suppression Fournisseur: ${selectedSupplier?.name || id}`);
+            addToast('Fournisseur et données associées supprimés', 'success');
+            if (selectedSupplier?.id === id) setSelectedSupplier(null);
+            setConfirmData(prev => ({ ...prev, isOpen: false }));
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleDelete');
+        } finally {
+            setConfirmData(prev => ({ ...prev, loading: false }));
+        }
+    }, [performDelete, user, addToast, selectedSupplier]);
+
+    const initiateDelete = React.useCallback((id: string, name: string) => {
+        if (!canEdit) return;
+        setConfirmData({
+            isOpen: true,
+            title: `Supprimer ${name} ?`,
+            message: "Cette action est définitive et supprimera toutes les données associées à ce fournisseur.",
+            onConfirm: () => handleDelete(id),
+            closeOnConfirm: false
+        });
+    }, [canEdit, handleDelete]);
+
+    const deferredFilter = useDeferredValue(filter);
+    const filteredSuppliers = useMemo(() => {
+        const needle = (deferredFilter || '').toLowerCase().trim();
+        if (!needle) return suppliers;
+        return suppliers.filter(s => s.name.toLowerCase().includes(needle));
+    }, [suppliers, deferredFilter]);
+
+    const columns = React.useMemo<ColumnDef<Supplier>[]>(() => [
+        {
+            accessorKey: 'name',
+            header: 'Fournisseur',
+            cell: ({ row }) => (
+                <div className="flex flex-col">
+                    <span className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.name}</span>
+                    {row.original.isICTProvider && (
+                        <span className="inline-flex items-center mt-1 px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-slate-900/30 dark:text-indigo-300 w-fit">
+                            DORA ICT
+                        </span>
+                    )}
+                </div>
+            )
+        },
+        {
+            accessorKey: 'category',
+            header: 'Catégorie',
+            cell: ({ row }) => (
+                <span className="px-2.5 py-1 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
+                    {row.original.category}
+                </span>
+            )
+        },
+        {
+            accessorKey: 'criticality',
+            header: 'Criticité',
+            cell: ({ row }) => (
+                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border ${getCriticalityColor(row.original.criticality || Criticality.MEDIUM)}`}>
+                    {row.original.criticality}
+                </span>
+            )
+        },
+        {
+            accessorKey: 'securityScore',
+            header: 'Score Sécurité',
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2">
+                    <div className="w-16 bg-gray-200 dark:bg-slate-700 rounded-full h-1.5">
+                        <div className={`h-1.5 rounded-full ${getScoreColor(row.original.securityScore || 0)}`} style={{ width: `${row.original.securityScore || 0}%` }}></div>
+                    </div>
+                    <span className={`text-xs font-bold ${getScoreColor(row.original.securityScore || 0).replace('bg-', 'text-')}`}>
+                        {row.original.securityScore || 0}
+                    </span>
+                </div>
+            )
+        },
+        {
+            header: 'Contact',
+            cell: ({ row }) => (
+                <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{row.original.contactName || '-'}</span>
+                    <span className="text-[10px] text-slate-500">{row.original.contactEmail}</span>
+                </div>
+            )
+        },
+        {
+            accessorKey: 'contractEnd',
+            header: 'Fin Contrat',
+            cell: ({ row }) => {
+                const d = row.original.contractEnd;
+                const isExpired = d && new Date(d) < new Date();
+                return d ? (
+                    <span className={`text-sm font-medium ${isExpired ? 'text-red-500' : 'text-slate-600 dark:text-slate-400'}`}>
+                        {new Date(d).toLocaleDateString()}
+                    </span>
+                ) : <span className="text-slate-500">-</span>;
+            }
+        },
+        {
+            accessorKey: 'status',
+            header: 'Statut',
+            cell: ({ row }) => (
+                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border ${row.original.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-slate-600 border-gray-200'}`}>
+                    {row.original.status}
+                </span>
+            )
+        },
+        {
+            id: 'actions',
+            cell: ({ row }) => (
+                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                    {canEdit && (
+                        <CustomTooltip content="Supprimer le fournisseur">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    initiateDelete(row.original.id, row.original.name);
+                                }}
+                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </CustomTooltip>
+                    )}
+                </div>
+            )
+        }
+    ], [canEdit, initiateDelete]);
 
     // Import
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -219,7 +369,43 @@ export const Suppliers: React.FC = () => {
         }
     }, [location.state, loadingSuppliers, loadingProcesses, suppliers]);
 
-    // ... (Rest of the file logic unchanged)
+    // VRM: Load Templates and Responses
+    const { data: templates } = useFirestoreCollection<QuestionnaireTemplate>('questionnaire_templates', [where('organizationId', '==', user?.organizationId)], { realtime: true });
+    const { data: assessments } = useFirestoreCollection<SupplierQuestionnaireResponse>('questionnaire_responses', [where('organizationId', '==', user?.organizationId)], { realtime: true });
+
+    // Logic to start assessment
+    const startAssessment = async (supplier: Supplier, templateId: string) => {
+        if (!templateId || !user?.organizationId) return;
+        try {
+            const tpl = templates.find(t => t.id === templateId);
+            if (!tpl) return;
+            const resId = await SupplierService.createAssessment(user.organizationId, supplier.id, supplier.name, tpl);
+            setAssessmentMode(resId);
+            addToast('Évaluation démarrée', 'success');
+        } catch (e) { console.error(e); addToast('Erreur démarage évaluation', 'error'); }
+    };
+
+    // Render Assessment View Overlay
+    if (assessmentMode) {
+        return (
+            <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 animate-slide-up">
+                <AssessmentView responseId={assessmentMode} onClose={() => setAssessmentMode(null)} />
+            </div>
+        );
+    }
+
+    // Render Builder
+    if (templateMode) {
+        return (
+            <div className="p-8 max-w-5xl mx-auto animate-fade-in">
+                <div className="mb-6 flex items-center">
+                    <button onClick={() => setTemplateMode(false)} className="text-slate-500 hover:text-slate-700 mr-4">Retour</button>
+                    <h1 className="text-2xl font-bold dark:text-white">Éditeur de Modèle de Questionnaire</h1>
+                </div>
+                <QuestionnaireBuilder onCancel={() => setTemplateMode(false)} onSave={() => setTemplateMode(false)} />
+            </div>
+        )
+    }
 
     const openInspector = async (supplier: Supplier) => {
         setSelectedSupplier(supplier);
@@ -260,7 +446,6 @@ export const Suppliers: React.FC = () => {
         setCreationMode(true);
         setSelectedSupplier(null);
     };
-
 
 
     const handleCreate: SubmitHandler<SupplierFormData> = async (data) => {
@@ -308,46 +493,11 @@ export const Suppliers: React.FC = () => {
         }
     };
 
-    const performDelete = React.useCallback(async (id: string) => {
-        // 1. Delete related assessments
-        const assessmentsQuery = query(collection(db, 'supplierAssessments'), where('supplierId', '==', id));
-        const assessmentsSnap = await getDocs(assessmentsQuery);
-        const deleteAssessments = assessmentsSnap.docs.map(doc => deleteDoc(doc.ref));
 
-        // 2. Delete related incidents
-        const incidentsQuery = query(collection(db, 'supplierIncidents'), where('supplierId', '==', id));
-        const incidentsSnap = await getDocs(incidentsQuery);
-        const deleteIncidents = incidentsSnap.docs.map(doc => deleteDoc(doc.ref));
 
-        // 3. Delete the supplier itself
-        await Promise.all([...deleteAssessments, ...deleteIncidents, deleteDoc(doc(db, 'suppliers', id))]);
-    }, []);
 
-    const handleDelete = React.useCallback(async (id: string) => {
-        setConfirmData(prev => ({ ...prev, loading: true }));
-        try {
-            await performDelete(id);
-            await logAction(user, 'DELETE', 'Supplier', `Suppression Fournisseur: ${selectedSupplier?.name || id}`);
-            addToast('Fournisseur et données associées supprimés', 'success');
-            if (selectedSupplier?.id === id) setSelectedSupplier(null);
-            setConfirmData(prev => ({ ...prev, isOpen: false }));
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleDelete');
-        } finally {
-            setConfirmData(prev => ({ ...prev, loading: false }));
-        }
-    }, [performDelete, user, addToast, selectedSupplier]);
 
-    const initiateDelete = React.useCallback((id: string, name: string) => {
-        if (!canEdit) return;
-        setConfirmData({
-            isOpen: true,
-            title: `Supprimer ${name} ?`,
-            message: "Cette action est définitive et supprimera toutes les données associées à ce fournisseur.",
-            onConfirm: () => handleDelete(id),
-            closeOnConfirm: false
-        });
-    }, [canEdit, handleDelete]);
+
 
     const handleBulkDelete = async (selectedIds: string[]) => {
         if (!canEdit) return;
@@ -513,12 +663,7 @@ export const Suppliers: React.FC = () => {
 
 
 
-    const deferredFilter = useDeferredValue(filter);
-    const filteredSuppliers = useMemo(() => {
-        const needle = (deferredFilter || '').toLowerCase().trim();
-        if (!needle) return suppliers;
-        return suppliers.filter(s => s.name.toLowerCase().includes(needle));
-    }, [suppliers, deferredFilter]);
+
 
     const getBreadcrumbs = () => {
         const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Fournisseurs', onClick: () => { setSelectedSupplier(null); setCreationMode(false); setIsEditing(false); } }];
@@ -538,105 +683,7 @@ export const Suppliers: React.FC = () => {
         return crumbs;
     };
 
-    const columns = React.useMemo<ColumnDef<Supplier>[]>(() => [
-        {
-            accessorKey: 'name',
-            header: 'Fournisseur',
-            cell: ({ row }) => (
-                <div className="flex flex-col">
-                    <span className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.name}</span>
-                    {row.original.isICTProvider && (
-                        <span className="inline-flex items-center mt-1 px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-slate-900/30 dark:text-indigo-300 w-fit">
-                            DORA ICT
-                        </span>
-                    )}
-                </div>
-            )
-        },
-        {
-            accessorKey: 'category',
-            header: 'Catégorie',
-            cell: ({ row }) => (
-                <span className="px-2.5 py-1 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
-                    {row.original.category}
-                </span>
-            )
-        },
-        {
-            accessorKey: 'criticality',
-            header: 'Criticité',
-            cell: ({ row }) => (
-                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border ${getCriticalityColor(row.original.criticality || Criticality.MEDIUM)}`}>
-                    {row.original.criticality}
-                </span>
-            )
-        },
-        {
-            accessorKey: 'securityScore',
-            header: 'Score Sécurité',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-2">
-                    <div className="w-16 bg-gray-200 dark:bg-slate-700 rounded-full h-1.5">
-                        <div className={`h-1.5 rounded-full ${getScoreColor(row.original.securityScore || 0)}`} style={{ width: `${row.original.securityScore || 0}%` }}></div>
-                    </div>
-                    <span className={`text-xs font-bold ${getScoreColor(row.original.securityScore || 0).replace('bg-', 'text-')}`}>
-                        {row.original.securityScore || 0}
-                    </span>
-                </div>
-            )
-        },
-        {
-            header: 'Contact',
-            cell: ({ row }) => (
-                <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{row.original.contactName || '-'}</span>
-                    <span className="text-[10px] text-slate-500">{row.original.contactEmail}</span>
-                </div>
-            )
-        },
-        {
-            accessorKey: 'contractEnd',
-            header: 'Fin Contrat',
-            cell: ({ row }) => {
-                const d = row.original.contractEnd;
-                const isExpired = d && new Date(d) < new Date();
-                return d ? (
-                    <span className={`text-sm font-medium ${isExpired ? 'text-red-500' : 'text-slate-600 dark:text-slate-400'}`}>
-                        {new Date(d).toLocaleDateString()}
-                    </span>
-                ) : <span className="text-slate-500">-</span>;
-            }
-        },
-        {
-            accessorKey: 'status',
-            header: 'Statut',
-            cell: ({ row }) => (
-                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border ${row.original.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-slate-600 border-gray-200'}`}>
-                    {row.original.status}
-                </span>
-            )
-        },
-        {
-            id: 'actions',
-            cell: ({ row }) => (
-                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                    {canEdit && (
-                        <CustomTooltip content="Supprimer le fournisseur">
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    initiateDelete(row.original.id, row.original.name);
-                                }}
-                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </button>
-                        </CustomTooltip>
-                    )}
-                </div>
-            )
-        }
-    ], [canEdit, initiateDelete]);
+
 
     return (
         <motion.div
@@ -738,6 +785,15 @@ export const Suppliers: React.FC = () => {
                                     </Menu.Items>
                                 </Transition>
                             </Menu>
+
+                            <CustomTooltip content="Gérer les modèles d'évaluation">
+                                <button
+                                    onClick={() => setTemplateMode(true)}
+                                    className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm"
+                                >
+                                    <ClipboardList className="h-5 w-5" />
+                                </button>
+                            </CustomTooltip>
 
                             <CustomTooltip content="Ajouter un nouveau fournisseur">
                                 <button
@@ -1083,12 +1139,69 @@ export const Suppliers: React.FC = () => {
                                         <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
                                             <div className="flex items-center justify-between mb-6">
                                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center uppercase tracking-wide">
-                                                    <ShieldAlert className="h-4 w-4 mr-2 text-brand-500" /> Questionnaire de Sécurité
+                                                    <ShieldAlert className="h-4 w-4 mr-2 text-brand-500" /> Profil de Risque
                                                 </h3>
                                                 <div className={`text-2xl font-black ${editForm.watch('securityScore')! >= 80 ? 'text-emerald-500' : editForm.watch('securityScore')! >= 50 ? 'text-amber-500' : 'text-red-500'}`}>
                                                     {editForm.watch('securityScore')}/100
                                                 </div>
                                             </div>
+
+                                            {/* List of Assessments */}
+                                            <div className="mb-8">
+                                                <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Évaluations Réalisées</h4>
+                                                <div className="space-y-3">
+                                                    {assessments.filter(a => a.supplierId === selectedSupplier.id).map(a => (
+                                                        <div key={a.id} onClick={() => setAssessmentMode(a.id)} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5 cursor-pointer hover:bg-slate-100 dark:hover:bg-white/10 transition-colors group">
+                                                            <div className="flex items-center">
+                                                                <FileText className="h-4 w-4 text-slate-400 mr-3" />
+                                                                <div>
+                                                                    <div className="font-bold text-slate-700 dark:text-slate-200 text-sm">{templates.find(t => t.id === a.templateId)?.title || 'Questionnaire'}</div>
+                                                                    <div className="text-xs text-slate-500">{new Date(a.updatedAt || a.sentDate).toLocaleDateString()} • {a.status}</div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-3">
+                                                                <span className={`px-2 py-1 rounded text-xs font-bold ${a.overallScore >= 80 ? 'bg-green-100 text-green-700' : a.overallScore >= 50 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}>
+                                                                    {a.overallScore}%
+                                                                </span>
+                                                                <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-brand-500" />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {assessments.filter(a => a.supplierId === selectedSupplier.id).length === 0 && (
+                                                        <p className="text-sm text-slate-500 italic">Aucune évaluation passée.</p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Start New Assessment */}
+                                            {canEdit && (
+                                                <div className="mb-8">
+                                                    <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Lancer une nouvelle évaluation</h4>
+                                                    <div className="grid grid-cols-1 gap-3">
+                                                        {templates.map(tpl => (
+                                                            <button
+                                                                key={tpl.id}
+                                                                onClick={() => startAssessment(selectedSupplier, tpl.id)}
+                                                                className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 border border-brand-100 dark:border-brand-900/30 rounded-xl hover:ring-2 hover:ring-brand-500 transition-all text-left group"
+                                                            >
+                                                                <div className="flex items-center">
+                                                                    <div className="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-lg text-brand-600 mr-3 group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                                                                        <Plus className="h-4 w-4" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="font-bold text-slate-900 dark:text-white text-sm">{tpl.title}</div>
+                                                                        <div className="text-xs text-slate-500">{tpl.sections.length} sections</div>
+                                                                    </div>
+                                                                </div>
+                                                                <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-brand-500" />
+                                                            </button>
+                                                        ))}
+                                                        {templates.length === 0 && (
+                                                            <p className="text-sm text-slate-500 italic">Aucun modèle de questionnaire disponible. Créez-en un dans l'onglet Modèles.</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             {canEdit ? (
                                                 <div className="space-y-3">

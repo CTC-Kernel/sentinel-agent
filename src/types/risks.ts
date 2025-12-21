@@ -60,7 +60,7 @@ export interface Risk {
     mitreTechniques?: MitreTechnique[];
     previousScore?: number;
     strategy: 'Accepter' | 'Atténuer' | 'Transférer' | 'Éviter';
-    status: 'Ouvert' | 'En cours' | 'Fermé';
+    status: 'Ouvert' | 'En cours' | 'Fermé' | 'En attente de validation';
     owner: string;
     ownerId?: string;
     mitigationControlIds?: string[];

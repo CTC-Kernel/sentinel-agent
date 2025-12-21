@@ -58,6 +58,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             owner: initialData?.owner || '',
             ownerId: initialData?.ownerId || '',
             nextReviewDate: initialData?.nextReviewDate || '',
+            expirationDate: initialData?.expirationDate || '',
             readBy: initialData?.readBy || [],
             reviewers: initialData?.reviewers || [],
             approvers: initialData?.approvers || [],
@@ -210,12 +211,20 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                     />
                 </div>
 
-                <FloatingLabelInput
-                    label="Prochaine révision"
-                    type="date"
-                    {...register('nextReviewDate')}
-                    error={errors.nextReviewDate?.message}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FloatingLabelInput
+                        label="Prochaine révision"
+                        type="date"
+                        {...register('nextReviewDate')}
+                        error={errors.nextReviewDate?.message}
+                    />
+                    <FloatingLabelInput
+                        label="Date d'expiration"
+                        type="date"
+                        {...register('expirationDate')}
+                        error={errors.expirationDate?.message}
+                    />
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Controller

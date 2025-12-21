@@ -3,7 +3,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth';
 // Capacitor import removed from static scope to prevent web issues
 // import { Capacitor } from '@capacitor/core';
-import { initializeFirestore, memoryLocalCache } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
 import { getFunctions } from 'firebase/functions';
@@ -136,10 +136,9 @@ export const auth = getAuth(app);
 // Initialize Firestore with modern persistent cache (replaces deprecated enableIndexedDbPersistence)
 // Fallback to in-memory cache if IndexedDB is blocked/unavailable (private mode, hardened browsers, etc.).
 // Initialize Firestore with memory cache and forced long-polling for maximum stability.
-// We disable offline persistence to prevent IndexedDB locking issues and '400 channel' errors
-// in restrictive network environments.
+// We enable persistent cache for offline support, but auto-detect settings to avoid tab variance issues.
 export const db = initializeFirestore(app, {
-  localCache: memoryLocalCache(),
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
   experimentalAutoDetectLongPolling: true
 });
 

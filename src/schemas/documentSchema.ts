@@ -10,6 +10,7 @@ export const documentSchema = z.object({
     owner: z.string().min(1, "Le propriétaire est requis"),
     ownerId: z.string().optional(),
     nextReviewDate: z.string().optional(),
+    expirationDate: z.string().optional(),
     readBy: z.array(z.string()).optional(),
     reviewers: z.array(z.string()).optional(),
     approvers: z.array(z.string()).optional(),

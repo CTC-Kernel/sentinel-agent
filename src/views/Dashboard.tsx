@@ -17,6 +17,7 @@ import { useTour } from '../hooks/useTour';
 import { DashboardHeader } from '../components/dashboard/widgets/DashboardHeader';
 import { QuickActions } from '../components/dashboard/widgets/QuickActions';
 import { GettingStartedWidget } from '../components/dashboard/widgets/GettingStartedWidget';
+import { ApprovalsWidget } from '../components/dashboard/ApprovalsWidget';
 import { DashboardSkeleton } from '../components/skeletons/DashboardSkeleton';
 import { motion } from 'framer-motion';
 
@@ -42,13 +43,6 @@ export const Dashboard: React.FC = () => {
     const { user, theme, addToast, t } = useStore();
     const navigate = useNavigate();
 
-    // Role Definitions
-    // const role = user?.role || 'user';
-    // const isAdmin = ['admin', 'rssi'].includes(role);
-    // const isDirection = role === 'direction';
-    // const isAuditor = role === 'auditor';
-    // const isPM = role === 'project_manager';
-
     // Use centralized data hook
     const {
         controls,
@@ -61,6 +55,7 @@ export const Dashboard: React.FC = () => {
         myAudits,
         myDocs,
         publishedDocs,
+        pendingReviews,
         myIncidents,
         activeIncidentsCount,
         openAuditsCount,
@@ -205,6 +200,12 @@ export const Dashboard: React.FC = () => {
             {showGettingStarted && (
                 <motion.div variants={slideUpVariants}>
                     <GettingStartedWidget onClose={() => setShowGettingStarted(false)} />
+                </motion.div>
+            )}
+
+            {pendingReviews && pendingReviews.length > 0 && (
+                <motion.div variants={slideUpVariants}>
+                    <ApprovalsWidget documents={pendingReviews} />
                 </motion.div>
             )}
 

@@ -175,3 +175,63 @@ export interface ContinuitySuggestion {
     }>;
     reasoning: string;
 }
+
+// Vendor Risk Management (VRM) Types
+
+export type SupplierQuestionType = 'yes_no' | 'multiple_choice' | 'text' | 'rating';
+
+export interface SupplierQuestionnaireQuestion {
+    id: string;
+    text: string;
+    type: SupplierQuestionType;
+    weight: number; // 1-10
+    options?: string[]; // For multiple choice
+    required: boolean;
+    helperText?: string;
+}
+
+export interface QuestionnaireSection {
+    id: string;
+    title: string;
+    description?: string;
+    questions: SupplierQuestionnaireQuestion[];
+    weight: number; // Weight of this section in overall score (0-100%)
+}
+
+export interface QuestionnaireTemplate {
+    id: string;
+    organizationId: string;
+    title: string;
+    description: string;
+    sections: QuestionnaireSection[];
+    isDefault?: boolean;
+    isSystem?: boolean;
+    createdAt: string;
+    updatedAt: string;
+    createdBy: string;
+}
+
+export interface SupplierQuestionnaireResponse {
+    id: string;
+    organizationId: string;
+    templateId: string;
+    supplierId: string;
+    supplierName: string;
+    status: 'Draft' | 'Sent' | 'In Progress' | 'Submitted' | 'Reviewed' | 'Archived';
+    answers: Record<string, {
+        value: string | number | boolean | string[];
+        comment?: string;
+        evidenceUrl?: string;
+    }>;
+    sectionScores?: Record<string, number>; // Score per section (0-100)
+    overallScore: number; // 0-100
+    riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical';
+    remediationPlan?: string;
+    respondentEmail?: string;
+    sentDate: string;
+    submittedDate?: string;
+    reviewedDate?: string;
+    reviewedBy?: string;
+    dueDate?: string;
+    updatedAt?: string;
+}

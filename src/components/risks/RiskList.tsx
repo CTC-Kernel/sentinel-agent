@@ -109,7 +109,7 @@ export const RiskList: React.FC<RiskListProps> = ({
                             accessorKey: 'status',
                             cell: ({ row }) => (
                                 <div className="flex flex-col items-start gap-1">
-                                    <Badge status={row.original.status === 'Ouvert' ? 'error' : row.original.status === 'En cours' ? 'warning' : 'success'} variant="outline">
+                                    <Badge status={row.original.status === 'Ouvert' ? 'error' : row.original.status === 'En cours' ? 'warning' : row.original.status === 'En attente de validation' ? 'info' : 'success'} variant="outline">
                                         {row.original.status}
                                     </Badge>
 

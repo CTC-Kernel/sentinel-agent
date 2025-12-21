@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Filter, AlertTriangle } from '../../components/ui/Icons';
+import { Search, AlertTriangle } from '../../components/ui/Icons';
 import { CustomSelect } from '../../components/ui/CustomSelect';
 
 interface ComplianceFiltersProps {

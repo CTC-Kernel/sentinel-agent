@@ -484,7 +484,7 @@ export const Risks: React.FC = () => {
                                     residualProbability: data.residualProbability as 1 | 2 | 3 | 4 | 5 | undefined,
                                     residualImpact: data.residualImpact as 1 | 2 | 3 | 4 | 5 | undefined,
                                     aiAnalysis: data.aiAnalysis || undefined
-                                });
+                                }, editingRisk);
                             } else {
                                 await createRisk(data as Risk);
                             }

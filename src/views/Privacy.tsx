@@ -1,24 +1,19 @@
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import React, { useEffect, useState, useRef } from 'react';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { processingActivitySchema, ProcessingActivityFormData } from '../schemas/privacySchema';
-import { collection, addDoc, getDocs, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
-import { db } from '../firebase';
-import { ProcessingActivity, SystemLog, UserProfile, Asset, Risk } from '../types';
-import { Plus, Fingerprint, Trash2, Edit, GlobeLock, Scale, FileSpreadsheet, CheckCircle2, Clock, AlertTriangle, History, MessageSquare, Save, LayoutDashboard, Upload, Shield, AlertOctagon } from '../components/ui/Icons';
+import { ProcessingActivity } from '../types';
+import { Plus, Fingerprint, Trash2, Edit, GlobeLock, Scale, FileSpreadsheet, CheckCircle2, Clock, Upload, Shield, AlertOctagon, X, Save, LayoutDashboard, MessageSquare, AlertTriangle, History } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { useStore } from '../store';
-import { logAction } from '../services/logger';
-import { sanitizeData } from '../utils/dataSanitizer';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Comments } from '../components/ui/Comments';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
-import { ErrorLogger } from '../services/errorLogger';
 import { Drawer } from '../components/ui/Drawer';
 import { Badge } from '../components/ui/Badge';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
@@ -28,194 +23,118 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { Link } from 'react-router-dom';
-
+import { AssessmentView } from '../components/suppliers/AssessmentView';
 import { canEditResource } from '../utils/permissions';
+import { usePrivacy } from '../hooks/usePrivacy';
 
 export const Privacy: React.FC = () => {
-    const [activities, setActivities] = useState<ProcessingActivity[]>([]);
-    const [usersList, setUsersList] = useState<UserProfile[]>([]);
-    const [assetsList, setAssetsList] = useState<Asset[]>([]);
-    const [risksList, setRisksList] = useState<Risk[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [showCreateModal, setShowCreateModal] = useState(false);
+    const { user } = useStore();
+    const {
+        activities,
+        usersList,
+        assetsList,
+        risksList,
+        loading,
+        selectedActivity,
+        setSelectedActivity,
+        isEditing,
+        setIsEditing,
+        viewingAssessmentId,
+        setViewingAssessmentId,
+        showCreateModal,
+        setShowCreateModal,
+        fetchData: fetchActivities,
+        handleCreate,
+        handleUpdate,
+        handleDelete,
+        handleStartDPIA,
+        handleViewDPIA,
+        activityHistory,
+        stats,
+        handleFileUpload
+    } = usePrivacy();
+
     const [filter, setFilter] = useState('');
-    const { user, addToast } = useStore();
-    const canEdit = canEditResource(user, 'ProcessingActivity');
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'data' | 'links' | 'history' | 'comments'>('details');
 
-    // Inspector State
-    const [selectedActivity, setSelectedActivity] = useState<ProcessingActivity | null>(null);
-    const [inspectorTab, setInspectorTab] = useState<'details' | 'data' | 'history' | 'comments' | 'links'>('details');
-    const [activityHistory, setActivityHistory] = useState<SystemLog[]>([]);
-    const [isEditing, setIsEditing] = useState(false);
-
-    // Stats State
-    const [stats, setStats] = useState({ total: 0, sensitive: 0, dpiaMissing: 0, review: 0 });
-
-    // Confirm Dialog
-    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
-        isOpen: false, title: '', message: '', onConfirm: () => { }
-    });
-
+    // Forms
     const createActivityForm = useForm<ProcessingActivityFormData>({
         resolver: zodResolver(processingActivitySchema),
         defaultValues: {
             name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '',
-            legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [],
-            retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif',
+            status: 'Actif',
+            legalBasis: 'Intérêt Légitime',
+            dataCategories: [],
+            dataSubjects: [],
+            retentionPeriod: '5 ans',
+            hasDPIA: false,
             relatedAssetIds: [], relatedRiskIds: []
         }
     });
 
     const editActivityForm = useForm<ProcessingActivityFormData>({
-        resolver: zodResolver(processingActivitySchema),
-        defaultValues: {
-            name: '', purpose: '', manager: '', managerId: '',
-            legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [],
-            retentionPeriod: '', hasDPIA: false, status: 'Actif',
-            relatedAssetIds: [], relatedRiskIds: []
-        }
+        resolver: zodResolver(processingActivitySchema)
     });
 
-    const fetchActivities = useCallback(async () => {
-        if (!user?.organizationId) {
-            setLoading(false);
-            return;
-        }
-        setLoading(true);
-        try {
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'processing_activities'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId)))
-            ]);
+    // Watch form values unconditionally at top level
+    // Watch form values unconditionally at top level
+    // eslint-disable-next-line react-hooks/incompatible-library
+    const watchedManagerId = editActivityForm.watch('managerId');
+    const watchedLegalBasis = editActivityForm.watch('legalBasis');
+    const watchedStatus = editActivityForm.watch('status');
+    const watchedDataCategories = editActivityForm.watch('dataCategories');
+    const watchedHasDPIA = editActivityForm.watch('hasDPIA');
+    const watchedRelatedAssetIds = editActivityForm.watch('relatedAssetIds');
+    const watchedRelatedRiskIds = editActivityForm.watch('relatedRiskIds');
 
-            const getDocsData = <T,>(result: PromiseSettledResult<QuerySnapshot<DocumentData>>): T[] => {
-                if (result.status === 'fulfilled') {
-                    return result.value.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() })) as unknown as T[];
-                }
-                return [];
-            };
-
-            const userData = getDocsData<UserProfile>(results[1]);
-            setUsersList(userData);
-            setAssetsList(getDocsData<Asset>(results[2]));
-            setRisksList(getDocsData<Risk>(results[3]));
-
-            const data = getDocsData<ProcessingActivity>(results[0]);
-            // Resolve managerId
-            const resolvedData = data.map(a => {
-                if (!a.managerId && a.manager) {
-                    const managerUser = userData.find(u => u.displayName === a.manager);
-                    if (managerUser) return { ...a, managerId: managerUser.uid };
-                }
-                return a;
+    // Reset edit form when selected activity changes
+    useEffect(() => {
+        if (selectedActivity) {
+            editActivityForm.reset({
+                name: selectedActivity.name,
+                purpose: selectedActivity.purpose,
+                manager: selectedActivity.manager,
+                managerId: selectedActivity.managerId,
+                status: selectedActivity.status,
+                legalBasis: selectedActivity.legalBasis,
+                dataCategories: selectedActivity.dataCategories,
+                dataSubjects: selectedActivity.dataSubjects,
+                retentionPeriod: selectedActivity.retentionPeriod,
+                hasDPIA: selectedActivity.hasDPIA,
+                relatedAssetIds: selectedActivity.relatedAssetIds || [],
+                relatedRiskIds: selectedActivity.relatedRiskIds || []
             });
-            // Sort client-side
-            resolvedData.sort((a, b) => a.name.localeCompare(b.name));
-            setActivities(resolvedData);
-
-            // Calculate Stats
-            const total = data.length;
-            const sensitive = data.filter(a => a.dataCategories.some(c => ['Santé (Sensible)', 'Biométrique', 'Judiciaire'].includes(c))).length;
-            const dpiaMissing = data.filter(a => a.dataCategories.some(c => ['Santé (Sensible)', 'Biométrique', 'Judiciaire'].includes(c)) && !a.hasDPIA).length;
-            const review = data.filter(a => a.status !== 'Actif').length;
-
-            setStats({ total, sensitive, dpiaMissing, review });
-        } catch (error) {
-            ErrorLogger.error(error, 'Privacy.fetchActivities');
-            addToast("Erreur chargement traitements", "error");
-        } finally {
-            setLoading(false);
         }
-    }, [user?.organizationId, addToast]);
+    }, [selectedActivity, editActivityForm]);
 
-    useEffect(() => { fetchActivities(); }, [fetchActivities]);
+    // Permissions
+    const canEdit = canEditResource(user, 'ProcessingActivity');
 
-    const openInspector = async (activity: ProcessingActivity) => {
-        setSelectedActivity(activity);
-        editActivityForm.reset({
-            name: activity.name,
-            purpose: activity.purpose,
-            manager: activity.manager,
-            managerId: activity.managerId,
-            legalBasis: activity.legalBasis,
-            dataCategories: activity.dataCategories,
-            dataSubjects: activity.dataSubjects,
-            retentionPeriod: activity.retentionPeriod,
-            hasDPIA: activity.hasDPIA,
-            status: activity.status,
-            relatedAssetIds: activity.relatedAssetIds || [],
-            relatedRiskIds: activity.relatedRiskIds || []
-        });
-        setInspectorTab('details');
-        setIsEditing(false);
-
-        try {
-            const q = query(collection(db, 'system_logs'), where('organizationId', '==', user?.organizationId), limit(50));
-            const snap = await getDocs(q);
-            const logs = snap.docs.map(d => d.data() as SystemLog);
-            const filteredLogs = logs.filter(l => l.resource === 'Privacy' && l.details?.includes(activity.name));
-            filteredLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-            setActivityHistory(filteredLogs);
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Privacy.handleSelectActivity');
-        }
-    };
-
-    const handleCreate: SubmitHandler<ProcessingActivityFormData> = async (data) => {
-        if (!canEdit || !user?.organizationId) return;
-        try {
-            await addDoc(collection(db, 'processing_activities'), sanitizeData({ ...data, organizationId: user.organizationId, createdAt: new Date().toISOString() }));
-            await logAction(user, 'CREATE', 'Privacy', `Nouveau Traitement: ${data.name}`);
-            addToast("Traitement ajouté au registre", "success");
-            setShowCreateModal(false);
-            createActivityForm.reset();
-            fetchActivities();
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Privacy.handleCreate', 'CREATE_FAILED');
-        }
-    };
-
-    const handleUpdate: SubmitHandler<ProcessingActivityFormData> = async (data) => {
-        if (!canEdit || !selectedActivity) return;
-        try {
-            await updateDoc(doc(db, 'processing_activities', selectedActivity.id), sanitizeData(data));
-            await logAction(user, 'UPDATE', 'Privacy', `MAJ Traitement: ${data.name}`);
-            setActivities(prev => prev.map(a => a.id === selectedActivity.id ? { ...a, ...data } : a));
-            setSelectedActivity({ ...selectedActivity, ...data });
-            setIsEditing(false);
-            addToast("Traitement mis à jour", "success");
-            fetchActivities();
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Privacy.handleUpdate', 'UPDATE_FAILED');
-        }
-    };
+    // Delete Modal
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [activityToDelete, setActivityToDelete] = useState<{ id: string, name: string } | null>(null);
 
     const initiateDelete = (id: string, name: string) => {
         if (!canEdit) return;
-        setConfirmData({
-            isOpen: true,
-            title: "Supprimer le traitement ?",
-            message: "Cette action retirera définitivement le traitement du registre.",
-            onConfirm: () => handleDelete(id, name)
-        });
+        setActivityToDelete({ id, name });
+        setDeleteModalOpen(true);
     };
 
-    const handleDelete = async (id: string, name: string) => {
-        try {
-            await deleteDoc(doc(db, 'processing_activities', id));
-            setActivities(prev => prev.filter(a => a.id !== id));
-            setSelectedActivity(null);
-            await logAction(user, 'DELETE', 'Privacy', `Suppression: ${name}`);
-            addToast("Traitement supprimé", "info");
-            fetchActivities();
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Privacy.handleDelete', 'DELETE_FAILED');
+    const confirmDelete = async () => {
+        if (activityToDelete) {
+            await handleDelete(activityToDelete.id, activityToDelete.name);
+            setDeleteModalOpen(false);
+            setActivityToDelete(null);
         }
     };
 
+    const openInspector = (activity: ProcessingActivity) => {
+        setSelectedActivity(activity);
+        setInspectorTab('details');
+        setIsEditing(false);
+    };
+
+    // CSV Export
     const handleExportCSV = () => {
         const headers = ["Nom", "Finalité", "Responsable", "Base Légale", "Catégories Données", "Durée Conservation", "DPIA"];
         const rows = filteredActivities.map(a => [
@@ -234,55 +153,7 @@ export const Privacy: React.FC = () => {
         link.click();
     };
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!canEdit || !user?.organizationId) return;
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const text = e.target?.result as string;
-            if (!text) return;
-            const lines = text.split('\n').slice(1).filter(line => line.trim() !== '');
-            if (lines.length === 0) { addToast("Fichier vide", "error"); return; }
-
-            setLoading(true);
-            try {
-                const batch = writeBatch(db);
-                let count = 0;
-                lines.forEach(line => {
-                    const cols = line.split(',');
-                    if (cols.length >= 3) {
-                        const newRef = doc(collection(db, 'processing_activities'));
-                        batch.set(newRef, {
-                            organizationId: user.organizationId,
-                            name: cols[0]?.trim() || 'Traitement importé',
-                            purpose: cols[1]?.trim() || 'N/A',
-                            manager: cols[2]?.trim() || 'N/A',
-                            managerId: user.uid, // Default to importer if unknown
-                            legalBasis: 'Intérêt Légitime',
-                            dataCategories: [],
-                            dataSubjects: [],
-                            retentionPeriod: '5 ans',
-                            hasDPIA: false,
-                            status: 'Actif',
-                            createdAt: new Date().toISOString()
-                        });
-                        count++;
-                    }
-                });
-                await batch.commit();
-                await logAction(user, 'IMPORT', 'Privacy', `Import CSV de ${count} traitements`);
-                addToast(`${count} traitements importés`, "success");
-                fetchActivities();
-            } catch (error) {
-                ErrorLogger.handleErrorWithToast(error, 'Privacy.handleFileUpload', 'FILE_UPLOAD_FAILED');
-            } finally { setLoading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
-        };
-        reader.readAsText(file);
-    };
-
-
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const filteredActivities = activities.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()));
 
@@ -300,11 +171,11 @@ export const Privacy: React.FC = () => {
                 keywords="RGPD, ROPA, Privacy, Confidentialité"
             />
             <ConfirmModal
-                isOpen={confirmData.isOpen}
-                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
-                onConfirm={confirmData.onConfirm}
-                title={confirmData.title}
-                message={confirmData.message}
+                isOpen={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Supprimer le traitement ?"
+                message={`Êtes-vous sûr de vouloir supprimer ${activityToDelete?.name} ?`}
             />
 
             <PageHeader
@@ -517,8 +388,9 @@ export const Privacy: React.FC = () => {
                             />
                         </div>
 
+                        {/* Inspector Content */}
                         <div className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-8 bg-slate-50/50 dark:bg-transparent custom-scrollbar">
-                            {inspectorTab === 'details' && (
+                            {inspectorTab === 'details' && selectedActivity && (
                                 <div className="space-y-8">
                                     {isEditing ? (
                                         <>
@@ -529,7 +401,7 @@ export const Privacy: React.FC = () => {
                                                 <div>
                                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Responsable</label>
                                                     <CustomSelect
-                                                        value={editActivityForm.watch('managerId') || ''}
+                                                        value={watchedManagerId || ''}
                                                         onChange={(val) => {
                                                             const value = Array.isArray(val) ? val[0] : val;
                                                             const selectedUser = usersList.find(u => u.uid === value);
@@ -548,7 +420,7 @@ export const Privacy: React.FC = () => {
                                                 <div>
                                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Base Légale</label>
                                                     <CustomSelect
-                                                        value={editActivityForm.watch('legalBasis')}
+                                                        value={watchedLegalBasis}
                                                         onChange={(val) => editActivityForm.setValue('legalBasis', (Array.isArray(val) ? val[0] : val) as 'Consentement' | 'Contrat' | 'Obligation Légale' | 'Intérêt Légitime' | 'Sauvegarde Intérêts' | 'Mission Publique')}
                                                         options={['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime', 'Sauvegarde Intérêts', 'Mission Publique'].map(c => ({ value: c, label: c }))}
                                                     />
@@ -556,7 +428,7 @@ export const Privacy: React.FC = () => {
                                                 <div>
                                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Statut</label>
                                                     <CustomSelect
-                                                        value={editActivityForm.watch('status')}
+                                                        value={watchedStatus}
                                                         onChange={(val) => editActivityForm.setValue('status', Array.isArray(val) ? val[0] as 'Actif' | 'En projet' | 'Archivé' : val as 'Actif' | 'En projet' | 'Archivé')}
                                                         options={[
                                                             { value: 'Actif', label: 'Actif' },
@@ -588,7 +460,7 @@ export const Privacy: React.FC = () => {
                                 </div>
                             )}
 
-                            {inspectorTab === 'data' && (
+                            {inspectorTab === 'data' && selectedActivity && (
                                 <div className="space-y-8">
                                     {isEditing ? (
                                         <>
@@ -598,7 +470,7 @@ export const Privacy: React.FC = () => {
                                                         <CustomSelect
                                                             label="Catégories de données"
                                                             multiple
-                                                            value={editActivityForm.watch('dataCategories')}
+                                                            value={watchedDataCategories}
                                                             onChange={(val) => editActivityForm.setValue('dataCategories', Array.isArray(val) ? val : [val])}
                                                             options={['État civil', 'Vie personnelle', 'Bancaire / Financier', 'Connexion / Trace', 'Santé (Sensible)', 'Biométrique', 'Judiciaire'].map(c => ({ value: c, label: c }))}
                                                         />
@@ -612,7 +484,7 @@ export const Privacy: React.FC = () => {
                                                 <div>
                                                     <CustomSelect
                                                         label="DPIA Requis ?"
-                                                        value={editActivityForm.watch('hasDPIA') ? 'yes' : 'no'}
+                                                        value={watchedHasDPIA ? 'yes' : 'no'}
                                                         onChange={(val) => editActivityForm.setValue('hasDPIA', val === 'yes')}
                                                         options={[
                                                             { value: 'yes', label: 'Oui - Requis' },
@@ -637,7 +509,24 @@ export const Privacy: React.FC = () => {
                                             <div className="flex items-center justify-between bg-purple-50 dark:bg-purple-900/20 p-6 rounded-3xl border border-purple-100 dark:border-purple-900/30">
                                                 <div>
                                                     <h4 className="text-xs font-bold uppercase tracking-widest text-purple-600 dark:text-purple-300 mb-1">Analyse d'Impact (DPIA)</h4>
-                                                    <p className="text-2xl font-black text-purple-900 dark:text-white">{selectedActivity.hasDPIA ? 'Effectuée' : 'Non requise / Non faite'}</p>
+                                                    <p className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-2">
+                                                        {selectedActivity.hasDPIA ? 'Dossier DPIA existant' : 'Aucune analyse effectuée'}
+                                                    </p>
+                                                    {selectedActivity.hasDPIA ? (
+                                                        <button
+                                                            onClick={() => handleViewDPIA(selectedActivity)}
+                                                            className="text-xs font-bold bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
+                                                        >
+                                                            Consulter le DPIA
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleStartDPIA(selectedActivity)}
+                                                            className="text-xs font-bold bg-white text-purple-600 border border-purple-200 px-4 py-2 rounded-lg hover:bg-purple-50 transition"
+                                                        >
+                                                            Démarrer une analyse
+                                                        </button>
+                                                    )}
                                                 </div>
                                                 <div className="p-3 bg-white/50 dark:bg-white/10 rounded-2xl">
                                                     {selectedActivity.hasDPIA ? <CheckCircle2 className="h-8 w-8 text-purple-600" /> : <AlertTriangle className="h-8 w-8 text-purple-400" />}
@@ -648,7 +537,7 @@ export const Privacy: React.FC = () => {
                                 </div>
                             )}
 
-                            {inspectorTab === 'history' && (
+                            {inspectorTab === 'history' && selectedActivity && (
                                 <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
                                     {activityHistory.map((log, i) => (
                                         <div key={i} className="relative">
@@ -666,13 +555,13 @@ export const Privacy: React.FC = () => {
                                 </div>
                             )}
 
-                            {inspectorTab === 'comments' && (
+                            {inspectorTab === 'comments' && selectedActivity && (
                                 <div className="h-full flex flex-col">
                                     <Comments collectionName="processing_activities" documentId={selectedActivity.id} />
                                 </div>
                             )}
 
-                            {inspectorTab === 'links' && (
+                            {inspectorTab === 'links' && selectedActivity && (
                                 <div className="space-y-8">
                                     {isEditing ? (
                                         <div className="space-y-6">
@@ -683,7 +572,7 @@ export const Privacy: React.FC = () => {
                                                 <CustomSelect
                                                     label="Sélectionner des actifs (Stockage, Support...)"
                                                     multiple
-                                                    value={editActivityForm.watch('relatedAssetIds') || []}
+                                                    value={watchedRelatedAssetIds || []}
                                                     onChange={(val) => editActivityForm.setValue('relatedAssetIds', Array.isArray(val) ? val : [val])}
                                                     options={assetsList.map(a => ({ value: a.id, label: a.name }))}
                                                     placeholder="Associer des actifs..."
@@ -697,7 +586,7 @@ export const Privacy: React.FC = () => {
                                                 <CustomSelect
                                                     label="Sélectionner des risques (DPIA, Menaces...)"
                                                     multiple
-                                                    value={editActivityForm.watch('relatedRiskIds') || []}
+                                                    value={watchedRelatedRiskIds || []}
                                                     onChange={(val) => editActivityForm.setValue('relatedRiskIds', Array.isArray(val) ? val : [val])}
                                                     options={risksList.map(r => ({ value: r.id, label: r.threat.substring(0, 50) + (r.threat.length > 50 ? '...' : '') }))}
                                                     placeholder="Associer des risques..."
@@ -766,7 +655,32 @@ export const Privacy: React.FC = () => {
                         </div>
                     </div>
                 )}
-            </Drawer >
+            </Drawer>
+
+            {/* Assessment View Overlay */}
+            {
+                viewingAssessmentId && (
+                    <div className="fixed inset-0 z-[60] bg-white dark:bg-slate-900 animate-in fade-in slide-in-from-bottom-10 duration-300 flex flex-col">
+                        <button
+                            onClick={() => {
+                                setViewingAssessmentId(null);
+                                fetchActivities();
+                            }}
+                            className="absolute top-4 right-4 z-50 p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                        >
+                            <X className="w-6 h-6 text-slate-500" />
+                        </button>
+                        <AssessmentView
+                            responseId={viewingAssessmentId}
+                            onClose={() => {
+                                setViewingAssessmentId(null);
+                                fetchActivities();
+                            }}
+                            context="privacy"
+                        />
+                    </div>
+                )
+            }
 
             {/* Create Drawer */}
             < Drawer

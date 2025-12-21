@@ -62,8 +62,16 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/compliance" element={<AnimatedPage><Compliance /></AnimatedPage>} />
                 <Route path="/documents" element={<AnimatedPage><Documents /></AnimatedPage>} />
                 <Route path="/audits" element={<AnimatedPage><Audits /></AnimatedPage>} />
-                <Route path="/team" element={<AnimatedPage><Team /></AnimatedPage>} />
-                <Route path="/settings" element={<AnimatedPage><Settings /></AnimatedPage>} />
+                <Route path="/team" element={
+                    <RoleGuard allowedRoles={['admin', 'rssi']}>
+                        <AnimatedPage><Team /></AnimatedPage>
+                    </RoleGuard>
+                } />
+                <Route path="/settings" element={
+                    <RoleGuard allowedRoles={['admin', 'rssi']}>
+                        <AnimatedPage><Settings /></AnimatedPage>
+                    </RoleGuard>
+                } />
                 <Route path="/suppliers" element={<AnimatedPage><Suppliers /></AnimatedPage>} />
                 <Route path="/privacy" element={<AnimatedPage><Privacy /></AnimatedPage>} />
                 <Route path="/continuity" element={<AnimatedPage><Continuity /></AnimatedPage>} />
@@ -75,7 +83,11 @@ export const AnimatedRoutes: React.FC = () => {
                 <Route path="/intake" element={<AnimatedPage><KioskPage /></AnimatedPage>} />
                 <Route path="/calendar" element={<AnimatedPage><CalendarView /></AnimatedPage>} />
                 <Route path="/pricing" element={<AnimatedPage><Pricing /></AnimatedPage>} />
-                <Route path="/system-health" element={<AnimatedPage><SystemHealth /></AnimatedPage>} />
+                <Route path="/system-health" element={
+                    <RoleGuard allowedRoles={['admin']}>
+                        <AnimatedPage><SystemHealth /></AnimatedPage>
+                    </RoleGuard>
+                } />
 
                 {/* Restricted Routes */}
                 <Route path="/backup" element={

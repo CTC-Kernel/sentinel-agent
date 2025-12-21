@@ -131,11 +131,33 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
         {
             accessorKey: 'details',
             header: 'Détails',
-            cell: ({ row }) => (
-                <div className="truncate max-w-xs text-slate-500" title={row.original.details}>
-                    {row.original.details || '-'}
-                </div>
-            )
+            cell: ({ row }) => {
+                const { details, changes } = row.original;
+                return (
+                    <div className="text-sm">
+                        {details && <div className="text-slate-500 truncate max-w-xs" title={details}>{details}</div>}
+                        {changes && changes.length > 0 && (
+                            <details className="mt-1 group">
+                                <summary className="cursor-pointer text-xs text-brand-600 hover:text-brand-700 hover:underline flex items-center gap-1 font-medium select-none">
+                                    Voir {changes.length} modifications
+                                </summary>
+                                <div className="mt-2 text-xs bg-slate-50 dark:bg-white/5 p-2 rounded-lg border border-slate-100 dark:border-white/5 space-y-1 max-w-sm overflow-x-auto">
+                                    {changes.map((change, i) => (
+                                        <div key={i} className="grid grid-cols-[1fr,auto,1fr] gap-2 items-center">
+                                            <span className="font-semibold text-slate-700 dark:text-slate-300 truncate" title={change.field}>{change.field}</span>
+                                            <span className="text-slate-400">→</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-red-500 line-through opacity-70 truncate max-w-[80px]" title={String(change.oldValue)}>{String(change.oldValue)}</span>
+                                                <span className="text-green-600 dark:text-green-400 font-bold truncate max-w-[80px]" title={String(change.newValue)}>{String(change.newValue)}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </details>
+                        )}
+                    </div>
+                );
+            }
         }
     ], []);
 

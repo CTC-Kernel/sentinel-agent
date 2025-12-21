@@ -17,6 +17,7 @@ export interface DashboardData {
     myAudits: Audit[];
     myDocs: Document[];
     publishedDocs: Document[];
+    pendingReviews: Document[];
     myIncidents: Incident[];
     activeIncidentsCount: number;
     openAuditsCount: number;
@@ -67,7 +68,9 @@ export const useDashboardData = (): DashboardData => {
     const { data: publishedDocs, loading: publishedDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('status', '==', 'Publié')], { logError: true, realtime: true });
     const { data: myIncidents, loading: myIncidentsLoading } = useFirestoreCollection<Incident>('incidents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('reporter', '==', user?.displayName || 'ignore'), where('status', '!=', 'Fermé')], { logError: true, realtime: true });
 
-    const loading = manualLoading || (needsGlobalStats && controlsLoading) || (needsLogs && logsLoading) || ((needsGlobalStats || isAuditor) && historyLoading) || risksLoading || (needsAssets && assetsLoading) || (needsSuppliers && suppliersLoading) || ((isPM || isAdmin) && projectsLoading) || ((isAuditor || isAdmin) && auditsLoading) || myDocsLoading || publishedDocsLoading || myIncidentsLoading;
+    const { data: pendingReviews, loading: pendingReviewsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('status', '==', 'En revue'), where('reviewers', 'array-contains', user?.uid || 'ignore')], { logError: true, realtime: true });
+
+    const loading = manualLoading || (needsGlobalStats && controlsLoading) || (needsLogs && logsLoading) || ((needsGlobalStats || isAuditor) && historyLoading) || risksLoading || (needsAssets && assetsLoading) || (needsSuppliers && suppliersLoading) || ((isPM || isAdmin) && projectsLoading) || ((isAuditor || isAdmin) && auditsLoading) || myDocsLoading || publishedDocsLoading || myIncidentsLoading || pendingReviewsLoading;
 
     const fetchCounts = useCallback(async () => {
         if (!user?.organizationId) {
@@ -158,6 +161,7 @@ export const useDashboardData = (): DashboardData => {
         myAudits,
         myDocs,
         publishedDocs,
+        pendingReviews,
         myIncidents,
         activeIncidentsCount,
         openAuditsCount,

@@ -14,4 +14,4 @@ export const STANDARD_THREATS = [
 ];
 
 export const RISK_STRATEGIES = ['Accepter', 'Atténuer', 'Transférer', 'Éviter'] as const;
-export const RISK_STATUSES = ['Ouvert', 'En cours', 'Fermé'] as const;
+export const RISK_STATUSES = ['Ouvert', 'En cours', 'Fermé', 'En attente de validation'] as const;

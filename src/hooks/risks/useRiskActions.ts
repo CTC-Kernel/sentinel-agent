@@ -6,6 +6,7 @@ import { Risk } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
 import { toast } from 'sonner'; // Integrated sonner
 import { logAction } from '../../services/logger';
+import { getDiff } from '../../utils/diffUtils';
 import { ImportService } from '../../services/ImportService';
 import { NotificationService } from '../../services/notificationService';
 
@@ -74,19 +75,7 @@ export const useRiskActions = (onRefresh: () => void) => {
 
             if (user) {
                 // Calculate diffs if currentRisk provided
-                const changes: Array<{ field: string; oldValue: unknown; newValue: unknown }> = [];
-                if (currentRisk) {
-                    Object.keys(data).forEach(key => {
-                        const k = key as keyof Risk;
-                        if (data[k] !== currentRisk[k] && typeof data[k] !== 'object') {
-                            changes.push({
-                                field: k,
-                                oldValue: currentRisk[k] || 'N/A',
-                                newValue: data[k]
-                            });
-                        }
-                    });
-                }
+                const changes = currentRisk ? getDiff(data, currentRisk) : [];
 
                 logAction(
                     user,

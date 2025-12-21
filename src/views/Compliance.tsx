@@ -18,9 +18,10 @@ import { FRAMEWORKS } from '../data/frameworks';
 import { RiskForm } from '../components/risks/RiskForm';
 import { ProjectForm } from '../components/projects/ProjectForm';
 import { AuditForm } from '../components/audits/AuditForm';
-import { LoadingScreen } from '../components/ui/LoadingScreen';
+
 import { ShieldCheck, Download } from '../components/ui/Icons';
 import { toast } from 'sonner';
+import { SoAView } from '../components/compliance/SoAView';
 
 export const Compliance: React.FC = () => {
     const { user, addToast } = useStore();
@@ -45,6 +46,8 @@ export const Compliance: React.FC = () => {
     // Data Hooks
     const { controls, documents, risks, findings, usersList, assets, suppliers, projects, loading } = useComplianceData(currentFramework);
     const complianceActions = useComplianceActions(user);
+
+    const [viewMode, setViewMode] = useState<'controls' | 'soa'>('controls');
 
     // Effects
     useEffect(() => {
@@ -87,9 +90,10 @@ export const Compliance: React.FC = () => {
         setIsDrawerOpen(true);
     };
 
-    if (loading && controls.length === 0) return <LoadingScreen message="Chargement de la conformité..." />;
 
     const selectedControl = controls.find(c => c.id === selectedControlId);
+
+    // ... (existing code)
 
     return (
         <>
@@ -131,28 +135,51 @@ export const Compliance: React.FC = () => {
                     controls={controls}
                 />
 
-                {/* Filters & List */}
-                <div className="space-y-6">
-                    <ComplianceFilters
-                        searchQuery={filter}
-                        onSearchChange={setFilter}
-                        statusFilter={statusFilter}
-                        onStatusFilterChange={setStatusFilter}
-                        showMissingEvidence={showMissingEvidence}
-                        onShowMissingEvidenceChange={setShowMissingEvidence}
-                    />
-
-                    <ComplianceList
-                        controls={filteredControls}
-                        risks={risks}
-                        findings={findings}
-                        loading={loading}
-                        currentFramework={currentFramework}
-                        selectedControlId={selectedControlId || undefined}
-                        onSelectControl={handleSelectControl}
-                        filter={filter}
-                    />
+                {/* View Toggler */}
+                <div className="flex border-b border-gray-200 dark:border-white/10">
+                    <button
+                        onClick={() => setViewMode('controls')}
+                        className={`px-4 py-2 border-b-2 text-sm font-medium transition-colors ${viewMode === 'controls' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
+                    >
+                        Contrôles & Preuves
+                    </button>
+                    <button
+                        onClick={() => setViewMode('soa')}
+                        className={`px-4 py-2 border-b-2 text-sm font-medium transition-colors ${viewMode === 'soa' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
+                    >
+                        Déclaration d'Applicabilité (SoA)
+                    </button>
                 </div>
+
+                {/* Content */}
+                {viewMode === 'controls' ? (
+                    <div className="space-y-6">
+                        <ComplianceFilters
+                            searchQuery={filter}
+                            onSearchChange={setFilter}
+                            statusFilter={statusFilter}
+                            onStatusFilterChange={setStatusFilter}
+                            showMissingEvidence={showMissingEvidence}
+                            onShowMissingEvidenceChange={setShowMissingEvidence}
+                        />
+
+                        <ComplianceList
+                            controls={filteredControls}
+                            risks={risks}
+                            findings={findings}
+                            loading={loading}
+                            currentFramework={currentFramework}
+                            selectedControlId={selectedControlId || undefined}
+                            onSelectControl={handleSelectControl}
+                            filter={filter}
+                        />
+                    </div>
+                ) : (
+                    <SoAView
+                        controls={filteredControls}
+                        onUpdateControl={complianceActions.updateControl}
+                    />
+                )}
             </div>
 
             {/* Inspector / Creation Drawer */}

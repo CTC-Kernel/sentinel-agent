@@ -17,7 +17,7 @@ export const riskSchema = z.object({
         description: z.string()
     })).optional(),
     strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter']),
-    status: z.enum(['Ouvert', 'En cours', 'Fermé']),
+    status: z.enum(['Ouvert', 'En cours', 'Fermé', 'En attente de validation']),
     owner: z.string().optional(),
     ownerId: z.string().optional(),
     mitigationControlIds: z.array(z.string()).optional(),

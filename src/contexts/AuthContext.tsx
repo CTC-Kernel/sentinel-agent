@@ -3,6 +3,8 @@ import {
     User,
     onIdTokenChanged,
     signOut as firebaseSignOut,
+    signInWithPopup,
+    OAuthProvider,
     TotpSecret
 } from 'firebase/auth';
 import {
@@ -82,6 +84,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             throw err;
         }
     }, [setUser]);
+
+    const loginWithSSO = useCallback(async (providerId: string) => {
+        try {
+            const provider = new OAuthProvider(providerId);
+            await signInWithPopup(auth, provider);
+        } catch (err) {
+            ErrorLogger.error(err, 'AuthContext.loginWithSSO');
+            throw err;
+        }
+    }, []);
 
     useEffect(() => {
         // Initial check
@@ -378,7 +390,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         enrollMFA,
         verifyMFA,
-        unenrollMFA
+        unenrollMFA,
+        loginWithSSO
     };
 
     return (

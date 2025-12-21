@@ -31,6 +31,9 @@ import { FolderTree } from '../components/documents/FolderTree';
 import { DocumentFormData } from '../schemas/documentSchema';
 import { getPlanLimits } from '../config/plans';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { WorkflowStatusBadge } from '../components/documents/WorkflowStatusBadge';
+import { ApprovalFlow } from '../components/documents/ApprovalFlow';
+import { DocumentVersionHistory } from '../components/documents/DocumentVersionHistory';
 
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { EncryptionService } from '../services/encryptionService';
@@ -639,16 +642,8 @@ export const Documents: React.FC = () => {
         return matchesSearch && matchesFolder && matchesCategory && matchesDigitalSafe;
     }), [documents, deferredFilter, selectedFolderId, categoryFilter, isDigitalSafeMode]);
 
-    const getStatusColor = (s: string) => {
-        switch (s) {
-            case 'Publié': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900/50';
-            case 'Approuvé': return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900/50';
-            case 'En revue': return 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-900/50';
-            case 'Rejeté': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900/50';
-            case 'Obsolète': return 'bg-gray-100 text-slate-700 border-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
-            default: return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
-        }
-    };
+
+
 
     if (loading) {
         return <LoadingScreen />;
@@ -878,7 +873,7 @@ export const Documents: React.FC = () => {
                                                         <ShieldCheck className="h-3 w-3 mr-1" /> Sécurisé
                                                     </span>
                                                 )}
-                                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getStatusColor(docItem.status)}`}>{docItem.status}</span>
+                                                <WorkflowStatusBadge status={docItem.status} workflowStatus={docItem.workflowStatus} />
                                             </div>
                                         </div>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight line-clamp-2">{docItem.title}</h3>
@@ -968,7 +963,7 @@ export const Documents: React.FC = () => {
                                                     <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{docItem.type}</td>
                                                     <td className="p-4 text-sm text-slate-600 dark:text-slate-400">v{docItem.version}</td>
                                                     <td className="p-4">
-                                                        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(docItem.status)}`}>{docItem.status}</span>
+                                                        <WorkflowStatusBadge status={docItem.status} workflowStatus={docItem.workflowStatus} />
                                                     </td>
                                                     <td className="p-4 text-sm text-slate-600 dark:text-slate-400">
                                                         <div className="flex items-center">
@@ -1133,95 +1128,59 @@ export const Documents: React.FC = () => {
                                                         </div>
 
                                                         {/* Workflow Actions */}
-                                                        <div className="p-6 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Workflow de Validation</h4>
+                                                        <div className="mb-8">
+                                                            <ApprovalFlow
+                                                                document={selectedDocument}
+                                                                users={usersList}
+                                                                onPublish={() => handleWorkflowAction('sign')}
+                                                            />
+                                                        </div>
 
-                                                            {/* Status Steps */}
-                                                            <div className="flex items-center justify-between mb-6 relative">
-                                                                <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-gray-200 dark:bg-gray-700 -z-10" />
-                                                                {['Brouillon', 'En revue', 'Approuvé', 'Publié'].map((step, idx) => {
-                                                                    const isCompleted = ['Brouillon', 'En revue', 'Approuvé', 'Publié'].indexOf(selectedDocument.status) >= idx;
-                                                                    const isCurrent = selectedDocument.status === step;
-                                                                    return (
-                                                                        <div key={step} className="flex flex-col items-center bg-white dark:bg-slate-900 px-2">
-                                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${isCompleted ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-slate-300'}`}>
-                                                                                {isCompleted ? <CheckCircle2 className="h-4 w-4" /> : <span className="text-xs font-bold">{idx + 1}</span>}
-                                                                            </div>
-                                                                            <span className={`text-[10px] font-bold mt-2 uppercase tracking-wide ${isCurrent ? 'text-blue-600' : 'text-slate-500'}`}>{step}</span>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-
-                                                            <div className="flex flex-wrap gap-3">
-                                                                {selectedDocument.status === 'Brouillon' && canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && (
-                                                                    <button onClick={() => handleWorkflowAction('submit')} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">
-                                                                        Soumettre pour revue
-                                                                    </button>
-                                                                )}
-                                                                {selectedDocument.status === 'En revue' && (
-                                                                    <>
-                                                                        <button onClick={() => handleWorkflowAction('approve')} disabled={!canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !(user?.uid && selectedDocument.approvers?.includes(user.uid))} className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
-                                                                            <CheckCircle2 className="h-4 w-4 mr-2" /> Approuver
-                                                                        </button>
-                                                                        <button onClick={() => handleWorkflowAction('reject')} disabled={!canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !(user?.uid && selectedDocument.approvers?.includes(user.uid))} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
-                                                                            <X className="h-4 w-4 mr-2" /> Rejeter
-                                                                        </button>
-                                                                    </>
-                                                                )}
-                                                                {selectedDocument.status === 'Approuvé' && (
-                                                                    <button onClick={() => handleWorkflowAction('sign')} disabled={!canEditResource(user, 'Document', selectedDocument.ownerId || selectedDocument.owner) && !(user?.uid && selectedDocument.approvers?.includes(user.uid))} className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/20 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
-                                                                        <ShieldCheck className="h-4 w-4 mr-2" /> Signer & Publier
-                                                                    </button>
-                                                                )}
-                                                            </div>
-
-                                                            {selectedDocument.signatures && selectedDocument.signatures.length > 0 && (
-                                                                <div className="mt-6 pt-4 border-t border-gray-200 dark:border-white/10">
-                                                                    <h5 className="text-xs font-bold text-slate-600 mb-3 uppercase tracking-wide">Signatures</h5>
-                                                                    <div className="space-y-2">
-                                                                        {selectedDocument.signatures.map((sig, i) => (
-                                                                            <div key={i} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-white/5">
-                                                                                <div className="flex items-center">
-                                                                                    <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center mr-3">
-                                                                                        <ShieldCheck className="h-4 w-4" />
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <p className="text-xs font-bold text-slate-900 dark:text-white">Signé par {usersList.find(u => u.uid === sig.userId)?.displayName || 'Utilisateur inconnu'}</p>
-                                                                                        <p className="text-[10px] text-slate-600">{new Date(sig.date).toLocaleString()}</p>
-                                                                                    </div>
+                                                        {selectedDocument.signatures && selectedDocument.signatures.length > 0 && (
+                                                            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-white/10">
+                                                                <h5 className="text-xs font-bold text-slate-600 mb-3 uppercase tracking-wide">Signatures</h5>
+                                                                <div className="space-y-2">
+                                                                    {selectedDocument.signatures.map((sig, i) => (
+                                                                        <div key={i} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-white/5">
+                                                                            <div className="flex items-center">
+                                                                                <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center mr-3">
+                                                                                    <ShieldCheck className="h-4 w-4" />
                                                                                 </div>
-                                                                                <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded text-slate-600">{sig.role}</span>
+                                                                                <div>
+                                                                                    <p className="text-xs font-bold text-slate-900 dark:text-white">Signé par {usersList.find(u => u.uid === sig.userId)?.displayName || 'Utilisateur inconnu'}</p>
+                                                                                    <p className="text-[10px] text-slate-600">{new Date(sig.date).toLocaleString()}</p>
+                                                                                </div>
                                                                             </div>
-                                                                        ))}
-                                                                    </div>
+                                                                            <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded text-slate-600">{sig.role}</span>
+                                                                        </div>
+                                                                    ))}
                                                                 </div>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex justify-between items-center mb-4">
+                                                            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500">Révision</h4>
+                                                            {selectedDocument.nextReviewDate && (
+                                                                <span className={`text-xs font-bold ${new Date(selectedDocument.nextReviewDate) < new Date() ? 'text-red-500' : 'text-emerald-500'}`}>
+                                                                    {new Date(selectedDocument.nextReviewDate).toLocaleDateString()}
+                                                                </span>
                                                             )}
-                                                            <div className="flex justify-between items-center mb-4">
-                                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500">Révision</h4>
-                                                                {selectedDocument.nextReviewDate && (
-                                                                    <span className={`text-xs font-bold ${new Date(selectedDocument.nextReviewDate) < new Date() ? 'text-red-500' : 'text-emerald-500'}`}>
-                                                                        {new Date(selectedDocument.nextReviewDate).toLocaleDateString()}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            <button onClick={sendReviewReminder} className="w-full py-3 bg-slate-50 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center border border-slate-200 dark:border-white/5">
-                                                                <Bell className="h-3.5 w-3.5 mr-2" /> Envoyer rappel de révision
-                                                            </button>
-                                                            <div className="w-full mt-2">
-                                                                {selectedDocument.nextReviewDate && (
-                                                                    <AddToCalendar
-                                                                        event={{
-                                                                            title: `Révision : ${selectedDocument.title}`,
-                                                                            description: `Révision du document ${selectedDocument.title} (v${selectedDocument.version})`,
-                                                                            start: new Date(selectedDocument.nextReviewDate),
-                                                                            end: new Date(new Date(selectedDocument.nextReviewDate).getTime() + 60 * 60 * 1000),
-                                                                            location: 'Sentinel GRC'
-                                                                        }}
-                                                                        className="w-full [&>button]:w-full [&>button]:justify-center"
-                                                                    />
-                                                                )}
-                                                            </div>
+                                                        </div>
+                                                        <button onClick={sendReviewReminder} className="w-full py-3 bg-slate-50 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center border border-slate-200 dark:border-white/5">
+                                                            <Bell className="h-3.5 w-3.5 mr-2" /> Envoyer rappel de révision
+                                                        </button>
+                                                        <div className="w-full mt-2">
+                                                            {selectedDocument.nextReviewDate && (
+                                                                <AddToCalendar
+                                                                    event={{
+                                                                        title: `Révision : ${selectedDocument.title}`,
+                                                                        description: `Révision du document ${selectedDocument.title} (v${selectedDocument.version})`,
+                                                                        start: new Date(selectedDocument.nextReviewDate),
+                                                                        end: new Date(new Date(selectedDocument.nextReviewDate).getTime() + 60 * 60 * 1000),
+                                                                        location: 'Sentinel GRC'
+                                                                    }}
+                                                                    className="w-full [&>button]:w-full [&>button]:justify-center"
+                                                                />
+                                                            )}
                                                         </div>
 
                                                         <div className="p-6 bg-blue-50/50 dark:bg-slate-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30 shadow-sm flex items-center justify-between">
@@ -1285,40 +1244,10 @@ export const Documents: React.FC = () => {
 
 
                                         {inspectorTab === 'versions' && (
-                                            <div className="space-y-4 animate-fade-in">
-                                                {versions.length === 0 ? (
-                                                    <EmptyState
-                                                        icon={History}
-                                                        title="Aucune version"
-                                                        description="Ce document n'a pas d'historique de versions."
-                                                    />
-                                                ) : (
-                                                    <div className="space-y-3">
-                                                        {versions.map((version) => (
-                                                            <div key={version.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
-                                                                        <FileText className="h-4 w-4" />
-                                                                    </div>
-                                                                    <div>
-                                                                        <p className="text-sm font-bold text-slate-900 dark:text-white">Version {version.version}</p>
-                                                                        <p className="text-xs text-slate-600">
-                                                                            Par {usersList.find(u => u.uid === version.uploadedBy)?.displayName || 'Utilisateur inconnu'} • {new Date(version.uploadedAt).toLocaleDateString()}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => window.open(version.url, '_blank')}
-                                                                    className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                                                    title="Télécharger"
-                                                                >
-                                                                    <ExternalLink className="h-4 w-4" />
-                                                                </button>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
+                                            <DocumentVersionHistory
+                                                versions={versions}
+                                                currentVersionId={selectedDocument.currentVersionId}
+                                            />
                                         )}
 
                                         {inspectorTab === 'history' && (
@@ -1423,6 +1352,6 @@ export const Documents: React.FC = () => {
                     </div>
                 )
             }
-        </motion.div>
+        </motion.div >
     );
 };

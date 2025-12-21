@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
-import { BrainCircuit, Key, Calendar, CheckCircle2, Download, LogOut } from '../ui/Icons';
+import { BrainCircuit, Key, Calendar, CheckCircle2, Download, LogOut, ShieldCheck } from '../ui/Icons';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -208,6 +208,65 @@ export const IntegrationSettings: React.FC = () => {
                             <Download className="h-4 w-4 mr-2" />
                             Télécharger .ics
                         </Button>
+                    </div>
+                </div>
+            </div>
+
+            {/* SSO Settings - Enterprise */}
+            <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden flex flex-col h-full md:col-span-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+                <div className="relative z-10 p-6 border-b border-white/20 dark:border-white/5">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-brand-500/10 dark:bg-brand-500/20 rounded-xl text-brand-600 dark:text-brand-400 backdrop-blur-md">
+                            <ShieldCheck className="w-5 h-5" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Authentification Unique (SSO)</h3>
+                        <span className="ml-auto px-2 py-1 text-[10px] font-bold bg-brand-100 text-brand-700 rounded-full border border-brand-200">ENTERPRISE</span>
+                    </div>
+                </div>
+                <div className="relative z-10 p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                            Configurez la connexion unique pour votre organisation. Compatible avec Okta, Azure AD, et Google Workspace (OIDC/SAML).
+                        </p>
+
+                        <div className="space-y-4 pt-2">
+                            <FloatingLabelInput
+                                label="Provider URL / Issuer"
+                                type="url"
+                                name="ssoIssuer"
+                                icon={ShieldCheck}
+                            />
+                            <FloatingLabelInput
+                                label="Client ID"
+                                type="text"
+                                name="ssoClientId"
+                                icon={Key}
+                            />
+                            <FloatingLabelInput
+                                label="Client Secret"
+                                type="password"
+                                name="ssoClientSecret"
+                                icon={Key}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4 md:border-l md:border-white/20 md:pl-8 dark:border-white/5">
+                        <h4 className="font-medium text-slate-900 dark:text-white">Statut de la connexion</h4>
+                        <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center gap-3">
+                            <div className="w-2.5 h-2.5 rounded-full bg-slate-400" />
+                            <span className="text-sm text-slate-600 dark:text-slate-400">Non configuré</span>
+                        </div>
+
+                        <div className="pt-4">
+                            <Button className="w-full" disabled={true} variant="secondary">
+                                Sauvegarder et tester la connexion
+                            </Button>
+                            <p className="mt-2 text-xs text-center text-slate-400">
+                                Contactez le support pour activer le module Enterprise.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

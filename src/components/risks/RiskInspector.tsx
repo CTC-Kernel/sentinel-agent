@@ -124,7 +124,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
             }
             width={isEditing ? "max-w-4xl" : "max-w-6xl"}
             statusBadge={
-                <Badge status={risk.status === 'Fermé' ? 'success' : risk.status === 'En cours' ? 'warning' : 'error'}>
+                <Badge status={risk.status === 'Fermé' ? 'success' : risk.status === 'En cours' ? 'warning' : risk.status === 'En attente de validation' ? 'info' : 'error'}>
                     {risk.status}
                 </Badge>
             }
@@ -204,7 +204,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                                     {canEdit ? (
                                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                                            {['Ouvert', 'En cours', 'Fermé'].map(s => (
+                                            {['Ouvert', 'En cours', 'Fermé', 'En attente de validation'].map(s => (
                                                 <button
                                                     key={s}
                                                     onClick={() => handleStatusChange(s as Risk['status'])}
@@ -215,7 +215,23 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                                 </button>
                                             ))}
                                         </div>
-                                    ) : <Badge status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : 'success'} variant="soft">{risk.status}</Badge>}
+                                    ) : <Badge status={risk.status === 'Ouvert' ? 'error' : risk.status === 'En cours' ? 'warning' : risk.status === 'Fermé' ? 'success' : 'info'} variant="soft">{risk.status}</Badge>}
+                                    {canEdit && risk.status === 'En attente de validation' && (
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleStatusChange('Ouvert')} // Reject -> Back to Open
+                                                className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100"
+                                            >
+                                                Rejeter
+                                            </button>
+                                            <button
+                                                onClick={() => handleStatusChange('En cours')} // Approve -> In Progress
+                                                className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-bold hover:bg-emerald-100"
+                                            >
+                                                Approuver
+                                            </button>
+                                        </div>
+                                    )}
                                     {canEdit && (
                                         <button
                                             onClick={handleReview}

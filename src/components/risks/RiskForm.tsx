@@ -652,9 +652,22 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             if (idx < TABS.length - 1) setActiveTab(TABS[idx + 1].id);
                         }}>Suivant</Button>
                     ) : (
-                        <Button type="submit" isLoading={isLoading} className="bg-brand-600 hover:bg-brand-700 text-white">
-                            {isEditing ? 'Sauvegarder' : 'Créer le Risque'}
-                        </Button>
+                        <div className="flex gap-2">
+                            {(status !== 'En attente de validation' && status !== 'Fermé') && (
+                                <Button
+                                    type="submit"
+                                    isLoading={isLoading}
+                                    variant="secondary"
+                                    onClick={() => setValue('status', 'En attente de validation')}
+                                    className="border-brand-200 text-brand-700 hover:bg-brand-50"
+                                >
+                                    Soumettre pour validation
+                                </Button>
+                            )}
+                            <Button type="submit" isLoading={isLoading} className="bg-brand-600 hover:bg-brand-700 text-white">
+                                {isEditing ? 'Sauvegarder' : 'Créer le Risque'}
+                            </Button>
+                        </div>
                     )}
                 </div>
             </div>

@@ -123,6 +123,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
         handleLinkDocument,
         handleUnlinkDocument,
         updateJustification,
-        createRisk
+        createRisk,
+        updateControl
     };
 };

@@ -10,6 +10,8 @@ export interface Document {
     reviewers?: string[];
     approvers?: string[];
     signatures?: Array<{ userId: string, date: string, role: string, signatureImage?: string }>;
+    workflowHistory?: WorkflowHistoryItem[];
+    currentVersionId?: string;
     url?: string;
     owner: string;
     ownerId?: string;
@@ -17,6 +19,7 @@ export interface Document {
     nextReviewDate?: string;
     createdAt: string;
     updatedAt: string;
+    expirationDate?: string; // For evidence validity tracking
     relatedControlIds?: string[];
     relatedAssetIds?: string[];
     relatedAuditIds?: string[];
@@ -51,4 +54,15 @@ export interface DocumentVersion {
     uploadedBy: string; // User ID
     uploadedAt: string;
     changeLog?: string;
+}
+
+export interface WorkflowHistoryItem {
+    id: string; // uuid
+    date: string;
+    userId: string;
+    userName: string; // snapshot of name
+    action: 'submit' | 'approve' | 'reject' | 'publish' | 'archive' | 'revert';
+    comment?: string;
+    version: string;
+    step: 'Draft' | 'Review' | 'Approval' | 'Publication';
 }

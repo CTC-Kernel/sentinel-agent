@@ -97,6 +97,9 @@ export const useDashboardInsights = ({
         myDocs.filter(d => d.nextReviewDate && new Date(d.nextReviewDate) < next30Days).forEach(d => {
             myItems.push({ id: d.id, type: 'document', title: d.title, date: d.nextReviewDate!, status: t('dashboard.statusReview'), link: '/documents' });
         });
+        myDocs.filter(d => d.expirationDate && new Date(d.expirationDate) < next30Days).forEach(d => {
+            myItems.push({ id: d.id, type: 'document', title: `Evidence: ${d.title}`, date: d.expirationDate!, status: 'Expire', link: '/documents' });
+        });
         publishedDocs.filter(d => !d.readBy?.includes(user.uid)).forEach(d => {
             myItems.push({ id: d.id, type: 'policy', title: d.title, date: new Date().toISOString(), status: t('dashboard.statusToRead'), link: '/documents' });
         });

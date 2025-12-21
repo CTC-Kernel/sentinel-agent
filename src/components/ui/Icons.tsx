@@ -134,7 +134,8 @@ import {
   Bug,
   ThumbsUp,
   Share2,
-  Box
+  Box,
+  GripVertical
 } from 'lucide-react';
 
 export {
@@ -272,5 +273,6 @@ export {
   Bug,
   ThumbsUp,
   Share2,
-  Box
+  Box,
+  GripVertical
 };

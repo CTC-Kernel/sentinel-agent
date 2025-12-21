@@ -16,6 +16,7 @@ export interface AuthContextType {
     enrollMFA: () => Promise<string>; // Returns QR Code URL
     verifyMFA: (verificationId: string, code: string) => Promise<void>;
     unenrollMFA: () => Promise<void>;
+    loginWithSSO: (providerId: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
