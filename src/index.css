@@ -563,3 +563,12 @@ body.voxel-fullscreen header {
 .driver-popover-close-btn {
   @apply text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors !important;
 }
+
+/* Animation Delays for Blobs */
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
