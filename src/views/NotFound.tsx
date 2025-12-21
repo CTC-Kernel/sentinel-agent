@@ -5,8 +5,11 @@ import { AlertTriangle, Home } from '../components/ui/Icons';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { Button } from '../components/ui/button';
 import { slideUpVariants } from '../components/ui/animationVariants';
+import { FeedbackModal } from '../components/ui/FeedbackModal';
 
 export const NotFound: React.FC = () => {
+    const [showFeedback, setShowFeedback] = React.useState(false);
+
     return (
         <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center">
             <MasterpieceBackground />
@@ -40,15 +43,25 @@ export const NotFound: React.FC = () => {
                             Retour au Tableau de Bord
                         </Link>
                     </Button>
-                    <Button
-                        variant="ghost"
-                        onClick={() => window.history.back()}
-                        className="w-full text-base py-6 rounded-xl font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
-                    >
-                        Retour à la page précédente
-                    </Button>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Button
+                            variant="ghost"
+                            onClick={() => window.history.back()}
+                            className="w-full text-base py-4 rounded-xl font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                        >
+                            Retour
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={() => setShowFeedback(true)}
+                            className="w-full text-base py-4 rounded-xl font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all"
+                        >
+                            Signaler
+                        </Button>
+                    </div>
                 </div>
             </motion.div>
+            <FeedbackModal isOpen={showFeedback} onClose={() => setShowFeedback(false)} />
         </div>
     );
 };

@@ -117,7 +117,7 @@ export const CommandPalette: React.FC = () => {
                         subtitle: `Actif • ${doc.data().type}`,
                         icon: Server,
                         path: '/assets',
-                        category: 'Données'
+                        category: 'Récents'
                     }));
 
                     // Fetch Risks
@@ -128,7 +128,7 @@ export const CommandPalette: React.FC = () => {
                         subtitle: `Risque • Score: ${doc.data().score}`,
                         icon: ShieldAlert,
                         path: '/risks',
-                        category: 'Données'
+                        category: 'Récents'
                     }));
 
                     // Fetch Controls (ISO)
@@ -150,7 +150,7 @@ export const CommandPalette: React.FC = () => {
                         subtitle: `Document • ${doc.data().version}`,
                         icon: Briefcase,
                         path: '/documents',
-                        category: 'Fichiers'
+                        category: 'Récents'
                     }));
 
                     // Fetch Projects
@@ -208,16 +208,19 @@ export const CommandPalette: React.FC = () => {
 
         const allResults = [...actionResults, ...navResults, ...dbResults].slice(0, 12);
 
-        // Add "See all results" option if there is a query
         if (queryStr.trim().length > 0) {
-            allResults.push({
-                id: 'search-all',
-                title: `Voir tous les résultats pour "${queryStr}"`,
-                subtitle: 'Recherche avancée...',
+            // Always add "Search in all Sentinel" as the first or prominent option if not already there
+            const searchAllOption: CommandItem = {
+                id: 'search-all-explicit',
+                title: `Rechercher "${queryStr}" dans tout Sentinel`,
+                subtitle: 'Recherche avancée dans tous les modules...',
                 icon: Search,
-                category: 'Recherche',
+                category: 'Global',
                 action: () => navigate(`/search?q=${encodeURIComponent(queryStr)}`)
-            });
+            };
+
+            // Prepend it to ensure visibility
+            allResults.unshift(searchAllOption);
         }
 
         setFilteredItems(allResults);

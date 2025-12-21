@@ -17,11 +17,14 @@ import { AssetList } from '../components/assets/AssetList';
 import { AssetInspector } from '../components/assets/AssetInspector';
 import { AssetDashboard } from '../components/assets/AssetDashboard';
 import { useAssets } from '../hooks/assets/useAssets';
-import { Database, FileSpreadsheet, Link, Plus, Filter, HelpCircle } from 'lucide-react';
+import { Database, FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, Loader2 } from 'lucide-react';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { CsvParser } from '../utils/csvUtils';
 import { OnboardingService } from '../services/onboardingService';
+import { aiService } from '../services/aiService';
+import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+import { usePersistedState } from '../hooks/usePersistedState';
 
 const Assets: React.FC = () => {
     const { user } = useStore();
@@ -31,11 +34,12 @@ const Assets: React.FC = () => {
     const reachedAssetLimit = assets.length >= limits.maxAssets;
 
     // UI State
-    const [viewMode, setViewMode] = useState<'grid' | 'list' | 'matrix' | 'kanban'>('grid');
+    const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix' | 'kanban'>('assets-view-mode', 'grid');
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
     const [activeFilters, setActiveFilters] = useState<SearchFilters>({ query: '', type: 'all' });
     const [inspectorOpen, setInspectorOpen] = useState(false);
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     // URL Params for Deep Linking
     const [searchParams] = useSearchParams();
@@ -140,6 +144,20 @@ const Assets: React.FC = () => {
         }));
 
         CsvParser.downloadCSV(headers, data, `assets_export_${new Date().toISOString().split('T')[0]}.csv`);
+    };
+
+    const handleAnalyze = async () => {
+        setIsAnalyzing(true);
+        try {
+            const prompt = `Analyse cette liste de ${filteredAssets.length} actifs informatiques. Donne-moi 3 insights clés sur la surface d'attaque potentielle et une recommandation de sécurisation. Format court.`;
+            const analysis = await aiService.chatWithAI(prompt);
+            toast.info("Analyse IA terminée", { description: analysis, duration: 10000 });
+        } catch (e) {
+            console.error(e);
+            toast.error("Erreur lors de l'analyse IA");
+        } finally {
+            setIsAnalyzing(false);
+        }
     };
 
     return (
@@ -247,16 +265,28 @@ const Assets: React.FC = () => {
                                     Export
                                 </button>
                                 {canEdit && (
-                                    <button
-                                        data-tour="assets-add"
-                                        onClick={() => handleOpenInspector(undefined)}
-                                        disabled={reachedAssetLimit}
-                                        className={`flex items-center px-5 py-2.5 text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-500/20 ${reachedAssetLimit ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
-                                    >
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        <span className="hidden sm:inline">Nouvel Actif</span>
-                                        <span className="sm:hidden">Nouveau</span>
-                                    </button>
+                                    <>
+                                        <CustomTooltip content="Lancer l'analyse IA">
+                                            <button
+                                                onClick={handleAnalyze}
+                                                disabled={isAnalyzing}
+                                                className="hidden lg:flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                                            >
+                                                {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
+                                                <span className="hidden xl:inline">{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>
+                                            </button>
+                                        </CustomTooltip>
+                                        <button
+                                            data-tour="assets-add"
+                                            onClick={() => handleOpenInspector(undefined)}
+                                            disabled={reachedAssetLimit}
+                                            className={`flex items-center px-5 py-2.5 text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-500/20 ${reachedAssetLimit ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
+                                        >
+                                            <Plus className="h-4 w-4 mr-2" />
+                                            <span className="hidden sm:inline">Nouvel Actif</span>
+                                            <span className="sm:hidden">Nouveau</span>
+                                        </button>
+                                    </>
                                 )}
                             </>
                         }

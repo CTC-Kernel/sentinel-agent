@@ -4,7 +4,8 @@ import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { riskSchema, RiskFormData } from '../../schemas/riskSchema';
 import { Risk, Control, Asset, UserProfile, BusinessProcess, Supplier, Criticality, ThreatTemplate } from '../../types';
-import { BookOpen, Shield, Search, LayoutGrid, FileText, Activity, Layers, AlertTriangle, Sparkles } from '../ui/Icons';
+import { BookOpen, Shield, Search, LayoutGrid, FileText, Activity, Layers, AlertTriangle, Sparkles, History } from '../ui/Icons';
+import { ResourceHistory } from '../shared/ResourceHistory';
 import { ErrorLogger } from '../../services/errorLogger';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -44,6 +45,7 @@ const TABS = [
     { id: 'identification', label: 'Identification', icon: FileText },
     { id: 'assessment', label: 'Évaluation', icon: Activity },
     { id: 'treatment', label: 'Traitement & Contrôles', icon: Layers },
+    { id: 'history', label: 'Historique', icon: History },
 ];
 
 export const RiskForm: React.FC<RiskFormProps> = ({
@@ -631,6 +633,18 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                 }}
                             />
                         </div>
+                    </div>
+                )}
+
+                {/* TAB: HISTORY */}
+                {activeTab === 'history' && existingRisk?.id && (
+                    <div className="space-y-6 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
+                        <ResourceHistory resourceId={existingRisk.id} resourceType="Risk" />
+                    </div>
+                )}
+                {activeTab === 'history' && !existingRisk?.id && (
+                    <div className="p-8 text-center text-slate-500">
+                        Veuillez enregistrer le risque pour voir l'historique.
                     </div>
                 )}
             </div>

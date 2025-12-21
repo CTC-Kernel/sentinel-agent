@@ -179,7 +179,8 @@ export const Compliance: React.FC = () => {
                 ) : (
                     <SoAView
                         controls={filteredControls}
-                        onUpdateControl={complianceActions.updateControl}
+                        risks={risks}
+                        handlers={complianceActions}
                     />
                 )}
             </div>

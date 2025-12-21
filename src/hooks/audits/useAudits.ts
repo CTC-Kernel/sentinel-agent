@@ -148,6 +148,28 @@ export const useAudits = () => {
         }
     };
 
+    const bulkDeleteAudits = async (ids: string[]) => {
+        if (!canDelete || !user?.organizationId) return;
+        try {
+            await Promise.all(ids.map(id => {
+                // We need the name for logging, but we can skip it or fetch it.
+                // For bulk, let's keep log simple or ideally fetch local name if needed.
+                // Here we just reuse logic or reimplement for batching?
+                // Reuse is safer for cascade logic.
+                const audit = audits.find(a => a.id === id);
+                return handleDeleteAudit(id, audit?.name || 'Inconnu');
+            }));
+            // Toasts are handled per delete, might be spammy?
+            // Ideally we mute individual toasts and show one summary, but handleDeleteAudit already toasts.
+            // Refactoring handleDeleteAudit to accept a 'silent' flag would be better, but for now strict audit compliance > UI spam.
+            // Actually, let's just accept the multiple toasts or refine later.
+            // Better: update handleDeleteAudit to take options.
+            // But let's simple iterate for now to minimize risk.
+        } catch (error) {
+            // handled inside
+        }
+    };
+
     const handleGeneratePlan = async () => {
         // Logic for AI Plan Generation
         const suggestions = AuditPlannerService.generateAuditSuggestions(risks, assets, audits);
@@ -236,6 +258,7 @@ export const useAudits = () => {
         handleCreateAudit,
         handleUpdateAudit,
         handleDeleteAudit,
+        bulkDeleteAudits,
         handleGeneratePlan,
         generateChecklist,
         refreshAudits,

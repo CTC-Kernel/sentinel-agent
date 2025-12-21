@@ -85,7 +85,26 @@ export const useComplianceActions = (user: UserProfile | null) => {
     };
 
     const updateJustification = async (control: Control, text: string) => {
-        await updateControl(control.id, { justification: text }, "Justification enregistrée");
+        const success = await updateControl(control.id, { justification: text }, "Justification enregistrée");
+        if (success) {
+            logAction(user, 'UPDATE_JUSTIFICATION', 'control', 'Justification updated', undefined, control.id);
+        }
+    };
+
+    const handleApplicabilityChange = async (control: Control, isApplicable: boolean) => {
+        const newStatus = isApplicable ? 'Non commencé' : 'Non applicable';
+        const newApplicability = isApplicable ? 'Applicable' : 'Non applicable';
+
+        const success = await updateControl(control.id, {
+            status: newStatus,
+            applicability: newApplicability
+        }, `Contrôle marqué comme ${newApplicability}`);
+
+        if (success) {
+            logAction(user, 'UPDATE_APPLICABILITY', 'control', `Applicability changed to ${newApplicability}`, undefined, control.id, undefined,
+                [{ field: 'applicability', oldValue: control.applicability, newValue: newApplicability }]
+            );
+        }
     };
 
     const createRisk = async (riskData: Record<string, unknown>) => {
@@ -124,6 +143,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
         handleLinkDocument,
         handleUnlinkDocument,
         updateJustification,
+        handleApplicabilityChange,
         createRisk,
         updateControl
     };

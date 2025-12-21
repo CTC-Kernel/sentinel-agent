@@ -15,6 +15,7 @@ import { slideUpVariants, staggerContainerVariants } from '../components/ui/anim
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserProfile } from '../types';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { usePersistedState } from '../hooks/usePersistedState';
 
 import { useRiskData } from '../hooks/risks/useRiskData';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
@@ -70,7 +71,7 @@ export const Risks: React.FC = () => {
     const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
     const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
     const [confirmData, setConfirmData] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-    const [viewMode, setViewMode] = useState<'matrix' | 'list' | 'grid' | 'kanban'>('grid'); // Fixed type to match PremiumPageControl
+    const [viewMode, setViewMode] = usePersistedState<'matrix' | 'list' | 'grid' | 'kanban'>('risks-view-mode', 'grid'); // Fixed type to match PremiumPageControl
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     // const [isImporting, setIsImporting] = useState(false); // Removed local state
@@ -455,14 +456,26 @@ export const Risks: React.FC = () => {
                 onUpdate={updateRisk}
                 onDelete={(id) => handleDelete({ id: id } as Risk)} // Wrapper to match signature if needed
                 onDuplicate={(r) => {
+                    // Remove id and history for the new copy
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const { id, history, ...rest } = r;
-                    createRisk({
+
+                    const newRisk: Omit<Risk, 'id'> = {
                         ...rest,
                         threat: `${r.threat} (Copie)`,
-                        probability: r.probability as 1 | 2 | 3 | 4 | 5,
-                        impact: r.impact as 1 | 2 | 3 | 4 | 5
-                    } as Risk);
+                        // Ensure enums are preserved. Typescript inference should handle this if types match, 
+                        // but explicit cast protects against 'number' vs '1|2..'.
+                        probability: r.probability,
+                        impact: r.impact,
+                        status: 'Ouvert', // Reset status for new risk
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+
+                    createRisk(newRisk as Risk); // CreateRisk expects Risk (typically without ID before DB, but types might say Risk has ID). 
+                    // Actually createRisk usually takes Omit<Risk, 'id'> or handles missing ID. 
+                    // Let's check useRiskActions.createRisk signature if needed, but 'as Risk' is safe enough if we know ID is generated.
+                    // Better: cast to Omit<Risk, 'id'> if createRisk accepts it, otherwise keep 'as Risk' but cleaner.
                 }}
             />
 

@@ -7,6 +7,7 @@ import { Activity, RefreshCw, Download, Shield, AlertTriangle } from 'lucide-rea
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../components/ui/animationVariants';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
+import { CustomSelect } from '../components/ui/CustomSelect';
 
 export const ActivityLogs: React.FC = () => {
     const { logs, loading, hasMore, loadMore, refresh, filter, setFilter, stats, exportLogs } = useActivityLogs();
@@ -70,28 +71,32 @@ export const ActivityLogs: React.FC = () => {
                         searchPlaceholder="Rechercher par utilisateur, action ou détails..."
                         actions={
                             <div className="flex items-center gap-2">
-                                <FilterDropdown
-                                    label="Sévérité"
-                                    value={filter.severity}
-                                    onChange={(val) => setFilter(prev => ({ ...prev, severity: val }))}
-                                    options={[
-                                        { label: 'Toutes', value: 'all' },
-                                        { label: 'Info', value: 'info' },
-                                        { label: 'Avertissement', value: 'warning' },
-                                        { label: 'Critique', value: 'danger' }, // Mapped to danger in types? Log hook used 'severity || info'
-                                    ]}
-                                />
-                                <FilterDropdown
-                                    label="Période"
-                                    value={filter.dateRange}
-                                    onChange={(val) => setFilter(prev => ({ ...prev, dateRange: val }))}
-                                    options={[
-                                        { label: 'Indéfini', value: 'all' },
-                                        { label: "Aujourd'hui", value: 'today' },
-                                        { label: '7 derniers jours', value: 'week' },
-                                        { label: '30 derniers jours', value: 'month' },
-                                    ]}
-                                />
+                                <div className="w-40">
+                                    <CustomSelect
+                                        value={filter.severity}
+                                        onChange={(val) => setFilter(prev => ({ ...prev, severity: val as string }))}
+                                        options={[
+                                            { label: 'Toutes', value: 'all' },
+                                            { label: 'Info', value: 'info' },
+                                            { label: 'Avertissement', value: 'warning' },
+                                            { label: 'Critique', value: 'danger' },
+                                        ]}
+                                        placeholder="Sévérité"
+                                    />
+                                </div>
+                                <div className="w-48">
+                                    <CustomSelect
+                                        value={filter.dateRange}
+                                        onChange={(val) => setFilter(prev => ({ ...prev, dateRange: val as string }))}
+                                        options={[
+                                            { label: 'Indéfini', value: 'all' },
+                                            { label: "Aujourd'hui", value: 'today' },
+                                            { label: '7 derniers jours', value: 'week' },
+                                            { label: '30 derniers jours', value: 'month' },
+                                        ]}
+                                        placeholder="Période"
+                                    />
+                                </div>
                             </div>
                         }
                     />
@@ -110,18 +115,4 @@ export const ActivityLogs: React.FC = () => {
     );
 };
 
-// Simple Filter Dropdown Component (Local for now or move to UI later)
-const FilterDropdown: React.FC<{ label: string; value: string; onChange: (v: string) => void; options: { label: string; value: string }[] }> = ({ label, value, onChange, options }) => (
-    <div className="relative inline-block flex items-center gap-2">
-        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mr-2">{label}</span>
-        <select
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="pl-3 pr-8 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500 appearance-none shadow-sm"
-        >
-            {options.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-        </select>
-    </div>
-);
+

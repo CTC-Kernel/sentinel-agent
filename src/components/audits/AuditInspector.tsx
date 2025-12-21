@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Audit, Control, Document as GRCDocument } from '../../types';
 import { useAuditDetails } from '../../hooks/audits/useAuditDetails';
 import { InspectorLayout } from '../ui/InspectorLayout';
-import { AlertOctagon, ClipboardCheck, BrainCircuit, FileText, Target, Plus, Trash2, CheckCheck, Loader2, Download } from 'lucide-react';
+import { AlertOctagon, ClipboardCheck, BrainCircuit, FileText, Target, Plus, Trash2, CheckCheck, Loader2, Download, History } from 'lucide-react';
+import { ResourceHistory } from '../shared/ResourceHistory';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelInput';
 import { AIAssistButton } from '../ai/AIAssistButton';
@@ -53,6 +54,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
         { id: 'findings', label: 'Constats', icon: AlertOctagon },
         { id: 'checklist', label: 'Checklist', icon: ClipboardCheck },
         { id: 'dashboard', label: 'Tableau de bord', icon: Target },
+        { id: 'history', label: 'Historique', icon: History },
     ];
 
     return (
@@ -205,6 +207,10 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
 
                 {activeTab === 'dashboard' && (
                     <AuditDashboard audits={[audit]} findings={findings} />
+                )}
+
+                {activeTab === 'history' && (
+                    <ResourceHistory resourceId={audit.id} resourceType="Audit" />
                 )}
             </div>
         </InspectorLayout>

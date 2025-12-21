@@ -36,13 +36,15 @@ export class SupplierService {
                         questionScore = (val / 5) * 100; // Default to 5 star scale
                     }
                 } else if (q.type === 'multiple_choice') {
-                    // Logic could be complex here (correct answer vs any answer).
-                    // For now, assume if value is present it's "completed" (100) or we need a correct answer model.
-                    // Let's assume for VRM, 'yes' or specific options imply security. 
-                    // Simplified: If provided, 100? No, that's not right.
-                    // Smart workaround: For now, treat non-empty as 100, but in real VRM we map options to scores.
-                    // TODO: Enhance Option scoring.
-                    if (answer.value) questionScore = 100;
+                    // For multiple choice, we check if a valid selection was made.
+                    // Future enhancement: Add 'correctOptions' or 'scorePerOption' in QuestionnaireTemplate for granular scoring.
+                    // Currently, any non-empty selection is considered a 'completed' answer (100%).
+                    const val = answer.value;
+                    if (Array.isArray(val)) {
+                        if (val.length > 0) questionScore = 100;
+                    } else if (val && String(val).trim() !== '') {
+                        questionScore = 100;
+                    }
                 }
 
                 sectionScore += (questionScore * weight);

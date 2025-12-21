@@ -214,6 +214,11 @@ export const canEditResource = (user: UserProfile | null, resource: ResourceType
         return true;
     }
 
+    // FIX: Allow users to edit their own incidents
+    if (resource === 'Incident' && isResourceOwner(user, resourceOwnerId)) {
+        return true;
+    }
+
     // AUDIT FIX: Centralized Permission Logic
     // Previously, Auditors had hardcoded exceptions here.
     // Now, we rely strictly on the ROLE_PERMISSIONS matrix or hasPermission function.
@@ -238,10 +243,18 @@ export const canDeleteResource = (user: UserProfile | null, resource: ResourceTy
     // Project Managers permission is now handled by the matrix (manage = delete)
 
 
-    // Auditors generally cannot delete, except maybe Drafts? Rules say NO for Risks/Assets/Controls.
+    // Auditors generally cannot delete, except maybe Drafts? Rules say NO for risks/Assets/Controls.
     // Rules say YES for Audits?
     // Audit Rules: allow delete: if canDelete(orgId); -> Admin/RSSI only.
     // So Auditors CANNOT delete Audits in Firestore rules.
 
     return hasPermission(user, resource, 'delete', orgOwnerId);
+};
+
+export const canUpdateResource = (user: UserProfile | null, resource: ResourceType, resourceOwnerId?: string, orgOwnerId?: string): boolean => {
+    // Helper specifically for Update to handle the "Owner" edge case cleaner than inside canEditResource if we wanted to split behavior,
+    // but for now we keep using canEditResource as the main entry point or just modify it.
+    // Actually, let's just modify the existing logic inside canEditResource above or here.
+    // Re-reading canEditResource... it calls hasPermission(..., 'update').
+    return canEditResource(user, resource, resourceOwnerId, orgOwnerId);
 };

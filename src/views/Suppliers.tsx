@@ -4,9 +4,9 @@ import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
 import { sanitizeData } from '../utils/dataSanitizer';
 
-import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, limit, writeBatch, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Supplier, Document, SystemLog, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
+import { Supplier, Document, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
 import { Plus, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, BrainCircuit, Loader2, MoreVertical, ChevronRight } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
@@ -38,7 +38,9 @@ import { CsvParser } from '../utils/csvUtils';
 import { QuestionnaireBuilder } from '../components/suppliers/QuestionnaireBuilder';
 import { AssessmentView } from '../components/suppliers/AssessmentView';
 import { QuestionnaireTemplate, SupplierQuestionnaireResponse } from '../types/business';
+
 import { SupplierService } from '../services/SupplierService';
+import { ResourceHistory } from '../components/shared/ResourceHistory';
 
 const getCriticalityColor = (c: Criticality) => {
     switch (c) {
@@ -75,7 +77,6 @@ export const Suppliers: React.FC = () => {
 
     // Inspector State
     const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'incidents' | 'history' | 'comments' | 'intelligence'>('profile');
-    const [supplierHistory, setSupplierHistory] = useState<SystemLog[]>([]);
 
     const editForm = useForm<SupplierFormData>({
         resolver: zodResolver(supplierSchema),
@@ -432,14 +433,7 @@ export const Suppliers: React.FC = () => {
         });
         setIsEditing(false);
 
-        try {
-            const q = query(collection(db, 'system_logs'), where('organizationId', '==', user?.organizationId), limit(50));
-            const snap = await getDocs(q);
-            const logs = snap.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog));
-            const relevantLogs = logs.filter(l => l.resource === 'Supplier' && l.details?.includes(supplier.name));
-            relevantLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-            setSupplierHistory(relevantLogs);
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'Suppliers.handleSelectSupplier'); }
+        setIsEditing(false);
     };
 
     const openCreationDrawer = () => {
@@ -1237,21 +1231,8 @@ export const Suppliers: React.FC = () => {
 
                             {
                                 inspectorTab === 'history' && (
-                                    <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
-                                        {supplierHistory.length === 0 ? <p className="text-sm text-slate-600 pl-6">Aucun historique récent.</p> :
-                                            supplierHistory.map((log, i) => (
-                                                <div key={i} className="relative">
-                                                    <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
-                                                        <div className="h-2 w-2 rounded-full bg-brand-600"></div>
-                                                    </span>
-                                                    <div>
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{new Date(log.timestamp).toLocaleString()}</span>
-                                                        <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">{log.action}</p>
-                                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{log.details}</p>
-                                                        <p className="text-[10px] text-slate-500 mt-1">Par: {log.userEmail}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                    <div className="h-full overflow-y-auto p-6">
+                                        <ResourceHistory resourceId={selectedSupplier.id} resourceType="Supplier" />
                                     </div>
                                 )
                             }

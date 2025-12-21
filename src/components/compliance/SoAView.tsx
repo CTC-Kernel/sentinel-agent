@@ -1,29 +1,23 @@
-import React from 'react';
-import { Control } from '../../types';
+import { Control, Risk } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
-import { Download } from '../ui/Icons';
+import { Download, AlertTriangle, FileText } from '../ui/Icons';
 import { useStore } from '../../store';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 interface SoAViewProps {
     controls: Control[];
-    onUpdateControl: (id: string, updates: Partial<Control>) => Promise<any>;
+    risks: Risk[];
+    handlers: {
+        updateControl: (id: string, updates: Partial<Control>) => Promise<any>;
+        handleApplicabilityChange: (control: Control, isApplicable: boolean) => Promise<void>;
+        updateJustification: (control: Control, text: string) => Promise<void>;
+    };
 }
 
-export const SoAView: React.FC<SoAViewProps> = ({ controls, onUpdateControl }) => {
+export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, handlers }) => {
     const { addToast } = useStore();
-
-    const handleApplicabilityChange = async (control: Control, isApplicable: boolean) => {
-        const newStatus = isApplicable ? 'Non commencé' : 'Non applicable';
-        const newApplicability = isApplicable ? 'Applicable' : 'Non applicable';
-        await onUpdateControl(control.id, {
-            status: newStatus,
-            applicability: newApplicability
-        });
-        addToast(`Contrôle ${control.code} marqué comme ${newApplicability}`, 'success');
-    };
 
     const exportPDF = () => {
         const doc = new jsPDF();
@@ -34,12 +28,13 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, onUpdateControl }) =
             c.name,
             c.applicability || (c.status === 'Non applicable' ? 'Non applicable' : 'Applicable'),
             c.justification || '-',
-            c.status
+            c.status,
+            (c.relatedRiskIds?.length || 0).toString()
         ]);
 
         autoTable(doc, {
             startY: 30,
-            head: [['Code', 'Nom', 'Applicabilité', 'Justification', 'Statut']],
+            head: [['Code', 'Nom', 'Applicabilité', 'Justification', 'Statut', 'Risques']],
             body: data,
         });
 
@@ -63,63 +58,92 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, onUpdateControl }) =
                             <th className="px-4 py-3">Code</th>
                             <th className="px-4 py-3">Contrôle</th>
                             <th className="px-4 py-3">Applicable</th>
+                            <th className="px-4 py-3">Risques</th>
+                            <th className="px-4 py-3">Preuves</th>
                             <th className="px-4 py-3">Justification</th>
                             <th className="px-4 py-3">Statut implémentation</th>
                             <th className="px-4 py-3">Maturité</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-white/5 bg-white dark:bg-slate-900">
-                        {controls.map(control => (
-                            <tr key={control.id} className="hover:bg-slate-50 dark:hover:bg-white/5">
-                                <td className="px-4 py-3 font-medium">{control.code}</td>
-                                <td className="px-4 py-3 max-w-sm">
-                                    <div className="font-medium text-slate-900 dark:text-slate-100">{control.name}</div>
-                                    <div className="text-xs text-slate-500 truncate" title={control.description}>{control.description}</div>
-                                </td>
-                                <td className="px-4 py-3">
-                                    <label className="relative inline-flex items-center cursor-pointer">
+                        {controls.map(control => {
+                            const isNonApplicable = control.applicability === 'Non applicable' || control.status === 'Non applicable';
+                            const missingJustification = isNonApplicable && (!control.justification || control.justification.trim() === '');
+                            // Validate linked risks exist in the current risks listing
+                            const linkedRisksCount = control.relatedRiskIds?.filter(id => risks.some(r => r.id === id)).length || 0;
+                            const evidenceCount = control.evidenceIds?.length || 0;
+
+                            return (
+                                <tr key={control.id} className="hover:bg-slate-50 dark:hover:bg-white/5">
+                                    <td className="px-4 py-3 font-medium">{control.code}</td>
+                                    <td className="px-4 py-3 max-w-sm">
+                                        <div className="font-medium text-slate-900 dark:text-slate-100">{control.name}</div>
+                                        <div className="text-xs text-slate-500 truncate" title={control.description}>{control.description}</div>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={!isNonApplicable}
+                                                onChange={(e) => handlers.handleApplicabilityChange(control, e.target.checked)}
+                                            />
+                                            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {linkedRisksCount > 0 ? (
+                                            <Badge variant="outline" className="flex items-center gap-1">
+                                                <AlertTriangle className="h-3 w-3 text-amber-500" />
+                                                {linkedRisksCount}
+                                            </Badge>
+                                        ) : <span className="text-slate-400">-</span>}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {evidenceCount > 0 ? (
+                                            <Badge variant="outline" className="flex items-center gap-1">
+                                                <FileText className="h-3 w-3 text-blue-500" />
+                                                {evidenceCount}
+                                            </Badge>
+                                        ) : <span className="text-slate-400">-</span>}
+                                    </td>
+                                    <td className="px-4 py-3">
                                         <input
-                                            type="checkbox"
-                                            className="sr-only peer"
-                                            checked={control.applicability === 'Applicable' || control.status !== 'Non applicable'}
-                                            onChange={(e) => handleApplicabilityChange(control, e.target.checked)}
+                                            type="text"
+                                            defaultValue={control.justification || ''}
+                                            onBlur={(e) => {
+                                                if (e.target.value !== control.justification) {
+                                                    handlers.updateJustification(control, e.target.value);
+                                                }
+                                            }}
+                                            className={`bg-transparent text-xs w-full focus:ring-1 focus:ring-brand-500 rounded px-2 py-1 transition-colors ${missingJustification
+                                                ? 'border border-red-500 bg-red-50 dark:bg-red-900/10 placeholder-red-400'
+                                                : 'border-none placeholder-slate-400'
+                                                }`}
+                                            placeholder={missingJustification ? "Justification requise !" : "Ajouter une justification..."}
                                         />
-                                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </td>
-                                <td className="px-4 py-3">
-                                    <input
-                                        type="text"
-                                        defaultValue={control.justification || ''}
-                                        onBlur={(e) => {
-                                            if (e.target.value !== control.justification) {
-                                                onUpdateControl(control.id, { justification: e.target.value });
-                                            }
-                                        }}
-                                        className="bg-transparent border-none text-xs w-full focus:ring-1 focus:ring-brand-500 rounded px-2 py-1"
-                                        placeholder="Ajouter une justification..."
-                                    />
-                                </td>
-                                <td className="px-4 py-3">
-                                    <Badge status={
-                                        control.status === 'Implémenté' ? 'success' :
-                                            control.status === 'Non applicable' ? 'neutral' :
-                                                control.status === 'Partiel' ? 'warning' : 'error'
-                                    } variant="soft">
-                                        {control.status}
-                                    </Badge>
-                                </td>
-                                <td className="px-4 py-3">
-                                    {control.maturity ? (
-                                        <div className="flex gap-1">
-                                            {[1, 2, 3, 4, 5].map(i => (
-                                                <div key={i} className={`h-1.5 w-3 rounded-sm ${i <= control.maturity! ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
-                                            ))}
-                                        </div>
-                                    ) : '-'}
-                                </td>
-                            </tr>
-                        ))}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <Badge status={
+                                            control.status === 'Implémenté' ? 'success' :
+                                                control.status === 'Non applicable' ? 'neutral' :
+                                                    control.status === 'Partiel' ? 'warning' : 'error'
+                                        } variant="soft">
+                                            {control.status}
+                                        </Badge>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {control.maturity ? (
+                                            <div className="flex gap-1">
+                                                {[1, 2, 3, 4, 5].map(i => (
+                                                    <div key={i} className={`h-1.5 w-3 rounded-sm ${i <= control.maturity! ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
+                                                ))}
+                                            </div>
+                                        ) : '-'}
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>

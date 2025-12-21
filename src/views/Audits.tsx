@@ -17,7 +17,7 @@ import { AuditFormData } from '../schemas/auditSchema';
 import { PageHeader } from '../components/ui/PageHeader';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { Menu, Transition } from '@headlessui/react';
-import { Calendar as CalendarIcon, Download, BrainCircuit, Plus, LayoutDashboard, List, ClipboardCheck, MoreVertical } from 'lucide-react';
+import { Calendar as CalendarIcon, Download, BrainCircuit, Plus, LayoutDashboard, List, ClipboardCheck, MoreVertical, Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { AuditDashboard } from '../components/audits/AuditDashboard';
@@ -30,7 +30,7 @@ export const Audits: React.FC = () => {
     const {
         audits, loading, canEdit, canDelete, controls, documents, assets, risks, usersList, projects,
         handleDeleteAudit, handleGeneratePlan, handleCreateAudit, handleUpdateAudit,
-        refreshAudits, handleExportCSV, handleExportCalendar
+        refreshAudits, handleExportCSV, handleExportCalendar, bulkDeleteAudits
     } = useAudits();
 
     const { user } = useStore();
@@ -40,6 +40,7 @@ export const Audits: React.FC = () => {
     const [creationMode, setCreationMode] = useState(false);
     const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
     const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
+    const [selectedAudits, setSelectedAudits] = useState<string[]>([]);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [filter, setFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -92,6 +93,19 @@ export const Audits: React.FC = () => {
             title: "Supprimer l'audit ?",
             message: "Cette action est irréversible et supprimera tous les constats associés.",
             onConfirm: () => handleDeleteAudit(audit.id, audit.name)
+        });
+    };
+
+    const handleBulkDelete = () => {
+        if (selectedAudits.length === 0) return;
+        setConfirmData({
+            isOpen: true,
+            title: `Supprimer ${selectedAudits.length} audits ?`,
+            message: "Cette action est irréversible et supprimera tous les constats associés.",
+            onConfirm: async () => {
+                await bulkDeleteAudits(selectedAudits);
+                setSelectedAudits([]);
+            }
         });
     };
 
@@ -204,6 +218,16 @@ export const Audits: React.FC = () => {
                                 </Menu.Items>
                             </Transition>
                         </Menu>
+                        {selectedAudits.length > 0 && canDelete && (
+                            <Button
+                                onClick={handleBulkDelete}
+                                variant="destructive"
+                                className="gap-2"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                <span>Supprimer ({selectedAudits.length})</span>
+                            </Button>
+                        )}
                         {canEdit && (
                             <>
                                 <Button
@@ -256,6 +280,8 @@ export const Audits: React.FC = () => {
                                 onOpen={handleOpen}
                                 canEdit={canEdit}
                                 canDelete={canDelete}
+                                selectedIds={selectedAudits}
+                                onSelect={setSelectedAudits}
                             />
                         </div>
                     </motion.div>

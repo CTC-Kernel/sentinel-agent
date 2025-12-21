@@ -7,7 +7,7 @@ import { LifecycleTimeline } from './LifecycleTimeline';
 import { RelationshipGraph } from '../RelationshipGraph';
 import { AssetAIAssistant } from './AssetAIAssistant';
 import { CommentSection } from '../collaboration/CommentSection';
-import { TimelineView } from '../shared/TimelineView';
+import { ResourceHistory } from '../shared/ResourceHistory';
 import { useAssetDetails } from '../../hooks/assets/useAssetDetails';
 import { useAssetSecurity } from '../../hooks/assets/useAssetSecurity';
 import {
@@ -607,7 +607,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                         </div>
 
                         <div className="px-1">
-                            <TimelineView resourceId={selectedAsset.id} resourceType="Asset" />
+                            <ResourceHistory resourceId={selectedAsset.id} resourceType="Asset" />
                         </div>
                     </div>
                 )}
