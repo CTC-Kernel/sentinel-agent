@@ -9,6 +9,7 @@ export interface Audit {
     dateScheduled: string;
     status: 'Planifié' | 'En cours' | 'Terminé' | 'Validé';
     findingsCount: number;
+    description?: string;
     scope?: string;
     framework?: Framework;
     relatedAssetIds?: string[];

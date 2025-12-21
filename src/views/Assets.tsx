@@ -301,10 +301,18 @@ const Assets: React.FC = () => {
                             canEdit={canEdit}
                             onEdit={handleOpenInspector}
                             onDelete={(id, name) => handleDeleteClick(id, name)}
-                            onGenerateLabel={() => {
-                                toast.info("Fonctionnalité à venir", {
-                                    description: "L'impression d'étiquettes sera disponible dans la v2.1"
-                                });
+                            onGenerateLabel={async (asset) => {
+                                const { PdfService } = await import('../services/PdfService');
+                                try {
+                                    PdfService.generateAssetLabel(
+                                        { name: asset.name, id: asset.id, owner: asset.owner, type: asset.type },
+                                        { organizationName: limits.features.whiteLabelReports ? user?.displayName || 'Sentinel' : 'Sentinel GRC' }
+                                    );
+                                    toast.success("Étiquette générée");
+                                } catch (e) {
+                                    console.error(e);
+                                    toast.error("Erreur lors de la génération de l'étiquette");
+                                }
                             }}
                             isGeneratingLabels={false}
                             activeFiltersQuery={activeFilters.query}

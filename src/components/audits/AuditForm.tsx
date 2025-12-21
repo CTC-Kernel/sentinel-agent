@@ -60,6 +60,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             auditor: '',
             dateScheduled: new Date().toISOString().split('T')[0],
             status: 'Planifié',
+            description: '',
             scope: '',
             framework: undefined,
             relatedAssetIds: [],
@@ -95,6 +96,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 auditor: initialData?.auditor || '',
                 dateScheduled: initialData?.dateScheduled || new Date().toISOString().split('T')[0],
                 status: initialData?.status || 'Planifié',
+                description: initialData?.description || '',
                 scope: initialData?.scope || '',
                 framework: initialData?.framework,
                 relatedAssetIds: initialData?.relatedAssetIds || [],
@@ -111,15 +113,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
         const t = AUDIT_TEMPLATES.find(t => t.name === templateName);
         if (t) {
             setValue('name', t.name);
-            // Assuming 'description' and 'standard' fields exist in AuditFormData
-            // and are handled by the schema, though not explicitly in defaultValues
-            // If they don't exist, these lines will cause type errors or be ignored.
-            // For now, I'll add them as per the instruction.
-            // If AuditFormData doesn't have 'description' and 'standard', this needs adjustment.
-            // For the purpose of this edit, I'm assuming they are part of AuditFormData.
-            // If not, the instruction might be based on an incomplete understanding of the schema.
-            // I will add them as per the instruction.
-            // setValue('description', t.description); // This field is not in AuditFormData based on defaultValues
+            setValue('description', t.description);
             if (typeof t.standard === 'string') {
                 setValue('framework', t.standard as Framework);
             } else {
@@ -148,10 +142,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             const jsonMatch = resultText.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
                 const data = JSON.parse(jsonMatch[0]);
-                // Again, assuming 'description' and 'standard' exist in AuditFormData
-                // If not, these lines will cause type errors or be ignored.
-                // I will add them as per the instruction.
-                // if (data.description) setValue('description', data.description); // Not in AuditFormData
+                if (data.description) setValue('description', data.description);
                 if (typeof data.standard === 'string') {
                     setValue('framework', data.standard as Framework);
                 }
@@ -187,6 +178,16 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     placeholder="Ex: Audit Interne ISO 27001 - Q1"
                     error={errors.name?.message}
                 />
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Description</label>
+                    <textarea
+                        {...register('description')}
+                        rows={3}
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400"
+                        placeholder="Objectifs et contexte de l'audit..."
+                    />
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Controller

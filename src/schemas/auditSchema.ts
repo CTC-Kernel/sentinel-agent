@@ -6,6 +6,7 @@ export const auditSchema = z.object({
     auditor: z.string().min(1, "L'auditeur est requis"),
     dateScheduled: z.string().min(1, "La date est requise"),
     status: z.enum(['Planifié', 'En cours', 'Terminé', 'Validé']),
+    description: z.string().optional(),
     scope: z.string().optional(),
     framework: z.enum(['ISO27001', 'ISO27005', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF', 'OWASP', 'EBIOS', 'COBIT', 'ITIL', 'ISO22301']).optional(),
     relatedAssetIds: z.array(z.string()).optional(),

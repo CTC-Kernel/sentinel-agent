@@ -2,7 +2,7 @@
 import React from 'react';
 import { Asset, Criticality, UserProfile } from '../../types';
 import { DataTable } from '../ui/DataTable';
-import { Server, Edit, Trash2 } from '../ui/Icons';
+import { Server, Edit, Trash2, Tag } from '../ui/Icons';
 import { TableSkeleton } from '../ui/Skeleton';
 import { EmptyState } from '../ui/EmptyState';
 import { canDeleteResource } from '../../utils/permissions';
@@ -42,7 +42,9 @@ export const AssetList: React.FC<AssetListProps> = ({
     onDelete,
     onBulkDelete,
     activeFiltersQuery,
-    canEdit
+    canEdit,
+    onGenerateLabel,
+    isGeneratingLabels
 }) => {
     const canDelete = canDeleteResource(user, 'Asset');
 
@@ -72,6 +74,14 @@ export const AssetList: React.FC<AssetListProps> = ({
                                 id: 'actions',
                                 cell: ({ row }) => (
                                     <div className="flex items-center justify-end gap-2">
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); onGenerateLabel(row.original); }}
+                                            className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                                            title="Imprimer Etiquette"
+                                            disabled={isGeneratingLabels}
+                                        >
+                                            <Tag className="h-4 w-4" />
+                                        </button>
                                         {canEdit && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onEdit(row.original); }}
@@ -138,6 +148,16 @@ export const AssetList: React.FC<AssetListProps> = ({
                         <div key={asset.id} onClick={() => onEdit(asset)} className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                             <div className="relative z-10 flex flex-col h-full">
+                                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); onGenerateLabel(asset); }}
+                                        className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-indigo-600 shadow-sm backdrop-blur-sm"
+                                        title="Imprimer Etiquette"
+                                        disabled={isGeneratingLabels}
+                                    >
+                                        <Tag className="h-4 w-4" />
+                                    </button>
+                                </div>
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300">
                                         <Server className="h-6 w-6" />

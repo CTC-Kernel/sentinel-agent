@@ -1286,4 +1286,59 @@ export class PdfService {
         });
     }
 
+    /**
+     * Generate Asset Label (Sticker format)
+     */
+    static generateAssetLabel(
+        asset: { name: string; id: string; owner: string; type: string },
+        options: { organizationName?: string; logo?: string }
+    ): jsPDF {
+        // Label size: 90mm x 29mm (Standard Address Label size)
+        // Hack: jsPDF doesn't support changing format easily after init in some versions,
+        // but let's try creating a custom one or just use a small page.
+        // Re-instantiate for custom size
+        const labelDoc = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: [29, 90] // Height, Width
+        });
+
+        // Border
+        labelDoc.setDrawColor(this.BRAND_PRIMARY);
+        labelDoc.setLineWidth(0.5);
+        labelDoc.rect(2, 2, 86, 25);
+
+        // Header / Logo area
+        labelDoc.setFillColor(this.BRAND_PRIMARY);
+        labelDoc.rect(2, 2, 20, 25, 'F');
+
+        // Logo Text (Vertical because space is tight or just big letter)
+        labelDoc.setTextColor('#FFFFFF');
+        labelDoc.setFontSize(24);
+        labelDoc.setFont('helvetica', 'bold');
+        labelDoc.text(options.organizationName?.charAt(0) || 'S', 12, 17, { align: 'center', baseline: 'middle' });
+
+        // Content
+        const contentX = 25;
+
+        // Asset Name
+        labelDoc.setTextColor(this.BRAND_PRIMARY);
+        labelDoc.setFontSize(10);
+        labelDoc.setFont('helvetica', 'bold');
+        const splitTitle = labelDoc.splitTextToSize(asset.name.toUpperCase(), 60);
+        labelDoc.text(splitTitle, contentX, 8);
+
+        // ID
+        labelDoc.setTextColor(this.TEXT_SECONDARY);
+        labelDoc.setFontSize(7);
+        labelDoc.setFont('helvetica', 'normal');
+        labelDoc.text(`ID: ${asset.id}`, contentX, 16);
+
+        // Owner/Type
+        labelDoc.setFontSize(6);
+        labelDoc.text(`${asset.type} | Prop: ${asset.owner}`, contentX, 23);
+
+        labelDoc.save(`Etiquette_${asset.name.replace(/\s+/g, '_')}.pdf`);
+        return labelDoc;
+    }
 }

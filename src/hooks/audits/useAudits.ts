@@ -194,14 +194,6 @@ export const useAudits = () => {
         addToast(`${suggestions.length} audits planifiés avec succès.`, "success");
     };
 
-    const generateChecklist = async (_audit: Audit) => {
-        if (!user?.organizationId) return;
-        // ... Logic for generating checklist ...
-        // Reused from Audits.tsx but simplified/abstracted
-        // For brevity in this initial pass, assuming similar logic
-        // This should invoke AI service
-        addToast("Fonctionnalité checklist en cours de refactoring...", "info");
-    };
 
     const handleExportCSV = async () => {
         if (isExportingCSV) return;
@@ -260,7 +252,6 @@ export const useAudits = () => {
         handleDeleteAudit,
         bulkDeleteAudits,
         handleGeneratePlan,
-        generateChecklist,
         refreshAudits,
         handleExportCSV,
         handleExportCalendar,

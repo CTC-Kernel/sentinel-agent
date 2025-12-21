@@ -536,7 +536,11 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || isUser());
-      allow update: if canWrite(resource.data.organizationId) || isUser();
+      
+      // SECURITY FIX: Only allow update if the user is the creator OR is an Admin/RSSI
+      allow update: if (canWrite(resource.data.organizationId) && (isAdmin() || isRSSI())) || 
+        (isAuthenticated() && resource.data.userId == request.auth.uid);
+        
       allow delete: if canDelete(resource.data.organizationId);
     }
 
