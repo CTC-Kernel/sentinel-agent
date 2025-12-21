@@ -240,6 +240,14 @@ exports.onJoinRequestUpdated = onDocumentUpdated("join_requests/{requestId}", as
     }
 });
 
+// --- AUDIT TRAIL TRIGGERS (Security requirement) ---
+exports.auditRisks = generateAuditTrigger('risks/{docId}', 'threat');
+exports.auditControls = generateAuditTrigger('controls/{docId}', 'code');
+exports.auditDocuments = generateAuditTrigger('documents/{docId}', 'title');
+exports.auditSuppliers = generateAuditTrigger('suppliers/{docId}', 'name');
+exports.auditUsers = generateAuditTrigger('users/{docId}', 'email');
+exports.auditIncidents = generateAuditTrigger('incidents/{docId}', 'title');
+
 // Imports moved to top
 
 // Set custom claims when user document is created/updated
@@ -1287,6 +1295,36 @@ exports.logEvent = onCall(async (request) => {
     } catch (error) {
         logger.error('Error in logEvent callable:', error);
         throw new HttpsError('internal', 'Failed to log event.');
+    }
+});
+
+// --- SECURE AUDIT EXPORT ---
+exports.exportAuditLogs = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const { startDate, endDate, format } = request.data;
+    const organizationId = request.auth.token.organizationId;
+    const role = request.auth.token.role;
+
+    // Strict RBAC: Only Admin or RSSI or Auditor can export logs
+    if (role !== 'admin' && role !== 'rssi' && role !== 'auditor') {
+        throw new HttpsError('permission-denied', 'Insufficient permissions to export audit logs.');
+    }
+
+    if (!organizationId) {
+        throw new HttpsError('failed-precondition', 'User has no organization.');
+    }
+
+    const { generateAuditExport } = require('./services/auditExport');
+
+    try {
+        const data = await generateAuditExport(organizationId, { startDate, endDate, format });
+        return { success: true, data };
+    } catch (error) {
+        logger.error("Audit export failed", error);
+        throw new HttpsError('internal', 'Export failed: ' + error.message);
     }
 });
 
