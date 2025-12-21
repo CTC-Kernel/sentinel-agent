@@ -153,8 +153,9 @@ export const Projects: React.FC = () => {
             <PageHeader
                 title="Tableau de Bord Projets"
                 subtitle="Pilotez vos initiatives de sécurité et suivez l'avancement global."
-                icon={<LayoutDashboard className="h-6 w-6 text-white" />}
+                icon={<LayoutDashboard className="h-6 w-6 text-brand-500" />}
                 breadcrumbs={[{ label: 'Pilotage' }, { label: 'Projets' }]}
+                trustType="integrity"
             />
 
             <ScrollableTabs
@@ -180,12 +181,20 @@ export const Projects: React.FC = () => {
                     onViewModeChange={activeTab === 'list' ? setViewMode : undefined}
                     actions={canEdit && (
                         <>
+                            {/* Primary Action */}
                             <CustomTooltip content="Créer un nouveau projet">
-                                <button onClick={() => { setCreationMode(true); setEditingProject(null); }} className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20">
-                                    <Plus className="h-4 w-4 mr-2" /> <span className="hidden sm:inline">Nouveau Projet</span>
+                                <button
+                                    onClick={() => { setCreationMode(true); setEditingProject(null); }}
+                                    className="flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    <span className="hidden sm:inline">Nouveau Projet</span>
                                 </button>
                             </CustomTooltip>
 
+                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+
+                            {/* Secondary Actions Menu */}
                             <Menu as="div" className="relative inline-block text-left">
                                 <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
                                     <MoreVertical className="h-5 w-5" />
@@ -193,17 +202,18 @@ export const Projects: React.FC = () => {
                                 <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
                                     <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                         <div className="p-1">
+                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</div>
                                             <Menu.Item>
                                                 {({ active }) => (
                                                     <button onClick={() => setShowTemplateModal(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                        <Zap className="mr-2 h-4 w-4" /> Depuis Template
+                                                        <Zap className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-amber-500'}`} /> Créer depuis Modèle
                                                     </button>
                                                 )}
                                             </Menu.Item>
                                             <Menu.Item>
                                                 {({ active }) => (
                                                     <button onClick={handleExportCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                        <FileSpreadsheet className="mr-2 h-4 w-4" /> Export CSV
+                                                        <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} /> Export CSV
                                                     </button>
                                                 )}
                                             </Menu.Item>
@@ -225,6 +235,7 @@ export const Projects: React.FC = () => {
                             loading={loading}
                             canEdit={canEdit}
                             user={user}
+                            usersList={usersList}
                             onEdit={onEditProject}
                             onDelete={onDeleteRequest}
                             onBulkDelete={() => { }}
@@ -245,6 +256,7 @@ export const Projects: React.FC = () => {
                                         project={p}
                                         canEdit={canEdit}
                                         user={user}
+                                        usersList={usersList}
                                         onEdit={onEditProject}
                                         onDelete={onDeleteRequest}
                                         onClick={setSelectedProject}

@@ -54,6 +54,7 @@ export interface Project {
     relatedControlIds?: string[];
     relatedAssetIds?: string[];
     relatedAuditIds?: string[];
+    members?: string[]; // IDs of team members
     milestones?: ProjectMilestone[];
     createdAt: string;
     updatedAt?: string;

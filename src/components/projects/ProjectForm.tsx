@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Project, Risk, Control, Asset } from '../../types';
+import { Project, Risk, Control, Asset, UserProfile } from '../../types';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { CustomSelect } from '../ui/CustomSelect';
 import { DatePicker } from '../ui/DatePicker';
@@ -31,6 +31,7 @@ interface ProjectFormProps {
     onCancel: () => void;
     existingProject?: Project;
     availableUsers?: string[]; // list of manager display names
+    usersList?: UserProfile[]; // Full user objects for members selection
     availableRisks?: Risk[];
     availableControls?: Control[];
     availableAssets?: Asset[];
@@ -43,6 +44,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     onCancel,
     existingProject,
     availableUsers = [],
+    usersList = [],
     availableRisks = [],
     availableControls = [],
     availableAssets = [],
@@ -61,6 +63,8 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             relatedRiskIds: [],
             relatedControlIds: [],
             relatedAssetIds: [],
+            relatedAuditIds: [],
+            members: [],
             framework: undefined,
         }
     });
@@ -72,16 +76,14 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
         if (t) {
             setValue('name', t.name);
             setValue('description', t.description);
-            // status and priority are enums in schema, assumed valid
             if (
                 t.status === 'Planifié' ||
                 t.status === 'En cours' ||
                 t.status === 'Terminé' ||
                 t.status === 'Suspendu'
             ) {
-                setValue('status', t.status);
+                setValue('status', t.status as any);
             }
-            // if (t.priority) setValue('priority', t.priority as any); // Priority not in defaultValues/schema apparent here?
         }
     };
 
@@ -103,7 +105,6 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             if (jsonMatch) {
                 const data = JSON.parse(jsonMatch[0]);
                 if (data.description) setValue('description', data.description);
-                // if (data.priority) setValue('priority', data.priority);
             }
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'ProjectForm.handleAutoGenerate', 'AI_ERROR');
@@ -126,6 +127,8 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 relatedRiskIds: existingProject.relatedRiskIds || [],
                 relatedControlIds: existingProject.relatedControlIds || [],
                 relatedAssetIds: existingProject.relatedAssetIds || [],
+                relatedAuditIds: existingProject.relatedAuditIds || [],
+                members: existingProject.members || [],
                 framework: existingProject.framework,
             });
         } else {
@@ -139,6 +142,8 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 relatedRiskIds: initialData?.relatedRiskIds || [],
                 relatedControlIds: initialData?.relatedControlIds || [],
                 relatedAssetIds: initialData?.relatedAssetIds || [],
+                relatedAuditIds: initialData?.relatedAuditIds || [],
+                members: [],
                 framework: initialData?.framework,
             });
         }
@@ -148,7 +153,6 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
         onSubmit(data);
     };
 
-    // Watch values for AI context
     const watchedName = useWatch({ control, name: 'name' });
     const relatedRiskIds = useWatch({ control, name: 'relatedRiskIds' });
 
@@ -236,6 +240,25 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                             )}
                         />
                     </div>
+
+                    <Controller
+                        name="members"
+                        control={control}
+                        render={({ field }) => (
+                            <CustomSelect
+                                label="Membres de l'équipe"
+                                value={field.value || []}
+                                onChange={field.onChange}
+                                options={usersList.map(u => ({
+                                    value: u.uid,
+                                    label: u.displayName || u.email,
+                                    subLabel: u.email
+                                }))}
+                                multiple
+                                placeholder="Sélectionner des membres..."
+                            />
+                        )}
+                    />
 
                     <div className="grid grid-cols-2 gap-4">
                         <Controller

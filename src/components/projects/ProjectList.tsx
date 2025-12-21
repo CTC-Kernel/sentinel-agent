@@ -15,6 +15,7 @@ interface ProjectListProps {
     loading: boolean;
     canEdit: boolean;
     user: UserProfile | null;
+    usersList?: UserProfile[]; // Made optional to avoid immediate break, but should be passed
     onEdit: (project: Project) => void;
     onDelete: (id: string, name: string) => void;
     onBulkDelete: (ids: string[]) => void;
@@ -22,7 +23,7 @@ interface ProjectListProps {
 }
 
 export const ProjectList: React.FC<ProjectListProps> = ({
-    projects, loading, canEdit, user, onEdit, onDelete, onBulkDelete, onSelect
+    projects, loading, canEdit, user, usersList = [], onEdit, onDelete, onBulkDelete, onSelect
 }) => {
 
     const columns = useMemo<ColumnDef<Project>[]>(() => [
@@ -41,12 +42,40 @@ export const ProjectList: React.FC<ProjectListProps> = ({
             header: 'Responsable',
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-xs font-bold text-brand-600 dark:text-brand-400">
+                    <div className="w-6 h-6 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-xs font-bold text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-800">
                         {row.original.manager.charAt(0)}
                     </div>
-                    {row.original.manager}
+                    <span className="text-sm text-slate-700 dark:text-slate-300">{row.original.manager}</span>
                 </div>
             )
+        },
+        {
+            id: 'members',
+            header: 'Équipe',
+            cell: ({ row }) => {
+                const memberIds = row.original.members || [];
+                const members = usersList.filter(u => memberIds.includes(u.uid));
+                const displayMembers = members.slice(0, 3);
+                const remaining = members.length - 3;
+
+                return (
+                    <div className="flex -space-x-2">
+                        {displayMembers.map(m => (
+                            <CustomTooltip key={m.uid} content={m.displayName || m.email}>
+                                <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-300 cursor-help">
+                                    {m.displayName ? m.displayName.charAt(0) : '?'}
+                                </div>
+                            </CustomTooltip>
+                        ))}
+                        {remaining > 0 && (
+                            <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[9px] font-bold text-slate-500">
+                                +{remaining}
+                            </div>
+                        )}
+                        {memberIds.length === 0 && <span className="text-slate-400 text-xs">-</span>}
+                    </div>
+                );
+            }
         },
         {
             accessorKey: 'status',
@@ -73,17 +102,8 @@ export const ProjectList: React.FC<ProjectListProps> = ({
             accessorKey: 'dueDate',
             header: 'Échéance',
             cell: ({ row }) => (
-                <span className="text-slate-600 dark:text-slate-400 font-medium">
+                <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">
                     {new Date(row.original.dueDate).toLocaleDateString()}
-                </span>
-            )
-        },
-        {
-            header: 'Tâches',
-            accessorFn: (row) => row.tasks?.length || 0,
-            cell: ({ row }) => (
-                <span className="text-slate-600 dark:text-slate-400 font-medium ml-4">
-                    {row.original.tasks?.length || 0}
                 </span>
             )
         },
@@ -94,13 +114,13 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                     {canEdit && (
                         <>
                             <CustomTooltip content="Modifier le projet">
-                                <button onClick={(e) => { e.stopPropagation(); onEdit(row.original); }} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100">
+                                <button onClick={(e) => { e.stopPropagation(); onEdit(row.original); }} className="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors">
                                     <Edit className="h-4 w-4" />
                                 </button>
                             </CustomTooltip>
                             {canDeleteResource(user, 'Project') && (
                                 <CustomTooltip content="Supprimer le projet">
-                                    <button onClick={(e) => { e.stopPropagation(); onDelete(row.original.id, row.original.name); }} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100">
+                                    <button onClick={(e) => { e.stopPropagation(); onDelete(row.original.id, row.original.name); }} className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                                         <Trash2 className="h-4 w-4" />
                                     </button>
                                 </CustomTooltip>
@@ -110,7 +130,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                 </div>
             )
         }
-    ], [canEdit, onEdit, onDelete, user]);
+    ], [canEdit, onEdit, onDelete, user, usersList]);
 
     return (
         <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">

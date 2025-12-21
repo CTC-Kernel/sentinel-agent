@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Badge } from '../ui/Badge';
 import { Project, ProjectTask, UserProfile, Risk, Control, Asset, Audit, ProjectMilestone } from '../../types';
-import { CalendarDays, LayoutDashboard, CheckSquare, Target, FileSpreadsheet, ShieldAlert, Server, ClipboardCheck, BrainCircuit, History, MessageSquare, FileText, Download, Copy, Edit, Trash2, Plus, Loader2 } from '../ui/Icons';
+import { CalendarDays, LayoutDashboard, CheckSquare, Target, FileSpreadsheet, ShieldAlert, Server, ClipboardCheck, BrainCircuit, History, MessageSquare, FileText, Download, Copy, Edit, Trash2, Plus, Loader2, Users } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { ProjectDashboard } from './ProjectDashboard';
 import { ProjectMilestones } from './ProjectMilestones';
@@ -20,7 +20,7 @@ import { sanitizeData } from '../../utils/dataSanitizer';
 
 import './gantt.css';
 
-type InspectorTabId = 'overview' | 'tasks' | 'gantt' | 'milestones' | 'dashboard' | 'risks' | 'controls' | 'assets' | 'audits' | 'intelligence' | 'history' | 'comments';
+type InspectorTabId = 'overview' | 'tasks' | 'gantt' | 'milestones' | 'dashboard' | 'risks' | 'controls' | 'assets' | 'audits' | 'intelligence' | 'history' | 'comments' | 'team';
 
 interface ProjectInspectorProps {
     isOpen: boolean;
@@ -164,6 +164,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
         { id: 'audits', label: 'Audits', icon: ClipboardCheck, count: linkedAuditsList.length },
         { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
         { id: 'history', label: 'Historique', icon: History },
+        { id: 'team', label: 'Équipe', icon: Users, count: project.members?.length },
         { id: 'comments', label: 'Commentaires', icon: MessageSquare }
     ];
 
@@ -427,6 +428,38 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
 
                         {inspectorTab === 'comments' && (
                             <CommentSection collectionName="projects" documentId={project.id} />
+                        )}
+
+                        {inspectorTab === 'team' && (
+                            <div className="space-y-4">
+                                {project.members && project.members.length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {usersList.filter(u => project.members?.includes(u.uid)).map(member => (
+                                            <div key={member.uid} className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex items-center gap-4 group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
+                                                <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gradient-to-br from-brand-100 to-indigo-50 dark:from-brand-900/40 dark:to-indigo-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-lg border-2 border-white dark:border-white/5 shadow-sm group-hover:scale-110 transition-transform">
+                                                    {member.photoURL ? (
+                                                        <img src={member.photoURL} alt={member.displayName} className="h-full w-full rounded-full object-cover" />
+                                                    ) : (
+                                                        member.displayName?.charAt(0) || member.email.charAt(0).toUpperCase()
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h4 className="font-bold text-slate-900 dark:text-white truncate">{member.displayName || 'Utilisateur'}</h4>
+                                                    <p className="text-xs text-slate-500 truncate">{member.email}</p>
+                                                    <div className="mt-1.5 inline-flex">
+                                                        <Badge variant="soft" status="neutral" className="text-[10px] px-2 py-0.5 h-auto">{member.role}</Badge>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-64 text-slate-500">
+                                        <Users className="h-12 w-12 mb-2 opacity-50" />
+                                        <p>Aucun membre affecté à ce projet.</p>
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                 </div>

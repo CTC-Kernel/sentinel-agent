@@ -15,8 +15,7 @@ import { RiskTreatmentPlan } from './RiskTreatmentPlan';
 import { Button } from '../ui/button';
 
 import { RichTextEditor } from '../ui/RichTextEditor';
-import { DatePicker } from '../ui/DatePicker';
-import { STANDARD_THREATS, RISK_STRATEGIES, RISK_STATUSES } from '../../data/riskConstants';
+import { STANDARD_THREATS } from '../../data/riskConstants';
 import { AIAssistantHeader } from '../ui/AIAssistantHeader';
 import { aiService } from '../../services/aiService';
 import { RISK_TEMPLATES } from '../../data/riskTemplates';
@@ -480,75 +479,28 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             <Layers className="h-5 w-5 text-brand-500" /> Décision & Plan de Traitement
                         </h3>
 
-                        {/* Strategy & Status */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-3">
-                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Stratégie</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {RISK_STRATEGIES.map(s => (
-                                        <button
-                                            key={s}
-                                            type="button"
-                                            onClick={() => setValue('strategy', s as Risk['strategy'], { shouldDirty: true })}
-                                            className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all ${strategy === s ? 'bg-brand-500 text-white border-brand-500' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700'
-                                                }`}
-                                        >
-                                            {s}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="space-y-3">
-                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Statut Actuel</label>
-                                <div className="flex gap-2">
-                                    {RISK_STATUSES.map(s => (
-                                        <button
-                                            key={s}
-                                            type="button"
-                                            onClick={() => setValue('status', s as Risk['status'], { shouldDirty: true })}
-                                            className={`flex-1 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700'
-                                                }`}
-                                        >
-                                            {s}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                        {/* 1. Main Treatment Plan (Source of Truth) */}
+                        <RiskTreatmentPlan
+                            risk={{ ...existingRisk, ...getValues() } as Risk}
+                            users={usersList}
+                            onUpdate={(treatment) => {
+                                // Sync Form State
+                                setValue('treatment', treatment, { shouldDirty: true });
+                                if (treatment.strategy) setValue('strategy', treatment.strategy, { shouldDirty: true });
+                                if (treatment.status) {
+                                    const statusMap: Record<string, string> = {
+                                        'Terminé': 'Fermé',
+                                        'En cours': 'En cours',
+                                        'Planifié': 'Ouvert',
+                                        'Retard': 'En cours'
+                                    };
+                                    const mappedStatus = statusMap[treatment.status] || 'Ouvert';
+                                    setValue('status', mappedStatus as Risk['status'], { shouldDirty: true });
+                                }
+                            }}
+                        />
 
-                        {/* SLA & Treatment Plan Details */}
-                        {strategy !== 'Accepter' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-xl border border-brand-100 dark:border-brand-900/30 bg-brand-50/50 dark:bg-brand-900/10">
-                                <Controller
-                                    name="treatmentDeadline"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <DatePicker
-                                            label="Échéance du Traitement (SLA)"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            required={(strategy as string) !== 'Accepter'}
-                                            error={errors.treatmentDeadline?.message}
-                                        />
-                                    )}
-                                />
-                                <Controller
-                                    name="treatmentOwnerId"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <CustomSelect
-                                            label="Responsable du Traitement"
-                                            value={field.value || ''}
-                                            onChange={field.onChange}
-                                            options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                                            placeholder="Sélectionner un responsable..."
-                                        />
-                                    )}
-                                />
-                            </div>
-                        )}
-
-                        {/* Justification Field - Required for High Risks Acceptance */}
+                        {/* 2. Justification (Conditional) */}
                         {strategy === 'Accepter' && (probability * impact) >= 12 && (
                             <div className="space-y-2 animate-fade-in p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/30 rounded-xl">
                                 <label className="flex items-center gap-2 text-sm font-bold text-orange-800 dark:text-orange-200">
@@ -574,7 +526,9 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             </div>
                         )}
 
-                        {/* Existing Controls */}
+                        <div className="border-t border-slate-200 dark:border-white/10 pt-6"></div>
+
+                        {/* 3. Existing Controls Link */}
                         <div className="space-y-3">
                             <label className="flex items-center text-sm font-bold text-slate-900 dark:text-white">
                                 <Shield className="h-4 w-4 mr-2 text-brand-500" />
@@ -620,18 +574,6 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                 )}
                             </div>
                             <p className="text-[10px] text-slate-500">Sélectionnez les contrôles déjà en place réduisant le risque.</p>
-                        </div>
-
-                        <div className="border-t border-slate-200 dark:border-white/10 pt-6">
-                            <RiskTreatmentPlan
-                                risk={{ ...existingRisk, ...getValues() } as Risk}
-                                users={usersList}
-                                onUpdate={(treatment) => {
-                                    setValue('strategy', treatment.strategy || 'Atténuer', { shouldDirty: true });
-                                    setValue('status', treatment.status === 'Terminé' ? 'Fermé' : treatment.status === 'En cours' ? 'En cours' : 'Ouvert', { shouldDirty: true });
-                                    setValue('treatment', treatment, { shouldDirty: true });
-                                }}
-                            />
                         </div>
                     </div>
                 )}

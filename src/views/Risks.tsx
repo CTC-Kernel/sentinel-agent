@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Menu, Transition } from '@headlessui/react';
 import {
     FileText, FileSpreadsheet, FileCode, MoreVertical,
-    Loader2, Plus, BrainCircuit, ShieldAlert, Copy, HelpCircle, Filter
+    Loader2, Plus, BrainCircuit, ShieldAlert, Copy, HelpCircle, Filter, LayoutDashboard, List, Grid3x3
 } from 'lucide-react';
 import { OnboardingService } from '../services/onboardingService';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { UserProfile } from '../types';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { usePersistedState } from '../hooks/usePersistedState';
+import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 
 import { useRiskData } from '../hooks/risks/useRiskData';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
@@ -102,7 +103,8 @@ export const Risks: React.FC = () => {
     const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
     const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
     const [confirmData, setConfirmData] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-    const [viewMode, setViewMode] = usePersistedState<'matrix' | 'list' | 'grid' | 'kanban'>('risks-view-mode', 'grid'); // Fixed type to match PremiumPageControl
+    const [viewMode, setViewMode] = usePersistedState<'list' | 'grid'>('risks-view-mode', 'grid');
+    const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'matrix'>('list');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     // const [isImporting, setIsImporting] = useState(false); // Removed local state
@@ -197,198 +199,201 @@ export const Risks: React.FC = () => {
             <PageHeader
                 title={risksTitle}
                 subtitle={risksSubtitle}
-                icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                icon={<ShieldAlert className="h-6 w-6 text-brand-500" strokeWidth={2.5} />}
                 breadcrumbs={[{ label: 'Risques' }]}
                 trustType="integrity"
             />
 
-            {/* Dashboard & Charts */}
-            <div data-tour="risks-stats">
-                <RiskDashboard
-                    risks={filteredRisks}
-                    onFilterChange={(filter) => {
-                        if (!filter) {
-                            // Reset filters logic if needed, or just clear search
-                            setActiveFilters(prev => ({ ...prev, query: '' }));
-                            setFrameworkFilter('');
-                        } else if (filter.type === 'level') {
-                            // This logic might need to be adapted to how useRiskFilters works
-                            // For now, simpler to just log or ignore if useRiskFilters doesn't support direct property set
-                            // But let's try to map it:
-                            // Assuming search query or we need to add explicit filters to useRiskFilters
+            {/* TABS */}
+            <ScrollableTabs
+                tabs={[
+                    { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
+                    { id: 'list', label: "Registre", icon: List },
+                    { id: 'matrix', label: "Matrice", icon: Grid3x3 },
+                ]}
+                activeTab={activeTab}
+                onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'matrix')}
+            />
 
-                        }
-                    }}
-                />
-            </div>
+            {/* OVERVIEW TAB */}
+            {activeTab === 'overview' && (
+                <motion.div variants={slideUpVariants} data-tour="risks-stats">
+                    <RiskDashboard
+                        risks={filteredRisks}
+                        onFilterChange={(filter) => {
+                            if (!filter) {
+                                setActiveFilters(prev => ({ ...prev, query: '' }));
+                                setFrameworkFilter('');
+                            } else if (filter.type === 'level') {
+                                // Logic to handle dashboard filters
+                            }
+                        }}
+                    />
+                </motion.div>
+            )}
 
-            <motion.div variants={slideUpVariants}>
-                <PremiumPageControl
-                    searchQuery={activeFilters.query}
-                    onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
-                    searchPlaceholder="Rechercher une menace, une vulnérabilité..."
-                    viewMode={viewMode}
-                    onViewModeChange={(mode) => setViewMode(mode)}
-                    actions={
-                        <>
-                            {/* Framework Filter */}
-                            <div className="hidden md:block w-48">
-                                <CustomSelect
-                                    value={frameworkFilter}
-                                    onChange={(val) => setFrameworkFilter(val as string)}
-                                    options={[
-                                        { value: '', label: 'Tous les référentiels' },
-                                        { value: 'ISO 27001', label: 'ISO 27001' },
-                                        { value: 'ISO 27005', label: 'ISO 27005' },
-                                        { value: 'EBIOS', label: 'EBIOS RM' },
-                                        { value: 'NIST', label: 'NIST' }
-                                    ]}
-                                    placeholder="Référentiel"
-                                />
-                            </div>
+            {/* FILTER BAR (Visible for List & Matrix) */}
+            {activeTab !== 'overview' && (
+                <motion.div variants={slideUpVariants}>
+                    <PremiumPageControl
+                        searchQuery={activeFilters.query}
+                        onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
+                        searchPlaceholder="Rechercher une menace, une vulnérabilité..."
+                        viewMode={activeTab === 'list' ? viewMode : undefined}
+                        onViewModeChange={activeTab === 'list' ? (mode) => setViewMode(mode as 'list' | 'grid') : undefined}
+                        actions={
+                            <>
+                                {/* Framework Filter */}
+                                <div className="hidden md:block w-48">
+                                    <CustomSelect
+                                        value={frameworkFilter}
+                                        onChange={(val) => setFrameworkFilter(val as string)}
+                                        options={[
+                                            { value: '', label: 'Tous les référentiels' },
+                                            { value: 'ISO 27001', label: 'ISO 27001' },
+                                            { value: 'ISO 27005', label: 'ISO 27005' },
+                                            { value: 'EBIOS', label: 'EBIOS RM' },
+                                            { value: 'NIST', label: 'NIST' }
+                                        ]}
+                                        placeholder="Référentiel"
+                                    />
+                                </div>
 
-                            <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
+                                <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
 
-                            <button
-                                onClick={() => OnboardingService.startRisksTour()}
-                                className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
-                                title="Lancer le tour guidé"
-                            >
-                                <HelpCircle className="h-5 w-5" />
-                            </button>
-
-                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
-
-                            <button
-                                data-tour="risks-filters"
-                                onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                                className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
-                                    ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
-                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
-                                    }`}
-                                title="Filtres avancés"
-                            >
-                                <Filter className="h-5 w-5" />
-                            </button>
-
-                            <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
-
-                            {/* Actions Menu */}
-                            <Menu as="div" className="relative inline-block text-left">
-                                <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
-                                    <MoreVertical className="h-5 w-5" />
-                                </Menu.Button>
-                                <Transition
-                                    as={React.Fragment}
-                                    enter="transition ease-out duration-100"
-                                    enterFrom="transform opacity-0 scale-95"
-                                    enterTo="transform opacity-100 scale-100"
-                                    leave="transition ease-in duration-75"
-                                    leaveFrom="transform opacity-100 scale-100"
-                                    leaveTo="transform opacity-0 scale-95"
+                                <button
+                                    onClick={() => OnboardingService.startRisksTour()}
+                                    className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
+                                    title="Lancer le tour guidé"
                                 >
-                                    <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                        <div className="p-1">
-                                            <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                                Rapports & Exports
-                                            </div>
-                                            <Menu.Item>
-                                                {({ active }) => (
-                                                    <button onClick={handleExportPDF} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                        <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} /> RTP (PDF)
-                                                    </button>
-                                                )}
-                                            </Menu.Item>
-                                            <Menu.Item>
-                                                {({ active }) => (
-                                                    <button onClick={handleExportExecutive} disabled={isGeneratingReport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                        {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} />} Rapport Exécutif
-                                                    </button>
-                                                )}
-                                            </Menu.Item>
-                                            <Menu.Item>
-                                                {({ active }) => (
-                                                    <button onClick={() => exportCSV(filteredRisks)} disabled={isExportingCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                        {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} Export CSV
-                                                    </button>
-                                                )}
-                                            </Menu.Item>
-                                            <Menu.Item>
-                                                {({ active }) => (
-                                                    <button onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                        <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} /> Obsidian
-                                                    </button>
-                                                )}
-                                            </Menu.Item>
-                                        </div>
-                                        {canEdit && (
-                                            <div className="p-1">
-                                                <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Données</div>
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <button
-                                                            onClick={() => fileInputRef.current?.click()}
-                                                            disabled={isImporting}
-                                                            className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                        >
-                                                            {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} Import CSV
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <button onClick={() => setIsTemplateModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                            <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> Templates
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                            </div>
-                                        )}
-                                    </Menu.Items>
-                                </Transition>
-                            </Menu>
+                                    <HelpCircle className="h-5 w-5" />
+                                </button>
 
-                            {/* Main CTA Actions */}
-                            {canEdit && (
-                                <>
-                                    <CustomTooltip content="Lancer l'analyse IA">
-                                        <button
-                                            onClick={async () => {
-                                                setIsAnalyzing(true);
-                                                try {
-                                                    const prompt = `Analyse cette liste de ${filteredRisks.length} risques. Donne-moi 3 insights clés sur les menaces principales et une recommandation stratégique. Format court.`;
-                                                    const analysis = await aiService.chatWithAI(prompt);
-                                                    toast.info("Analyse IA terminée", { description: analysis, duration: 10000 });
-                                                } catch (e) {
-                                                    console.error(e);
-                                                    toast.error("Erreur lors de l'analyse IA");
-                                                } finally {
-                                                    setIsAnalyzing(false);
-                                                }
-                                            }}
-                                            disabled={isAnalyzing}
-                                            className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
-                                        >
-                                            {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
-                                            <span className="hidden xl:inline">{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>
-                                        </button>
-                                    </CustomTooltip>
-                                    <CustomTooltip content="Créer un nouveau risque">
-                                        <button
-                                            data-tour="risks-create"
-                                            onClick={() => { setEditingRisk(null); setCreationMode(true); }}
-                                            className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                                        >
-                                            <Plus className="h-4 w-4" />
-                                            <span className="hidden sm:inline">Nouveau Risque</span>
-                                        </button>
-                                    </CustomTooltip>
-                                </>
-                            )}
-                        </>
-                    }
-                />
-            </motion.div>
+                                <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+
+                                <button
+                                    data-tour="risks-filters"
+                                    onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                                    className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
+                                        ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
+                                        }`}
+                                    title="Filtres avancés"
+                                >
+                                    <Filter className="h-5 w-5" />
+                                </button>
+
+                                <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+
+                                {/* Actions Menu */}
+                                <Menu as="div" className="relative inline-block text-left">
+                                    <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                        <MoreVertical className="h-5 w-5" />
+                                    </Menu.Button>
+                                    <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
+                                        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                            <div className="p-1">
+                                                <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                                    Rapports & Exports
+                                                </div>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button onClick={handleExportPDF} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                            <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} /> RTP (PDF)
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button onClick={handleExportExecutive} disabled={isGeneratingReport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                            {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} />} Rapport Exécutif
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button onClick={() => exportCSV(filteredRisks)} disabled={isExportingCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                            {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} Export CSV
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                            <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} /> Obsidian
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                            </div>
+                                            {canEdit && (
+                                                <div className="p-1">
+                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Données</div>
+                                                    <Menu.Item>
+                                                        {({ active }) => (
+                                                            <button
+                                                                onClick={() => fileInputRef.current?.click()}
+                                                                disabled={isImporting}
+                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                            >
+                                                                {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} Import CSV
+                                                            </button>
+                                                        )}
+                                                    </Menu.Item>
+                                                    <Menu.Item>
+                                                        {({ active }) => (
+                                                            <button onClick={() => setIsTemplateModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                                <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> Templates
+                                                            </button>
+                                                        )}
+                                                    </Menu.Item>
+                                                </div>
+                                            )}
+                                        </Menu.Items>
+                                    </Transition>
+                                </Menu>
+
+                                {/* Main CTA Actions */}
+                                {canEdit && (
+                                    <>
+                                        <CustomTooltip content="Lancer l'analyse IA">
+                                            <button
+                                                onClick={async () => {
+                                                    setIsAnalyzing(true);
+                                                    try {
+                                                        const prompt = `Analyse cette liste de ${filteredRisks.length} risques. Donne-moi 3 insights clés sur les menaces principales et une recommandation stratégique. Format court.`;
+                                                        const analysis = await aiService.chatWithAI(prompt);
+                                                        toast.info("Analyse IA terminée", { description: analysis, duration: 10000 });
+                                                    } catch (e) {
+                                                        console.error(e);
+                                                        toast.error("Erreur lors de l'analyse IA");
+                                                    } finally {
+                                                        setIsAnalyzing(false);
+                                                    }
+                                                }}
+                                                disabled={isAnalyzing}
+                                                className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                                            >
+                                                {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
+                                                <span className="hidden xl:inline">{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>
+                                            </button>
+                                        </CustomTooltip>
+                                        <CustomTooltip content="Créer un nouveau risque">
+                                            <button
+                                                data-tour="risks-create"
+                                                onClick={() => { setEditingRisk(null); setCreationMode(true); }}
+                                                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                                <span className="hidden sm:inline">Nouveau Risque</span>
+                                            </button>
+                                        </CustomTooltip>
+                                    </>
+                                )}
+                            </>
+                        }
+                    />
+                </motion.div>
+            )}
 
             {/* Hidden Input for Import */}
             <input type="file" ref={fileInputRef} hidden accept=".csv" onChange={onFileInputChange} />
@@ -398,16 +403,10 @@ export const Risks: React.FC = () => {
                 {showAdvancedSearch && (
                     <AdvancedSearch
                         onSearch={(filters) => {
-                            // Map generic filters to risk specific filters if needed
-                            setActiveFilters(prev => ({
-                                ...prev,
-                                query: filters.query,
-                                // Add other mappings if useRiskFilters supports them
-                            }));
+                            setActiveFilters(prev => ({ ...prev, query: filters.query }));
                             setShowAdvancedSearch(false);
-                            // Optional: Add toast for unsupported filters if necessary
                             if (filters.status || filters.owner || filters.criticality) {
-                                // toast.info("Filtres avancés appliqués sur la recherche textuelle");
+                                // Optional toast
                             }
                         }}
                         onClose={() => setShowAdvancedSearch(false)}
@@ -415,54 +414,60 @@ export const Risks: React.FC = () => {
                 )}
             </AnimatePresence>
 
-            {/* Main Content */}
-            <motion.div variants={slideUpVariants} className={viewMode === 'list' ? "glass-panel p-6 rounded-2xl border border-glass-border" : ""}>
-                {matrixFilter && (
-                    <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 flex justify-between items-center mb-6">
-                        <span className="text-sm font-bold text-brand-900 dark:text-brand-100">
-                            Filtre Matrice : Probabilité {matrixFilter.p} × Impact {matrixFilter.i}
-                        </span>
-                        <button onClick={() => setMatrixFilter(null)} className="text-xs text-red-500 font-bold hover:underline">Réinitialiser</button>
-                    </div>
-                )}
+            {/* LIST TAB CONTENT */}
+            {activeTab === 'list' && (
+                <motion.div variants={slideUpVariants} className={viewMode === 'list' ? "glass-panel p-6 rounded-2xl border border-glass-border" : ""}>
+                    {viewMode === 'list' ? (
+                        <RiskList
+                            risks={filteredRisks}
+                            loading={loading}
+                            onEdit={handleEdit}
+                            onDelete={(id) => { const r = risks.find(x => x.id === id); handleDelete({ id, name: r?.threat || 'Inconnu' }); }}
+                            onSelect={setSelectedRisk}
+                            canEdit={canEdit}
+                            onBulkDelete={bulkDeleteRisks}
+                            assets={assets}
+                        />
+                    ) : (
+                        <RiskGrid
+                            risks={filteredRisks}
+                            loading={loading}
+                            assets={assets}
+                            onSelect={setSelectedRisk}
+                            emptyStateIcon={ShieldAlert}
+                            emptyStateTitle="Aucun risque identifié"
+                            emptyStateDescription="Commencez par ajouter un risque pour visualiser votre exposition."
+                            emptyStateActionLabel={canEdit ? "Créer un risque" : undefined}
+                            onEmptyStateAction={canEdit ? () => setCreationMode(true) : undefined}
+                        />
+                    )}
+                </motion.div>
+            )}
 
-                {viewMode === 'matrix' && (
+            {/* MATRIX TAB CONTENT */}
+            {activeTab === 'matrix' && (
+                <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-2xl border border-glass-border">
+                    {matrixFilter && (
+                        <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 flex justify-between items-center mb-6">
+                            <span className="text-sm font-bold text-brand-900 dark:text-brand-100">
+                                Filtre Matrice : Probabilité {matrixFilter.p} × Impact {matrixFilter.i}
+                            </span>
+                            <button onClick={() => setMatrixFilter(null)} className="text-xs text-red-500 font-bold hover:underline">Réinitialiser</button>
+                        </div>
+                    )}
                     <RiskMatrix
                         risks={filteredRisks}
                         matrixFilter={matrixFilter}
                         setMatrixFilter={(filter) => {
                             setMatrixFilter(filter);
-                            if (filter) setViewMode('list');
+                            // Optionally switch to list, but here we keep in Matrix logic if it shows details
+                            // If Matrix selection requires showing items, we might need a sub-view in Matrix tab
+                            if (filter) setActiveTab('list'); // Redirect to list to show filtered results
                         }}
                         frameworkFilter={frameworkFilter}
                     />
-                )}
-                {viewMode === 'list' && (
-                    <RiskList
-                        risks={filteredRisks}
-                        loading={loading}
-                        onEdit={handleEdit}
-                        onDelete={(id) => { const r = risks.find(x => x.id === id); handleDelete({ id, name: r?.threat || 'Inconnu' }); }}
-                        onSelect={setSelectedRisk}
-                        canEdit={canEdit}
-                        onBulkDelete={bulkDeleteRisks}
-                        assets={assets}
-                    />
-                )}
-                {viewMode === 'grid' && (
-                    <RiskGrid
-                        risks={filteredRisks}
-                        loading={loading}
-                        assets={assets}
-                        onSelect={setSelectedRisk}
-                        emptyStateIcon={ShieldAlert}
-                        emptyStateTitle="Aucun risque identifié"
-                        emptyStateDescription="Commencez par ajouter un risque pour visualiser votre exposition."
-                        emptyStateActionLabel={canEdit ? "Créer un risque" : undefined}
-                        onEmptyStateAction={canEdit ? () => setCreationMode(true) : undefined}
-                    />
-                )}
-            </motion.div>
+                </motion.div>
+            )}
 
             <RiskInspector
                 isOpen={!!selectedRisk}

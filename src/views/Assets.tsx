@@ -17,7 +17,7 @@ import { AssetList } from '../components/assets/AssetList';
 import { AssetInspector } from '../components/assets/AssetInspector';
 import { AssetDashboard } from '../components/assets/AssetDashboard';
 import { useAssets } from '../hooks/assets/useAssets';
-import { Database, FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, Loader2 } from 'lucide-react';
+import { Database, FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, Loader2, MoreVertical } from 'lucide-react';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { CsvParser } from '../utils/csvUtils';
@@ -25,6 +25,7 @@ import { OnboardingService } from '../services/onboardingService';
 import { aiService } from '../services/aiService';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { usePersistedState } from '../hooks/usePersistedState';
+import { Menu, Transition } from '@headlessui/react';
 
 const Assets: React.FC = () => {
     const { user } = useStore();
@@ -249,43 +250,71 @@ const Assets: React.FC = () => {
                                     <Filter className="h-5 w-5" />
                                 </button>
                                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
-                                <button
-                                    onClick={handleGenerateKioskLink}
-                                    className="hidden sm:flex items-center px-4 py-2.5 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 text-sm font-bold rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all shadow-sm"
-                                >
-                                    <Link className="h-4 w-4 mr-2 text-slate-500" />
-                                    Kiosque
-                                </button>
-                                <button
-                                    data-tour="assets-export"
-                                    onClick={handleExportCSV}
-                                    className="hidden sm:flex items-center px-4 py-2.5 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 text-sm font-bold rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all shadow-sm"
-                                >
-                                    <FileSpreadsheet className="h-4 w-4 mr-2 text-slate-500" />
-                                    Export
-                                </button>
+
                                 {canEdit && (
                                     <>
                                         <CustomTooltip content="Lancer l'analyse IA">
                                             <button
                                                 onClick={handleAnalyze}
                                                 disabled={isAnalyzing}
-                                                className="hidden lg:flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                                                className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
                                             >
                                                 {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
                                                 <span className="hidden xl:inline">{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>
                                             </button>
                                         </CustomTooltip>
-                                        <button
-                                            data-tour="assets-add"
-                                            onClick={() => handleOpenInspector(undefined)}
-                                            disabled={reachedAssetLimit}
-                                            className={`flex items-center px-5 py-2.5 text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-500/20 ${reachedAssetLimit ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
-                                        >
-                                            <Plus className="h-4 w-4 mr-2" />
-                                            <span className="hidden sm:inline">Nouvel Actif</span>
-                                            <span className="sm:hidden">Nouveau</span>
-                                        </button>
+
+                                        <CustomTooltip content="Créer un nouvel actif">
+                                            <button
+                                                data-tour="assets-add"
+                                                onClick={() => handleOpenInspector(undefined)}
+                                                disabled={reachedAssetLimit}
+                                                className={`flex items-center px-4 py-2 text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-500/20 ${reachedAssetLimit ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
+                                            >
+                                                <Plus className="h-4 w-4 mr-2" />
+                                                <span className="hidden sm:inline">Nouvel Actif</span>
+                                                <span className="sm:hidden">Nouveau</span>
+                                            </button>
+                                        </CustomTooltip>
+
+                                        <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
+
+                                        {/* MORE MENU -> Replaces individual Kiosk/Export Buttons */}
+                                        <Menu as="div" className="relative inline-block text-left">
+                                            <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                                <MoreVertical className="h-5 w-5" />
+                                            </Menu.Button>
+                                            <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
+                                                <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                                    <div className="p-1">
+                                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Outils</div>
+                                                        <Menu.Item>
+                                                            {({ active }) => (
+                                                                <button
+                                                                    onClick={handleGenerateKioskLink}
+                                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                >
+                                                                    <Link className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
+                                                                    Lien Kiosque
+                                                                </button>
+                                                            )}
+                                                        </Menu.Item>
+                                                        <Menu.Item>
+                                                            {({ active }) => (
+                                                                <button
+                                                                    data-tour="assets-export"
+                                                                    onClick={handleExportCSV}
+                                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                >
+                                                                    <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />
+                                                                    Export CSV
+                                                                </button>
+                                                            )}
+                                                        </Menu.Item>
+                                                    </div>
+                                                </Menu.Items>
+                                            </Transition>
+                                        </Menu>
                                     </>
                                 )}
                             </>
