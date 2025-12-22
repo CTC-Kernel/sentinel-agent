@@ -149,29 +149,31 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
 
                 {/* Nodes */}
                 {nodes.map((node) => (
-                    <g key={node.id} transform={`translate(${node.x},${node.y})`} className="transition-all duration-500 hover:scale-110 cursor-pointer">
-                        <circle
-                            r={node.type === rootType ? 30 : 20}
-                            className={`${node.type === 'Asset' ? 'fill-blue-100 stroke-blue-500 dark:fill-blue-900/50 dark:stroke-blue-400' :
-                                node.type === 'Risk' ? 'fill-red-100 stroke-red-500 dark:fill-red-900/50 dark:stroke-red-400' :
-                                    'fill-emerald-100 stroke-emerald-500 dark:fill-emerald-900/50 dark:stroke-emerald-400'
-                                } shadow-lg`}
-                            strokeWidth="2"
-                        />
-                        <foreignObject x="-12" y="-12" width="24" height="24">
-                            <div className="flex items-center justify-center h-full w-full text-foreground">
-                                {node.type === 'Asset' && <Server className="h-5 w-5" />}
-                                {node.type === 'Risk' && <ShieldAlert className="h-5 w-5" />}
-                                {node.type === 'Control' && <CheckCircle2 className="h-5 w-5" />}
-                            </div>
-                        </foreignObject>
-                        <text
-                            y={node.type === rootType ? 45 : 35}
-                            textAnchor="middle"
-                            className="text-[10px] font-bold fill-muted-foreground pointer-events-none uppercase tracking-wider"
-                        >
-                            {node.label.length > 15 ? node.label.substring(0, 15) + '...' : node.label}
-                        </text>
+                    <g key={node.id} transform={`translate(${node.x},${node.y})`}>
+                        <g className="transition-all duration-500 hover:scale-110 cursor-pointer">
+                            <circle
+                                r={node.type === rootType ? 30 : 20}
+                                className={`${node.type === 'Asset' ? 'fill-blue-100 stroke-blue-500 dark:fill-blue-900/50 dark:stroke-blue-400' :
+                                    node.type === 'Risk' ? 'fill-red-100 stroke-red-500 dark:fill-red-900/50 dark:stroke-red-400' :
+                                        'fill-emerald-100 stroke-emerald-500 dark:fill-emerald-900/50 dark:stroke-emerald-400'
+                                    } shadow-lg`}
+                                strokeWidth="2"
+                            />
+                            <foreignObject x="-12" y="-12" width="24" height="24">
+                                <div className="flex items-center justify-center h-full w-full text-foreground">
+                                    {node.type === 'Asset' && <Server className="h-5 w-5" />}
+                                    {node.type === 'Risk' && <ShieldAlert className="h-5 w-5" />}
+                                    {node.type === 'Control' && <CheckCircle2 className="h-5 w-5" />}
+                                </div>
+                            </foreignObject>
+                            <text
+                                y={node.type === rootType ? 45 : 35}
+                                textAnchor="middle"
+                                className="text-[10px] font-bold fill-muted-foreground pointer-events-none uppercase tracking-wider"
+                            >
+                                {node.label.length > 15 ? node.label.substring(0, 15) + '...' : node.label}
+                            </text>
+                        </g>
                     </g>
                 ))}
             </svg>

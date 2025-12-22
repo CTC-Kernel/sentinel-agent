@@ -11,7 +11,7 @@ import { useDashboardInsights } from '../hooks/dashboard/useDashboardInsights';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { hasPermission } from '../utils/permissions';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
-import { useTour } from '../hooks/useTour';
+// useTour hook removed
 
 // Widgets
 import { DashboardHeader } from '../components/dashboard/widgets/DashboardHeader';
@@ -32,7 +32,7 @@ import { OperationalDashboardView } from '../components/dashboard/views/Operatio
 
 
 export const Dashboard: React.FC = () => {
-    useTour();
+    // useTour removed in favor of OnboardingTrigger
     const [organizationName, setOrganizationName] = useState<string>('');
     const [organizationLogo, setOrganizationLogo] = useState<string | undefined>(undefined);
     const [error, setError] = useState<string | null>(null);

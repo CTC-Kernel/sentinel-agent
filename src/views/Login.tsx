@@ -114,7 +114,7 @@ export const Login: React.FC = () => {
         try {
             const hint = mfaResolver.hints.find(h => h.factorId === TotpMultiFactorGenerator.FACTOR_ID);
             if (!hint) {
-                throw new Error("Aucun facteur TOTP trouvé.");
+                throw new Error(t('auth.errors.totpNotFound'));
             }
             const multiFactorAssertion = TotpMultiFactorGenerator.assertionForSignIn(hint.uid, mfaCode);
             await mfaResolver.resolveSignIn(multiFactorAssertion);
@@ -250,7 +250,7 @@ export const Login: React.FC = () => {
 
             const code = (error as { code?: string })?.code;
             if (code === 'auth/unauthorized-domain' || code === 'auth/operation-not-allowed') {
-                setErrorMsg("Environnement restreint : Google Auth non disponible ici.");
+                setErrorMsg(t('auth.errors.restrictedEnv'));
             } else if (code === 'auth/popup-closed-by-user' || code === 'cancelled-popup-request') {
                 // User cancelled, no error message needed
                 // User cancelled login
@@ -315,7 +315,7 @@ export const Login: React.FC = () => {
                         <div className="w-full mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex flex-col gap-2 text-xs font-bold text-red-600 shadow-sm animate-slide-up">
                             <p className="flex items-center justify-center"><AlertTriangle className="h-4 w-4 mr-2" /> {errorMsg}</p>
                             {errorMsg.includes('restreint') && (
-                                <p className="text-[10px] font-normal text-red-500 text-center mt-1">Contactez l'administrateur si le problème persiste.</p>
+                                <p className="text-[10px] font-normal text-red-500 text-center mt-1">{t('auth.errors.contactAdmin')}</p>
                             )}
                         </div>
                     )}
@@ -407,25 +407,25 @@ export const Login: React.FC = () => {
             </div>
 
             <div className="py-6 text-center relative z-10 space-y-2 px-4 sm:px-6 max-w-full">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Développé par Cyber Threat Consulting</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{t('auth.footer.developedBy')}</p>
                 <p className="text-sm text-slate-500 break-words">
-                    Ce site est protégé par reCAPTCHA.
+                    {t('auth.footer.recaptcha')}
                     <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-slate-600 ml-1">
-                        Politique de confidentialité
+                        {t('auth.footer.privacy')}
                     </button>
-                    {' '}et{' '}
+                    {' '}{t('common.and')}{' '}
                     <button onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
-                        Conditions d'utilisation
+                        {t('auth.footer.terms')}
                     </button>
                     ,{' '}
                     <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
-                        CGV
+                        {t('auth.footer.cgv')}
                     </button>
-                    {' '}et{' '}
+                    {' '}{t('common.and')}{' '}
                     <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
-                        Mentions Légales
+                        {t('auth.footer.legal')}
                     </button>
-                    {' '}s'appliquent.
+                    {' '}{t('auth.footer.apply')}
                 </p>
             </div>
 
@@ -500,7 +500,7 @@ export const Login: React.FC = () => {
                             <form onSubmit={handleMfaVerification} className="space-y-6">
                                 <div>
                                     <FloatingLabelInput
-                                        label="Code de vérification"
+                                        label={t('auth.mfa.codeLabel')}
                                         name="mfaCode"
                                         type="text"
                                         value={mfaCode}

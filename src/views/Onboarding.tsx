@@ -68,11 +68,11 @@ export const Onboarding: React.FC = () => {
         setIsScanning(true);
         setManualMode(false);
         const steps = [
-            t('onboarding.scan.step1') || "Initialisation des scanners...",
-            t('onboarding.scan.step2') || "Analyse des enregistrements DNS...",
-            t('onboarding.scan.step3') || "Détection des empreintes Cloud...",
-            t('onboarding.scan.step4') || "Vérification des endpoints SaaS...",
-            t('onboarding.scan.step5') || "Finalisation du rapport..."
+            t('onboarding.scan.step1'),
+            t('onboarding.scan.step2'),
+            t('onboarding.scan.step3'),
+            t('onboarding.scan.step4'),
+            t('onboarding.scan.step5')
         ];
 
         steps.forEach((text, i) => {
@@ -87,7 +87,7 @@ export const Onboarding: React.FC = () => {
                 { name: 'Salesforce', type: 'SaaS' }
             ]);
             setIsScanning(false);
-            addToast("4 actifs détectés automatiquement", "success");
+            addToast(t('onboarding.toasts.assetsDetected', { count: 4 }), "success");
         }, 4000);
     };
 
@@ -98,7 +98,7 @@ export const Onboarding: React.FC = () => {
 
     const handleFinalize = async () => {
         if (!user?.organizationId) {
-            addToast("Erreur : Organisation manquante", "error");
+            addToast(t('onboarding.toasts.orgMissing'), "error");
             return;
         }
         setLoading(true);
@@ -142,15 +142,15 @@ export const Onboarding: React.FC = () => {
     const handleInviteUser = () => {
         const trimmedEmail = inviteEmail.trim().toLowerCase();
         if (!trimmedEmail) {
-            addToast("Veuillez saisir une adresse email.", "error");
+            addToast(t('onboarding.toasts.emailRequired'), "error");
             return;
         }
         if (!isValidEmail(trimmedEmail)) {
-            addToast("Adresse email invalide.", "error");
+            addToast(t('onboarding.toasts.emailInvalid'), "error");
             return;
         }
         if (invitedUsers.some(u => u.email === trimmedEmail)) {
-            addToast("Cette adresse a déjà été ajoutée.", "info");
+            addToast(t('onboarding.toasts.emailDuplicate'), "info");
             return;
         }
 
@@ -178,7 +178,7 @@ export const Onboarding: React.FC = () => {
                 };
 
                 await OnboardingService.sendInvites(currentUserProfile, invitedUsers);
-                addToast(`${invitedUsers.length} invitations envoyées`, "success");
+                addToast(t('onboarding.toasts.invitesSent', { count: invitedUsers.length }), "success");
             } catch (e) {
                 ErrorLogger.handleErrorWithToast(e, 'Onboarding.step4', 'INVITE_FAILED');
             } finally {
@@ -213,7 +213,7 @@ export const Onboarding: React.FC = () => {
                 };
 
                 await OnboardingService.createInitialAssets(currentUserProfile, initialAssets);
-                addToast(`${initialAssets.length} actifs créés`, "success");
+                addToast(t('onboarding.toasts.assetsCreated', { count: initialAssets.length }), "success");
             } catch (e) {
                 ErrorLogger.handleErrorWithToast(e, 'Onboarding.step5', 'CREATE_FAILED');
             } finally {
@@ -290,7 +290,7 @@ export const Onboarding: React.FC = () => {
 
             await OnboardingService.sendJoinRequest(userProfile, orgId, orgName, form.getValues('displayName'));
             setJoinRequestSent(true);
-            addToast("Demande envoyée avec succès", "success");
+            addToast(t('onboarding.toasts.joinSent'), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleJoinRequest', 'CREATE_FAILED');
         } finally {
@@ -340,12 +340,12 @@ export const Onboarding: React.FC = () => {
 
             // Move to Step 2 (Plan Selection)
             setStep(2);
-            addToast("Organisation créée avec succès !", "success");
+            addToast(t('onboarding.toasts.orgCreated'), "success");
 
         } catch (error: unknown) {
             ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleStep1', 'CREATE_FAILED');
             const errorMessage = error instanceof Error ? error.message : String(error);
-            setError(errorMessage || "Une erreur est survenue lors de la création de l'organisation.");
+            setError(errorMessage || t('onboarding.toasts.createError'));
         } finally {
             setLoading(false);
         }
@@ -452,7 +452,7 @@ export const Onboarding: React.FC = () => {
                                             </div>
                                         ))}
                                         {searchResults.length === 0 && searchQuery && !loading && (
-                                            <p className="text-center text-slate-600 text-sm py-4">Aucune organisation trouvée.</p>
+                                            <p className="text-center text-slate-600 text-sm py-4">{t('onboarding.toasts.emptySearch') || "Aucune organisation trouvée."}</p>
                                         )}
                                     </div>
                                 </>
@@ -495,7 +495,7 @@ export const Onboarding: React.FC = () => {
                                                 label={t('onboarding.form.orgName')}
                                                 icon={ShieldCheck}
                                                 {...form.register('organizationName')}
-                                                placeholder="Ex: Acme Corp"
+                                                placeholder={t('onboarding.form.orgPlaceholder')}
                                                 error={form.formState.errors.organizationName?.message}
                                             />
                                         </div>
@@ -505,7 +505,7 @@ export const Onboarding: React.FC = () => {
                                             label={t('onboarding.form.fullName')}
                                             icon={UserIcon}
                                             {...form.register('displayName')}
-                                            placeholder="Votre nom"
+                                            placeholder={t('onboarding.form.namePlaceholder')}
                                             error={form.formState.errors.displayName?.message}
                                         />
                                     </div>
@@ -514,12 +514,12 @@ export const Onboarding: React.FC = () => {
                                             label={t('onboarding.form.department')}
                                             icon={Briefcase}
                                             {...form.register('department')}
-                                            placeholder="Ex: IT / Sécurité"
+                                            placeholder={t('onboarding.form.deptPlaceholder')}
                                             error={form.formState.errors.department?.message}
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="industry" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Secteur</label>
+                                        <label htmlFor="industry" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('onboarding.form.industry')}</label>
                                         <div className="relative">
                                             <Controller
                                                 name="industry"
@@ -527,12 +527,12 @@ export const Onboarding: React.FC = () => {
                                                 render={({ field }) => (
                                                     <CustomSelect
                                                         options={[
-                                                            { value: "tech", label: "Technologie / SaaS" },
-                                                            { value: "finance", label: "Finance / Banque" },
-                                                            { value: "health", label: "Santé" },
-                                                            { value: "retail", label: "Retail / E-commerce" },
-                                                            { value: "public", label: "Secteur Public" },
-                                                            { value: "other", label: "Autre" }
+                                                            { value: "tech", label: t('onboarding.industries.tech') },
+                                                            { value: "finance", label: t('onboarding.industries.finance') },
+                                                            { value: "health", label: t('onboarding.industries.health') },
+                                                            { value: "retail", label: t('onboarding.industries.retail') },
+                                                            { value: "public", label: t('onboarding.industries.public') },
+                                                            { value: "other", label: t('onboarding.industries.other') }
                                                         ]}
                                                         value={field.value || ''}
                                                         onChange={field.onChange}
@@ -544,7 +544,7 @@ export const Onboarding: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {error && <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl flex items-start gap-3"><AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" /><div><p className="text-sm font-semibold text-red-900 dark:text-red-200">Erreur de configuration</p><p className="text-xs text-red-700 dark:text-red-300 mt-1">{error}</p></div></div>}
+                                    {error && <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl flex items-start gap-3"><AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" /><div><p className="text-sm font-semibold text-red-900 dark:text-red-200">{t('onboarding.toasts.configError')}</p><p className="text-xs text-red-700 dark:text-red-300 mt-1">{error}</p></div></div>}
 
                                     <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
                                         <div className="flex items-center h-5 mt-0.5">
@@ -558,7 +558,7 @@ export const Onboarding: React.FC = () => {
                                         </div>
                                     </div>
                                     <label htmlFor="terms" className="text-sm text-slate-600 dark:text-slate-400">
-                                        {t('onboarding.form.terms')} <button type="button" onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="text-brand-600 dark:text-brand-400 font-bold hover:underline">Conditions</button>...
+                                        {t('onboarding.form.terms')} <button type="button" onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="text-brand-600 dark:text-brand-400 font-bold hover:underline">{t('onboarding.form.conditions')}</button>...
                                     </label>
 
                                     <div className="pt-4 flex gap-3">
@@ -580,6 +580,8 @@ export const Onboarding: React.FC = () => {
                                         {(['discovery', 'professional', 'enterprise'] as const).map((planId) => {
                                             const plan = PLANS[planId];
                                             const isSelected = selectedPlan === planId;
+                                            const features = t(`pricing.plans.${planId}Features`, { returnObjects: true }) as string[];
+
                                             return (
                                                 <div
                                                     key={planId}
@@ -592,10 +594,10 @@ export const Onboarding: React.FC = () => {
                                                     <div className="flex justify-between items-start mb-3">
                                                         <div>
                                                             <h3 className={`font-bold text-lg ${isSelected ? 'text-brand-700 dark:text-brand-400' : 'text-slate-900 dark:text-white'}`}>
-                                                                {plan.name}
+                                                                {t(`pricing.plans.${planId}`)}
                                                             </h3>
                                                             <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mt-1">
-                                                                {plan.description}
+                                                                {t(`pricing.plans.${planId}Desc`)}
                                                             </p>
                                                         </div>
                                                         <div className="text-right">
@@ -609,7 +611,7 @@ export const Onboarding: React.FC = () => {
                                                     <div className="h-px w-full bg-slate-100 dark:bg-white/5 my-4" />
 
                                                     <ul className="space-y-2">
-                                                        {plan.featuresList.slice(0, 3).map((f, i) => (
+                                                        {features && features.slice(0, 3).map((f, i) => (
                                                             <li key={i} className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
                                                                 <div className={`mr-2 p-0.5 rounded-full ${isSelected ? 'bg-brand-100 dark:bg-slate-900/30 text-brand-600 dark:text-brand-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-600'}`}>
                                                                     <Check className="h-2.5 w-2.5" strokeWidth={3} />
@@ -691,9 +693,9 @@ export const Onboarding: React.FC = () => {
                                     </div>
 
                                     <div className="pt-4 flex gap-3">
-                                        <button onClick={() => setStep(2)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Retour</button>
+                                        <button onClick={() => setStep(2)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
                                         <button onClick={handleStep3} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
-                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Continuer <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
+                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                         </button>
                                     </div>
                                 </div>
@@ -712,7 +714,7 @@ export const Onboarding: React.FC = () => {
                                                     value={inviteEmail}
                                                     onChange={e => setInviteEmail(e.target.value)}
                                                     onKeyDown={e => e.key === 'Enter' && handleInviteUser()}
-                                                    placeholder="email@entreprise.com"
+                                                    placeholder={t('onboarding.form.emailPlaceholder')}
                                                 />
                                             </div>
                                             <div className="relative flex-1">
@@ -720,12 +722,12 @@ export const Onboarding: React.FC = () => {
                                                     value={inviteRole}
                                                     onChange={(val) => setInviteRole(val as string)}
                                                     options={[
-                                                        { value: "user", label: "Collaborateur" },
-                                                        { value: "admin", label: "Admin" },
-                                                        { value: "rssi", label: "RSSI" },
-                                                        { value: "auditor", label: "Auditeur" },
-                                                        { value: "project_manager", label: "Chef Projet" },
-                                                        { value: "direction", label: "Direction" }
+                                                        { value: "user", label: t('onboarding.roles.collaborator') },
+                                                        { value: "admin", label: t('onboarding.roles.admin') },
+                                                        { value: "rssi", label: t('onboarding.roles.rssi') },
+                                                        { value: "auditor", label: t('onboarding.roles.auditor') },
+                                                        { value: "project_manager", label: t('onboarding.roles.project_manager') },
+                                                        { value: "direction", label: t('onboarding.roles.direction') }
                                                     ]}
                                                     placeholder={t('onboarding.form.role')}
                                                     label=""
@@ -759,9 +761,9 @@ export const Onboarding: React.FC = () => {
                                     )}
 
                                     <div className="pt-4 flex gap-3">
-                                        <button onClick={() => setStep(3)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Retour</button>
+                                        <button onClick={() => setStep(3)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
                                         <button onClick={handleStep4} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
-                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{invitedUsers.length > 0 ? 'Inviter & Continuer' : 'Passer cette étape'} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
+                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{invitedUsers.length > 0 ? t('onboarding.actions.inviteContinue') : t('onboarding.actions.skip')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                         </button>
                                     </div>
                                 </div>
@@ -814,9 +816,9 @@ export const Onboarding: React.FC = () => {
                                                                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center mb-4 backdrop-blur-sm">
                                                                     <Activity className="h-6 w-6" />
                                                                 </div>
-                                                                <h3 className="font-bold text-lg mb-1">Scan Automatique</h3>
+                                                                <h3 className="font-bold text-lg mb-1">{t('onboarding.scan.auto') || "Scan Automatique"}</h3>
                                                                 <p className="text-white/80 text-xs leading-relaxed">
-                                                                    Détecter automatiquement les actifs via l'empreinte DNS et Cloud.
+                                                                    {t('onboarding.scan.autoDesc') || "Détecter automatiquement les actifs via l'empreinte DNS et Cloud."}
                                                                 </p>
                                                             </div>
                                                         </button>
@@ -828,9 +830,9 @@ export const Onboarding: React.FC = () => {
                                                             <div className="w-10 h-10 bg-slate-100 dark:bg-white/10 rounded-xl flex items-center justify-center mb-4 text-slate-600 dark:text-slate-300">
                                                                 <Plus className="h-6 w-6" />
                                                             </div>
-                                                            <h3 className="font-bold text-slate-900 dark:text-white text-lg mb-1">Saisie Manuelle</h3>
+                                                            <h3 className="font-bold text-slate-900 dark:text-white text-lg mb-1">{t('onboarding.steps.manual')}</h3>
                                                             <p className="text-slate-500 text-xs leading-relaxed">
-                                                                Ajouter vos serveurs, SaaS et postes de travail un par un.
+                                                                {t('onboarding.steps.manualDesc') || "Ajouter vos serveurs, SaaS et postes de travail un par un."}
                                                             </p>
                                                         </button>
                                                     </div>
@@ -841,11 +843,11 @@ export const Onboarding: React.FC = () => {
                                                         <div className="grid grid-cols-3 gap-2">
                                                             <div className="col-span-2 relative">
                                                                 <FloatingLabelInput
-                                                                    label="Nom (ex: Serveur Prod)"
+                                                                    label={t('onboarding.steps.assetName') + " (ex: Serveur Prod)"}
                                                                     icon={Server}
                                                                     value={assetName}
                                                                     onChange={e => setAssetName(e.target.value)}
-                                                                    placeholder="Nom (ex: Serveur Prod)"
+                                                                    placeholder={t('onboarding.steps.assetName')}
                                                                 />
                                                             </div>
                                                             <CustomSelect
@@ -853,15 +855,15 @@ export const Onboarding: React.FC = () => {
                                                                 onChange={(val) => setAssetType(val as string)}
                                                                 options={[
                                                                     { value: 'SaaS', label: 'SaaS' },
-                                                                    { value: 'Server', label: 'Serveur' },
-                                                                    { value: 'Laptop', label: 'Ordinateur' },
-                                                                    { value: 'Data', label: 'Données' }
+                                                                    { value: 'Server', label: 'Server' },
+                                                                    { value: 'Laptop', label: 'Device/Laptop' },
+                                                                    { value: 'Data', label: 'Data' }
                                                                 ]}
                                                                 label=""
                                                             />
                                                         </div>
                                                         <button onClick={handleAddAsset} disabled={!assetName} className="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50">
-                                                            <Plus className="h-4 w-4" /> Ajouter
+                                                            <Plus className="h-4 w-4" /> {t('onboarding.steps.addAsset')}
                                                         </button>
                                                     </div>
                                                 )}

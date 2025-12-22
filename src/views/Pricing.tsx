@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
 import { useStore } from '../store';
 import { Check, ChevronRight, Shield, Zap, Building2, HelpCircle, Info, ChevronDown, type LucideIcon } from 'lucide-react';
@@ -16,6 +17,7 @@ import { LegalModal } from '../components/ui/LegalModal';
 
 const Pricing = () => {
   const { user, addToast } = useStore();
+  const { t } = useTranslation();
   const [isAnnual, setIsAnnual] = useState(true);
   const [loading, setLoading] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -40,45 +42,45 @@ const Pricing = () => {
   };
 
   const faqs = [
-    { q: "Puis-je changer de plan ?", a: "Oui, à tout moment depuis vos paramètres. Le prorata est calculé automatiquement." },
-    { q: "Comment sont sécurisées mes données ?", a: "Chiffrement AES-256, hébergement en Europe, infrastructure certifiée ISO 27001." },
-    { q: "Qu'est-ce que la Marque Blanche ?", a: "Vos rapports PDF sans le logo Sentinel GRC. Disponible sur les plans Pro et Enterprise." },
-    { q: "Y a-t-il un engagement ?", a: "Aucun engagement sur les plans mensuels. L'engagement est d'un an sur les plans annuels avec une remise de 20%." },
+    { q: t('pricing.faqs.q1'), a: t('pricing.faqs.a1') },
+    { q: t('pricing.faqs.q2'), a: t('pricing.faqs.a2') },
+    { q: t('pricing.faqs.q3'), a: t('pricing.faqs.a3') },
+    { q: t('pricing.faqs.q4'), a: t('pricing.faqs.a4') },
   ];
 
   const features = [
-    // Limites Générales
-    { name: 'Utilisateurs inclus', discovery: '3', professional: '10', enterprise: 'Illimité', tooltip: "Nombre de comptes utilisateurs pouvant accéder à la plateforme." },
-    { name: 'Actifs gérés', discovery: '50', professional: '250', enterprise: 'Illimité', tooltip: "Nombre total d'actifs (serveurs, applications, personnes, etc.) dans l'inventaire." },
-    { name: 'Projets simultanés', discovery: '1', professional: '10', enterprise: 'Illimité', tooltip: "Nombre de projets de conformité ou d'audit actifs en parallèle." },
-    { name: 'Stockage sécurisé', discovery: '1 Go', professional: '10 Go', enterprise: '100 Go', tooltip: "Espace de stockage pour vos politiques, procédures et preuves d'audit." },
+    // General Limits
+    { name: t('pricing.featuresList.users'), discovery: '3', professional: '10', enterprise: t('pricing.unlimited'), tooltip: t('pricing.featuresList.users_tooltip') },
+    { name: t('pricing.featuresList.assets'), discovery: '50', professional: '250', enterprise: t('pricing.unlimited'), tooltip: t('pricing.featuresList.assets_tooltip') },
+    { name: t('pricing.featuresList.projects'), discovery: '1', professional: '10', enterprise: t('pricing.unlimited'), tooltip: t('pricing.featuresList.projects_tooltip') },
+    { name: t('pricing.featuresList.storage'), discovery: '1 Go', professional: '10 Go', enterprise: '100 Go', tooltip: t('pricing.featuresList.storage_tooltip') },
 
-    // Gestion des Risques & Conformité
-    { name: 'Méthode ISO 27005', discovery: true, professional: true, enterprise: true, tooltip: "Analyse de risques complète : Menaces, Vulnérabilités, Scénarios, Impact/Probabilité." },
-    { name: 'Bibliothèque de Menaces', discovery: true, professional: true, enterprise: true, tooltip: "Catalogue pré-rempli de menaces et vulnérabilités standards." },
-    { name: 'Calcul du Risque', discovery: true, professional: true, enterprise: true, tooltip: "Calcul automatique du risque brut et résiduel." },
-    { name: 'Plan de Traitement (RTP)', discovery: true, professional: true, enterprise: true, tooltip: "Suivi des plans d'action pour réduire les risques." },
-    { name: 'Conformité ISO 27001:2022', discovery: true, professional: true, enterprise: true, tooltip: "Suivi complet de l'Annexe A et génération du SoA." },
+    // Risk & Compliance
+    { name: t('pricing.featuresList.iso27005'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.iso27005_tooltip') },
+    { name: t('pricing.featuresList.threats'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.threats_tooltip') },
+    { name: t('pricing.featuresList.riskCalc'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.riskCalc_tooltip') },
+    { name: t('pricing.featuresList.rtp'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.rtp_tooltip') },
+    { name: t('pricing.featuresList.iso27001'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.iso27001_tooltip') },
 
-    // Fonctionnalités Avancées
-    { name: 'Assistant IA (Sentinel)', discovery: true, professional: true, enterprise: true, tooltip: "Aide à la rédaction de politiques et suggestion de mesures de sécurité." },
-    { name: 'Gestion Documentaire', discovery: true, professional: true, enterprise: true, tooltip: "Cycle de vie des documents, versionning et approbation." },
-    { name: 'Rapports PDF Standards', discovery: true, professional: true, enterprise: true, tooltip: "Export des rapports d'audit et du SoA au format PDF." },
-    { name: 'Rapports Marque Blanche', discovery: false, professional: true, enterprise: true, tooltip: "Suppression du logo Sentinel GRC et personnalisation avec votre logo." },
-    { name: 'Modèles Personnalisables', discovery: false, professional: true, enterprise: true, tooltip: "Création de vos propres modèles de documents et de risques." },
+    // Advanced Features
+    { name: t('pricing.featuresList.ai'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.ai_tooltip') },
+    { name: t('pricing.featuresList.docs'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.docs_tooltip') },
+    { name: t('pricing.featuresList.pdfstd'), discovery: true, professional: true, enterprise: true, tooltip: t('pricing.featuresList.pdfstd_tooltip') },
+    { name: t('pricing.featuresList.pdfwhite'), discovery: false, professional: true, enterprise: true, tooltip: t('pricing.featuresList.pdfwhite_tooltip') },
+    { name: t('pricing.featuresList.templates'), discovery: false, professional: true, enterprise: true, tooltip: t('pricing.featuresList.templates_tooltip') },
 
     // Enterprise & Support
-    { name: 'Support Email', discovery: 'Standard', professional: 'Prioritaire', enterprise: 'Dédié 24/7' },
-    { name: 'API REST', discovery: false, professional: false, enterprise: true, tooltip: "Accès complet à l'API pour l'automatisation et l'intégration." },
-    { name: 'SSO (SAML / OIDC)', discovery: false, professional: false, enterprise: true, tooltip: "Connexion unique avec votre fournisseur d'identité d'entreprise." },
-    { name: 'Logs d\'Audit Avancés', discovery: false, professional: false, enterprise: true, tooltip: "Traçabilité complète de toutes les actions utilisateurs pour la conformité." },
-    { name: 'Onboarding Assisté', discovery: false, professional: false, enterprise: true, tooltip: "Accompagnement personnalisé pour la configuration initiale." },
+    { name: t('pricing.featuresList.support'), discovery: 'Standard', professional: 'Prioritaire', enterprise: 'Dédié 24/7' },
+    { name: t('pricing.featuresList.api'), discovery: false, professional: false, enterprise: true, tooltip: t('pricing.featuresList.api_tooltip') },
+    { name: t('pricing.featuresList.sso'), discovery: false, professional: false, enterprise: true, tooltip: t('pricing.featuresList.sso_tooltip') },
+    { name: t('pricing.featuresList.auditLogs'), discovery: false, professional: false, enterprise: true, tooltip: t('pricing.featuresList.auditLogs_tooltip') },
+    { name: t('pricing.featuresList.onboarding'), discovery: false, professional: false, enterprise: true, tooltip: t('pricing.featuresList.onboarding_tooltip') },
   ];
 
   const plans: { id: PlanType; name: string; icon: LucideIcon; popular?: boolean }[] = [
-    { id: 'discovery', name: 'Discovery', icon: Shield },
-    { id: 'professional', name: 'Professional', icon: Zap, popular: true },
-    { id: 'enterprise', name: 'Enterprise', icon: Building2 },
+    { id: 'discovery', name: t('pricing.plans.discovery'), icon: Shield },
+    { id: 'professional', name: t('pricing.plans.professional'), icon: Zap, popular: true },
+    { id: 'enterprise', name: t('pricing.plans.enterprise'), icon: Building2 },
   ];
 
   return (
@@ -89,15 +91,15 @@ const Pricing = () => {
       className="space-y-10 min-w-0"
     >
       <MasterpieceBackground />
-      <SEO title="Abonnement" description="Gérez votre abonnement et accédez aux fonctionnalités premium" />
+      <SEO title={t('pricing.title')} description={t('pricing.subtitle')} />
       {/* Header with Premium Typography */}
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 min-w-0">
         <div className="min-w-0">
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white font-display tracking-tight leading-tight">
-            Abonnement
+            {t('pricing.title')}
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 mt-2 font-medium max-w-xl leading-relaxed">
-            Des outils puissants pour votre conformité, adaptés à chaque étape de votre croissance.
+            {t('pricing.subtitle')}
           </p>
         </div>
 
@@ -110,15 +112,15 @@ const Pricing = () => {
             onClick={() => setIsAnnual(false)}
             className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 rounded-full ${!isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
-            Mensuel
+            {t('pricing.monthly')}
           </button>
           <button
             onClick={() => setIsAnnual(true)}
             className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 rounded-full flex items-center gap-2 ${isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
-            Annuel
+            {t('pricing.annual')}
             <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full shadow-sm shadow-emerald-500/20 tracking-wide">
-              -20%
+              {t('pricing.discount')}
             </span>
           </button>
         </div>
@@ -149,7 +151,7 @@ const Pricing = () => {
                   </div>
                   {popular && (
                     <span className="bg-blue-50 dark:bg-slate-900 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold px-3 py-1 rounded-full border border-blue-100 dark:border-blue-500/20 uppercase tracking-widest">
-                      Populaire
+                      {t('pricing.popular')}
                     </span>
                   )}
                 </div>
@@ -162,13 +164,13 @@ const Pricing = () => {
                 <div className="my-8">
                   <div className="flex items-baseline gap-1">
                     <span className="text-5xl font-bold text-slate-900 dark:text-white font-display tracking-tighter">
-                      {price === 0 ? 'Gratuit' : `${price}€`}
+                      {price === 0 ? t('pricing.free') : `${price}€`}
                     </span>
-                    {price > 0 && <span className="text-slate-600 font-medium text-lg">HT/mois</span>}
+                    {price > 0 && <span className="text-slate-600 font-medium text-lg">{t('pricing.htMonth')}</span>}
                   </div>
                   {isAnnual && price > 0 && (
                     <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-2">
-                      Facturé {plan.priceYearly}€ HT par an
+                      {t('pricing.billedYearly', { price: plan.priceYearly })}
                     </p>
                   )}
                 </div>
@@ -187,7 +189,7 @@ const Pricing = () => {
                 {Capacitor.isNativePlatform() ? (
                   <div className="w-full py-4 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-center">
                     <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                      La gestion des abonnements est disponible uniquement sur la version web de Sentinel GRC.
+                      {t('pricing.mobileWarning')}
                     </p>
                   </div>
                 ) : (
@@ -203,7 +205,7 @@ const Pricing = () => {
                       <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <>
-                        {price === 0 ? 'Commencer gratuitement' : 'Choisir ce plan'}
+                        {price === 0 ? t('pricing.startFree') : t('pricing.choose')}
                         <ChevronRight className="w-4 h-4" />
                       </>
                     )}
@@ -218,18 +220,18 @@ const Pricing = () => {
       {/* Comparison Table - Minimalist */}
       <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm min-w-0">
         <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Comparatif détaillé</h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">Analysez les fonctionnalités en détail.</p>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{t('pricing.compare')}</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.compareDesc')}</p>
         </div>
 
         <div className="overflow-x-auto max-w-full">
           <table className="w-full">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-white/5">
-                <th className="text-left py-5 px-10 font-bold text-xs text-slate-500 uppercase tracking-widest w-1/3">Fonctionnalités</th>
-                <th className="py-5 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">Discovery</th>
-                <th className="py-5 px-6 text-center font-bold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-widest w-1/5 bg-blue-50/30 dark:bg-blue-500/5 border-x border-blue-100/50 dark:border-blue-500/10">Professional</th>
-                <th className="py-5 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">Enterprise</th>
+                <th className="text-left py-5 px-10 font-bold text-xs text-slate-500 uppercase tracking-widest w-1/3">{t('pricing.features')}</th>
+                <th className="py-5 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">{t('pricing.plans.discovery')}</th>
+                <th className="py-5 px-6 text-center font-bold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-widest w-1/5 bg-blue-50/30 dark:bg-blue-500/5 border-x border-blue-100/50 dark:border-blue-500/10">{t('pricing.plans.professional')}</th>
+                <th className="py-5 px-6 text-center font-bold text-xs text-slate-900 dark:text-white uppercase tracking-widest w-1/5">{t('pricing.plans.enterprise')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -287,8 +289,8 @@ const Pricing = () => {
       <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm">
         <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
           <div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Questions fréquentes</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">Réponses aux interrogations courantes.</p>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{t('pricing.faq')}</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.faqDesc')}</p>
           </div>
           <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
             <HelpCircle className="w-6 h-6 text-slate-500" />
@@ -326,12 +328,12 @@ const Pricing = () => {
 
       <div className="text-center pt-8 pb-4">
         <p className="text-sm text-slate-500 font-medium">
-          Besoin d'un devis personnalisé ?
+          {t('pricing.contact.text')}
           <button
             onClick={() => setIsContactOpen(true)}
             className="ml-1 text-slate-900 dark:text-white hover:underline font-bold focus:outline-none"
           >
-            Contactez notre équipe commerciale
+            {t('pricing.contact.link')}
           </button>
         </p>
       </div>

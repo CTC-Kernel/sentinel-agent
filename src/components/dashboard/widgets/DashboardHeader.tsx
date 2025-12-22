@@ -147,7 +147,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                                     <span>{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
                                     <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                                    <span className="uppercase tracking-wide">Workspace</span>
+                                    <span className="uppercase tracking-wide">{t('dashboard.workspace')}</span>
                                 </div>
                             </div>
                         </div>
@@ -168,7 +168,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             ) : (
                                 <div className="hidden lg:flex items-center gap-2 p-3 rounded-xl bg-accent/30 border border-border/50 text-muted-foreground text-sm">
                                     <Activity className="h-4 w-4" />
-                                    <span>All systems operational</span>
+                                    <span>{t('dashboard.allSystemsOperational')}</span>
                                 </div>
                             )}
                         </div>
@@ -176,7 +176,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         {/* Right: Actions */}
                         <div className="flex items-center gap-3 shrink-0 w-full lg:w-auto flex-wrap lg:flex-nowrap justify-end">
                             {onToggleEdit && (
-                                <Tooltip content={isEditing ? "Terminer l'édition" : "Personnaliser le tableau de bord"} position="bottom">
+                                <Tooltip content={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')} position="bottom">
                                     <button
                                         onClick={onToggleEdit}
                                         className={`p-2 rounded-md transition-all ${isEditing ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-muted-foreground hover:text-foreground hover:bg-background border border-transparent'}`}
@@ -207,7 +207,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             </div>
 
                             {role === 'admin' && (
-                                <Tooltip content="Inviter un nouveau membre" position="bottom">
+                                <Tooltip content={t('dashboard.inviteTooltip')} position="bottom">
                                     <button
                                         onClick={() => navigate('/team')}
                                         className="hidden sm:flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:-translate-y-0.5"

@@ -1,6 +1,6 @@
 import { driver, DriveStep } from 'driver.js';
 import 'driver.js/dist/driver.css';
-import { useStore } from '../store';
+
 import { doc, updateDoc, collection, query, where, getDocs, addDoc, writeBatch } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
@@ -11,6 +11,7 @@ import { sendEmail } from '../services/emailService';
 import { getInvitationTemplate } from '../services/emailTemplates';
 import { SubscriptionService } from '../services/subscriptionService';
 import { analyticsService } from '../services/analyticsService';
+import i18n from '../i18n';
 
 export interface SearchResult {
     id: string;
@@ -28,28 +29,15 @@ export class OnboardingService {
         showProgress: true,
         animate: true,
         allowClose: true,
-        doneBtnText: 'C\'est parti !',
-        nextBtnText: 'Suivant',
-        prevBtnText: 'Précédent',
-        progressText: 'Étape {{current}} sur {{total}}',
-        popoverClass: 'driverjs-theme-masterpiece', // Custom class for styling in index.css
+        doneBtnText: "C'est parti !", // Will be overridden dynamically
+        nextBtnText: "Suivant",
+        prevBtnText: "Précédent",
+        progressText: "{{current}} sur {{total}}",
+        popoverClass: 'driverjs-theme-masterpiece',
         onDestroyed: () => {
             // Callback when tour ends or is skipped
-            const { user, setUser } = useStore.getState();
-            if (user && !user.onboardingCompleted) {
-                // Local persistence
-                localStorage.setItem('onboarding-completed', 'true');
-
-                // Optimistic State Update
-                setUser({ ...user, onboardingCompleted: true });
-
-                // Firestore Persistence
-                if (user.uid) {
-                    updateDoc(doc(db, 'users', user.uid), {
-                        onboardingCompleted: true
-                    }).catch(console.error);
-                }
-            }
+            // Only mark the TOUR as seen locally
+            localStorage.setItem('tour-seen', 'true');
         }
     });
 
@@ -241,6 +229,9 @@ export class OnboardingService {
 
         this.driverInstance.setConfig({
             ...this.driverInstance.getConfig(),
+            doneBtnText: i18n.t('common.actions.finish') || "Terminer",
+            nextBtnText: i18n.t('common.actions.next') || "Suivant",
+            prevBtnText: i18n.t('common.actions.prev') || "Précédent",
             steps: steps
         });
 
@@ -252,17 +243,17 @@ export class OnboardingService {
             {
                 element: '[data-tour="dashboard"]',
                 popover: {
-                    title: '👋 Bienvenue sur Sentinel GRC',
-                    description: 'Votre plateforme de gouvernance. Commençons par un tour rapide!',
+                    title: i18n.t('tour.welcome.title'),
+                    description: i18n.t('tour.welcome.desc'),
                     side: 'bottom',
                     align: 'center'
                 }
             },
             {
-                element: '[data-tour="sidebar"]',
+                element: '[data-tour="sidebar"]', // Changed from sidebar-nav to sidebar
                 popover: {
-                    title: '📋 Navigation',
-                    description: 'Accédez à vos modules principaux ici.',
+                    title: i18n.t('tour.nav.title'),
+                    description: i18n.t('tour.nav.desc'),
                     side: 'right',
                     align: 'start'
                 }
@@ -273,8 +264,8 @@ export class OnboardingService {
             {
                 element: '[data-tour="command-palette"]',
                 popover: {
-                    title: '⚡ Palette de Commandes',
-                    description: 'Cmd/Ctrl + K pour tout trouver instantanément.',
+                    title: '⚡ ' + i18n.t('settings.commandPalette.placeholder').split('...')[0],
+                    description: "Cmd/Ctrl + K",
                     side: 'bottom',
                     align: 'center'
                 }
@@ -282,8 +273,8 @@ export class OnboardingService {
             {
                 element: '[data-tour="notifications"]',
                 popover: {
-                    title: '🔔 Centre de Notifications',
-                    description: 'Gérez les alertes de sécurité et les échéances.',
+                    title: i18n.t('notifications.title'),
+                    description: i18n.t('notifications.subtitle'),
                     side: 'bottom',
                     align: 'end'
                 }
@@ -291,8 +282,8 @@ export class OnboardingService {
             {
                 element: '[data-tour="settings"]',
                 popover: {
-                    title: '⚙️ Administration',
-                    description: 'Configurez les utilisateurs, les rôles et les intégrations.',
+                    title: i18n.t('sidebar.settings'),
+                    description: i18n.t('tour.profile.desc'),
                     side: 'top',
                     align: 'start'
                 }
@@ -303,8 +294,8 @@ export class OnboardingService {
             {
                 element: '[data-tour="dashboard-reports"]',
                 popover: {
-                    title: '📊 Reporting Exécutif',
-                    description: 'Consultez les tableaux de bord décisionnels et exportez les rapports PDF.',
+                    title: i18n.t('reports.riskExecTitle'),
+                    description: i18n.t('reports.riskExecDesc'),
                     side: 'bottom',
                     align: 'center'
                 }
@@ -312,8 +303,8 @@ export class OnboardingService {
             {
                 element: '[data-tour="risks-overview"]',
                 popover: {
-                    title: '🛡️ Vue Macro des Risques',
-                    description: 'Surveillez l\'exposition globale et les risques majeurs.',
+                    title: i18n.t('risks.title_exec'),
+                    description: i18n.t('risks.subtitle_exec'),
                     side: 'right',
                     align: 'start'
                 }
@@ -324,8 +315,8 @@ export class OnboardingService {
             {
                 element: '[data-tour="compliance-nav"]',
                 popover: {
-                    title: '✓ Conformité',
-                    description: 'Accédez au score de conformité et aux déclarations d\'applicabilité (SoA).',
+                    title: i18n.t('compliance.title'),
+                    description: i18n.t('compliance.subtitle'),
                     side: 'right',
                     align: 'center'
                 }
@@ -333,8 +324,8 @@ export class OnboardingService {
             {
                 element: '[data-tour="audits-nav"]',
                 popover: {
-                    title: '📋 Gestion des Audits',
-                    description: 'Planifiez et documentez vos revues d\'audit.',
+                    title: i18n.t('audits.title'),
+                    description: i18n.t('audits.subtitle'),
                     side: 'right',
                     align: 'center'
                 }
@@ -345,7 +336,7 @@ export class OnboardingService {
         if (role === 'admin' || role === 'rssi') {
             return [...commonSteps, ...adminSteps, {
                 element: '[data-tour="theme-toggle"]',
-                popover: { title: '🌓 Thème', description: 'Mode clair ou sombre.', side: 'bottom', align: 'end' }
+                popover: { title: i18n.t('common.darkMode'), description: i18n.t('tour.profile.desc'), side: 'bottom', align: 'end' }
             }];
         }
 
@@ -360,7 +351,7 @@ export class OnboardingService {
         // Default / User
         return [...commonSteps, {
             element: '[data-tour="notifications"]',
-            popover: { title: '🔔 Alertes', description: 'Vos notifications importantes.', side: 'bottom', align: 'end' }
+            popover: { title: i18n.t('notifications.title'), description: i18n.t('notifications.subtitle'), side: 'bottom', align: 'end' }
         }];
     }
 
@@ -368,12 +359,19 @@ export class OnboardingService {
      * Tour guidé pour le module Risques
      */
     static startRisksTour() {
+        this.driverInstance.setConfig({
+            ...this.driverInstance.getConfig(),
+            nextBtnText: i18n.t('common.actions.next') || "Suivant",
+            prevBtnText: i18n.t('common.actions.prev') || "Précédent",
+            doneBtnText: i18n.t('common.actions.finish') || "Terminer"
+        });
+
         const steps: DriveStep[] = [
             {
                 element: '[data-tour="risks-create"]',
                 popover: {
-                    title: '➕ Créer un Risque',
-                    description: 'Identifiez et enregistrez les menaces et vulnérabilités de votre organisation.',
+                    title: i18n.t('tour.risks.create.title'),
+                    description: i18n.t('tour.risks.create.desc'),
                     side: 'bottom',
                     align: 'start'
                 }
@@ -381,8 +379,8 @@ export class OnboardingService {
             {
                 element: '[data-tour="risks-stats"]',
                 popover: {
-                    title: '📊 Vue d\'ensemble',
-                    description: 'Visualisez la répartition de vos risques et les indicateurs clés.',
+                    title: i18n.t('tour.risks.stats.title'),
+                    description: i18n.t('tour.risks.stats.desc'),
                     side: 'left',
                     align: 'start'
                 }
@@ -390,8 +388,8 @@ export class OnboardingService {
             {
                 element: '[data-tour="risks-filters"]',
                 popover: {
-                    title: '🔍 Filtres',
-                    description: 'Filtrez les risques par statut, score, ou responsable pour une vue ciblée.',
+                    title: i18n.t('tour.risks.filters.title'),
+                    description: i18n.t('tour.risks.filters.desc'),
                     side: 'bottom',
                     align: 'start'
                 }
@@ -406,12 +404,19 @@ export class OnboardingService {
      * Tour guidé pour le module Actifs
      */
     static startAssetsTour() {
+        this.driverInstance.setConfig({
+            ...this.driverInstance.getConfig(),
+            nextBtnText: i18n.t('common.actions.next') || "Suivant",
+            prevBtnText: i18n.t('common.actions.prev') || "Précédent",
+            doneBtnText: i18n.t('common.actions.finish') || "Terminer"
+        });
+
         const steps: DriveStep[] = [
             {
                 element: '[data-tour="assets-add"]',
                 popover: {
-                    title: '📦 Ajouter un Actif',
-                    description: 'Déclarez vos serveurs, applications, ou données sensibles ici.',
+                    title: i18n.t('tour.assets.add.title'),
+                    description: i18n.t('tour.assets.add.desc'),
                     side: 'bottom',
                     align: 'start'
                 }
@@ -419,8 +424,8 @@ export class OnboardingService {
             {
                 element: '[data-tour="assets-export"]',
                 popover: {
-                    title: '📤 Export Données',
-                    description: 'Exportez votre inventaire en CSV pour vos rapports ou analyses externes.',
+                    title: i18n.t('tour.assets.export.title'),
+                    description: i18n.t('tour.assets.export.desc'),
                     side: 'bottom',
                     align: 'center'
                 }
@@ -428,8 +433,8 @@ export class OnboardingService {
             {
                 element: '[data-tour="assets-list"]',
                 popover: {
-                    title: '📋 Inventaire',
-                    description: 'Retrouvez la liste complète de vos actifs avec leur criticité (CIA).',
+                    title: i18n.t('tour.assets.list.title'),
+                    description: i18n.t('tour.assets.list.desc'),
                     side: 'top',
                     align: 'start'
                 }
@@ -444,12 +449,19 @@ export class OnboardingService {
      * Tour guidé pour le module Conformité
      */
     static startComplianceTour() {
+        this.driverInstance.setConfig({
+            ...this.driverInstance.getConfig(),
+            nextBtnText: i18n.t('common.actions.next') || "Suivant",
+            prevBtnText: i18n.t('common.actions.prev') || "Précédent",
+            doneBtnText: i18n.t('common.actions.finish') || "Terminer"
+        });
+
         const steps: DriveStep[] = [
             {
                 element: '[data-tour="compliance-scorecard"]',
                 popover: {
-                    title: '📈 Scorecard de Conformité',
-                    description: 'Suivez votre progression vers la conformité ISO 27001 en temps réel.',
+                    title: i18n.t('tour.compliance.score.title'),
+                    description: i18n.t('tour.compliance.score.desc'),
                     side: 'bottom',
                     align: 'start'
                 }
@@ -457,8 +469,8 @@ export class OnboardingService {
             {
                 element: '[data-tour="compliance-controls"]',
                 popover: {
-                    title: '✅ Contrôles ISO 27001',
-                    description: 'Gérez les 93 contrôles de l\'Annexe A et documentez leur mise en œuvre.',
+                    title: i18n.t('tour.compliance.controls.title'),
+                    description: i18n.t('tour.compliance.controls.desc'),
                     side: 'left',
                     align: 'start'
                 }
@@ -466,8 +478,8 @@ export class OnboardingService {
             {
                 element: '[data-tour="compliance-soa"]',
                 popover: {
-                    title: '📄 Statement of Applicability',
-                    description: 'Générez automatiquement votre SoA pour les audits de certification.',
+                    title: i18n.t('tour.compliance.soa.title'),
+                    description: i18n.t('tour.compliance.soa.desc'),
                     side: 'bottom',
                     align: 'start'
                 }
@@ -487,14 +499,29 @@ export class OnboardingService {
     }
 
     /**
-     * Vérifie si l'utilisateur a déjà complété l'onboarding
+     * Vérifie si l'utilisateur a déjà vu le tour
+     */
+    static hasSeenTour(): boolean {
+        return localStorage.getItem('tour-seen') === 'true';
+    }
+
+    /**
+     * Vérifie si l'utilisateur a déjà complété l'onboarding (Setup)
      */
     static hasCompletedOnboarding(): boolean {
+        // We rely on the caller to check User Store, but this can check localStorage as well.
         return localStorage.getItem('onboarding-completed') === 'true';
     }
 
     /**
-     * Réinitialise l'onboarding
+     * Réinitialise le tour
+     */
+    static resetTour() {
+        localStorage.removeItem('tour-seen');
+    }
+
+    /**
+     * Réinitialise l'onboarding (Dev only)
      */
     static resetOnboarding() {
         localStorage.removeItem('onboarding-completed');
@@ -519,21 +546,13 @@ export class OnboardingService {
      * Tour guidé pour le module Analytics
      */
     static startAnalyticsTour() {
+        // ... (can be localized later if needed)
         const steps: DriveStep[] = [
             {
                 element: '[data-tour="analytics-trends"]',
                 popover: {
-                    title: '📈 Tendances Historiques',
-                    description: 'Analysez l\'évolution de vos risques et de votre conformité sur les 30 derniers jours.',
-                    side: 'bottom',
-                    align: 'center'
-                }
-            },
-            {
-                element: '[data-tour="analytics-kpi"]',
-                popover: {
-                    title: '🎯 KPIs Clés',
-                    description: 'Suivez les indicateurs de performance essentiels pour votre gouvernance.',
+                    title: '📈 Tendances',
+                    description: 'Analysez l\'évolution.',
                     side: 'bottom',
                     align: 'center'
                 }
@@ -552,17 +571,8 @@ export class OnboardingService {
                 element: '[data-tour="incidents-timeline"]',
                 popover: {
                     title: '⏱️ Timeline Visuelle',
-                    description: 'Suivez le cycle de vie de chaque incident étape par étape.',
+                    description: 'Suivez le cycle de vie.',
                     side: 'left',
-                    align: 'center'
-                }
-            },
-            {
-                element: '[data-tour="incidents-playbook"]',
-                popover: {
-                    title: '📖 Playbooks',
-                    description: 'Accédez aux procédures de réponse standardisées pour chaque type d\'incident.',
-                    side: 'bottom',
                     align: 'center'
                 }
             }
@@ -580,17 +590,8 @@ export class OnboardingService {
                 element: '[data-tour="backup-schedule"]',
                 popover: {
                     title: '📅 Planification',
-                    description: 'Configurez des sauvegardes automatiques quotidiennes, hebdomadaires ou mensuelles.',
+                    description: 'Configurez des sauvegardes.',
                     side: 'bottom',
-                    align: 'center'
-                }
-            },
-            {
-                element: '[data-tour="backup-restore"]',
-                popover: {
-                    title: '↺ Restauration',
-                    description: 'Restaurez vos données à partir d\'un point de sauvegarde précédent en un clic.',
-                    side: 'top',
                     align: 'center'
                 }
             }

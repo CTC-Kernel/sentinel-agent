@@ -349,11 +349,7 @@ export const Team: React.FC = () => {
         URL.revokeObjectURL(url);
     };
 
-    const translateRole = (role: string) => {
-        const key = `common.settings.roles.${role}`;
-        const translated = t(key);
-        return translated === key ? role : translated;
-    };
+
 
 
 

@@ -46,6 +46,33 @@ i18n
                         actions: "Actions",
                         noResults: "No results found"
                     },
+                    tour: {
+                        welcome: { title: "Welcome to Sentinel GRC", desc: "Let's take a minute to discover your new Cyber & Compliance command center." },
+                        nav: { title: "Main Navigation", desc: "Access all modules here: Risks, Assets, Compliance, Projects and more." },
+                        actions: { title: "Quick Actions", desc: "Create an incident, launch an audit or add a risk in one click." },
+                        profile: { title: "Your Profile", desc: "Manage your preferences, notifications and app theme here." },
+                        risks: {
+                            create: { title: "Create a Risk", desc: "Identify and register threats and vulnerabilities." },
+                            stats: { title: "Overview", desc: "Visualise risk distribution and key indicators." },
+                            filters: { title: "Filters", desc: "Filter risks by status, score, or owner." }
+                        },
+                        assets: {
+                            add: { title: "Add Asset", desc: "Declare servers, apps, or sensitive data here." },
+                            export: { title: "Data Export", desc: "Export inventory to CSV for reports." },
+                            list: { title: "Inventory", desc: "Full list of assets with criticality (CIA)." }
+                        },
+                        compliance: {
+                            score: { title: "Compliance Scorecard", desc: "Track ISO 27001 progress in real time." },
+                            controls: { title: "ISO 27001 Controls", desc: "Manage Annex A controls and evidence." },
+                            soa: { title: "Statement of Applicability", desc: "Generate SoA automatically." }
+                        },
+                        banner: {
+                            title: "First visit?",
+                            desc: "Discover Sentinel GRC in 2 minutes",
+                            start: "Start Tour",
+                            dismiss: "Later"
+                        }
+                    },
                     sidebar: {
                         dashboard: "Dashboard",
                         projects: "Projects",
@@ -152,7 +179,7 @@ i18n
                             professional: "Professional Plan",
                             enterprise: "Enterprise Plan",
                             discovery: "Discovery Plan"
-                        }
+                        },
                     },
                     dashboard: {
                         welcomeTitle_admin: "Welcome back",
@@ -186,7 +213,14 @@ i18n
                         inviteMember: "Invite Member",
                         seoTitle: "Governance Dashboard",
                         seoDescription: "Overview of your security and compliance posture.",
-                        seoKeywords: "CISO Steering, KPI Cyber, Compliance, Risk Management, Governance"
+                        seoKeywords: "CISO Steering, KPI Cyber, Compliance, Risk Management, Governance",
+                        allSystemsOperational: "All systems operational",
+                        edit: {
+                            finish: "Finish editing",
+                            customize: "Customize dashboard"
+                        },
+                        inviteTooltip: "Invite a new member",
+                        workspace: "Workspace"
                     },
                     assets: {
                         title: "Asset Inventory",
@@ -515,7 +549,8 @@ i18n
                             desc: "Enter your verification code.",
                             verify: "Verify",
                             verifying: "Verifying...",
-                            error: "Incorrect code."
+                            error: "Incorrect code.",
+                            codeLabel: "Verification code"
                         },
                         errors: {
                             auth: "Authentication error.",
@@ -523,7 +558,19 @@ i18n
                             emailInUse: "Email already in use.",
                             weak: "Password too weak.",
                             google: "Google Auth error.",
-                            generic: "An error occurred."
+                            generic: "An error occurred.",
+                            totpNotFound: "No TOTP factor found.",
+                            restrictedEnv: "Restricted environment: Google Auth not available here.",
+                            contactAdmin: "Contact administrator if the problem persists."
+                        },
+                        footer: {
+                            developedBy: "Developed by Cyber Threat Consulting",
+                            recaptcha: "This site is protected by reCAPTCHA.",
+                            privacy: "Privacy Policy",
+                            terms: "Terms of Service",
+                            cgv: "CGV",
+                            legal: "Legal Notice",
+                            apply: "apply."
                         }
                     },
                     onboarding: {
@@ -551,38 +598,75 @@ i18n
                             search: "Search",
                             join: "Join",
                             back: "Back",
-                            home: "Back to Home",
                             continue: "Continue",
-                            inviteContinue: "Invite & Continue",
+                            inviteAndContinue: "Invite & Continue",
                             skip: "Skip this step",
-                            sent: "Request sent!",
-                            sentDesc: "An admin must approve your request."
+                            home: "Return to Home",
+                            sent: "Request Sent",
+                            sentDesc: "Your request has been sent to the administrators."
+                        },
+                        toasts: {
+                            assetsDetected: "{{count}} assets detected automatically",
+                            orgMissing: "Error: Organization missing",
+                            emailRequired: "Please enter an email address.",
+                            emailInvalid: "Invalid email address.",
+                            emailStart: "Email already added.",
+                            userInvited: "{{count}} invites sent",
+                            assetsCreated: "{{count}} assets created",
+                            joinSent: "Request sent successfully",
+                            userUnidentified: "Error: User unidentified. Please log in again.",
+                            orgCreated: "Organization created successfully!",
+                            createError: "An error occurred while creating the organization.",
+                            configError: "Configuration Error"
                         },
                         form: {
                             orgName: "Organization Name",
                             fullName: "Full Name",
                             department: "Department",
+                            email: "Professional Email",
+                            role: "Role",
+                            terms: "I accept the ",
+                            orgPlaceholder: "Ex: Acme Corp",
+                            namePlaceholder: "Your name",
+                            deptPlaceholder: "Ex: IT / Security",
                             industry: "Industry",
                             select: "Select...",
-                            role: "Role",
-                            email: "Collaborator Email",
-                            terms: "I certify..."
+                            conditions: "Terms & Conditions",
+                            emailPlaceholder: "email@company.com"
+                        },
+                        industries: {
+                            tech: "Technology / SaaS",
+                            finance: "Finance / Banking",
+                            health: "Healthcare",
+                            retail: "Retail / E-commerce",
+                            public: "Public Sector",
+                            other: "Other"
+                        },
+                        roles: {
+                            collaborator: "Collaborator",
+                            admin: "Admin",
+                            rssi: "CISO",
+                            auditor: "Auditor",
+                            project_manager: "Project Manager",
+                            direction: "Executive"
                         },
                         steps: {
-                            standards: "Standards & Norms",
+                            standards: "Standards",
                             scope: "Scope",
-                            scopePlaceholder: "Describe your ISMS scope...",
-                            invite: "Invite Members",
-                            assets: "Asset Mapping",
-                            iaReady: "IA Ready",
-                            scanning: "Scanning in progress...",
-                            found: "Assets found:",
-                            manual: "Manual Mode",
-                            addAsset: "Add Asset",
-                            assetName: "Asset Name",
-                            assetType: "Type",
-                            finish: "Finish Installation"
+                            scopePlaceholder: "Ex: All information systems hosting sensitive client data...",
+                            invite: "Invite Team",
+                            assets: "Initial Assets",
+                            iaReady: "AI Ready",
+                            scanning: "AI Auto-Scan in progress..."
+                        },
+                        scan: {
+                            step1: "Initializing scanners...",
+                            step2: "Analyzing DNS records...",
+                            step3: "Detecting Cloud footprints...",
+                            step4: "Verifying SaaS endpoints...",
+                            step5: "Finalizing report..."
                         }
+
                     },
                     activity: {
                         title: "Activity Log",
@@ -783,8 +867,14 @@ i18n
                         },
                         plans: {
                             discovery: "Discovery",
+                            discoveryDesc: "Start your ISO 27001 compliance for free.",
                             professional: "Professional",
-                            enterprise: "Enterprise"
+                            professionalDesc: "Professional features for growing teams.",
+                            enterprise: "Enterprise",
+                            enterpriseDesc: "Unlimited power for large organizations.",
+                            discoveryFeatures: ["3 Users included", "1 Audit Project", "Up to 50 Assets", "Full ISO 27005 Method", "Standard Reports", "Community Access"],
+                            professionalFeatures: ["Up to 10 Users", "10 Concurrent Projects", "250 Managed Assets", "White Label Reports", "Custom Templates", "10GB Storage", "Email Support"],
+                            enterpriseFeatures: ["Unlimited Users", "Unlimited Projects & Assets", "Full REST API", "SSO (SAML / OIDC)", "Advanced Audit Logs", "100GB Storage", "24/7 Dedicated Support"]
                         },
                         mobileWarning: "Subscription management is available only on the web version of Sentinel GRC.",
                         unlimited: "Unlimited",
@@ -1009,7 +1099,14 @@ i18n
                         inviteMember: "Inviter",
                         seoTitle: "Tableau de bord de Gouvernance",
                         seoDescription: "Vue d'overview de votre posture de sécurité et conformité.",
-                        seoKeywords: "Pilotage SSI, Tableau de bord CISO, KPI Cyber, Conformité, Risques, Gouvernance"
+                        seoKeywords: "Pilotage SSI, Tableau de bord CISO, KPI Cyber, Conformité, Risques, Gouvernance",
+                        allSystemsOperational: "Tous les systèmes sont opérationnels",
+                        edit: {
+                            finish: "Terminer l'édition",
+                            customize: "Personnaliser le tableau de bord"
+                        },
+                        inviteTooltip: "Inviter un nouveau membre",
+                        workspace: "Espace de travail"
                     },
                     assets: {
                         title: "Inventaire des Actifs",
@@ -1179,15 +1276,28 @@ i18n
                             desc: "Saisissez votre code de vérification.",
                             verify: "Vérifier",
                             verifying: "Vérification...",
-                            error: "Code incorrect."
+                            error: "Code incorrect.",
+                            codeLabel: "Code de vérification"
                         },
                         errors: {
+                            totpNotFound: "Aucun facteur TOTP trouvé.",
+                            restrictedEnv: "Environnement restreint : Google Auth non disponible ici.",
+                            contactAdmin: "Contactez l'administrateur si le problème persiste.",
                             auth: "Erreur d'authentification.",
                             invalid: "Identifiants incorrects.",
                             emailInUse: "Cet email est déjà utilisé.",
                             weak: "Le mot de passe est trop faible.",
                             google: "Erreur Google Auth.",
                             generic: "Une erreur est survenue."
+                        },
+                        footer: {
+                            developedBy: "Développé par Cyber Threat Consulting",
+                            recaptcha: "Ce site est protégé par reCAPTCHA.",
+                            privacy: "Politique de confidentialité",
+                            terms: "Conditions d'utilisation",
+                            cgv: "CGV",
+                            legal: "Mentions Légales",
+                            apply: "s'appliquent."
                         }
                     },
                     onboarding: {
@@ -1217,10 +1327,24 @@ i18n
                             back: "Retour",
                             home: "Retour à l'accueil",
                             continue: "Continuer",
-                            inviteContinue: "Inviter & Continuer",
+                            inviteAndContinue: "Inviter & Continuer",
                             skip: "Passer cette étape",
                             sent: "Demande envoyée !",
                             sentDesc: "Un administrateur de l'organisation doit approuver votre demande."
+                        },
+                        toasts: {
+                            assetsDetected: "{{count}} actifs détectés automatiquement",
+                            orgMissing: "Erreur : Organisation manquante",
+                            emailRequired: "Veuillez saisir une adresse email.",
+                            emailInvalid: "Adresse email invalide.",
+                            emailStart: "Cette adresse a déjà été ajoutée.",
+                            userInvited: "{{count}} invitations envoyées",
+                            assetsCreated: "{{count}} actifs créés",
+                            joinSent: "Demande envoyée avec succès",
+                            userUnidentified: "Erreur : Utilisateur non identifié. Veuillez vous reconnecter.",
+                            orgCreated: "Organisation créée avec succès !",
+                            createError: "Une erreur est survenue lors de la création de l'organisation.",
+                            configError: "Erreur de configuration"
                         },
                         form: {
                             orgName: "Nom de l'Organisation",
@@ -1230,22 +1354,44 @@ i18n
                             select: "Sélectionner...",
                             role: "Rôle",
                             email: "Email du collaborateur",
-                            terms: "Je certifie..."
+                            terms: "J'accepte les ",
+                            orgPlaceholder: "Ex: Acme Corp",
+                            namePlaceholder: "Votre nom",
+                            deptPlaceholder: "Ex: IT / Sécurité",
+                            conditions: "Conditions",
+                            emailPlaceholder: "email@entreprise.com"
+                        },
+                        industries: {
+                            tech: "Technologie / SaaS",
+                            finance: "Finance / Banque",
+                            health: "Santé",
+                            retail: "Retail / E-commerce",
+                            public: "Secteur Public",
+                            other: "Autre"
+                        },
+                        roles: {
+                            collaborator: "Collaborateur",
+                            admin: "Admin",
+                            rssi: "RSSI",
+                            auditor: "Auditeur",
+                            project_manager: "Chef Projet",
+                            direction: "Direction"
                         },
                         steps: {
-                            standards: "Standards & Normes",
-                            scope: "Périmètre (Scope)",
-                            scopePlaceholder: "Décrivez le périmètre de votre ISMS (ex: Toute l'entreprise, Service IT uniquement...)",
-                            invite: "Inviter des membres",
-                            assets: "Cartographie des Actifs",
-                            iaReady: "IA Ready",
-                            scanning: "Analyse en cours...",
-                            found: "Actifs trouvés :",
-                            manual: "Mode Manuel",
-                            addAsset: "Ajouter un actif",
-                            assetName: "Nom de l'actif",
-                            assetType: "Type",
-                            finish: "Terminer l'installation"
+                            standards: "Référentiels",
+                            scope: "Périmètre",
+                            scopePlaceholder: "Ex: L'ensemble des systèmes d'information hébergeant des données sensibles clients...",
+                            invite: "Inviter l'équipe",
+                            assets: "Actifs Initiaux",
+                            iaReady: "IA Prête",
+                            scanning: "Auto-Scan IA en cours..."
+                        },
+                        scan: {
+                            step1: "Initialisation des scanners...",
+                            step2: "Analyse des enregistrements DNS...",
+                            step3: "Détection des empreintes Cloud...",
+                            step4: "Vérification des endpoints SaaS...",
+                            step5: "Finalisation du rapport..."
                         }
                     },
                     activity: {
@@ -1606,8 +1752,14 @@ i18n
                         },
                         plans: {
                             discovery: "Discovery",
+                            discoveryDesc: "Démarrez votre conformité ISO 27001 gratuitement et sans engagement.",
                             professional: "Professional",
-                            enterprise: "Enterprise"
+                            professionalDesc: "Crédibilisez votre démarche avec des rapports pro et plus de capacité.",
+                            enterprise: "Enterprise",
+                            enterpriseDesc: "La puissance totale sans aucune limite. L'offre GRC la plus compétitive du marché.",
+                            discoveryFeatures: ["3 Utilisateurs inclus", "1 Projet d'audit", "Jusqu'à 50 Actifs", "Méthode ISO 27005 complète", "Rapports standards", "Accès Communauté"],
+                            professionalFeatures: ["Jusqu'à 10 Utilisateurs", "10 Projets simultanés", "250 Actifs gérés", "Rapports Marque Blanche", "Modèles personnalisables", "Stockage 10 Go", "Support Email"],
+                            enterpriseFeatures: ["Utilisateurs Illimités", "Projets & Actifs Illimités", "API REST complète", "SSO (SAML / OIDC)", "Logs d'audit avancés", "Stockage 100 Go", "Support Dédié 24/7"]
                         },
                         mobileWarning: "La gestion des abonnements est disponible uniquement sur la version web de Sentinel GRC.",
                         unlimited: "Illimité",
@@ -1654,6 +1806,33 @@ i18n
                             descSearch: "Aucun résultat pour votre recherche."
                         },
                         viewDetails: "Voir les détails"
+                    },
+                    tour: {
+                        welcome: { title: "Bienvenue sur Sentinel GRC", desc: "Prenons une minute pour découvrir votre nouveau centre de commandement Cyber & Conformité." },
+                        nav: { title: "Navigation Principale", desc: "Accédez ici à tous les modules : Risques, Actifs, Conformité, Projets et plus encore." },
+                        actions: { title: "Actions Rapides", desc: "Créez un incident, lancez un audit ou ajoutez un risque en un clic." },
+                        profile: { title: "Votre Profil", desc: "Gérez vos préférences, notifications et le thème de l'application ici." },
+                        risks: {
+                            create: { title: "Créer un Risque", desc: "Identifiez et enregistrez les menaces et vulnérabilités." },
+                            stats: { title: "Vue d'ensemble", desc: "Visualisez la répartition de vos risques et les indicateurs clés." },
+                            filters: { title: "Filtres", desc: "Filtrez les risques par statut, score, ou responsable." }
+                        },
+                        assets: {
+                            add: { title: "Ajouter un Actif", desc: "Déclarez vos serveurs, applications, ou données sensibles ici." },
+                            export: { title: "Export Données", desc: "Exportez votre inventaire en CSV pour vos rapports." },
+                            list: { title: "Inventaire", desc: "Retrouvez la liste complète de vos actifs avec leur criticité (CIA)." }
+                        },
+                        compliance: {
+                            score: { title: "Scorecard de Conformité", desc: "Suivez votre progression vers la conformité ISO 27001 en temps réel." },
+                            controls: { title: "Contrôles ISO 27001", desc: "Gérez les contrôles de l'Annexe A et documentez leur mise en œuvre." },
+                            soa: { title: "Statement of Applicability", desc: "Générez automatiquement votre SoA." }
+                        },
+                        banner: {
+                            title: "Première visite ?",
+                            desc: "Découvrez Sentinel GRC en 2 minutes",
+                            start: "Démarrer le tour",
+                            dismiss: "Plus tard"
+                        }
                     }
                 }
             }
