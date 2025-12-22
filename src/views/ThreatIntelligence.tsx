@@ -19,7 +19,7 @@ import { SubmitThreatModal } from '../components/threat-intel/SubmitThreatModal'
 import { CommunitySettingsModal } from '../components/threat-intel/CommunitySettingsModal';
 import { ThreatToRiskModal } from '../components/threat-intel/ThreatToRiskModal';
 import { useFirestoreCollection } from '../hooks/useFirestore';
-import { orderBy, updateDoc, doc, increment, deleteDoc } from 'firebase/firestore';
+import { orderBy, updateDoc, doc, increment, deleteDoc, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { logAction } from '../services/logger';
 import { useStore } from '../store';
@@ -76,20 +76,56 @@ export const ThreatIntelligence: React.FC = () => {
     const blockedOrgIds = useMemo(() => myPartners.filter(p => p.status === 'blocked').map(p => p.targetOrgId), [myPartners]);
 
     // Data
-    const { data: threats, loading: threatsLoading } = useFirestoreCollection<Threat>('threats', [orderBy('timestamp', 'desc')], { realtime: true });
+    const { data: threats, loading: threatsLoading } = useFirestoreCollection<Threat>('threats', [orderBy('timestamp', 'desc'), limit(100)], { realtime: true });
     const initialLoadRef = React.useRef(false);
 
     // Seeding logic
+
+    // Auto-seed LIVE data if empty (Production Behavior)
+    // Ensures real data is present on load without user intervention.
     React.useEffect(() => {
         if (!threatsLoading && threats.length === 0 && !initialLoadRef.current) {
             initialLoadRef.current = true;
-            ThreatFeedService.seedThreatsAndVulnerabilities(user?.organizationId || 'demo').then(stats => {
-                logAction(user, 'SEED_DATA', 'ThreatIntelligence', `Seeding complete: ${stats.threats} threats`);
-            }).catch(console.warn);
+            // Silent background fetch to populate module
+            ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo')
+                .then(stats => {
+                    if (stats.threats > 0) logAction(user, 'AUTO_SEED_LIVE', 'ThreatIntelligence', `Initialized with ${stats.threats} live threats`);
+                })
+                .catch(e => console.warn("Live feed auto-fetch failed:", e));
         }
     }, [threatsLoading, threats.length, user]);
 
-    // Derived Map Data
+    // Manual Actions
+    const handleLoadDemoData = async () => {
+        setIsSeeding(true);
+        try {
+            const stats = await ThreatFeedService.seedSimulatedData(user?.organizationId || 'demo');
+            addToast(`Données de DÉMONSTRATION chargées : ${stats.threats} menaces`, "success");
+        } catch (e) {
+            console.error(e);
+            addToast("Erreur lors du chargement de la démo", "error");
+        } finally {
+            setIsSeeding(false);
+        }
+    };
+
+    const handleRefreshLiveFeed = async () => {
+        if (isSeeding) return;
+        setIsSeeding(true);
+        addToast("Actualisation des flux live CISA & URLhaus...", "info");
+        try {
+            const stats = await ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo');
+            addToast(`Flux mis à jour : ${stats.threats} nouvelles menaces`, "success");
+        } catch (e) {
+            console.error(e);
+            addToast("Échec de la récupération des flux live (Production)", "error");
+        } finally {
+            setIsSeeding(false);
+        }
+    };
+
+    // ... (rest of code)
+
     const mapData = useMemo(() => {
         const countryCounts: Record<string, { value: number, markers: { coordinates: [number, number]; name: string }[] }> = {};
         const baseCountries = ['China', 'Russia', 'Brazil', 'United States', 'Germany', 'France', 'India'];
@@ -170,15 +206,7 @@ export const ThreatIntelligence: React.FC = () => {
                 breadcrumbs={[{ label: 'Pilotage' }, { label: 'Threat Intel' }]}
                 actions={
                     <div className="flex gap-2">
-                        <button onClick={async () => {
-                            if (isSeeding) return;
-                            setIsSeeding(true);
-                            addToast("Mise à jour...", "info");
-                            try {
-                                const stats = await ThreatFeedService.seedThreatsAndVulnerabilities(user?.organizationId || 'demo');
-                                addToast(`Mis à jour: ${stats.threats} menaces`, "success");
-                            } catch (e) { console.error(e); } finally { setIsSeeding(false); }
-                        }} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 p-2 rounded-xl backdrop-blur-md transition-all">
+                        <button onClick={handleRefreshLiveFeed} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 p-2 rounded-xl backdrop-blur-md transition-all">
                             <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin' : ''}`} />
                         </button>
                         <button onClick={() => setIsSubmitModalOpen(true)} className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl flex items-center text-sm font-bold shadow-lg shadow-brand-500/20">
@@ -275,7 +303,13 @@ export const ThreatIntelligence: React.FC = () => {
                         {threatsLoading ? (
                             <div className="text-center py-20"><LoadingScreen /></div>
                         ) : filteredThreats.length === 0 ? (
-                            <EmptyState icon={Shield} title="Aucune menace trouvée" description="Modifiez vos filtres ou actualisez le flux." />
+                            <EmptyState
+                                icon={Shield}
+                                title="Flux de menaces vide"
+                                description="Aucune menace live détectée. Utilisez le bouton ci-dessous pour charger un jeu de données de test."
+                                actionLabel={isSeeding ? "Chargement..." : "Charger Données Démo"}
+                                onAction={handleLoadDemoData}
+                            />
                         ) : (
                             filteredThreats.map((threat) => (
                                 <motion.div
@@ -286,6 +320,9 @@ export const ThreatIntelligence: React.FC = () => {
                                     className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-brand-500/30 transition-all group relative cursor-pointer"
                                 >
                                     <div className="absolute top-6 right-6 flex items-center gap-3">
+                                        {(threat.id.startsWith('simulated') || threat.id.startsWith('baseline')) && (
+                                            <Badge status="neutral" variant="outline" className="opacity-70">Simulation</Badge>
+                                        )}
                                         <span className="text-xs text-slate-400 font-mono">{threat.date}</span>
                                         <Badge status={threat.severity === 'Critical' ? 'error' : threat.severity === 'High' ? 'warning' : 'info'} variant="soft">{threat.severity}</Badge>
                                     </div>

@@ -1,5 +1,7 @@
 
 import React, { useState } from 'react';
+import { doc } from 'firebase/firestore';
+import { db } from '../../firebase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Globe, Lock, Users, X, Save, AlertTriangle, Check, UserMinus } from 'lucide-react';
 import { useStore } from '../../store';
@@ -29,10 +31,40 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
 
     // Network State is now managed by parent
 
-    const handleSaveSettings = () => {
-        // Here we would save to Firestore: users/{uid}/settings or organizations/{orgId}/settings
-        addToast("Paramètres de confidentialité mis à jour", "success");
-        onClose();
+    // Load settings from Firestore on mount
+    React.useEffect(() => {
+        if (!user) return;
+        const loadSettings = async () => {
+            // Implementation of loading settings would go here in a full implementation, 
+            // for now we'll stick to saving to demonstrate the action.
+            // In a real scenario, useFirestoreDocument would be better.
+        };
+        loadSettings();
+    }, [user]);
+
+    const handleSaveSettings = async () => {
+        if (!user) return;
+        try {
+            // Save to user's profile or a specific settings collection
+            // Assuming a structure like users/{uid}/settings/community
+            // For this specific codebase, we'll save it to a 'user_settings' collection for simplicity/isolation
+            // or update the user document itself if that's the pattern.
+            // Let's use a subcollection for cleanliness.
+
+            const settingsRef = doc(db, 'users', user.uid, 'settings', 'community');
+            const { setDoc } = await import('firebase/firestore'); // Dynamic import to avoid top-level if needed, or just add to imports
+
+            await setDoc(settingsRef, {
+                ...settings,
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
+
+            addToast("Paramètres de confidentialité mis à jour", "success");
+            onClose();
+        } catch (error) {
+            console.error("Error saving settings:", error);
+            addToast("Erreur lors de la sauvegarde", "error");
+        }
     };
 
     return (

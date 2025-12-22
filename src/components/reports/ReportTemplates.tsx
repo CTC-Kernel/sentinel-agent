@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FileSpreadsheet, Lock, LayoutTemplate, Star, ArrowRight } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/Badge';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/Badge';
 
 interface ReportTemplate {
     id: string;

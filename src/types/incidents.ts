@@ -27,6 +27,10 @@ export interface Incident {
     detectedAt?: string;
     impact?: string;
     updatedAt?: string;
+    // Masterpiece enhancements
+    history?: { date: string; user: string; action: string; details: string }[];
+    tags?: string[];
+    playbookId?: string;
 }
 
 export interface SupplierIncident {

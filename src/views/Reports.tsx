@@ -18,15 +18,16 @@ import {
     Settings,
     FileSpreadsheet,
     Activity,
-    BarChart3,
     FileCheck,
     Trash2,
     Lock,
     Search,
-    Archive
+    Archive,
+    BarChart3
 } from 'lucide-react';
 import { useFirestoreCollection } from '../hooks/useFirestore';
-import { where, deleteDoc, doc, getDocs, query, collection } from 'firebase/firestore';
+import { where, deleteDoc, doc, getDocs, query, collection, addDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Risk, Audit, Asset, Document, Control, Incident } from '../types';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Button } from '../components/ui/button';
@@ -34,12 +35,13 @@ import { PdfService } from '../services/PdfService';
 import { CompliancePackService } from '../services/CompliancePackService';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
-import { db } from '../firebase';
+import { db, storage } from '../firebase';
 import { hasPermission, canDeleteResource } from '../utils/permissions';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Badge } from '../components/ui/Badge';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { usePersistedState } from '../hooks/usePersistedState';
+import { ReportTemplates } from '../components/reports/ReportTemplates';
 
 export const Reports: React.FC = () => {
     const { user, organization, addToast } = useStore();
@@ -76,7 +78,7 @@ export const Reports: React.FC = () => {
             where('organizationId', '==', user?.organizationId || 'ignore'),
             where('type', '==', 'Rapport')
         ],
-        { enabled: !!user?.organizationId && activeTab === 'history' }
+        { enabled: !!user?.organizationId }
     );
 
     const { data: controls, loading: controlsLoading } = useFirestoreCollection<Control>(
@@ -100,6 +102,46 @@ export const Reports: React.FC = () => {
         navigate('/pricing');
     };
 
+    const saveGeneratedReport = async (doc: any, filename: string, title: string) => {
+        if (!user?.organizationId || !doc) return;
+
+        try {
+            // 1. Get Blob
+            const blob = doc.output('blob');
+
+            // 2. Upload to Storage
+            const storagePath = `documents/${user.organizationId}/${Date.now()}_${filename}`;
+            const storageRef = ref(storage, storagePath);
+            const snapshot = await uploadBytes(storageRef, blob);
+            const url = await getDownloadURL(snapshot.ref);
+
+            // 3. Create Document Record
+            await addDoc(collection(db, 'documents'), {
+                title: title,
+                type: 'Rapport',
+                url: url,
+                hash: '', // Optional: could compute SHA-256
+                ownerId: user.uid,
+                owner: user.displayName || user.email || 'Système',
+                organizationId: user.organizationId,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                version: '1.0',
+                size: blob.size,
+                status: 'Validé',
+                description: `Rapport généré automatiquement : ${title}`,
+                isSecure: false,
+                watermarkEnabled: false
+            });
+
+            refreshDocuments();
+        } catch (error) {
+            console.error("Error saving report to history:", error);
+            // Don't toast error to user if download success, just log it.
+            // Or maybe toast warning "Rapport téléchargé mais non sauvegardé dans l'historique".
+        }
+    };
+
     const handleGenerateReport = async (type: string, title?: string) => {
         if (generating) return;
 
@@ -111,6 +153,10 @@ export const Reports: React.FC = () => {
         setGenerating(type);
         addToast("Génération du rapport en cours... Cela peut prendre quelques secondes.", "info");
 
+        let generatedDoc: any = null;
+        let generatedFilename = '';
+        let generatedTitle = title || 'Rapport';
+
         try {
             const canWhiteLabel = hasWhiteLabel;
 
@@ -119,34 +165,43 @@ export const Reports: React.FC = () => {
                 organizationLogo: canWhiteLabel ? organization?.logoUrl : undefined,
                 author: user?.displayName || user?.email || 'Utilisateur Sentinel',
                 coverImage: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop',
-                includeCover: true
+                includeCover: true,
+                autoDownload: true // Ensure user gets the download immediately
             };
 
             switch (type) {
                 case 'risks_executive':
                     if (!canReadRisks) throw new Error("Permission refusée");
-                    PdfService.generateRiskExecutiveReport(risks, {
+                    generatedTitle = title || "RAPPORT DE GOUVERNANCE CYBER";
+                    generatedFilename = `rapport_executif_risques_${new Date().toISOString().split('T')[0]}.pdf`;
+                    generatedDoc = PdfService.generateRiskExecutiveReport(risks, {
                         ...baseOptions,
-                        title: title || "RAPPORT DE GOUVERNANCE CYBER",
+                        title: generatedTitle,
                         subtitle: `Analyse des Risques & Conformité ISO 27001 | ${new Date().toLocaleDateString()}`,
-                        filename: `rapport_executif_risques_${new Date().toISOString().split('T')[0]}.pdf`,
+                        filename: generatedFilename,
                     });
                     break;
                 case 'audits_summary':
                     if (!canReadAudits) throw new Error("Permission refusée");
                     if (audits.length > 0) {
                         const latestAudit = audits[0];
-                        PdfService.generateAuditExecutiveReport(latestAudit, [], {
+                        generatedTitle = `RAPPORT D'AUDIT: ${latestAudit.name}`;
+                        generatedFilename = `audit_${latestAudit.id}.pdf`;
+                        generatedDoc = PdfService.generateAuditExecutiveReport(latestAudit, [], {
                             ...baseOptions,
-                            title: `RAPPORT D'AUDIT: ${latestAudit.name}`,
-                            filename: `audit_${latestAudit.id}.pdf`
+                            title: generatedTitle,
+                            filename: generatedFilename
                         });
                     } else {
                         addToast("Aucun audit disponible pour le rapport", "info");
+                        setGenerating(null);
+                        return;
                     }
                     break;
                 case 'assets_inventory': {
                     if (!canReadAssets) throw new Error("Permission refusée");
+                    generatedTitle = 'Registre des Actifs';
+                    generatedFilename = 'inventaire_actifs.pdf';
                     const assetData = assets.map(a => [
                         a.name,
                         a.type,
@@ -154,12 +209,12 @@ export const Reports: React.FC = () => {
                         a.owner || 'N/A',
                         a.lifecycleStatus || 'Inconnu'
                     ]);
-                    PdfService.generateTableReport(
+                    generatedDoc = PdfService.generateTableReport(
                         {
                             ...baseOptions,
-                            title: 'Registre des Actifs',
+                            title: generatedTitle,
                             subtitle: `Inventaire exhaustif | ${new Date().toLocaleDateString()}`,
-                            filename: 'inventaire_actifs.pdf',
+                            filename: generatedFilename,
                         },
                         ['Nom', 'Type', 'Confidentialité', 'Propriétaire', 'Statut'],
                         assetData
@@ -168,16 +223,21 @@ export const Reports: React.FC = () => {
                 }
                 case 'compliance_soa':
                     if (!canReadControls) throw new Error("Permission refusée");
-                    PdfService.generateComplianceExecutiveReport(controls, {
+                    generatedTitle = 'RAPPORT DE CONFORMITÉ';
+                    generatedFilename = `soa_audit_${new Date().toISOString().split('T')[0]}.pdf`;
+                    generatedDoc = PdfService.generateComplianceExecutiveReport(controls, {
                         ...baseOptions,
-                        title: 'RAPPORT DE CONFORMITÉ',
+                        title: generatedTitle,
                         subtitle: `État des lieux ISO 27001 / SoA | ${new Date().toLocaleDateString()}`,
-                        filename: `soa_audit_${new Date().toISOString().split('T')[0]}.pdf`,
+                        filename: generatedFilename,
                     });
                     break;
                 case 'compliance_pack': {
+                    // Compliance Pack Service handles its own zipping and generation logic
+                    // It returns void usually or download trigger.
+                    // If we want to save history for ZIPs, we'd need Service to return Blob.
+                    // For now, assume it's standalone.
                     if (!canReadControls) throw new Error("Permission refusée");
-                    // Fetch additional data required for the pack on-demand
                     const [incidentsSnap, allDocsSnap] = await Promise.all([
                         getDocs(query(collection(db, 'incidents'), where('organizationId', '==', user?.organizationId))),
                         getDocs(query(collection(db, 'documents'), where('organizationId', '==', user?.organizationId)))
@@ -195,12 +255,21 @@ export const Reports: React.FC = () => {
                         incidents: incidentsData,
                         assets
                     });
+                    // Skip history saving for ZIP pack for now as it's complex blob
                     break;
                 }
                 default:
                     addToast("Type de rapport non supporté", "error");
+                    setGenerating(null);
+                    return;
             }
-            addToast("Rapport généré avec succès", "success");
+
+            if (generatedDoc) {
+                // Save to history asynchronously
+                saveGeneratedReport(generatedDoc, generatedFilename, generatedTitle);
+                addToast("Rapport généré avec succès", "success");
+            }
+
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Reports.generate', 'REPORT_GENERATION_FAILED');
         } finally {
@@ -242,7 +311,11 @@ export const Reports: React.FC = () => {
                     icon={<FileText className="w-8 h-8 text-white" />}
                     actions={
                         canManageDocuments && (
-                            <Button variant="outline" className="gap-2 bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white backdrop-blur-md">
+                            <Button
+                                variant="outline"
+                                className="gap-2 bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white backdrop-blur-md"
+                                onClick={() => navigate('/settings?tab=reports')}
+                            >
                                 <Settings className="w-4 h-4" />
                                 Configuration
                             </Button>
@@ -327,19 +400,10 @@ export const Reports: React.FC = () => {
                                                 gradient="from-blue-500 to-cyan-500"
                                                 onGenerate={() => {
                                                     setGenerating(`audit_${audit.id}`);
-                                                    PdfService.generateAuditExecutiveReport(audit, [], {
-                                                        organizationName: hasWhiteLabel ? (organization?.name || 'Sentinel GRC') : 'Sentinel GRC',
-                                                        organizationLogo: hasWhiteLabel ? organization?.logoUrl : undefined,
-                                                        author: user?.displayName || 'Auditeur',
-                                                        title: `RAPPORT D'AUDIT: ${audit.name}`,
-                                                        filename: `audit_${audit.id}.pdf`,
-                                                        includeCover: true
-                                                    }).save(`audit_${audit.id}.pdf`);
-
-                                                    setGenerating(null);
-                                                    addToast("Rapport téléchargé", "success");
+                                                    // Use the main handler for consistency/saving
+                                                    handleGenerateReport('audits_summary');
                                                 }}
-                                                loading={generating === `audit_${audit.id}`}
+                                                loading={generating === `audit_${audit.id}` || generating === 'audits_summary'}
                                                 disabled={!canReadAudits}
                                             />
                                         ))
@@ -513,13 +577,7 @@ export const Reports: React.FC = () => {
                     )}
 
                     {activeTab === 'templates' && (
-                        <div className="flex flex-col items-center justify-center p-20 text-center space-y-4">
-                            <div className="p-6 bg-slate-100 dark:bg-white/5 rounded-full mb-4 animate-pulse">
-                                <FileSpreadsheet className="w-12 h-12 text-slate-400" />
-                            </div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Bibliothèque de Modèles</h3>
-                            <p className="text-slate-500 max-w-md">Bientôt disponible. Vous pourrez créer et gérer vos propres modèles de rapports personnalisés.</p>
-                        </div>
+                        <ReportTemplates />
                     )}
                 </motion.div>
             </div>

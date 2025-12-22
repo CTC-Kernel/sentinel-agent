@@ -9,6 +9,10 @@ import { useStore } from '../store';
 import { Vulnerability, Asset, UserProfile } from '../types';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 import { where, addDoc, collection, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { ThreatFeedService } from '../services/ThreatFeedService';
+import { Box } from '../components/ui/Icons';
+
+
 import { db } from '../firebase';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { logAction } from '../services/logger';
@@ -85,6 +89,32 @@ export const Vulnerabilities: React.FC = () => {
         [where('organizationId', '==', user?.organizationId)],
         { realtime: true }
     );
+    const initialLoadRef = React.useRef(false);
+
+    // Auto-seed CISA KEV data if empty
+    React.useEffect(() => {
+        if (!vulnLoading && vulnerabilities.length === 0 && !initialLoadRef.current && user?.organizationId) {
+            initialLoadRef.current = true;
+            ThreatFeedService.fetchCisaKev().then(async (kevVulns) => {
+                if (kevVulns.length > 0) {
+                    const batchPromises = kevVulns.slice(0, 20).map(v =>
+                        addDoc(collection(db, 'vulnerabilities'), {
+                            ...v,
+                            organizationId: user.organizationId,
+                            createdAt: new Date().toISOString(),
+                            severity: 'High', // Default for KEV
+                            status: 'Open',
+                            assetName: 'External Interest'
+                        })
+                    );
+                    await Promise.all(batchPromises);
+                    logAction(user, 'AUTO_SEED', 'Vulnerabilities', `Seeded ${kevVulns.length} vulnerabilities from CISA KEV`);
+                    addToast("Flux CISA KEV synchronisé", "success");
+                    refresh();
+                }
+            }).catch(e => console.warn("Failed to auto-seed vulnerabilities:", e));
+        }
+    }, [vulnLoading, vulnerabilities.length, user, addToast, refresh]);
 
     const { data: assets } = useFirestoreCollection<Asset>(
         'assets',
@@ -179,23 +209,36 @@ export const Vulnerabilities: React.FC = () => {
 
 
     const handleCreateRisk = async (vuln: Vulnerability) => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId || !vuln.id) return;
         try {
-            await addDoc(collection(db, 'risks'), {
+            const riskData = {
                 organizationId: user.organizationId,
                 assetId: vuln.assetId || '',
                 threat: `Exploitation de ${vuln.cveId}`,
-                vulnerability: vuln.description,
+                vulnerability: vuln.description || vuln.title,
                 probability: 3,
                 impact: vuln.severity === 'Critical' ? 5 : vuln.severity === 'High' ? 4 : 3,
                 score: (vuln.severity === 'Critical' ? 5 : 3) * 3,
                 status: 'Ouvert',
                 strategy: 'Atténuer',
                 owner: user.email,
-                createdAt: new Date().toISOString()
+                ownerId: user.uid,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                framework: 'ISO27005',
+                relatedVulnerabilityId: vuln.id
+            };
+
+            const riskRef = await addDoc(collection(db, 'risks'), riskData);
+
+            // Bidirectional linking
+            await updateDoc(doc(db, 'vulnerabilities', vuln.id), {
+                relatedRiskId: riskRef.id,
+                status: 'In Progress'
             });
+
             logAction(user, 'CREATE_RISK', 'Vulnerabilities', `Created Risk for Vuln ${vuln.cveId}`);
-            addToast("Risque associé créé", "success");
+            addToast("Risque créé et lié avec succès", "success");
         } catch (e) {
             ErrorLogger.error(e, 'Vulnerabilities.handleCreateRisk');
             addToast("Erreur création risque", "error");
@@ -477,12 +520,30 @@ export const Vulnerabilities: React.FC = () => {
                         <FloatingLabelInput type="number" label="Score CVSS" value={formData.score?.toString() || ''} onChange={(e) => setFormData({ ...formData, score: parseFloat(e.target.value) })} />
                     </div>
 
-                    <FloatingLabelSelect
-                        label="Actif Concerné"
-                        value={formData.assetId || ''}
-                        onChange={(e) => setFormData({ ...formData, assetId: e.target.value })}
-                        options={assets.map(a => ({ label: a.name, value: a.id }))}
-                    />
+                    <div className="relative">
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            Actif Concerné
+                        </label>
+                        <div className="relative">
+                            <Box className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                            <input
+                                list="asset-list-vuln"
+                                placeholder="Rechercher un actif..."
+                                className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white pl-10 pr-4 py-2.5 outline-none border focus:ring-2 focus:ring-brand-500"
+                                value={assets.find(a => a.id === formData.assetId)?.name || formData.assetId || ''}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    const found = assets.find(a => a.name === val);
+                                    setFormData({ ...formData, assetId: found ? found.id : val, assetName: val });
+                                }}
+                            />
+                            <datalist id="asset-list-vuln">
+                                {assets.map(asset => (
+                                    <option key={asset.id} value={asset.name}>{asset.type}</option>
+                                ))}
+                            </datalist>
+                        </div>
+                    </div>
 
                     <FloatingLabelSelect
                         label="Assigné à"

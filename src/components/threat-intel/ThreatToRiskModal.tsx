@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Loader2, Save, X, Box } from 'lucide-react';
 import { useStore } from '../../store';
 import { db } from '../../firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { Button } from '../ui/button';
 import { Threat, Asset } from '../../types';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
@@ -53,7 +53,7 @@ export const ThreatToRiskModal: React.FC<ThreatToRiskModalProps> = ({ isOpen, on
             const imp = parseInt(data.impact);
             const score = prob * imp;
 
-            await addDoc(collection(db, 'risks'), {
+            const docRef = await addDoc(collection(db, 'risks'), {
                 organizationId: user.organizationId,
                 assetId: data.assetId,
                 threat: threat.title,
@@ -72,8 +72,12 @@ export const ThreatToRiskModal: React.FC<ThreatToRiskModalProps> = ({ isOpen, on
                 relatedThreatId: threat.id
             });
 
-            // Optionally link back to threat? 
-            // await updateDoc(doc(db, 'threats', threat.id), { relatedRiskId: riskRef.id });
+            // Bidirectional linking: Mark threat as processed into a risk
+            const threatRef = doc(db, 'threats', threat.id);
+            await updateDoc(threatRef, {
+                relatedRiskId: docRef.id,
+                status: 'Processed'
+            });
 
             addToast("Risque créé avec succès", "success");
             reset();
@@ -122,19 +126,19 @@ export const ThreatToRiskModal: React.FC<ThreatToRiskModalProps> = ({ isOpen, on
                                     </label>
                                     <div className="relative">
                                         <Box className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
-                                        <select
+                                        <input
+                                            list="asset-list"
+                                            placeholder="Rechercher un actif..."
+                                            className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white pl-10 pr-4 py-2.5 outline-none border focus:ring-2 focus:ring-brand-500"
                                             {...register('assetId')}
-                                            className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white pl-10 pr-4 py-2.5 outline-none border focus:ring-2 focus:ring-brand-500 appearance-none"
-                                        >
-                                            <option value="">Sélectionner un actif...</option>
+                                        />
+                                        <datalist id="asset-list">
                                             {assets.map(asset => (
-                                                <option key={asset.id} value={asset.id}>
-                                                    {asset.name} ({asset.type})
-                                                </option>
+                                                <option key={asset.id} value={asset.id}>{asset.name} ({asset.type})</option>
                                             ))}
-                                        </select>
+                                        </datalist>
                                     </div>
-                                    {errors.assetId && <p className="text-red-500 text-xs mt-1">{errors.assetId.message}</p>}
+                                    {errors.assetId && <p className="text-red-500 text-xs mt-1">Veuillez sélectionner un actif valide.</p>}
                                 </div>
 
                                 <div>
@@ -149,13 +153,13 @@ export const ThreatToRiskModal: React.FC<ThreatToRiskModalProps> = ({ isOpen, on
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Impact (1-5)</label>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Probabilité (1-5)</label>
                                         <select {...register('probability')} className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2 text-slate-900 dark:text-white">
                                             {[1, 2, 3, 4, 5].map(v => <option key={v} value={v}>{v}</option>)}
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Probabilité (1-5)</label>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Impact (1-5)</label>
                                         <select {...register('impact')} className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2 text-slate-900 dark:text-white">
                                             {[1, 2, 3, 4, 5].map(v => <option key={v} value={v}>{v}</option>)}
                                         </select>

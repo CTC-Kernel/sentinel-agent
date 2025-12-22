@@ -149,6 +149,57 @@ export const Incidents: React.FC = () => {
         }
     };
 
+    const handleSimulateAttack = async () => {
+        if (!user?.organizationId) return;
+        setIsSubmitting(true);
+        try {
+            const attackData: Omit<Incident, 'id'> = {
+                organizationId: user.organizationId,
+                title: "Détection Ransomware : LockBit 3.0",
+                description: "<p><strong>Alerte Critique :</strong> L'agent EDR a détecté une activité de chiffrement massive sur le serveur de fichiers principal. Signature compatible avec <em>LockBit 3.0</em>.</p><ul><li><strong>Vecteur :</strong> Phishing suspecté (Email RH)</li><li><strong>Cibles :</strong> 245 fichiers chiffrés en 30 secondes</li><li><strong>Action EDR :</strong> Processus isolé, mais persistance détectée.</li></ul>",
+                severity: Criticality.CRITICAL,
+                status: 'Contenu',
+                category: 'Ransomware',
+                reporter: 'Sentinel AI (Automated)',
+                dateReported: new Date().toISOString(),
+                dateAnalysis: new Date().toISOString(),
+                dateContained: new Date().toISOString(),
+                financialImpact: 0,
+                history: [
+                    { date: new Date().toISOString(), user: 'Sentinel AI', action: 'DETECTION', details: 'Signature match: LockBit 3.0 behavior detected.' },
+                    { date: new Date(Date.now() + 5000).toISOString(), user: 'Sentinel AI', action: 'CONTAINMENT', details: 'Automated response: Host isolation triggers.' }
+                ],
+                tags: ['Ransomware', 'Urgent', 'Automated'],
+                playbookId: 'playbook-ransomware-standard'
+            };
+
+            const docRef = await addDoc(collection(db, 'incidents'), attackData);
+
+            await hybridService.logCriticalEvent({
+                action: 'SIMULATION',
+                resource: 'Incident',
+                details: `Simulated Attack generated: ${docRef.id}`,
+                metadata: { type: 'Ransomware' }
+            });
+
+            await NotificationService.notifyNewIncident({
+                id: docRef.id,
+                ...attackData,
+                reporter: 'SIMULATION'
+            });
+
+            addToast("⚠️ Simulation d'attaque lancée !", "info");
+
+            // Auto-select for "Wow" effect
+            setSelectedIncident({ id: docRef.id, ...attackData } as Incident);
+
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Incidents.handleSimulateAttack');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
@@ -529,6 +580,18 @@ export const Incidents: React.FC = () => {
                                                     >
                                                         <BrainCircuit className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
                                                         Importer SIEM/EDR
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button
+                                                        onClick={handleSimulateAttack}
+                                                        className={`${active ? 'bg-red-500 text-white' : 'text-red-600 dark:text-red-400'
+                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                    >
+                                                        <Siren className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-red-500'}`} />
+                                                        Simuler une Attaque
                                                     </button>
                                                 )}
                                             </Menu.Item>
