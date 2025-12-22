@@ -160,22 +160,52 @@ export const useRiskActions = (onRefresh: () => void) => {
         }
     };
 
-    const exportRisks = (risks: Risk[], _format: 'csv' | 'pdf') => {
-        return new Promise<void>((resolve) => {
-            toast.info('Export démarré...');
-            setTimeout(() => {
-                toast.success('Export terminé (simulation)');
-                if (user?.uid && user?.organizationId) {
-                    NotificationService.create(
-                        user,
-                        'success',
-                        'Export terminé',
-                        `L'export de ${risks.length} risques est prêt au téléchargement.`,
-                        '/risks'
-                    ).catch(e => console.error(e));
+    const exportRisks = (risks: Risk[], format: 'csv' | 'pdf') => {
+        return new Promise<void>((resolve, reject) => {
+            try {
+                if (format === 'csv') {
+                    // Generate CSV content
+                    const headers = ['ID', 'Menace/Nom', 'Scénario', 'Statut', 'Score', 'Probabilité', 'Impact', 'Propriétaire', 'Créé le'];
+                    const rows = risks.map(r => [
+                        r.id,
+                        `"${r.threat.replace(/"/g, '""')}"`, // Escape quotes
+                        `"${(r.scenario || '').replace(/"/g, '""')}"`,
+                        r.status,
+                        (r.probability * r.impact).toString(),
+                        r.probability.toString(),
+                        r.impact.toString(),
+                        r.owner || '',
+                        r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '-'
+                    ]);
+
+                    const csvContent = [
+                        headers.join(','),
+                        ...rows.map(r => r.join(','))
+                    ].join('\n');
+
+                    // Create download link
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', `risks_export_${new Date().toISOString().split('T')[0]}.csv`);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    toast.success('Export CSV téléchargé');
+                    resolve();
+                } else {
+                    // PDF Not implemented yet
+                    toast.info('Export PDF bientôt disponible');
+                    resolve();
                 }
-                resolve();
-            }, 1000);
+            } catch (error) {
+                console.error('Export failed:', error);
+                toast.error("Erreur lors de l'export");
+                reject(error);
+            }
         });
     };
 
@@ -248,7 +278,7 @@ export const useRiskActions = (onRefresh: () => void) => {
         }
     };
 
-    /* eslint-disable @typescript-eslint/no-explicit-any */
+
     const importRisks = async (csvContent: string) => {
         setIsImporting(true);
         try {
@@ -265,10 +295,10 @@ export const useRiskActions = (onRefresh: () => void) => {
                 await createRisk({
                     ...item,
                     strategy: item.strategy as Risk['strategy'],
-                    status: item.status as any,
-                    framework: item.framework as any,
-                    probability: item.probability as any,
-                    impact: item.impact as any
+                    status: item.status as Risk['status'],
+                    framework: item.framework as Risk['framework'],
+                    probability: Number(item.probability) as 1 | 2 | 3 | 4 | 5,
+                    impact: Number(item.impact) as 1 | 2 | 3 | 4 | 5
                 });
                 importedCount++;
             }
