@@ -42,11 +42,11 @@ export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = ({ healthIssu
         >
             <div className="p-4 h-full overflow-y-auto custom-scrollbar">
                 {loading ? <Skeleton className="h-full w-full" /> : healthIssues.length === 0 ? (
-                    <div className="flex items-center p-5 bg-emerald-50/80 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
-                        <CheckCircle2 className="h-6 w-6 text-emerald-500 mr-4 flex-shrink-0" />
+                    <div className="flex items-center p-5 bg-emerald-100/50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-200/50 dark:border-emerald-900/30 backdrop-blur-sm">
+                        <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-500 mr-4 flex-shrink-0" />
                         <div>
-                            <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300 block">{t('dashboard.noAnomalies')}</span>
-                            <span className="text-xs text-emerald-600/80 dark:text-emerald-400">{t('dashboard.systemsNominal')}</span>
+                            <span className="text-sm font-bold text-slate-800 dark:text-emerald-300 block">{t('dashboard.noAnomalies')}</span>
+                            <span className="text-xs font-semibold text-slate-600 dark:text-emerald-400">{t('dashboard.systemsNominal')}</span>
                         </div>
                     </div>
                 ) : (
