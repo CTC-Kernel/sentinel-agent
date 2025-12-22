@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AuroraBackground } from '../components/ui/AuroraBackground';
+import { LandingMap } from '../components/landing/LandingMap';
 import { SEO } from '../components/SEO';
 import { Spotlight } from '../components/ui/aceternity/Spotlight';
 
@@ -286,6 +287,9 @@ export const Login: React.FC = () => {
                 className="-top-40 left-0 md:left-60 md:-top-20"
                 fill="white"
             />
+
+            {/* Background Map - Visual Continuity */}
+            <LandingMap />
 
             {/* Ambient Background & Sparkles */}
             <div className="absolute inset-0 w-full h-full pointer-events-none">
