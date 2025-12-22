@@ -42,15 +42,11 @@ const getStatusColor = (s: string) => {
 
 export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents, onCreate, onSelect, loading = false, onDelete, onBulkDelete, viewMode, filter }) => {
     const { user } = useStore();
-    const canEdit = !!user && (hasPermission(user, 'Incident', 'update') || hasPermission(user, 'Incident', 'delete'));
+    const canDelete = !!user && hasPermission(user, 'Incident', 'delete');
 
     const filteredIncidents = useMemo(() => {
         return incidents.filter(i => i.title.toLowerCase().includes(filter.toLowerCase()));
     }, [incidents, filter]);
-
-
-
-
 
     // Metrics for Summary Card
     const columns = useMemo<ColumnDef<Incident>[]>(() => [
@@ -113,7 +109,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
             id: 'actions',
             cell: ({ row }) => (
                 <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
-                    {canEdit && onDelete && (
+                    {canDelete && onDelete && (
                         <CustomTooltip content="Supprimer l'incident">
                             <button
                                 onClick={(e) => {
@@ -129,7 +125,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 </div>
             )
         }
-    ], [canEdit, onDelete]);
+    ], [canDelete, onDelete]);
 
     const totalIncidents = incidents.length;
     const openIncidents = incidents.filter(i => i.status !== 'Résolu' && i.status !== 'Fermé').length;
@@ -284,7 +280,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                             {inc.status}
                                         </span>
                                     </div>
-                                    {canEdit && onDelete && (
+                                    {canDelete && onDelete && (
                                         <CustomTooltip content="Supprimer l'incident">
                                             <button
                                                 onClick={(e) => {

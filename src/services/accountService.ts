@@ -1,40 +1,12 @@
-import { collection, query, where, getDocs, deleteDoc, doc, writeBatch, collectionGroup } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { deleteUser, User } from 'firebase/auth';
 import { db, storage } from '../firebase';
-import { ref, deleteObject, listAll, StorageReference } from 'firebase/storage';
+import { ref, deleteObject } from 'firebase/storage';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { UserProfile } from '../types';
 import { ErrorLogger } from './errorLogger';
-import { hybridService } from './hybridService';
 
 export class AccountService {
-  private static readonly COLLECTIONS_TO_CLEAN = [
-    'assets',
-    'risks',
-    'controls',
-    'audits',
-    'projects',
-    'suppliers',
-    'incidents',
-    'documents',
-    'processing_activities',
-    'business_processes',
-    'bcp_drills',
-    'system_logs',
-    'notifications',
-    'backups',
-    'backup_schedules',
-    'supplier_assessments',
-    'supplier_incidents',
-    // New collections added for completeness
-    'join_requests',
-    'invitations',
-    'risk_history',
-    'incidentResponses',
-    'audit_checklists',
-    'findings',
-    'project_milestones'
-  ];
-
   /**
    * Permanently deletes the current user's account and their user profile document.
    */
@@ -64,11 +36,21 @@ export class AccountService {
 
           // If no other users in this org (we already deleted current user doc), delete the org
           if (usersInOrg.empty) {
-            await deleteDoc(doc(db, 'organizations', user.organizationId));
+            // We use the same Cloud Function if possible? 
+            // PROBLEM: The user is already deleted from Firestore (step 1). 
+            // If we call Cloud Function, it expects a caller. The caller (firebaseUser) still exists until step 4.
+            // However, the Cloud Function checks strict ownership "orgData.ownerId === callerUid".
+            // If the user matches the ownerId, it should work.
 
+            // Let's rely on the Cloud Function for atomic cleanup even here.
+            await this.deleteOrganization(user.organizationId);
           }
         } catch (error) {
           ErrorLogger.error(error, 'AccountService.deleteAccount.deleteOrg');
+          // Start manual forced cleanup of org doc just in case cloud function fails or isn't called
+          try {
+            await deleteDoc(doc(db, 'organizations', user.organizationId));
+          } catch (e) { console.error(e); }
         }
       }
 
@@ -82,112 +64,18 @@ export class AccountService {
 
   /**
    * Permanently deletes the entire organization and all associated data.
-   * This is an irreversible admin action.
+   * Uses a Cloud Function to ensure atomic and complete deletion (including Auth accounts).
    */
   static async deleteOrganization(organizationId: string): Promise<void> {
     if (!organizationId) throw new Error("Organization ID is required");
 
     try {
-      // 1. Delete all documents in collections linked to this org
-      for (const collectionName of this.COLLECTIONS_TO_CLEAN) {
-        await this.deleteCollectionData(collectionName, organizationId);
-      }
-
-      // 2. Delete subcollections (comments) using collectionGroup
-      // Note: This requires 'organizationId' to be present on the subcollection documents
-      await this.deleteCollectionGroupData('comments', organizationId);
-
-      // 3. Delete users associated with this org
-      // Note: We can only delete their profile docs from Firestore. 
-      // We cannot delete their Auth accounts without Admin SDK (Cloud Functions).
-      // They will be orphaned.
-      await this.deleteCollectionData('users', organizationId);
-
-      // 4. Delete Organization document
-      await deleteDoc(doc(db, 'organizations', organizationId));
-
-      // 5. Cleanup Storage (Best effort)
-      try {
-        const orgStorageRef = ref(storage, `organizations/${organizationId}`);
-        await this.deleteStorageFolder(orgStorageRef);
-
-        const backupStorageRef = ref(storage, `backups/${organizationId}`);
-        await this.deleteStorageFolder(backupStorageRef);
-      } catch (error) {
-        ErrorLogger.error(error, 'AccountService.deleteOrganization.storageCleanup');
-      }
-
-      // 6. Delete Secure Data (GDPR Right to Erasure - Backend)
-      try {
-        await hybridService.wipeOrganizationSecureData();
-      } catch (error) {
-        ErrorLogger.error(error, 'AccountService.deleteOrganization.secureDataCleanup');
-      }
-
+      const functions = getFunctions();
+      const deleteOrgFn = httpsCallable(functions, 'deleteOrganization');
+      await deleteOrgFn({ organizationId });
     } catch (error) {
       ErrorLogger.error(error, 'AccountService.deleteOrganization');
       throw error;
-    }
-  }
-
-  private static async deleteCollectionData(collectionName: string, organizationId: string) {
-    const q = query(collection(db, collectionName), where('organizationId', '==', organizationId));
-    const snapshot = await getDocs(q);
-
-    if (snapshot.empty) return;
-
-    // Batch delete (Firestore limits batches to 500 operations)
-    const chunks = [];
-    const docs = snapshot.docs;
-
-    for (let i = 0; i < docs.length; i += 500) {
-      chunks.push(docs.slice(i, i + 500));
-    }
-
-    for (const chunk of chunks) {
-      const batch = writeBatch(db);
-      chunk.forEach(doc => {
-        batch.delete(doc.ref);
-      });
-      await batch.commit();
-    }
-  }
-
-  private static async deleteCollectionGroupData(collectionId: string, organizationId: string) {
-    // This query requires a composite index on 'organizationId' for the collection group
-    const q = query(collectionGroup(db, collectionId), where('organizationId', '==', organizationId));
-    const snapshot = await getDocs(q);
-
-    if (snapshot.empty) return;
-
-    const chunks = [];
-    const docs = snapshot.docs;
-
-    for (let i = 0; i < docs.length; i += 500) {
-      chunks.push(docs.slice(i, i + 500));
-    }
-
-    for (const chunk of chunks) {
-      const batch = writeBatch(db);
-      chunk.forEach(doc => {
-        batch.delete(doc.ref);
-      });
-      await batch.commit();
-    }
-  }
-
-  private static async deleteStorageFolder(folderRef: StorageReference) {
-    try {
-      const list = await listAll(folderRef);
-
-      // Delete files
-      await Promise.all(list.items.map(item => deleteObject(item)));
-
-      // Recurse for subfolders
-      await Promise.all(list.prefixes.map(prefix => this.deleteStorageFolder(prefix)));
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_error) {
-      // Folder might not exist or permission denied
     }
   }
 }

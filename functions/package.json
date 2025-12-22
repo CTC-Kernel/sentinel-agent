@@ -21,7 +21,8 @@
     "firebase-admin": "^13.6.0",
     "firebase-functions": "^7.0.1",
     "nodemailer": "^7.0.10",
-    "stripe": "^14.25.0"
+    "stripe": "^14.25.0",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "eslint": "^8.15.0",

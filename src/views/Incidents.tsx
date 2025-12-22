@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 // import { Helmet } from 'react-helmet-async'; // Replaced by SEO component
-import { collection, where, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, where, addDoc, updateDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
 import { Incident, Asset, Risk, UserProfile, Criticality, BusinessProcess } from '../types';
@@ -299,14 +299,32 @@ export const Incidents: React.FC = () => {
         });
     };
     const performDelete = async (id: string) => {
-        await deleteDoc(doc(db, 'incidents', id));
-        // Backend Audit Log
-        await hybridService.logCriticalEvent({
+        if (!user?.organizationId || !user?.uid) return;
+
+        const batch = writeBatch(db);
+
+        // 1. Delete Incident
+        const incidentRef = doc(db, 'incidents', id);
+        batch.delete(incidentRef);
+
+        // 2. Add Audit Log (Atomic) - Replicating System Log structure
+        const logRef = doc(collection(db, 'system_logs'));
+        const logData = {
+            organizationId: user.organizationId,
+            timestamp: new Date().toISOString(),
             action: 'DELETE',
             resource: 'Incident',
+            userId: user.uid,
+            userEmail: user.email || 'unknown',
             details: `Deleted incident ID: ${id}`,
-            metadata: { incidentId: id }
-        });
+            metadata: { incidentId: id },
+            severity: 'critical', // Deletion is always critical
+            source: 'Sentinel-Core'
+        };
+        batch.set(logRef, logData);
+
+        // 3. Commit atomically
+        await batch.commit();
     };
 
     const handleDelete = async (id: string) => {

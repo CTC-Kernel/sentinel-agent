@@ -13,6 +13,7 @@ const { defineString, defineSecret } = require("firebase-functions/params");
 const nodemailer = require("nodemailer");
 const { getMessaging } = require('firebase-admin/messaging');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { validate, z } = require('./utils/validation'); // Added validation import
 
 // Hardcoded secrets for Zero Config deployment (User requested)
 
@@ -265,6 +266,20 @@ exports.setUserClaims = onDocumentWritten("users/{userId}", async (event) => {
         let updates = {};
         let organizationId = userData.organizationId;
         let role = userData.role || 'user';
+
+        // 0. Security: Revoke Tokens on Sensitive Changes
+        const beforeSnap = event.data?.before;
+        if (beforeSnap && beforeSnap.exists) {
+            const beforeData = beforeSnap.data();
+            if (beforeData.role !== role || beforeData.organizationId !== organizationId) {
+                logger.info(`Security critical change for user ${userId} (Role: ${beforeData.role}->${role}, Org: ${beforeData.organizationId}->${organizationId}). Revoking tokens.`);
+                try {
+                    await admin.auth().revokeRefreshTokens(userId);
+                } catch (e) {
+                    logger.error(`Failed to revoke tokens for ${userId}`, e);
+                }
+            }
+        }
 
         // 1. Check for Pending Invitations if no organization is set
         if (!organizationId && userEmail) {
@@ -622,22 +637,46 @@ exports.switchOrganization = onCall(async (request) => {
  * Securely create a new organization and assign the creator as Admin.
  */
 exports.createOrganization = onCall(async (request) => {
-    if (!request.auth) {
-        throw new HttpsError('unauthenticated', 'User must be logged in to create an organization.');
-    }
-
-    const { organizationName, industry, department, role, displayName } = request.data;
-    const uid = request.auth.uid;
-    const email = request.auth.token.email;
-
-    if (!organizationName) {
-        throw new HttpsError('invalid-argument', 'Organization name is required.');
-    }
+    // 1. Validate Input using Zod
+    const { organizationName, email, password, industry, department, displayName } = validate(z.object({
+        organizationName: z.string().min(2).max(100),
+        email: z.string().email(),
+        password: z.string().min(6), // Password is required for new user creation
+        industry: z.string().optional(),
+        department: z.string().optional(),
+        displayName: z.string().optional()
+    }), request.data);
 
     const db = admin.firestore();
 
     try {
-        // 1. Check if user already has an organization
+        // 2. Check if user already exists in Auth
+        let userRecord;
+        try {
+            userRecord = await admin.auth().getUserByEmail(email);
+            // If user exists, check if they already belong to an organization
+            const userSnap = await db.collection('users').doc(userRecord.uid).get();
+            if (userSnap.exists && userSnap.data().organizationId) {
+                throw new HttpsError('already-exists', 'The email address is already in use by another account and belongs to an organization.');
+            }
+            // If user exists but has no organization, we will use this user.
+        } catch (error) {
+            if (error.code === 'auth/user-not-found') {
+                // User does not exist, create new user
+                userRecord = await admin.auth().createUser({
+                    email: email,
+                    password: password,
+                    displayName: displayName || organizationName + " Admin",
+                });
+            } else {
+                throw error; // Re-throw other auth errors
+            }
+        }
+
+        const uid = userRecord.uid;
+        const userEmail = userRecord.email;
+
+        // 3. Check if user already has an organization (Firestore check, redundant if Auth check is thorough)
         const userRef = db.collection('users').doc(uid);
         const userSnap = await userRef.get();
 
@@ -645,7 +684,7 @@ exports.createOrganization = onCall(async (request) => {
             throw new HttpsError('already-exists', 'User already belongs to an organization.');
         }
 
-        // 2. Generate IDs and Slugs
+        // 4. Generate IDs and Slugs
         const organizationId = crypto.randomUUID();
         const slug = organizationName
             .toLowerCase()
@@ -656,7 +695,7 @@ exports.createOrganization = onCall(async (request) => {
 
         const batch = db.batch();
 
-        // 3. Create Organization Document
+        // 5. Create Organization Document
         const orgRef = db.collection('organizations').doc(organizationId);
         batch.set(orgRef, {
             id: organizationId,
@@ -677,17 +716,17 @@ exports.createOrganization = onCall(async (request) => {
             }
         });
 
-        // 4. Update User Profile
+        // 6. Update User Profile
         batch.set(userRef, {
             uid: uid,
-            email: email,
+            email: userEmail,
             role: 'admin', // Enforce Admin role for creator
             department: department || '',
             industry: industry || '',
-            displayName: displayName || '',
+            displayName: displayName || userRecord.displayName || '',
             organizationName: organizationName,
             organizationId: organizationId,
-            photoURL: request.auth.token.picture || null,
+            photoURL: userRecord.photoURL || null,
             lastLogin: new Date().toISOString(),
             onboardingCompleted: true,
             createdAt: new Date().toISOString(), // Ensure createdAt exists
@@ -696,22 +735,18 @@ exports.createOrganization = onCall(async (request) => {
 
         await batch.commit();
 
-        // 5. Set Custom Claims IMMEDIATELY
+        // 7. Set Custom Claims IMMEDIATELY
         await admin.auth().setCustomUserClaims(uid, {
             organizationId: organizationId,
             role: 'admin'
         });
 
-        // 6. Send Welcome Email (Async)
-        // We can reuse the logic from the frontend but run it here securely
-        // For now, we'll let the frontend trigger the email or rely on a separate trigger if needed.
-        // But to be "ultra complete", let's queue it here.
-
+        // 8. Send Welcome Email (Async)
         const link = `${appBaseUrl.value()}/`;
-        const htmlContent = getWelcomeEmailHtml(displayName || 'Administrateur', organizationName, link);
+        const htmlContent = getWelcomeEmailHtml(displayName || userRecord.displayName || 'Administrateur', organizationName, link);
 
         await db.collection('mail_queue').add({
-            to: email,
+            to: userEmail,
             message: {
                 subject: 'Bienvenue sur Sentinel GRC',
                 html: htmlContent
@@ -725,6 +760,9 @@ exports.createOrganization = onCall(async (request) => {
 
     } catch (error) {
         logger.error('Error creating organization:', error);
+        if (error instanceof HttpsError) {
+            throw error;
+        }
         throw new HttpsError('internal', 'Failed to create organization: ' + error.message);
     }
 });
@@ -746,6 +784,19 @@ const PLANS = {
         yearly: 'price_1SZ5tXDKg6Juwz5xukDpGfgZ'
     }
 };
+
+// Helper to get Stripe Price ID
+function getPriceId(planId, interval) {
+    const planConfig = PLANS[planId];
+    if (!planConfig) {
+        throw new HttpsError("invalid-argument", `Invalid planId: ${planId}`);
+    }
+    const priceId = interval === 'year' ? planConfig.yearly : planConfig.monthly;
+    if (!priceId) {
+        throw new HttpsError("invalid-argument", `No price configured for plan ${planId} with interval ${interval}`);
+    }
+    return priceId;
+}
 
 
 const AI_LIMITS = {
@@ -805,24 +856,57 @@ async function checkAndIncrementAiUsage(uid, organizationId) {
 exports.createCheckoutSession = onCall({
     secrets: [stripeSecretKey]
 }, async (request) => {
-    const stripe = require("stripe")(stripeSecretKey.value());
+    // Initialize Stripe securely inside the function scope or globally if preferred,
+    // but secrets are available here.
+    const stripe = require('stripe')(stripeSecretKey.value());
+    const db = admin.firestore(); // Initialize db here
+
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "User must be logged in.");
     }
 
-    // interval is 'month' or 'year', default to month
-    const { planId, organizationId, successUrl, cancelUrl, interval = 'month' } = request.data;
+    const { planId, organizationId, successUrl, cancelUrl, interval } = validate(z.object({
+        planId: z.enum(['discovery', 'professional', 'enterprise']), // Updated to match existing PLANS
+        organizationId: z.string(),
+        successUrl: z.string().url(),
+        cancelUrl: z.string().url(),
+        interval: z.enum(['month', 'year']).default('month')
+    }), request.data);
 
-    if (!organizationId || !planId) {
-        throw new HttpsError("invalid-argument", "Missing organizationId or planId.");
+    // If it's the free plan, just update Firestore directly
+    if (planId === 'discovery') {
+        const orgRef = db.collection("organizations").doc(organizationId);
+        const orgSnap = await orgRef.get();
+        if (!orgSnap.exists) {
+            throw new HttpsError("not-found", "Organization not found.");
+        }
+        const orgData = orgSnap.data();
+
+        // Verify user is admin/owner
+        const userDoc = await db.collection("users").doc(request.auth.uid).get();
+        const userData = userDoc.data();
+
+        if (orgData.ownerId !== request.auth.uid) {
+            if (userData.role !== 'admin' || userData.organizationId !== organizationId) {
+                throw new HttpsError("permission-denied", "Only admins of this organization or owners can manage billing.");
+            }
+        }
+
+        await orgRef.update({
+            'subscription.planId': 'discovery',
+            'subscription.status': 'active',
+            'subscription.stripeSubscriptionId': null,
+            'subscription.currentPeriodEnd': null,
+            'subscription.cancelAtPeriodEnd': false
+        });
+        return { url: successUrl };
     }
 
-    // 1. Verify User is Admin of the Organization
-    const userRef = admin.firestore().collection("users").doc(request.auth.uid);
-    const userSnap = await userRef.get();
-    const userData = userSnap.data();
+    // Verify user belongs to organization and is admin/owner
+    const userDoc = await db.collection("users").doc(request.auth.uid).get();
+    const userData = userDoc.data();
 
-    const orgRef = admin.firestore().collection("organizations").doc(organizationId);
+    const orgRef = db.collection("organizations").doc(organizationId);
     const orgSnap = await orgRef.get();
 
     if (!orgSnap.exists) {
@@ -830,30 +914,11 @@ exports.createCheckoutSession = onCall({
     }
     const orgData = orgSnap.data();
 
+    // Strict RBAC using Claims would be better, but Firestore check is safe too
     if (orgData.ownerId !== request.auth.uid) {
         if (userData.role !== 'admin' || userData.organizationId !== organizationId) {
             throw new HttpsError("permission-denied", "Only admins of this organization or owners can manage billing.");
         }
-    }
-
-    // Resolve Price ID based on Plan and Interval
-    const planConfig = PLANS[planId];
-    const priceId = interval === 'year' ? planConfig?.yearly : planConfig?.monthly;
-
-    // Discovery plan or invalid plan handling
-    if (!priceId && planId !== 'discovery') {
-        // If it's not discovery and has no priceId, it's invalid or custom
-        throw new HttpsError("invalid-argument", "Invalid Plan ID or Interval.");
-    }
-
-    // If it's the free plan, just update Firestore directly
-    if (planId === 'discovery') {
-        await orgRef.update({
-            'subscription.planId': 'discovery',
-            'subscription.status': 'active',
-            'subscription.stripeSubscriptionId': null,
-        });
-        return { url: successUrl };
     }
 
     try {
@@ -877,12 +942,14 @@ exports.createCheckoutSession = onCall({
         // 3. Create Checkout Session
         const session = await stripe.checkout.sessions.create({
             customer: customerId,
-            payment_method_types: ['card'],
-            line_items: [{
-                price: priceId,
-                quantity: 1,
-            }],
-            mode: 'subscription',
+            payment_method_types: ["card"],
+            line_items: [
+                {
+                    price: getPriceId(planId, interval),
+                    quantity: 1,
+                },
+            ],
+            mode: "subscription",
             allow_promotion_codes: true,
             subscription_data: {
                 metadata: { organizationId }
@@ -894,7 +961,7 @@ exports.createCheckoutSession = onCall({
 
         return { url: session.url };
     } catch (error) {
-        logger.error("Stripe Checkout Error", error);
+        logger.error("Stripe Checkout Error:", error);
         throw new HttpsError("internal", "Unable to create checkout session.");
     }
 });
@@ -980,7 +1047,7 @@ exports.callGeminiGenerateContent = onCall({
     const { prompt, modelName = "gemini-1.5-flash" } = request.data;
 
     try {
-        const client = new GoogleGenAI({ apiKey: geminiApiKey.value() });
+        const client = new GoogleGenerativeAI({ apiKey: geminiApiKey.value() });
         const model = client.getGenerativeModel({ model: modelName });
 
         const result = await model.generateContent(prompt);
@@ -1263,12 +1330,12 @@ exports.logEvent = onCall(async (request) => {
     const isAdmin = request.auth.token.role === 'admin';
 
     // Allow if user's token matches orgId OR if user is admin (who might be acting on behalf of org)
-    // Note: For strict multi-tenant, even admins should only log for their own org, 
-    // but in some "super admin" scenarios (not yet fully implemented), cross-org might be valid. 
+    // Note: For strict multi-tenant, even admins should only log for their own org,
+    // but in some "super admin" scenarios (not yet fully implemented), cross-org might be valid.
     // For now, we enforce strict token matching for standard users.
 
     // Exception: Onboarding. During onboarding, user might not have claims yet.
-    // In that case, we might relax this check if the action is related to onboarding, 
+    // In that case, we might relax this check if the action is related to onboarding,
     // OR we rely on the fact that `logAction` in frontend handles this gracefully.
 
     if (tokenOrgId && tokenOrgId !== organizationId) {
@@ -1563,6 +1630,34 @@ exports.rejectJoinRequest = onCall(async (request) => {
     }
 });
 
+const { AccountService: BackendAccountService } = require('./services/accountService');
+
+/**
+ * Secure Callable Function to delete an organization
+ * Replaces client-side logic for atomic and complete deletion (Auth + Data).
+ */
+exports.deleteOrganization = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+
+    const { organizationId } = validate(z.object({
+        organizationId: z.string()
+    }), request.data);
+
+    try {
+        await BackendAccountService.deleteOrganization(organizationId, request.auth.uid);
+        return { success: true };
+    } catch (error) {
+        logger.error(`Delete Organization Failed`, error);
+        // Map error to HttpsError
+        if (error.message.includes('Permission denied')) {
+            throw new HttpsError('permission-denied', error.message);
+        }
+        throw new HttpsError('internal', 'Deletion failed.');
+    }
+});
+
 // Export the API function
 exports.api = require("./api").api;
 
@@ -1730,15 +1825,6 @@ exports.transferOwnership = onCall(async (request) => {
         throw new HttpsError('internal', error.message);
     }
 });
-
-exports.saveUserApiKeys = onCall({
-    secrets: [userSecretsKey]
-}, async (request) => {
-    // ... existing implementation ...
-}); // Note: This replacement is just to find the spot, I will insert the new function BEFORE this or after. 
-// Actually, it's safer to append the new function at the end or in a logical place. 
-// I'll add it after 'saveUserApiKeys' block ends, but I don't see the end of saveUserApiKeys in the view_file output. 
-// Let's look for a better anchor. I'll add it before `exports.saveUserApiKeys`.
 
 /**
  * Request a password reset email with a custom template.

@@ -39,6 +39,15 @@ service cloud.firestore {
     function belongsToOrganization(orgId) {
       return isAuthenticated() && getUserData().organizationId == orgId;
     }
+
+    // --- VALIDATION HELPERS ---
+    function isValidIncidentStatus(status) {
+      return status in ['Nouveau', 'Analyse', 'Contenu', 'Résolu', 'Fermé'];
+    }
+    
+    function isValidIncidentSeverity(severity) {
+      return severity in ['Critical', 'High', 'Medium', 'Low', 'Info'];
+    }
     
     // --- PERMISSION LOGIC ---
 
@@ -299,10 +308,14 @@ service cloud.firestore {
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || isUser() || (isAuditor() && belongsToOrganization(request.resource.data.organizationId))) &&
         (!('title' in request.resource.data) || request.resource.data.title.size() < 200) &&
-        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000); // Users can report incidents
+        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000) &&
+        (!('status' in request.resource.data) || isValidIncidentStatus(request.resource.data.status)) &&
+        (!('severity' in request.resource.data) || isValidIncidentSeverity(request.resource.data.severity)); // Users can report incidents
       allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
         (!('title' in request.resource.data) || request.resource.data.title.size() < 200) &&
-        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
+        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000) &&
+        (!('status' in request.resource.data) || isValidIncidentStatus(request.resource.data.status)) &&
+        (!('severity' in request.resource.data) || isValidIncidentSeverity(request.resource.data.severity));
       allow delete: if canDelete(resource.data.organizationId);
     }
 
