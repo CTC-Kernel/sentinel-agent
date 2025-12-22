@@ -233,16 +233,39 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
                 </motion.div>
 
                 {/* 4. Placeholder for Timeline or future chart */}
-                <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 flex items-center justify-center relative overflow-hidden">
-                    <div className="absolute inset-0 bg-grid-slate-100 dark:bg-grid-slate-800/50 [mask-image:linear-gradient(0deg,white,transparent)]" />
-                    <div className="text-center relative z-10">
-                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-full mx-auto w-fit mb-4">
-                            <Activity className="h-8 w-8 text-brand-500" />
-                        </div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Chronologie des Incidents</h3>
-                        <p className="text-sm text-slate-500 max-w-xs mx-auto">
-                            Le module de gestion de crise affichera ici l'historique des incidents et leur résolution en temps réel.
-                        </p>
+                <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Derniers Exercices</h3>
+                        <Zap className="h-5 w-5 text-slate-400" />
+                    </div>
+
+                    <div className="space-y-4">
+                        {drills.slice(0, 5).map(drill => (
+                            <div key={drill.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-2 h-2 rounded-full ${drill.result === 'Succès' ? 'bg-emerald-500' : drill.result === 'Échec' ? 'bg-red-500' : 'bg-amber-500'}`} />
+                                    <div>
+                                        <p className="font-bold text-sm text-slate-900 dark:text-white">{drill.type}</p>
+                                        <p className="text-xs text-slate-500">{new Date(drill.date).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+                                <span className={`text-xs font-bold px-2 py-1 rounded-md ${drill.result === 'Succès' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' :
+                                        drill.result === 'Échec' ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300' :
+                                            'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
+                                    }`}>
+                                    {drill.result}
+                                </span>
+                            </div>
+                        ))}
+
+                        {drills.length === 0 && (
+                            <div className="text-center py-8">
+                                <div className="bg-slate-100 dark:bg-white/5 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                                    <History className="h-6 w-6 text-slate-400" />
+                                </div>
+                                <p className="text-sm text-slate-500">Aucun exercice récent.</p>
+                            </div>
+                        )}
                     </div>
                 </motion.div>
             </div>

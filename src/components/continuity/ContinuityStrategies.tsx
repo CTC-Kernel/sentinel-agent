@@ -173,6 +173,14 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                             icon={Shield}
                             title="Aucune stratégie définie"
                             description="Commencez par définir vos stratégies de continuité pour protéger vos actifs critiques."
+                            actionLabel="Créer une stratégie par défaut"
+                            onAction={() => setNewStrategy({
+                                title: "Stratégie Standard (RTO 4h)",
+                                type: "Active-Passive",
+                                rto: "4h",
+                                rpo: "1h",
+                                linkedAssets: []
+                            })}
                         />
                     </div>
                 )}

@@ -65,7 +65,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
             }
             tabs={tabs}
             activeTab={inspectorTab}
-            onTabChange={(id) => setInspectorTab(id as any)}
+            onTabChange={(id) => setInspectorTab(id as 'details' | 'dependencies' | 'drills' | 'history')}
             actions={
                 <div className="flex gap-2">
                     <button onClick={() => onDelete(process.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">

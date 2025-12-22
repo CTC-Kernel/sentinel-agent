@@ -3,6 +3,7 @@ import { AlertTriangle, Phone, ShieldAlert, CheckCircle2, User, Megaphone, Lock 
 import { Button } from '../ui/button';
 import { UserProfile } from '../../types';
 import { useStore } from '../../store';
+import { WarRoomModal } from './WarRoomModal';
 
 interface ContinuityCrisisProps {
     users: UserProfile[];
@@ -10,8 +11,10 @@ interface ContinuityCrisisProps {
 
 export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => {
     const { addToast } = useStore();
+    const [scenario, setScenario] = useState<'cyber' | 'fire' | 'supply' | 'staff'>('cyber');
     const [crisisActive, setCrisisActive] = useState(false);
     const [activationStep, setActivationStep] = useState(0);
+    const [isWarRoomOpen, setIsWarRoomOpen] = useState(false);
 
     const crisisTeam = users.filter(u => u.role === 'admin' || u.role === 'rssi' || u.role === 'direction');
 
@@ -21,12 +24,18 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
             return;
         }
         setCrisisActive(true);
-        addToast("⚠️ MODE CRISE ACTIVÉ : Notifications envoyées à la cellule de crise.", "error");
-        // Here we would trigger real notifications via Cloud Functions
+        const scenarioLabels = {
+            cyber: "CYBERATTAQUE DE GRANDE AMPLEUR",
+            fire: "INCENDIE DATACENTER / LOCAUX",
+            supply: "DÉFAILLANCE CRITIQUE FOURNISSEUR",
+            staff: "INDISPONIBILITÉ MAJEURE PERSONNEL"
+        };
+        addToast(`⚠️ MODE CRISE ACTIVÉ : ${scenarioLabels[scenario]}`, "error");
+        addToast("Notifications envoyées à la cellule de crise.", "info");
     };
 
     const handleDeactivate = () => {
-        if (confirm("Confirmer la fin de la crise ? Un rapport sera généré automatically.")) {
+        if (confirm("Confirmer la fin de la crise ? Un rapport sera généré automatiquement.")) {
             setCrisisActive(false);
             setActivationStep(0);
             addToast("Mode crise désactivé. Retour à la normale.", "success");
@@ -48,7 +57,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                             </h2>
                             <p className="text-lg opacity-80 max-w-xl">
                                 {crisisActive
-                                    ? "Protocole d'urgence en cours. Toutes les actions sont logguées. Le P.C.A est activé."
+                                    ? `Protocole ${scenario.toUpperCase()} en cours. P.C.A activé. Actions journalisées.`
                                     : "Aucun incident critique en cours. Les systèmes sont nominaux."}
                             </p>
                         </div>
@@ -56,17 +65,31 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
 
                     <div className="flex flex-col items-end gap-3">
                         {!crisisActive ? (
-                            <Button
-                                onClick={handleActivateCrisis}
-                                className={`h-16 px-8 text-lg font-bold rounded-2xl transition-all ${activationStep === 0 ? 'bg-slate-900 dark:bg-white text-white dark:text-black' :
-                                    activationStep === 1 ? 'bg-amber-500 hover:bg-amber-600 text-white' :
-                                        'bg-red-600 hover:bg-red-700 text-white shadow-xl shadow-red-500/30 animate-pulse'
-                                    }`}
-                            >
-                                {activationStep === 0 && <span className="flex items-center gap-2"><Megaphone className="w-5 h-5" /> Signaler Incident</span>}
-                                {activationStep === 1 && "Confirmer l'alerte ?"}
-                                {activationStep === 2 && "ACTIVER MAINTENANT"}
-                            </Button>
+                            <div className="flex flex-col gap-2 items-end">
+                                {activationStep === 0 && (
+                                    <select
+                                        value={scenario}
+                                        onChange={(e) => setScenario(e.target.value as 'cyber' | 'fire' | 'supply' | 'staff')}
+                                        className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 mb-2 focus:ring-2 focus:ring-red-500"
+                                    >
+                                        <option value="cyber">Cyberattaque (Ransomware/DDoS)</option>
+                                        <option value="fire">Incendie / Sinistre Physique</option>
+                                        <option value="supply">Défaillance Fournisseur Critique</option>
+                                        <option value="staff">Indisponibilité Personnel (Pandémie)</option>
+                                    </select>
+                                )}
+                                <Button
+                                    onClick={handleActivateCrisis}
+                                    className={`h-16 px-8 text-lg font-bold rounded-2xl transition-all ${activationStep === 0 ? 'bg-slate-900 dark:bg-white text-white dark:text-black' :
+                                        activationStep === 1 ? 'bg-amber-500 hover:bg-amber-600 text-white' :
+                                            'bg-red-600 hover:bg-red-700 text-white shadow-xl shadow-red-500/30 animate-pulse'
+                                        }`}
+                                >
+                                    {activationStep === 0 && <span className="flex items-center gap-2"><Megaphone className="w-5 h-5" /> Signaler Incident</span>}
+                                    {activationStep === 1 && "Confirmer l'alerte ?"}
+                                    {activationStep === 2 && "ACTIVER MAINTENANT"}
+                                </Button>
+                            </div>
                         ) : (
                             <Button onClick={handleDeactivate} variant="outline" className="h-16 px-8 text-lg border-red-500 text-red-500 hover:bg-red-500/10 font-bold rounded-2xl">
                                 <CheckCircle2 className="w-6 h-6 mr-2" /> Clôturer la Crise
@@ -115,7 +138,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                     </div>
                     <h3 className="font-bold text-lg mb-2">War Room Virtuelle</h3>
                     <p className="text-sm text-slate-500 mb-6">Accès sécurisé aux documents confidentiels et au chat crypté de crise.</p>
-                    <Button disabled={!crisisActive} className="w-full">
+                    <Button disabled={!crisisActive} className="w-full" onClick={() => setIsWarRoomOpen(true)}>
                         Accéder
                     </Button>
                 </div>
@@ -135,6 +158,12 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                     </div>
                 </div>
             )}
+
+            <WarRoomModal
+                isOpen={isWarRoomOpen}
+                onClose={() => setIsWarRoomOpen(false)}
+                scenario={scenario}
+            />
         </div>
     );
 };

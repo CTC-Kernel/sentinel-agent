@@ -102,6 +102,7 @@ export const Reports: React.FC = () => {
         navigate('/pricing');
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const saveGeneratedReport = async (doc: any, filename: string, title: string) => {
         if (!user?.organizationId || !doc) return;
 
@@ -153,6 +154,7 @@ export const Reports: React.FC = () => {
         setGenerating(type);
         addToast("Génération du rapport en cours... Cela peut prendre quelques secondes.", "info");
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let generatedDoc: any = null;
         let generatedFilename = '';
         let generatedTitle = title || 'Rapport';

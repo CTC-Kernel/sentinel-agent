@@ -53,23 +53,32 @@ export class ThreatFeedService {
     /**
      * Helper to fetch with proxy failover
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private static async fetchWithFailover(targetUrl: string): Promise<any> {
         const proxies = [
             (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
             (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            (url: string) => `https://thingproxy.freeboard.io/fetch/${url}`
+            // Fallback for demo environments or when CORS is strictly blocked
+            // We can also add a direct fetch attempt first if the environment supports it (e.g. backend proxy)
         ];
+
+        // Try direct first (if allow-origin is * or if we are in an environment that ignores CORS like React Native or Electron, though here we are web)
+        // Actually, for CISA, sometimes simple fetch works if they enabled CORS.
+        try {
+            const response = await fetch(targetUrl);
+            if (response.ok) return await response.json();
+        } catch { /* continue to proxies */ }
 
         for (const proxy of proxies) {
             try {
                 const url = proxy(targetUrl);
                 const response = await fetch(url);
                 if (response.ok) return await response.json();
-            } catch (e) {
+            } catch {
                 console.warn(`Proxy failed, trying next...`);
             }
         }
-        throw new Error("All proxies failed");
+        throw new Error("Impossible de joindre les serveurs de Threat Intel (CISA/URLhaus). Vérifiez votre connexion.");
     }
 
     /**
@@ -128,11 +137,17 @@ export class ThreatFeedService {
         }
     }
 
+    static useSimulation = false;
+
     /**
      * Seed the database with LIVE data only.
-     * STRICT PRODUCTION BEHAVIOR: No mock fallbacks.
+     * STRICT PRODUCTION BEHAVIOR: No mock fallbacks unless useSimulation is true.
      */
     static async seedLiveThreats(organizationId: string): Promise<{ threats: number, vulns: number }> {
+        if (this.useSimulation) {
+            return this.seedSimulatedData(organizationId).then(stats => ({ threats: stats.threats, vulns: 0 }));
+        }
+
         let liveThreats: Threat[] = [];
         let liveVulns: Vulnerability[] = [];
 

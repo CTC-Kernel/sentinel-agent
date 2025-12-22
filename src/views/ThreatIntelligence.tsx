@@ -5,7 +5,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants, slideUpVariants } from '../components/ui/animationVariants';
 import { Globe, AlertOctagon, Users, MessageSquare, ThumbsUp, Shield, Activity, Share2, Box, LayoutDashboard, List, Network } from '../components/ui/Icons';
-import { RefreshCw, Settings } from 'lucide-react';
+import { RefreshCw, Settings, ChevronRight } from 'lucide-react';
 import { Menu, Transition } from '@headlessui/react';
 import { Threat } from '../types';
 import { ThreatFeedService } from '../services/ThreatFeedService';
@@ -34,11 +34,11 @@ export const ThreatIntelligence: React.FC = () => {
     const { user, addToast } = useStore();
 
     // UI State
-    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'map' | 'feed' | 'community'>('threat_intelligence_active_tab', 'overview');
+    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'map' | 'feed' | 'community'>('threat_intelligence_active_tab', 'map');
 
 
     const [tooltipContent, setTooltipContent] = useState('');
-    const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
+    const [viewMode, setViewMode] = useState<'2d' | '3d'>('3d');
     const [isSeeding, setIsSeeding] = useState(false);
 
     // Filters (PremiumPageControl)
@@ -79,10 +79,7 @@ export const ThreatIntelligence: React.FC = () => {
     const { data: threats, loading: threatsLoading } = useFirestoreCollection<Threat>('threats', [orderBy('timestamp', 'desc'), limit(100)], { realtime: true });
     const initialLoadRef = React.useRef(false);
 
-    // Seeding logic
-
     // Auto-seed LIVE data if empty (Production Behavior)
-    // Ensures real data is present on load without user intervention.
     React.useEffect(() => {
         if (!threatsLoading && threats.length === 0 && !initialLoadRef.current) {
             initialLoadRef.current = true;
@@ -95,20 +92,6 @@ export const ThreatIntelligence: React.FC = () => {
         }
     }, [threatsLoading, threats.length, user]);
 
-    // Manual Actions
-    const handleLoadDemoData = async () => {
-        setIsSeeding(true);
-        try {
-            const stats = await ThreatFeedService.seedSimulatedData(user?.organizationId || 'demo');
-            addToast(`Données de DÉMONSTRATION chargées : ${stats.threats} menaces`, "success");
-        } catch (e) {
-            console.error(e);
-            addToast("Erreur lors du chargement de la démo", "error");
-        } finally {
-            setIsSeeding(false);
-        }
-    };
-
     const handleRefreshLiveFeed = async () => {
         if (isSeeding) return;
         setIsSeeding(true);
@@ -118,13 +101,15 @@ export const ThreatIntelligence: React.FC = () => {
             addToast(`Flux mis à jour : ${stats.threats} nouvelles menaces`, "success");
         } catch (e) {
             console.error(e);
-            addToast("Échec de la récupération des flux live (Production)", "error");
+            addToast("Passage en mode simulation (Hors-ligne).", "info");
+            // Fallback to simulation
+            ThreatFeedService.useSimulation = true;
+            await ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo');
         } finally {
             setIsSeeding(false);
         }
     };
 
-    // ... (rest of code)
 
     const mapData = useMemo(() => {
         const countryCounts: Record<string, { value: number, markers: { coordinates: [number, number]; name: string }[] }> = {};
@@ -306,9 +291,9 @@ export const ThreatIntelligence: React.FC = () => {
                             <EmptyState
                                 icon={Shield}
                                 title="Flux de menaces vide"
-                                description="Aucune menace live détectée. Utilisez le bouton ci-dessous pour charger un jeu de données de test."
-                                actionLabel={isSeeding ? "Chargement..." : "Charger Données Démo"}
-                                onAction={handleLoadDemoData}
+                                description="Aucune menace live détectée. Cliquez pour actualiser les flux."
+                                actionLabel={isSeeding ? "Actualisation..." : "Actualiser les Flux Live"}
+                                onAction={handleRefreshLiveFeed}
                             />
                         ) : (
                             filteredThreats.map((threat) => (
@@ -366,45 +351,66 @@ export const ThreatIntelligence: React.FC = () => {
             {/* COMMUNITY TAB */}
             {activeTab === 'community' && (
                 <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="bg-gradient-to-br from-brand-900 to-purple-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-8 opacity-10"><Globe className="h-64 w-64" /></div>
-                        <h3 className="text-2xl font-black mb-2 relative z-10">Communauté Sentinel</h3>
-                        <p className="text-white/80 text-lg mb-8 relative z-10 max-w-sm">Rejoignez 12,000 experts en cybersécurité pour partager et valider les menaces en temps réel.</p>
+                    <div className="bg-gradient-to-br from-brand-900 to-purple-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
+                        <div className="absolute top-0 right-0 p-8 opacity-20 animate-pulse"><Globe className="h-64 w-64" /></div>
 
-                        <div className="grid grid-cols-2 gap-4 relative z-10">
-                            <div className="bg-white/10 rounded-2xl p-4 backdrop-blur-md">
-                                <div className="text-4xl font-black">12k</div>
-                                <div className="text-xs uppercase tracking-wider opacity-70 mt-1">Experts Actifs</div>
-                            </div>
-                            <div className="bg-white/10 rounded-2xl p-4 backdrop-blur-md">
-                                <div className="text-4xl font-black">850</div>
-                                <div className="text-xs uppercase tracking-wider opacity-70 mt-1">Alertes / Jour</div>
+                        <div className="relative z-10">
+                            <Badge status="success" className="mb-4">Verified Community</Badge>
+                            <h3 className="text-3xl font-black mb-2 tracking-tight">Sentinel Force</h3>
+                            <p className="text-white/80 text-lg mb-8 max-w-sm leading-relaxed">
+                                Rejoignez <span className="text-white font-bold">12,000+ experts</span> pour une cyberdéfense proactive et collaborative.
+                            </p>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Users className="h-5 w-5 text-brand-300" />
+                                        <div className="text-xs uppercase tracking-wider opacity-70">Experts</div>
+                                    </div>
+                                    <div className="text-4xl font-black tracking-tight">12.4k</div>
+                                </div>
+                                <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Shield className="h-5 w-5 text-emerald-300" />
+                                        <div className="text-xs uppercase tracking-wider opacity-70">Mitigations</div>
+                                    </div>
+                                    <div className="text-4xl font-black tracking-tight">850<span className="text-lg opacity-60">/j</span></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-800/50 rounded-[2.5rem] border border-slate-200 dark:border-white/5 p-8 backdrop-blur-xl">
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Top Contributeurs</h3>
+                    <div className="bg-white dark:bg-slate-800/50 rounded-[2.5rem] border border-slate-200 dark:border-white/5 p-8 backdrop-blur-xl shadow-xl">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Activity className="h-6 w-6 text-brand-500" /> Top Hunters
+                            </h3>
+                            <button className="text-xs font-bold text-brand-500 hover:text-brand-400">Voir tout</button>
+                        </div>
+
                         <div className="space-y-6">
                             {topContributors.map((c, i) => (
-                                <div key={c.name} className="flex items-center justify-between group">
+                                <div key={c.name} className="flex items-center justify-between group p-3 hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl transition-all cursor-pointer">
                                     <div className="flex items-center gap-4">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-lg ${i === 0 ? 'bg-yellow-500' : i === 1 ? 'bg-slate-400' : i === 2 ? 'bg-orange-700' : 'bg-brand-500'}`}>
+                                        <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg text-lg transform transition-transform group-hover:scale-110 ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500' : i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500' : i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-800' : 'bg-brand-500'}`}>
                                             {i < 3 ? i + 1 : c.name.charAt(0)}
+                                            {i < 3 && <div className="absolute -top-1 -right-1 bg-white dark:bg-slate-900 rounded-full p-0.5"><Shield className={`h-3 w-3 ${i === 0 ? 'text-yellow-500' : i === 1 ? 'text-slate-400' : 'text-orange-700'}`} /></div>}
                                         </div>
                                         <div>
-                                            <div className="font-bold text-slate-900 dark:text-white">{c.name}</div>
-                                            <div className="text-sm text-slate-500">{c.count} Signalements</div>
+                                            <div className="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
+                                                {c.name}
+                                                {i === 0 && <Badge status="warning" className="scale-75 origin-left">MVP</Badge>}
+                                            </div>
+                                            <div className="text-sm text-slate-500 font-medium">{c.count} Menaces signalées</div>
                                         </div>
                                     </div>
-                                    {i < 3 && <Shield className={`h-5 w-5 ${i === 0 ? 'text-yellow-500' : i === 1 ? 'text-slate-400' : 'text-orange-700'}`} />}
+                                    <ChevronRight className="h-5 w-5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </div>
                             ))}
                         </div>
                     </div>
                 </motion.div>
             )}
-
         </motion.div>
     );
 };
