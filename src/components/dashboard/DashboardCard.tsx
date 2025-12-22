@@ -1,4 +1,5 @@
 import React from 'react';
+import { TechCorner } from '../ui/TechCorner';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import { Skeleton } from '../../components/ui/Skeleton';
 
@@ -123,14 +124,23 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
         <div
             className={`
                 glass-panel p-0 rounded-[2rem] overflow-hidden shadow-sm flex flex-col group 
-                hover:shadow-apple hover:-translate-y-1 transition-all duration-300
+                hover:shadow-glass-lg hover:-translate-y-1 transition-all duration-500
                 h-full border border-white/60 dark:border-white/10 relative
                 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20
                 ${className}
             `}
         >
+            {/* Tech Corners */}
+            <TechCorner position="top-left" className="opacity-0 group-hover:opacity-100" />
+            <TechCorner position="top-right" className="opacity-0 group-hover:opacity-100" />
+            <TechCorner position="bottom-left" className="opacity-0 group-hover:opacity-100" />
+            <TechCorner position="bottom-right" className="opacity-0 group-hover:opacity-100" />
+
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
             {/* Hover Shine Effect */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-tr from-transparent via-white/5 to-transparent skew-x-12 translate-x-[-100%] group-hover:animate-shine" />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none bg-gradient-to-tr from-transparent via-white/5 to-transparent skew-x-12 translate-x-[-100%] group-hover:animate-shine" />
 
             <div className="relative z-10 flex flex-col h-full">
                 {CardContent}

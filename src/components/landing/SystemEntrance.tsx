@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Shield, Globe, Loader2, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, Shield, Globe, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
 import { LandingMap } from './LandingMap';
@@ -9,17 +9,12 @@ import { ThemeToggle } from '../ui/ThemeToggle';
 export const SystemEntrance: React.FC = () => {
     const navigate = useNavigate();
     const [isScanning, setIsScanning] = useState(false);
-    const [scanSuccess, setScanSuccess] = useState(false);
 
     const handleInitialize = () => {
         setIsScanning(true);
-        // Simulate biometric scan delay
+        // Simulate loading delay then redirect
         setTimeout(() => {
-            setScanSuccess(true);
-            // Simulate access granted & redirect
-            setTimeout(() => {
-                navigate('/login');
-            }, 800);
+            navigate('/login');
         }, 1500);
     };
 
@@ -89,7 +84,7 @@ export const SystemEntrance: React.FC = () => {
                         <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">Système Sécurisé • Niveau 4</span>
                     </div>
                     <h1 className="text-6xl md:text-7xl font-black tracking-tighter mb-2 bg-clip-text text-transparent bg-gradient-to-b from-slate-900 via-slate-700 to-slate-500 dark:from-white dark:via-white dark:to-slate-500 drop-shadow-2xl animate-fade-in">
-                        SENTINEL <span className="text-brand-600 dark:text-brand-500">GRC</span>
+                        SENTINEL <span className="text-brand-600 dark:text-brand-500 animate-pulse">_</span>
                     </h1>
                     <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 font-medium tracking-widest uppercase">
                         Commandement Cyber Souverain
@@ -106,18 +101,10 @@ export const SystemEntrance: React.FC = () => {
                     {isScanning && (
                         <div className="absolute inset-0 bg-white/90 dark:bg-black/80 z-20 flex flex-col items-center justify-center animate-fade-in backdrop-blur-sm">
                             <div className="relative">
-                                {scanSuccess ? (
-                                    <div className="flex flex-col items-center gap-4 animate-scale-in">
-                                        <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                                            <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <Loader2 className="h-12 w-12 text-slate-500 dark:text-slate-400 animate-spin" />
-                                )}
+                                <Loader2 className="h-12 w-12 text-slate-500 dark:text-slate-400 animate-spin" />
                             </div>
                             <div className="mt-6 font-mono text-sm tracking-widest text-slate-600 dark:text-slate-400 font-bold uppercase">
-                                {scanSuccess ? <span className="text-emerald-600 dark:text-emerald-400">Accès Autorisé</span> : "Chargement..."}
+                                Chargement...
                             </div>
                         </div>
                     )}

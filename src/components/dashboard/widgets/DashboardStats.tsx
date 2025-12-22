@@ -3,6 +3,8 @@ import { Siren, ShieldAlert, TrendingUp, Activity } from '../../ui/Icons';
 import { Skeleton } from '../../ui/Skeleton';
 import { motion } from 'framer-motion';
 
+import { TechCorner } from '../../ui/TechCorner';
+
 interface StatsOverviewProps {
     stats: {
         activeIncidents: number;
@@ -46,6 +48,11 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, n
             className="glass-panel-command flex flex-col md:flex-row items-center justify-between p-4 md:px-8 rounded-[1.5rem] gap-6 md:gap-12 relative overflow-hidden group hover:shadow-[0_0_30px_-5px_rgba(59,130,246,0.15)] transition-shadow duration-500"
             data-tour="dashboard-reports"
         >
+            <TechCorner position="top-left" className="opacity-0 group-hover:opacity-100" />
+            <TechCorner position="top-right" className="opacity-0 group-hover:opacity-100" />
+            <TechCorner position="bottom-left" className="opacity-0 group-hover:opacity-100" />
+            <TechCorner position="bottom-right" className="opacity-0 group-hover:opacity-100" />
+
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
             {/* Health Score - Compact */}
             <div className="flex items-center gap-4 min-w-[180px]">
