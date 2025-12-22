@@ -82,7 +82,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 t.status === 'Terminé' ||
                 t.status === 'Suspendu'
             ) {
-                setValue('status', t.status as any);
+                setValue('status', t.status);
             }
         }
     };

@@ -31,7 +31,7 @@ export const ScannerJobs: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [demoMode]);
+    }, [demoMode, user?.organizationId]);
 
     useEffect(() => {
         loadJobs();

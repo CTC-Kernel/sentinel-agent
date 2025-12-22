@@ -51,7 +51,7 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
                         } else {
                             date = new Date(); // Fallback to now or handle invalid
                         }
-                    } catch (e) {
+                    } catch {
                         date = new Date(); // Fallback
                     }
 

@@ -118,7 +118,7 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                                     fillOpacity={1}
                                     fill={`url(#${gradientId})`}
                                     animationDuration={1500}
-                                    dot={(props: any) => {
+                                    dot={(props: { cx: number; cy: number; index: number }) => {
                                         const { cx, cy, index } = props;
                                         const isLast = index === filteredData.length - 1;
                                         if (!isLast) return <circle cx={cx} cy={cy} r={0} />;

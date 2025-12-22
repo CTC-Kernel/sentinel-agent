@@ -100,7 +100,7 @@ export const AssetList = React.memo<AssetListProps>(({
                 </div>
             )
         }
-    ], [canEdit, canDelete, isGeneratingLabels, onEdit, onDelete, onGenerateLabel, user]);
+    ], [canEdit, isGeneratingLabels, onEdit, onDelete, onGenerateLabel, user]);
 
     if (viewMode === 'list') {
         return (

@@ -60,7 +60,7 @@ export const AuditTrail: React.FC<AuditTrailProps> = ({ resourceId, className })
                                 <span className="text-xs text-slate-500">
                                     {(() => {
                                         try {
-                                            const ts = log.timestamp as any;
+                                            const ts = log.timestamp as { seconds: number } | number | string | Date;
                                             let d: Date;
                                             if (ts instanceof Date) d = ts;
                                             else if (typeof ts === 'object' && ts && 'seconds' in ts) d = new Date(ts.seconds * 1000);

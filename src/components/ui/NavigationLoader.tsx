@@ -10,6 +10,7 @@ export const NavigationLoader = () => {
     // However, for route changes, we want to trigger this *as soon as* the location changes.
     // React Router updates location, this effect fires.
     useLayoutEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsLoading(true);
 
         // Force the loader to stay for at least 800ms to allow the animation to be seen
