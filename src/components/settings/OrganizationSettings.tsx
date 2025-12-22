@@ -126,7 +126,7 @@ export const OrganizationSettings: React.FC = () => {
 
     const handleUpdateUserRole = async (targetUserId: string, newRole: UserProfile['role']) => {
         if (!hasPermission(user, 'User', 'manage')) {
-            addToast("Vous n'avez pas la permission de gérer les utilisateurs.", "error");
+            addToast(t('settings.noPermission'), "error");
             return;
         }
         setUpdatingUserIds(prev => new Set(prev).add(targetUserId));
@@ -170,7 +170,7 @@ export const OrganizationSettings: React.FC = () => {
         setConfirmTransferData({
             isOpen: true,
             title: t('settings.transferOwnership'),
-            message: "Êtes-vous sûr de vouloir transférer la propriété de l'organisation ? Cette action est irréversible.",
+            message: t('settings.transferOwnershipMessage') || "Are you sure you want to transfer ownership? This action is irreversible.",
             onConfirm: handleTransferOwnership
         });
     }
@@ -195,7 +195,7 @@ export const OrganizationSettings: React.FC = () => {
         setConfirmRemoveData({
             isOpen: true,
             title: t('settings.confirmRemoveUser'),
-            message: t('settings.removeUserMessage') || "Cet utilisateur n'aura plus accès à votre organisation.",
+            message: t('settings.removeUserMessage'),
             onConfirm: () => handleRemoveUser(targetUserId),
             loading: false
         });

@@ -173,9 +173,9 @@ export const Dashboard: React.FC = () => {
         >
             <MasterpieceBackground />
             <SEO
-                title="Tableau de bord de Gouvernance"
-                description="Vue d'overview de votre posture de sécurité et conformité."
-                keywords="Pilotage SSI, Tableau de bord CISO, KPI Cyber, Conformité, Risques, Gouvernance"
+                title={t('dashboard.seoTitle')}
+                description={t('dashboard.seoDescription')}
+                keywords={t('dashboard.seoKeywords')}
             />
 
 

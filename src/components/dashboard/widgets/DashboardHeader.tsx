@@ -213,7 +213,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         className="hidden sm:flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:-translate-y-0.5"
                                     >
                                         <Users className="h-4 w-4" />
-                                        <span className="hidden xl:inline">Inviter</span>
+                                        <span className="hidden xl:inline">{t('dashboard.inviteMember')}</span>
                                     </button>
                                 </Tooltip>
                             )}

@@ -20,23 +20,6 @@ interface CommandItem {
     category: string;
 }
 
-const NAVIGATION_ITEMS: CommandItem[] = [
-    { id: 'nav-dash', title: 'Tableau de bord', icon: LayoutDashboard, path: '/', category: 'Navigation' },
-    { id: 'nav-inc', title: 'Incidents', icon: Siren, path: '/incidents', category: 'Navigation' },
-    { id: 'nav-proj', title: 'Projets SSI', icon: FolderKanban, path: '/projects', category: 'Navigation' },
-    { id: 'nav-asset', title: 'Actifs', icon: Server, path: '/assets', category: 'Navigation' },
-    { id: 'nav-risk', title: 'Risques', icon: ShieldAlert, path: '/risks', category: 'Navigation' },
-    { id: 'nav-cont', title: 'Continuité (PCA)', icon: HeartPulse, path: '/continuity', category: 'Navigation' },
-    { id: 'nav-supp', title: 'Fournisseurs', icon: Building, path: '/suppliers', category: 'Navigation' },
-    { id: 'nav-doc', title: 'Documents', icon: Briefcase, path: '/documents', category: 'Navigation' },
-    { id: 'nav-comp', title: 'Conformité ISO', icon: FileText, path: '/compliance', category: 'Navigation' },
-    { id: 'nav-priv', title: 'Confidentialité (RGPD)', icon: Fingerprint, path: '/privacy', category: 'Navigation' },
-    { id: 'nav-audit', title: 'Audits', icon: Activity, path: '/audits', category: 'Navigation' },
-    { id: 'nav-team', title: 'Équipe', icon: Users, path: '/team', category: 'Navigation' },
-    { id: 'nav-help', title: 'Centre d\'aide', icon: HelpCircle, path: '/help', category: 'Navigation' },
-    { id: 'nav-set', title: 'Paramètres', icon: Settings, path: '/settings', category: 'Navigation' },
-];
-
 export const CommandPalette: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [queryStr, setQueryStr] = useState('');
@@ -45,17 +28,32 @@ export const CommandPalette: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const navigate = useNavigate();
-    const { user } = useStore();
+    const { user, t } = useStore();
 
-    // Define Quick Actions
-    // Define Quick Actions
+    const NAVIGATION_ITEMS: CommandItem[] = React.useMemo(() => [
+        { id: 'nav-dash', title: t('commandPalette.nav.dashboard'), icon: LayoutDashboard, path: '/', category: t('commandPalette.categories.navigation') },
+        { id: 'nav-inc', title: t('commandPalette.nav.incidents'), icon: Siren, path: '/incidents', category: t('commandPalette.categories.navigation') },
+        { id: 'nav-proj', title: t('commandPalette.nav.projects'), icon: FolderKanban, path: '/projects', category: t('commandPalette.categories.navigation') },
+        { id: 'nav-asset', title: t('commandPalette.nav.assets'), icon: Server, path: '/assets', category: t('commandPalette.categories.navigation') },
+        { id: 'nav-risk', title: t('commandPalette.nav.risks'), icon: ShieldAlert, path: '/risks', category: t('commandPalette.categories.navigation') },
+        { id: 'nav-cont', title: t('commandPalette.nav.continuity'), icon: HeartPulse, path: '/continuity', category: t('commandPalette.categories.navigation') },
+        { id: 'nav-supp', title: t('commandPalette.nav.suppliers'), icon: Building, path: '/suppliers', category: t('commandPalette.categories.navigation') },
+        { id: 'nav-doc', title: t('commandPalette.nav.documents'), icon: Briefcase, path: '/documents', category: t('commandPalette.categories.navigation') },
+        { id: 'nav-comp', title: t('commandPalette.nav.compliance'), icon: FileText, path: '/compliance', category: t('commandPalette.categories.navigation') },
+        { id: 'nav-priv', title: t('commandPalette.nav.privacy'), icon: Fingerprint, path: '/privacy', category: t('commandPalette.categories.navigation') },
+        { id: 'nav-audit', title: t('commandPalette.nav.audits'), icon: Activity, path: '/audits', category: t('commandPalette.categories.navigation') },
+        { id: 'nav-team', title: t('commandPalette.nav.team'), icon: Users, path: '/team', category: t('commandPalette.categories.navigation') },
+        { id: 'nav-help', title: t('commandPalette.nav.help'), icon: HelpCircle, path: '/help', category: t('commandPalette.categories.navigation') },
+        { id: 'nav-set', title: t('commandPalette.nav.settings'), icon: Settings, path: '/settings', category: t('commandPalette.categories.navigation') },
+    ], [t]);
+
     const ACTION_ITEMS: CommandItem[] = React.useMemo(() => [
-        { id: 'act-inc', title: 'Déclarer un Incident', subtitle: 'Créer une nouvelle alerte de sécurité', icon: Siren, category: 'Actions', action: () => navigate('/incidents') },
-        { id: 'act-asset', title: 'Ajouter un Actif', subtitle: 'Enregistrer un nouvel équipement ou logiciel', icon: Plus, category: 'Actions', action: () => navigate('/assets') },
-        { id: 'act-risk', title: 'Nouveau Risque', subtitle: 'Identifier une nouvelle menace', icon: ShieldAlert, category: 'Actions', action: () => navigate('/risks') },
-        { id: 'act-user', title: 'Inviter Utilisateur', subtitle: 'Ajouter un membre à l\'équipe', icon: Users, category: 'Actions', action: () => navigate('/team') },
-        { id: 'act-audit', title: 'Planifier Audit', subtitle: 'Créer un nouvel audit de conformité', icon: Activity, category: 'Actions', action: () => navigate('/audits') },
-    ], [navigate]);
+        { id: 'act-inc', title: t('commandPalette.actions.declareIncident'), subtitle: t('commandPalette.actions.declareIncidentSub'), icon: Siren, category: t('commandPalette.categories.actions'), action: () => navigate('/incidents') },
+        { id: 'act-asset', title: t('commandPalette.actions.addAsset'), subtitle: t('commandPalette.actions.addAssetSub'), icon: Plus, category: t('commandPalette.categories.actions'), action: () => navigate('/assets') },
+        { id: 'act-risk', title: t('commandPalette.actions.newRisk'), subtitle: t('commandPalette.actions.newRiskSub'), icon: ShieldAlert, category: t('commandPalette.categories.actions'), action: () => navigate('/risks') },
+        { id: 'act-user', title: t('commandPalette.actions.inviteUser'), subtitle: t('commandPalette.actions.inviteUserSub'), icon: Users, category: t('commandPalette.categories.actions'), action: () => navigate('/team') },
+        { id: 'act-audit', title: t('commandPalette.actions.planAudit'), subtitle: t('commandPalette.actions.planAuditSub'), icon: Activity, category: t('commandPalette.categories.actions'), action: () => navigate('/audits') },
+    ], [navigate, t]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -114,10 +112,10 @@ export const CommandPalette: React.FC = () => {
                     assetsSnap.forEach(doc => items.push({
                         id: `asset-${doc.id}`,
                         title: doc.data().name,
-                        subtitle: `Actif • ${doc.data().type}`,
+                        subtitle: `${t('sidebar.assets')} • ${doc.data().type}`,
                         icon: Server,
                         path: '/assets',
-                        category: 'Récents'
+                        category: t('commandPalette.categories.recent')
                     }));
 
                     // Fetch Risks
@@ -125,10 +123,10 @@ export const CommandPalette: React.FC = () => {
                     risksSnap.forEach(doc => items.push({
                         id: `risk-${doc.id}`,
                         title: doc.data().threat,
-                        subtitle: `Risque • Score: ${doc.data().score}`,
+                        subtitle: `${t('sidebar.dashboard')} • Score: ${doc.data().score}`,
                         icon: ShieldAlert,
                         path: '/risks',
-                        category: 'Récents'
+                        category: t('commandPalette.categories.recent')
                     }));
 
                     // Fetch Controls (ISO)
@@ -136,10 +134,10 @@ export const CommandPalette: React.FC = () => {
                     ctrlSnap.forEach(doc => items.push({
                         id: `ctrl-${doc.id}`,
                         title: `${doc.data().code} - ${doc.data().name}`,
-                        subtitle: `Contrôle • ${doc.data().status}`,
+                        subtitle: `${t('commandPalette.nav.compliance')} • ${doc.data().status}`,
                         icon: FileText,
                         path: '/compliance',
-                        category: 'Conformité'
+                        category: t('commandPalette.categories.compliance')
                     }));
 
                     // Fetch Documents
@@ -147,10 +145,10 @@ export const CommandPalette: React.FC = () => {
                     docsSnap.forEach(doc => items.push({
                         id: `doc-${doc.id}`,
                         title: doc.data().title,
-                        subtitle: `Document • ${doc.data().version}`,
+                        subtitle: `${t('sidebar.documents')} • ${doc.data().version}`,
                         icon: Briefcase,
                         path: '/documents',
-                        category: 'Récents'
+                        category: t('commandPalette.categories.recent')
                     }));
 
                     // Fetch Projects
@@ -158,10 +156,10 @@ export const CommandPalette: React.FC = () => {
                     projsSnap.forEach(doc => items.push({
                         id: `proj-${doc.id}`,
                         title: doc.data().name,
-                        subtitle: `Projet • ${doc.data().status}`,
+                        subtitle: `${t('sidebar.projects')} • ${doc.data().status}`,
                         icon: FolderKanban,
                         path: '/projects',
-                        category: 'Gestion'
+                        category: t('commandPalette.categories.management')
                     }));
 
                     // Fetch Incidents
@@ -169,10 +167,10 @@ export const CommandPalette: React.FC = () => {
                     incSnap.forEach(doc => items.push({
                         id: `inc-${doc.id}`,
                         title: doc.data().title,
-                        subtitle: `Incident • ${doc.data().severity}`,
+                        subtitle: `${t('sidebar.incidents')} • ${doc.data().severity}`,
                         icon: Siren,
                         path: '/incidents',
-                        category: 'Alertes'
+                        category: t('commandPalette.categories.alerts')
                     }));
 
                     setDbItems(items);
@@ -184,7 +182,7 @@ export const CommandPalette: React.FC = () => {
             };
             fetchSearchableItems();
         }
-    }, [isOpen, user?.organizationId, dbItems.length]);
+    }, [isOpen, user?.organizationId, dbItems.length, t]);
 
     useEffect(() => {
         if (!queryStr) {
@@ -212,10 +210,10 @@ export const CommandPalette: React.FC = () => {
             // Always add "Search in all Sentinel" as the first or prominent option if not already there
             const searchAllOption: CommandItem = {
                 id: 'search-all-explicit',
-                title: `Rechercher "${queryStr}" dans tout Sentinel`,
-                subtitle: 'Recherche avancée dans tous les modules...',
+                title: t('commandPalette.searchInSentinel').replace('{query}', queryStr),
+                subtitle: t('commandPalette.advancedSearch'),
                 icon: Search,
-                category: 'Global',
+                category: t('commandPalette.categories.global'),
                 action: () => navigate(`/search?q=${encodeURIComponent(queryStr)}`)
             };
 
@@ -224,7 +222,7 @@ export const CommandPalette: React.FC = () => {
         }
 
         setFilteredItems(allResults);
-    }, [queryStr, dbItems, navigate, ACTION_ITEMS]);
+    }, [queryStr, dbItems, navigate, ACTION_ITEMS, NAVIGATION_ITEMS, t]);
 
     const handleSelect = (item: CommandItem) => {
         if (item.action) {
@@ -251,7 +249,7 @@ export const CommandPalette: React.FC = () => {
                     <Search className="h-5 w-5 text-brand-500 mr-4 font-bold" />
                     <input
                         type="text"
-                        placeholder="Rechercher ou exécuter une commande..."
+                        placeholder={t('commandPalette.placeholder')}
                         className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-slate-900 dark:text-white placeholder-slate-400 outline-none font-medium h-auto py-0"
                         value={queryStr}
                         onChange={e => setQueryStr(e.target.value)}
@@ -271,7 +269,7 @@ export const CommandPalette: React.FC = () => {
                             <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
                                 <Command className="h-8 w-8 opacity-40" />
                             </div>
-                            <p className="font-medium">Aucun résultat trouvé pour "{queryStr}"</p>
+                            <p className="font-medium">{t('commandPalette.noResults')} "{queryStr}"</p>
                         </div>
                     ) : (
                         <div className="space-y-1.5">
@@ -314,8 +312,8 @@ export const CommandPalette: React.FC = () => {
                         <span className="font-bold">Sentinel GRC Pro</span>
                     </span>
                     <div className="flex gap-4 items-center">
-                        <span className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3" /> Sélectionner</span>
-                        <span className="flex items-center gap-1.5"><Command className="h-3 w-3" /> Ouvrir</span>
+                        <span className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3" /> {t('commandPalette.select')}</span>
+                        <span className="flex items-center gap-1.5"><Command className="h-3 w-3" /> {t('commandPalette.open')}</span>
                     </div>
                 </div>
             </div>

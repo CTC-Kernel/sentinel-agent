@@ -17,7 +17,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
 
     const tabs = [
         { id: 'profile', label: t('settings.profile'), icon: User },
-        { id: 'activity', label: 'Mon Activité', icon: Activity },
+        { id: 'activity', label: t('settings.activity'), icon: Activity },
         { id: 'security', label: t('settings.security'), icon: Shield },
         { id: 'organization', label: t('settings.organization'), icon: Building, requiredPermission: { resource: 'Settings', action: 'manage' } },
         { id: 'integrations', label: t('settings.integrations'), icon: Link },
