@@ -93,7 +93,7 @@ export const LandingPage: React.FC = () => {
             </section>
 
             {/* Trust Footer */}
-            <footer className="relative z-10 py-12 border-t border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-[#020617] text-center">
+            <footer className="relative z-10 py-12 border-t border-slate-200 dark:border-white/5 bg-slate-100/80 dark:bg-[#020617]/80 backdrop-blur-xl text-center">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col items-center justify-center space-y-8">
                     <div className="w-12 h-1 bg-slate-300 dark:bg-slate-800 rounded-full"></div>
                     <p className="text-xs font-bold font-mono text-slate-500 uppercase tracking-widest">Opérationnel dans toute l'Europe</p>
