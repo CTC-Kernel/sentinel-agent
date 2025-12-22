@@ -5,7 +5,7 @@ import { fr } from 'date-fns/locale';
 import { ReportEnrichmentService } from './ReportEnrichmentService';
 import { Risk, Project, ProjectTask, Control, Audit, Finding } from '../types';
 
-interface ReportOptions {
+export interface ReportOptions {
     title: string;
     subtitle?: string;
     orientation?: 'portrait' | 'landscape';
@@ -19,6 +19,7 @@ interface ReportOptions {
     organizationName?: string;
     organizationLogo?: string; // Base64 or URL
     author?: string;
+    autoDownload?: boolean; // New option
 }
 
 export class PdfService {
@@ -326,7 +327,9 @@ export class PdfService {
         this.addFooter(doc, options.footerText);
 
         if (options.save !== false) {
-            doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+            if (options.autoDownload !== false) {
+                doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+            }
         }
         return doc;
     }
@@ -348,7 +351,9 @@ export class PdfService {
         this.addFooter(doc, options.footerText);
 
         if (options.save !== false) {
-            doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+            if (options.autoDownload !== false) {
+                doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+            }
         }
         return doc;
     }
@@ -451,7 +456,9 @@ export class PdfService {
         }
 
         if (options.save !== false) {
-            doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+            if (options.autoDownload !== false) {
+                doc.save(options.filename || `${options.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+            }
         }
         return doc;
     }

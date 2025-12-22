@@ -81,19 +81,19 @@ export class ReportEnrichmentService {
         const recommendations: string[] = [];
 
         if (metrics.critical_risks > 0) {
-            recommendations.push(`Prioritize immediate remediation of ${metrics.critical_risks} critical risks.`);
+            recommendations.push(`Priorité absolue : remédier immédiatement aux ${metrics.critical_risks} risques critiques.`);
         }
 
         if (metrics.risk_score > 60) {
-            recommendations.push("Overall risk exposure is high. Consider reviewing risk appetite and control effectiveness.");
+            recommendations.push("L'exposition globale au risque est élevée. Revoyez l'appétence au risque et l'efficacité des contrôles.");
         }
 
         if (metrics.treated_percentage < 50) {
-            recommendations.push("Accelerate implementation of risk treatment plans to improve coverage.");
+            recommendations.push("Accélérez la mise en œuvre des plans de traitement pour améliorer la couverture.");
         }
 
         if (metrics.low_risks > metrics.high_risks * 3) {
-            recommendations.push("Review low-priority risks to ensure they aren't incorrectly classified.");
+            recommendations.push("Revoyez les risques de faible priorité pour vous assurer qu'ils ne sont pas mal classés.");
         }
 
         // Sort risks by severity for "Top Risks"
@@ -131,25 +131,25 @@ export class ReportEnrichmentService {
      * Ported from MCP Server AnalyticsTools
      */
     static generateExecutiveSummary(metrics: ReportMetrics): string {
-        const status = metrics.risk_score < 30 ? "Healthy" : metrics.risk_score < 60 ? "Moderate" : "Critical";
+        const status = metrics.risk_score < 30 ? "Sain" : metrics.risk_score < 60 ? "Modéré" : "Critique";
 
         return `
-      Executive Summary: Data Protection & Compliance Status
+      Synthèse Exécutive : Protection des Données & Conformité
       
-      Current Security Posture: ${status} (Score: ${100 - metrics.risk_score}/100)
+      Posture de Sécurité Actuelle : ${status} (Score : ${100 - metrics.risk_score}/100)
       
-      Overview:
-      The organization is currently tracking ${metrics.total_risks} active risks, with a focus on ${metrics.critical_risks} critical items requiring immediate attention. The overall risk exposure is calculated at ${metrics.risk_score}%, indicating a ${status.toLowerCase()} level of residual risk.
+      Vue d'ensemble :
+      L'organisation suit actuellement ${metrics.total_risks} risques actifs, avec une attention particulière sur ${metrics.critical_risks} éléments critiques nécessitant une action immédiate. L'exposition globale au risque est calculée à ${metrics.risk_score}%, indiquant un niveau de risque résiduel ${status.toLowerCase()}.
       
-      Key Highlights:
-      • Critical Threats: ${metrics.critical_risks} (${Math.round((metrics.critical_risks / metrics.total_risks) * 100 || 0)}% of total)
-      • Mitigation Progress: ${metrics.treated_percentage}% of identified risks have active treatment plans.
-      • Distribution: The majority of risks fall into the ${metrics.high_risks > metrics.medium_risks ? 'High' : 'Medium'} category.
+      Points Clés :
+      • Menaces Critiques : ${metrics.critical_risks} (${Math.round((metrics.critical_risks / metrics.total_risks) * 100 || 0)}% du total)
+      • Progrès de l'Atténuation : ${metrics.treated_percentage}% des risques identifiés ont des plans de traitement actifs.
+      • Distribution : La majorité des risques se situent dans la catégorie ${metrics.high_risks > metrics.medium_risks ? 'Élevée' : 'Moyenne'}.
 
-      Strategic Recommendation:
+      Recommandation Stratégique :
       ${metrics.critical_risks > 0
-                ? "Immediate resource allocation is required to address critical vulnerabilities."
-                : "Maintain current control effectiveness and continue regular monitoring."}
+                ? "Une allocation immédiate de ressources est requise pour traiter les vulnérabilités critiques."
+                : "Maintenir l'efficacité actuelle des contrôles et poursuivre la surveillance régulière."}
     `.trim();
     }
     // --- AUDIT MODULE ENRICHMENT ---
@@ -197,24 +197,24 @@ export class ReportEnrichmentService {
      * Generate Executive Summary for an Audit Report
      */
     static generateAuditExecutiveSummary(metrics: AuditMetrics, auditName: string): string {
-        const status = metrics.conformity_score > 85 ? "Good" : metrics.conformity_score > 60 ? "Acceptable" : "Critical";
+        const status = metrics.conformity_score > 85 ? "Bon" : metrics.conformity_score > 60 ? "Acceptable" : "Critique";
 
         return `
-      Executive Summary: ${auditName}
+      Synthèse Exécutive : ${auditName}
       
-      Conformity Assessment: ${status} (Score: ${metrics.conformity_score}/100)
+      Évaluation de Conformité : ${status} (Score : ${metrics.conformity_score}/100)
       
-      Overview:
-      This audit identified a total of ${metrics.total_findings} findings. The review highlights ${metrics.major_findings} major non-conformities that represent significant deviations from the standard.
+      Vue d'ensemble :
+      Cet audit a identifié un total de ${metrics.total_findings} constats. La revue met en évidence ${metrics.major_findings} non-conformités majeures représentant des écarts significatifs par rapport au standard.
       
-      Key Observations:
-      • Criticality: ${metrics.major_findings} Major, ${metrics.minor_findings} Minor, ${metrics.observations} Observations.
-      • Remediation Status: ${metrics.closed_findings} findings have been addressed, while ${metrics.open_findings} remain open.
+      Observations Clés :
+      • Criticité : ${metrics.major_findings} Majeures, ${metrics.minor_findings} Mineures, ${metrics.observations} Observations.
+      • Statut de Remédiation : ${metrics.closed_findings} constats ont été traités, tandis que ${metrics.open_findings} restent ouverts.
       
-      Strategic Recommendation:
+      Recommandation Stratégique :
       ${metrics.major_findings > 0
-                ? "Priority must be given to closing the major non-conformities to ensure certification compliance."
-                : "Focus on continuous improvement by addressing minor findings and observations."}
+                ? "La priorité doit être donnée à la clôture des non-conformités majeures pour assurer la conformité de la certification."
+                : "Concentrez-vous sur l'amélioration continue en traitant les constats mineurs et les observations."}
     `.trim();
     }
     // --- PROJECT MODULE ENRICHMENT ---
@@ -254,16 +254,16 @@ export class ReportEnrichmentService {
      */
     static generateProjectExecutiveSummary(metrics: ProjectMetrics, projectName: string): string {
         return `
-      Executive Summary: ${projectName}
+      Synthèse Exécutive : ${projectName}
       
-      Status Overview:
-      The project is currently at ${metrics.completion_percentage}% completion. Out of ${metrics.total_tasks} total tasks, ${metrics.completed_tasks} have been successfully delivered.
+      Vue d'ensemble du Statut :
+      Le projet est actuellement à ${metrics.completion_percentage}% d'achèvement. Sur un total de ${metrics.total_tasks} tâches, ${metrics.completed_tasks} ont été livrées avec succès.
       
-      Risk Assessment:
-      Schedule Risk is currently evaluated as ${metrics.delay_risk}. ${metrics.delay_risk === 'Critical' ? 'The project is over the due date and requires immediate intervention.' : metrics.delay_risk === 'High' ? 'There is a significant risk of missing the deadline given current progress.' : 'The project is progressing within acceptable parameters.'}
+      Évaluation des Risques :
+      Le risque planning est actuellement évalué comme ${metrics.delay_risk}. ${metrics.delay_risk === 'Critical' ? 'Le projet a dépassé la date d\'échéance et nécessite une intervention immédiate.' : metrics.delay_risk === 'High' ? 'Il existe un risque significatif de manquer l\'échéance compte tenu de la progression actuelle.' : 'Le projet progresse dans des paramètres acceptables.'}
       
-      Operational Components:
-      The initiative involves ${metrics.in_progress_tasks} active workstreams. It is strategically linked to ${metrics.dependencies_count} other GRC elements (Risks/Controls), ensuring alignment with the broader security posture.
+      Composants Opérationnels :
+      L'initiative implique ${metrics.in_progress_tasks} chantiers actifs. Elle est stratégiquement liée à ${metrics.dependencies_count} autres éléments GRC (Risques/Contrôles), assurant l'alignement avec la posture de sécurité globale.
     `.trim();
     }
     // --- COMPLIANCE MODULE ENRICHMENT ---
@@ -297,25 +297,25 @@ export class ReportEnrichmentService {
      * Generate Executive Summary for Compliance Report
      */
     static generateComplianceExecutiveSummary(metrics: ComplianceMetrics): string {
-        const status = metrics.compliance_coverage > 80 ? "Optimized" : metrics.compliance_coverage > 50 ? "Developing" : "Initial";
+        const status = metrics.compliance_coverage > 80 ? "Optimisé" : metrics.compliance_coverage > 50 ? "En développement" : "Initial";
 
         return `
-      Executive Summary: ISO 27001 Compliance Status
+      Synthèse Exécutive : Statut de Conformité ISO 27001
       
-      Maturity Assessment: ${status} (Coverage: ${metrics.compliance_coverage}%)
+      Évaluation de Maturité : ${status} (Couverture : ${metrics.compliance_coverage}%)
       
-      Overview:
-      The Information Security Management System (ISMS) currently covers ${metrics.compliance_coverage}% of the applicable security controls. A total of ${metrics.implemented_controls} controls have been fully implemented and verified.
+      Vue d'ensemble :
+      Le Système de Management de la Sécurité de l'Information (SMSI) couvre actuellement ${metrics.compliance_coverage}% des contrôles de sécurité applicables. Un total de ${metrics.implemented_controls} contrôles ont été entièrement implémentés et vérifiés.
       
-      Gap Analysis:
-      • Implemented: ${metrics.implemented_controls} controls providing active defense.
-      • In Progress: ${metrics.planned_controls} controls are currently being deployed or treated.
-      • Attention Required: ${metrics.not_started} controls have not yet been addressed.
+      Analyse des Écarts :
+      • Implémentés : ${metrics.implemented_controls} contrôles assurant une défense active.
+      • En Cours : ${metrics.planned_controls} contrôles sont en cours de déploiement ou de traitement.
+      • Action Requise : ${metrics.not_started} contrôles n'ont pas encore été adressés.
       
-      Strategic Roadmap:
+      Feuille de Route Stratégique :
       ${metrics.audit_readiness > 80
-                ? "The organization is well-positioned for an external audit. Focus on evidence collection and continuous monitoring."
-                : "Accelerate the implementation of planned controls to reach a minimum viable posture for certification."}
+                ? "L'organisation est bien positionnée pour un audit externe. Concentrez-vous sur la collecte de preuves et la surveillance continue."
+                : "Accélérez l'implémentation des contrôles planifiés pour atteindre une posture minimale viable pour la certification."}
     `.trim();
     }
     // --- GLOBAL MODULE ENRICHMENT ---
@@ -385,23 +385,23 @@ export class ReportEnrichmentService {
                     : metrics.global_score >= 40 ? 'D' : 'F';
 
         return `
-      Global Executive Summary: Cyber Governance Status
+      Synthèse Exécutive Globale : Statut de la Gouvernance Cyber
       
-      Overall Governance Grade: ${grade} (Score: ${metrics.global_score}/100)
+      Note Globale de Gouvernance : ${grade} (Score : ${metrics.global_score}/100)
       
-      Strategic Overview:
-      The organization's global governance posture is currently rated at ${metrics.global_score}%. This score reflects a weighted assessment of Risk Management (30%), ISO 27001 Compliance (30%), Audit Results (20%), and Strategic Initiatives (20%).
+      Vue d'ensemble Stratégique :
+      La posture globale de gouvernance de l'organisation est actuellement notée à ${metrics.global_score}%. Ce score reflète une évaluation pondérée de la Gestion des Risques (30%), de la Conformité ISO 27001 (30%), des Résultats d'Audit (20%) et des Initiatives Stratégiques (20%).
       
-      Key Performance Indicators:
-      • Risk Resilience: ${metrics.risk_health}% - ${metrics.risk_health > 80 ? 'Robust defense posture.' : 'Requires attention to reduce exposure.'}
-      • Compliance Maturity: ${metrics.compliance_health}% - ${metrics.compliance_health > 80 ? 'High alignment with ISO standards.' : 'Gaps in control implementation.'}
-      • Audit Conformity: ${metrics.audit_health}% - Based on ${metrics.total_audits} recent audits.
-      • Strategic Execution: ${metrics.project_health}% - Progress across ${metrics.total_projects} active initiatives.
+      Indicateurs Clés de Performance (KPIs) :
+      • Résilience aux Risques : ${metrics.risk_health}% - ${metrics.risk_health > 80 ? 'Posture de défense robuste.' : 'Nécessite une attention pour réduire l\'exposition.'}
+      • Maturité de Conformité : ${metrics.compliance_health}% - ${metrics.compliance_health > 80 ? 'Alignement élevé avec les normes ISO.' : 'Écarts dans l\'implémentation des contrôles.'}
+      • Conformité d'Audit : ${metrics.audit_health}% - Basé sur ${metrics.total_audits} audits récents.
+      • Exécution Stratégique : ${metrics.project_health}% - Progrès sur ${metrics.total_projects} initiatives actives.
       
-      Recommendation:
+      Recommandation :
       ${grade === 'A' || grade === 'B'
-                ? "Maintain the current momentum. Focus on continuous improvement and emerging threats."
-                : "Initiate a remediation plan focusing on the lowest performing domains to improve the overall grade."}
+                ? "Maintenez la dynamique actuelle. Concentrez-vous sur l'amélioration continue et les menaces émergentes."
+                : "Initiez un plan de remédiation se concentrant sur les domaines les moins performants pour améliorer la note globale."}
     `.trim();
     }
 }

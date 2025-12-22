@@ -94,7 +94,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                                                     <div
                                                         onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: prob, i: impact })}
                                                         className={`
-                                                                relative rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 border cursor-pointer aspect-square
+                                                                relative rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 border cursor-pointer
                                                                 ${bgClass} ${borderClass}
                                                                 ${hasRisks ? 'hover:scale-105 hover:z-10 hover:shadow-lg cursor-pointer' : 'opacity-60 cursor-default'}
                                                                 ${isSelected ? 'ring-2 ring-brand-500 scale-105 z-20 shadow-xl opacity-100' : matrixFilter && hasRisks ? 'opacity-40' : ''}
