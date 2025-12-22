@@ -140,20 +140,44 @@ export const useAuditDetails = (
 
     // --- Evidence ---
 
-    const handleEvidenceUploadForFinding = async (url: string, fileName: string) => {
-        // Logic to create document and link to finding (passed via callback usually, or logic here)
-        // ... (This logic will be simpler if handled in component or specialized hook, but included here for completeness if needed)
-        // For now, let's assume the component handles the finding form state and calls a simple upload helper
-        // or we just reuse the create logic.
-        // Actually, evidence upload creates a Document.
+    const handleEvidenceUploadForFinding = async (findingId: string, url: string, fileName: string) => {
         if (!user?.organizationId || !selectedAudit) return null;
-        const docRef = await addDoc(collection(db, 'documents'), sanitizeData({
-            title: `Preuve - ${fileName}`, type: 'Preuve', version: '1.0', status: 'Publié', url,
-            organizationId: user.organizationId, owner: user.displayName || user.email, ownerId: user.uid,
-            createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-            relatedAuditIds: [selectedAudit.id]
-        }));
-        return docRef.id;
+
+        try {
+            // 1. Create Document
+            const docRef = await addDoc(collection(db, 'documents'), sanitizeData({
+                title: `Preuve - ${fileName}`,
+                type: 'Preuve',
+                version: '1.0',
+                status: 'Publié',
+                url, // In a real app, this would be the Storage URL
+                organizationId: user.organizationId,
+                owner: user.displayName || user.email,
+                ownerId: user.uid,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                relatedAuditIds: [selectedAudit.id]
+            }));
+
+            // 2. Link to Finding
+            const findingRef = doc(db, 'findings', findingId);
+            const finding = findings.find(f => f.id === findingId);
+            if (finding) {
+                const currentEvidenceIds = finding.evidenceIds || [];
+                const updatedEvidenceIds = [...currentEvidenceIds, docRef.id];
+
+                await updateDoc(findingRef, { evidenceIds: updatedEvidenceIds });
+
+                // Update local state
+                setFindings(prev => prev.map(f => f.id === findingId ? { ...f, evidenceIds: updatedEvidenceIds } : f));
+                addToast("Preuve ajoutée au constat", "success");
+            }
+
+            return docRef.id;
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useAuditDetails.uploadEvidence', 'CREATE_FAILED');
+            return null;
+        }
     };
 
     // --- Reports ---

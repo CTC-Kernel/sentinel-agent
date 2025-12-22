@@ -26,6 +26,7 @@ interface InspectorLayoutProps {
     loading?: boolean;
     breadcrumbs?: { label: string; onClick?: () => void }[];
     disableFocusTrap?: boolean;
+    footer?: React.ReactNode;
 }
 
 export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
@@ -43,7 +44,8 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
     children,
     loading = false,
     breadcrumbs,
-    disableFocusTrap = false
+    disableFocusTrap = false,
+    footer
 }) => {
     return (
         <Drawer
@@ -95,6 +97,13 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
                         </div>
                     )}
                 </div>
+
+                {/* Sticky Footer */}
+                {footer && (
+                    <div className="p-6 border-t border-slate-200/60 dark:border-white/5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shrink-0">
+                        {footer}
+                    </div>
+                )}
             </div>
         </Drawer>
     );

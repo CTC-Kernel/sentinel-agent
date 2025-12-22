@@ -59,7 +59,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
             // We'll simulate a URL for now as we don't have a full storage hook here readily available without more complex setup
             // or we can use a blob URL.
             const fakeUrl = URL.createObjectURL(file);
-            await handleEvidenceUploadForFinding(fakeUrl, file.name);
+            await handleEvidenceUploadForFinding(findingId, fakeUrl, file.name);
             // Note: The hook adds it to the audit/finding but standard hook might need findingId?
             // Checking hook again... it ADDS a document but doesn't link it to a specific finding automatically unless we passed that logic.
             // The hook `handleEvidenceUploadForFinding` signature is `(url, fileName)`.
