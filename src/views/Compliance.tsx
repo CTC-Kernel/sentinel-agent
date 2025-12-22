@@ -25,7 +25,7 @@ import { toast } from 'sonner';
 import { SoAView } from '../components/compliance/SoAView';
 
 export const Compliance: React.FC = () => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const location = useLocation();
     const canEdit = canEditResource(user, 'Control');
 
@@ -53,7 +53,7 @@ export const Compliance: React.FC = () => {
     // Effects
     useEffect(() => {
         if (initialState.createForProject) {
-            addToast(`Mode liaison actif: Sélectionnez un contrôle pour le lier au projet ${initialState.projectName || ''}`, 'info');
+            addToast(t('compliance.linkMode', { project: initialState.projectName || '' }), 'info');
         }
     }, [initialState.createForProject, initialState.projectName, addToast]);
 
@@ -94,22 +94,22 @@ export const Compliance: React.FC = () => {
     return (
         <>
             <MasterpieceBackground />
-            <SEO title={`Conformité ${currentFramework} - Sentinel GRC`} description="Gestion de la conformité et des contrôles" />
+            <SEO title={`${t('compliance.title')} ${currentFramework} - Sentinel GRC`} description={t('compliance.subtitle')} />
 
             <div className="relative z-10 p-4 md:p-6 space-y-8 w-full max-w-full overflow-x-hidden pb-24">
                 <div className="max-w-[1920px] mx-auto space-y-8">
                     <PageHeader
-                        title="Conformité"
-                        subtitle="Pilotez votre conformité normative et réglementaire"
+                        title={t('compliance.title')}
+                        subtitle={t('compliance.subtitle')}
                         icon={<ShieldCheck className="h-6 w-6 text-white" />}
                         actions={
                             canEdit ? (
                                 <div className="flex gap-2">
                                     <button className="btn-secondary" onClick={() => handleCreateClick('risk')}>
-                                        <ShieldCheck className="h-4 w-4 mr-2" /> + Risque
+                                        <ShieldCheck className="h-4 w-4 mr-2" /> + {t('compliance.newRisk')}
                                     </button>
-                                    <button className="btn-secondary" onClick={() => toast.info("Export PDF disponible via le menu d'actions global")}>
-                                        <Download className="h-4 w-4 mr-2" /> Export
+                                    <button className="btn-secondary" onClick={() => toast.info(t('compliance.exportInfo'))}>
+                                        <Download className="h-4 w-4 mr-2" /> {t('compliance.export')}
                                     </button>
                                 </div>
                             ) : null
@@ -130,9 +130,9 @@ export const Compliance: React.FC = () => {
                     <div className="mt-2">
                         <ScrollableTabs
                             tabs={[
-                                { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
-                                { id: 'controls', label: "Contrôles & Preuves", icon: ListChecks },
-                                { id: 'soa', label: "Déclaration d'Applicabilité (SoA)", icon: FileText }
+                                { id: 'overview', label: t('compliance.overview'), icon: LayoutDashboard },
+                                { id: 'controls', label: t('compliance.controls'), icon: ListChecks },
+                                { id: 'soa', label: t('compliance.soa'), icon: FileText }
                             ]}
                             activeTab={activeTab}
                             onTabChange={(id) => setActiveTab(id as 'overview' | 'controls' | 'soa')}
@@ -187,14 +187,14 @@ export const Compliance: React.FC = () => {
                 isOpen={isDrawerOpen}
                 onClose={() => setIsDrawerOpen(false)}
                 title={creationMode ? (
-                    creationMode === 'risk' ? 'Nouveau Risque' :
-                        creationMode === 'project' ? 'Nouveau Projet' : 'Nouvel Audit'
-                ) : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : 'Détails')}
+                    creationMode === 'risk' ? t('compliance.newRisk') :
+                        creationMode === 'project' ? t('compliance.newProject') : t('compliance.newAudit')
+                ) : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : t('settings.commandPalette.select'))}
                 width={creationMode ? 'max-w-2xl' : 'max-w-7xl'}
             >
                 {creationMode === 'risk' && <RiskForm onCancel={() => setIsDrawerOpen(false)} onSubmit={async (data) => { await complianceActions.createRisk(data); setIsDrawerOpen(false); }} assets={assets} usersList={usersList} processes={[]} suppliers={suppliers} controls={frameworkControls} />}
-                {creationMode === 'project' && <ProjectForm onCancel={() => setIsDrawerOpen(false)} onSubmit={() => { toast.info('Création de projet simulée'); setIsDrawerOpen(false); }} />}
-                {creationMode === 'audit' && <AuditForm onCancel={() => setIsDrawerOpen(false)} onSubmit={() => { toast.info('Création d\'audit simulée'); setIsDrawerOpen(false); }} assets={assets} risks={risks} controls={frameworkControls} projects={projects} usersList={usersList} />}
+                {creationMode === 'project' && <ProjectForm onCancel={() => setIsDrawerOpen(false)} onSubmit={() => { toast.info(t('compliance.projectSim')); setIsDrawerOpen(false); }} />}
+                {creationMode === 'audit' && <AuditForm onCancel={() => setIsDrawerOpen(false)} onSubmit={() => { toast.info(t('compliance.auditSim')); setIsDrawerOpen(false); }} assets={assets} risks={risks} controls={frameworkControls} projects={projects} usersList={usersList} />}
 
                 {!creationMode && selectedControl && (
                     <ComplianceInspector

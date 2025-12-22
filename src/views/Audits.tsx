@@ -34,7 +34,7 @@ export const Audits: React.FC = () => {
         refreshAudits, handleExportCSV, handleExportCalendar, bulkDeleteAudits, checkDependencies // Destructured
     } = useAudits();
 
-    const { user } = useStore();
+    const { user, t } = useStore();
 
     // Local UI State
     const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'calendar' | 'findings'>('audits-active-tab', 'overview');
@@ -62,10 +62,10 @@ export const Audits: React.FC = () => {
     }, [loading, deepLinkAuditId, audits]);
 
     const tabs = [
-        { id: 'overview', label: "Tableau de Bord", icon: LayoutDashboard },
-        { id: 'list', label: "Liste des Audits", icon: List },
-        { id: 'calendar', label: "Calendrier", icon: CalendarIcon },
-        { id: 'findings', label: "Constats", icon: ClipboardCheck },
+        { id: 'overview', label: t('audits.dashboard'), icon: LayoutDashboard },
+        { id: 'list', label: t('audits.list'), icon: List },
+        { id: 'calendar', label: t('audits.calendar'), icon: CalendarIcon },
+        { id: 'findings', label: t('audits.findings'), icon: ClipboardCheck },
     ];
 
     // Filter Logic
@@ -92,16 +92,16 @@ export const Audits: React.FC = () => {
         // Dependencies check
         const { hasDependencies, dependencies } = await checkDependencies(audit.id);
 
-        let message = "Cette action est irréversible et supprimera tous les constats associés.";
+        let message = t('audits.deleteMessage');
         if (hasDependencies && dependencies && dependencies.length > 0) {
             const depDetails = dependencies.slice(0, 5).map((d: { type: string; name: string }) => `${d.type}: ${d.name}`).join(', ');
             const count = dependencies.length;
-            message = `Attention: Cet audit est lié à ${count} élément(s) (${depDetails}${count > 5 ? '...' : ''}). La suppression le retirera de ces éléments.`;
+            message = t('audits.deleteWarning', { count, details: depDetails + (count > 5 ? '...' : '') });
         }
 
         setConfirmData({
             isOpen: true,
-            title: "Supprimer l'audit ?",
+            title: t('audits.deleteTitle'),
             message: message,
             onConfirm: () => handleDeleteAudit(audit.id, audit.name)
         });
@@ -111,8 +111,8 @@ export const Audits: React.FC = () => {
         if (selectedAudits.length === 0) return;
         setConfirmData({
             isOpen: true,
-            title: `Supprimer ${selectedAudits.length} audits ?`,
-            message: "Cette action est irréversible et supprimera tous les constats associés.",
+            title: t('audits.deleteBulkTitle', { count: selectedAudits.length }),
+            message: t('audits.deleteBulkMessage'),
             onConfirm: async () => {
                 await bulkDeleteAudits(selectedAudits);
                 setSelectedAudits([]);
@@ -136,15 +136,15 @@ export const Audits: React.FC = () => {
 
     // Role-based Title
     const role = user?.role || 'user';
-    let auditsTitle = "Programme d'Audit";
-    let auditsSubtitle = "Planification, exécution et suivi des audits internes et externes.";
-    if (role === 'admin' || role === 'rssi') { auditsTitle = "Programme d'Audit & Conformité"; auditsSubtitle = "Orchestrez les audits ISO 27001, le suivi des écarts et les plans d'actions associés."; }
-    else if (role === 'direction') { auditsTitle = 'Vue Exécutive des Audits'; auditsSubtitle = "Suivez l'état des audits, les non-conformités et les risques associés pour la direction."; }
+    let auditsTitle = t('audits.title');
+    let auditsSubtitle = t('audits.subtitle');
+    if (role === 'admin' || role === 'rssi') { auditsTitle = t('audits.title_admin'); auditsSubtitle = t('audits.subtitle_admin'); }
+    else if (role === 'direction') { auditsTitle = t('audits.title_exec'); auditsSubtitle = t('audits.subtitle_exec'); }
 
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-6">
             <MasterpieceBackground />
-            <SEO title="Audits & Conformité" description="Gestion des audits de sécurité" />
+            <SEO title={t('audits.title')} description={t('audits.subtitle')} />
 
             <PageHeader
                 title={auditsTitle}
@@ -162,7 +162,7 @@ export const Audits: React.FC = () => {
             <PremiumPageControl
                 searchQuery={filter}
                 onSearchChange={setFilter}
-                searchPlaceholder="Rechercher un audit..."
+                searchPlaceholder={t('audits.searchPlaceholder')}
                 actions={
                     <div className="flex gap-2 items-center">
                         <div className="hidden md:block w-40">
@@ -170,11 +170,11 @@ export const Audits: React.FC = () => {
                                 value={statusFilter}
                                 onChange={(val) => setStatusFilter(val as string)}
                                 options={[
-                                    { value: '', label: 'Tous les statuts' },
-                                    { value: 'Planifié', label: 'Planifié' },
-                                    { value: 'En cours', label: 'En cours' },
-                                    { value: 'Terminé', label: 'Terminé' },
-                                    { value: 'Validé', label: 'Validé' }
+                                    { value: '', label: t('audits.allStatuses') },
+                                    { value: 'Planifié', label: t('audits.status.planned') },
+                                    { value: 'En cours', label: t('audits.status.inProgress') },
+                                    { value: 'Terminé', label: t('audits.status.finished') },
+                                    { value: 'Validé', label: t('audits.status.validated') }
                                 ]}
                                 placeholder="Statut"
                             />
@@ -184,10 +184,10 @@ export const Audits: React.FC = () => {
                                 value={typeFilter}
                                 onChange={(val) => setTypeFilter(val as string)}
                                 options={[
-                                    { value: '', label: 'Tous les types' },
-                                    { value: 'Interne', label: 'Interne' },
-                                    { value: 'Externe', label: 'Externe' },
-                                    { value: 'Certification', label: 'Certification' }
+                                    { value: '', label: t('audits.allTypes') },
+                                    { value: 'Interne', label: t('audits.type.internal') },
+                                    { value: 'Externe', label: t('audits.type.external') },
+                                    { value: 'Certification', label: t('audits.type.certification') }
                                 ]}
                                 placeholder="Type"
                             />
@@ -210,18 +210,18 @@ export const Audits: React.FC = () => {
                             >
                                 <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                     <div className="p-1">
-                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Exports</div>
+                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('audits.exports')}</div>
                                         <Menu.Item>
                                             {({ active }) => (
                                                 <button onClick={handleExportCalendar} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                    <CalendarIcon className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> Export Calendrier
+                                                    <CalendarIcon className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> {t('audits.exportCalendar')}
                                                 </button>
                                             )}
                                         </Menu.Item>
                                         <Menu.Item>
                                             {({ active }) => (
                                                 <button onClick={handleExportCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                    <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> Export CSV
+                                                    <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> {t('audits.exportCsv')}
                                                 </button>
                                             )}
                                         </Menu.Item>
@@ -236,7 +236,7 @@ export const Audits: React.FC = () => {
                                 className="gap-2"
                             >
                                 <Trash2 className="w-4 h-4" />
-                                <span>Supprimer ({selectedAudits.length})</span>
+                                <span className="hidden sm:inline">{t('audits.deleteBulk', { count: selectedAudits.length })}</span>
                             </Button>
                         )}
                         {canEdit && (
@@ -247,14 +247,14 @@ export const Audits: React.FC = () => {
                                     className="gap-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 font-medium"
                                 >
                                     <BrainCircuit className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Assistant IA</span>
+                                    <span className="hidden sm:inline">{t('audits.ai')}</span>
                                 </Button>
                                 <Button
                                     onClick={() => { setEditingAudit(null); setCreationMode(true); }}
                                     className="gap-2 bg-brand-600 text-white hover:bg-brand-700 font-bold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 transition-all"
                                 >
                                     <Plus className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Nouvel Audit</span>
+                                    <span className="hidden sm:inline">{t('audits.newAudit')}</span>
                                 </Button>
                             </>
                         )}
@@ -324,7 +324,7 @@ export const Audits: React.FC = () => {
             <Drawer
                 isOpen={creationMode}
                 onClose={() => { setCreationMode(false); setEditingAudit(null); }}
-                title={editingAudit ? "Modifier l'audit" : "Nouvel Audit"}
+                title={editingAudit ? t('audits.editAudit') : t('audits.newAudit')}
             >
                 <AuditForm
                     initialData={editingAudit || undefined}

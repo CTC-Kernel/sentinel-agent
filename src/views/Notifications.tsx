@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Bell, CheckCircle2, AlertTriangle, Info, X, ArrowRight } from '../components/ui/Icons';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
@@ -21,6 +22,7 @@ export const Notifications: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState<'all' | 'unread'>('all');
     const { user } = useStore();
+    const { t } = useTranslation();
 
     // Real-time subscription
     useEffect(() => {
@@ -84,10 +86,10 @@ export const Notifications: React.FC = () => {
             <MasterpieceBackground />
             <SEO title="Notifications" />
             <PageHeader
-                title="Notifications"
-                subtitle="Restez informé des activités importantes."
+                title={t('notifications.title')}
+                subtitle={t('notifications.subtitle')}
                 breadcrumbs={[
-                    { label: 'Notifications' }
+                    { label: t('notifications.title') }
                 ]}
                 icon={<Bell className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={notifications.some(n => !n.read) && (
@@ -97,7 +99,7 @@ export const Notifications: React.FC = () => {
                         className="gap-2"
                     >
                         <CheckCircle2 className="h-4 w-4" />
-                        Tout marquer comme lu
+                        {t('notifications.markAll')}
                     </Button>
                 )}
             />
@@ -105,20 +107,20 @@ export const Notifications: React.FC = () => {
             <PremiumPageControl
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
-                searchPlaceholder="Rechercher dans les notifications..."
+                searchPlaceholder={t('notifications.searchPlaceholder')}
             >
                 <div className="flex gap-2">
                     <button
                         onClick={() => setFilterStatus('all')}
                         className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filterStatus === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'bg-white/50 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10'}`}
                     >
-                        Toutes
+                        {t('notifications.filter.all')}
                     </button>
                     <button
                         onClick={() => setFilterStatus('unread')}
                         className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filterStatus === 'unread' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'bg-white/50 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10'}`}
                     >
-                        Non lues
+                        {t('notifications.filter.unread')}
                     </button>
                 </div>
             </PremiumPageControl>
@@ -130,8 +132,8 @@ export const Notifications: React.FC = () => {
             ) : filteredNotifications.length === 0 ? (
                 <EmptyState
                     icon={Bell}
-                    title="Aucune notification"
-                    description={searchQuery ? "Aucun résultat pour votre recherche." : "Vous êtes à jour ! Aucune nouvelle activité à signaler."}
+                    title={t('notifications.empty.title')}
+                    description={searchQuery ? t('notifications.empty.descSearch') : t('notifications.empty.desc')}
                 />
             ) : (
                 <div className="space-y-4">
@@ -148,7 +150,7 @@ export const Notifications: React.FC = () => {
                                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{notif.message}</p>
                                 {notif.link && (
                                     <a href={notif.link} className="inline-flex items-center mt-3 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
-                                        Voir les détails <ArrowRight className="h-3 w-3 ml-1" />
+                                        {t('notifications.viewDetails')} <ArrowRight className="h-3 w-3 ml-1" />
                                     </a>
                                 )}
                             </div>

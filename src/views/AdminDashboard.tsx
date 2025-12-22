@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { orderBy, limit } from 'firebase/firestore';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 
@@ -27,6 +28,7 @@ interface OrganizationSummary {
 
 export const AdminDashboard: React.FC = () => {
     const { user } = useStore();
+    const { t } = useTranslation();
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -101,12 +103,12 @@ export const AdminDashboard: React.FC = () => {
                 await auth.currentUser.getIdToken(true);
             }
 
-            toast.success(`Switched to ${orgName} `);
+            toast.success(t('admin.toast.switchSuccess', { name: orgName }));
             // Redirect to dashboard
             window.location.href = '/';
         } catch (error) {
             ErrorLogger.error(error, 'AdminDashboard.handleManage');
-            toast.error("Failed to switch organization");
+            toast.error(t('admin.toast.switchError'));
             setSwitchingOrg(null);
         }
     };
@@ -119,8 +121,8 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex items-center justify-center h-screen">
                 <div className="text-center">
                     <ShieldAlert className="h-16 w-16 text-red-500 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Accès Refusé</h1>
-                    <p className="text-slate-600 mt-2">Vous n'avez pas les droits Super Admin.</p>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('admin.accessDenied')}</h1>
+                    <p className="text-slate-600 mt-2">{t('admin.accessDeniedDesc')}</p>
                 </div>
             </div>
         );
@@ -139,8 +141,8 @@ export const AdminDashboard: React.FC = () => {
             <SEO title="Super Admin Dashboard" description="Vue globale de l'instance Sentinel GRC" />
 
             <PageHeader
-                title="Super Admin Dashboard"
-                subtitle="Vue globale de l'instance Sentinel GRC, gestion des organisations et maintenance."
+                title={t('admin.dashboard')}
+                subtitle={t('admin.subtitle')}
                 breadcrumbs={[{ label: 'Admin', path: '/admin' }]}
                 icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
             />
@@ -153,7 +155,7 @@ export const AdminDashboard: React.FC = () => {
                             <Building className="h-6 w-6" />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">Organisations</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">{t('admin.stats.orgs')}</p>
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.totalOrgs}</p>
                         </div>
                     </div>
@@ -164,7 +166,7 @@ export const AdminDashboard: React.FC = () => {
                             <Users className="h-6 w-6" />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">Utilisateurs Total</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">{t('admin.stats.users')}</p>
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.totalUsers}</p>
                         </div>
                     </div>
@@ -175,8 +177,8 @@ export const AdminDashboard: React.FC = () => {
                             <Activity className="h-6 w-6" />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">Santé Système</p>
-                            <p className="text-2xl font-bold text-slate-900 dark:text-white">Opérationnel</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">{t('admin.stats.health')}</p>
+                            <p className="text-2xl font-bold text-slate-900 dark:text-white">{t('admin.stats.operational')}</p>
                         </div>
                     </div>
                 </div>
@@ -190,7 +192,7 @@ export const AdminDashboard: React.FC = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                         <input
                             type="text"
-                            placeholder="Rechercher une organisation..."
+                            placeholder={t('admin.orgs.searchPlaceholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 transition-all"
@@ -200,16 +202,16 @@ export const AdminDashboard: React.FC = () => {
 
                 <div className="glass-panel rounded-2xl overflow-hidden border border-white/10">
                     <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-50/50 dark:bg-white/5">
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Organisations ({filteredOrgs.length})</h2>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('admin.orgs.title')} ({filteredOrgs.length})</h2>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-slate-50 dark:bg-slate-800/50">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Nom</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Plan</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Création</th>
-                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{t('admin.orgs.name')}</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{t('admin.orgs.plan')}</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{t('admin.orgs.created')}</th>
+                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">{t('admin.orgs.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -233,7 +235,7 @@ export const AdminDashboard: React.FC = () => {
                                                 disabled={switchingOrg === org.id}
                                                 className="px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-slate-600 dark:text-slate-300 text-sm font-bold hover:bg-brand-50 dark:hover:bg-brand-500/20 hover:text-brand-600 dark:hover:text-brand-400 hover:border-brand-200 dark:hover:border-brand-500/30 transition-all disabled:opacity-50 shadow-sm"
                                             >
-                                                {switchingOrg === org.id ? '...' : 'Gérer'}
+                                                {switchingOrg === org.id ? t('admin.orgs.switching') : t('admin.orgs.manage')}
                                             </button>
                                         </td>
                                     </tr>

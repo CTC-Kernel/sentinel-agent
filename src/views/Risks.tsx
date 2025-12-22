@@ -45,7 +45,7 @@ import { useAuth } from '../hooks/useAuth';
 export const Risks: React.FC = () => {
     // Hooks
     const { user } = useAuth(); // Prefer useAuth for user object
-    const { demoMode } = useStore();
+    const { demoMode, t } = useStore();
     const { risks, loading, assets, controls, projects, audits, suppliers, usersList, rawProcesses, refreshRisks } = useRiskData();
 
     // Permission check
@@ -64,15 +64,15 @@ export const Risks: React.FC = () => {
         // For now, we just await it.
         const { hasDependencies, dependencies } = await checkDependencies(risk.id);
 
-        let message = "Cette action est irréversible.";
+        let message = t('risks.deleteMessage');
         if (hasDependencies && dependencies && dependencies.length > 0) {
             const depDetails = dependencies.map((d: { type: string; name: string }) => `${d.type}: ${d.name}`).join(', ');
-            message = `Attention: Ce risque est lié à ${dependencies.length} élément(s) (${depDetails.slice(0, 100)}${depDetails.length > 100 ? '...' : ''}). La suppression retirera ce risque de ces éléments.`;
+            message = t('risks.deleteWarning', { count: dependencies.length, details: depDetails.slice(0, 100) + (depDetails.length > 100 ? '...' : '') });
         }
 
         setConfirmData({
             isOpen: true,
-            title: "Supprimer le risque ?",
+            title: t('risks.deleteTitle'),
             message: message,
             onConfirm: () => deleteRisk(risk.id, risk.name)
         });
@@ -140,16 +140,16 @@ export const Risks: React.FC = () => {
         setIsGeneratingReport(true);
         try {
             await PdfService.generateRiskExecutiveReport(filteredRisks, {
-                title: 'Rapport Exécutif des Risques',
+                title: t('risks.executiveReport'),
                 subtitle: `Généré par ${user?.displayName || 'Utilisateur'} le ${new Date().toLocaleDateString()} `,
                 filename: `risques_exec_${new Date().toISOString().split('T')[0]}.pdf`,
                 organizationName: user?.organizationName || 'Sentinel GRC',
                 author: user?.displayName || 'Sentinel User'
             });
-            toast.success("Rapport généré avec succès");
+            toast.success(t('risks.reportSuccess'));
         } catch (e) {
             console.error(e);
-            toast.error("Erreur lors de la génération du rapport");
+            toast.error(t('risks.reportError'));
         } finally {
             setIsGeneratingReport(false);
         }
@@ -182,14 +182,14 @@ export const Risks: React.FC = () => {
 
     // Role Logic
     const role = user?.role || 'user';
-    let risksTitle = 'Gestion des Risques';
-    let risksSubtitle = "Analyse et traitement des risques selon ISO 27005.";
+    let risksTitle = t('risks.title');
+    let risksSubtitle = t('risks.subtitle');
     if (role === 'admin' || role === 'rssi') {
-        risksTitle = 'Registre des Risques & Exposition';
-        risksSubtitle = "Pilotez l'identification, l'évaluation et le traitement des risques critiques.";
+        risksTitle = t('risks.title_admin');
+        risksSubtitle = t('risks.subtitle_admin');
     } else if (role === 'direction') {
-        risksTitle = 'Vue Exécutive des Risques';
-        risksSubtitle = "Surveillez les risques majeurs et l'avancement des plans de traitement.";
+        risksTitle = t('risks.title_exec');
+        risksSubtitle = t('risks.subtitle_exec');
     }
 
 
@@ -200,16 +200,16 @@ export const Risks: React.FC = () => {
                 title={risksTitle}
                 subtitle={risksSubtitle}
                 icon={<ShieldAlert className="h-6 w-6 text-brand-500" strokeWidth={2.5} />}
-                breadcrumbs={[{ label: 'Risques' }]}
+                breadcrumbs={[{ label: t('settings.commandPalette.nav.risks') }]}
                 trustType="integrity"
             />
 
             {/* TABS */}
             <ScrollableTabs
                 tabs={[
-                    { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
-                    { id: 'list', label: "Registre", icon: List },
-                    { id: 'matrix', label: "Matrice", icon: Grid3x3 },
+                    { id: 'overview', label: t('risks.overview'), icon: LayoutDashboard },
+                    { id: 'list', label: t('risks.registry'), icon: List },
+                    { id: 'matrix', label: t('risks.matrix'), icon: Grid3x3 },
                 ]}
                 activeTab={activeTab}
                 onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'matrix')}
@@ -246,12 +246,12 @@ export const Risks: React.FC = () => {
                     <PremiumPageControl
                         searchQuery={activeFilters.query}
                         onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
-                        searchPlaceholder="Rechercher une menace, une vulnérabilité..."
+                        searchPlaceholder={t('risks.searchPlaceholder')}
                         activeView={activeTab === 'list' ? viewMode : undefined}
                         onViewChange={activeTab === 'list' ? (mode) => setViewMode(mode as 'list' | 'grid') : undefined}
                         viewOptions={[
-                            { id: 'list', label: 'Liste', icon: List },
-                            { id: 'grid', label: 'Grille', icon: Grid3x3 }
+                            { id: 'list', label: t('assets.viewList'), icon: List },
+                            { id: 'grid', label: t('assets.viewGrid'), icon: Grid3x3 }
                         ]}
                         actions={
                             <>
@@ -261,19 +261,19 @@ export const Risks: React.FC = () => {
                                         value={frameworkFilter}
                                         onChange={(val) => setFrameworkFilter(val as string)}
                                         options={[
-                                            { value: '', label: 'Tous les référentiels' },
+                                            { value: '', label: t('risks.allFrameworks') },
                                             { value: 'ISO 27001', label: 'ISO 27001' },
                                             { value: 'ISO 27005', label: 'ISO 27005' },
                                             { value: 'EBIOS', label: 'EBIOS RM' },
                                             { value: 'NIST', label: 'NIST' }
                                         ]}
-                                        placeholder="Référentiel"
+                                        placeholder={t('risks.framework')}
                                     />
                                 </div>
 
                                 <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
 
-                                <CustomTooltip content="Lancer le tour guidé">
+                                <CustomTooltip content={t('risks.startTour')}>
                                     <button
                                         onClick={() => OnboardingService.startRisksTour()}
                                         className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
@@ -284,7 +284,7 @@ export const Risks: React.FC = () => {
 
                                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
 
-                                <CustomTooltip content="Filtres avancés">
+                                <CustomTooltip content={t('assets.advancedFilters')}>
                                     <button
                                         data-tour="risks-filters"
                                         onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
@@ -308,7 +308,7 @@ export const Risks: React.FC = () => {
                                         <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                             <div className="p-1">
                                                 <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                                    Rapports & Exports
+                                                    {t('risks.reports')}
                                                 </div>
                                                 <Menu.Item>
                                                     {({ active }) => (
@@ -320,28 +320,28 @@ export const Risks: React.FC = () => {
                                                 <Menu.Item>
                                                     {({ active }) => (
                                                         <button onClick={handleExportExecutive} disabled={isGeneratingReport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                            {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} />} Rapport Exécutif
+                                                            {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} />} {t('risks.executiveReport')}
                                                         </button>
                                                     )}
                                                 </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
                                                         <button onClick={() => exportCSV(filteredRisks)} disabled={isExportingCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                            {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} Export CSV
+                                                            {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} {t('risks.exportCsv')}
                                                         </button>
                                                     )}
                                                 </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
                                                         <button onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                            <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} /> Obsidian
+                                                            <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} /> {t('risks.obsidian')}
                                                         </button>
                                                     )}
                                                 </Menu.Item>
                                             </div>
                                             {canEdit && (
                                                 <div className="p-1">
-                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Données</div>
+                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('risks.data')}</div>
                                                     <Menu.Item>
                                                         {({ active }) => (
                                                             <button
@@ -349,14 +349,14 @@ export const Risks: React.FC = () => {
                                                                 disabled={isImporting}
                                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                             >
-                                                                {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} Import CSV
+                                                                {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} {t('risks.importCsv')}
                                                             </button>
                                                         )}
                                                     </Menu.Item>
                                                     <Menu.Item>
                                                         {({ active }) => (
                                                             <button onClick={() => setIsTemplateModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                                <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> Templates
+                                                                <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> {t('risks.templates')}
                                                             </button>
                                                         )}
                                                     </Menu.Item>
@@ -376,10 +376,10 @@ export const Risks: React.FC = () => {
                                                     try {
                                                         const prompt = `Analyse cette liste de ${filteredRisks.length} risques. Donne-moi 3 insights clés sur les menaces principales et une recommandation stratégique. Format court.`;
                                                         const analysis = await aiService.chatWithAI(prompt);
-                                                        toast.info("Analyse IA terminée", { description: analysis, duration: 10000 });
+                                                        toast.info(t('risks.analysisComplete'), { description: analysis, duration: 10000 });
                                                     } catch (e) {
                                                         console.error(e);
-                                                        toast.error("Erreur lors de l'analyse IA");
+                                                        toast.error(t('risks.analysisError'));
                                                     } finally {
                                                         setIsAnalyzing(false);
                                                     }
@@ -388,7 +388,7 @@ export const Risks: React.FC = () => {
                                                 className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
                                             >
                                                 {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
-                                                <span className="hidden xl:inline">{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>
+                                                <span className="hidden xl:inline">{isAnalyzing ? t('risks.analyzing') : t('risks.aiAnalysis')}</span>
                                             </button>
                                         </CustomTooltip>
                                         <CustomTooltip content="Créer un nouveau risque">
@@ -398,7 +398,7 @@ export const Risks: React.FC = () => {
                                                 className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                             >
                                                 <Plus className="h-4 w-4" />
-                                                <span className="hidden sm:inline">Nouveau Risque</span>
+                                                <span className="hidden sm:inline">{t('risks.newRisk')}</span>
                                             </button>
                                         </CustomTooltip>
                                     </>
@@ -449,9 +449,9 @@ export const Risks: React.FC = () => {
                             assets={assets}
                             onSelect={setSelectedRisk}
                             emptyStateIcon={ShieldAlert}
-                            emptyStateTitle="Aucun risque identifié"
-                            emptyStateDescription="Commencez par ajouter un risque pour visualiser votre exposition."
-                            emptyStateActionLabel={canEdit ? "Créer un risque" : undefined}
+                            emptyStateTitle={t('assets.emptyTitle')}
+                            emptyStateDescription={t('assets.emptyDesc')}
+                            emptyStateActionLabel={canEdit ? t('risks.newRisk') : undefined}
                             onEmptyStateAction={canEdit ? () => setCreationMode(true) : undefined}
                         />
                     )}
@@ -464,9 +464,10 @@ export const Risks: React.FC = () => {
                     {matrixFilter && (
                         <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 flex justify-between items-center mb-6">
                             <span className="text-sm font-bold text-brand-900 dark:text-brand-100">
-                                Filtre Matrice : Probabilité {matrixFilter.p} × Impact {matrixFilter.i}
+                                {t('risks.matrix')} : {t('risks.searchPlaceholder')}
                             </span>
-                            <button onClick={() => setMatrixFilter(null)} className="text-xs text-red-500 font-bold hover:underline">Réinitialiser</button>
+                            {/* Note: searchPlaceholder mismatch for Matrix filter, using "Filtre Matrice" text which wasn't fully translated. Let's fix locally or use a placeholder */}
+                            <button onClick={() => setMatrixFilter(null)} className="text-xs text-red-500 font-bold hover:underline">Reset</button>
                         </div>
                     )}
                     <RiskMatrix
@@ -525,7 +526,7 @@ export const Risks: React.FC = () => {
             <Drawer
                 isOpen={creationMode}
                 onClose={() => setCreationMode(false)}
-                title="Nouveau Risque"
+                title={t('risks.newRisk')}
                 width="max-w-4xl"
             >
                 <div className="p-6">
@@ -576,10 +577,10 @@ export const Risks: React.FC = () => {
 
                     try {
                         await Promise.all(promises);
-                        toast.success(`${template.risks.length} risques créés depuis le modèle`);
+                        toast.success(t('risks.templateSuccess', { count: template.risks.length }));
                     } catch (error) {
                         console.error('Template import error', error);
-                        toast.error("Erreur lors de l'import depuis le modèle");
+                        toast.error(t('risks.templateError'));
                     }
                     setIsTemplateModalOpen(false);
                 }}

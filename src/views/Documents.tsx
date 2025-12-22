@@ -24,7 +24,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useDocumentWorkflow } from '../hooks/documents/useDocumentWorkflow';
 import { useDocumentActions } from '../hooks/documents/useDocumentActions';
 export const Documents: React.FC = () => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const location = useLocation();
     const canCreate = canEditResource(user, 'Document');
 
@@ -167,8 +167,8 @@ export const Documents: React.FC = () => {
         >
             <MasterpieceBackground />
             <SEO
-                title="Gestion Documentaire"
-                description="Centralisez et gérez le cycle de vie de vos politiques et procédures de sécurité."
+                title={t('documents.title')}
+                description={t('documents.subtitle')}
                 keywords="Documents, Politiques, Procédures, ISO 27001"
             />
 
@@ -190,20 +190,20 @@ export const Documents: React.FC = () => {
             />
 
             <PageHeader
-                title="Gestion Documentaire"
-                subtitle="Politiques, procédures et preuves (ISO 27001 A.5.37)."
+                title={t('documents.title')}
+                subtitle={t('documents.subtitle')}
                 breadcrumbs={[
-                    { label: 'Documents' }
+                    { label: t('sidebar.documents') }
                 ]}
                 icon={<FileText className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 trustType="storage"
                 actions={canCreate && (
-                    <CustomTooltip content="Ajouter un nouveau document">
+                    <CustomTooltip content={t('documents.newDocument')}>
                         <button
                             onClick={() => setShowCreateModal(true)}
                             className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                         >
-                            <Plus className="h-4 w-4 mr-2" /> Nouveau Document
+                            <Plus className="h-4 w-4 mr-2" /> {t('documents.newDocument')}
                         </button>
                     </CustomTooltip>
                 )}
@@ -238,9 +238,9 @@ export const Documents: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Documents Validés</h3>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('documents.validated')}</h3>
                         <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[200px]">
-                            Pourcentage de documents publiés ou approuvés.
+                            {t('documents.validatedDesc')}
                         </p>
                     </div>
                 </div>
@@ -250,21 +250,21 @@ export const Documents: React.FC = () => {
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <FileText className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</div>
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('documents.total')}</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{totalDocs}</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <CheckCircle2 className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Publiés</div>
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('documents.published')}</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{publishedDocs}</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <Edit className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Brouillons</div>
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('documents.drafts')}</div>
                         </div>
                         <div className="text-xl font-black text-slate-900 dark:text-white">{draftDocs}</div>
                     </div>
@@ -275,14 +275,14 @@ export const Documents: React.FC = () => {
                     <div className="flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
                         <div className="flex items-center gap-2">
                             <Bell className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">En Revue</span>
+                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">{t('documents.inReview')}</span>
                         </div>
                         <span className="text-sm font-black text-amber-700 dark:text-amber-400">{inReviewDocs}</span>
                     </div>
                     <div className="flex items-center justify-between p-2.5 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30">
                         <div className="flex items-center gap-2">
                             <History className="h-4 w-4 text-red-600 dark:text-red-400" />
-                            <span className="text-xs font-bold text-red-700 dark:text-red-300">Expirés</span>
+                            <span className="text-xs font-bold text-red-700 dark:text-red-300">{t('documents.expired')}</span>
                         </div>
                         <span className="text-sm font-black text-red-700 dark:text-red-400">{expiredDocs}</span>
                     </div>
@@ -313,7 +313,7 @@ export const Documents: React.FC = () => {
                                 <button
                                     onClick={() => handleExportCSV(filteredDocuments)}
                                     className="p-2 text-slate-500 hover:text-brand-600 transition-colors"
-                                    title="Exporter CSV"
+                                    title={t('documents.exportCsv')}
                                 >
                                     {isExportingCSV ? (
                                         <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-brand-600" />
@@ -331,7 +331,7 @@ export const Documents: React.FC = () => {
                                         onChange={() => setIsDigitalSafeMode(!isDigitalSafeMode)}
                                         className="rounded text-brand-600 focus:ring-brand-500"
                                     />
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Coffre-fort</span>
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('documents.digitalSafe')}</span>
                                 </label>
 
                                 <select
@@ -339,11 +339,11 @@ export const Documents: React.FC = () => {
                                     onChange={(e) => setCategoryFilter(e.target.value)}
                                     className="bg-slate-100 dark:bg-white/5 border-none rounded-lg text-sm px-3 py-1.5 focus:ring-2 focus:ring-brand-500"
                                 >
-                                    <option value="all">Toutes catégories</option>
-                                    <option value="Politique">Politiques</option>
-                                    <option value="Procédure">Procédures</option>
-                                    <option value="Preuve">Preuves</option>
-                                    <option value="Contrat">Contrats</option>
+                                    <option value="all">{t('documents.allCategories')}</option>
+                                    <option value="Politique">{t('documents.category.policy')}</option>
+                                    <option value="Procédure">{t('documents.category.procedure')}</option>
+                                    <option value="Preuve">{t('documents.category.evidence')}</option>
+                                    <option value="Contrat">{t('documents.category.contract')}</option>
                                 </select>
                             </div>
                         </PremiumPageControl>
@@ -352,9 +352,9 @@ export const Documents: React.FC = () => {
                     {filteredDocuments.length === 0 ? (
                         <EmptyState
                             icon={FileText}
-                            title="Aucun document trouvé"
-                            description="Commencez par ajouter un document pour popular votre référentiel."
-                            actionLabel="Nouveau Document"
+                            title={t('documents.emptyTitle')}
+                            description={t('documents.emptyDesc')}
+                            actionLabel={t('documents.newDocument')}
                             onAction={canCreate ? () => setShowCreateModal(true) : undefined}
                         />
                     ) : (

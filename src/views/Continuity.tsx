@@ -32,7 +32,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 type ContinuityTab = 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis';
 
 const Continuity: React.FC = () => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const [activeTab, setActiveTab] = usePersistedState<ContinuityTab>('continuity_active_tab', 'overview');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
@@ -84,12 +84,12 @@ const Continuity: React.FC = () => {
 
             await addDoc(collection(db, 'business_processes'), newProcess);
 
-            addToast('Processus créé avec succès', 'success');
+            addToast(t('continuity.toastCreated'), 'success');
             setIsProcessModalOpen(false);
             refresh();
         } catch (error) {
             console.error(error);
-            addToast('Erreur lors de la création', 'error');
+            addToast(t('common.error'), 'error');
         }
     };
 
@@ -100,7 +100,7 @@ const Continuity: React.FC = () => {
                 ...data,
                 updatedAt: new Date().toISOString()
             });
-            addToast('Processus mis à jour', 'success');
+            addToast(t('continuity.toastUpdated'), 'success');
             setIsProcessModalOpen(false);
             setEditingProcess(null);
             refresh();
@@ -108,23 +108,23 @@ const Continuity: React.FC = () => {
                 setSelectedProcess({ ...editingProcess, ...data });
             }
         } catch {
-            addToast('Erreur lors de la mise à jour', 'error');
+            addToast(t('common.error'), 'error');
         }
     };
 
     const handleDeleteProcess = async (id: string) => {
         setConfirmData({
             isOpen: true,
-            title: "Supprimer le processus ?",
-            message: "Cette action est irréversible et supprimera l'historique associé.",
+            title: t('continuity.deleteTitle'),
+            message: t('continuity.deleteMessage'),
             onConfirm: async () => {
                 try {
                     await deleteDoc(doc(db, 'business_processes', id));
-                    addToast('Processus supprimé', 'success');
+                    addToast(t('continuity.toastDeleted'), 'success');
                     setSelectedProcess(null);
                     refresh();
                 } catch {
-                    addToast('Erreur suppression', 'error');
+                    addToast(t('common.error'), 'error');
                 }
             }
         });
@@ -146,24 +146,24 @@ const Continuity: React.FC = () => {
                 });
             }
 
-            addToast('Exercice enregistré', 'success');
+            addToast(t('continuity.toastDrill'), 'success');
             setIsDrillModalOpen(false);
             refreshDrills();
             refresh();
         } catch {
-            addToast('Erreur enregistrement', 'error');
+            addToast(t('common.error'), 'error');
         }
     };
 
 
     // Tabs Definition
     const tabs = useMemo(() => [
-        { id: 'overview', label: "Vue d'ensemble", icon: Activity },
-        { id: 'bia', label: "Analyses d'Impact (BIA)", icon: ShieldCheck },
-        { id: 'strategies', label: "Stratégies & Plans", icon: FileText },
-        { id: 'drills', label: "Exercices & Tests", icon: Zap },
-        { id: 'crisis', label: "Gestion de Crise", icon: AlertOctagon },
-    ], []);
+        { id: 'overview', label: t('continuity.tabs.overview'), icon: Activity },
+        { id: 'bia', label: t('continuity.tabs.bia'), icon: ShieldCheck },
+        { id: 'strategies', label: t('continuity.tabs.strategies'), icon: FileText },
+        { id: 'drills', label: t('continuity.tabs.drills'), icon: Zap },
+        { id: 'crisis', label: t('continuity.tabs.crisis'), icon: AlertOctagon },
+    ], [t]);
 
     return (
         <motion.div
@@ -173,14 +173,14 @@ const Continuity: React.FC = () => {
             className="space-y-6"
         >
             <PageHeader
-                title="Continuité d'Activité"
-                subtitle="Pilotage des plans de continuité (PCA/PRA), analyses BIA et gestion de crise."
+                title={t('continuity.title')}
+                subtitle={t('continuity.subtitle')}
                 icon={<Activity className="h-6 w-6 text-white" />}
-                breadcrumbs={[{ label: 'Continuité' }]}
+                breadcrumbs={[{ label: t('continuity.title') }]}
                 trustType="availability"
             />
             <MasterpieceBackground />
-            <SEO title="Continuité d'Activité" description="Pilotage des plans de continuité (PCA/PRA)" />
+            <SEO title={t('continuity.title')} description={t('continuity.subtitle')} />
 
             <ConfirmModal
                 isOpen={confirmData.isOpen}
@@ -203,9 +203,9 @@ const Continuity: React.FC = () => {
                     searchQuery={filter}
                     onSearchChange={setFilter}
                     searchPlaceholder={
-                        activeTab === 'bia' ? "Rechercher un processus..." :
-                            activeTab === 'drills' ? "Rechercher un exercice..." :
-                                "Rechercher..."
+                        activeTab === 'bia' ? t('continuity.searchBia') :
+                            activeTab === 'drills' ? t('continuity.searchDrills') :
+                                t('continuity.searchPlaceholder')
                     }
                     viewMode={activeTab === 'bia' ? viewMode : undefined} // Only BIA supports grid/list for now
                     onViewModeChange={activeTab === 'bia' ? (m) => setViewMode(m as 'grid' | 'list') : undefined}
@@ -216,7 +216,7 @@ const Continuity: React.FC = () => {
                                 className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/10 text-slate-700 dark:text-white rounded-xl text-sm font-bold border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/20 transition-all shadow-sm"
                             >
                                 <Download className="h-4 w-4" />
-                                <span className="hidden sm:inline">Rapport</span>
+                                <span className="hidden sm:inline">{t('continuity.report')}</span>
                             </button>
 
                             {activeTab === 'bia' && (
@@ -225,7 +225,7 @@ const Continuity: React.FC = () => {
                                     className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                 >
                                     <Plus className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Nouveau Processus</span>
+                                    <span className="hidden sm:inline">{t('continuity.newProcess')}</span>
                                 </button>
                             )}
 
@@ -235,7 +235,7 @@ const Continuity: React.FC = () => {
                                     className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                 >
                                     <Plus className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Nouvel Exercice</span>
+                                    <span className="hidden sm:inline">{t('continuity.newDrill')}</span>
                                 </button>
                             )}
                         </div>
@@ -261,8 +261,8 @@ const Continuity: React.FC = () => {
                                     <h3 className="font-bold text-lg mb-4">Prochaines Revues</h3>
                                     <EmptyState
                                         icon={Activity}
-                                        title="Tout est à jour"
-                                        description="Aucune revue de processus BIA planifiée pour les 7 prochains jours."
+                                        title={t('continuity.emptyReviewTitle')}
+                                        description={t('continuity.emptyReviewDesc')}
                                         color="emerald"
                                     />
                                 </div>
@@ -307,7 +307,7 @@ const Continuity: React.FC = () => {
                 onClose={() => { setIsProcessModalOpen(false); setEditingProcess(null); }}
                 onSubmit={editingProcess ? handleUpdateProcess : handleCreateProcess}
                 initialData={editingProcess || undefined}
-                title={editingProcess ? "Modifier le processus" : "Nouveau Processus"}
+                title={editingProcess ? t('continuity.editProcess') : t('continuity.newProcess')}
                 isEditing={!!editingProcess}
                 assets={assets}
                 suppliers={suppliers}

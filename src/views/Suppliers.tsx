@@ -59,7 +59,7 @@ const getScoreColor = (score: number) => {
 
 export const Suppliers: React.FC = () => {
     const [filter, setFilter] = useState('');
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const location = useLocation();
     const canEdit = canEditResource(user, 'Supplier');
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix' | 'kanban'>('suppliers_view_mode', 'grid');
@@ -181,24 +181,24 @@ export const Suppliers: React.FC = () => {
 
     const role = user?.role || 'user';
 
-    let suppliersTitle = 'Fournisseurs';
-    let suppliersSubtitle = 'Gestion des tiers et des contrats (ISO 27001 A.15).';
+    let suppliersTitle = t('suppliers.title');
+    let suppliersSubtitle = t('suppliers.subtitle');
 
     if (role === 'admin' || role === 'rssi') {
-        suppliersTitle = 'Gestion des Tiers & Exposition Fournisseurs';
-        suppliersSubtitle = "Pilotez les fournisseurs critiques, les contrats, la conformité SSI et les risques associés.";
+        suppliersTitle = t('suppliers.title_admin');
+        suppliersSubtitle = t('suppliers.subtitle_admin');
     } else if (role === 'direction') {
-        suppliersTitle = 'Vue Risques Fournisseurs';
-        suppliersSubtitle = "Surveillez les fournisseurs critiques, les contrats à risque et les obligations réglementaires.";
+        suppliersTitle = t('suppliers.title_exec');
+        suppliersSubtitle = t('suppliers.subtitle_exec');
     } else if (role === 'auditor') {
-        suppliersTitle = 'Fournisseurs à Auditer';
-        suppliersSubtitle = "Préparez vos audits fournisseurs, preuves et contrôles attendus.";
+        suppliersTitle = t('suppliers.title_audit');
+        suppliersSubtitle = t('suppliers.subtitle_audit');
     } else if (role === 'project_manager') {
-        suppliersTitle = 'Fournisseurs liés aux Projets';
-        suppliersSubtitle = "Identifiez les fournisseurs impliqués dans vos projets et suivez leurs engagements.";
+        suppliersTitle = t('suppliers.title_project');
+        suppliersSubtitle = t('suppliers.subtitle_project');
     } else {
-        suppliersTitle = 'Mes Fournisseurs';
-        suppliersSubtitle = "Consultez les fournisseurs et contacts qui concernent votre périmètre.";
+        suppliersTitle = t('suppliers.title_user');
+        suppliersSubtitle = t('suppliers.subtitle_user');
     }
 
     // Hook Definitions (Moved up to avoid conditional hook errors)
@@ -242,7 +242,7 @@ export const Suppliers: React.FC = () => {
         try {
             await performDelete(id);
             await logAction(user, 'DELETE', 'Supplier', `Suppression Fournisseur: ${name}`);
-            addToast('Fournisseur et données associées supprimés', 'success');
+            addToast(t('suppliers.toastDeleted'), 'success');
             if (selectedSupplier?.id === id) setSelectedSupplier(null);
             setConfirmData(prev => ({ ...prev, isOpen: false }));
         } catch (error) {
@@ -256,7 +256,7 @@ export const Suppliers: React.FC = () => {
         if (!canEdit) return;
 
         // Check dependencies
-        let message = "Cette action est définitive et supprimera toutes les données associées à ce fournisseur.";
+        let message = t('suppliers.deleteMessage');
         try {
             const controlQuery = query(collection(db, 'controls'), where('organizationId', '==', user?.organizationId), where('relatedSupplierIds', 'array-contains', id));
             const riskQuery = query(collection(db, 'risks'), where('organizationId', '==', user?.organizationId), where('relatedSupplierIds', 'array-contains', id));
@@ -270,11 +270,11 @@ export const Suppliers: React.FC = () => {
                 const controlNames = controlsSnap.docs.slice(0, 3).map(d => d.data().code).join(', ');
                 const riskNames = risksSnap.docs.slice(0, 3).map(d => d.data().threat || 'Risque').join(', ');
 
-                let msg = "Attention : Ce fournisseur est lié aux éléments suivants :";
-                if (!controlsSnap.empty) msg += `\n- ${controlsSnap.size} contrôle(s) (${controlNames}...)`;
-                if (!risksSnap.empty) msg += `\n- ${risksSnap.size} risque(s) (${riskNames}...)`;
-                msg += "\nLa suppression retirera le fournisseur de ces éléments.";
-                message = msg;
+                let details = "";
+                if (!controlsSnap.empty) details += `\n- ${controlsSnap.size} contrôle(s) (${controlNames}...)`;
+                if (!risksSnap.empty) details += `\n- ${risksSnap.size} risque(s) (${riskNames}...)`;
+
+                message = t('suppliers.deleteWarning', { details });
             }
         } catch (e) {
             console.error("Dependency check failed", e);
@@ -282,7 +282,7 @@ export const Suppliers: React.FC = () => {
 
         setConfirmData({
             isOpen: true,
-            title: `Supprimer ${name} ?`,
+            title: t('suppliers.deleteTitle', { name }),
             message: message,
             onConfirm: () => handleDelete(id, name),
             closeOnConfirm: false
@@ -299,7 +299,7 @@ export const Suppliers: React.FC = () => {
     const columns = React.useMemo<ColumnDef<Supplier>[]>(() => [
         {
             accessorKey: 'name',
-            header: 'Fournisseur',
+            header: t('common.name'),
             cell: ({ row }) => (
                 <div className="flex flex-col">
                     <span className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.name}</span>
@@ -313,7 +313,7 @@ export const Suppliers: React.FC = () => {
         },
         {
             accessorKey: 'category',
-            header: 'Catégorie',
+            header: t('common.category'),
             cell: ({ row }) => (
                 <span className="px-2.5 py-1 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
                     {row.original.category}
@@ -322,7 +322,7 @@ export const Suppliers: React.FC = () => {
         },
         {
             accessorKey: 'criticality',
-            header: 'Criticité',
+            header: t('common.criticality'),
             cell: ({ row }) => (
                 <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border ${getCriticalityColor(row.original.criticality || Criticality.MEDIUM)}`}>
                     {row.original.criticality}
@@ -331,7 +331,7 @@ export const Suppliers: React.FC = () => {
         },
         {
             accessorKey: 'securityScore',
-            header: 'Score Sécurité',
+            header: t('suppliers.cards.security'),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                     <div className="w-16 bg-gray-200 dark:bg-slate-700 rounded-full h-1.5">
@@ -344,7 +344,7 @@ export const Suppliers: React.FC = () => {
             )
         },
         {
-            header: 'Contact',
+            header: t('suppliers.cards.contact'),
             cell: ({ row }) => (
                 <div className="flex flex-col">
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{row.original.contactName || '-'}</span>
@@ -354,7 +354,7 @@ export const Suppliers: React.FC = () => {
         },
         {
             accessorKey: 'contractEnd',
-            header: 'Fin Contrat',
+            header: t('suppliers.cards.contract'),
             cell: ({ row }) => {
                 const d = row.original.contractEnd;
                 const isExpired = d && new Date(d) < new Date();
@@ -367,7 +367,7 @@ export const Suppliers: React.FC = () => {
         },
         {
             accessorKey: 'status',
-            header: 'Statut',
+            header: t('common.status'),
             cell: ({ row }) => (
                 <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border ${row.original.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-slate-600 border-gray-200'}`}>
                     {row.original.status}
@@ -394,7 +394,7 @@ export const Suppliers: React.FC = () => {
                 </div>
             )
         }
-    ], [canEdit, initiateDelete]);
+    ], [canEdit, initiateDelete, t]);
 
     // Import
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -500,7 +500,7 @@ export const Suppliers: React.FC = () => {
                 updatedAt: new Date().toISOString()
             });
             await logAction(user, 'CREATE', 'Supplier', `Ajout Fournisseur: ${data.name}`);
-            addToast("Fournisseur ajouté", "success");
+            addToast(t('suppliers.toastCreated'), "success");
             setCreationMode(false);
         } catch (error) {
             console.error("Error creating supplier:", error);
@@ -524,7 +524,7 @@ export const Suppliers: React.FC = () => {
             await logAction(user, 'UPDATE', 'Supplier', `MAJ Fournisseur: ${data.name}`);
             setSelectedSupplier({ ...selectedSupplier, ...data, criticality: data.criticality as Criticality, updatedAt: now });
             setIsEditing(false);
-            addToast("Fournisseur mis à jour", "success");
+            addToast(t('suppliers.toastUpdated'), "success");
         } catch (error) {
             console.error("Error updating supplier:", error);
             ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleUpdate');
@@ -541,7 +541,7 @@ export const Suppliers: React.FC = () => {
 
     const handleBulkDelete = async (selectedIds: string[]) => {
         if (!canEdit) return;
-        if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ces ${selectedIds.length} fournisseurs ? Cette action est définitive.`)) return;
+        if (!window.confirm(t('suppliers.deleteBulk', { count: selectedIds.length }))) return;
 
         try {
             await Promise.all(selectedIds.map(id => performDelete(id)));
@@ -690,9 +690,9 @@ export const Suppliers: React.FC = () => {
                 });
                 await batch.commit();
                 await logAction(user, 'IMPORT', 'Supplier', `Import CSV de ${count} fournisseurs`);
-                addToast(`${count} fournisseurs importés`, "success");
+                addToast(t('suppliers.toastImported', { count }), "success");
             } catch {
-                addToast("Erreur import CSV", "error");
+                addToast(t('common.error'), "error");
             } finally {
                 setIsImporting(false);
                 if (fileInputRef.current) fileInputRef.current.value = '';
@@ -734,8 +734,8 @@ export const Suppliers: React.FC = () => {
         >
             <MasterpieceBackground />
             <SEO
-                title="Gestion des Fournisseurs"
-                description="Gérez vos fournisseurs, évaluez leur conformité DORA et suivez les contrats."
+                title={t('suppliers.title')}
+                description={t('suppliers.subtitle')}
                 keywords="Fournisseurs, DORA, Contrats, Tiers"
             />
             <ConfirmModal
@@ -753,7 +753,7 @@ export const Suppliers: React.FC = () => {
                     title={suppliersTitle}
                     subtitle={suppliersSubtitle}
                     breadcrumbs={[
-                        { label: 'Fournisseurs' }
+                        { label: t('suppliers.title') }
                     ]}
                     icon={<Handshake className="h-6 w-6 text-white" strokeWidth={2.5} />}
                     actions={canEdit && (
@@ -775,7 +775,7 @@ export const Suppliers: React.FC = () => {
                                     <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                         <div className="p-1">
                                             <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                                Outils
+                                                {t('suppliers.tools')}
                                             </div>
                                             <Menu.Item>
                                                 {({ active }) => (
@@ -786,14 +786,14 @@ export const Suppliers: React.FC = () => {
                                                             } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
                                                     >
                                                         {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
-                                                        Importer CSV
+                                                        {t('suppliers.importCsv')}
                                                     </button>
                                                 )}
                                             </Menu.Item>
                                         </div>
                                         <div className="p-1">
                                             <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                                Rapports & Exports
+                                                {t('suppliers.reports')}
                                             </div>
                                             <Menu.Item>
                                                 {({ active }) => (
@@ -804,7 +804,7 @@ export const Suppliers: React.FC = () => {
                                                             } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
                                                     >
                                                         {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
-                                                        Export CSV
+                                                        {t('suppliers.exportCsv')}
                                                     </button>
                                                 )}
                                             </Menu.Item>
@@ -841,7 +841,7 @@ export const Suppliers: React.FC = () => {
                                     className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                 >
                                     <Plus className="h-4 w-4 mr-2" />
-                                    <span className="hidden sm:inline">Nouveau Fournisseur</span>
+                                    <span className="hidden sm:inline">{t('suppliers.newSupplier')}</span>
                                 </button>
                             </CustomTooltip>
                         </>
@@ -867,7 +867,7 @@ export const Suppliers: React.FC = () => {
                 <PremiumPageControl
                     searchQuery={filter}
                     onSearchChange={setFilter}
-                    searchPlaceholder="Rechercher un fournisseur..."
+                    searchPlaceholder={t('suppliers.searchPlaceholder')}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
                 />
@@ -893,9 +893,9 @@ export const Suppliers: React.FC = () => {
                         <div className="col-span-full">
                             <EmptyState
                                 icon={Building}
-                                title="Aucun fournisseur"
-                                description={filter ? "Aucun fournisseur ne correspond à votre recherche." : "Gérez vos fournisseurs et évaluez leur sécurité."}
-                                actionLabel={filter || !canEdit ? undefined : "Nouveau Fournisseur"}
+                                title={t('suppliers.emptyTitle')}
+                                description={filter ? "Aucun fournisseur trouvé." : t('suppliers.emptyDesc')}
+                                actionLabel={filter || !canEdit ? undefined : t('suppliers.newSupplier')}
                                 onAction={filter || !canEdit ? undefined : openCreationDrawer}
                             />
                         </div>
@@ -998,11 +998,11 @@ export const Suppliers: React.FC = () => {
                         <div className="px-4 md:px-8 border-b border-gray-100 dark:border-white/5 bg-white/30 dark:bg-white/5">
                             <ScrollableTabs
                                 tabs={[
-                                    { id: 'profile', label: 'Profil', icon: Building },
-                                    { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
-                                    { id: 'assessment', label: 'Évaluation Sécurité', icon: ClipboardList },
-                                    { id: 'history', label: 'Historique', icon: History },
-                                    { id: 'comments', label: 'Discussion', icon: MessageSquare },
+                                    { id: 'profile', label: t('suppliers.tabs.profile'), icon: Building },
+                                    { id: 'intelligence', label: t('suppliers.tabs.intelligence'), icon: BrainCircuit },
+                                    { id: 'assessment', label: t('suppliers.tabs.assessment'), icon: ClipboardList },
+                                    { id: 'history', label: t('suppliers.tabs.history'), icon: History },
+                                    { id: 'comments', label: t('suppliers.tabs.comments'), icon: MessageSquare },
                                 ]}
                                 activeTab={inspectorTab}
                                 onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
@@ -1028,16 +1028,16 @@ export const Suppliers: React.FC = () => {
                                         <>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 <div className="p-5 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-3xl shadow-sm">
-                                                    <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1 tracking-wide">Criticité</span>
+                                                    <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1 tracking-wide">{t('common.criticality')}</span>
                                                     <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase border ${getCriticalityColor(selectedSupplier.criticality || Criticality.MEDIUM)}`}>{selectedSupplier.criticality}</span>
                                                 </div>
                                                 <div className="p-5 bg-white dark:bg-slate-800/50 border border-gray-100 dark:border-white/5 rounded-3xl shadow-sm">
-                                                    <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1 tracking-wide">Score Sécurité</span>
+                                                    <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1 tracking-wide">{t('suppliers.cards.security')}</span>
                                                     <span className={`font-bold text-xl ${selectedSupplier.securityScore! >= 50 ? 'text-emerald-500' : 'text-red-500'}`}>{selectedSupplier.securityScore}/100</span>
                                                 </div>
                                             </div>
                                             <div className="p-6 bg-white dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-4">Contact</h4>
+                                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-4">{t('suppliers.cards.contact')}</h4>
                                                 <div className="flex items-center mb-3 text-sm font-medium text-slate-900 dark:text-white"><Handshake className="h-4 w-4 mr-3 text-slate-500" /> {selectedSupplier.contactName}</div>
                                                 <div className="flex items-center text-sm font-medium text-slate-900 dark:text-white"><Mail className="h-4 w-4 mr-3 text-slate-500" /> {selectedSupplier.contactEmail}</div>
                                             </div>
@@ -1045,7 +1045,7 @@ export const Suppliers: React.FC = () => {
                                                 <div className="flex justify-between items-center mb-4">
                                                     <div className="flex items-center text-blue-700 dark:text-blue-300 text-sm font-bold">
                                                         <FileText className="h-5 w-5 mr-3" />
-                                                        Contrat & Documents
+                                                        {t('suppliers.cards.contract')}
                                                     </div>
                                                     {selectedSupplier.contractEnd && (
                                                         <div className="flex items-center text-xs font-bold text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg shadow-sm">
@@ -1188,7 +1188,7 @@ export const Suppliers: React.FC = () => {
 
                                             {/* List of Assessments */}
                                             <div className="mb-8">
-                                                <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Évaluations Réalisées</h4>
+                                                <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">{t('suppliers.assessment.completed')}</h4>
                                                 <div className="space-y-3">
                                                     {assessments.filter(a => a.supplierId === selectedSupplier.id).map(a => (
                                                         <div key={a.id} onClick={() => setAssessmentMode(a.id)} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5 cursor-pointer hover:bg-slate-100 dark:hover:bg-white/10 transition-colors group">
@@ -1299,8 +1299,8 @@ export const Suppliers: React.FC = () => {
             <Drawer
                 isOpen={creationMode}
                 onClose={() => setCreationMode(false)}
-                title="Nouveau Fournisseur"
-                subtitle="Enregistrement d'un tiers"
+                title={t('suppliers.newSupplier')}
+                subtitle={t('common.create')}
                 width="max-w-4xl"
             >
                 <div className="h-full overflow-y-auto p-6">

@@ -44,7 +44,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
 export const Incidents: React.FC = () => {
-    const { user, addToast } = useStore();
+    const { user, addToast, t } = useStore();
     const location = useLocation();
 
     // Data Fetching with Hooks
@@ -141,7 +141,7 @@ export const Incidents: React.FC = () => {
             await Promise.all(batch.map(data => addDoc(collection(db, 'incidents'), data)));
             await logAction(user, 'IMPORT', 'Incident', `Import de ${events.length} incidents depuis ${events[0]?.source}`);
 
-            addToast(`${events.length} incidents importés avec succès`, "success");
+            addToast(t('incidents.toastImport', { count: events.length }), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Incidents.handleImportFromEvents');
         } finally {
@@ -188,7 +188,7 @@ export const Incidents: React.FC = () => {
                 reporter: 'SIMULATION'
             });
 
-            addToast("⚠️ Simulation d'attaque lancée !", "info");
+            addToast(t('incidents.toastSim'), "info");
 
             // Auto-select for "Wow" effect
             setSelectedIncident({ id: docRef.id, ...attackData } as Incident);
@@ -244,7 +244,7 @@ export const Incidents: React.FC = () => {
                 reporter: user.displayName || 'Utilisateur'
             });
 
-            addToast("Incident déclaré (Alerte envoyée)", "success");
+            addToast(t('incidents.toastDeclared'), "success");
             setCreationMode(false);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Incidents.handleCreate', 'CREATE_FAILED');
@@ -278,7 +278,7 @@ export const Incidents: React.FC = () => {
                 }
             });
 
-            addToast("Incident mis à jour", "success");
+            addToast(t('incidents.toastUpdated'), "success");
             setSelectedIncident({ ...selectedIncident, ...incidentData } as Incident);
         } catch (error) {
 
@@ -292,8 +292,8 @@ export const Incidents: React.FC = () => {
         if (!canDeleteResource(user, 'Incident')) return;
         setConfirmData({
             isOpen: true,
-            title: "Supprimer l'incident ?",
-            message: "Cette action est définitive.",
+            title: t('incidents.deleteTitle'),
+            message: t('incidents.deleteMessage'),
             onConfirm: () => handleDelete(id),
             closeOnConfirm: false
         });
@@ -333,7 +333,7 @@ export const Incidents: React.FC = () => {
         try {
             await performDelete(id);
             if (selectedIncident?.id === id) setSelectedIncident(null);
-            addToast("Incident supprimé", "info");
+            addToast(t('incidents.toastDeleted'), "info");
             setConfirmData(prev => ({ ...prev, isOpen: false }));
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Incidents.handleDelete', 'DELETE_FAILED');
@@ -347,15 +347,15 @@ export const Incidents: React.FC = () => {
 
         setConfirmData({
             isOpen: true,
-            title: "Supprimer ces incidents ?",
-            message: `Vous êtes sur le point de supprimer ${ids.length} incidents. Cette action est définitive.`,
+            title: t('incidents.deleteBulkTitle'),
+            message: t('incidents.deleteBulkMessage', { count: ids.length }),
             onConfirm: async () => {
                 setConfirmData(prev => ({ ...prev, loading: true }));
                 try {
                     await Promise.all(ids.map(performDelete));
                     const selectedId = selectedIncident?.id;
                     if (selectedId && ids.includes(selectedId)) setSelectedIncident(null);
-                    addToast(`${ids.length} incidents supprimés`, "info");
+                    addToast(t('incidents.toastBulkDeleted', { count: ids.length }), "info");
                     setConfirmData(prev => ({ ...prev, isOpen: false }));
                 } catch (error) {
                     ErrorLogger.handleErrorWithToast(error, 'Incidents.handleBulkDelete', 'DELETE_FAILED');
@@ -442,11 +442,11 @@ export const Incidents: React.FC = () => {
 
             <motion.div variants={slideUpVariants}>
                 <PageHeader
-                    title="Gestion des Incidents"
-                    subtitle="Détection, analyse et réponse aux incidents de sécurité"
+                    title={t('incidents.title')}
+                    subtitle={t('incidents.subtitle')}
                     icon={<Siren className="h-6 w-6 text-white" strokeWidth={2.5} />}
                     trustType="confidentiality"
-                    breadcrumbs={[{ label: 'Opérations' }, { label: 'Incidents' }]}
+                    breadcrumbs={[{ label: t('common.pilotage') }, { label: t('sidebar.incidents') }]}
                 />
             </motion.div>
 
@@ -468,7 +468,7 @@ export const Incidents: React.FC = () => {
                         <p className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
                             {incidentStats.open}
                         </p>
-                        <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">incidents actifs</span>
+                        <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t('incidents.activeIncidents')}</span>
                     </div>
                 </div>
 
@@ -486,7 +486,7 @@ export const Incidents: React.FC = () => {
                         </div>
                         <div className="space-y-1">
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{incidentStats.open}</p>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">à traiter</p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.toTreat')}</p>
                         </div>
                     </div>
 
@@ -505,7 +505,7 @@ export const Incidents: React.FC = () => {
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                 {incidentStats.avgMttrHours !== null ? `${incidentStats.avgMttrHours}h` : '-'}
                             </p>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">délai moyen</p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.avgDelay')}</p>
                         </div>
                     </div>
 
@@ -524,7 +524,7 @@ export const Incidents: React.FC = () => {
                             <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                                 {incidentStats.criticalRatio !== null ? `${incidentStats.criticalRatio}%` : '-'}
                             </p>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">du volume total</p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('incidents.volumeTotal')}</p>
                         </div>
                     </div>
                 </div>
@@ -534,7 +534,7 @@ export const Incidents: React.FC = () => {
             <PremiumPageControl
                 searchQuery={filter}
                 onSearchChange={setFilter}
-                searchPlaceholder="Rechercher par titre, description..."
+                searchPlaceholder={t('risks.searchPlaceholder')}
                 viewMode={viewMode}
                 onViewModeChange={(mode) => setViewMode(mode as 'list' | 'grid' | 'kanban')}
                 actions={
@@ -545,7 +545,7 @@ export const Incidents: React.FC = () => {
                                     value={statusFilter}
                                     onChange={(val) => setStatusFilter(val as string)}
                                     options={[
-                                        { value: '', label: 'Tous les statuts' },
+                                        { value: '', label: t('incidents.allStatuses') },
                                         { value: 'Nouveau', label: 'Nouveau' },
                                         { value: 'Analyse', label: 'Analyse' },
                                         { value: 'Contenu', label: 'Contenu' },
@@ -560,7 +560,7 @@ export const Incidents: React.FC = () => {
                                     value={severityFilter}
                                     onChange={(val) => setSeverityFilter(val as string)}
                                     options={[
-                                        { value: '', label: 'Toutes sévérités' },
+                                        { value: '', label: t('incidents.allSeverities') },
                                         { value: Criticality.CRITICAL, label: 'Critique' },
                                         { value: Criticality.HIGH, label: 'Élevé' },
                                         { value: Criticality.MEDIUM, label: 'Moyen' },
@@ -587,7 +587,7 @@ export const Incidents: React.FC = () => {
                                     <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                         <div className="p-1">
                                             <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                                Outils
+                                                {t('incidents.tools')}
                                             </div>
                                             <Menu.Item>
                                                 {({ active }) => (
@@ -597,7 +597,7 @@ export const Incidents: React.FC = () => {
                                                             } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                     >
                                                         <BrainCircuit className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
-                                                        Importer SIEM/EDR
+                                                        {t('incidents.importSiem')}
                                                     </button>
                                                 )}
                                             </Menu.Item>
@@ -609,7 +609,7 @@ export const Incidents: React.FC = () => {
                                                             } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                     >
                                                         <Siren className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-red-500'}`} />
-                                                        Simuler une Attaque
+                                                        {t('incidents.simulateAttack')}
                                                     </button>
                                                 )}
                                             </Menu.Item>
@@ -618,13 +618,13 @@ export const Incidents: React.FC = () => {
                                 </Transition>
                             </Menu>
 
-                            <CustomTooltip content="Déclarer un nouvel incident de sécurité">
+                            <CustomTooltip content={t('incidents.declare')}>
                                 <button
                                     onClick={() => setCreationMode(true)}
                                     className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
                                 >
                                     <Plus className="h-5 w-5 mr-2" />
-                                    <span className="hidden sm:inline">Déclarer un incident</span>
+                                    <span className="hidden sm:inline">{t('incidents.declare')}</span>
                                 </button>
                             </CustomTooltip>
                         </>
@@ -672,8 +672,8 @@ export const Incidents: React.FC = () => {
             <Drawer
                 isOpen={creationMode}
                 onClose={() => setCreationMode(false)}
-                title="Déclarer un incident"
-                subtitle="Nouvel incident de sécurité"
+                title={t('incidents.declare')}
+                subtitle={t('incidents.newIncident')}
                 width="max-w-4xl"
                 breadcrumbs={getBreadcrumbs()}
             >

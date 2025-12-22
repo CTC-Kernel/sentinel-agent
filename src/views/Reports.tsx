@@ -44,7 +44,7 @@ import { usePersistedState } from '../hooks/usePersistedState';
 import { ReportTemplates } from '../components/reports/ReportTemplates';
 
 export const Reports: React.FC = () => {
-    const { user, organization, addToast } = useStore();
+    const { user, organization, addToast, t } = useStore();
     const [activeTab, setActiveTab] = usePersistedState('reports_active_tab', 'generate');
     const [generating, setGenerating] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -98,7 +98,7 @@ export const Reports: React.FC = () => {
     const canManageDocuments = hasPermission(user, 'Document', 'manage', organization?.ownerId);
 
     const handleUpgradeClick = () => {
-        addToast("Fonctionnalité réservée au plan Professional. Contactez-nous pour mettre à niveau.", "info");
+        addToast(t('reports.upgradePro'), "info");
         navigate('/pricing');
     };
 
@@ -152,7 +152,8 @@ export const Reports: React.FC = () => {
         }
 
         setGenerating(type);
-        addToast("Génération du rapport en cours... Cela peut prendre quelques secondes.", "info");
+
+        addToast(t('reports.generating'), "info");
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let generatedDoc: any = null;
@@ -173,8 +174,8 @@ export const Reports: React.FC = () => {
 
             switch (type) {
                 case 'risks_executive':
-                    if (!canReadRisks) throw new Error("Permission refusée");
-                    generatedTitle = title || "RAPPORT DE GOUVERNANCE CYBER";
+                    if (!canReadRisks) throw new Error(t('reports.permissionDenied'));
+                    generatedTitle = title || t('reports.riskExecTitle').toUpperCase();
                     generatedFilename = `rapport_executif_risques_${new Date().toISOString().split('T')[0]}.pdf`;
                     generatedDoc = PdfService.generateRiskExecutiveReport(risks, {
                         ...baseOptions,
@@ -201,8 +202,8 @@ export const Reports: React.FC = () => {
                     }
                     break;
                 case 'assets_inventory': {
-                    if (!canReadAssets) throw new Error("Permission refusée");
-                    generatedTitle = 'Registre des Actifs';
+                    if (!canReadAssets) throw new Error(t('reports.permissionDenied'));
+                    generatedTitle = t('reports.assetInvTitle');
                     generatedFilename = 'inventaire_actifs.pdf';
                     const assetData = assets.map(a => [
                         a.name,
@@ -215,7 +216,7 @@ export const Reports: React.FC = () => {
                         {
                             ...baseOptions,
                             title: generatedTitle,
-                            subtitle: `Inventaire exhaustif | ${new Date().toLocaleDateString()}`,
+                            subtitle: `${t('reports.inventoryTitle')} | ${new Date().toLocaleDateString()}`,
                             filename: generatedFilename,
                         },
                         ['Nom', 'Type', 'Confidentialité', 'Propriétaire', 'Statut'],
@@ -224,13 +225,13 @@ export const Reports: React.FC = () => {
                     break;
                 }
                 case 'compliance_soa':
-                    if (!canReadControls) throw new Error("Permission refusée");
-                    generatedTitle = 'RAPPORT DE CONFORMITÉ';
+                    if (!canReadControls) throw new Error(t('reports.permissionDenied'));
+                    generatedTitle = t('reports.soaTitle').toUpperCase();
                     generatedFilename = `soa_audit_${new Date().toISOString().split('T')[0]}.pdf`;
                     generatedDoc = PdfService.generateComplianceExecutiveReport(controls, {
                         ...baseOptions,
                         title: generatedTitle,
-                        subtitle: `État des lieux ISO 27001 / SoA | ${new Date().toLocaleDateString()}`,
+                        subtitle: `${t('reports.soaDesc')} | ${new Date().toLocaleDateString()}`,
                         filename: generatedFilename,
                     });
                     break;
@@ -261,7 +262,7 @@ export const Reports: React.FC = () => {
                     break;
                 }
                 default:
-                    addToast("Type de rapport non supporté", "error");
+                    addToast(t('reports.unsupported'), "error");
                     setGenerating(null);
                     return;
             }
@@ -269,7 +270,7 @@ export const Reports: React.FC = () => {
             if (generatedDoc) {
                 // Save to history asynchronously
                 saveGeneratedReport(generatedDoc, generatedFilename, generatedTitle);
-                addToast("Rapport généré avec succès", "success");
+                addToast(t('reports.success'), "success");
             }
 
         } catch (error) {
@@ -281,14 +282,14 @@ export const Reports: React.FC = () => {
 
     const handleDeleteReport = async (id: string, name: string, ownerId?: string) => {
         if (!canDeleteResource(user, 'Document', ownerId, organization?.ownerId)) {
-            addToast("Vous n'avez pas la permission de supprimer ce rapport", "error");
+            addToast(t('reports.permissionDenied'), "error");
             return;
         }
 
-        if (!confirm(`Supprimer le rapport ${name} ?`)) return;
+        if (!confirm(t('reports.deleteTitle', { name }))) return;
         try {
             await deleteDoc(doc(db, 'documents', id));
-            addToast("Rapport supprimé", "success");
+            addToast(t('reports.deleteSuccess'), "success");
             refreshDocuments();
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Reports.delete', 'DELETE_FAILED');
@@ -308,8 +309,8 @@ export const Reports: React.FC = () => {
 
             <div className="relative z-10 p-6 lg:p-10 max-w-[1600px] mx-auto space-y-8">
                 <PageHeader
-                    title="Centre de Rapports"
-                    subtitle="Générez, consultez et personnalisez vos rapports de gouvernance et de conformité."
+                    title={t('reports.title')}
+                    subtitle={t('reports.subtitle')}
                     icon={<FileText className="w-8 h-8 text-white" />}
                     actions={
                         canManageDocuments && (
@@ -319,7 +320,7 @@ export const Reports: React.FC = () => {
                                 onClick={() => navigate('/settings?tab=reports')}
                             >
                                 <Settings className="w-4 h-4" />
-                                Configuration
+                                {t('reports.config')}
                             </Button>
                         )
                     }
@@ -327,9 +328,9 @@ export const Reports: React.FC = () => {
 
                 <ScrollableTabs
                     tabs={[
-                        { id: 'generate', label: 'Générer', icon: Printer },
-                        { id: 'history', label: 'Historique', icon: History, count: documents.length },
-                        { id: 'templates', label: 'Modèles', icon: FileSpreadsheet }
+                        { id: 'generate', label: t('reports.generate'), icon: Printer },
+                        { id: 'history', label: t('reports.history'), icon: History, count: documents.length },
+                        { id: 'templates', label: t('reports.templates'), icon: FileSpreadsheet }
                     ]}
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
@@ -351,14 +352,14 @@ export const Reports: React.FC = () => {
                                         <ShieldAlert className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">Rapports de Risques</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">Analysez l'exposition et les plans de traitement.</p>
+                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('reports.risksTitle')}</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{t('reports.risksSubtitle')}</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     <ReportCard
-                                        title="Rapport Exécutif des Risques"
-                                        description="Synthèse globale des risques majeurs, cartographie et plans de traitement pour le COMEX."
+                                        title={t('reports.riskExecTitle')}
+                                        description={t('reports.riskExecDesc')}
                                         icon={BarChart3}
                                         color="orange-500"
                                         gradient="from-orange-500 to-red-500"
@@ -367,8 +368,8 @@ export const Reports: React.FC = () => {
                                         disabled={!canReadRisks}
                                     />
                                     <ReportCard
-                                        title="Registre des Risques (Détaillé)"
-                                        description="Export complet du registre des risques avec tous les attributs (Menace, Vulnérabilité, Scénario...)."
+                                        title={t('reports.riskRegTitle')}
+                                        description={t('reports.riskRegDesc')}
                                         icon={FileSpreadsheet}
                                         color="orange-600"
                                         gradient="from-orange-600 to-amber-600"
@@ -386,8 +387,8 @@ export const Reports: React.FC = () => {
                                         <Activity className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">Rapports d'Audit</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">Synthèses et rapports détaillés des missions d'audit.</p>
+                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('reports.auditsTitle')}</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{t('reports.auditsSubtitle')}</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -395,8 +396,8 @@ export const Reports: React.FC = () => {
                                         audits.slice(0, 3).map(audit => (
                                             <ReportCard
                                                 key={audit.id}
-                                                title={`Rapport: ${audit.name}`}
-                                                description={`Rapport d'audit pour ${audit.scope || 'Périmètre non défini'}.`}
+                                                title={t('reports.auditReportTitle', { name: audit.name })}
+                                                description={t('reports.auditReportDesc', { scope: audit.scope || 'N/A' })}
                                                 icon={FileCheck}
                                                 color="blue-500"
                                                 gradient="from-blue-500 to-cyan-500"
@@ -414,8 +415,8 @@ export const Reports: React.FC = () => {
                                             <div className="p-3 bg-slate-100 dark:bg-white/5 rounded-full mb-3">
                                                 <Activity className="w-6 h-6 opacity-50" />
                                             </div>
-                                            <p className="font-medium">Aucun audit disponible.</p>
-                                            <p className="text-xs opacity-70 mt-1">Créez un audit pour générer un rapport.</p>
+                                            <p className="font-medium">{t('reports.noAudits')}</p>
+                                            <p className="text-xs opacity-70 mt-1">{t('reports.createAuditHint')}</p>
                                         </div>
                                     )}
                                 </div>
@@ -428,14 +429,14 @@ export const Reports: React.FC = () => {
                                         <Server className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">Inventaires & Conformité</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">Documentation de l'inventaire et déclarations de conformité.</p>
+                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('reports.inventoryTitle')}</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{t('reports.inventorySubtitle')}</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     <ReportCard
-                                        title="Inventaire des Actifs"
-                                        description="Liste exhaustive des actifs, classés par type, criticité et propriétaire."
+                                        title={t('reports.assetInvTitle')}
+                                        description={t('reports.assetInvDesc')}
                                         icon={Server}
                                         color="emerald-500"
                                         gradient="from-emerald-500 to-green-500"
@@ -444,8 +445,8 @@ export const Reports: React.FC = () => {
                                         disabled={!canReadAssets}
                                     />
                                     <ReportCard
-                                        title="Statement of Applicability (SoA)"
-                                        description="Déclaration d'applicabilité ISO 27001 (Annexe A) avec statuts et justifications."
+                                        title={t('reports.soaTitle')}
+                                        description={t('reports.soaDesc')}
                                         icon={ShieldCheck}
                                         color="indigo-500"
                                         gradient="from-indigo-500 to-violet-500"
@@ -454,8 +455,8 @@ export const Reports: React.FC = () => {
                                         disabled={!canReadControls}
                                     />
                                     <ReportCard
-                                        title="Pack de Conformité (Audit)"
-                                        description="Export complet ZIP contenant toutes les preuves : SoA, Registres, Politiques et Rapports pour l'auditeur."
+                                        title={t('reports.packTitle')}
+                                        description={t('reports.packDesc')}
                                         icon={Archive}
                                         color="purple-500"
                                         gradient="from-purple-500 to-fuchsia-500"
@@ -463,7 +464,7 @@ export const Reports: React.FC = () => {
                                         loading={generating === 'compliance_pack'}
                                         disabled={!canReadControls}
                                         locked={!hasCompliancePack}
-                                        lockMessage="Disponible à partir du plan Professional (Custom Templates)."
+                                        lockMessage={t('reports.upgradeLock')}
                                         onLockedClick={handleUpgradeClick}
                                     />
                                 </div>
@@ -479,7 +480,7 @@ export const Reports: React.FC = () => {
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                                     <input
                                         type="text"
-                                        placeholder="Rechercher un rapport..."
+                                        placeholder={t('reports.searchPlaceholder')}
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 transition-all"
@@ -494,8 +495,8 @@ export const Reports: React.FC = () => {
                                     <div className="h-full flex flex-col items-center justify-center p-20">
                                         <EmptyState
                                             icon={FileSpreadsheet}
-                                            title="Aucun rapport trouvé"
-                                            description={searchTerm ? "Aucun document ne correspond à votre recherche." : "Générez votre premier rapport pour le voir apparaître ici."}
+                                            title={t('reports.emptyTitle')}
+                                            description={searchTerm ? t('reports.emptyDescSearch') : t('reports.emptyDesc')}
                                         />
                                     </div>
                                 ) : (
@@ -503,11 +504,11 @@ export const Reports: React.FC = () => {
                                         <table className="w-full text-sm text-left">
                                             <thead className="bg-slate-50 dark:bg-slate-800/50">
                                                 <tr>
-                                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Nom du rapport</th>
-                                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
-                                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Version</th>
-                                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Auteur</th>
-                                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{t('reports.cols.name')}</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{t('reports.cols.date')}</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{t('reports.cols.version')}</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{t('reports.cols.author')}</th>
+                                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">{t('reports.cols.actions')}</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -552,7 +553,7 @@ export const Reports: React.FC = () => {
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/20 rounded-lg transition-colors"
-                                                                        title="Télécharger"
+                                                                        title={t('reports.download')}
                                                                     >
                                                                         <Download className="w-4 h-4" />
                                                                     </a>
@@ -560,7 +561,7 @@ export const Reports: React.FC = () => {
                                                                         <button
                                                                             onClick={() => handleDeleteReport(doc.id, doc.title, doc.ownerId)}
                                                                             className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/20 rounded-lg transition-colors"
-                                                                            title="Supprimer"
+                                                                            title={t('reports.delete')}
                                                                         >
                                                                             <Trash2 className="w-4 h-4" />
                                                                         </button>
@@ -602,6 +603,7 @@ interface ReportCardProps {
 }
 
 const ReportCard: React.FC<ReportCardProps> = ({ title, description, icon: Icon, gradient, onGenerate, loading, disabled, locked, lockMessage, onLockedClick }) => {
+    const { t } = useStore();
     const effectiveDisabled = disabled;
     const showLock = locked;
     const handleClick = () => {
@@ -648,22 +650,22 @@ const ReportCard: React.FC<ReportCardProps> = ({ title, description, icon: Icon,
                 {loading ? (
                     <>
                         <span className="w-5 h-5 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        Génération...
+                        {t('reports.generating').split('...')[0]}...
                     </>
                 ) : showLock ? (
                     <>
                         <Lock className="w-4 h-4 mr-2" />
-                        Mettre à niveau
+                        {t('reports.upgradeBtn')}
                     </>
                 ) : effectiveDisabled ? (
                     <>
                         <Lock className="w-4 h-4 mr-2" />
-                        Accès restreint
+                        {t('reports.restricted')}
                     </>
                 ) : (
                     <>
                         <Download className="w-5 h-5 mr-2 group-hover:animate-bounce" />
-                        Générer le PDF
+                        {t('reports.generatePdf')}
                     </>
                 )}
             </Button>

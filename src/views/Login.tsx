@@ -44,7 +44,7 @@ export const Login: React.FC = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const { addToast } = useStore();
+    const { addToast, t } = useStore();
 
     const getIsNativePlatform = async (): Promise<boolean> => {
         try {
@@ -66,13 +66,13 @@ export const Login: React.FC = () => {
                 if (!isMounted) return;
 
                 if (result?.user) {
-                    addToast('Connexion réussie', 'success');
+                    addToast(t('auth.success'), 'success');
                     window.location.hash = '#/';
                 }
             } catch (error: unknown) {
                 if (!isMounted) return;
                 ErrorLogger.error(error, 'Login.getRedirectResult');
-                setErrorMsg('Erreur Google Auth. Veuillez réessayer.');
+                setErrorMsg(t('auth.errors.google'));
             }
         })();
 
@@ -119,9 +119,9 @@ export const Login: React.FC = () => {
             const multiFactorAssertion = TotpMultiFactorGenerator.assertionForSignIn(hint.uid, mfaCode);
             await mfaResolver.resolveSignIn(multiFactorAssertion);
             setShowMfaModal(false);
-            addToast("Connexion réussie", "success");
+            addToast(t('auth.success'), "success");
         } catch (error) {
-            setMfaError("Code incorrect ou expiré.");
+            setMfaError(t('auth.mfa.error'));
             ErrorLogger.error(error, 'Login.handleMfaVerification');
         } finally {
             setMfaLoading(false);
@@ -139,10 +139,10 @@ export const Login: React.FC = () => {
         try {
             if (isLogin) {
                 await signInWithEmailAndPassword(auth, data.email, data.password);
-                addToast("Connexion réussie", "success");
+                addToast(t('auth.success'), "success");
             } else {
                 await createUserWithEmailAndPassword(auth, data.email, data.password);
-                addToast("Compte créé avec succès", "success");
+                addToast(t('auth.created'), "success");
             }
         } catch (error: unknown) {
             console.error('Auth Error Details:', error);
@@ -153,11 +153,11 @@ export const Login: React.FC = () => {
                 setShowMfaModal(true);
                 return;
             }
-            let msg = "Erreur d'authentification.";
+            let msg = t('auth.errors.auth');
             const code = (error as { code?: string })?.code;
-            if (code === 'auth/invalid-credential') msg = "Identifiants incorrects.";
-            if (code === 'auth/email-already-in-use') msg = "Cet email est déjà utilisé.";
-            if (code === 'auth/weak-password') msg = "Le mot de passe est trop faible.";
+            if (code === 'auth/invalid-credential') msg = t('auth.errors.invalid');
+            if (code === 'auth/email-already-in-use') msg = t('auth.errors.emailInUse');
+            if (code === 'auth/weak-password') msg = t('auth.errors.weak');
             setErrorMsg(msg);
         } finally { setLoading(false); }
     };
@@ -179,7 +179,7 @@ export const Login: React.FC = () => {
                     });
 
                     await signInWithCredential(auth, credential);
-                    addToast('Connexion réussie', 'success');
+                    addToast(t('auth.success'), 'success');
                     window.location.hash = '#/';
                 } else {
                     throw new Error('No ID Token from Apple');
@@ -192,7 +192,7 @@ export const Login: React.FC = () => {
             }
         } catch (error: unknown) {
             ErrorLogger.error(error, 'Login.handleAppleLogin');
-            setErrorMsg('Erreur Apple Auth. Veuillez réessayer.');
+            setErrorMsg(t('auth.errors.generic'));
         } finally {
             setLoading(false);
         }
@@ -218,7 +218,7 @@ export const Login: React.FC = () => {
                     );
 
                     await signInWithCredential(auth, credential);
-                    addToast("Connexion réussie", "success");
+                    addToast(t('auth.success'), "success");
                     window.location.hash = '#/';
                 } else {
                     throw new Error("No ID Token from Google");
@@ -228,7 +228,7 @@ export const Login: React.FC = () => {
                 const provider = new GoogleAuthProvider();
                 try {
                     await signInWithPopup(auth, provider);
-                    addToast('Connexion réussie', 'success');
+                    addToast(t('auth.success'), 'success');
                     window.location.hash = '#/';
                 } catch (popupError: unknown) {
                     const popupCode = (popupError as { code?: string })?.code;
@@ -255,7 +255,7 @@ export const Login: React.FC = () => {
                 // User cancelled, no error message needed
                 // User cancelled login
             } else {
-                setErrorMsg("Erreur Google Auth. Veuillez réessayer.");
+                setErrorMsg(t('auth.errors.google'));
             }
         } finally { setLoading(false); }
     };
@@ -266,7 +266,7 @@ export const Login: React.FC = () => {
             const requestResetFn = httpsCallable(functions, 'requestPasswordReset');
             await requestResetFn({ email: data.email });
             setResetSent(true);
-            addToast("Email de réinitialisation envoyé", "success");
+            addToast(t('auth.resetSent'), "success");
         } catch (_error) {
             ErrorLogger.handleErrorWithToast(_error, 'Login.handlePasswordReset');
         } finally {
@@ -308,7 +308,7 @@ export const Login: React.FC = () => {
                             <Lock className="h-8 w-8" strokeWidth={2.5} />
                         </div>
                         <h1 className="text-3xl font-bold tracking-tighter text-slate-900 dark:text-white">Sentinel GRC</h1>
-                        <p className="text-base font-medium text-slate-600 dark:text-slate-400 mt-2">Accédez à votre espace sécurisé</p>
+                        <p className="text-base font-medium text-slate-600 dark:text-slate-400 mt-2">{t('auth.subtitle')}</p>
                     </div>
 
                     {errorMsg && (
@@ -328,7 +328,7 @@ export const Login: React.FC = () => {
                             className="w-full py-6 rounded-2xl border-slate-200 dark:border-white/10 card-hover shadow-sm"
                         >
                             {!loading && <GoogleIcon />}
-                            <span className="ml-3 text-[15px] font-bold text-slate-700 dark:text-white">Continuer avec Google</span>
+                            <span className="ml-3 text-[15px] font-bold text-slate-700 dark:text-white">{t('auth.google')}</span>
                         </Button>
 
                         <Button
@@ -344,18 +344,18 @@ export const Login: React.FC = () => {
                                     <path d="M17.03 11.28c-.6-.7-1.55-1.15-2.55-1.15-1.03 0-2.03.45-3.08.45-1.03 0-2.03-.45-3.08-.45-2.05 0-4.1 1.65-4.1 4.8 0 2.2 1 3.75 2.05 4.6 1.03.85 2.03.85 3.08.4 1.03-.8 2.1-.8 3.08.4 1.03.48 2.1.55 3.08-.4 1.03-.85 2.03-2.4 2.05-4.6-.05-.15-2.05-1.15-2.05-3.75.05-.15 2.05-1.15 2.05-3.75z" />
                                 </svg>
                             )}
-                            <span className="ml-3 text-[15px] font-bold">Continuer avec Apple</span>
+                            <span className="ml-3 text-[15px] font-bold">{t('auth.apple')}</span>
                         </Button>
 
                         <div className="relative py-2">
                             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-white/10"></div></div>
-                            <div className="relative flex justify-center"><span className="px-4 bg-white/80 dark:bg-black/40 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-slate-500">Ou via email</span></div>
+                            <div className="relative flex justify-center"><span className="px-4 bg-white/80 dark:bg-black/40 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-slate-500">{t('auth.orEmail')}</span></div>
                         </div>
 
                         <form onSubmit={handleSubmit(handleEmailAuth)} className="space-y-5">
                             <div className="space-y-1.5">
                                 <FloatingLabelInput
-                                    label="Email"
+                                    label={t('auth.email')}
                                     type="email"
                                     autoComplete="email"
                                     icon={Mail}
@@ -369,12 +369,12 @@ export const Login: React.FC = () => {
                                 <div className="flex justify-between items-center ml-1 mb-1">
                                     {isLogin && (
                                         <button type="button" onClick={() => setShowResetModal(true)} className="text-[11px] font-bold text-brand-600 hover:text-brand-500 transition-colors ml-auto">
-                                            Oublié ?
+                                            {t('auth.forgot')}
                                         </button>
                                     )}
                                 </div>
                                 <FloatingLabelInput
-                                    label="Mot de passe"
+                                    label={t('auth.password')}
                                     type="password"
                                     autoComplete={isLogin ? 'current-password' : 'new-password'}
                                     icon={Lock}
@@ -389,7 +389,7 @@ export const Login: React.FC = () => {
                                 isLoading={loading}
                                 className="w-full py-6 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl card-hover shadow-lg shadow-brand-500/20"
                             >
-                                {isLogin ? 'Se connecter' : 'Créer un compte'}
+                                {isLogin ? t('auth.login') : t('auth.signup')}
                                 {!loading && <ArrowRight className="ml-2 h-5 w-5" strokeWidth={2.5} />}
                             </Button>
                         </form>
@@ -400,7 +400,7 @@ export const Login: React.FC = () => {
                             onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); }}
                             className="text-[13px] font-bold text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
                         >
-                            {isLogin ? "Créer un nouveau compte" : "J'ai déjà un compte"}
+                            {isLogin ? t('auth.switchSignup') : t('auth.switchLogin')}
                         </button>
                     </div>
                 </div>
@@ -442,15 +442,15 @@ export const Login: React.FC = () => {
                                 <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center mx-auto mb-4 text-brand-600">
                                     <Mail className="h-7 w-7" />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Réinitialisation</h3>
-                                <p className="text-sm text-slate-600 mt-2">Entrez votre email pour recevoir un lien de réinitialisation.</p>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('auth.reset.title')}</h3>
+                                <p className="text-sm text-slate-600 mt-2">{t('auth.reset.desc')}</p>
                             </div>
 
                             {!resetSent ? (
                                 <form onSubmit={resetForm.handleSubmit(handlePasswordReset)} className="space-y-6">
                                     <div>
                                         <FloatingLabelInput
-                                            label="Email"
+                                            label={t('auth.email')}
                                             type="email"
                                             {...resetForm.register('email')}
                                             error={resetForm.formState.errors.email?.message}
@@ -458,16 +458,16 @@ export const Login: React.FC = () => {
                                         />
                                     </div>
                                     <Button type="submit" isLoading={loading} className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] shadow-lg">
-                                        {loading ? 'Envoi...' : 'Envoyer le lien'}
+                                        {loading ? t('auth.reset.sending') : t('auth.reset.submit')}
                                     </Button>
                                 </form>
                             ) : (
                                 <div className="text-center py-4">
                                     <div className="inline-flex items-center px-4 py-2 rounded-xl bg-green-50 text-green-700 text-sm font-bold mb-4 border border-green-100">
-                                        <CheckCircle2 className="h-4 w-4 mr-2" /> Email envoyé !
+                                        <CheckCircle2 className="h-4 w-4 mr-2" /> {t('auth.reset.sent')}
                                     </div>
-                                    <p className="text-sm text-slate-600 mb-6">Vérifiez votre boîte de réception (et vos spams).</p>
-                                    <button onClick={() => setShowResetModal(false)} className="text-sm font-bold text-brand-600 hover:underline">Retour à la connexion</button>
+                                    <p className="text-sm text-slate-600 mb-6">{t('auth.reset.checkEmail')}</p>
+                                    <button onClick={() => setShowResetModal(false)} className="text-sm font-bold text-brand-600 hover:underline">{t('auth.reset.back')}</button>
                                 </div>
                             )}
                         </div>
@@ -487,8 +487,8 @@ export const Login: React.FC = () => {
                                 <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mx-auto mb-4 text-emerald-600">
                                     <Lock className="h-7 w-7" />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Authentification MFA</h3>
-                                <p className="text-sm text-slate-600 mt-2">Saisissez votre code de vérification.</p>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('auth.mfa.title')}</h3>
+                                <p className="text-sm text-slate-600 mt-2">{t('auth.mfa.desc')}</p>
                             </div>
 
                             {mfaError && (
@@ -521,7 +521,7 @@ export const Login: React.FC = () => {
                                     isLoading={mfaLoading}
                                     className="w-full py-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl hover:scale-[1.02] shadow-lg"
                                 >
-                                    {mfaLoading ? 'Vérification...' : 'Vérifier'}
+                                    {mfaLoading ? t('auth.mfa.verifying') : t('auth.mfa.verify')}
                                 </Button>
                             </form>
                         </div>

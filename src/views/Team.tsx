@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
@@ -48,6 +49,7 @@ export const Team: React.FC = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [activeTab, setActiveTab] = usePersistedState<'members' | 'roles' | 'groups'>('team_active_tab', 'members');
     const { user, addToast } = useStore();
+    const { t } = useTranslation();
 
     // State for creating user
     const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
@@ -347,6 +349,12 @@ export const Team: React.FC = () => {
         URL.revokeObjectURL(url);
     };
 
+    const translateRole = (role: string) => {
+        const key = `common.settings.roles.${role}`;
+        const translated = t(key);
+        return translated === key ? role : translated;
+    };
+
 
 
     const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
@@ -383,30 +391,30 @@ export const Team: React.FC = () => {
             />
 
             <PageHeader
-                title="Équipe"
-                subtitle={`Gestion des membres de ${user?.organizationName || 'l\'organisation'}.`}
+                title={t('team.title')}
+                subtitle={t('team.subtitle', { org: user?.organizationName || t('common.settings.organization') })}
                 breadcrumbs={[
-                    { label: 'Équipe' }
+                    { label: t('team.title') }
                 ]}
                 icon={<Users className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={canAdmin && activeTab === 'members' && (
                     <>
-                        <CustomTooltip content="Exporter la liste des membres en CSV">
+                        <CustomTooltip content={t('team.actions.exportCsv')}>
                             <Button
                                 variant="outline"
                                 onClick={handleExportCSV}
                                 className="gap-2"
                             >
-                                <FileSpreadsheet className="h-4 w-4" /> Export CSV
+                                <FileSpreadsheet className="h-4 w-4" /> {t('team.actions.exportCsv')}
                             </Button>
                         </CustomTooltip>
-                        <CustomTooltip content="Inviter un nouveau collaborateur">
+                        <CustomTooltip content={t('team.actions.invite')}>
                             <Button
                                 onClick={handleOpenInviteModal}
                                 className="gap-2 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
                             >
                                 <Plus className="h-4 w-4" />
-                                Inviter un membre
+                                {t('team.actions.invite')}
                             </Button>
                         </CustomTooltip>
                     </>
@@ -451,9 +459,9 @@ export const Team: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-foreground mb-1">Taux d'Activité</h3>
+                        <h3 className="text-lg font-bold text-foreground mb-1">{t('team.stats.activityRate')}</h3>
                         <p className="text-sm text-muted-foreground max-w-[200px]">
-                            Utilisateurs actifs au cours des 30 derniers jours.
+                            {t('team.stats.activityDesc')}
                         </p>
                     </div>
                 </div>
@@ -463,21 +471,21 @@ export const Team: React.FC = () => {
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <Users className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</div>
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('team.stats.total')}</div>
                         </div>
                         <div className="text-xl font-black text-foreground">{totalUsers}</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <User className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Admins</div>
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('team.stats.admins')}</div>
                         </div>
                         <div className="text-xl font-black text-foreground">{admins}</div>
                     </div>
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
                             <Mail className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Invités</div>
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('team.stats.guests')}</div>
                         </div>
                         <div className="text-xl font-black text-foreground">{pendingInvites}</div>
                     </div>
@@ -488,14 +496,14 @@ export const Team: React.FC = () => {
                     <div className="flex items-center justify-between p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
                         <div className="flex items-center gap-2">
                             <UserPlus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                            <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Demandes</span>
+                            <span className="text-xs font-bold text-blue-700 dark:text-blue-300">{t('team.stats.requests')}</span>
                         </div>
                         <span className="text-sm font-black text-blue-700 dark:text-blue-400">{joinRequestsCount}</span>
                     </div>
                     <div className="flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
                         <div className="flex items-center gap-2">
                             <Timer className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">En Attente</span>
+                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">{t('team.stats.pending')}</span>
                         </div>
                         <span className="text-sm font-black text-amber-700 dark:text-amber-400">{pendingInvites}</span>
                     </div>
@@ -510,7 +518,7 @@ export const Team: React.FC = () => {
                         : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                         }`}
                 >
-                    Membres
+                    {t('team.tabs.members')}
                 </button>
                 <button
                     onClick={() => setActiveTab('roles')}
@@ -519,7 +527,7 @@ export const Team: React.FC = () => {
                         : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                         }`}
                 >
-                    Rôles & Permissions
+                    {t('team.tabs.roles')}
                 </button>                <button
                     onClick={() => setActiveTab('groups')}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'groups'
@@ -527,7 +535,7 @@ export const Team: React.FC = () => {
                         : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                         }`}
                 >
-                    Groupes
+                    {t('team.tabs.groups')}
                 </button>
             </motion.div>
 
@@ -547,7 +555,7 @@ export const Team: React.FC = () => {
                         <PremiumPageControl
                             searchQuery={filter}
                             onSearchChange={setFilter}
-                            searchPlaceholder="Rechercher un membre..."
+                            searchPlaceholder={t('common.settings.searchMembers')}
                         />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -573,20 +581,20 @@ export const Team: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="mt-auto flex gap-2 pt-3">
-                                                        <CustomTooltip content="Refuser la demande">
+                                                        <CustomTooltip content={t('team.actions.reject')}>
                                                             <button
                                                                 onClick={() => handleRejectRequest(req)}
                                                                 className="flex-1 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all flex items-center justify-center gap-1"
                                                             >
-                                                                <XCircle className="h-3.5 w-3.5" /> Refuser
+                                                                <XCircle className="h-3.5 w-3.5" /> {t('team.actions.reject')}
                                                             </button>
                                                         </CustomTooltip>
-                                                        <CustomTooltip content="Approuver l'accès">
+                                                        <CustomTooltip content={t('team.actions.approve')}>
                                                             <button
                                                                 onClick={() => handleApproveRequest(req)}
                                                                 className="flex-1 py-2 bg-blue-600 text-white border border-blue-500 rounded-xl text-xs font-bold hover:bg-blue-700 hover:shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-1"
                                                             >
-                                                                <Check className="h-3.5 w-3.5" /> Approuver
+                                                                <Check className="h-3.5 w-3.5" /> {t('team.actions.approve')}
                                                             </button>
                                                         </CustomTooltip>
                                                     </div>
@@ -604,9 +612,9 @@ export const Team: React.FC = () => {
                                 <div className="col-span-full">
                                     <EmptyState
                                         icon={Users}
-                                        title="Aucun membre trouvé"
-                                        description={filter ? "Aucun membre ne correspond à votre recherche." : "Invitez des collaborateurs pour travailler ensemble."}
-                                        actionLabel={canAdmin && !filter ? "Inviter un membre" : undefined}
+                                        title={t('team.empty.title')}
+                                        description={filter ? t('team.empty.descSearch') : t('team.empty.desc')}
+                                        actionLabel={canAdmin && !filter ? t('team.actions.invite') : undefined}
                                         onAction={canAdmin && !filter ? handleOpenInviteModal : undefined}
                                     />
                                 </div>
@@ -616,13 +624,13 @@ export const Team: React.FC = () => {
                                         {canAdmin && (
                                             <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 {!u.isPending && (
-                                                    <CustomTooltip content="Modifier le rôle/département">
+                                                    <CustomTooltip content={t('team.actions.edit')}>
                                                         <button onClick={() => openEditModal(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all">
                                                             <Edit className="h-4 w-4" />
                                                         </button>
                                                     </CustomTooltip>
                                                 )}
-                                                <CustomTooltip content={u.isPending ? "Annuler l'invitation" : "Supprimer le membre"}>
+                                                <CustomTooltip content={u.isPending ? t('team.delete.titleInvite').replace('?', '') : t('team.actions.delete')}>
                                                     <button onClick={() => initiateDelete(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-red-500 shadow-sm hover:scale-105 transition-all">
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
@@ -652,7 +660,7 @@ export const Team: React.FC = () => {
                                             <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-center items-center text-xs mt-auto">
                                                 <div className="flex items-center text-amber-500 font-bold bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg">
                                                     <Timer className="h-3.5 w-3.5 mr-1.5" />
-                                                    Invitation en attente
+                                                    {t('team.invite.success').split(' ')[0]} {t('team.stats.pending')}
                                                 </div>
                                             </div>
                                         ) : (
@@ -662,7 +670,7 @@ export const Team: React.FC = () => {
                                                     {u.department || 'Général'}
                                                 </div>
                                                 {u.lastLogin && (
-                                                    <div className="flex items-center text-slate-500 font-medium" title="Dernière connexion">
+                                                    <div className="flex items-center text-slate-500 font-medium" title={t('team.columns.lastLogin')}>
                                                         <Clock className="h-3.5 w-3.5 mr-1.5" />
                                                         {new Date(u.lastLogin).toLocaleDateString()}
                                                     </div>
@@ -682,8 +690,8 @@ export const Team: React.FC = () => {
             <Drawer
                 isOpen={showInviteModal}
                 onClose={() => setShowInviteModal(false)}
-                title="Inviter un collaborateur"
-                subtitle={`Ils rejoindront ${user?.organizationName}.`}
+                title={t('team.invite.title')}
+                subtitle={t('team.invite.subtitle', { org: user?.organizationName || t('common.settings.organization') })}
                 width="max-w-4xl"
             >
                 <form onSubmit={inviteForm.handleSubmit(handleAddUser)} className="p-4 sm:p-8 space-y-6">
@@ -694,13 +702,13 @@ export const Team: React.FC = () => {
                     </div>
 
                     <FloatingLabelInput
-                        label="Nom complet (Optionnel)"
+                        label={t('team.invite.name')}
                         {...inviteForm.register('displayName')}
                     />
 
                     <div>
                         <FloatingLabelInput
-                            label="Email professionnel"
+                            label={t('team.invite.email')}
                             type="email"
                             {...inviteForm.register('email')}
                         />
@@ -714,16 +722,16 @@ export const Team: React.FC = () => {
                                 name="role"
                                 render={({ field }) => (
                                     <CustomSelect
-                                        label="Rôle"
+                                        label={t('team.invite.role')}
                                         value={field.value}
                                         onChange={field.onChange}
                                         options={[
-                                            { value: 'user', label: 'Utilisateur' },
-                                            { value: 'rssi', label: 'RSSI' },
-                                            { value: 'auditor', label: 'Auditeur' },
-                                            { value: 'project_manager', label: 'Chef de Projet' },
-                                            { value: 'direction', label: 'Direction' },
-                                            { value: 'admin', label: 'Admin' },
+                                            { value: 'user', label: t('common.settings.roles.user') },
+                                            { value: 'rssi', label: t('common.settings.roles.rssi') },
+                                            { value: 'auditor', label: t('common.settings.roles.auditor') },
+                                            { value: 'project_manager', label: t('common.settings.roles.project_manager') },
+                                            { value: 'direction', label: t('common.settings.roles.direction') },
+                                            { value: 'admin', label: t('common.settings.roles.admin') },
                                             ...customRoles.map(r => ({ value: r.id, label: r.name }))
                                         ]}
                                     />
@@ -732,14 +740,14 @@ export const Team: React.FC = () => {
                         </div>
                         <div>
                             <FloatingLabelInput
-                                label="Département"
+                                label={t('team.invite.department')}
                                 {...inviteForm.register('department')}
                             />
                         </div>
                     </div>
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                        <Button type="button" variant="ghost" onClick={() => setShowInviteModal(false)}>Annuler</Button>
-                        <Button type="submit" className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-transform" isLoading={loading}>Envoyer</Button>
+                        <Button type="button" variant="ghost" onClick={() => setShowInviteModal(false)}>{t('team.actions.cancel')}</Button>
+                        <Button type="submit" className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-transform" isLoading={loading}>{t('team.invite.send')}</Button>
                     </div>
                 </form>
             </Drawer>
@@ -748,19 +756,19 @@ export const Team: React.FC = () => {
             <Drawer
                 isOpen={showEditModal && !!selectedUser && !selectedUser.isPending}
                 onClose={() => setShowEditModal(false)}
-                title="Modifier Utilisateur"
-                subtitle="Mettez à jour les informations du collaborateur."
+                title={t('team.edit.title')}
+                subtitle={t('team.edit.subtitle')}
                 width="max-w-4xl"
             >
                 {selectedUser && (
                     <form onSubmit={editForm.handleSubmit(handleUpdateUser)} className="p-4 sm:p-8 space-y-6">
                         <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl mb-4">
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Compte</p>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{t('team.edit.account')}</p>
                             <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedUser.email}</p>
                         </div>
 
                         <FloatingLabelInput
-                            label="Nom d'affichage"
+                            label={t('team.invite.name')}
                             {...editForm.register('displayName')}
                         />
 
@@ -771,16 +779,16 @@ export const Team: React.FC = () => {
                                     name="role"
                                     render={({ field }) => (
                                         <CustomSelect
-                                            label="Rôle"
+                                            label={t('team.invite.role')}
                                             value={field.value}
                                             onChange={field.onChange}
                                             options={[
-                                                { value: 'user', label: 'Utilisateur' },
-                                                { value: 'rssi', label: 'RSSI' },
-                                                { value: 'auditor', label: 'Auditeur' },
-                                                { value: 'project_manager', label: 'Chef de Projet' },
-                                                { value: 'direction', label: 'Direction' },
-                                                { value: 'admin', label: 'Admin' },
+                                                { value: 'user', label: t('common.settings.roles.user') },
+                                                { value: 'rssi', label: t('common.settings.roles.rssi') },
+                                                { value: 'auditor', label: t('common.settings.roles.auditor') },
+                                                { value: 'project_manager', label: t('common.settings.roles.project_manager') },
+                                                { value: 'direction', label: t('common.settings.roles.direction') },
+                                                { value: 'admin', label: t('common.settings.roles.admin') },
                                                 ...customRoles.map(r => ({ value: r.id, label: r.name }))
                                             ]}
                                         />
@@ -789,15 +797,15 @@ export const Team: React.FC = () => {
                             </div>
                             <div>
                                 <FloatingLabelInput
-                                    label="Département"
+                                    label={t('team.invite.department')}
                                     {...editForm.register('department')}
                                 />
                             </div>
                         </div>
 
                         <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                            <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>Annuler</Button>
-                            <Button type="submit" className="bg-brand-600 text-white hover:scale-105 transition-transform">Enregistrer</Button>
+                            <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>{t('team.actions.cancel')}</Button>
+                            <Button type="submit" className="bg-brand-600 text-white hover:scale-105 transition-transform">{t('team.edit.save')}</Button>
                         </div>
                     </form>
                 )}
