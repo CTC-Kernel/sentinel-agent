@@ -4,7 +4,7 @@ import path from 'path';
 
 const authFile = 'playwright/.auth/user.json';
 
-setup('authenticate', async ({ page }) => {
+setup('authenticate', async ({ page: _page }) => {
     const dir = path.dirname(authFile);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     // Write empty state
