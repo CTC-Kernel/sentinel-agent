@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Shield, Globe, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
@@ -7,15 +6,14 @@ import { LandingMap } from './LandingMap';
 import { ThemeToggle } from '../ui/ThemeToggle';
 
 export const SystemEntrance: React.FC = () => {
-    const navigate = useNavigate();
     const [isScanning, setIsScanning] = useState(false);
 
     const handleInitialize = () => {
         setIsScanning(true);
-        // Simulate loading delay then redirect
+        // Direct hash navigation for robustness
         setTimeout(() => {
-            navigate('/login');
-        }, 1500);
+            window.location.hash = '#/login';
+        }, 800);
     };
 
     const [bootSequence, setBootSequence] = useState<string[]>([]);
@@ -126,7 +124,7 @@ export const SystemEntrance: React.FC = () => {
                             <Button
                                 onClick={handleInitialize}
                                 size="lg"
-                                className="w-full h-14 bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 font-bold tracking-tight text-lg rounded-xl shadow-none hover:scale-[1.01] transition-all group border border-transparent dark:border-white/5"
+                                className="w-full h-14 bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 font-bold tracking-tight text-lg rounded-xl shadow-none hover:scale-[1.01] transition-all group border border-transparent dark:border-white/5 relative z-30"
                             >
                                 ACCÈS À L'AUTHENTIFICATION
                                 <ChevronRight className="ml-2 h-5 w-5 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
@@ -134,15 +132,15 @@ export const SystemEntrance: React.FC = () => {
                             <p className="mt-4 text-xs text-slate-500 font-mono font-medium">
                                 EST. 2024 • CONNEXION CHIFFRÉE
                             </p>
-                        </div>
-                    </div>
+                        </div >
+                    </div >
 
-                </div>
+                </div >
 
-            </div>
+            </div >
 
             {/* Footer Status Bar */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 flex justify-between items-end text-xs font-mono text-slate-500 dark:text-slate-600 uppercase tracking-widest pointer-events-none z-10 font-bold">
+            < div className="absolute bottom-0 left-0 right-0 p-6 flex justify-between items-end text-xs font-mono text-slate-500 dark:text-slate-600 uppercase tracking-widest pointer-events-none z-10 font-bold" >
                 <div className="hidden md:block">
                     LAT: 48.8566 N <br /> LON: 2.3522 E
                 </div>
@@ -156,8 +154,8 @@ export const SystemEntrance: React.FC = () => {
                         Intel: Actif
                     </span>
                 </div>
-            </div>
+            </div >
 
-        </div>
+        </div >
     );
 };
