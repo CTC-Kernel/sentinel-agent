@@ -304,8 +304,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 });
 
             } catch (err) {
-                ErrorLogger.error(err, 'AuthContext.handleUser');
-                setError(err as Error);
+                // CRITICAL FIX: If we get a 401 or similar auth error here, we must log out
+                // otherwise the user is stuck in a half-authenticated state with a spinner
+                if ((err as any)?.code === 'auth/internal-error' || (err as any)?.code === 'permission-denied') {
+                    ErrorLogger.warn("Critical Auth Error - Force Logout", 'AuthContext.handleUser', { metadata: { error: err } });
+                    await logout();
+                } else {
+                    ErrorLogger.error(err, 'AuthContext.handleUser');
+                    setError(err as Error);
+                }
                 setLoading(false);
             }
         };
