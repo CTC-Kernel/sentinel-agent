@@ -42,7 +42,7 @@ export const LandingMap: React.FC = memo(() => {
                                 <Geography
                                     key={geo.rsmKey}
                                     geography={geo}
-                                    className="fill-slate-200 dark:fill-blue-500/5 stroke-slate-300 dark:stroke-blue-500/20 outline-none transition-colors duration-700"
+                                    className="fill-slate-200 dark:fill-slate-500/10 stroke-slate-300 dark:stroke-slate-500/30 outline-none transition-colors duration-700"
                                     style={{
                                         default: { outline: "none" },
                                         hover: { outline: "none" },
@@ -56,8 +56,8 @@ export const LandingMap: React.FC = memo(() => {
                     {/* Animated "Pulse" Markers */}
                     {visualThreats.map((marker, i) => (
                         <Marker key={i} coordinates={marker.coordinates as [number, number]}>
-                            <circle r={2} fill="#3b82f6" className="animate-ping opacity-75" />
-                            <circle r={1} fill="#ffffff" />
+                            <circle r={2} fill="#94a3b8" className="animate-ping opacity-75" />
+                            <circle r={1} fill="#e2e8f0" />
                         </Marker>
                     ))}
                 </ZoomableGroup>

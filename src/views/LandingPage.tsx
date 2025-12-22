@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { LucideIcon } from 'lucide-react';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { Shield, Layers, CheckCircle2 } from '../components/ui/Icons';

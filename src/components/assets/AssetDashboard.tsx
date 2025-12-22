@@ -95,13 +95,19 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
     return (
         <div className="space-y-6">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden shadow-sm hover:shadow-apple transition-all duration-500 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+            <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/5 flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden shadow-lg dark:shadow-none bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+                {/* Tech Corners Generic */}
+                <svg className="absolute top-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                <svg className="absolute top-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                <svg className="absolute bottom-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                <svg className="absolute bottom-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
                 <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
                 </div>
 
                 {/* Global Score */}
-                <div className="flex items-center gap-6 relative z-decorator">
+                <div className="flex items-center gap-6 relative z-decorator pl-4">
                     <div className="relative group/ring">
                         <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
                             <circle
@@ -128,57 +134,57 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                             />
                         </svg>
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                            <span className="text-xl font-black text-foreground">{Math.round(100 - depreciation)}%</span>
+                            <span className="text-2xl font-black text-foreground tracking-tighter">{Math.round(100 - depreciation)}%</span>
                         </div>
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-foreground mb-1">Santé du Parc</h3>
-                        <p className="text-sm text-muted-foreground max-w-[200px]">
+                        <h3 className="text-lg font-bold text-foreground mb-1 uppercase tracking-wide font-mono">Santé du Parc</h3>
+                        <p className="text-xs text-muted-foreground max-w-[200px]">
                             Basé sur l'amortissement et la maintenance.
                         </p>
                     </div>
                 </div>
 
                 {/* Key Metrics Breakdown */}
-                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border px-6 mx-2">
-                    <div className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onFilterChange?.(null)}>
-                        <div className="flex items-center justify-center gap-2 mb-1">
-                            <Server className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total</div>
+                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border/50 px-6 mx-2">
+                    <div className="text-center cursor-pointer hover:opacity-80 transition-opacity group/metric" onClick={() => onFilterChange?.(null)}>
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                            <Server className="h-4 w-4 text-slate-500 group-hover/metric:text-brand-500 transition-colors" />
+                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Total</div>
                         </div>
-                        <div className="text-xl font-black text-foreground">{totalAssets}</div>
+                        <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{totalAssets}</div>
                     </div>
-                    <div className="text-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onFilterChange?.({ type: 'criticality', value: 'Critique' })}>
-                        <div className="flex items-center justify-center gap-2 mb-1">
-                            <ShieldAlert className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Critiques</div>
+                    <div className="text-center cursor-pointer hover:opacity-80 transition-opacity group/metric" onClick={() => onFilterChange?.({ type: 'criticality', value: 'Critique' })}>
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                            <ShieldAlert className="h-4 w-4 text-slate-500 group-hover/metric:text-red-500 transition-colors" />
+                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Critiques</div>
                         </div>
-                        <div className="text-xl font-black text-foreground">{criticalAssets}</div>
+                        <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{criticalAssets}</div>
                     </div>
-                    <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1">
-                            <Euro className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Valeur</div>
+                    <div className="text-center group/metric">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                            <Euro className="h-4 w-4 text-slate-500 group-hover/metric:text-emerald-500 transition-colors" />
+                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Valeur</div>
                         </div>
-                        <div className="text-xl font-black text-foreground">{(currentValue / 1000).toFixed(0)}k€</div>
+                        <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{(currentValue / 1000).toFixed(0)}k€</div>
                     </div>
                 </div>
 
                 {/* Alerts/Status */}
-                <div className="flex flex-col gap-3 min-w-[180px]">
-                    <div className="flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                <div className="flex flex-col gap-3 min-w-[200px] pr-4">
+                    <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-500/20 hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors cursor-default">
                         <div className="flex items-center gap-2">
                             <Wrench className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">Maintenance</span>
+                            <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wide font-mono">Maintenance</span>
                         </div>
-                        <span className="text-sm font-black text-amber-700 dark:text-amber-400">{maintenanceDue}</span>
+                        <span className="text-lg font-black text-amber-700 dark:text-amber-400">{maintenanceDue}</span>
                     </div>
-                    <div className="flex items-center justify-between p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                    <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-500/20 hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-colors cursor-default">
                         <div className="flex items-center gap-2">
                             <Server className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                            <span className="text-xs font-bold text-blue-700 dark:text-blue-300">Nouveaux</span>
+                            <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide font-mono">Nouveaux</span>
                         </div>
-                        <span className="text-sm font-black text-blue-700 dark:text-blue-400">
+                        <span className="text-lg font-black text-blue-700 dark:text-blue-400">
                             {assets.filter(a => a.purchaseDate && (new Date().getTime() - new Date(a.purchaseDate).getTime()) < 2592000000).length}
                         </span>
                     </div>
@@ -187,10 +193,16 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Criticality Distribution */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+                <div className="glass-panel text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+                    {/* Tech Corners Generic */}
+                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-decorator">
-                        <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Criticité</h4>
+                        <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Distribution par Criticité</h4>
                         <ResponsiveContainer width="100%" height={250}>
                             <PieChart>
                                 <Pie
@@ -220,10 +232,16 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 </div>
 
                 {/* Type Distribution */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+                <div className="glass-panel text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+                    {/* Tech Corners Generic */}
+                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-decorator">
-                        <h4 className="text-sm font-bold text-foreground mb-4">Top Types d'Actifs</h4>
+                        <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Top Types d'Actifs</h4>
                         <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={typeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.4)'} vertical={false} />
@@ -251,10 +269,16 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 </div>
 
                 {/* Scope Distribution */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+                <div className="glass-panel text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+                    {/* Tech Corners Generic */}
+                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-decorator">
-                        <h4 className="text-sm font-bold text-foreground mb-4">Distribution par Périmètre (Scope)</h4>
+                        <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Distribution par Périmètre (Scope)</h4>
                         <ResponsiveContainer width="100%" height={250}>
                             <PieChart>
                                 <Pie
@@ -284,10 +308,16 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                 </div>
 
                 {/* Location Distribution */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+                <div className="glass-panel text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+                    {/* Tech Corners Generic */}
+                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <div className="relative z-decorator">
-                        <h4 className="text-sm font-bold text-foreground mb-4">Actifs par Localisation</h4>
+                        <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Actifs par Localisation</h4>
                         <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={locationChartData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.4)'} horizontal={false} />

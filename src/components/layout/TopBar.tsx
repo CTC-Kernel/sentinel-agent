@@ -64,7 +64,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
     };
 
     return (
-        <header className="h-16 pt-safe z-sticky sticky top-0 bg-white/60 dark:bg-[#020617]/50 backdrop-blur-2xl border-b border-white/20 dark:border-white/5 transition-all duration-300 px-4 md:px-8">
+        <header className="h-16 pt-safe z-sticky sticky top-0 bg-white/80 dark:bg-[#020617]/80 backdrop-blur-3xl border-b border-slate-200 dark:border-white/5 transition-all duration-300 px-4 md:px-8 shadow-sm dark:shadow-none">
             <div className="h-full max-w-[1600px] mx-auto flex items-center justify-between">
                 {/* Left: Mobile Menu & Search Trigger */}
                 <div className="flex items-center flex-1 gap-4">
@@ -82,10 +82,10 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                     <button
                         data-tour="command-palette"
                         onClick={openCommandPalette}
-                        className="hidden md:flex items-center gap-3 px-4 py-2.5 bg-white/40 dark:bg-[#020617]/40 hover:bg-white/60 dark:hover:bg-[#020617]/60 border border-white/60 dark:border-white/10 rounded-2xl text-sm text-slate-600 dark:text-slate-400 transition-all duration-200 group w-full max-w-md shadow-sm hover:shadow-md backdrop-blur-md"
+                        className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl text-sm text-slate-600 dark:text-slate-400 transition-all duration-200 group w-full max-w-sm shadow-sm hover:shadow-md"
                     >
-                        <Search className="h-5 w-5 text-slate-500 group-hover:text-brand-500 transition-colors" />
-                        <span className="flex-1 text-left font-medium">{t('common.search')}</span>
+                        <Search className="h-4 w-4 text-slate-500 group-hover:text-brand-500 transition-colors" />
+                        <span className="flex-1 text-left font-medium text-xs uppercase tracking-wide">{t('common.search')}</span>
                         <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white dark:bg-white/10 border border-slate-200 dark:border-white/5 text-[10px] font-bold text-slate-500 shadow-sm">
                             <Command className="h-3 w-3" />
                             <span>K</span>
@@ -165,8 +165,8 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
 
                         {/* Dropdown Menu */}
                         {showUserMenu && (
-                            <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden z-50 animate-scale-in origin-top-right shadow-xl">
-                                <div className="p-4 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800">
+                            <div className="absolute right-0 mt-3 w-64 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden z-50 animate-scale-in origin-top-right shadow-2xl">
+                                <div className="p-4 bg-slate-50/50 dark:bg-white/5 border-b border-slate-200 dark:border-white/5">
                                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.displayName}</p>
                                     <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5">{user?.email}</p>
                                 </div>

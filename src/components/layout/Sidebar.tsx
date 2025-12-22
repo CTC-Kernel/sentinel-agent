@@ -133,8 +133,8 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
 
       <aside className={`
         fixed inset-y-0 left-0 lg:inset-y-auto lg:sticky lg:top-0 z-modal w-[82vw] max-w-[320px] lg:w-[260px]
-        bg-white/80 dark:bg-[#020617]/60
-        backdrop-blur-3xl border-r border-white/20 dark:border-white/5
+        bg-white/80 dark:bg-[#020617]/80
+        backdrop-blur-3xl border-r border-slate-200 dark:border-white/5
         shadow-[0_20px_60px_rgba(15,23,42,0.15)] lg:shadow-none
         transform transition-transform duration-500 cubic-bezier(0.19, 1, 0.22, 1)
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -164,7 +164,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
             return (
               <div key={groupIndex}>
                 <div className="px-1 mb-2">
-                  <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-[0.4em]">{group.title}</p>
+                  <p className="mono-label px-2">{group.title}</p>
                 </div>
                 <div className="space-y-1">
                   {visibleItems.map((item) => (
@@ -174,19 +174,21 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                       onClick={() => setMobileOpen(false)}
                       data-tour={`${item.key}-nav`}
                       className={({ isActive }) => `
-                         group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
+                         group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 overflow-hidden
                          ${isActive
-                          ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-lg shadow-brand-500/25 dark:text-white font-bold'
-                          : 'text-slate-600 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white hover:shadow-sm'}
+                          ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-bold border border-slate-200 dark:border-white/10 shadow-sm'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
                        `}
                     >
                       {({ isActive }) => (
                         <>
-                          <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-200 ${isActive ? 'text-white dark:text-slate-950' : 'text-slate-500 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white'}`}>
+                          {/* Active Indicator Glow */}
+                          {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-500 shadow-[0_0_10px_2px_rgba(59,130,246,0.5)]" />}
+
+                          <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-300 ${isActive ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-500/10' : 'text-slate-500 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white'}`}>
                             <item.icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
                           </span>
-                          <span className="flex-1 truncate">{item.name}</span>
-                          {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white/30 rounded-r-full opacity-0 lg:opacity-100" />}
+                          <span className="flex-1 truncate relative z-10">{item.name}</span>
                         </>
                       )}
                     </NavLink>
@@ -197,16 +199,16 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
           })}
 
           <div className="px-1 mb-2 mt-6">
-            <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-[0.4em]">{t('common.support')}</p>
+            <p className="mono-label px-2">{t('common.support')}</p>
           </div>
           <NavLink
             to="/help"
             onClick={() => setMobileOpen(false)}
             className={({ isActive }) => `
-                group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
+                group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60
                 ${isActive
-                ? 'bg-slate-100 text-slate-900 dark:bg-white/10 dark:text-white font-semibold'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
+                ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-semibold border border-slate-200 dark:border-white/10'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
               `}
           >
             {({ isActive }) => (

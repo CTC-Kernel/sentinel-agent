@@ -75,9 +75,9 @@
   --info-border: #bae6fd;
 
   /* Glassmorphism - Premium - Refined (Light Mode) */
-  --glass-bg: rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.6);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 .dark {
@@ -122,12 +122,13 @@
   --info-border: rgba(14, 165, 233, 0.25);
 
   /* Glassmorphism Dark - Refined for depth */
-  --glass-bg: rgba(15, 23, 42, 0.60);
-  /* Slightly more transparent */
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --glass-bg: rgba(15, 23, 42, 0.75);
+  /* Sharper, less transparent */
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
+/* Base Glass Panel - Sharper */
 .glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(180%);
@@ -139,11 +140,20 @@
 
 /* Premium Input Styles - Glass Effect */
 .glass-input {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  /* slate-200/60 */
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  /* slate-200/80 */
   transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Tech Utilities */
+.tech-border {
+  @apply border border-slate-200 dark:border-white/10;
+}
+
+.mono-label {
+  @apply font-mono text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold;
 }
 
 .dark .glass-input {

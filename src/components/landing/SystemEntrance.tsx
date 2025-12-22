@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Fingerprint, ChevronRight, Shield, Globe } from 'lucide-react';
+import { ChevronRight, Shield, Globe, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
 import { LandingMap } from './LandingMap';
@@ -103,15 +103,22 @@ export const SystemEntrance: React.FC = () => {
                     isScanning ? "border-brand-500/50 shadow-[0_0_50px_-12px_rgba(59,130,246,0.3)]" : "hover:border-white/80 dark:hover:border-white/20 hover:bg-white/60 dark:hover:bg-white/10"
                 )}>
 
-                    {/* Scanning Overlay */}
+                    {/* Loading Overlay */}
                     {isScanning && (
                         <div className="absolute inset-0 bg-white/90 dark:bg-black/80 z-20 flex flex-col items-center justify-center animate-fade-in backdrop-blur-sm">
                             <div className="relative">
-                                <Shield className={cn("h-16 w-16 text-brand-600 dark:text-brand-500 transition-all duration-300", scanSuccess ? "text-emerald-600 dark:text-emerald-500 scale-110" : "animate-pulse")} />
-                                {scanSuccess && <div className="absolute inset-0 rounded-full animate-ping bg-emerald-500/20" />}
+                                {scanSuccess ? (
+                                    <div className="flex flex-col items-center gap-4 animate-scale-in">
+                                        <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                            <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <Loader2 className="h-12 w-12 text-slate-500 dark:text-slate-400 animate-spin" />
+                                )}
                             </div>
-                            <div className="mt-4 font-mono text-sm tracking-widest text-brand-600 dark:text-brand-400 font-bold">
-                                {scanSuccess ? <span className="text-emerald-600 dark:text-emerald-400">ACCÈS AUTORISÉ</span> : "VÉRIFICATION SYSTÈME..."}
+                            <div className="mt-6 font-mono text-sm tracking-widest text-slate-600 dark:text-slate-400 font-bold uppercase">
+                                {scanSuccess ? <span className="text-emerald-600 dark:text-emerald-400">Accès Autorisé</span> : "Chargement..."}
                             </div>
                         </div>
                     )}
@@ -133,10 +140,10 @@ export const SystemEntrance: React.FC = () => {
                             <Button
                                 onClick={handleInitialize}
                                 size="lg"
-                                className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-200 font-bold tracking-tight text-lg rounded-xl shadow-lg hover:scale-[1.02] transition-all group"
+                                className="w-full h-14 bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 font-bold tracking-tight text-lg rounded-xl shadow-none hover:scale-[1.01] transition-all group border border-transparent dark:border-white/5"
                             >
-                                INITIALISER LE SYSTÈME
-                                <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                ACCÈS À L'AUTHENTIFICATION
+                                <ChevronRight className="ml-2 h-5 w-5 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                             </Button>
                             <p className="mt-4 text-xs text-slate-500 font-mono font-medium">
                                 EST. 2024 • CONNEXION CHIFFRÉE

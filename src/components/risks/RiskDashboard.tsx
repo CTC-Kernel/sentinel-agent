@@ -143,48 +143,57 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
         <div className="space-y-6">
             {/* Top Summary Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div onClick={() => onFilterChange?.({ type: 'level', value: 'Critique' })} className="glass-panel p-5 rounded-2xl border border-white/60 dark:border-white/5 flex flex-col items-center justify-center cursor-pointer hover:shadow-apple transition-all group bg-gradient-to-br from-red-50 to-white dark:from-red-900/10 dark:to-transparent">
-                    <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                        <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                <div onClick={() => onFilterChange?.({ type: 'level', value: 'Critique' })} className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/5 flex flex-col items-center justify-center cursor-pointer hover:shadow-apple transition-all group bg-gradient-to-br from-red-50 to-white dark:from-red-900/10 dark:to-transparent relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/10 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none transition-opacity opacity-0 group-hover:opacity-100"></div>
+                    <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 ring-1 ring-red-500/20 dark:ring-red-500/30">
+                        <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
                     </div>
-                    <span className="text-3xl font-black text-slate-800 dark:text-slate-100">{criticalRisks}</span>
-                    <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mt-1">Risques Critiques</span>
+                    <span className="text-4xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{criticalRisks}</span>
+                    <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mt-1 font-mono">Risques Critiques</span>
                 </div>
 
-                <div className={`glass-panel p-5 rounded-2xl border flex flex-col items-center justify-center bg-gradient-to-br transition-colors ${risksAboveAppetite > 0 ? 'border-orange-200 dark:border-orange-500/30 from-orange-50 to-white dark:from-orange-900/10 dark:to-transparent' : 'border-white/60 dark:border-white/5 from-indigo-50 to-white dark:from-indigo-900/10 dark:to-transparent'}`}>
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 ${risksAboveAppetite > 0 ? 'bg-orange-100 dark:bg-orange-500/20' : 'bg-indigo-100 dark:bg-indigo-500/20'}`}>
-                        <Activity className={`h-5 w-5 ${risksAboveAppetite > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
+                <div className={`glass-panel p-5 rounded-[2rem] border flex flex-col items-center justify-center bg-gradient-to-br transition-all relative overflow-hidden ${risksAboveAppetite > 0 ? 'border-orange-200 dark:border-orange-500/30 from-orange-50 to-white dark:from-orange-900/10 dark:to-transparent' : 'border-white/60 dark:border-white/5 from-indigo-50 to-white dark:from-indigo-900/10 dark:to-transparent'}`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-3 ring-1 transition-transform duration-300 hover:scale-110 ${risksAboveAppetite > 0 ? 'bg-orange-100 dark:bg-orange-500/20 ring-orange-500/20' : 'bg-indigo-100 dark:bg-indigo-500/20 ring-indigo-500/20'}`}>
+                        <Activity className={`h-6 w-6 ${risksAboveAppetite > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
                     </div>
-                    <span className={`text-3xl font-black ${risksAboveAppetite > 0 ? 'text-orange-700 dark:text-orange-200' : 'text-slate-800 dark:text-slate-100'}`}>{risksAboveAppetite}</span>
-                    <span className={`text-xs font-bold uppercase tracking-wider mt-1 ${risksAboveAppetite > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
-                        Hors Appétence (&gt;{RISK_ACCEPTANCE_THRESHOLD})
+                    <span className={`text-4xl font-black tracking-tight ${risksAboveAppetite > 0 ? 'text-orange-700 dark:text-orange-200' : 'text-slate-800 dark:text-slate-100'}`}>{risksAboveAppetite}</span>
+                    <span className={`text-xs font-bold uppercase tracking-wider mt-1 font-mono ${risksAboveAppetite > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
+                        Hors Appétence
                     </span>
                 </div>
 
-                <div className="glass-panel p-5 rounded-2xl border border-white/60 dark:border-white/5 flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/10 dark:to-transparent">
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mb-3">
-                        <ShieldAlert className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                <div className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/5 flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/10 dark:to-transparent relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl -ml-12 -mt-12 pointer-events-none transition-opacity opacity-0 group-hover:opacity-100"></div>
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mb-3 ring-1 ring-emerald-500/20 dark:ring-emerald-500/30 group-hover:scale-110 transition-transform duration-300">
+                        <ShieldAlert className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                     </div>
-                    <span className="text-3xl font-black text-slate-800 dark:text-slate-100">{Math.round(riskReduction)}%</span>
-                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mt-1">Réduction (SLA)</span>
+                    <span className="text-4xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{Math.round(riskReduction)}%</span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mt-1 font-mono">Réduction (SLA)</span>
                 </div>
 
-                <div className="glass-panel p-5 rounded-2xl border border-white/60 dark:border-white/5 flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 to-white dark:from-amber-900/10 dark:to-transparent">
-                    <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center mb-3">
-                        <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                <div className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/5 flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 to-white dark:from-amber-900/10 dark:to-transparent relative overflow-hidden group">
+                    <div className="absolute bottom-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl -mr-12 -mb-12 pointer-events-none transition-opacity opacity-0 group-hover:opacity-100"></div>
+                    <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center mb-3 ring-1 ring-amber-500/20 dark:ring-amber-500/30 group-hover:scale-110 transition-transform duration-300">
+                        <Clock className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                     </div>
-                    <span className="text-3xl font-black text-slate-800 dark:text-slate-100">{untreatedRisks}</span>
-                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mt-1">Non Traités</span>
+                    <span className="text-4xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{untreatedRisks}</span>
+                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mt-1 font-mono">Non Traités</span>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
 
                 {/* 1. Radar Chart: Threat Categories */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple transition-all duration-300">
-                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                <div className="glass-panel text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple transition-all duration-300">
+                    {/* Tech Corners Generic */}
+                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
+                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 pl-2">
                         <Target className="h-4 w-4 text-brand-500" />
-                        Exposition par Catégorie
+                        <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Exposition par Catégorie</span>
                     </h4>
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -206,10 +215,16 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
                 </div>
 
                 {/* 2. Donut Chart: Risk Level Distribution */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple transition-all duration-300">
-                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                <div className="glass-panel text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple transition-all duration-300">
+                    {/* Tech Corners Generic */}
+                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
+                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 pl-2">
                         <PieIcon className="h-4 w-4 text-brand-500" />
-                        Distribution par Criticité
+                        <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Distribution par Criticité</span>
                     </h4>
                     <div className="h-[300px] w-full flex items-center justify-center relative">
                         {/* Center Metric */}
@@ -246,10 +261,16 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
                 </div>
 
                 {/* 3. Bar Chart: Risks by Asset Type */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple transition-all duration-300">
-                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                <div className="glass-panel text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple transition-all duration-300">
+                    {/* Tech Corners Generic */}
+                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
+                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 pl-2">
                         <Layers className="h-4 w-4 text-brand-500" />
-                        Risques par Type d'Actif
+                        <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Risques par Type d'Actif</span>
                     </h4>
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -278,10 +299,16 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
             </div>
 
             {/* Area Chart: Trend */}
-            <div className="glass-panel text-card-foreground p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple transition-all duration-300">
-                <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+            <div className="glass-panel text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple transition-all duration-300">
+                {/* Tech Corners Generic */}
+                <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
+                <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 pl-2">
                     <TrendingUp className="h-4 w-4 text-brand-500" />
-                    Tendance du Score De Risque (12 mois)
+                    <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Tendance du Score De Risque (12 mois)</span>
                 </h4>
                 <div className="h-[250px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -324,10 +351,16 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
 
             {/* Top Critical Risks Table (Optional, can be kept) - Let's keep it but cleaner */}
             {criticalRisks > 0 && (
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
-                    <h4 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2">
+                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
+                    {/* Tech Corners Generic */}
+                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
+                    <h4 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2 pl-2">
                         <AlertTriangle className="h-4 w-4 text-red-500" />
-                        Top Risques Critiques
+                        <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Top Risques Critiques</span>
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {risks
