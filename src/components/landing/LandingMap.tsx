@@ -63,8 +63,8 @@ export const LandingMap: React.FC = memo(() => {
                 </ZoomableGroup>
             </ComposableMap>
 
-            {/* vignette overlay to blend edges */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,rgba(248,250,252,0.8)_100%)] dark:bg-[radial-gradient(circle_at_center,transparent_20%,rgba(2,6,23,0.8)_100%)] pointer-events-none" />
+            {/* vignette overlay to blend edges - Reduced opacity for clarity */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,rgba(248,250,252,0)_100%)] dark:bg-[radial-gradient(circle_at_center,transparent_20%,rgba(2,6,23,0.8)_100%)] pointer-events-none" />
         </div>
     );
 });

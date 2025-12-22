@@ -24,11 +24,11 @@ export const MasterpieceBackground: React.FC<MasterpieceBackgroundProps> = ({
             <div className="absolute top-[40%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 dark:bg-indigo-500/10 rounded-full blur-[120px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-screen" />
             <div className="absolute bottom-[-10%] left-[20%] w-[35%] h-[35%] bg-blue-400/10 dark:bg-cyan-500/10 rounded-full blur-[100px] animate-blob animation-delay-4000 mix-blend-multiply dark:mix-blend-screen" />
 
-            {/* Command Center Interaction Lines (Optional, very subtle) */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)] pointer-events-none mix-blend-multiply dark:mix-blend-normal" />
+            {/* Command Center Interaction Lines (Subtler) */}
+            <div className="absolute inset-0 bg-transparent dark:bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)] pointer-events-none mix-blend-multiply dark:mix-blend-normal" />
 
-            {/* Vignette for focus */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_50%,rgba(15,23,42,0.1)_100%)] dark:bg-[radial-gradient(circle_at_center,transparent_40%,rgba(2,6,23,0.5)_100%)] pointer-events-none" />
+            {/* Vignette for focus - Removed in Light Mode for clarity */}
+            <div className="absolute inset-0 bg-transparent dark:bg-[radial-gradient(circle_at_center,transparent_40%,rgba(2,6,23,0.5)_100%)] pointer-events-none" />
 
             {/* Active Monitoring Scanline - The "Alive" Feel */}
             <div className="animate-scanline opacity-30 dark:opacity-50" />
