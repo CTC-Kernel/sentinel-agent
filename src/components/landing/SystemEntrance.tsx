@@ -4,15 +4,17 @@ import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
 import { LandingMap } from './LandingMap';
 import { ThemeToggle } from '../ui/ThemeToggle';
+import { useNavigate } from 'react-router-dom';
 
 export const SystemEntrance: React.FC = () => {
     const [isScanning, setIsScanning] = useState(false);
+    const navigate = useNavigate();
 
     const handleInitialize = () => {
         setIsScanning(true);
         // Direct hash navigation for robustness
         setTimeout(() => {
-            window.location.hash = '#/login';
+            navigate('/login');
         }, 800);
     };
 
