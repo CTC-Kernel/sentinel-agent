@@ -19,7 +19,7 @@ export const TechCorner: React.FC<TechCornerProps> = ({ className, position }) =
     return (
         <svg
             className={cn(
-                "absolute w-4 h-4 text-slate-400/30 dark:text-white/20 z-20 pointer-events-none transition-all duration-300",
+                "absolute w-4 h-4 text-slate-500/50 dark:text-white/20 z-20 pointer-events-none transition-all duration-300",
                 getRotation(),
                 position === 'top-left' && "top-3 left-3",
                 position === 'top-right' && "top-3 right-3",

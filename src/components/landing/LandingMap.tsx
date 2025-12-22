@@ -42,7 +42,7 @@ export const LandingMap: React.FC = memo(() => {
                                 <Geography
                                     key={geo.rsmKey}
                                     geography={geo}
-                                    className="fill-slate-200 dark:fill-slate-500/10 stroke-slate-300 dark:stroke-slate-500/30 outline-none transition-colors duration-700"
+                                    className="fill-slate-300/80 dark:fill-slate-800/80 stroke-slate-400/60 dark:stroke-slate-700/60 outline-none transition-colors duration-700"
                                     style={{
                                         default: { outline: "none" },
                                         hover: { outline: "none" },

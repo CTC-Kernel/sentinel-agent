@@ -125,7 +125,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
             className={`
                 glass-panel p-0 rounded-[2rem] overflow-hidden shadow-sm flex flex-col group 
                 hover:shadow-glass-lg hover:-translate-y-1 transition-all duration-500
-                h-full border border-white/60 dark:border-white/10 relative
+                h-full border border-slate-200/50 dark:border-white/10 relative
                 bg-gradient-to-br from-white/40 to-white/10 dark:from-slate-900/40 dark:to-slate-900/20
                 ${className}
             `}
