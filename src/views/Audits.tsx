@@ -313,7 +313,9 @@ export const Audits: React.FC = () => {
             {
                 activeTab === 'findings' && (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible">
-                        <FindingsList audits={filteredAudits} />
+                        <motion.div variants={slideUpVariants} initial="initial" animate="visible">
+                            <FindingsList audits={filteredAudits} onOpenAudit={handleOpen} />
+                        </motion.div>
                     </motion.div>
                 )
             }

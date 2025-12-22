@@ -1,0 +1,130 @@
+import React from 'react';
+import { Audit, Finding } from '../../types';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { AlertTriangle, CheckCircle2, CircleDashed } from 'lucide-react';
+import { ChartTooltip } from '../ui/ChartTooltip';
+
+interface SingleAuditStatsProps {
+    audit: Audit;
+    findings: Finding[];
+}
+
+export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) => {
+    // Metrics
+    const openFindings = findings.filter(f => f.status === 'Ouvert').length;
+    const closedFindings = findings.filter(f => f.status === 'Fermé').length;
+    const totalFindings = findings.length;
+
+    const completionRate = totalFindings > 0 ? Math.round((closedFindings / totalFindings) * 100) : 100;
+
+    const findingsByType = [
+        { name: 'Majeure', value: findings.filter(f => f.type === 'Majeure').length, color: '#EF4444' },
+        { name: 'Mineure', value: findings.filter(f => f.type === 'Mineure').length, color: '#F59E0B' },
+        { name: 'Observation', value: findings.filter(f => f.type === 'Observation').length, color: '#3B82F6' },
+        { name: 'Opportunité', value: findings.filter(f => f.type === 'Opportunité').length, color: '#10B981' },
+    ].filter(d => d.value > 0);
+
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Score Card */}
+                <div className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/5 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl -mr-16 -mt-16 transition-opacity group-hover:opacity-70 pointer-events-none" />
+                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Santé de l'audit</h4>
+                    <div className="flex items-end gap-2">
+                        <span className="text-4xl font-black text-slate-900 dark:text-white">
+                            {100 - (openFindings * 10)}%
+                        </span>
+                        <span className="text-sm text-slate-500 mb-1 font-medium">Score estimé</span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-2">
+                        Basé sur la sévérité des écarts ouverts.
+                    </p>
+                </div>
+
+                {/* Findings Summary */}
+                <div className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/5 relative overflow-hidden">
+                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">État des Constats</h4>
+                    <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                                <AlertTriangle className="w-4 h-4" />
+                                <span className="text-2xl font-bold">{openFindings}</span>
+                                <span className="text-xs font-medium uppercase text-rose-600/70">Ouverts</span>
+                            </div>
+                        </div>
+                        <div className="h-8 w-px bg-slate-200 dark:bg-white/10" />
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                                <CheckCircle2 className="w-4 h-4" />
+                                <span className="text-2xl font-bold">{closedFindings}</span>
+                                <span className="text-xs font-medium uppercase text-emerald-600/70">Traités</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Completion Rate */}
+                <div className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/5 relative overflow-hidden flex items-center justify-between">
+                    <div>
+                        <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Progression</h4>
+                        <p className="text-sm text-slate-400">Des actions de remédiation</p>
+                    </div>
+                    <div className="relative">
+                        <svg className="w-20 h-20 transform -rotate-90">
+                            <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100 dark:text-slate-800" />
+                            <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={226} strokeDashoffset={226 - (226 * completionRate) / 100} className="text-blue-500 transition-all duration-1000" />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center font-bold text-sm text-slate-700 dark:text-slate-200">
+                            {completionRate}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Distribution Chart */}
+            <div className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/5">
+                <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Répartition par Sévérité</h4>
+                <div className="h-[200px] w-full">
+                    {findings.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={findingsByType}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={80}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                    stroke="none"
+                                >
+                                    {findingsByType.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                </Pie>
+                                <Tooltip content={<ChartTooltip />} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                            <CircleDashed className="w-8 h-8 mb-2 opacity-50" />
+                            <span className="text-sm">Aucune donnée à afficher</span>
+                        </div>
+                    )}
+                </div>
+                {/* Legend */}
+                <div className="flex flex-wrap gap-4 justify-center mt-4">
+                    {findingsByType.map((item) => (
+                        <div key={item.name} className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                {item.name} ({item.value})
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};

@@ -47,7 +47,7 @@ export const Compliance: React.FC = () => {
     const [creationMode, setCreationMode] = useState<'risk' | 'project' | 'audit' | null>(null);
 
     // Data Hooks
-    const { controls, documents, risks, findings, usersList, assets, suppliers, projects, loading } = useComplianceData(currentFramework);
+    const { filteredControls: frameworkControls, risks, findings, documents, usersList, assets, suppliers, projects, loading } = useComplianceData(currentFramework);
     const complianceActions = useComplianceActions(user);
 
     // Effects
@@ -59,7 +59,7 @@ export const Compliance: React.FC = () => {
 
     // Filtering Logic
     const filteredControls = useMemo(() => {
-        return controls.filter(control => {
+        return frameworkControls.filter(control => {
             // Search
             const matchesSearch = filter === '' ||
                 control.code.toLowerCase().includes(filter.toLowerCase()) ||
@@ -73,7 +73,7 @@ export const Compliance: React.FC = () => {
 
             return matchesSearch && matchesStatus && matchesEvidence;
         });
-    }, [controls, filter, statusFilter, showMissingEvidence]);
+    }, [frameworkControls, filter, statusFilter, showMissingEvidence]); // Depend on frameworkControls
 
     // Handlers
     const handleSelectControl = (control: import('../types').Control) => {
@@ -89,95 +89,97 @@ export const Compliance: React.FC = () => {
     };
 
 
-    const selectedControl = controls.find(c => c.id === selectedControlId);
+    const selectedControl = frameworkControls.find(c => c.id === selectedControlId);
 
     return (
         <>
             <MasterpieceBackground />
             <SEO title={`Conformité ${currentFramework} - Sentinel GRC`} description="Gestion de la conformité et des contrôles" />
 
-            <div className="relative z-10 p-6 space-y-8 max-w-[1920px] mx-auto pb-24 overflow-x-hidden">
-                <PageHeader
-                    title="Conformité"
-                    subtitle="Pilotez votre conformité normative et réglementaire"
-                    icon={<ShieldCheck className="h-6 w-6 text-white" />}
-                    actions={
-                        canEdit ? (
-                            <div className="flex gap-2">
-                                <button className="btn-secondary" onClick={() => handleCreateClick('risk')}>
-                                    <ShieldCheck className="h-4 w-4 mr-2" /> + Risque
-                                </button>
-                                <button className="btn-secondary" onClick={() => toast.info("Export PDF disponible via le menu d'actions global")}>
-                                    <Download className="h-4 w-4 mr-2" /> Export
-                                </button>
-                            </div>
-                        ) : null
-                    }
-                />
-
-                {/* Framework Selector (Top Level) */}
-                <ScrollableTabs
-                    tabs={FRAMEWORKS.filter(f => f.type === 'Compliance').map(f => ({
-                        id: f.id,
-                        label: f.label,
-                    }))}
-                    activeTab={currentFramework}
-                    onTabChange={(id) => setCurrentFramework(id as Framework)}
-                />
-
-                {/* Main Navigation Tabs (Feature Level) */}
-                <div className="mt-2">
-                    <ScrollableTabs
-                        tabs={[
-                            { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
-                            { id: 'controls', label: "Contrôles & Preuves", icon: ListChecks },
-                            { id: 'soa', label: "Déclaration d'Applicabilité (SoA)", icon: FileText }
-                        ]}
-                        activeTab={activeTab}
-                        onTabChange={(id) => setActiveTab(id as 'overview' | 'controls' | 'soa')}
+            <div className="relative z-10 p-4 md:p-6 space-y-8 w-full max-w-full overflow-x-hidden pb-24">
+                <div className="max-w-[1920px] mx-auto space-y-8">
+                    <PageHeader
+                        title="Conformité"
+                        subtitle="Pilotez votre conformité normative et réglementaire"
+                        icon={<ShieldCheck className="h-6 w-6 text-white" />}
+                        actions={
+                            canEdit ? (
+                                <div className="flex gap-2">
+                                    <button className="btn-secondary" onClick={() => handleCreateClick('risk')}>
+                                        <ShieldCheck className="h-4 w-4 mr-2" /> + Risque
+                                    </button>
+                                    <button className="btn-secondary" onClick={() => toast.info("Export PDF disponible via le menu d'actions global")}>
+                                        <Download className="h-4 w-4 mr-2" /> Export
+                                    </button>
+                                </div>
+                            ) : null
+                        }
                     />
+
+                    {/* Framework Selector (Top Level) */}
+                    <ScrollableTabs
+                        tabs={FRAMEWORKS.filter(f => f.type === 'Compliance').map(f => ({
+                            id: f.id,
+                            label: f.label,
+                        }))}
+                        activeTab={currentFramework}
+                        onTabChange={(id) => setCurrentFramework(id as Framework)}
+                    />
+
+                    {/* Main Navigation Tabs (Feature Level) */}
+                    <div className="mt-2">
+                        <ScrollableTabs
+                            tabs={[
+                                { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
+                                { id: 'controls', label: "Contrôles & Preuves", icon: ListChecks },
+                                { id: 'soa', label: "Déclaration d'Applicabilité (SoA)", icon: FileText }
+                            ]}
+                            activeTab={activeTab}
+                            onTabChange={(id) => setActiveTab(id as 'overview' | 'controls' | 'soa')}
+                        />
+                    </div>
+
+                    {/* Tab Content */}
+                    {activeTab === 'overview' && (
+                        <div className="animate-fade-in space-y-6">
+                            <ComplianceDashboard controls={filteredControls} currentFramework={currentFramework} />
+                        </div>
+                    )}
+
+                    {activeTab === 'controls' && (
+                        <div className="animate-fade-in space-y-6">
+                            <ComplianceFilters
+                                searchQuery={filter}
+                                onSearchChange={setFilter}
+                                statusFilter={statusFilter}
+                                onStatusFilterChange={setStatusFilter}
+                                showMissingEvidence={showMissingEvidence}
+                                onShowMissingEvidenceChange={setShowMissingEvidence}
+                            />
+
+                            <ComplianceList
+                                controls={filteredControls}
+                                risks={risks}
+                                findings={findings}
+                                loading={loading}
+                                currentFramework={currentFramework}
+                                selectedControlId={selectedControlId || undefined}
+                                onSelectControl={handleSelectControl}
+                                filter={filter}
+                            />
+                        </div>
+                    )}
+
+                    {activeTab === 'soa' && (
+                        <div className="animate-fade-in space-y-6">
+                            <SoAView
+                                controls={filteredControls}
+                                risks={risks}
+                                handlers={complianceActions}
+                            />
+                        </div>
+                    )}
                 </div>
-
-                {/* Tab Content */}
-                {activeTab === 'overview' && (
-                    <div className="animate-fade-in space-y-6">
-                        <ComplianceDashboard controls={filteredControls} currentFramework={currentFramework} />
-                    </div>
-                )}
-
-                {activeTab === 'controls' && (
-                    <div className="animate-fade-in space-y-6">
-                        <ComplianceFilters
-                            searchQuery={filter}
-                            onSearchChange={setFilter}
-                            statusFilter={statusFilter}
-                            onStatusFilterChange={setStatusFilter}
-                            showMissingEvidence={showMissingEvidence}
-                            onShowMissingEvidenceChange={setShowMissingEvidence}
-                        />
-
-                        <ComplianceList
-                            controls={filteredControls}
-                            risks={risks}
-                            findings={findings}
-                            loading={loading}
-                            currentFramework={currentFramework}
-                            selectedControlId={selectedControlId || undefined}
-                            onSelectControl={handleSelectControl}
-                            filter={filter}
-                        />
-                    </div>
-                )}
-
-                {activeTab === 'soa' && (
-                    <div className="animate-fade-in space-y-6">
-                        <SoAView
-                            controls={filteredControls}
-                            risks={risks}
-                            handlers={complianceActions}
-                        />
-                    </div>
-                )}
             </div>
 
             {/* Inspector / Creation Drawer */}
@@ -190,9 +192,9 @@ export const Compliance: React.FC = () => {
                 ) : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : 'Détails')}
                 width={creationMode ? 'max-w-2xl' : 'max-w-7xl'}
             >
-                {creationMode === 'risk' && <RiskForm onCancel={() => setIsDrawerOpen(false)} onSubmit={async (data) => { await complianceActions.createRisk(data); setIsDrawerOpen(false); }} assets={assets} usersList={usersList} processes={[]} suppliers={suppliers} controls={controls} />}
+                {creationMode === 'risk' && <RiskForm onCancel={() => setIsDrawerOpen(false)} onSubmit={async (data) => { await complianceActions.createRisk(data); setIsDrawerOpen(false); }} assets={assets} usersList={usersList} processes={[]} suppliers={suppliers} controls={frameworkControls} />}
                 {creationMode === 'project' && <ProjectForm onCancel={() => setIsDrawerOpen(false)} onSubmit={() => { toast.info('Création de projet simulée'); setIsDrawerOpen(false); }} />}
-                {creationMode === 'audit' && <AuditForm onCancel={() => setIsDrawerOpen(false)} onSubmit={() => { toast.info('Création d\'audit simulée'); setIsDrawerOpen(false); }} assets={assets} risks={risks} controls={controls} projects={projects} usersList={usersList} />}
+                {creationMode === 'audit' && <AuditForm onCancel={() => setIsDrawerOpen(false)} onSubmit={() => { toast.info('Création d\'audit simulée'); setIsDrawerOpen(false); }} assets={assets} risks={risks} controls={frameworkControls} projects={projects} usersList={usersList} />}
 
                 {!creationMode && selectedControl && (
                     <ComplianceInspector

@@ -4,6 +4,8 @@ import {
     Activity, ShieldCheck, Zap, FileText, AlertOctagon,
     Plus, Download
 } from 'lucide-react';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
@@ -177,6 +179,8 @@ const Continuity: React.FC = () => {
                 breadcrumbs={[{ label: 'Continuité' }]}
                 trustType="availability"
             />
+            <MasterpieceBackground />
+            <SEO title="Continuité d'Activité" description="Pilotage des plans de continuité (PCA/PRA)" />
 
             <ConfirmModal
                 isOpen={confirmData.isOpen}

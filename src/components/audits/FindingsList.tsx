@@ -10,9 +10,10 @@ import { slideUpVariants } from '../ui/animationVariants';
 
 interface FindingsListProps {
     audits: Audit[];
+    onOpenAudit?: (audit: Audit) => void;
 }
 
-export const FindingsList: React.FC<FindingsListProps> = ({ audits }) => {
+export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit }) => {
     const [filter, setFilter] = useState('');
     const [typeFilter, setTypeFilter] = useState<string | null>(null);
 
@@ -80,8 +81,8 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits }) => {
                                 key={type}
                                 onClick={() => setTypeFilter(typeFilter === type ? null : type)}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${typeFilter === type
-                                        ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/20 dark:border-brand-800 dark:text-brand-300'
-                                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-white/5 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/10'
+                                    ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/20 dark:border-brand-800 dark:text-brand-300'
+                                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-white/5 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/10'
                                     }`}
                             >
                                 {type}
@@ -139,7 +140,17 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits }) => {
                                         </td>
                                         <td className="py-4 px-6">
                                             <div className="flex flex-col">
-                                                <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">{finding.auditName}</span>
+                                                <span
+                                                    className={`text-sm font-medium ${onOpenAudit ? 'text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer' : 'text-slate-700 dark:text-slate-300'}`}
+                                                    onClick={() => {
+                                                        if (onOpenAudit) {
+                                                            const audit = audits.find(a => a.id === finding.auditId);
+                                                            if (audit) onOpenAudit(audit);
+                                                        }
+                                                    }}
+                                                >
+                                                    {finding.auditName}
+                                                </span>
                                             </div>
                                         </td>
                                         <td className="py-4 px-6">
