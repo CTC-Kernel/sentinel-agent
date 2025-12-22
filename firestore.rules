@@ -244,10 +244,25 @@ service cloud.firestore {
     }
 
     match /threats/{threatId} {
-      // Global read access for all authenticated users
-      allow read: if isAuthenticated();
+      // READ: Allow if global (no orgId) OR belongs to user's org
+      allow read: if isAuthenticated() && (
+        !('organizationId' in resource.data) || 
+        belongsToOrganization(resource.data.organizationId)
+      );
       
-      // Write access restricted to SuperAdmin for production safety to prevent global pollution
+      // CREATE: Allow if creating for own org
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId))); // Allow auditors to seed? Maybe. Let's stick to canWrite (Admin/Owner/RSSI)
+
+      // UPDATE/DELETE: Org owner/admin only
+      allow update: if canWrite(resource.data.organizationId);
+      allow delete: if canDelete(resource.data.organizationId);
+      
+      // Keep old rule for SuperAdmin global write if needed, or subsume it?
+      // If SuperAdmin wants to write global, they omit organizationId?
+      // Strict rule: SuperAdmin can write anything.
+      // Combined:
       allow write: if isAuthenticated() && isSuperAdmin(); 
     }
     

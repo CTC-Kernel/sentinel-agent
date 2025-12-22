@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Asset, Criticality, UserProfile } from '../../types';
 import { DataTable } from '../ui/DataTable';
@@ -8,7 +7,7 @@ import { EmptyState } from '../ui/EmptyState';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { canDeleteResource } from '../../utils/permissions';
 import { ColumnDef } from '@tanstack/react-table';
-
+import { useStore } from '../../store';
 
 interface AssetListProps {
     assets: Asset[];
@@ -46,15 +45,16 @@ export const AssetList = React.memo<AssetListProps>(({
     onGenerateLabel,
     isGeneratingLabels
 }) => {
+    const { t } = useStore();
     const canDelete = canDeleteResource(user, 'Asset');
 
     const columns = useMemo<ColumnDef<Asset>[]>(() => [
-        { header: 'Nom', accessorKey: 'name', cell: ({ row }) => <span className="font-bold text-slate-900 dark:text-white">{row.original.name}</span> },
-        { header: 'Type', accessorKey: 'type' },
-        { header: 'Criticité', accessorKey: 'confidentiality', cell: ({ row }) => <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span> },
-        { header: 'Propriétaire', accessorKey: 'owner' },
+        { header: t('common.name'), accessorKey: 'name', cell: ({ row }) => <span className="font-bold text-slate-900 dark:text-white">{row.original.name}</span> },
+        { header: t('common.type'), accessorKey: 'type' },
+        { header: t('common.criticality'), accessorKey: 'confidentiality', cell: ({ row }) => <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span> },
+        { header: t('common.owner'), accessorKey: 'owner' },
         {
-            header: 'Statut',
+            header: t('common.status'),
             accessorKey: 'lifecycleStatus',
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
@@ -64,11 +64,11 @@ export const AssetList = React.memo<AssetListProps>(({
             )
         },
         {
-            header: 'Actions',
+            header: t('common.actions'),
             id: 'actions',
             cell: ({ row }) => (
                 <div className="flex items-center justify-end gap-2">
-                    <CustomTooltip content="Imprimer une étiquette">
+                    <CustomTooltip content={t('assets.printLabel')}>
                         <button
                             onClick={(e) => { e.stopPropagation(); onGenerateLabel(row.original); }}
                             className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
@@ -78,7 +78,7 @@ export const AssetList = React.memo<AssetListProps>(({
                         </button>
                     </CustomTooltip>
                     {canEdit && (
-                        <CustomTooltip content="Modifier l'actif">
+                        <CustomTooltip content={t('assets.editAsset')}>
                             <button
                                 onClick={(e) => { e.stopPropagation(); onEdit(row.original); }}
                                 className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
@@ -88,7 +88,7 @@ export const AssetList = React.memo<AssetListProps>(({
                         </CustomTooltip>
                     )}
                     {canDeleteResource(user, 'Asset') && (
-                        <CustomTooltip content="Supprimer l'actif">
+                        <CustomTooltip content={t('assets.deleteAssetTooltip')}>
                             <button
                                 onClick={(e) => { e.stopPropagation(); onDelete(row.original.id, row.original.name); }}
                                 className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
@@ -100,7 +100,7 @@ export const AssetList = React.memo<AssetListProps>(({
                 </div>
             )
         }
-    ], [canEdit, isGeneratingLabels, onEdit, onDelete, onGenerateLabel, user]);
+    ], [canEdit, isGeneratingLabels, onEdit, onDelete, onGenerateLabel, user, t]);
 
     if (viewMode === 'list') {
         return (
@@ -120,9 +120,9 @@ export const AssetList = React.memo<AssetListProps>(({
                         emptyState={
                             <EmptyState
                                 icon={Server}
-                                title="Aucun actif trouvé"
-                                description={activeFiltersQuery ? "Aucun actif ne correspond à votre recherche." : "Commencez par ajouter votre premier actif."}
-                                actionLabel={activeFiltersQuery || !canEdit ? undefined : "Nouvel Actif"}
+                                title={t('assets.emptyTitle')}
+                                description={activeFiltersQuery ? t('assets.emptyDescSearch') : t('assets.emptyDesc')}
+                                actionLabel={activeFiltersQuery || !canEdit ? undefined : t('assets.createAsset')}
                                 onAction={activeFiltersQuery || !canEdit ? undefined : () => onEdit({} as Asset)}
                             />
                         }
@@ -140,9 +140,9 @@ export const AssetList = React.memo<AssetListProps>(({
                 <div className="col-span-full">
                     <EmptyState
                         icon={Server}
-                        title="Aucun actif trouvé"
-                        description={activeFiltersQuery ? "Aucun actif ne correspond à votre recherche." : "Commencez par ajouter votre premier actif pour suivre votre parc."}
-                        actionLabel={activeFiltersQuery || !canEdit ? undefined : "Nouvel Actif"}
+                        title={t('assets.emptyTitle')}
+                        description={activeFiltersQuery ? t('assets.emptyDescSearch') : t('assets.emptyDesc')}
+                        actionLabel={activeFiltersQuery || !canEdit ? undefined : t('assets.createAsset')}
                         onAction={activeFiltersQuery || !canEdit ? undefined : () => onEdit({} as Asset)} // hack to trigger create
                     />
                 </div>
@@ -154,7 +154,7 @@ export const AssetList = React.memo<AssetListProps>(({
                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                             <div className="relative z-10 flex flex-col h-full">
                                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                                    <CustomTooltip content="Imprimer une étiquette">
+                                    <CustomTooltip content={t('assets.printLabel')}>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); onGenerateLabel(asset); }}
                                             className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-indigo-600 shadow-sm backdrop-blur-sm"
@@ -180,7 +180,7 @@ export const AssetList = React.memo<AssetListProps>(({
                                         <span className={`w-2 h-2 rounded-full ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>
                                         <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{asset.lifecycleStatus || 'Neuf'}</span>
                                     </div>
-                                    {warrantyExpired && <span className="text-[10px] font-bold text-red-600 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded">Garantie Exp.</span>}
+                                    {warrantyExpired && <span className="text-[10px] font-bold text-red-600 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded">{t('assets.warrantyExp')}</span>}
                                 </div>
                             </div>
                         </div>

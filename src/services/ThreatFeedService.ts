@@ -56,8 +56,8 @@ export class ThreatFeedService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private static async fetchWithFailover(targetUrl: string): Promise<any> {
         const proxies = [
-            (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
             (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
             // Fallback for demo environments or when CORS is strictly blocked
             // We can also add a direct fetch attempt first if the environment supports it (e.g. backend proxy)
         ];
@@ -185,12 +185,17 @@ export class ThreatFeedService {
         // Process Threats
         for (const t of liveThreats) {
             // Check based on unique ID from source
-            const q = query(collection(db, 'threats'), where('id', '==', t.id));
+            // Ensure we check within the organization scope now that threats are tenanted
+            const q = query(collection(db, 'threats'),
+                where('id', '==', t.id),
+                where('organizationId', '==', organizationId)
+            );
             const snap = await getDocs(q);
 
             if (snap.empty) {
                 await addDoc(collection(db, 'threats'), {
                     ...t,
+                    organizationId, // INJECT ORGANIZATION ID
                     votes: 0,
                     comments: 0,
                     createdAt: new Date().toISOString()

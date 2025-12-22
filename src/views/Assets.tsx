@@ -28,7 +28,7 @@ import { usePersistedState } from '../hooks/usePersistedState';
 import { Menu, Transition } from '@headlessui/react';
 
 const Assets: React.FC = () => {
-    const { user } = useStore();
+    const { user, t } = useStore();
     const canEdit = canEditResource(user, 'Asset');
     const { assets, loading, createAsset, updateAsset, deleteAsset, bulkDeleteAssets, usersList, suppliers, processes, checkDependencies } = useAssets();
     const { limits } = usePlanLimits();
@@ -85,8 +85,8 @@ const Assets: React.FC = () => {
     // Handlers
     const handleOpenInspector = (asset?: Asset) => {
         if (!asset && reachedAssetLimit) {
-            toast.info("Limite d'actifs atteinte", {
-                description: `Votre plan permet ${limits.maxAssets} actifs. Passez à l'offre supérieure pour en ajouter davantage.`
+            toast.info(t('assets.limitReached', { count: assets.length, max: limits.maxAssets }).split(':')[0], {
+                description: t('assets.contactSupport')
             });
             return;
         }
@@ -121,41 +121,44 @@ const Assets: React.FC = () => {
         }
     };
 
-
-
     const handleGenerateKioskLink = () => {
         const url = `${window.location.origin}/intake`;
         navigator.clipboard.writeText(url);
-        toast.success("Lien Kiosque copié", {
-            description: "Le lien vers le formulaire d'entrée a été copié."
+        toast.success(t('assets.kioskCopied'), {
+            description: t('assets.kioskCopiedDesc')
         });
     };
 
     const handleExportCSV = () => {
-        const headers = ['Nom', 'Type', 'Statut', 'Criticité', 'Propriétaire', 'Localisation', 'Valeur', 'Fin Garantie'];
+        // Use individual keys to ensure correct translation and type safety
+
+
+        // Safer approach: 
+        const csvHeaders = (t('assets.csvHeaders', { returnObjects: true }) as string[]) || ['Name', 'Type', 'Status', 'Criticality', 'Owner', 'Location', 'Value', 'Warranty End'];
+
         const data = filteredAssets.map(a => ({
-            'Nom': a.name,
-            'Type': a.type,
-            'Statut': a.lifecycleStatus || '',
-            'Criticité': a.confidentiality,
-            'Propriétaire': a.owner,
-            'Localisation': a.location || '',
-            'Valeur': a.purchasePrice || '',
-            'Fin Garantie': a.warrantyEnd || ''
+            [csvHeaders[0]]: a.name,
+            [csvHeaders[1]]: a.type,
+            [csvHeaders[2]]: a.lifecycleStatus || '',
+            [csvHeaders[3]]: a.confidentiality,
+            [csvHeaders[4]]: a.owner,
+            [csvHeaders[5]]: a.location || '',
+            [csvHeaders[6]]: a.purchasePrice || '',
+            [csvHeaders[7]]: a.warrantyEnd || ''
         }));
 
-        CsvParser.downloadCSV(headers, data, `assets_export_${new Date().toISOString().split('T')[0]}.csv`);
+        CsvParser.downloadCSV(csvHeaders, data, `assets_export_${new Date().toISOString().split('T')[0]}.csv`);
     };
 
     const handleAnalyze = async () => {
         setIsAnalyzing(true);
         try {
-            const prompt = `Analyse cette liste de ${filteredAssets.length} actifs informatiques. Donne-moi 3 insights clés sur la surface d'attaque potentielle et une recommandation de sécurisation. Format court.`;
+            const prompt = t('assets.aiPrompt', { count: filteredAssets.length });
             const analysis = await aiService.chatWithAI(prompt);
-            toast.info("Analyse IA terminée", { description: analysis, duration: 10000 });
+            toast.info(t('assets.analysisComplete'), { description: analysis, duration: 10000 });
         } catch (e) {
             console.error(e);
-            toast.error("Erreur lors de l'analyse IA");
+            toast.error(t('assets.analysisError'));
         } finally {
             setIsAnalyzing(false);
         }
@@ -169,18 +172,18 @@ const Assets: React.FC = () => {
             className="space-y-6"
         >
             <MasterpieceBackground />
-            <SEO title="Inventaire des Actifs" description="Gérez votre cartographie des actifs et votre analyse d'impact." />
+            <SEO title={t('assets.title')} description={t('assets.description')} />
 
             <div className="flex flex-col gap-8">
                 {/* Header */}
                 <motion.div variants={slideUpVariants}>
                     <PageHeader
-                        title="Inventaire des Actifs"
-                        subtitle="Gérez votre cartographie des actifs et votre analyse d'impact."
+                        title={t('assets.title')}
+                        subtitle={t('assets.description')}
                         icon={<Database className="h-6 w-6 text-brand-500" />}
                         breadcrumbs={[
-                            { label: 'Tableau de bord', path: '/' },
-                            { label: 'Inventaire', path: '/assets' }
+                            { label: t('sidebar.dashboard'), path: '/' },
+                            { label: t('assets.title'), path: '/assets' }
                         ]}
                         trustType="integrity"
                     />
@@ -190,12 +193,12 @@ const Assets: React.FC = () => {
                 <motion.div variants={slideUpVariants}>
                     {reachedAssetLimit && (
                         <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-4 py-3 text-sm font-semibold flex items-center justify-between backdrop-blur-md shadow-lg shadow-amber-500/10">
-                            <span>Limite atteinte : {assets.length}/{limits.maxAssets} actifs.</span>
+                            <span>{t('assets.limitReached', { count: assets.length, max: limits.maxAssets })}</span>
                             <button
-                                onClick={() => toast.info("Contactez-nous pour mettre à niveau votre plan.")}
+                                onClick={() => toast.info(t('assets.contactSupport'))}
                                 className="text-amber-900 underline font-bold"
                             >
-                                Mettre à niveau
+                                {t('assets.upgradePlan')}
                             </button>
                         </div>
                     )}
@@ -226,19 +229,19 @@ const Assets: React.FC = () => {
                     <PremiumPageControl
                         searchQuery={activeFilters.query || ''}
                         onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
-                        searchPlaceholder="Rechercher par nom, type, propriétaire..."
+                        searchPlaceholder={t('assets.searchPlaceholder')}
                         activeView={viewMode}
                         onViewChange={(mode) => setViewMode(mode as 'grid' | 'list' | 'matrix' | 'kanban')}
                         viewOptions={[
-                            { id: 'list', label: 'Liste', icon: List },
-                            { id: 'grid', label: 'Grille', icon: LayoutGrid }
+                            { id: 'list', label: t('assets.viewList'), icon: List },
+                            { id: 'grid', label: t('assets.viewGrid'), icon: LayoutGrid }
                         ]}
                         actions={
                             <>
                                 <button
                                     onClick={() => OnboardingService.startAssetsTour()}
                                     className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
-                                    title="Lancer le tour guidé"
+                                    title={t('assets.startTour')}
                                 >
                                     <HelpCircle className="h-5 w-5" />
                                 </button>
@@ -249,7 +252,7 @@ const Assets: React.FC = () => {
                                         ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
                                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
                                         }`}
-                                    title="Filtres avancés"
+                                    title={t('assets.advancedFilters')}
                                 >
                                     <Filter className="h-5 w-5" />
                                 </button>
@@ -257,18 +260,18 @@ const Assets: React.FC = () => {
 
                                 {canEdit && (
                                     <>
-                                        <CustomTooltip content="Lancer l'analyse IA">
+                                        <CustomTooltip content={t('assets.createAsset')}>
                                             <button
                                                 onClick={handleAnalyze}
                                                 disabled={isAnalyzing}
                                                 className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
                                             >
                                                 {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
-                                                <span className="hidden xl:inline">{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>
+                                                <span className="hidden xl:inline">{isAnalyzing ? t('assets.analyzing') : t('assets.aiAnalysis')}</span>
                                             </button>
                                         </CustomTooltip>
 
-                                        <CustomTooltip content="Créer un nouvel actif">
+                                        <CustomTooltip content={t('assets.createAsset')}>
                                             <button
                                                 data-tour="assets-add"
                                                 onClick={() => handleOpenInspector(undefined)}
@@ -276,8 +279,8 @@ const Assets: React.FC = () => {
                                                 className={`flex items-center px-4 py-2 text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-500/20 ${reachedAssetLimit ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
                                             >
                                                 <Plus className="h-4 w-4 mr-2" />
-                                                <span className="hidden sm:inline">Nouvel Actif</span>
-                                                <span className="sm:hidden">Nouveau</span>
+                                                <span className="hidden sm:inline">{t('assets.newAsset')}</span>
+                                                <span className="sm:hidden">{t('assets.new')}</span>
                                             </button>
                                         </CustomTooltip>
 
@@ -291,7 +294,7 @@ const Assets: React.FC = () => {
                                             <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
                                                 <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                                     <div className="p-1">
-                                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Outils</div>
+                                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('assets.tools')}</div>
                                                         <Menu.Item>
                                                             {({ active }) => (
                                                                 <button
@@ -299,7 +302,7 @@ const Assets: React.FC = () => {
                                                                     className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                                 >
                                                                     <Link className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
-                                                                    Lien Kiosque
+                                                                    {t('assets.kioskLink')}
                                                                 </button>
                                                             )}
                                                         </Menu.Item>
@@ -311,7 +314,7 @@ const Assets: React.FC = () => {
                                                                     className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                                 >
                                                                     <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />
-                                                                    Export CSV
+                                                                    {t('assets.exportCsv')}
                                                                 </button>
                                                             )}
                                                         </Menu.Item>
@@ -341,10 +344,10 @@ const Assets: React.FC = () => {
                                         { name: asset.name, id: asset.id, owner: asset.owner, type: asset.type },
                                         { organizationName: limits.features.whiteLabelReports ? user?.displayName || 'Sentinel' : 'Sentinel GRC' }
                                     );
-                                    toast.success("Étiquette générée");
+                                    toast.success(t('assets.labelGenerated'));
                                 } catch (e) {
                                     console.error(e);
-                                    toast.error("Erreur lors de la génération de l'étiquette");
+                                    toast.error(t('assets.labelError'));
                                 }
                             }}
                             isGeneratingLabels={false}
@@ -379,14 +382,14 @@ const Assets: React.FC = () => {
                     isOpen={deleteModalOpen}
                     onClose={() => setDeleteModalOpen(false)}
                     onConfirm={handleConfirmDelete}
-                    title="Supprimer l'actif ?"
+                    title={t('assets.deleteTitle')}
                     message={
                         dependencies.length > 0
-                            ? `Attention: Cet actif est lié à ${dependencies.length} risque(s) (ex: ${dependencies[0].name}). La suppression peut entraîner des incohérences.`
-                            : `Êtes-vous sûr de vouloir supprimer l'actif "${assetToDelete?.name}" ? Cette action est irréversible.`
+                            ? t('assets.deleteWarning', { count: dependencies.length, example: dependencies[0].name })
+                            : t('assets.deleteConfirm', { name: assetToDelete?.name })
                     }
-                    confirmText="Supprimer"
-                    cancelText="Annuler"
+                    confirmText={t('assets.delete')}
+                    cancelText={t('assets.cancel')}
 
                 />
             </div >

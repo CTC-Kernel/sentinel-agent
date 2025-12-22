@@ -26,7 +26,7 @@ interface AppState {
 
   language: 'fr' | 'en';
   setLanguage: (lang: 'fr' | 'en') => void;
-  t: (key: string) => string;
+  t: (key: string, options?: any) => any;
 
   demoMode: boolean;
   toggleDemoMode: () => void;
@@ -34,9 +34,9 @@ interface AppState {
 
 }
 
-import { translations } from './i18n/translations';
+import i18n from './i18n';
 
-export const useStore = create<AppState>((set, get) => ({
+export const useStore = create<AppState>((set) => ({
   user: null,
   organization: null,
   customRoles: [],
@@ -57,22 +57,13 @@ export const useStore = create<AppState>((set, get) => ({
     }
     return { theme };
   }),
-  setLanguage: (lang) => set(() => {
+  setLanguage: (lang) => {
     localStorage.setItem('language', lang);
-    return { language: lang };
-  }),
-  t: (path: string) => {
-    const lang = get().language;
-    const keys = path.split('.');
-    let value: Record<string, unknown> | string = translations[lang];
-    for (const key of keys) {
-      if (value && typeof value === 'object' && key in value) {
-        value = (value as Record<string, unknown>)[key] as Record<string, unknown> | string;
-      } else {
-        return path;
-      }
-    }
-    return value as string;
+    i18n.changeLanguage(lang);
+    set({ language: lang });
+  },
+  t: (key: string, options?: any) => {
+    return i18n.t(key, options);
   },
   toggleTheme: () => set((state) => {
     const newTheme = state.theme === 'light' ? 'dark' : 'light';
