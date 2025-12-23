@@ -41,6 +41,14 @@ service cloud.firestore {
     }
 
     // --- VALIDATION HELPERS ---
+    function isValidString(text, min, max) {
+      return text is string && text.size() >= min && text.size() <= max;
+    }
+    
+    function isValidEmail(email) {
+      return email is string && email.matches('^[^@]+@[^@]+\\.[^@]+$');
+    }
+    
     function isValidIncidentStatus(status) {
       return status in ['Nouveau', 'Analyse', 'Contenu', 'Résolu', 'Fermé'];
     }
@@ -124,9 +132,10 @@ service cloud.firestore {
       allow update: if isAuthenticated() && (
         (
           request.auth.uid == userId && 
-          request.resource.data.role == resource.data.role &&
-          request.resource.data.organizationId == resource.data.organizationId &&
-          request.resource.data.organizationName == resource.data.organizationName
+          // Immutable fields protection
+          (!('role' in request.resource.data) || request.resource.data.role == resource.data.role) &&
+          (!('organizationId' in request.resource.data) || request.resource.data.organizationId == resource.data.organizationId) &&
+          (!('organizationName' in request.resource.data) || request.resource.data.organizationName == resource.data.organizationName)
         ) || 
         (
           belongsToOrganization(resource.data.organizationId) && 
@@ -197,12 +206,12 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId))) &&
-        (!('name' in request.resource.data) || request.resource.data.name.size() < 200) &&
-        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
+        isValidString(request.resource.data.name, 1, 200) &&
+        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
 
       allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
-        (!('name' in request.resource.data) || request.resource.data.name.size() < 200) &&
-        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
+        (!('name' in request.resource.data) || isValidString(request.resource.data.name, 1, 200)) &&
+        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
       allow delete: if canDelete(resource.data.organizationId);
       
       match /maintenance/{maintenanceId} {
@@ -217,11 +226,11 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId))) &&
-        (!('threat' in request.resource.data) || request.resource.data.threat.size() < 500) &&
-        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
+        (!('threat' in request.resource.data) || isValidString(request.resource.data.threat, 1, 500)) &&
+        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
       allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
-        (!('threat' in request.resource.data) || request.resource.data.threat.size() < 500) &&
-        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
+        (!('threat' in request.resource.data) || isValidString(request.resource.data.threat, 1, 500)) &&
+        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
       allow delete: if canDelete(resource.data.organizationId);
     }
 
@@ -322,13 +331,13 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || isUser() || (isAuditor() && belongsToOrganization(request.resource.data.organizationId))) &&
-        (!('title' in request.resource.data) || request.resource.data.title.size() < 200) &&
-        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000) &&
+        (!('title' in request.resource.data) || isValidString(request.resource.data.title, 1, 200)) &&
+        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000)) &&
         (!('status' in request.resource.data) || isValidIncidentStatus(request.resource.data.status)) &&
         (!('severity' in request.resource.data) || isValidIncidentSeverity(request.resource.data.severity)); // Users can report incidents
       allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
-        (!('title' in request.resource.data) || request.resource.data.title.size() < 200) &&
-        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000) &&
+        (!('title' in request.resource.data) || isValidString(request.resource.data.title, 1, 200)) &&
+        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000)) &&
         (!('status' in request.resource.data) || isValidIncidentStatus(request.resource.data.status)) &&
         (!('severity' in request.resource.data) || isValidIncidentSeverity(request.resource.data.severity));
       allow delete: if canDelete(resource.data.organizationId);
@@ -428,11 +437,11 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || isProjectManager()) &&
-        (!('name' in request.resource.data) || request.resource.data.name.size() < 200) &&
-        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
+        (!('name' in request.resource.data) || isValidString(request.resource.data.name, 1, 200)) &&
+        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
       allow update: if (canWrite(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId))) &&
-        (!('name' in request.resource.data) || request.resource.data.name.size() < 200) &&
-        (!('description' in request.resource.data) || request.resource.data.description.size() < 5000);
+        (!('name' in request.resource.data) || isValidString(request.resource.data.name, 1, 200)) &&
+        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
       allow delete: if canDelete(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
     }
 
@@ -452,7 +461,10 @@ service cloud.firestore {
       // Allow creation by authenticated users for their organization to support client-side audit logging
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        request.resource.data.userId == request.auth.uid;
+        request.resource.data.userId == request.auth.uid &&
+        isValidString(request.resource.data.action, 1, 100) &&
+        isValidString(request.resource.data.resource, 1, 100) &&
+        (!('details' in request.resource.data) || isValidString(request.resource.data.details, 0, 5000));
       allow update: if false;
       allow delete: if false;
     }
