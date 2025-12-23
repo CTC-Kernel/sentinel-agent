@@ -788,3 +788,22 @@ body.voxel-fullscreen header {
 .driverjs-theme-masterpiece .driver-popover-close-btn:hover {
   color: #ef4444 !important;
 }
+
+/* SAFETY FIX: Force pointer events on interactive elements to prevent overlay blocking */
+input,
+select,
+textarea,
+button,
+a,
+label,
+[role="button"],
+[role="listbox"],
+[role="option"],
+.glass-panel {
+  pointer-events: auto !important;
+}
+
+/* Ensure z-index context for modals */
+.z-max {
+  z-index: 9999;
+}

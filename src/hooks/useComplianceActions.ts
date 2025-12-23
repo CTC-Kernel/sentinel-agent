@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 import { controlSchema } from '../schemas/controlSchema';
 import { z } from 'zod';
 
+import { sanitizeData } from '../utils/dataSanitizer';
+
 export const useComplianceActions = (user: UserProfile | null) => {
     const [updating, setUpdating] = useState(false);
 
@@ -18,11 +20,11 @@ export const useComplianceActions = (user: UserProfile | null) => {
             controlSchema.partial().parse(updates);
 
             const ref = doc(db, 'controls', controlId);
-            await updateDoc(ref, {
+            await updateDoc(ref, sanitizeData({
                 ...updates,
                 updatedAt: serverTimestamp(),
                 lastUpdatedBy: user?.uid
-            });
+            }));
             if (successMessage) toast.success(successMessage);
             return true;
         } catch (error) {
@@ -124,12 +126,12 @@ export const useComplianceActions = (user: UserProfile | null) => {
         try {
             // Placeholder: Ideally import addDoc and collection at top
             const { addDoc, collection } = await import('firebase/firestore');
-            const ref = await addDoc(collection(db, 'risks'), {
+            const ref = await addDoc(collection(db, 'risks'), sanitizeData({
                 ...riskData,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
                 createdBy: user?.uid
-            });
+            }));
             toast.success("Risque créé avec succès");
             logAction(user, 'CREATE_RISK', 'risk', `Created risk ${riskData.threat}`, undefined, ref.id);
             return ref.id;

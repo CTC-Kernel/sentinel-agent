@@ -11,6 +11,7 @@ import { ImportService } from '../../services/ImportService';
 import { NotificationService } from '../../services/notificationService';
 import { DependencyService } from '../../services/dependencyService';
 import { riskSchema } from '../../schemas/riskSchema';
+import { sanitizeData } from '../../utils/dataSanitizer';
 
 export const useRiskActions = (onRefresh: () => void) => {
     const { user } = useAuth();
@@ -32,9 +33,8 @@ export const useRiskActions = (onRefresh: () => void) => {
                 return false;
             }
 
-            const riskData = {
-                ...data, // Use original data or validated data? Ideally validated but schema might strip extra fields if not set to passthrough. Schema looks comprehensive.
-                // Keeping spread of data for now to be safe, but validation passed.
+            const riskData = sanitizeData({
+                ...data,
                 organizationId: user.organizationId,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
@@ -49,7 +49,7 @@ export const useRiskActions = (onRefresh: () => void) => {
                     newScore: 0,
                     changedBy: user.uid
                 }]
-            };
+            });
 
             await addDoc(collection(db, 'risks'), riskData);
             toast.success('Risque créé avec succès');
@@ -77,10 +77,10 @@ export const useRiskActions = (onRefresh: () => void) => {
         setSubmitting(true);
         try {
             const riskRef = doc(db, 'risks', id);
-            await updateDoc(riskRef, {
+            await updateDoc(riskRef, sanitizeData({
                 ...data,
                 updatedAt: new Date().toISOString()
-            });
+            }));
 
             if (user) {
                 // Calculate diffs if currentRisk provided

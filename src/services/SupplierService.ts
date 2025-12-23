@@ -1,6 +1,7 @@
 import { db } from '../firebase';
 import { doc, updateDoc, collection, addDoc } from 'firebase/firestore';
 import { SupplierQuestionnaireResponse, QuestionnaireTemplate, Supplier } from '../types/business';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export class SupplierService {
 
@@ -77,14 +78,14 @@ export class SupplierService {
 
 
 
-        await updateDoc(supplierRef, {
+        await updateDoc(supplierRef, sanitizeData({
             securityScore: assessmentScore,
             riskLevel: riskLevel,
             // We might not want to overwrite criticality automatically if manually set, 
             // but for dynamic VRM it makes sense to suggest it.
             // keeping criticality sync optional or secondary.
             updatedAt: new Date().toISOString()
-        });
+        }));
     }
 
     /**
@@ -107,7 +108,7 @@ export class SupplierService {
             sentDate: new Date().toISOString()
         };
 
-        const res = await addDoc(collection(db, 'questionnaire_responses'), newResponse);
+        const res = await addDoc(collection(db, 'questionnaire_responses'), sanitizeData(newResponse));
         return res.id;
     }
 }

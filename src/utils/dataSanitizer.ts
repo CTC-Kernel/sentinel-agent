@@ -10,6 +10,10 @@ export const sanitizeData = <T>(obj: T): T => {
         return null as T;
     }
 
+    if (typeof obj === 'number' && Number.isNaN(obj)) {
+        return null as T;
+    }
+
     if (Array.isArray(obj)) {
         return obj.map(item => sanitizeData(item)) as T;
     }

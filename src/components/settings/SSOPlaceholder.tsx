@@ -47,7 +47,7 @@ export const SSOPlaceholder: React.FC = () => {
                         <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Okta</span>
                     </div>
                     <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-white/5 flex flex-col items-center gap-2">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" className="h-6 w-6" />
+                        <img src="/google-logo.svg" alt="Google" className="h-6 w-6" />
                         <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Workspace</span>
                     </div>
                 </div>
