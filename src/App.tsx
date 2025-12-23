@@ -43,7 +43,13 @@ const LandingPage = React.lazy(() => import('./views/LandingPage').then(module =
 const LandingOrAppRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user, loading } = useAuth();
     if (loading) return <LoadingScreen />;
-    if (user) return <>{children}</>;
+    if (user) {
+        return (
+            <AuthGuard>
+                {children}
+            </AuthGuard>
+        );
+    }
     return <LandingPage />; // Authenticated users see dashboard (via AppLayout), visitors see Landing
 };
 
