@@ -203,11 +203,11 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId))) &&
+        canWrite(request.resource.data.organizationId) &&
         isValidString(request.resource.data.name, 1, 200) &&
         (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
 
-      allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
+      allow update: if canWrite(resource.data.organizationId) &&
         (!('name' in request.resource.data) || isValidString(request.resource.data.name, 1, 200)) &&
         (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
       allow delete: if canDelete(resource.data.organizationId);
@@ -223,10 +223,10 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId))) &&
+        canWrite(request.resource.data.organizationId) &&
         (!('threat' in request.resource.data) || isValidString(request.resource.data.threat, 1, 500)) &&
         (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
-      allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId))) &&
+      allow update: if canWrite(resource.data.organizationId) &&
         (!('threat' in request.resource.data) || isValidString(request.resource.data.threat, 1, 500)) &&
         (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
       allow delete: if canDelete(resource.data.organizationId);
@@ -237,8 +237,8 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
-      allow update: if (canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId)));
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
       allow delete: if canDelete(resource.data.organizationId);
     }
 
@@ -278,8 +278,8 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
-      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
       allow delete: if canDelete(resource.data.organizationId);
     }
 
@@ -288,8 +288,8 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
-      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
       allow delete: if canDelete(resource.data.organizationId);
     }
 
@@ -298,8 +298,8 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
-      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
       allow delete: if canDelete(resource.data.organizationId);
     }
 
@@ -308,8 +308,8 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
-      allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
+        canWrite(request.resource.data.organizationId);
+      allow update: if canWrite(resource.data.organizationId);
       allow delete: if canDelete(resource.data.organizationId);
     }
     

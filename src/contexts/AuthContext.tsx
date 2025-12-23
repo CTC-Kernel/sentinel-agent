@@ -215,11 +215,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         // SELF-HEALING
                         if (!userData.role) {
                             userData.role = 'user';
-                            setDoc(userRef, { role: 'user' }, { merge: true }).catch(console.error);
+                            setDoc(userRef, { role: 'user' }, { merge: true }).catch(err => ErrorLogger.error(err, 'AuthContext.selfHealing.role'));
                         }
                         if (userData.organizationId && !userData.onboardingCompleted) {
                             userData.onboardingCompleted = true;
-                            setDoc(userRef, { onboardingCompleted: true }, { merge: true }).catch(console.error);
+                            setDoc(userRef, { onboardingCompleted: true }, { merge: true }).catch(err => ErrorLogger.error(err, 'AuthContext.selfHealing.onboarding'));
                         }
 
                         setUser(userData);
@@ -234,7 +234,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 const tokenOrgId = tokenResult.claims.organizationId;
 
                                 if (tokenOrgId !== userData.organizationId) {
-                                    console.log(`Claims mismatch: Token(${tokenOrgId}) vs Profile(${userData.organizationId}) - Syncing...`);
+                                    ErrorLogger.info(`Claims mismatch: Token(${tokenOrgId}) vs Profile(${userData.organizationId}) - Syncing...`, 'AuthContext.sync');
                                     isSynced = false;
                                     setClaimsSynced(false);
 
@@ -256,7 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                             const finalToken = await auth.currentUser.getIdTokenResult();
                                             if (finalToken.claims.organizationId === userData.organizationId) {
                                                 isSynced = true;
-                                                console.log('Claims synced successfully.');
+                                                ErrorLogger.info('Claims synced successfully.', 'AuthContext.sync');
                                             } else {
                                                 ErrorLogger.warn("Critical: Claims sync failed after retry", "AuthContext.sync");
                                                 // On laisse isSynced à false, ce qui bloquera l'accès via AuthGuard
