@@ -59,7 +59,14 @@ export const AssetList = React.memo<AssetListProps>(({
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${row.original.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>
-                    <span>{row.original.lifecycleStatus || 'Neuf'}</span>
+                    <span>
+                        {(() => {
+                            const val = row.original.lifecycleStatus || 'Neuf';
+                            if (val === 'Neuf') return t('assets.status.new');
+                            if (val === 'En service') return t('assets.status.inService');
+                            return val;
+                        })()}
+                    </span>
                 </div>
             )
         },
@@ -178,7 +185,14 @@ export const AssetList = React.memo<AssetListProps>(({
                                 <div className="mt-auto pt-4 border-t border-dashed border-slate-200 dark:border-white/10 flex justify-between items-center">
                                     <div className="flex items-center gap-2">
                                         <span className={`w-2 h-2 rounded-full ${asset.lifecycleStatus === 'En service' ? 'bg-green-500' : 'bg-slate-400'}`}></span>
-                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{asset.lifecycleStatus || 'Neuf'}</span>
+                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                                            {(() => {
+                                                const val = asset.lifecycleStatus || 'Neuf';
+                                                if (val === 'Neuf') return t('assets.status.new');
+                                                if (val === 'En service') return t('assets.status.inService');
+                                                return val;
+                                            })()}
+                                        </span>
                                     </div>
                                     {warrantyExpired && <span className="text-[10px] font-bold text-red-600 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded">{t('assets.warrantyExp')}</span>}
                                 </div>

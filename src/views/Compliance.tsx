@@ -55,7 +55,7 @@ export const Compliance: React.FC = () => {
         if (initialState.createForProject) {
             addToast(t('compliance.linkMode', { project: initialState.projectName || '' }), 'info');
         }
-    }, [initialState.createForProject, initialState.projectName, addToast]);
+    }, [initialState.createForProject, initialState.projectName, addToast, t]);
 
     // Filtering Logic
     const filteredControls = useMemo(() => {
@@ -120,7 +120,7 @@ export const Compliance: React.FC = () => {
                     <ScrollableTabs
                         tabs={FRAMEWORKS.filter(f => f.type === 'Compliance').map(f => ({
                             id: f.id,
-                            label: f.label,
+                            label: t(`frameworks.${f.id}`),
                         }))}
                         activeTab={currentFramework}
                         onTabChange={(id) => setCurrentFramework(id as Framework)}

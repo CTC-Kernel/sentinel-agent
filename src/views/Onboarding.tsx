@@ -580,7 +580,7 @@ export const Onboarding: React.FC = () => {
                                         {(['discovery', 'professional', 'enterprise'] as const).map((planId) => {
                                             const plan = PLANS[planId];
                                             const isSelected = selectedPlan === planId;
-                                            const features = t(`pricing.plans.${planId}Features`, { returnObjects: true }) as string[];
+                                            const features = t(`pricing.plans.${planId}Features`, { returnObjects: true }) as unknown as string[];
 
                                             return (
                                                 <div

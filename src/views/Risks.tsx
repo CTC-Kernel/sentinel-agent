@@ -233,7 +233,10 @@ export const Risks: React.FC = () => {
                                 // integrating basic text search or we might need to extend useRiskFilters for exact matches
                                 // For this demo, let's just log or ignoring since the Dashboard is visualization-first 
                                 // But ideally we should wire this up.
-                                console.log('Filter by level:', filter.value);
+                                // integrating basic text search or we might need to extend useRiskFilters for exact matches
+                                // For this demo, let's just log or ignoring since the Dashboard is visualization-first 
+                                // But ideally we should wire this up.
+
                             }
                         }}
                     />
@@ -313,7 +316,7 @@ export const Risks: React.FC = () => {
                                                 <Menu.Item>
                                                     {({ active }) => (
                                                         <button onClick={handleExportPDF} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
-                                                            <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} /> RTP (PDF)
+                                                            <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} /> {t('risks.reports')} (PDF)
                                                         </button>
                                                     )}
                                                 </Menu.Item>
@@ -374,7 +377,7 @@ export const Risks: React.FC = () => {
                                                 onClick={async () => {
                                                     setIsAnalyzing(true);
                                                     try {
-                                                        const prompt = `Analyse cette liste de ${filteredRisks.length} risques. Donne-moi 3 insights clés sur les menaces principales et une recommandation stratégique. Format court.`;
+                                                        const prompt = t('risks.aiPrompt', { count: filteredRisks.length });
                                                         const analysis = await aiService.chatWithAI(prompt);
                                                         toast.info(t('risks.analysisComplete'), { description: analysis, duration: 10000 });
                                                     } catch (e) {
@@ -436,7 +439,7 @@ export const Risks: React.FC = () => {
                             risks={filteredRisks}
                             loading={loading}
                             onEdit={handleEdit}
-                            onDelete={(id) => { const r = risks.find(x => x.id === id); handleDelete({ id, name: r?.threat || 'Inconnu' }); }}
+                            onDelete={(id) => { const r = risks.find(x => x.id === id); handleDelete({ id, name: r?.threat || t('common.unknown') }); }}
                             onSelect={setSelectedRisk}
                             canEdit={canEdit}
                             onBulkDelete={bulkDeleteRisks}
@@ -467,7 +470,7 @@ export const Risks: React.FC = () => {
                                 {t('risks.matrix')} : {t('risks.searchPlaceholder')}
                             </span>
                             {/* Note: searchPlaceholder mismatch for Matrix filter, using "Filtre Matrice" text which wasn't fully translated. Let's fix locally or use a placeholder */}
-                            <button onClick={() => setMatrixFilter(null)} className="text-xs text-red-500 font-bold hover:underline">Reset</button>
+                            <button onClick={() => setMatrixFilter(null)} className="text-xs text-red-500 font-bold hover:underline">{t('common.reset')}</button>
                         </div>
                     )}
                     <RiskMatrix
@@ -506,7 +509,7 @@ export const Risks: React.FC = () => {
 
                     const newRisk: Omit<Risk, 'id'> = {
                         ...rest,
-                        threat: `${r.threat} (Copie)`,
+                        threat: `${r.threat} (${t('common.copy')})`,
                         // Ensure enums are preserved. Typescript inference should handle this if types match, 
                         // but explicit cast protects against 'number' vs '1|2..'.
                         probability: r.probability,

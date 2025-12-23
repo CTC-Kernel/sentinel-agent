@@ -40,7 +40,7 @@ export const Projects: React.FC = () => {
     const tabs = [
         { id: 'overview', label: t('projects.overview'), icon: LayoutDashboard },
         { id: 'list', label: t('projects.list'), icon: List },
-        { id: 'board', label: t('projects.kanban'), icon: FolderKanban },
+        { id: 'board', label: t('projects.board'), icon: FolderKanban },
         { id: 'gantt', label: t('projects.planning'), icon: CalendarDays },
     ];
     const {
@@ -121,7 +121,7 @@ export const Projects: React.FC = () => {
     const handleExportCSV = () => {
         CsvParser.exportToCsv(
             projects as unknown as Record<string, unknown>[],
-            "projets_export",
+            t('projects.filename', { date: new Date().toISOString().split('T')[0] }),
             ["name", "status", "progress", "manager", "dueDate", "createdAt"]
         );
     };
@@ -284,17 +284,18 @@ export const Projects: React.FC = () => {
             {/* KANBAN TAB */}
             {activeTab === 'board' && (
                 <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-300px)] min-h-[500px] overflow-x-auto pb-4">
-                    {[t('projects.todo'), t('projects.inProgress'), t('projects.done')].map((status) => {
+                    {['todo', 'inProgress', 'done'].map((statusKey) => {
+                        const statusLabel = t(`projects.kanban.${statusKey}`);
                         const columnProjects = filteredProjects.filter(p =>
-                            status === t('projects.todo') ? (p.status !== 'En cours' && p.status !== 'Terminé') :
-                                status === t('projects.inProgress') ? p.status === 'En cours' :
+                            statusKey === 'todo' ? (p.status !== 'En cours' && p.status !== 'Terminé') :
+                                statusKey === 'inProgress' ? p.status === 'En cours' :
                                     p.status === 'Terminé'
                         );
 
                         return (
-                            <div key={status} className="flex flex-col glass-panel rounded-2xl p-4 border border-white/20 h-full">
+                            <div key={statusKey} className="flex flex-col glass-panel rounded-2xl p-4 border border-white/20 h-full">
                                 <h4 className="text-sm font-bold uppercase text-slate-600 dark:text-slate-400 mb-4 flex justify-between tracking-wider px-1">
-                                    {status}
+                                    {statusLabel}
                                     <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg text-xs shadow-sm border border-slate-200 dark:border-white/5">
                                         {columnProjects.length}
                                     </span>

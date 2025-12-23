@@ -26,7 +26,7 @@ interface AppState {
 
   language: 'fr' | 'en';
   setLanguage: (lang: 'fr' | 'en') => void;
-  t: (key: string, options?: any) => any;
+  t: (key: string, options?: Record<string, unknown>) => string;
 
   demoMode: boolean;
   toggleDemoMode: () => void;
@@ -62,8 +62,8 @@ export const useStore = create<AppState>((set) => ({
     i18n.changeLanguage(lang);
     set({ language: lang });
   },
-  t: (key: string, options?: any) => {
-    return i18n.t(key, options);
+  t: (key: string, options?: Record<string, unknown>) => {
+    return i18n.t(key, options) as string;
   },
   toggleTheme: () => set((state) => {
     const newTheme = state.theme === 'light' ? 'dark' : 'light';

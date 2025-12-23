@@ -263,7 +263,8 @@ export const ERROR_MESSAGES = {
 
   // IA
   AI_ERROR: "Erreur lors de l'analyse IA",
-  HIBP_FAILED: "Erreur lors de la vérification HIBP"
+  HIBP_FAILED: "Erreur lors de la vérification HIBP",
+  DELETE_ACCOUNT_FAILED: "Échec de la suppression du compte"
 } as const;
 
 export type ErrorMessageKey = keyof typeof ERROR_MESSAGES;

@@ -10,6 +10,8 @@ import { canDeleteResource } from '../../utils/permissions';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
 
+import { useStore } from '../../store';
+
 interface ProjectListProps {
     projects: Project[];
     loading: boolean;
@@ -25,11 +27,12 @@ interface ProjectListProps {
 export const ProjectList: React.FC<ProjectListProps> = ({
     projects, loading, canEdit, user, usersList = [], onEdit, onDelete, onBulkDelete, onSelect
 }) => {
+    const { t } = useStore();
 
     const columns = useMemo<ColumnDef<Project>[]>(() => [
         {
             accessorKey: 'name',
-            header: 'Projet',
+            header: t('projects.columns.name'),
             cell: ({ row }) => (
                 <div>
                     <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.name}</div>
@@ -39,7 +42,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         },
         {
             accessorKey: 'manager',
-            header: 'Responsable',
+            header: t('projects.columns.manager'),
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-xs font-bold text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-800">
@@ -51,7 +54,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         },
         {
             id: 'members',
-            header: 'Équipe',
+            header: t('projects.columns.team'),
             cell: ({ row }) => {
                 const memberIds = row.original.members || [];
                 const members = usersList.filter(u => memberIds.includes(u.uid));
@@ -79,16 +82,26 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         },
         {
             accessorKey: 'status',
-            header: 'Statut',
+            header: t('projects.columns.status'),
             cell: ({ row }) => (
-                <Badge status={row.original.status === 'En cours' ? 'info' : row.original.status === 'Terminé' ? 'success' : row.original.status === 'Suspendu' ? 'error' : 'neutral'} variant="soft" size="sm">
-                    {row.original.status}
+                <Badge status={
+                    row.original.status === 'En cours' ? 'info' :
+                        row.original.status === 'Terminé' ? 'success' :
+                            row.original.status === 'Suspendu' ? 'error' : 'neutral'
+                } variant="soft" size="sm">
+                    {(() => {
+                        const s = row.original.status;
+                        if (s === 'En cours') return t('projects.board.inProgress');
+                        if (s === 'Terminé') return t('projects.board.done');
+                        if (s === 'Suspendu') return t('projects.status.suspended');
+                        return s;
+                    })()}
                 </Badge>
             )
         },
         {
             accessorKey: 'progress',
-            header: 'Progression',
+            header: t('projects.columns.progress'),
             cell: ({ row }) => (
                 <div className="flex items-center gap-3 w-32">
                     <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full">
@@ -100,7 +113,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         },
         {
             accessorKey: 'dueDate',
-            header: 'Échéance',
+            header: t('projects.columns.dueDate'),
             cell: ({ row }) => (
                 <span className="text-slate-600 dark:text-slate-400 font-medium text-xs">
                     {new Date(row.original.dueDate).toLocaleDateString()}
@@ -113,13 +126,13 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                 <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
                     {canEdit && (
                         <>
-                            <CustomTooltip content="Modifier le projet">
+                            <CustomTooltip content={t('projects.tooltips.edit')}>
                                 <button onClick={(e) => { e.stopPropagation(); onEdit(row.original); }} className="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors">
                                     <Edit className="h-4 w-4" />
                                 </button>
                             </CustomTooltip>
                             {canDeleteResource(user, 'Project') && (
-                                <CustomTooltip content="Supprimer le projet">
+                                <CustomTooltip content={t('projects.tooltips.delete')}>
                                     <button onClick={(e) => { e.stopPropagation(); onDelete(row.original.id, row.original.name); }} className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                                         <Trash2 className="h-4 w-4" />
                                     </button>
@@ -130,7 +143,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                 </div>
             )
         }
-    ], [canEdit, onEdit, onDelete, user, usersList]);
+    ], [canEdit, onEdit, onDelete, user, usersList, t]);
 
     return (
         <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">

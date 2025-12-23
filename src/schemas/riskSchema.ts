@@ -1,11 +1,12 @@
 import { z } from 'zod';
+import i18n from '../i18n';
 
 export const riskSchema = z.object({
-    assetId: z.string().min(1, "L'actif est requis"),
-    threat: z.string().min(3, "La menace doit contenir au moins 3 caractères"),
+    assetId: z.string().min(1, i18n.t('validation.required')),
+    threat: z.string().min(3, i18n.t('validation.minLength', { min: 3 })),
     scenario: z.string().optional(),
     framework: z.enum(['ISO27001', 'ISO22301', 'ISO27005', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF', 'OWASP', 'EBIOS', 'COBIT', 'ITIL']).optional(),
-    vulnerability: z.string().min(3, "La vulnérabilité doit contenir au moins 3 caractères"),
+    vulnerability: z.string().min(3, i18n.t('validation.minLength', { min: 3 })),
     probability: z.number().min(1).max(5),
     impact: z.number().min(1).max(5),
     residualProbability: z.number().optional(),
@@ -57,7 +58,7 @@ export const riskSchema = z.object({
     }
     return true;
 }, {
-    message: "Le risque résiduel (cible) ne peut pas être supérieur au risque brut (inhérent). Vérifiez vos évaluations.",
+    message: i18n.t('risks.validation_residual'),
     path: ["residualImpact"] // Show error on this field
 }).refine((data) => {
     // Validate that Justification is present if Risk is Accepted and Criticality is High (Score >= 12)
@@ -67,7 +68,7 @@ export const riskSchema = z.object({
     }
     return true;
 }, {
-    message: "Une justification détaillée est obligatoire pour accepter un risque critique (Score ≥ 12).",
+    message: i18n.t('risks.validation_justification'),
     path: ["justification"]
 });
 

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useStore } from '../../store';
-import { Camera, ShieldAlert } from '../ui/Icons';
+import { Camera, ShieldAlert, Trash2, AlertTriangle } from '../ui/Icons';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema, ProfileFormData } from '../../schemas/settingsSchema';
@@ -10,8 +10,10 @@ import { Switch } from '../ui/Switch';
 import { Button } from '../ui/button';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { updateDoc, doc, collection, query, where, getDocs } from 'firebase/firestore';
-import { db, storage } from '../../firebase';
+import { db, storage, auth } from '../../firebase';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { AccountService } from '../../services/accountService';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { hasPermission } from '../../utils/permissions';
@@ -22,6 +24,8 @@ export const ProfileSettings: React.FC = () => {
     const [savingProfile, setSavingProfile] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [breachCheckLoading, setBreachCheckLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const profileForm = useForm<ProfileFormData>({
@@ -141,6 +145,22 @@ export const ProfileSettings: React.FC = () => {
             ErrorLogger.handleErrorWithToast(err, 'ProfileSettings.handleUpdateProfile', 'UPDATE_FAILED');
         } finally {
             setSavingProfile(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (!user || !auth.currentUser) return;
+        setIsDeleting(true);
+        try {
+            await AccountService.deleteAccount(user, auth.currentUser);
+            addToast(t('settings.accountDeleted'), "success");
+            // Redirect is handled by AuthState listener or force reload
+            window.location.href = '/login';
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'ProfileSettings.handleDeleteAccount', 'DELETE_ACCOUNT_FAILED');
+        } finally {
+            setIsDeleting(false);
+            setShowDeleteConfirm(false);
         }
     };
 
@@ -272,7 +292,7 @@ export const ProfileSettings: React.FC = () => {
                                                 render={({ field }) => (
                                                     <div className="flex items-center gap-2">
                                                         <Switch checked={field.value ?? false} onChange={field.onChange} />
-                                                        <span className="text-sm text-slate-600 dark:text-slate-300">Email</span>
+                                                        <span className="text-sm text-slate-600 dark:text-slate-300">{t('settings.notificationsChannels.email')}</span>
                                                     </div>
                                                 )}
                                             />
@@ -282,7 +302,7 @@ export const ProfileSettings: React.FC = () => {
                                                 render={({ field }) => (
                                                     <div className="flex items-center gap-2">
                                                         <Switch checked={field.value ?? false} onChange={field.onChange} />
-                                                        <span className="text-sm text-slate-600 dark:text-slate-300">Push</span>
+                                                        <span className="text-sm text-slate-600 dark:text-slate-300">{t('settings.notificationsChannels.push')}</span>
                                                     </div>
                                                 )}
                                             />
@@ -292,7 +312,7 @@ export const ProfileSettings: React.FC = () => {
                                                 render={({ field }) => (
                                                     <div className="flex items-center gap-2">
                                                         <Switch checked={field.value ?? false} onChange={field.onChange} />
-                                                        <span className="text-sm text-slate-600 dark:text-slate-300">In-App</span>
+                                                        <span className="text-sm text-slate-600 dark:text-slate-300">{t('settings.notificationsChannels.inApp')}</span>
                                                     </div>
                                                 )}
                                             />
@@ -318,14 +338,14 @@ export const ProfileSettings: React.FC = () => {
 
                             <div className="grid grid-cols-1 gap-4">
                                 <FloatingLabelInput
-                                    label="Shodan API Key (Threat Intel)"
+                                    label={t('settings.apiKeysLabels.shodan')}
                                     type="password"
                                     {...profileForm.register('shodanApiKey')}
                                     placeholder="..."
                                 />
                                 <div className="flex gap-2 items-end">
                                     <FloatingLabelInput
-                                        label="HIBP API Key (Have I Been Pwned)"
+                                        label={t('settings.apiKeysLabels.hibp')}
                                         type="password"
                                         {...profileForm.register('hibpApiKey')}
                                         placeholder="..."
@@ -346,7 +366,7 @@ export const ProfileSettings: React.FC = () => {
                                     </Button>
                                 </div>
                                 <FloatingLabelInput
-                                    label="Google Safe Browsing API Key"
+                                    label={t('settings.apiKeysLabels.safeBrowsing')}
                                     type="password"
                                     {...profileForm.register('safeBrowsingApiKey')}
                                     placeholder="..."
@@ -369,6 +389,41 @@ export const ProfileSettings: React.FC = () => {
                     </form>
                 </div>
             </div>
+
+            {/* Danger Zone */}
+            <div className="glass-panel p-8 rounded-[2.5rem] border border-red-200/50 dark:border-red-900/30 shadow-xl relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/10 pointer-events-none" />
+                <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center justify-between">
+                    <div className="space-y-2">
+                        <h3 className="text-xl font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
+                            <AlertTriangle className="w-6 h-6" />
+                            {t('settings.dangerZone')}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-lg">
+                            {t('settings.deleteAccountDescription')}
+                        </p>
+                    </div>
+                    <Button
+                        variant="destructive"
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-900/30 shadow-none hover:shadow-lg hover:shadow-red-500/10 transition-all duration-300"
+                    >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {t('settings.deleteAccount')}
+                    </Button>
+                </div>
+            </div>
+
+            <ConfirmModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={handleDeleteAccount}
+                title={t('settings.deleteAccountTitle')}
+                message={t('settings.deleteAccountMessage')}
+                type="danger"
+                confirmText={t('common.delete')}
+                loading={isDeleting}
+            />
         </div>
     );
 };

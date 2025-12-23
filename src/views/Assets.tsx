@@ -134,7 +134,7 @@ const Assets: React.FC = () => {
 
 
         // Safer approach: 
-        const csvHeaders = (t('assets.csvHeaders', { returnObjects: true }) as string[]) || ['Name', 'Type', 'Status', 'Criticality', 'Owner', 'Location', 'Value', 'Warranty End'];
+        const csvHeaders = (t('assets.csvHeaders', { returnObjects: true }) as unknown as string[]) || ['Name', 'Type', 'Status', 'Criticality', 'Owner', 'Location', 'Value', 'Warranty End'];
 
         const data = filteredAssets.map(a => ({
             [csvHeaders[0]]: a.name,
@@ -147,7 +147,7 @@ const Assets: React.FC = () => {
             [csvHeaders[7]]: a.warrantyEnd || ''
         }));
 
-        CsvParser.downloadCSV(csvHeaders, data, `assets_export_${new Date().toISOString().split('T')[0]}.csv`);
+        CsvParser.downloadCSV(csvHeaders, data, `${t('assets.filename', { date: new Date().toISOString().split('T')[0] })}.csv`);
     };
 
     const handleAnalyze = async () => {

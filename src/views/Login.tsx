@@ -79,7 +79,7 @@ export const Login: React.FC = () => {
         return () => {
             isMounted = false;
         };
-    }, [addToast]);
+    }, [addToast, t]);
 
     // Main Auth Form
     const { register, handleSubmit, formState: { errors }, clearErrors } = useForm<LoginFormData | RegisterFormData>({

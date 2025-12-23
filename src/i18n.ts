@@ -44,7 +44,20 @@ i18n
                         owner: "Owner",
                         criticality: "Criticality",
                         actions: "Actions",
-                        noResults: "No results found"
+                        noResults: "No results found",
+                        reset: "Reset",
+                        copy: "Copy",
+                        unknown: "Unknown"
+                    },
+                    validation: {
+                        required: "This field is required",
+                        email: "Invalid email address",
+                        minLength: "Minimum {min} characters required",
+                        url: "Invalid URL",
+                        positive: "Must be a positive number",
+                        min: "Value must be at least {min}",
+                        max: "Value must be at most {max}",
+                        ip: "Invalid IP address"
                     },
                     tour: {
                         welcome: { title: "Welcome to Sentinel GRC", desc: "Let's take a minute to discover your new Cyber & Compliance command center." },
@@ -86,6 +99,22 @@ i18n
                         superAdmin: "Super Admin",
                         settings: "Settings"
                     },
+                    frameworks: {
+                        ISO27001: "ISO 27001 (IS Security)",
+                        ISO22301: "ISO 22301 (Continuity)",
+                        ISO27005: "ISO 27005 (Risk Management)",
+                        NIS2: "NIS 2 (EU Cyber)",
+                        DORA: "DORA (Fin. Resilience)",
+                        GDPR: "GDPR (Data Protection)",
+                        SOC2: "SOC 2 (Trust Services)",
+                        HDS: "HDS (Health Data)",
+                        PCI_DSS: "PCI DSS (Payments)",
+                        NIST_CSF: "NIST CSF (Cyber Framework)",
+                        OWASP: "OWASP Top 10 (AppSec)",
+                        EBIOS: "EBIOS RM (ANSSI Method)",
+                        COBIT: "COBIT (Governance)",
+                        ITIL: "ITIL (Service Mgmt)"
+                    },
                     settings: {
                         mentionsLegales: "Legal Notice",
                         myProfile: "My Profile",
@@ -97,6 +126,24 @@ i18n
                         organization: "Organization",
                         integrations: "Integrations",
                         systemAndLogs: "System & Logs",
+                        roles: {
+                            admin: "Administrator",
+                            rssi: "CISO (RSSI)",
+                            auditor: "Auditor",
+                            project_manager: "Project Manager",
+                            direction: "Executive / Board",
+                            user: "User"
+                        },
+                        apiKeysLabels: {
+                            shodan: "Shodan API Key (Threat Intel)",
+                            hibp: "HIBP API Key (Have I Been Pwned)",
+                            safeBrowsing: "Google Safe Browsing API Key"
+                        },
+                        notificationsChannels: {
+                            email: "Email",
+                            push: "Push",
+                            inApp: "In-App"
+                        },
                         commandPalette: {
                             placeholder: "Search or run a command...",
                             noResults: "No results found for",
@@ -167,14 +214,7 @@ i18n
                         owner: "Owner",
                         you: "You",
                         removeMember: "Remove Member",
-                        roles: {
-                            admin: "Admin",
-                            rssi: "CISO",
-                            auditor: "Auditor",
-                            project_manager: "Project Manager",
-                            direction: "Direction",
-                            user: "User"
-                        },
+
                         plans: {
                             professional: "Professional Plan",
                             enterprise: "Enterprise Plan",
@@ -228,6 +268,11 @@ i18n
                         limitReached: "Limit reached: {count}/{max} assets.",
                         upgradePlan: "Upgrade your plan",
                         contactSupport: "Contact us to upgrade your plan.",
+                        filename: "Sentinel_Assets_Export_{date}",
+                        status: {
+                            new: "New",
+                            inService: "In Service"
+                        },
                         searchPlaceholder: "Search by name, type, owner...",
                         viewList: "List",
                         viewGrid: "Grid",
@@ -295,7 +340,30 @@ i18n
                         reportError: "Error generating report",
                         importSuccess: "Import successful",
                         templateSuccess: "{count} risks created from template",
-                        templateError: "Error importing from template"
+                        templateError: "Error importing from template",
+                        validation_residual: "Residual risk (target) cannot be higher than gross risk (inherent).",
+                        validation_justification: "Detailed justification is mandatory to accept a critical risk (Score ≥ 12).",
+                        aiPrompt: "Analyze this list of {count} risks. Give me 3 key insights on the main threats and a strategic recommendation. Short format.",
+                        status: {
+                            open: "Open",
+                            processed: "Processed",
+                            treated: "Treated",
+                            closed: "Closed"
+                        },
+                        strategies: {
+                            reduce: "Reduce",
+                            accept: "Accept",
+                            transfer: "Transfer",
+                            avoid: "Avoid"
+                        },
+                        frameworks: {
+                            iso27001: "ISO 27001",
+                            ebios: "EBIOS RM",
+                            nist: "NIST CSF",
+                            pci: "PCI DSS",
+                            dora: "DORA",
+                            hm: "H.M."
+                        }
                     },
                     incidents: {
                         title: "Incident Management",
@@ -380,7 +448,7 @@ i18n
                         subtitle: "Pilot your security initiatives and monitor global progress.",
                         overview: "Overview",
                         list: "List",
-                        kanban: "Kanban",
+                        board: "Kanban",
                         planning: "Planning",
                         searchPlaceholder: "Search for a project...",
                         newProject: "New Project",
@@ -400,7 +468,29 @@ i18n
                         toastCreated: "Project created from template",
                         toastError: "Error during creation",
                         toastReportSuccess: "Report generated successfully",
-                        toastReportError: "Error generating report"
+                        toastReportError: "Error generating report",
+                        columns: {
+                            name: "Project",
+                            manager: "Manager",
+                            team: "Team",
+                            status: "Status",
+                            progress: "Progress",
+                            dueDate: "Due Date",
+                            actions: "Actions"
+                        },
+                        status: {
+                            suspended: "Suspended"
+                        },
+                        tooltips: {
+                            edit: "Edit Project",
+                            delete: "Delete Project"
+                        },
+                        filename: "Sentinel_Projects_Export_{date}",
+                        kanban: {
+                            todo: "To Do",
+                            inProgress: "In Progress",
+                            done: "Done"
+                        }
                     },
                     suppliers: {
                         title: "Suppliers",
@@ -957,7 +1047,20 @@ i18n
                         owner: "Propriétaire",
                         criticality: "Criticité",
                         actions: "Actions",
-                        noResults: "Aucun résultat trouvé"
+                        noResults: "Aucun résultat trouvé",
+                        reset: "Réinitialiser",
+                        copy: "Copie",
+                        unknown: "Inconnu"
+                    },
+                    validation: {
+                        required: "Ce champ est requis",
+                        email: "Adresse email invalide",
+                        minLength: "{min} caractères minimum requis",
+                        url: "URL invalide",
+                        positive: "Doit être un nombre positif",
+                        min: "La valeur doit être au moins {min}",
+                        max: "La valeur doit être au plus {max}",
+                        ip: "Adresse IP invalide"
                     },
                     sidebar: {
                         dashboard: "Tableau de Bord",
@@ -972,6 +1075,22 @@ i18n
                         superAdmin: "Super Admin",
                         settings: "Paramètres"
                     },
+                    frameworks: {
+                        ISO27001: "ISO 27001 (Sécurité du SI)",
+                        ISO22301: "ISO 22301 (Continuité)",
+                        ISO27005: "ISO 27005 (Gestion des Risques)",
+                        NIS2: "NIS 2 (Cybersécurité EU)",
+                        DORA: "DORA (Résilience Financière)",
+                        GDPR: "RGPD (Protection des Données)",
+                        SOC2: "SOC 2 (Services Trust)",
+                        HDS: "HDS (Données de Santé)",
+                        PCI_DSS: "PCI DSS (Paiements)",
+                        NIST_CSF: "NIST CSF (Cyber Framework)",
+                        OWASP: "OWASP Top 10 (AppSec)",
+                        EBIOS: "EBIOS RM (Méthode ANSSI)",
+                        COBIT: "COBIT (Gouvernance)",
+                        ITIL: "ITIL (Gestion de Services)"
+                    },
                     settings: {
                         mentionsLegales: "Mentions Légales",
                         myProfile: "Mon Profil",
@@ -983,6 +1102,24 @@ i18n
                         organization: "Organisation",
                         integrations: "Intégrations",
                         systemAndLogs: "Système & Logs",
+                        roles: {
+                            admin: "Administrateur",
+                            rssi: "RSSI (CISO)",
+                            auditor: "Auditeur",
+                            project_manager: "Chef de Projet",
+                            direction: "Direction / CODIR",
+                            user: "Utilisateur"
+                        },
+                        apiKeysLabels: {
+                            shodan: "Clé API Shodan (Threat Intel)",
+                            hibp: "Clé API HIBP (Have I Been Pwned)",
+                            safeBrowsing: "Clé API Google Safe Browsing"
+                        },
+                        notificationsChannels: {
+                            email: "Email",
+                            push: "Push",
+                            inApp: "In-App"
+                        },
                         commandPalette: {
                             placeholder: "Rechercher ou exécuter une commande...",
                             noResults: "Aucun résultat trouvé pour",
@@ -1053,14 +1190,7 @@ i18n
                         owner: "Propriétaire",
                         you: "Vous",
                         removeMember: "Retirer le membre",
-                        roles: {
-                            admin: "Admin",
-                            rssi: "RSSI",
-                            auditor: "Auditeur",
-                            project_manager: "Chef de Projet",
-                            direction: "Direction",
-                            user: "Utilisateur"
-                        },
+
                         plans: {
                             professional: "Plan Professionnel",
                             enterprise: "Plan Entreprise",
@@ -1114,6 +1244,11 @@ i18n
                         limitReached: "Limite atteinte : {count}/{max} actifs.",
                         upgradePlan: "Mettre à niveau",
                         contactSupport: "Contactez-nous pour mettre à niveau votre plan.",
+                        filename: "Sentinel_Actifs_Export_{date}",
+                        status: {
+                            new: "Neuf",
+                            inService: "En service"
+                        },
                         searchPlaceholder: "Rechercher par nom, type, propriétaire...",
                         viewList: "Liste",
                         viewGrid: "Grille",
@@ -1181,7 +1316,30 @@ i18n
                         reportError: "Erreur lors de la génération du rapport",
                         importSuccess: "Import réussi",
                         templateSuccess: "{count} risques créés depuis le modèle",
-                        templateError: "Erreur lors de l'import depuis le modèle"
+                        templateError: "Erreur lors de l'import depuis le modèle",
+                        validation_residual: "Le risque résiduel (cible) ne peut pas être supérieur au risque brut (inhérent).",
+                        validation_justification: "Une justification détaillée est obligatoire pour accepter un risque critique (Score ≥ 12).",
+                        aiPrompt: "Analyse cette liste de {count} risques. Donne-moi 3 insights clés sur les menaces principales et une recommandation stratégique. Format court.",
+                        status: {
+                            open: "Ouvert",
+                            processed: "Pris en compte",
+                            treated: "Traité",
+                            closed: "Clôturé"
+                        },
+                        strategies: {
+                            reduce: "Réduire",
+                            accept: "Accepter",
+                            transfer: "Transférer",
+                            avoid: "Éviter"
+                        },
+                        frameworks: {
+                            iso27001: "ISO 27001",
+                            ebios: "EBIOS RM",
+                            nist: "NIST CSF",
+                            pci: "PCI DSS",
+                            dora: "DORA",
+                            hm: "H.M."
+                        }
                     },
                     incidents: {
                         title: "Gestion des Incidents",
@@ -1492,7 +1650,7 @@ i18n
                         subtitle: "Pilotez vos initiatives de sécurité et suivez l'avancement global.",
                         overview: "Vue d'ensemble",
                         list: "Liste",
-                        kanban: "Kanban",
+                        board: "Kanban",
                         planning: "Planning",
                         searchPlaceholder: "Rechercher un projet...",
                         newProject: "Nouveau Projet",
@@ -1512,7 +1670,29 @@ i18n
                         toastCreated: "Projet créé depuis le modèle",
                         toastError: "Erreur lors de la création",
                         toastReportSuccess: "Rapport généré avec succès",
-                        toastReportError: "Erreur lors de la génération du rapport"
+                        toastReportError: "Erreur lors de la génération du rapport",
+                        columns: {
+                            name: "Projet",
+                            manager: "Responsable",
+                            team: "Équipe",
+                            status: "Statut",
+                            progress: "Progression",
+                            dueDate: "Échéance",
+                            actions: "Actions"
+                        },
+                        status: {
+                            suspended: "Suspendu"
+                        },
+                        tooltips: {
+                            edit: "Modifier le projet",
+                            delete: "Supprimer le projet"
+                        },
+                        filename: "Sentinel_Projets_Export_{date}",
+                        kanban: {
+                            todo: "A faire",
+                            inProgress: "En cours",
+                            done: "Terminé"
+                        }
                     },
                     suppliers: {
                         title: "Fournisseurs",

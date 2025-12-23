@@ -250,7 +250,7 @@ export const Suppliers: React.FC = () => {
         } finally {
             setConfirmData(prev => ({ ...prev, loading: false }));
         }
-    }, [performDelete, user, addToast, selectedSupplier]);
+    }, [performDelete, user, addToast, selectedSupplier, t]);
 
     const initiateDelete = React.useCallback(async (id: string, name: string) => {
         if (!canEdit) return;
@@ -287,7 +287,7 @@ export const Suppliers: React.FC = () => {
             onConfirm: () => handleDelete(id, name),
             closeOnConfirm: false
         });
-    }, [canEdit, handleDelete, user?.organizationId]);
+    }, [canEdit, handleDelete, user?.organizationId, t]);
 
     const deferredFilter = useDeferredValue(filter);
     const filteredSuppliers = useMemo(() => {
