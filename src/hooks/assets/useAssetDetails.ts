@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { collection, query, where, orderBy, limit, getDocs, onSnapshot, addDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
-import { Asset, SystemLog, MaintenanceRecord, Risk, Incident, Project, Audit, Document as GRCDocument } from '../../types';
+import { Asset, SystemLog, MaintenanceRecord, Risk, Incident, Project, Audit, Document as GRCDocument, Control } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
 
 export function useAssetDetails(asset: Asset | null) {
@@ -15,6 +15,7 @@ export function useAssetDetails(asset: Asset | null) {
     const [linkedProjects, setLinkedProjects] = useState<Project[]>([]);
     const [linkedAudits, setLinkedAudits] = useState<Audit[]>([]);
     const [linkedDocuments, setLinkedDocuments] = useState<GRCDocument[]>([]);
+    const [linkedControls, setLinkedControls] = useState<Control[]>([]);
     const [loadingDetails, setLoadingDetails] = useState(false);
 
     useEffect(() => {
@@ -26,6 +27,7 @@ export function useAssetDetails(asset: Asset | null) {
             setLinkedProjects([]);
             setLinkedAudits([]);
             setLinkedDocuments([]);
+            setLinkedControls([]);
             return;
         }
 
@@ -66,6 +68,11 @@ export function useAssetDetails(asset: Asset | null) {
                 const docQ = query(collection(db, 'documents'), where('organizationId', '==', user.organizationId), where('relatedAssetIds', 'array-contains', asset.id));
                 const snapDoc = await getDocs(docQ);
                 setLinkedDocuments(snapDoc.docs.map(d => ({ id: d.id, ...d.data() } as GRCDocument)));
+
+                // Controls
+                const ctrlQ = query(collection(db, 'controls'), where('organizationId', '==', user.organizationId), where('relatedAssetIds', 'array-contains', asset.id));
+                const snapCtrl = await getDocs(ctrlQ);
+                setLinkedControls(snapCtrl.docs.map(d => ({ id: d.id, ...d.data() } as Control)));
 
             } catch (e) {
                 ErrorLogger.handleErrorWithToast(e, 'useAssetDetails', 'FETCH_FAILED');
@@ -110,6 +117,7 @@ export function useAssetDetails(asset: Asset | null) {
         linkedProjects,
         linkedAudits,
         linkedDocuments,
+        linkedControls,
         loadingDetails,
         addMaintenance
     };

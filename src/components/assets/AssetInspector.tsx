@@ -22,6 +22,7 @@ import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { AreaChart, Area, XAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, YAxis } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { sanitizeData } from '../../utils/dataSanitizer';
+import { LayoutDashboard, RefreshCw, Shield, Network, BrainCircuit, MessageSquare } from 'lucide-react';
 
 interface AssetInspectorProps {
     isOpen: boolean;
@@ -47,7 +48,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
     canEdit
 }) => {
     const navigate = useNavigate();
-    const [inspectorTab, setInspectorTab] = useState('details');
+    const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'compliance' | 'projects' | 'audits' | 'documents' | 'history' | 'graph' | 'intelligence' | 'comments'>('details');
     const {
         maintenanceRecords,
         linkedRisks,
@@ -55,6 +56,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
         linkedProjects,
         linkedAudits,
         linkedDocuments,
+        linkedControls,
         addMaintenance
     } = useAssetDetails(selectedAsset || null);
 
@@ -118,21 +120,22 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
         if (l === 'Critique') return 'bg-red-100/80 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
         if (l === 'Élevée') return 'bg-orange-100/80 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
         if (l === 'Moyenne') return 'bg-yellow-100/80 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
-        return 'bg-emerald-100/80 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800';
+        return 'bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800';
     };
 
     const tabs = [
-        { id: 'details', label: 'Détails' },
+        { id: 'details', label: 'Détails', icon: LayoutDashboard },
         ...(selectedAsset ? [
-            { id: 'lifecycle', label: 'Cycle de vie' },
-            { id: 'security', label: 'Sécurité' },
-            { id: 'projects', label: 'Projets' },
-            { id: 'audits', label: 'Audits' },
-            { id: 'documents', label: 'Documents' },
-            { id: 'history', label: 'Historique' },
-            { id: 'graph', label: 'Graph' },
-            { id: 'intelligence', label: 'Intelligence' },
-            { id: 'comments', label: 'Commentaires' }
+            { id: 'lifecycle', label: 'Cycle de Vie', icon: RefreshCw },
+            { id: 'security', label: 'Sécurité', icon: ShieldAlert },
+            { id: 'compliance', label: 'Conformité', icon: Shield },
+            { id: 'projects', label: 'Projets', icon: FolderKanban },
+            { id: 'audits', label: 'Audits', icon: CheckSquare },
+            { id: 'documents', label: 'Documents', icon: FileText },
+            { id: 'history', label: 'Historique', icon: History },
+            { id: 'graph', label: 'Graphe', icon: Network },
+            { id: 'intelligence', label: 'Intelligence', icon: BrainCircuit },
+            { id: 'comments', label: 'Discussion', icon: MessageSquare }
         ] : [])
     ];
 
@@ -150,7 +153,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
             ) : null}
             tabs={tabs}
             activeTab={inspectorTab}
-            onTabChange={setInspectorTab}
+            onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
         >
 
             <div className="space-y-8 max-w-7xl mx-auto">
@@ -473,6 +476,30 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                     </div>
                 )}
 
+                {inspectorTab === 'compliance' && selectedAsset && (
+                    <div className="space-y-8">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><Shield className="h-4 w-4 mr-2" /> Contrôles de Sécurité ({linkedControls.length})</h3>
+                        {linkedControls.length === 0 ? (
+                            <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun contrôle associé.</p>
+                        ) : (
+                            <div className="grid gap-4">
+                                {linkedControls.map(ctrl => (
+                                    <div key={ctrl.id} className="p-5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl shadow-sm hover:shadow-md transition-all">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                                {ctrl.code}
+                                            </span>
+                                            <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${ctrl.status === 'Implémenté' ? 'bg-green-100 text-green-700' : ctrl.status === 'Partiel' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{ctrl.status}</span>
+                                        </div>
+                                        <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">{ctrl.name}</p>
+                                        <div className="text-[10px] text-slate-400">Type: {ctrl.type || 'Non défini'}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <p className="text-xs text-slate-400 text-center mt-4">Les contrôles sont gérés dans le module Conformité.</p>
+                    </div>
+                )}
                 {inspectorTab === 'projects' && selectedAsset && (
                     <div className="space-y-8">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets Liés ({linkedProjects.length})</h3>
