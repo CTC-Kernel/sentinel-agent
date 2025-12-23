@@ -142,7 +142,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             </div>
                             <div>
                                 <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight leading-none mb-1">
-                                    {organizationName || user?.organizationName || 'Dashboard'}
+                                    {organizationName || user?.organizationName || t('sidebar.dashboard')}
                                 </h1>
                                 <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                                     <span>{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>

@@ -35,6 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const setTheme = useStore(s => s.setTheme);
 
     const [isBlocked, setIsBlocked] = useState(isAppCheckFailed);
+    const [claimsSynced, setClaimsSynced] = useState(false);
 
     const loadingRef = useRef(loading);
     const firebaseUserUidRef = useRef<string | undefined>(firebaseUser?.uid);
@@ -61,9 +62,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     await refreshUserTokenFn();
                     // Re-rafraîchir après l'appel de la fonction
                     await auth.currentUser.getIdToken(true);
+                    setClaimsSynced(true);
                 } catch (e) {
                     ErrorLogger.warn('Failed to refresh custom claims via Cloud Function', 'AuthContext.refreshSession', { metadata: { error: e } });
                 }
+            } else {
+                setClaimsSynced(true);
             }
         } catch (err) {
             ErrorLogger.error(err, 'AuthContext.refreshSession');
@@ -220,19 +224,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                         setUser(userData);
 
-                        if (userData.organizationId && auth.currentUser) {
-                            const key = `claims_refreshed_${auth.currentUser.uid}_${userData.organizationId}`;
-                            if (!sessionStorage.getItem(key)) {
-                                sessionStorage.setItem(key, '1');
-                                try {
-                                    const functions = getFunctions();
-                                    const refreshUserTokenFn = httpsCallable(functions, 'refreshUserToken');
-                                    await refreshUserTokenFn();
-                                    await auth.currentUser.getIdToken(true);
-                                } catch (e) {
-                                    ErrorLogger.warn('Failed to refresh user token via Cloud Function', 'AuthContext.onSnapshot.refreshUserToken', { metadata: { error: e } });
+                        // 3. Synchronization des Claims (CRITIQUE pour éviter permission-denied)
+                        if (auth.currentUser) {
+                            let isSynced = true;
+
+                            if (userData.organizationId) {
+                                // Vérifier si le token actuel a le bon claim
+                                const tokenResult = await auth.currentUser.getIdTokenResult();
+                                const tokenOrgId = tokenResult.claims.organizationId;
+
+                                if (tokenOrgId !== userData.organizationId) {
+                                    console.log(`Claims mismatch: Token(${tokenOrgId}) vs Profile(${userData.organizationId}) - Syncing...`);
+                                    isSynced = false;
+                                    setClaimsSynced(false);
+
+                                    try {
+                                        // 1. Tenter un refresh simple
+                                        await auth.currentUser.getIdToken(true);
+                                        const newToken = await auth.currentUser.getIdTokenResult();
+
+                                        if (newToken.claims.organizationId === userData.organizationId) {
+                                            isSynced = true;
+                                        } else {
+                                            // 2. Si échec, forcer via Cloud Function
+                                            const functions = getFunctions();
+                                            const refreshUserTokenFn = httpsCallable(functions, 'refreshUserToken');
+                                            await refreshUserTokenFn();
+                                            await auth.currentUser.getIdToken(true);
+
+                                            // 3. Vérification finale
+                                            const finalToken = await auth.currentUser.getIdTokenResult();
+                                            if (finalToken.claims.organizationId === userData.organizationId) {
+                                                isSynced = true;
+                                                console.log('Claims synced successfully.');
+                                            } else {
+                                                ErrorLogger.warn("Critical: Claims sync failed after retry", "AuthContext.sync");
+                                                // On laisse isSynced à false, ce qui bloquera l'accès via AuthGuard
+                                            }
+                                        }
+                                    } catch (e) {
+                                        ErrorLogger.warn('Failed to sync claims', 'AuthContext.sync', { metadata: { error: e } });
+                                    }
                                 }
                             }
+                            setClaimsSynced(isSynced);
+                        } else {
+                            setClaimsSynced(true);
                         }
 
                         if (userData.theme) setTheme(userData.theme);
@@ -399,7 +436,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         enrollMFA,
         verifyMFA,
         unenrollMFA,
-        loginWithSSO
+        loginWithSSO,
+        claimsSynced
     };
 
     return (

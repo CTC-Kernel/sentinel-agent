@@ -172,10 +172,10 @@ export const UserActivityLog: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex flex-col gap-2">
                     <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent animate-slide-in-left">
-                        {isAdmin && viewMode === 'global' ? 'Journal d\'Activité Global' : 'Mon Activité'}
+                        {isAdmin && viewMode === 'global' ? t('settings.activityPage.globalLog') : t('settings.activityPage.myLog')}
                     </h2>
                     <p className="text-slate-500 dark:text-slate-400">
-                        {isAdmin && viewMode === 'global' ? 'Historique complet des actions de l\'organisation.' : 'Historique de vos actions récentes sur la plateforme.'}
+                        {isAdmin && viewMode === 'global' ? t('settings.activityPage.globalLogDesc') : t('settings.activityPage.myLogDesc')}
                     </p>
                 </div>
 
@@ -190,7 +190,7 @@ export const UserActivityLog: React.FC = () => {
                         >
                             <span className="flex items-center gap-2">
                                 <User className="w-4 h-4" />
-                                Moi
+                                {t('settings.activityPage.me')}
                             </span>
                         </button>
                         <button
@@ -202,7 +202,7 @@ export const UserActivityLog: React.FC = () => {
                         >
                             <span className="flex items-center gap-2">
                                 <Globe className="w-4 h-4" />
-                                Global
+                                {t('settings.activityPage.global')}
                             </span>
                         </button>
                     </div>
@@ -217,7 +217,7 @@ export const UserActivityLog: React.FC = () => {
                             <Activity className="w-5 h-5" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                            {isAdmin && viewMode === 'global' ? 'Actions Récentes (Organisation)' : 'Vos Dernières Actions'}
+                            {isAdmin && viewMode === 'global' ? t('settings.activityPage.recentActionsOrg') : t('settings.activityPage.recentActionsMe')}
                         </h3>
                     </div>
                 </div>
@@ -230,8 +230,8 @@ export const UserActivityLog: React.FC = () => {
                         emptyState={
                             <EmptyState
                                 icon={viewMode === 'global' ? Globe : Activity}
-                                title="Aucune activité"
-                                description={viewMode === 'global' ? "Aucun journal d'activité trouvé pour l'organisation." : "Vous n'avez pas encore d'activité enregistrée."}
+                                title={t('settings.activityPage.noActivity')}
+                                description={viewMode === 'global' ? t('settings.activityPage.noActivityGlobal') : t('settings.activityPage.noActivityMe')}
                                 color="slate"
                             />
                         }

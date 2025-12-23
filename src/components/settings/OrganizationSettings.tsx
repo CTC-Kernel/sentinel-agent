@@ -170,7 +170,7 @@ export const OrganizationSettings: React.FC = () => {
         setConfirmTransferData({
             isOpen: true,
             title: t('settings.transferOwnership'),
-            message: t('settings.transferOwnershipMessage') || "Are you sure you want to transfer ownership? This action is irreversible.",
+            message: t('settings.transferOwnershipMessage'),
             onConfirm: handleTransferOwnership
         });
     }

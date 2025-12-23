@@ -3,7 +3,7 @@ import { useStore } from '../../store';
 import { Activity, Trash2, AlertTriangle, Download } from 'lucide-react';
 import { Button } from '../ui/button';
 import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { db, auth } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
 import { DataExportService } from '../../services/dataExportService';
 import { hasPermission } from '../../utils/permissions';
@@ -12,6 +12,9 @@ import { fr } from 'date-fns/locale';
 import { SystemLog } from '../../types';
 import { DataTable } from '../ui/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
+import { ConfirmModal } from '../ui/ConfirmModal';
+import { Modal } from '../ui/Modal';
+import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 
 export const SystemSettings: React.FC = () => {
     const { user, addToast, t } = useStore();
@@ -116,7 +119,7 @@ export const SystemSettings: React.FC = () => {
         },
         {
             accessorKey: 'details',
-            header: 'Détails',
+            header: t('common.details'),
             cell: ({ row }) => {
                 const details = row.original.details;
                 // Safely handle unknown details structure
@@ -132,6 +135,49 @@ export const SystemSettings: React.FC = () => {
             }
         }
     ], [t]);
+
+    // Account Deletion Logic
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isReauthModalOpen, setIsReauthModalOpen] = useState(false);
+    const [reauthPassword, setReauthPassword] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const performDelete = async () => {
+        if (!auth.currentUser) return;
+        setIsDeleting(true);
+        try {
+            const { deleteUser } = await import('firebase/auth');
+            await deleteUser(auth.currentUser);
+            addToast("Compte supprimé avec succès. Au revoir.", "success");
+            // AuthContext will handle logout/redirect automatically
+        } catch (error: any) {
+            if (error.code === 'auth/requires-recent-login') {
+                setIsDeleteModalOpen(false);
+                setIsReauthModalOpen(true);
+            } else {
+                ErrorLogger.handleErrorWithToast(error, 'DeleteAccount');
+            }
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const handleReauth = async () => {
+        if (!auth.currentUser || !reauthPassword) return;
+        setIsDeleting(true);
+        try {
+            const { reauthenticateWithCredential, EmailAuthProvider } = await import('firebase/auth');
+            const credential = EmailAuthProvider.credential(auth.currentUser.email!, reauthPassword);
+            await reauthenticateWithCredential(auth.currentUser, credential);
+            setIsReauthModalOpen(false);
+            setReauthPassword('');
+            // Retry delete
+            await performDelete();
+        } catch (error: any) {
+            ErrorLogger.handleErrorWithToast(error, 'ReAuth', 'AUTH_FAILED');
+            setIsDeleting(false);
+        }
+    };
 
     return (
         <div className="space-y-8 animate-fade-in-up">
@@ -169,11 +215,10 @@ export const SystemSettings: React.FC = () => {
                         </div>
                         <div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-                                Export de Données
+                                {t('settings.systemPage.exportData')}
                             </h3>
                             <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-2xl">
-                                Téléchargez une archive complète (ZIP) de toutes les données de votre organisation (Actifs, Risques, Contrôles, Documents).
-                                Idéal pour vos sauvegardes ou pour la portabilité des données.
+                                {t('settings.systemPage.exportDataDesc')}
                             </p>
                             <Button
                                 variant="outline"
@@ -184,12 +229,12 @@ export const SystemSettings: React.FC = () => {
                                 {exporting ? (
                                     <>
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                                        Export en cours...
+                                        {t('settings.systemPage.exporting')}
                                     </>
                                 ) : (
                                     <>
                                         <Download className="h-4 w-4 mr-2" />
-                                        Exporter tout (.zip)
+                                        {t('settings.systemPage.exportAllZip')}
                                     </>
                                 )}
                             </Button>
@@ -209,11 +254,10 @@ export const SystemSettings: React.FC = () => {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-indigo-900 dark:text-indigo-400 mb-2 flex items-center gap-2">
-                                    Zone de Démonstration
+                                    {t('settings.systemPage.demoZone')}
                                 </h3>
                                 <p className="text-sm text-indigo-700/80 dark:text-indigo-300/70 mb-6 leading-relaxed max-w-2xl">
-                                    Générez un jeu de données complet (Risques, Actifs, Audits) pour peupler cet environnement de démonstration.
-                                    Attention : les données seront ajoutées à l'existant.
+                                    {t('settings.systemPage.demoZoneDesc')}
                                 </p>
                                 <Button
                                     variant="outline"
@@ -236,12 +280,12 @@ export const SystemSettings: React.FC = () => {
                                     {exporting ? (
                                         <>
                                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                                            Génération en cours...
+                                            {t('settings.systemPage.generating')}
                                         </>
                                     ) : (
                                         <>
                                             <Activity className="h-4 w-4 mr-2" />
-                                            Générer Données Démo
+                                            {t('settings.systemPage.generateDemoData')}
                                         </>
                                     )}
                                 </Button>
@@ -264,12 +308,12 @@ export const SystemSettings: React.FC = () => {
                                 {t('settings.dangerZone')}
                             </h3>
                             <p className="text-sm text-red-700/80 dark:text-red-300/70 mb-6 leading-relaxed max-w-2xl">
-                                {t('settings.deleteAccountDescription')}
+                                {t('settings.systemPage.deleteAccountDesc')}
                             </p>
                             <Button
                                 variant="destructive"
-                                isLoading={false}
-                                onClick={() => addToast("Fonctionnalité à venir pour la suppression de compte", "info")}
+                                isLoading={isDeleting}
+                                onClick={() => setIsDeleteModalOpen(true)}
                                 className="w-full sm:w-auto shadow-lg shadow-red-500/20 rounded-xl"
                             >
                                 <Trash2 className="h-4 w-4 mr-2" />
@@ -279,6 +323,45 @@ export const SystemSettings: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={performDelete}
+                title={t('settings.deleteAccount')}
+                message="Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Cette action est irréversible et toutes vos données seront perdues."
+                type="danger"
+                cancelText={t('common.cancel')}
+                confirmText={t('common.delete')}
+                loading={isDeleting}
+            />
+
+            <Modal
+                isOpen={isReauthModalOpen}
+                onClose={() => { setIsReauthModalOpen(false); setIsDeleting(false); }}
+                title="Vérification de sécurité"
+                maxWidth="max-w-md"
+            >
+                <div className="p-6 space-y-4">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Pour des raisons de sécurité, veuillez confirmer votre mot de passe pour continuer la suppression du compte.
+                    </p>
+                    <FloatingLabelInput
+                        label="Mot de passe"
+                        type="password"
+                        value={reauthPassword}
+                        onChange={(e) => setReauthPassword(e.target.value)}
+                    />
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button variant="ghost" onClick={() => setIsReauthModalOpen(false)}>
+                            Annuler
+                        </Button>
+                        <Button variant="destructive" onClick={handleReauth} isLoading={isDeleting}>
+                            Confirmer la suppression
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

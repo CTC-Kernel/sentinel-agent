@@ -224,9 +224,9 @@ export const IntegrationSettings: React.FC = () => {
                     </div>
 
                     <div className="pt-6 border-t border-white/20 dark:border-white/5">
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2">Export iCal / Outlook</h4>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2">{t('settings.integrationsPage.exportIcal')}</h4>
                         <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
-                            Téléchargez vos tâches et audits pour Outlook, Apple Calendar, etc.
+                            {t('settings.integrationsPage.exportIcalDesc')}
                         </p>
                         <Button
                             onClick={handleExportCalendar}
@@ -235,7 +235,7 @@ export const IntegrationSettings: React.FC = () => {
                             className="w-full border-white/40 dark:border-white/10"
                         >
                             <Download className="h-4 w-4 mr-2" />
-                            Télécharger .ics
+                            {t('settings.integrationsPage.downloadIcs')}
                         </Button>
                     </div>
                 </div>
@@ -249,14 +249,14 @@ export const IntegrationSettings: React.FC = () => {
                         <div className="p-2.5 bg-brand-500/10 dark:bg-brand-500/20 rounded-xl text-brand-600 dark:text-brand-400 backdrop-blur-md">
                             <ShieldCheck className="w-5 h-5" />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Authentification Unique (SSO)</h3>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.integrationsPage.ssoTitle')}</h3>
                         <span className="ml-auto px-2 py-1 text-[10px] font-bold bg-brand-100 text-brand-700 rounded-full border border-brand-200">ENTERPRISE</span>
                     </div>
                 </div>
                 <div className="relative z-10 p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-4">
                         <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                            Configurez la connexion unique pour votre organisation. Compatible avec Okta, Azure AD, et Google Workspace (OIDC/SAML).
+                            {t('settings.integrationsPage.ssoDesc')}
                         </p>
 
                         <div className="space-y-4 pt-2">
@@ -282,18 +282,18 @@ export const IntegrationSettings: React.FC = () => {
                     </div>
 
                     <div className="space-y-4 md:border-l md:border-white/20 md:pl-8 dark:border-white/5">
-                        <h4 className="font-medium text-slate-900 dark:text-white">Statut de la connexion</h4>
+                        <h4 className="font-medium text-slate-900 dark:text-white">{t('settings.integrationsPage.ssoStatus')}</h4>
                         <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center gap-3">
                             <div className="w-2.5 h-2.5 rounded-full bg-slate-400" />
-                            <span className="text-sm text-slate-600 dark:text-slate-400">Non configuré</span>
+                            <span className="text-sm text-slate-600 dark:text-slate-400">{t('settings.integrationsPage.notConfigured')}</span>
                         </div>
 
                         <div className="pt-4">
                             <Button className="w-full" disabled={true} variant="secondary">
-                                Sauvegarder et tester la connexion
+                                {t('settings.integrationsPage.saveAndTest')}
                             </Button>
                             <p className="mt-2 text-xs text-center text-slate-400">
-                                Contactez le support pour activer le module Enterprise.
+                                {t('settings.integrationsPage.contactSupport')}
                             </p>
                         </div>
                     </div>

@@ -11,6 +11,7 @@ export interface AuthContextType {
     isBlocked?: boolean;
     dismissBlockerError: () => void;
     isAdmin: boolean;
+    claimsSynced: boolean;
     refreshSession: () => Promise<void>;
     logout: () => Promise<void>;
     enrollMFA: () => Promise<string>; // Returns QR Code URL

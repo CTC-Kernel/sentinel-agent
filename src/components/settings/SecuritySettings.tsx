@@ -77,7 +77,7 @@ export const SecuritySettings: React.FC = () => {
         setVerifyingMFA(true);
         try {
             await verifyMFA('Sentinel Authenticator', mfaCode);
-            addToast("MFA activé avec succès", "success");
+            addToast(t('settings.securityPage.mfaSuccess'), "success");
             setIsEnrollingMFA(false);
             setQrCodeUrl(null);
             setMfaCode('');
@@ -92,7 +92,7 @@ export const SecuritySettings: React.FC = () => {
         if (!confirm("Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ?")) return;
         try {
             await unenrollMFA();
-            addToast("MFA désactivé", "success");
+            addToast(t('settings.securityPage.mfaDisabled'), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'SecuritySettings.handleDisableMFA', 'UNKNOWN_ERROR');
         }
@@ -148,12 +148,12 @@ export const SecuritySettings: React.FC = () => {
                         <div className="p-2.5 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 backdrop-blur-md">
                             <ShieldAlert className="w-5 h-5" />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Authentification à deux facteurs</h3>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('settings.securityPage.mfaTitle')}</h3>
                     </div>
                 </div>
                 <div className="relative z-10 p-6 flex-1 flex flex-col justify-between space-y-6">
                     <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
-                        Sécurisez votre compte en ajoutant une seconde étape de validation.
+                        {t('settings.securityPage.mfaDesc')}
                     </p>
 
                     {!isEnrollingMFA && !qrCodeUrl ? (
@@ -162,20 +162,20 @@ export const SecuritySettings: React.FC = () => {
                                 onClick={handleEnrollMFA}
                                 className="w-full h-11 text-base bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20 border-none"
                             >
-                                Activer MFA
+                                {t('settings.securityPage.enableMfa')}
                             </Button>
                             <button
                                 onClick={handleDisableMFA}
                                 className="w-full text-xs text-rose-500 hover:text-rose-600 font-bold hover:underline py-2"
                             >
-                                Désactiver MFA
+                                {t('settings.securityPage.disableMfa')}
                             </button>
                         </div>
                     ) : (
                         <div className="space-y-6 animate-fade-in">
                             {qrCodeUrl && (
                                 <div className="flex flex-col items-center p-6 bg-white/50 dark:bg-white/5 rounded-2xl border border-white/60 dark:border-white/10 shadow-inner backdrop-blur-sm">
-                                    <p className="text-xs font-bold text-slate-500 mb-4 text-center uppercase tracking-wider">Scannez ce QR Code</p>
+                                    <p className="text-xs font-bold text-slate-500 mb-4 text-center uppercase tracking-wider">{t('settings.securityPage.scanQr')}</p>
                                     <div className="bg-white p-2 rounded-xl shadow-lg">
                                         <img src={qrCodeUrl} alt="QR Code" className="w-40 h-40 mix-blend-multiply" />
                                     </div>
@@ -185,7 +185,7 @@ export const SecuritySettings: React.FC = () => {
 
                             <div>
                                 <FloatingLabelInput
-                                    label="Code de vérification (6 chiffres)"
+                                    label={t('settings.securityPage.verifyCode')}
                                     value={mfaCode}
                                     onChange={(e) => setMfaCode(e.target.value)}
                                     className="text-center tracking-[0.5em] font-mono text-lg bg-white/50 dark:bg-black/20 backdrop-blur-sm border-white/20"
@@ -199,7 +199,7 @@ export const SecuritySettings: React.FC = () => {
                                     onClick={() => { setIsEnrollingMFA(false); setQrCodeUrl(null); }}
                                     className="flex-1 border-slate-200 dark:border-slate-700"
                                 >
-                                    Annuler
+                                    {t('settings.securityPage.cancel')}
                                 </Button>
                                 <Button
                                     onClick={handleVerifyMFA}
@@ -207,7 +207,7 @@ export const SecuritySettings: React.FC = () => {
                                     isLoading={verifyingMFA}
                                     className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20 border-none"
                                 >
-                                    Vérifier
+                                    {t('settings.securityPage.verify')}
                                 </Button>
                             </div>
                         </div>
