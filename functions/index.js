@@ -638,10 +638,11 @@ exports.switchOrganization = onCall(async (request) => {
  */
 exports.createOrganization = onCall(async (request) => {
     // 1. Validate Input using Zod
+    // Email/Password are optional because Authenticated users (request.auth) don't send them.
     const { organizationName, email, password, industry, department, displayName } = validate(z.object({
         organizationName: z.string().min(2).max(100),
-        email: z.string().email(),
-        password: z.string().min(6), // Password is required for new user creation
+        email: z.string().email().optional(),
+        password: z.string().min(6).optional(),
         industry: z.string().optional(),
         department: z.string().optional(),
         displayName: z.string().optional()
@@ -650,31 +651,56 @@ exports.createOrganization = onCall(async (request) => {
     const db = admin.firestore();
 
     try {
-        // 2. Check if user already exists in Auth
+        let uid;
+        let userEmail;
         let userRecord;
-        try {
-            userRecord = await admin.auth().getUserByEmail(email);
-            // If user exists, check if they already belong to an organization
-            const userSnap = await db.collection('users').doc(userRecord.uid).get();
-            if (userSnap.exists && userSnap.data().organizationId) {
-                throw new HttpsError('already-exists', 'The email address is already in use by another account and belongs to an organization.');
-            }
-            // If user exists but has no organization, we will use this user.
-        } catch (error) {
-            if (error.code === 'auth/user-not-found') {
-                // User does not exist, create new user
-                userRecord = await admin.auth().createUser({
-                    email: email,
-                    password: password,
-                    displayName: displayName || organizationName + " Admin",
-                });
-            } else {
-                throw error; // Re-throw other auth errors
-            }
-        }
 
-        const uid = userRecord.uid;
-        const userEmail = userRecord.email;
+        // 2. Determine User Context (Auth vs Public)
+        if (request.auth) {
+            // AUTHENTICATED USER (Onboarding Step 1)
+            uid = request.auth.uid;
+            userEmail = request.auth.token.email;
+
+            // Fetch user record for display name fallback
+            userRecord = await admin.auth().getUser(uid);
+
+            // Verify if user already has an organization (Double check)
+            const userSnap = await db.collection('users').doc(uid).get();
+            if (userSnap.exists && userSnap.data().organizationId) {
+                throw new HttpsError('already-exists', 'User already belongs to an organization.');
+            }
+
+        } else {
+            // PUBLIC SIGNUP (Legacy/Alternative flow)
+            if (!email || !password) {
+                throw new HttpsError('invalid-argument', 'Email and password are required for new user registration.');
+            }
+
+            // Check if user already exists in Auth
+            try {
+                userRecord = await admin.auth().getUserByEmail(email);
+                // If user exists, check if they already belong to an organization
+                const userSnap = await db.collection('users').doc(userRecord.uid).get();
+                if (userSnap.exists && userSnap.data().organizationId) {
+                    throw new HttpsError('already-exists', 'The email address is already in use by another account and belongs to an organization.');
+                }
+                // If user exists but has no organization, we will use this user.
+            } catch (error) {
+                if (error.code === 'auth/user-not-found') {
+                    // User does not exist, create new user
+                    userRecord = await admin.auth().createUser({
+                        email: email,
+                        password: password,
+                        displayName: displayName || organizationName + " Admin",
+                    });
+                } else {
+                    throw error; // Re-throw other auth errors
+                }
+            }
+
+            uid = userRecord.uid;
+            userEmail = userRecord.email;
+        }
 
         // 3. Check if user already has an organization (Firestore check, redundant if Auth check is thorough)
         const userRef = db.collection('users').doc(uid);
