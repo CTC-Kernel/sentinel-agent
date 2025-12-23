@@ -65,6 +65,7 @@ i18n
                         positive: "Must be a positive number",
                         min: "Value must be at least {min}",
                         max: "Value must be at most {max}",
+                        maxLength: "Maximum {max} characters allowed",
                         ip: "Invalid IP address"
                     },
                     tour: {
@@ -1189,6 +1190,7 @@ i18n
                         positive: "Doit être un nombre positif",
                         min: "La valeur doit être au moins {min}",
                         max: "La valeur doit être au plus {max}",
+                        maxLength: "Maximum {max} caractères autorisés",
                         ip: "Adresse IP invalide"
                     },
                     sidebar: {

@@ -3,7 +3,7 @@ import i18n from '../i18n';
 import { Criticality } from '../types';
 
 export const assetSchema = z.object({
-    name: z.string().min(1, i18n.t('validation.required')),
+    name: z.string().min(1, i18n.t('validation.required')).max(200, i18n.t('validation.maxLength', { max: 200 })),
     type: z.enum(['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'], {
         error: i18n.t('validation.required'),
     }),

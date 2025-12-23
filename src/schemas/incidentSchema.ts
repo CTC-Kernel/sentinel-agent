@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { Criticality } from '../types';
 
 export const incidentSchema = z.object({
-    title: z.string().min(1, "Le titre est requis"),
-    description: z.string().min(1, "La description est requise"),
+    title: z.string().min(1, "Le titre est requis").max(200, "Le titre est trop long (max 200)"),
+    description: z.string().min(1, "La description est requise").max(5000, "La description est trop longue (max 5000)"),
     severity: z.nativeEnum(Criticality),
     status: z.enum(['Nouveau', 'Analyse', 'Contenu', 'Résolu', 'Fermé']),
     category: z.enum(['Ransomware', 'Phishing', 'Vol Matériel', 'Indisponibilité', 'Fuite de Données', 'Autre']).optional(),
