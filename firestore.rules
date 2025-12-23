@@ -449,7 +449,10 @@ service cloud.firestore {
     // System Logs (Immutable)
     match /system_logs/{logId} {
       allow read: if canRead(resource.data.organizationId);
-      allow create: if false; // System logs should only be created by backend
+      // Allow creation by authenticated users for their organization to support client-side audit logging
+      allow create: if isAuthenticated() && 
+        request.resource.data.organizationId == getUserData().organizationId &&
+        request.resource.data.userId == request.auth.uid;
       allow update: if false;
       allow delete: if false;
     }
