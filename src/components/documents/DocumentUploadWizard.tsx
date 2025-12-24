@@ -107,8 +107,12 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
 
     // Auto-set owner name
     useEffect(() => {
+        if (!ownerId) {
+            setValue('owner', '', { shouldDirty: true, shouldValidate: true });
+            return;
+        }
         const u = users.find(u => u.uid === ownerId);
-        if (u) setValue('owner', u.displayName || u.email);
+        setValue('owner', u ? (u.displayName || u.email || '') : '', { shouldDirty: true, shouldValidate: true });
     }, [ownerId, users, setValue]);
 
     const handleFileUploadComplete = (url: string, fName: string, hash?: string, isSecure?: boolean) => {
@@ -209,6 +213,7 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-8 custom-scrollbar relative z-10">
                     <form id="wizard-form" onSubmit={handleSubmit(handleFinalSubmit)}>
+                        <input type="hidden" {...register('owner', { required: true })} />
 
                         {/* Step 1: File */}
                         {currentStep === 0 && (
@@ -425,23 +430,6 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                         {currentStep === 3 && (
                             <div className="space-y-6 animate-fade-in-right">
                                 <div className="text-center mb-8">
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Cycle de Vie & Responsabilités</h3>
-                                    <p className="text-sm text-slate-500">Définissez qui gère ce document</p>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <CustomSelect
-                                        label="Propriétaire"
-                                        options={users.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                                        value={ownerId || ''}
-                                        onChange={(val) => setValue('ownerId', typeof val === 'string' ? val : '')}
-                                        error={errors.ownerId?.message}
-                                    />
-                                    <FloatingLabelInput
-                                        label="Prochaine Révision"
-                                        type="date"
-                                        {...register('nextReviewDate')}
-                                        error={errors.nextReviewDate?.message}
-                                    />
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <Controller

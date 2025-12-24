@@ -117,7 +117,7 @@ export const Documents: React.FC = () => {
         isExportingCSV,
         confirmData,
         setConfirmData
-    } = useDocumentActions();
+    } = useDocumentActions(usersList);
 
     // --- Effects ---
     // Handle Voxel/Link Navigation

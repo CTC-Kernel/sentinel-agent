@@ -5,7 +5,17 @@ import { logAction } from './logger';
 
 export class DocumentWorkflowService {
 
+    private static sanitizeReviewers(document: Document, reviewers: string[], submittingUserId: string): string[] {
+        const banned = new Set([submittingUserId, document.ownerId, document.owner]);
+        const clean = Array.from(new Set((reviewers || []).filter(r => !!r && !banned.has(r))));
+        if (clean.length === 0) {
+            throw new Error("Sélectionnez au moins un reviewer valide différent du propriétaire.");
+        }
+        return clean;
+    }
+
     static async submitForReview(document: Document, user: UserProfile, reviewers: string[], comment?: string) {
+        const sanitizedReviewers = this.sanitizeReviewers(document, reviewers, user.uid);
         const historyItem: WorkflowHistoryItem = {
             id: crypto.randomUUID(),
             date: new Date().toISOString(),
@@ -20,7 +30,7 @@ export class DocumentWorkflowService {
         await updateDoc(doc(db, 'documents', document.id), {
             status: 'En revue',
             workflowStatus: 'Review',
-            reviewers: reviewers,
+            reviewers: sanitizedReviewers,
             workflowHistory: arrayUnion(historyItem),
             updatedAt: new Date().toISOString()
         });

@@ -13,7 +13,18 @@ import { CsvParser } from '../../utils/csvUtils';
 import { getDocumentReviewTemplate } from '../../services/emailTemplates';
 import { sendEmail } from '../../services/emailService';
 
-export const useDocumentActions = () => {
+const normalizeUserIds = (ids: string[] | undefined, usersList: UserProfile[]) => {
+    if (!ids || ids.length === 0) return [];
+    const allowed = new Set(usersList.map(u => u.uid));
+    return Array.from(new Set(ids.filter(id => allowed.has(id))));
+};
+
+const resolveOwner = (ownerId: string | undefined, usersList: UserProfile[]) => {
+    if (!ownerId) return null;
+    return usersList.find(u => u.uid === ownerId) || null;
+};
+
+export const useDocumentActions = (usersList: UserProfile[] = []) => {
     const { user, addToast } = useStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isExportingCSV, setIsExportingCSV] = useState(false);
@@ -30,8 +41,21 @@ export const useDocumentActions = () => {
         setIsSubmitting(true);
 
         try {
+            const ownerProfile = resolveOwner(data.ownerId, usersList);
+            if (data.ownerId && !ownerProfile) {
+                throw new Error("Propriétaire introuvable dans votre organisation");
+            }
+            const sanitizedReviewers = normalizeUserIds(data.reviewers, usersList);
+            const sanitizedApprovers = normalizeUserIds(data.approvers, usersList);
+            const sanitizedReadBy = normalizeUserIds(data.readBy, usersList);
+
             const docData = {
                 ...data,
+                owner: ownerProfile ? (ownerProfile.displayName || ownerProfile.email || '') : (data.owner || ''),
+                ownerId: ownerProfile?.uid || '',
+                reviewers: sanitizedReviewers,
+                approvers: sanitizedApprovers,
+                readBy: sanitizedReadBy,
                 url: data.storageProvider !== 'firebase' ? data.externalUrl : (data.fileUrl || ''),
                 hash: data.fileHash || '',
                 isSecure: data.isSecure || false,
@@ -76,9 +100,21 @@ export const useDocumentActions = () => {
         setIsSubmitting(true);
         try {
             const newUrl = data.storageProvider !== 'firebase' ? data.externalUrl : (data.fileUrl || currentDoc.url);
+            const ownerProfile = resolveOwner(data.ownerId, usersList) || resolveOwner(currentDoc.ownerId, usersList);
+            if ((data.ownerId || currentDoc.ownerId) && !ownerProfile) {
+                throw new Error("Propriétaire introuvable dans votre organisation");
+            }
+            const sanitizedReviewers = normalizeUserIds(data.reviewers ?? currentDoc.reviewers, usersList);
+            const sanitizedApprovers = normalizeUserIds(data.approvers ?? currentDoc.approvers, usersList);
+            const sanitizedReadBy = normalizeUserIds(data.readBy ?? currentDoc.readBy, usersList);
 
             const updates = {
                 ...data,
+                owner: ownerProfile ? (ownerProfile.displayName || ownerProfile.email || '') : (data.owner || currentDoc.owner),
+                ownerId: ownerProfile?.uid || currentDoc.ownerId || '',
+                reviewers: sanitizedReviewers,
+                approvers: sanitizedApprovers,
+                readBy: sanitizedReadBy,
                 url: newUrl,
                 hash: data.fileHash || currentDoc.hash,
                 isSecure: data.isSecure ?? currentDoc.isSecure,

@@ -171,12 +171,15 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     // const isEditing = !!initialData; // Use initialData to determine if editing
 
     useEffect(() => {
-        if (selectedOwnerId) {
-            const selectedUser = users.find(u => u.uid === selectedOwnerId);
-            if (selectedUser) {
-                setValue('owner', selectedUser.displayName);
-            }
+        if (!selectedOwnerId) {
+            setValue('owner', '', { shouldDirty: true, shouldValidate: true });
+            return;
         }
+        const selectedUser = users.find(u => u.uid === selectedOwnerId);
+        setValue('owner', selectedUser ? (selectedUser.displayName || selectedUser.email || '') : '', {
+            shouldDirty: true,
+            shouldValidate: true
+        });
     }, [selectedOwnerId, users, setValue]);
 
     const handleAISuggestion = async (field: keyof SupplierFormData) => {

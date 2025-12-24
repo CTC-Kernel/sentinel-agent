@@ -89,8 +89,15 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     const storageProvider = useWatch({ control, name: 'storageProvider' });
 
     useEffect(() => {
-        const u = users.find(u => u.uid === ownerId);
-        if (u) setValue('owner', u.displayName || u.email);
+        if (!ownerId) {
+            setValue('owner', '', { shouldDirty: true, shouldValidate: true });
+            return;
+        }
+        const matchedOwner = users.find(u => u.uid === ownerId);
+        setValue('owner', matchedOwner ? (matchedOwner.displayName || matchedOwner.email || '') : '', {
+            shouldDirty: true,
+            shouldValidate: true
+        });
     }, [ownerId, users, setValue]);
 
     const handleFileUploadComplete = async (url: string, fileName: string, hash?: string, isSecure?: boolean, size?: number) => {
@@ -128,6 +135,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
 
     return (
         <form onSubmit={handleSubmit(onFormSubmit, onInvalid)} className="space-y-6">
+            <input type="hidden" {...register('owner', { required: true })} />
             <div className="space-y-6">
                 <FloatingLabelInput
                     label="Titre"
@@ -185,7 +193,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                         label="Propriétaire"
                         options={users.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
                         value={ownerId || ''}
-                        onChange={(val) => setValue('ownerId', typeof val === 'string' ? val : '')}
+                        onChange={(val) => setValue('ownerId', typeof val === 'string' ? val : '', { shouldDirty: true, shouldValidate: true })}
                         error={errors.ownerId?.message}
                     />
                 </div>
