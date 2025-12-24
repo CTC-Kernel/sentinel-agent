@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Project, Risk, Control, Asset, UserProfile } from '../../types';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { CustomSelect } from '../ui/CustomSelect';
 import { DatePicker } from '../ui/DatePicker';
-import { useForm, Controller, useWatch, Resolver } from 'react-hook-form';
+import { useForm, Controller, useWatch, Resolver, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectSchema, ProjectFormData } from '../../schemas/projectSchema';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -31,27 +31,39 @@ interface ProjectFormProps {
     onSubmit: (project: ProjectFormData) => void;
     onCancel: () => void;
     existingProject?: Project;
-    availableUsers?: string[]; // list of manager display names
-    usersList?: UserProfile[]; // Full user objects for members selection
+    usersList?: UserProfile[]; // Full user objects for members selection & manager select
     availableRisks?: Risk[];
     availableControls?: Control[];
     availableAssets?: Asset[];
     initialData?: Partial<ProjectFormData>;
     isLoading?: boolean;
+    formId?: string;
+    hideActions?: boolean;
 }
 
 export const ProjectForm: React.FC<ProjectFormProps> = ({
     onSubmit,
     onCancel,
     existingProject,
-    availableUsers = [],
     usersList = [],
     availableRisks = [],
     availableControls = [],
     availableAssets = [],
     initialData,
     isLoading = false,
+    formId,
+    hideActions = false,
 }) => {
+    const formRef = useRef<HTMLFormElement | null>(null);
+    const dueDateSectionRef = useRef<HTMLDivElement | null>(null);
+
+    const allManagers = useMemo(() => usersList
+        .filter(u => !!u.uid)
+        .map(u => ({
+            value: u.uid,
+            label: u.displayName || u.email || 'Utilisateur'
+        })), [usersList]);
+
     const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useForm<ProjectFormData>({
         resolver: zodResolver(projectSchema) as Resolver<ProjectFormData>,
         shouldUnregister: true,
@@ -59,6 +71,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             name: '',
             description: '',
             manager: '',
+            managerId: '',
             status: 'Planifié',
             startDate: '',
             dueDate: '',
@@ -85,6 +98,12 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 t.status === 'Suspendu'
             ) {
                 setValue('status', t.status);
+            }
+            if (!getValues('dueDate')) {
+                const defaultDue = new Date();
+                defaultDue.setDate(defaultDue.getDate() + 90);
+                const isoDate = defaultDue.toISOString().split('T')[0];
+                setValue('dueDate', isoDate);
             }
         }
     };
@@ -123,6 +142,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 name: existingProject.name || '',
                 description: existingProject.description || '',
                 manager: existingProject.manager || '',
+                managerId: existingProject.managerId || '',
                 status: existingProject.status || 'Planifié',
                 startDate: existingProject.startDate || '',
                 dueDate: existingProject.dueDate || '',
@@ -138,6 +158,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 name: initialData?.name || '',
                 description: initialData?.description || '',
                 manager: initialData?.manager || '',
+                managerId: initialData?.managerId || '',
                 status: initialData?.status || 'Planifié',
                 startDate: initialData?.startDate || '',
                 dueDate: initialData?.dueDate || '',
@@ -151,21 +172,44 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
         }
     }, [existingProject, initialData, reset]);
 
-    const onFormSubmit = (data: ProjectFormData) => {
-        onSubmit(data);
-    };
-
-    const onInvalid = (errors: any) => {
-        console.error("Form Validation Errors:", errors);
-        const missingFields = Object.keys(errors).join(', ');
-        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
-    };
-
     const watchedName = useWatch({ control, name: 'name' });
     const relatedRiskIds = useWatch({ control, name: 'relatedRiskIds' });
+    const scrollToFirstError = (fieldErrors: FieldErrors<ProjectFormData>) => {
+        const fieldOrder: (keyof ProjectFormData)[] = [
+            'name', 'description', 'managerId', 'dueDate'
+        ];
+        for (const field of fieldOrder) {
+            if (fieldErrors[field]) {
+                const el = formRef.current?.querySelector(`[data-field="${field}"]`);
+                if (el && 'scrollIntoView' in el) {
+                    (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    (el as HTMLElement).focus?.({ preventScroll: true });
+                }
+                break;
+            }
+        }
+    };
+
+    const onFormSubmit = (data: ProjectFormData) => {
+        onSubmit({
+            ...data,
+            manager: allManagers.find(m => m.value === data.managerId)?.label || data.manager
+        });
+    };
+
+    const onInvalid = (formErrors: FieldErrors<ProjectFormData>) => {
+        const missingFields = Object.keys(formErrors).join(', ');
+        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+        scrollToFirstError(formErrors);
+    };
 
     return (
-        <form onSubmit={handleSubmit(onFormSubmit, onInvalid)} className="p-4 sm:p-6 md:p-8 space-y-8 overflow-y-auto custom-scrollbar h-full">
+        <form
+            id={formId}
+            ref={formRef}
+            onSubmit={handleSubmit(onFormSubmit, onInvalid)}
+            className="p-4 sm:p-6 md:p-8 space-y-8 overflow-y-auto custom-scrollbar h-full"
+        >
             {!isEditing && (
                 <AIAssistantHeader
                     templates={PROJECT_TEMPLATES}
@@ -176,7 +220,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                     description="Démarrez votre projet avec un modèle standard ou généré par l'IA."
                 />
             )}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-10">
                 <div className="space-y-6">
                     <div className="relative">
                         <FloatingLabelInput
@@ -221,17 +265,23 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 </div>
 
                 <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6" data-field="managerId">
                         <Controller
-                            name="manager"
+                            name="managerId"
                             control={control}
                             render={({ field }) => (
                                 <CustomSelect
                                     label="Responsable"
                                     value={field.value || ''}
-                                    onChange={field.onChange}
-                                    options={availableUsers.map(u => ({ value: u, label: u }))}
-                                    placeholder="Sélectionner..."
+                                    onChange={(val) => {
+                                        field.onChange(val);
+                                        const selectedUser = usersList.find(u => u.uid === val);
+                                        setValue('manager', selectedUser?.displayName || selectedUser?.email || '');
+                                    }}
+                                    options={allManagers}
+                                    placeholder="Sélectionner un responsable..."
+                                    required
+                                    error={errors.managerId?.message}
                                 />
                             )}
                         />
@@ -268,7 +318,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                         )}
                     />
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4" ref={dueDateSectionRef} data-field="dueDate">
                         <Controller
                             name="startDate"
                             control={control}
@@ -290,6 +340,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                                     value={field.value || ''}
                                     onChange={field.onChange}
                                     error={errors.dueDate?.message}
+                                    placeholder="Date requise"
                                 />
                             )}
                         />
@@ -341,24 +392,26 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 </div>
             </div>
 
-            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100 dark:border-white/5">
-                <Button
-                    type="button"
-                    onClick={onCancel}
-                    variant="ghost"
-                    disabled={isLoading}
-                    className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
-                >
-                    Annuler
-                </Button>
-                <Button
-                    type="submit"
-                    isLoading={isLoading}
-                    className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
-                >
-                    {existingProject ? 'Enregistrer' : 'Créer le Projet'}
-                </Button>
-            </div>
+            {!hideActions && (
+                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100 dark:border-white/5">
+                    <Button
+                        type="button"
+                        onClick={onCancel}
+                        variant="ghost"
+                        disabled={isLoading}
+                        className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                    >
+                        Annuler
+                    </Button>
+                    <Button
+                        type="submit"
+                        isLoading={isLoading}
+                        className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
+                    >
+                        {existingProject ? 'Enregistrer' : 'Créer le Projet'}
+                    </Button>
+                </div>
+            )}
         </form>
     );
 };

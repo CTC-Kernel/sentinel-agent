@@ -22,6 +22,7 @@ export const projectSchema = z.object({
     name: z.string().min(1, i18n.t('validation.required')).max(200, i18n.t('validation.maxLength', { max: 200 })),
     description: z.string().min(1, i18n.t('validation.required')).max(5000, i18n.t('validation.maxLength', { max: 5000 })),
     manager: z.string().min(1, i18n.t('validation.required')),
+    managerId: z.string().min(1, i18n.t('validation.required')),
     framework: z.enum(['ISO27001', 'ISO27005', 'NIS2', 'DORA', 'GDPR', 'SOC2', 'HDS', 'PCI_DSS', 'NIST_CSF', 'OWASP', 'EBIOS', 'COBIT', 'ITIL', 'ISO22301']).optional(),
     status: z.enum(['Planifié', 'En cours', 'Terminé', 'Suspendu']).default('Planifié'),
     startDate: z.string().optional(),
@@ -38,7 +39,7 @@ export type ProjectFormData = z.infer<typeof projectSchema>;
 export const templateFormSchema = z.object({
     projectName: z.string().min(1, i18n.t('validation.required')),
     startDate: z.string().min(1, i18n.t('validation.required')),
-    manager: z.string().min(1, i18n.t('validation.required')),
+    managerId: z.string().min(1, i18n.t('validation.required')),
 });
 
 export type TemplateFormData = z.infer<typeof templateFormSchema>;

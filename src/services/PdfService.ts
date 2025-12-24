@@ -892,7 +892,7 @@ export class PdfService {
         return this.generateExecutiveReport({
             ...options,
             title: `Rapport de Projet: ${project.name}`,
-            subtitle: `Chef de Projet: ${project.manager || 'Non assigné'} | Échéance: ${project.dueDate ? format(new Date(project.dueDate), 'dd/MM/yyyy') : 'N/A'}`,
+            subtitle: `Chef de Projet: ${project.manager || 'Non assigné'}${project.managerId ? ` (#${project.managerId})` : ''} | Échéance: ${project.dueDate ? format(new Date(project.dueDate), 'dd/MM/yyyy') : 'N/A'}`,
             summary: executiveSummary,
             metrics: [
                 { label: "Progression", value: metrics.completion_percentage + "%", subtext: "avancement global" },
@@ -1121,7 +1121,7 @@ export class PdfService {
         return this.generateExecutiveReport({
             ...options,
             title: "RAPPORT PROJET",
-            subtitle: `Suivi d'avancement : ${project.name}`,
+            subtitle: `Suivi d'avancement : ${project.name} — Responsable: ${project.manager || 'Non assigné'}${project.managerId ? ` (#${project.managerId})` : ''}`,
             summary: executiveSummary,
             metrics: [
                 { label: "Avancement", value: metrics.completion_percentage + "%", subtext: "global du projet" },

@@ -7,6 +7,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { SEO } from '../components/SEO';
 import { Drawer } from '../components/ui/Drawer';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { InspectorLayout } from '../components/ui/InspectorLayout';
 import { ComplianceDashboard } from '../components/compliance/ComplianceDashboard';
 import { ComplianceList } from '../components/compliance/ComplianceList';
 import { ComplianceFilters } from '../components/compliance/ComplianceFilters';
@@ -19,10 +20,13 @@ import { FRAMEWORKS } from '../data/frameworks';
 import { RiskForm } from '../components/risks/RiskForm';
 import { ProjectForm } from '../components/projects/ProjectForm';
 import { AuditForm } from '../components/audits/AuditForm';
+import { useProjectLogic } from '../hooks/projects/useProjectLogic';
 
-import { ShieldCheck, Download, LayoutDashboard, ListChecks, FileText } from '../components/ui/Icons';
+import { ShieldCheck, Download, LayoutDashboard, ListChecks, FileText, FolderKanban } from '../components/ui/Icons';
 import { toast } from 'sonner';
 import { SoAView } from '../components/compliance/SoAView';
+import { Button } from '../components/ui/button';
+import { ProjectFormData } from '../schemas/projectSchema';
 
 export const Compliance: React.FC = () => {
     const { user, addToast, t } = useStore();
@@ -45,10 +49,13 @@ export const Compliance: React.FC = () => {
 
     // Creation Mode State (Risks, Projects, Audits from Drawer)
     const [creationMode, setCreationMode] = useState<'risk' | 'project' | 'audit' | null>(null);
+    const [projectInitialData, setProjectInitialData] = useState<Partial<ProjectFormData> | undefined>(undefined);
+    const [projectContext, setProjectContext] = useState<{ type: 'risk' | 'control' | 'asset' | 'audit', id: string } | null>(null);
 
     // Data Hooks
     const { filteredControls: frameworkControls, risks, findings, documents, usersList, assets, suppliers, projects, loading } = useComplianceData(currentFramework);
     const complianceActions = useComplianceActions(user);
+    const { handleProjectFormSubmit, isSubmitting: isProjectSubmitting } = useProjectLogic();
 
     // Effects
     useEffect(() => {
@@ -83,9 +90,55 @@ export const Compliance: React.FC = () => {
     };
 
     const handleCreateClick = (type: 'risk' | 'project' | 'audit') => {
+        if (!canEdit) {
+            addToast(t('errors.permissionDenied') || 'Accès refusé', 'error');
+            return;
+        }
+
+        const controlContext = selectedControlId;
+
+        if (type === 'project') {
+            setProjectInitialData({
+                managerId: user?.uid || '',
+                manager: user?.displayName || user?.email || '',
+                relatedControlIds: controlContext ? [controlContext] : []
+            });
+            setProjectContext(controlContext ? { type: 'control', id: controlContext } : null);
+        } else {
+            setProjectInitialData(undefined);
+            setProjectContext(null);
+        }
+
         setCreationMode(type);
         setSelectedControlId(null);
         setIsDrawerOpen(true);
+    };
+
+    const closeProjectDrawer = () => {
+        setIsDrawerOpen(false);
+        setCreationMode(null);
+        setProjectInitialData(undefined);
+        setProjectContext(null);
+    };
+
+    const handleDrawerClose = () => {
+        setIsDrawerOpen(false);
+        setCreationMode(null);
+    };
+
+    const projectFormId = 'compliance-project-form';
+
+    const handleProjectCreation = async (data: ProjectFormData) => {
+        try {
+            await handleProjectFormSubmit(
+                data as unknown as Omit<import('../types').Project, 'id' | 'organizationId' | 'tasks' | 'progress' | 'createdAt'>,
+                null,
+                projectContext || undefined
+            );
+            closeProjectDrawer();
+        } catch (error) {
+            console.error(error);
+        }
     };
 
 
@@ -183,36 +236,109 @@ export const Compliance: React.FC = () => {
             </div>
 
             {/* Inspector / Creation Drawer */}
-            <Drawer
-                isOpen={isDrawerOpen}
-                onClose={() => setIsDrawerOpen(false)}
-                title={creationMode ? (
-                    creationMode === 'risk' ? t('compliance.newRisk') :
-                        creationMode === 'project' ? t('compliance.newProject') : t('compliance.newAudit')
-                ) : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : t('settings.commandPalette.select'))}
-                width={creationMode ? 'max-w-2xl' : 'max-w-7xl'}
-            >
-                {creationMode === 'risk' && <RiskForm onCancel={() => setIsDrawerOpen(false)} onSubmit={async (data) => { await complianceActions.createRisk(data); setIsDrawerOpen(false); }} assets={assets} usersList={usersList} processes={[]} suppliers={suppliers} controls={frameworkControls} />}
-                {creationMode === 'project' && <ProjectForm onCancel={() => setIsDrawerOpen(false)} onSubmit={() => { toast.info(t('compliance.projectSim')); setIsDrawerOpen(false); }} />}
-                {creationMode === 'audit' && <AuditForm onCancel={() => setIsDrawerOpen(false)} onSubmit={() => { toast.info(t('compliance.auditSim')); setIsDrawerOpen(false); }} assets={assets} risks={risks} controls={frameworkControls} projects={projects} usersList={usersList} />}
+            {creationMode === 'project' ? (
+                <InspectorLayout
+                    isOpen={isDrawerOpen}
+                    onClose={closeProjectDrawer}
+                    title={t('compliance.newProject')}
+                    subtitle={t('projects.drawerSubtitle')}
+                    icon={FolderKanban}
+                    width="max-w-3xl"
+                    footer={
+                        <div className="flex justify-end gap-3" aria-busy={isProjectSubmitting}>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={closeProjectDrawer}
+                                disabled={isProjectSubmitting}
+                                className="min-w-[120px]"
+                            >
+                                {t('common.cancel')}
+                            </Button>
+                            <Button
+                                type="submit"
+                                form={projectFormId}
+                                isLoading={isProjectSubmitting}
+                                className="min-w-[160px]"
+                            >
+                                {t('projects.create')}
+                            </Button>
+                        </div>
+                    }
+                >
+                    <div aria-busy={isProjectSubmitting} aria-live="polite">
+                        <ProjectForm
+                            formId={projectFormId}
+                            hideActions
+                            usersList={usersList}
+                            availableRisks={risks}
+                            availableControls={frameworkControls}
+                            availableAssets={assets}
+                            onCancel={closeProjectDrawer}
+                            onSubmit={handleProjectCreation}
+                            initialData={projectInitialData}
+                            isLoading={isProjectSubmitting}
+                        />
+                    </div>
+                </InspectorLayout>
+            ) : (
+                <Drawer
+                    isOpen={isDrawerOpen}
+                    onClose={handleDrawerClose}
+                    title={creationMode ? (
+                        creationMode === 'risk' ? t('compliance.newRisk') :
+                            creationMode === 'project' ? t('compliance.newProject') : t('compliance.newAudit')
+                    ) : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : t('settings.commandPalette.select'))}
+                    width={creationMode ? 'max-w-2xl' : 'max-w-7xl'}
+                >
+                    {creationMode === 'risk' && (
+                        <RiskForm
+                            onCancel={handleDrawerClose}
+                            onSubmit={async (data) => {
+                                await complianceActions.createRisk(data);
+                                handleDrawerClose();
+                            }}
+                            assets={assets}
+                            usersList={usersList}
+                            processes={[]}
+                            suppliers={suppliers}
+                            controls={frameworkControls}
+                        />
+                    )}
 
-                {!creationMode && selectedControl && (
-                    <ComplianceInspector
-                        control={selectedControl}
-                        canEdit={canEdit}
-                        usersList={usersList}
-                        assets={assets}
-                        suppliers={suppliers}
-                        documents={documents}
-                        risks={risks}
-                        projects={projects}
-                        findings={findings}
-                        linkingToProjectId={linkingToProjectId}
-                        linkingToProjectName={linkingToProjectName}
-                        handlers={complianceActions}
-                    />
-                )}
-            </Drawer>
+                    {creationMode === 'audit' && (
+                        <AuditForm
+                            onCancel={handleDrawerClose}
+                            onSubmit={() => {
+                                toast.info(t('compliance.auditSim'));
+                                handleDrawerClose();
+                            }}
+                            assets={assets}
+                            risks={risks}
+                            controls={frameworkControls}
+                            projects={projects}
+                            usersList={usersList}
+                        />
+                    )}
+
+                    {!creationMode && selectedControl && (
+                        <ComplianceInspector
+                            control={selectedControl}
+                            canEdit={canEdit}
+                            usersList={usersList}
+                            assets={assets}
+                            suppliers={suppliers}
+                            documents={documents}
+                            risks={risks}
+                            projects={projects}
+                            findings={findings}
+                            linkingToProjectId={linkingToProjectId}
+                            linkingToProjectName={linkingToProjectName}
+                            handlers={complianceActions}
+                        />
+                    )}
+                </Drawer>
+            )}
         </>
     );
 };

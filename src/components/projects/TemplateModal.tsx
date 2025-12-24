@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useForm, Controller, Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PROJECT_TEMPLATES } from '../../utils/projectTemplates';
-import { ProjectTemplate } from '../../types';
+import { ProjectTemplate, UserProfile } from '../../types';
 import { X, Zap, Calendar } from '../ui/Icons';
 import { templateFormSchema, TemplateFormData } from '../../schemas/projectSchema';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -11,8 +11,8 @@ import { CustomSelect } from '../ui/CustomSelect';
 interface TemplateModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSelectTemplate: (template: ProjectTemplate, projectName: string, startDate: Date, manager: string) => void;
-    managers: string[];
+    onSelectTemplate: (template: ProjectTemplate, projectName: string, startDate: Date, managerId: string) => void;
+    managers: UserProfile[];
 }
 
 export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, onSelectTemplate, managers }) => {
@@ -29,7 +29,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
         defaultValues: {
             projectName: '',
             startDate: new Date().toISOString().split('T')[0],
-            manager: ''
+            managerId: ''
         }
     });
 
@@ -38,7 +38,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
             reset({
                 projectName: '',
                 startDate: new Date().toISOString().split('T')[0],
-                manager: ''
+                managerId: ''
             });
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedTemplate(null);
@@ -47,7 +47,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
 
     const onFormSubmit = (data: TemplateFormData) => {
         if (selectedTemplate) {
-            onSelectTemplate(selectedTemplate, data.projectName, new Date(data.startDate), data.manager);
+            onSelectTemplate(selectedTemplate, data.projectName, new Date(data.startDate), data.managerId);
             onClose();
         }
     };
@@ -171,11 +171,14 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                     Chef de Projet *
                                 </label>
                                 <Controller
-                                    name="manager"
+                                    name="managerId"
                                     control={control}
                                     render={({ field }) => (
                                         <CustomSelect
-                                            options={managers.map(m => ({ value: m, label: m }))}
+                                            options={managers.filter(m => !!m.uid).map(m => ({
+                                                value: m.uid,
+                                                label: m.displayName || m.email || 'Utilisateur'
+                                            }))}
                                             value={field.value}
                                             onChange={field.onChange}
                                             placeholder="Sélectionner..."
@@ -183,7 +186,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                         />
                                     )}
                                 />
-                                {errors.manager && <p className="text-red-500 text-xs mt-1">{errors.manager.message}</p>}
+                                {errors.managerId && <p className="text-red-500 text-xs mt-1">{errors.managerId.message}</p>}
                             </div>
 
                             <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">

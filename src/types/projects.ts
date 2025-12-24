@@ -44,6 +44,7 @@ export interface Project {
     name: string;
     description: string;
     manager: string;
+    managerId?: string;
     framework?: Framework;
     status: 'Planifié' | 'En cours' | 'Terminé' | 'Suspendu';
     startDate?: string; // Added for Gantt chart

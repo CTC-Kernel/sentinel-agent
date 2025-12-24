@@ -590,17 +590,23 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [
 /**
  * Crée un projet à partir d'un template
  */
+interface TemplateManagerPayload {
+    id: string;
+    label: string;
+}
+
 export function createProjectFromTemplate(
     template: ProjectTemplate,
     projectName: string,
     startDate: Date,
-    manager: string,
+    manager: TemplateManagerPayload,
     organizationId: string
 ) {
     const project = {
         name: projectName,
         description: template.description,
-        manager,
+        manager: manager.label,
+        managerId: manager.id,
         status: 'Planifié' as const,
         startDate: startDate.toISOString(),
         dueDate: new Date(startDate.getTime() + template.estimatedDuration * 24 * 60 * 60 * 1000).toISOString(),

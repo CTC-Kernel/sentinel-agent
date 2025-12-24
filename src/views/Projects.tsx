@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useStore } from '../store';
-import { Project } from '../types';
+import { Project, ProjectTemplate, UserProfile } from '../types';
 import { useProjectLogic } from '../hooks/projects/useProjectLogic';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { ProjectList } from '../components/projects/ProjectList';
@@ -105,10 +105,14 @@ export const Projects: React.FC = () => {
         await handleDuplicate(project);
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleCreateFromTemplate = async (template: any, customName: string, startDate: Date, managerId: string) => {
+    const handleCreateFromTemplate = async (template: ProjectTemplate, customName: string, startDate: Date, managerId: string) => {
         try {
-            await createProjectFromTemplate(template, customName, startDate, managerId, user?.organizationId || '');
+            const managerUser = usersList.find((u: UserProfile) => u.uid === managerId);
+            const managerPayload = {
+                id: managerId,
+                label: managerUser?.displayName || managerUser?.email || 'Responsable'
+            };
+            await createProjectFromTemplate(template, customName, startDate, managerPayload, user?.organizationId || '');
             addToast(t('projects.toastCreated'), "success");
             setShowTemplateModal(false);
         } catch (error) {
@@ -122,7 +126,7 @@ export const Projects: React.FC = () => {
         CsvParser.exportToCsv(
             projects as unknown as Record<string, unknown>[],
             t('projects.filename', { date: new Date().toISOString().split('T')[0] }),
-            ["name", "status", "progress", "manager", "dueDate", "createdAt"]
+            ["name", "status", "progress", "manager", "managerId", "dueDate", "createdAt"]
         );
     };
 
@@ -360,7 +364,7 @@ export const Projects: React.FC = () => {
                     onCancel={() => { setCreationMode(false); setEditingProject(null); }}
                     onSubmit={(data) => handleProjectFormSubmit(data, editingProject)}
                     existingProject={editingProject || undefined}
-                    availableUsers={usersList.map(u => u.displayName || u.email)}
+                    usersList={usersList}
                     availableRisks={risks}
                     availableControls={controls}
                     availableAssets={assets}
@@ -372,7 +376,7 @@ export const Projects: React.FC = () => {
                 isOpen={showTemplateModal}
                 onClose={() => setShowTemplateModal(false)}
                 onSelectTemplate={handleCreateFromTemplate}
-                managers={usersList.map(u => u.displayName || u.email)}
+                managers={usersList}
             />
 
             <ConfirmModal
