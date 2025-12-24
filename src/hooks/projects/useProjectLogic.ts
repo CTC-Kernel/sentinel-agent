@@ -35,6 +35,14 @@ export const useProjectLogic = () => {
     const controls = useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
     const assets = useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
 
+    // Fix: Ensure usersList is never empty if we are logged in (fallback to self)
+    // This prevents "Manager Required" validation errors if RBAC prevents listing other users
+    const effectiveUsers = useMemo(() => {
+        if (usersList && usersList.length > 0) return usersList;
+        if (user && user.uid) return [user];
+        return [];
+    }, [usersList, user]);
+
     const loading = loadingProjects || loadingRisks || loadingControls || loadingAssets || loadingUsers || loadingAudits;
 
     // Actions
@@ -72,6 +80,7 @@ export const useProjectLogic = () => {
                 syncLinks('risks', 'relatedProjectIds', validatedData.relatedRiskIds, editingProject.relatedRiskIds);
                 syncLinks('controls', 'relatedProjectIds', validatedData.relatedControlIds, editingProject.relatedControlIds);
                 syncLinks('assets', 'relatedProjectIds', validatedData.relatedAssetIds, editingProject.relatedAssetIds);
+                syncLinks('audits', 'relatedProjectIds', validatedData.relatedAuditIds, editingProject.relatedAuditIds);
 
                 await batch.commit();
                 await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${validatedData.name}`);
@@ -234,7 +243,7 @@ export const useProjectLogic = () => {
     };
 
     return {
-        projects, risks, audits, controls, assets, usersList, loading,
+        projects, risks, audits, controls, assets, usersList: effectiveUsers, loading,
         handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks, checkDependencies,
         isSubmitting, role, canEdit, user, organization
     };

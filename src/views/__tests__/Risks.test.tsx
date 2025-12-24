@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { Risks } from '../Risks'; // Adjust import if necessary (likely index or default)
@@ -12,6 +13,31 @@ vi.mock('../../store', () => ({
 
 vi.mock('../../hooks/useFirestore', () => ({
     useFirestoreCollection: vi.fn(),
+}));
+
+vi.mock('framer-motion', () => ({
+    motion: {
+        div: ({ children, ...props }: { children: React.ReactNode;[key: string]: unknown }) => <div {...props}>{children}</div>,
+        span: ({ children, ...props }: { children: React.ReactNode;[key: string]: unknown }) => <span {...props}>{children}</span>,
+    },
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    useAnimation: () => ({ start: vi.fn() }),
+}));
+
+vi.mock('../../components/risks/RiskList', () => ({
+    RiskList: () => <div data-testid="risk-list">Aucun risque identifié</div>
+}));
+
+vi.mock('../../components/risks/RiskGrid', () => ({
+    RiskGrid: () => <div data-testid="risk-grid">Aucun risque identifié</div>
+}));
+
+vi.mock('../../components/risks/RiskInspector', () => ({
+    RiskInspector: () => <div data-testid="risk-inspector" />
+}));
+
+vi.mock('../../hooks/usePersistedState', () => ({
+    usePersistedState: (key: string, initial: unknown) => React.useState(initial),
 }));
 
 vi.mock('../../hooks/useAuth', () => ({
@@ -80,6 +106,7 @@ describe('Risks View', () => {
             user: { organizationId: 'test-org', role: 'admin' },
             addToast: vi.fn(),
             demoMode: false,
+            t: (k: string) => k,
         } as unknown as ReturnType<typeof useStore>);
         vi.mocked(useFirestoreCollection).mockReturnValue({
             data: [],
@@ -98,7 +125,7 @@ describe('Risks View', () => {
                 <Risks />
             </MemoryRouter>
         );
-        expect(getByText(/Registre des Risques/i)).toBeInTheDocument();
+        expect(getByText(/risks.title_admin/i)).toBeInTheDocument();
     });
 
     it('shows loading state', () => {
@@ -135,9 +162,11 @@ describe('Risks View', () => {
             </MemoryRouter>
         );
         // Switch to List view
-        const listTab = screen.getByText("Registre");
+        const listTab = screen.getByText("risks.registry");
         fireEvent.click(listTab);
 
-        expect(screen.getByText(/Aucun risque identifié/i)).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText(/Aucun risque identifié/i)).toBeInTheDocument();
+        });
     });
 });

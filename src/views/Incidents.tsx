@@ -74,6 +74,13 @@ export const Incidents: React.FC = () => {
         { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
+    // FIX: Ensure usersList is never empty if logged in
+    const effectiveUsers = React.useMemo(() => {
+        if (usersList && usersList.length > 0) return usersList;
+        if (user && user.uid) return [user as UserProfile];
+        return [];
+    }, [usersList, user]);
+
     const { data: rawProcesses, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
         [where('organizationId', '==', user?.organizationId)],
@@ -659,7 +666,7 @@ export const Incidents: React.FC = () => {
                 onClose={() => { setSelectedIncident(null); }}
                 incident={selectedIncident}
 
-                users={usersList}
+                users={effectiveUsers}
                 processes={rawProcesses}
                 assets={assets}
                 risks={risks}
@@ -681,7 +688,7 @@ export const Incidents: React.FC = () => {
                     <IncidentForm
                         onSubmit={handleCreate}
                         onCancel={() => setCreationMode(false)}
-                        users={usersList}
+                        users={effectiveUsers}
                         processes={rawProcesses}
                         assets={assets}
                         risks={risks}

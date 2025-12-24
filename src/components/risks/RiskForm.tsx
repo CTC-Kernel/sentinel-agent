@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useForm, Controller, useWatch } from 'react-hook-form';
+import { useForm, Controller, useWatch, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { riskSchema, RiskFormData } from '../../schemas/riskSchema';
@@ -85,7 +85,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         }
     });
 
-    const onInvalid = (errors: any) => {
+    const onInvalid = (errors: FieldErrors<RiskFormData>) => {
         console.error("Form Validation Errors:", errors);
         const missingFields = Object.keys(errors).join(', ');
         toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
@@ -256,7 +256,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
 
     return (
-        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="flex flex-col h-full bg-slate-50 dark:bg-black/20">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="flex flex-col h-full bg-transparent">
             {/* Header Tabs */}
             <div className="flex border-b border-slate-200 dark:border-white/10 bg-white dark:bg-transparent px-6 pt-4">
                 {TABS.map((tab) => {

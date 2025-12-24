@@ -370,6 +370,7 @@ exports.setUserClaims = onDocumentWritten("users/{userId}", async (event) => {
 });
 
 // Callable function to refresh user token (force claims update)
+// Callable function to refresh user token (force claims update)
 exports.refreshUserToken = onCall(async (request) => {
     const uid = request.auth?.uid;
     if (!uid) {
@@ -377,27 +378,54 @@ exports.refreshUserToken = onCall(async (request) => {
     }
 
     try {
-        // Get user data from Firestore
-        const userDoc = await admin.firestore().collection('users').doc(uid).get();
+        const db = admin.firestore();
+        const userRef = db.collection('users').doc(uid);
+        const userDoc = await userRef.get();
+
         if (!userDoc.exists) {
             throw new HttpsError('not-found', 'User document not found');
         }
 
-        const userData = userDoc.data();
+        let userData = userDoc.data();
 
-        // Only update claims if user has an organizationId
+        // SELF-HEALING: If no organizationId, check if user owns an org (e.g. created via Stripe but profile update failed)
         if (!userData.organizationId) {
-            logger.warn(`User ${uid} has no organizationId - skipping token refresh`);
-            return { success: false, message: 'User has no organization - onboarding required' };
+            logger.info(`User ${uid} has no organizationId - attempting self-healing...`);
+            const orgsSnap = await db.collection('organizations').where('ownerId', '==', uid).limit(1).get();
+
+            if (!orgsSnap.empty) {
+                const org = orgsSnap.docs[0];
+                const orgData = org.data();
+
+                logger.info(`Found owned organization ${org.id} for user ${uid}. Healing profile.`);
+
+                await userRef.update({
+                    organizationId: org.id,
+                    organizationName: orgData.name,
+                    role: 'admin',
+                    onboardingCompleted: true
+                });
+
+                // Refresh local data for next steps
+                userData = (await userRef.get()).data();
+            } else {
+                logger.warn(`User ${uid} has no organizationId and no owned organization - skipping token refresh`);
+                return { success: false, message: 'User has no organization - onboarding required' };
+            }
         }
 
         let role = userData.role || 'user';
-        const orgRef = admin.firestore().collection('organizations').doc(userData.organizationId);
-        const orgSnap = await orgRef.get();
-        if (orgSnap.exists && orgSnap.data()?.ownerId === uid) {
-            role = 'admin';
-            if (userData.role !== 'admin') {
-                await admin.firestore().collection('users').doc(uid).update({ role: 'admin' });
+
+        // Ensure Admin role if owner
+        if (userData.organizationId) {
+            const orgRef = db.collection('organizations').doc(userData.organizationId);
+            const orgSnap = await orgRef.get();
+            if (orgSnap.exists && orgSnap.data()?.ownerId === uid) {
+                role = 'admin';
+                // Sync back to profile if needed
+                if (userData.role !== 'admin') {
+                    await userRef.update({ role: 'admin' });
+                }
             }
         }
 
@@ -406,7 +434,9 @@ exports.refreshUserToken = onCall(async (request) => {
             role
         });
 
-        return { success: true, message: 'Token refreshed successfully' };
+        logger.info(`Token claims refreshed for ${uid}: org=${userData.organizationId}, role=${role}`);
+
+        return { success: true, message: 'Token refreshed successfully', permissions: { organizationId: userData.organizationId, role } };
     } catch (error) {
         logger.error('Error refreshing token:', error);
         throw new HttpsError('internal', 'Failed to refresh token: ' + error.message);

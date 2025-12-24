@@ -27,6 +27,8 @@ interface InspectorLayoutProps {
     breadcrumbs?: { label: string; onClick?: () => void }[];
     disableFocusTrap?: boolean;
     footer?: React.ReactNode;
+    disableContentPadding?: boolean;
+    disableContentScroll?: boolean;
 }
 
 export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
@@ -45,7 +47,9 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
     loading = false,
     breadcrumbs,
     disableFocusTrap = false,
-    footer
+    footer,
+    disableContentPadding = false,
+    disableContentScroll = false
 }) => {
     return (
         <Drawer
@@ -54,6 +58,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
             width={width}
             breadcrumbs={breadcrumbs}
             disableFocusTrap={disableFocusTrap}
+            disableScroll={true} // Always let InspectorLayout manage the scroll structure
             title={
                 <div className="flex items-center gap-3">
                     {Icon && (
@@ -86,13 +91,13 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
                 )}
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-y-auto px-6 py-8">
+                <div className={`flex-1 ${disableContentScroll ? 'overflow-hidden' : 'overflow-y-auto'} ${disableContentPadding ? '' : 'px-6 py-8'}`}>
                     {loading ? (
                         <div className="flex items-center justify-center h-64">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
                         </div>
                     ) : (
-                        <div className="animate-in fade-in duration-300 slide-in-from-bottom-4">
+                        <div className="animate-in fade-in duration-300 slide-in-from-bottom-4 h-full">
                             {children}
                         </div>
                     )}

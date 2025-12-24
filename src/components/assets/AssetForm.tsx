@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useForm, Resolver, Controller } from 'react-hook-form';
+import { useForm, Resolver, Controller, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { assetSchema, AssetFormData } from '../../schemas/assetSchema';
 import { Asset, UserProfile, Supplier, Criticality } from '../../types';
@@ -85,7 +85,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
         }
     });
 
-    const onInvalid = (errors: any) => {
+    const onInvalid = (errors: FieldErrors<AssetFormData>) => {
         console.error("Form Validation Errors:", errors);
         const missingFields = Object.keys(errors).join(', ');
         toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);

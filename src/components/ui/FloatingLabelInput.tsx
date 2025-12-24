@@ -80,8 +80,8 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                     htmlFor={fieldId}
                     className={`
                         absolute left-4 transition-all duration-200 pointer-events-none
-                        peer-focus:-top-2.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:tracking-widest peer-focus:bg-white dark:peer-focus:bg-[#0B1120] peer-focus:px-1 peer-focus:rounded
-                        peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:font-bold peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-widest peer-[:not(:placeholder-shown)]:bg-white dark:peer-[:not(:placeholder-shown)]:bg-[#0B1120] peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:rounded
+                        peer-focus:-top-2.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:tracking-widest peer-focus:bg-white dark:peer-focus:bg-slate-950 peer-focus:px-1 peer-focus:rounded
+                        peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:text-[10px] peer-[:not(:placeholder-shown)]:font-bold peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-widest peer-[:not(:placeholder-shown)]:bg-white dark:peer-[:not(:placeholder-shown)]:bg-slate-950 peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:rounded
                         top-3.5 text-sm font-medium
                         ${error
                             ? 'text-red-500'

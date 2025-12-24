@@ -12,6 +12,7 @@ import { useStore } from '../store';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { EmptyState } from '../components/ui/EmptyState';
+import { Drawer } from '../components/ui/Drawer';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { DocumentForm } from '../components/documents/DocumentForm';
@@ -39,6 +40,14 @@ export const Documents: React.FC = () => {
         [where('organizationId', '==', user?.organizationId)],
         { logError: true, realtime: true }
     );
+
+    // FIX: Ensure usersList is never empty if logged in
+    const effectiveUsers = useMemo(() => {
+        if (usersList && usersList.length > 0) return usersList;
+        if (user && user.uid) return [user];
+        return [];
+    }, [usersList, user]);
+
     const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>(
         'controls',
         [where('organizationId', '==', user?.organizationId)],
@@ -103,7 +112,7 @@ export const Documents: React.FC = () => {
         handleWorkflowAction,
         handleSignatureSubmit,
         handleSecureView
-    } = useDocumentWorkflow(usersList);
+    } = useDocumentWorkflow(effectiveUsers);
 
     const {
         handleCreate,
@@ -117,7 +126,7 @@ export const Documents: React.FC = () => {
         isExportingCSV,
         confirmData,
         setConfirmData
-    } = useDocumentActions(usersList);
+    } = useDocumentActions(effectiveUsers);
 
     // --- Effects ---
     // Handle Voxel/Link Navigation
@@ -407,39 +416,51 @@ export const Documents: React.FC = () => {
                 document={selectedDocument}
                 controls={controls}
                 canEdit={canEditResource(user, 'Document', selectedDocument?.ownerId || selectedDocument?.owner)}
-                users={usersList}
+                users={effectiveUsers}
                 onEdit={() => setIsEditing(true)}
                 onDelete={() => selectedDocument && initiateDelete(selectedDocument, controls)}
                 onWorkflowAction={(action) => selectedDocument && handleWorkflowAction(selectedDocument, action)}
                 onSecureView={handleSecureView}
             />
 
-            {/* Create/Edit Modal */}
-            {(showCreateModal || (isEditing && selectedDocument)) && (
-                <DocumentForm
-                    initialData={isEditing ? selectedDocument! : undefined}
-                    onCancel={() => {
-                        setShowCreateModal(false);
-                        setIsEditing(false);
-                    }}
-                    onSubmit={async (data) => {
-                        if (isEditing && selectedDocument) {
-                            const updated = await handleUpdate(selectedDocument.id, data, selectedDocument);
-                            if (updated) setIsEditing(false);
-                        } else {
-                            const success = await handleCreate(data);
-                            if (success) setShowCreateModal(false);
-                        }
-                    }}
-                    isLoading={isSubmitting}
-                    users={usersList}
-                    folders={folders}
-                    controls={controls}
-                    assets={rawAssets}
-                    audits={rawAudits}
-                    risks={rawRisks}
-                />
-            )}
+            {/* Create/Edit Drawer */}
+            <Drawer
+                isOpen={showCreateModal || (isEditing && !!selectedDocument)}
+                onClose={() => {
+                    setShowCreateModal(false);
+                    setIsEditing(false);
+                }}
+                title={isEditing ? "Modifier le document" : "Nouveau Document"}
+                subtitle={isEditing && selectedDocument ? selectedDocument.title : "Créer un nouveau document"}
+                width="max-w-4xl"
+                disableScroll={true}
+            >
+                <div className="h-full overflow-y-auto px-6 py-8 custom-scrollbar">
+                    <DocumentForm
+                        initialData={isEditing ? selectedDocument! : undefined}
+                        onCancel={() => {
+                            setShowCreateModal(false);
+                            setIsEditing(false);
+                        }}
+                        onSubmit={async (data) => {
+                            if (isEditing && selectedDocument) {
+                                const updated = await handleUpdate(selectedDocument.id, data, selectedDocument);
+                                if (updated) setIsEditing(false);
+                            } else {
+                                const success = await handleCreate(data);
+                                if (success) setShowCreateModal(false);
+                            }
+                        }}
+                        isLoading={isSubmitting}
+                        users={effectiveUsers}
+                        folders={folders}
+                        controls={controls}
+                        assets={rawAssets}
+                        audits={rawAudits}
+                        risks={rawRisks}
+                    />
+                </div>
+            </Drawer>
         </motion.div>
     );
 };

@@ -152,23 +152,23 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                     </>
                 ) : null
             }
+            disableContentPadding={isEditing}
+            disableContentScroll={isEditing}
         >
             {isEditing ? (
-                <div className="p-6">
-                    <RiskForm
-                        onSubmit={(data) => handleLocalUpdate(data as Partial<Risk>)}
-                        onCancel={() => setIsEditing(false)}
-                        initialData={risk}
-                        existingRisk={risk}
-                        assets={assets}
-                        usersList={usersList}
-                        processes={processes}
-                        suppliers={suppliers}
-                        controls={controls}
-                        isEditing={true}
-                        isLoading={updating}
-                    />
-                </div>
+                <RiskForm
+                    onSubmit={(data) => handleLocalUpdate(data as Partial<Risk>)}
+                    onCancel={() => setIsEditing(false)}
+                    initialData={risk}
+                    existingRisk={risk}
+                    assets={assets}
+                    usersList={usersList}
+                    processes={processes}
+                    suppliers={suppliers}
+                    controls={controls}
+                    isEditing={true}
+                    isLoading={updating}
+                />
             ) : (
                 <div className="p-4 md:p-8 space-y-8 bg-slate-50/50 dark:bg-transparent min-h-full">
                     {inspectorTab === 'details' && (
@@ -343,7 +343,8 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                         </div>
                     )}
                 </div>
-            )}
-        </InspectorLayout>
+            )
+            }
+        </InspectorLayout >
     );
 };

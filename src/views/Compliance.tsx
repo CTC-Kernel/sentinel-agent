@@ -286,8 +286,7 @@ export const Compliance: React.FC = () => {
                     isOpen={isDrawerOpen}
                     onClose={handleDrawerClose}
                     title={creationMode ? (
-                        creationMode === 'risk' ? t('compliance.newRisk') :
-                            creationMode === 'project' ? t('compliance.newProject') : t('compliance.newAudit')
+                        creationMode === 'risk' ? t('compliance.newRisk') : t('compliance.newAudit')
                     ) : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : t('settings.commandPalette.select'))}
                     width={creationMode ? 'max-w-2xl' : 'max-w-7xl'}
                 >

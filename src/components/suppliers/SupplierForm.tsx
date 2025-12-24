@@ -1,6 +1,6 @@
 import { toast } from 'sonner';
 import React, { useEffect } from 'react';
-import { useForm, Controller, SubmitHandler, useWatch } from 'react-hook-form';
+import { useForm, Controller, SubmitHandler, useWatch, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supplierSchema, SupplierFormData } from '../../schemas/supplierSchema';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -66,7 +66,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
         }
     });
 
-    const onInvalid = (errors: any) => {
+    const onInvalid = (errors: FieldErrors<SupplierFormData>) => {
         console.error("Form Validation Errors:", errors);
         const missingFields = Object.keys(errors).join(', ');
         toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);

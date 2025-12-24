@@ -33,6 +33,13 @@ export function useAssets() {
         { logError: true, enabled: !!user?.organizationId, realtime: true }
     );
 
+    // FIX: Ensure usersList is never empty if logged in
+    const effectiveUsers = useMemo(() => {
+        if (usersList && usersList.length > 0) return usersList;
+        if (user && user.uid) return [user];
+        return [];
+    }, [usersList, user]);
+
     const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId)],
@@ -206,7 +213,7 @@ export function useAssets() {
 
     return {
         assets,
-        usersList,
+        usersList: effectiveUsers,
         suppliers,
         processes,
         loading,

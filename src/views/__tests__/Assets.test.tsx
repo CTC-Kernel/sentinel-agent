@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Assets from '../Assets';
@@ -67,6 +68,26 @@ vi.mock('react-helmet-async', () => ({
     Helmet: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
+vi.mock('../../hooks/usePlanLimits', () => ({
+    usePlanLimits: () => ({ limits: { maxAssets: 100, features: {} } })
+}));
+
+vi.mock('../../components/assets/AssetList', () => ({
+    AssetList: ({ assets }: { assets: any[] }) => (
+        <div data-testid="asset-list">
+            {assets.length === 0 ? "Aucun actif trouvé" : assets.map(a => <div key={a.id}>{a.name}</div>)}
+        </div>
+    )
+}));
+
+vi.mock('../../components/assets/AssetInspector', () => ({
+    AssetInspector: () => <div data-testid="asset-inspector" />
+}));
+
+vi.mock('../../components/assets/AssetDashboard', () => ({
+    AssetDashboard: () => <div data-testid="asset-dashboard" />
+}));
+
 describe('Assets View', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -74,6 +95,7 @@ describe('Assets View', () => {
             user: { organizationId: 'test-org', role: 'admin' },
             addToast: vi.fn(),
             demoMode: false,
+            t: (k: string) => k, // Mock translation function
             // populate required props or cast to unknown
         } as unknown as ReturnType<typeof useStore>);
 
@@ -90,7 +112,7 @@ describe('Assets View', () => {
 
     it('renders the assets inventory title', () => {
         const { getByText } = render(<Assets />);
-        expect(getByText(/Inventaire des Actifs/i)).toBeInTheDocument();
+        expect(getByText(/assets.title/i)).toBeInTheDocument();
     });
 
     it('displays empty state when no assets found', () => {

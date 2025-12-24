@@ -1,3 +1,4 @@
+import React from 'react';
 import { useFirestoreCollection } from '../useFirestore';
 import { where } from 'firebase/firestore';
 import { useAuth } from '../useAuth';
@@ -61,6 +62,13 @@ export const useRiskData = () => {
         { enabled: !!user?.organizationId }
     );
 
+    // FIX: Ensure usersList is never empty if we are logged in (fallback to self) to prevent validation errors
+    const effectiveUsers = React.useMemo(() => {
+        if (usersList && usersList.length > 0) return usersList;
+        if (user && user.uid) return [user];
+        return [];
+    }, [usersList, user]);
+
     const loading = risksLoading || assetsLoading || controlsLoading || processesLoading || suppliersLoading || incidentsLoading || auditsLoading || projectsLoading;
 
     return {
@@ -72,7 +80,7 @@ export const useRiskData = () => {
         incidents,
         audits,
         projects,
-        usersList,
+        usersList: effectiveUsers,
         loading,
         refreshRisks: () => { }
     };

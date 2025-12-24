@@ -13,6 +13,7 @@ interface DrawerProps {
     width?: string; // e.g., 'max-w-2xl', 'max-w-4xl'
     breadcrumbs?: { label: string; onClick?: () => void }[];
     disableFocusTrap?: boolean;
+    disableScroll?: boolean;
 }
 
 export const Drawer: React.FC<DrawerProps> = ({
@@ -23,7 +24,8 @@ export const Drawer: React.FC<DrawerProps> = ({
     actions,
     children,
     width = 'max-w-2xl',
-    disableFocusTrap = false
+    disableFocusTrap = false,
+    disableScroll = false
 }) => {
     const [isVisible, setIsVisible] = useState(false);
     const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -112,7 +114,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                             </div>
 
                             {/* Content */}
-                            <div className="flex-1 min-w-0 overflow-y-auto custom-scrollbar relative">
+                            <div className={`flex-1 min-w-0 relative ${disableScroll ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar'}`}>
                                 {children}
                             </div>
                         </div>

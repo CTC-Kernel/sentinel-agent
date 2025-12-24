@@ -128,6 +128,14 @@ export const Suppliers: React.FC = () => {
         { logError: true, realtime: true }
     );
 
+    // FIX: Ensure usersList is never empty if logged in
+    const effectiveUsers = useMemo(() => {
+        if (usersRaw && usersRaw.length > 0) return usersRaw;
+        if (user && user.uid) return [user as UserProfile];
+        return [];
+    }, [usersRaw, user]);
+
+
     const selectedOwnerId = editForm.watch('ownerId');
 
     useEffect(() => {
@@ -1017,7 +1025,7 @@ export const Suppliers: React.FC = () => {
                                             onCancel={() => setIsEditing(false)}
                                             initialData={editForm.getValues()}
                                             isEditing={true}
-                                            users={usersRaw}
+                                            users={effectiveUsers}
                                             processes={processesRaw}
                                             assets={assetsRaw}
                                             risks={risksRaw}
@@ -1302,12 +1310,13 @@ export const Suppliers: React.FC = () => {
                 title={t('suppliers.newSupplier')}
                 subtitle={t('common.create')}
                 width="max-w-4xl"
+                disableScroll={true}
             >
-                <div className="h-full overflow-y-auto p-6">
+                <div className="h-full">
                     <SupplierForm
                         onSubmit={handleCreate}
                         onCancel={() => setCreationMode(false)}
-                        users={usersRaw}
+                        users={effectiveUsers}
                         processes={processesRaw}
                         assets={assetsRaw}
                         risks={risksRaw}

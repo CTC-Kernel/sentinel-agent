@@ -36,6 +36,14 @@ export const useAudits = () => {
     const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
         'users', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true }
     );
+
+    // FIX: Ensure usersList is never empty if we are logged in (fallback to self)
+    const effectiveUsers = useMemo(() => {
+        if (usersList && usersList.length > 0) return usersList;
+        if (user && user.uid) return [user];
+        return [];
+    }, [usersList, user]);
+
     const { data: documents, loading: docsLoading } = useFirestoreCollection<Document>(
         'documents', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true }
     );
@@ -273,7 +281,7 @@ export const useAudits = () => {
 
     return {
         // Data
-        audits, controls, assets, risks, usersList, documents, allFindings, loading, projects: rawProjects,
+        audits, controls, assets, risks, usersList: effectiveUsers, documents, allFindings, loading, projects: rawProjects,
         selectedAudit, setSelectedAudit, auditFindings, setAuditFindings, auditChecklist, setAuditChecklist,
 
         // Actions

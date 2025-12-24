@@ -359,6 +359,7 @@ export const Projects: React.FC = () => {
                 title={editingProject ? t('projects.editProject') : t('projects.newProject')}
                 subtitle={editingProject ? editingProject.name : t('common.create')}
                 width="max-w-4xl"
+                disableScroll={true}
             >
                 <ProjectForm
                     onCancel={() => { setCreationMode(false); setEditingProject(null); }}

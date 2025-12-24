@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useForm, Controller, useWatch } from 'react-hook-form';
+import { useForm, Controller, useWatch, FieldErrors } from 'react-hook-form';
 import { AddToCalendar } from '../ui/AddToCalendar';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { auditSchema, AuditFormData } from '../../schemas/auditSchema';
@@ -58,7 +58,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
         }
     });
 
-    const onInvalid = (errors: any) => {
+    const onInvalid = (errors: FieldErrors<AuditFormData>) => {
         console.error("Form Validation Errors:", errors);
         const missingFields = Object.keys(errors).join(', ');
         toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
