@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 import { riskSchema, RiskFormData } from '../../schemas/riskSchema';
 import { Risk, Control, Asset, UserProfile, BusinessProcess, Supplier, Criticality, ThreatTemplate } from '../../types';
 import { BookOpen, Shield, Search, LayoutGrid, FileText, Activity, Layers, AlertTriangle, Sparkles, History } from '../ui/Icons';
@@ -63,6 +64,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const [activeTab, setActiveTab] = useState('context');
     const { control, handleSubmit, reset, formState: { errors }, setValue, getValues } = useForm<RiskFormData>({
         resolver: zodResolver(riskSchema),
+        shouldUnregister: true,
         defaultValues: {
             assetId: '',
             threat: '',
@@ -82,6 +84,12 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             ...initialData
         }
     });
+
+    const onInvalid = (errors: any) => {
+        console.error("Form Validation Errors:", errors);
+        const missingFields = Object.keys(errors).join(', ');
+        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+    };
 
     const framework = useWatch({ control, name: 'framework' });
     const probability = useWatch({ control, name: 'probability' });
@@ -248,7 +256,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full bg-slate-50 dark:bg-black/20">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="flex flex-col h-full bg-slate-50 dark:bg-black/20">
             {/* Header Tabs */}
             <div className="flex border-b border-slate-200 dark:border-white/10 bg-white dark:bg-transparent px-6 pt-4">
                 {TABS.map((tab) => {
@@ -620,7 +628,11 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                     Soumettre pour validation
                                 </Button>
                             )}
-                            <Button type="submit" isLoading={isLoading} className="bg-brand-600 hover:bg-brand-700 text-white">
+                            <Button
+                                type="submit"
+                                isLoading={isLoading}
+                                className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
+                            >
                                 {isEditing ? 'Sauvegarder' : 'Créer le Risque'}
                             </Button>
                         </div>

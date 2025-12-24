@@ -17,6 +17,7 @@ import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
 
 import { PROJECT_STATUSES } from '../../data/projectConstants';
+import { toast } from 'sonner';
 
 type ProjectTemplate = BaseTemplate & { status: string; priority: string };
 
@@ -53,6 +54,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
 }) => {
     const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useForm<ProjectFormData>({
         resolver: zodResolver(projectSchema) as Resolver<ProjectFormData>,
+        shouldUnregister: true,
         defaultValues: {
             name: '',
             description: '',
@@ -153,11 +155,17 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
         onSubmit(data);
     };
 
+    const onInvalid = (errors: any) => {
+        console.error("Form Validation Errors:", errors);
+        const missingFields = Object.keys(errors).join(', ');
+        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+    };
+
     const watchedName = useWatch({ control, name: 'name' });
     const relatedRiskIds = useWatch({ control, name: 'relatedRiskIds' });
 
     return (
-        <form onSubmit={handleSubmit(onFormSubmit)} className="p-4 sm:p-6 md:p-8 space-y-8 overflow-y-auto custom-scrollbar h-full">
+        <form onSubmit={handleSubmit(onFormSubmit, onInvalid)} className="p-4 sm:p-6 md:p-8 space-y-8 overflow-y-auto custom-scrollbar h-full">
             {!isEditing && (
                 <AIAssistantHeader
                     templates={PROJECT_TEMPLATES}
@@ -346,7 +354,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 <Button
                     type="submit"
                     isLoading={isLoading}
-                    className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none font-bold text-sm"
+                    className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
                 >
                     {existingProject ? 'Enregistrer' : 'Créer le Projet'}
                 </Button>

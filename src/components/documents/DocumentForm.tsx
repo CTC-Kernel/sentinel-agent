@@ -12,6 +12,7 @@ import { externalStorageService } from '../../services/externalStorageService';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
 import { RichTextEditor } from '../ui/RichTextEditor';
+import { toast } from 'sonner';
 
 interface DocumentFormProps {
     onSubmit: (data: DocumentFormData & { fileUrl?: string; fileHash?: string; isSecure?: boolean }) => Promise<void>;
@@ -49,6 +50,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
 
     const { register, handleSubmit, control, setValue, formState: { errors } } = useForm<DocumentFormData>({
         resolver: zodResolver(documentSchema) as Resolver<DocumentFormData>,
+        shouldUnregister: true,
         defaultValues: {
             title: initialData?.title || '',
             type: initialData?.type || 'Politique',
@@ -72,6 +74,12 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             folderId: initialData?.folderId || ''
         }
     });
+
+    const onInvalid = (errors: any) => {
+        console.error("Form Validation Errors:", errors);
+        const missingFields = Object.keys(errors).join(', ');
+        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+    };
 
     const folderId = useWatch({ control, name: 'folderId' });
     const docType = useWatch({ control, name: 'type' });
@@ -119,7 +127,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onFormSubmit, onInvalid)} className="space-y-6">
             <div className="space-y-6">
                 <FloatingLabelInput
                     label="Titre"
@@ -359,7 +367,11 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 <Button type="button" variant="ghost" onClick={onCancel}>
                     Annuler
                 </Button>
-                <Button type="submit" isLoading={isLoading}>
+                <Button
+                    type="submit"
+                    isLoading={isLoading}
+                    className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold"
+                >
                     {initialData ? 'Enregistrer' : 'Créer'}
                 </Button>
             </div>

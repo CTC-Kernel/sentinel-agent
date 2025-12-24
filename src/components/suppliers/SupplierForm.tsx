@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useEffect } from 'react';
 import { useForm, Controller, SubmitHandler, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -51,6 +52,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     const { addToast, demoMode } = useStore();
     const { register, handleSubmit, control, setValue, formState: { errors }, getValues } = useForm<SupplierFormData>({
         resolver: zodResolver(supplierSchema),
+        shouldUnregister: true,
         defaultValues: initialData || {
             name: '', category: 'SaaS', criticality: Criticality.MEDIUM, status: 'Actif',
             owner: '', ownerId: '', vatNumber: '',
@@ -63,6 +65,12 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
             relatedAssetIds: [], relatedRiskIds: [], relatedProjectIds: [], supportedProcessIds: []
         }
     });
+
+    const onInvalid = (errors: any) => {
+        console.error("Form Validation Errors:", errors);
+        const missingFields = Object.keys(errors).join(', ');
+        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+    };
 
     const [searchResults, setSearchResults] = React.useState<CompanySearchResult[]>([]);
     const [searching, setSearching] = React.useState(false);
@@ -208,7 +216,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar h-full">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="p-4 sm:p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar h-full">
             {!isEditing && (
                 <AIAssistantHeader
                     templates={SUPPLIER_TEMPLATES}
@@ -572,7 +580,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                 <Button
                     type="submit"
                     isLoading={isLoading}
-                    className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform font-bold text-sm shadow-lg"
+                    className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
                 >
                     {isEditing ? 'Mettre à jour' : 'Créer le Fournisseur'}
                 </Button>

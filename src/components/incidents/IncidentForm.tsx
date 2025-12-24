@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useForm, SubmitHandler, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 import { incidentSchema, IncidentFormData } from '../../schemas/incidentSchema';
 import { Criticality, UserProfile, BusinessProcess, Asset, Risk } from '../../types';
 import { ShieldAlert } from '../ui/Icons';
@@ -37,26 +38,22 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     const { addToast } = useStore();
     const { register, handleSubmit, setValue, control, getValues, formState: { errors } } = useForm<IncidentFormData>({
         resolver: zodResolver(incidentSchema),
+        shouldUnregister: true,
         defaultValues: {
             title: '',
             description: '',
             severity: Criticality.MEDIUM,
             status: 'Nouveau',
-            category: 'Autre',
-            playbookStepsCompleted: [],
-            affectedAssetId: '',
-            relatedRiskId: '',
-            affectedProcessId: '',
-            reporter: '',
-            financialImpact: 0,
-            dateResolved: '',
-            lessonsLearned: '',
-            isSignificant: false,
-            notificationStatus: 'Not Required',
-            relevantAuthorities: [],
+            // ...
             ...initialData
         }
     });
+
+    const onInvalid = (errors: any) => {
+        console.error("Form Validation Errors:", errors);
+        const missingFields = Object.keys(errors).join(', ');
+        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+    };
 
     const affectedAssetId = useWatch({ control, name: 'affectedAssetId' });
     const isSignificant = useWatch({ control, name: 'isSignificant' });
@@ -77,7 +74,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     }, [affectedAssetId, processes, setValue, getValues, addToast]);
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
             <div className="space-y-6">
                 <FloatingLabelInput
                     label="Titre de l'incident"
@@ -285,7 +282,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                 <Button
                     type="submit"
                     isLoading={isLoading}
-                    className="px-8 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold text-sm shadow-lg shadow-red-500/20 hover:scale-105 transition-all"
+                    className="px-8 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-red-500/20 hover:scale-105 transition-all"
                 >
                     Enregistrer
                 </Button>

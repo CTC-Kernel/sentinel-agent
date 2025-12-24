@@ -5,6 +5,7 @@ import { assetSchema, AssetFormData } from '../../schemas/assetSchema';
 import { Asset, UserProfile, Supplier, Criticality } from '../../types';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
+import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { Sparkles, AlertTriangle, ShieldCheck } from '../ui/Icons';
 import { aiService } from '../../services/aiService';
@@ -50,6 +51,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 }) => {
     const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues } = useForm<AssetFormData>({
         resolver: zodResolver(assetSchema) as Resolver<AssetFormData>,
+        shouldUnregister: true, // IMPORTANT: Remove hidden fields from data to avoid validation errors on invisible fields
         defaultValues: {
             name: '',
             type: 'Matériel',
@@ -82,6 +84,12 @@ export const AssetForm: React.FC<AssetFormProps> = ({
             }
         }
     });
+
+    const onInvalid = (errors: any) => {
+        console.error("Form Validation Errors:", errors);
+        const missingFields = Object.keys(errors).join(', ');
+        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+    };
     const { addToast } = useStore();
     const [suggestingField, setSuggestingField] = React.useState<string | null>(null);
 
@@ -209,7 +217,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-4 sm:p-6">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8 p-4 sm:p-6">
             {!isEditing && (
                 <AIAssistantHeader
                     templates={ASSET_TEMPLATES}
@@ -613,7 +621,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                 <Button
                     type="submit"
                     isLoading={isLoading}
-                    className="px-6 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:scale-105 transition-transform shadow-lg shadow-brand-500/20"
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold hover:scale-105 transition-transform shadow-lg shadow-brand-500/20"
                 >
                     {isEditing ? 'Mettre à jour' : 'Créer l\'actif'}
                 </Button>

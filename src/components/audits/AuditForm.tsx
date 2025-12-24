@@ -12,9 +12,7 @@ import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
 import type { Framework } from '../../types';
 import { FRAMEWORK_OPTIONS } from '../../data/frameworks';
-
-
-
+import { toast } from 'sonner';
 
 type AuditTemplate = BaseTemplate & { type: string; standard: string; scope: string };
 
@@ -54,21 +52,18 @@ export const AuditForm: React.FC<AuditFormProps> = ({
 }) => {
     const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useForm<AuditFormData>({
         resolver: zodResolver(auditSchema),
+        shouldUnregister: true,
         defaultValues: {
-            name: '',
-            type: 'Interne',
-            auditor: '',
-            dateScheduled: new Date().toISOString().split('T')[0],
-            status: 'Planifié',
-            description: '',
-            scope: '',
-            framework: undefined,
-            relatedAssetIds: [],
-            relatedRiskIds: [],
-            relatedControlIds: [],
-            relatedProjectIds: []
+            // ...
         }
     });
+
+    const onInvalid = (errors: any) => {
+        console.error("Form Validation Errors:", errors);
+        const missingFields = Object.keys(errors).join(', ');
+        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+    };
+
     const watchedName = useWatch({ control, name: 'name' });
     const watchedType = useWatch({ control, name: 'type' });
     const watchedScope = useWatch({ control, name: 'scope' });
@@ -160,7 +155,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
     const isEditing = !!existingAudit;
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-4 sm:p-6">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6 p-4 sm:p-6">
             {!isEditing && (
                 <AIAssistantHeader
                     templates={AUDIT_TEMPLATES}
@@ -350,7 +345,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 <Button
                     type="submit"
                     isLoading={isLoading}
-                    className="px-8 py-3 text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:scale-105 transition-transform shadow-xl shadow-slate-900/20 dark:shadow-none"
+                    className="px-8 py-3 text-sm font-bold text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20"
                 >
                     {existingAudit ? 'Enregistrer' : 'Planifier'}
                 </Button>

@@ -28,6 +28,8 @@ import { canEditResource } from '../utils/permissions';
 import { usePrivacy } from '../hooks/usePrivacy';
 import { usePersistedState } from '../hooks/usePersistedState';
 
+import { toast } from 'sonner';
+
 export const Privacy: React.FC = () => {
     const { user } = useStore();
     const {
@@ -61,6 +63,7 @@ export const Privacy: React.FC = () => {
     // Forms
     const createActivityForm = useForm<ProcessingActivityFormData>({
         resolver: zodResolver(processingActivitySchema),
+        shouldUnregister: true,
         defaultValues: {
             name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '',
             status: 'Actif',
@@ -74,10 +77,16 @@ export const Privacy: React.FC = () => {
     });
 
     const editActivityForm = useForm<ProcessingActivityFormData>({
-        resolver: zodResolver(processingActivitySchema)
+        resolver: zodResolver(processingActivitySchema),
+        shouldUnregister: true
     });
 
-    // Watch form values unconditionally at top level
+    const onInvalid = (errors: any) => {
+        console.error("Form Validation Errors:", errors);
+        const missingFields = Object.keys(errors).join(', ');
+        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+    };
+
     // Watch form values unconditionally at top level
     // eslint-disable-next-line react-hooks/incompatible-library
     const watchedManagerId = editActivityForm.watch('managerId');
@@ -364,7 +373,7 @@ export const Privacy: React.FC = () => {
                                 <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                             )}
                             {canEdit && isEditing && (
-                                <button onClick={editActivityForm.handleSubmit(handleUpdate)} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
+                                <button onClick={editActivityForm.handleSubmit(handleUpdate, onInvalid)} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
                             )}
                             {canEdit && (
                                 <button onClick={() => initiateDelete(selectedActivity.id, selectedActivity.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
@@ -691,7 +700,7 @@ export const Privacy: React.FC = () => {
                 subtitle="Ajoutez une nouvelle activité de traitement au registre."
                 width="max-w-4xl"
             >
-                <form onSubmit={createActivityForm.handleSubmit(handleCreate)} className="p-4 sm:p-8 space-y-6">
+                <form onSubmit={createActivityForm.handleSubmit(handleCreate, onInvalid)} className="p-4 sm:p-8 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <FloatingLabelInput label="Nom du traitement" {...createActivityForm.register('name')} placeholder="ex: Gestion Paie" error={createActivityForm.formState.errors.name?.message} />
@@ -785,7 +794,7 @@ export const Privacy: React.FC = () => {
 
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                         <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                        <button type="submit" className="px-8 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-purple-500/30">Enregistrer</button>
+                        <button type="submit" className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-purple-500/30">Enregistrer</button>
                     </div>
                 </form>
             </Drawer >
