@@ -1,11 +1,10 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { Team } from '../Team';
 import { MemoryRouter } from 'react-router-dom';
 import { usePersistedState } from '../../hooks/usePersistedState';
-import { getDocs, query, collection, where, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
+import { getDocs } from 'firebase/firestore';
 
 // ---------------------------------------------------------------------
 // Mocks
@@ -20,7 +19,7 @@ vi.mock('../../store', () => ({
 }));
 
 vi.mock('../../hooks/usePersistedState', () => ({
-    usePersistedState: vi.fn((key, defaultVal) => [defaultVal, vi.fn()])
+    usePersistedState: vi.fn((_key, defaultVal) => [defaultVal, vi.fn()])
 }));
 
 // Mock Firebase
@@ -87,7 +86,7 @@ vi.mock('../../components/ui/RoleBadge', () => ({
     RoleBadge: () => <div data-testid="role-badge" />
 }));
 vi.mock('../../components/ui/PremiumPageControl', () => ({
-    PremiumPageControl: ({ children, rightActions, searchQuery }: any) => (
+    PremiumPageControl: ({ children, rightActions }: any) => (
         <div data-testid="premium-page-control">
             {children}
             {rightActions}

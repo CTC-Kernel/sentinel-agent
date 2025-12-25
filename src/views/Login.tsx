@@ -7,7 +7,6 @@ import { Spotlight } from '../components/ui/aceternity/Spotlight';
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
-    signInWithPopup,
     signInWithRedirect,
     signInWithCredential,
     getRedirectResult,
@@ -227,37 +226,24 @@ export const Login: React.FC = () => {
                 // Web Google Sign In
                 const provider = new GoogleAuthProvider();
                 try {
-                    await signInWithPopup(auth, provider);
-                    addToast(t('auth.success'), 'success');
-                    window.location.hash = '#/';
-                } catch (popupError: unknown) {
-                    const popupCode = (popupError as { code?: string })?.code;
-                    // Typical popup errors: blocked by browser policy, COOP, or user closes it.
-                    if (
-                        popupCode === 'auth/popup-blocked' ||
-                        popupCode === 'auth/popup-closed-by-user' ||
-                        popupCode === 'auth/cancelled-popup-request'
-                    ) {
-                        await signInWithRedirect(auth, provider);
-                    } else {
-                        throw popupError;
-                    }
+                    addToast(t('auth.redirectingGoogle'), 'info');
+                    await signInWithRedirect(auth, provider);
+                } catch (error: unknown) {
+                    // Redirect errors are typically caught in getRedirectResult, not here,
+                    // but we keep a catch block just in case of immediate invocation errors.
+                    console.error('Redirect sign-in error:', error);
+                    ErrorLogger.error(error, 'Login.handleGoogleLogin');
+                    setErrorMsg(t('auth.errors.google'));
                 }
             }
         } catch (error: unknown) {
             ErrorLogger.error(error, 'Login.handleGoogleLogin');
             ErrorLogger.error(error as Error, 'Login.googleSignIn');
-
-            const code = (error as { code?: string })?.code;
-            if (code === 'auth/unauthorized-domain' || code === 'auth/operation-not-allowed') {
-                setErrorMsg(t('auth.errors.restrictedEnv'));
-            } else if (code === 'auth/popup-closed-by-user' || code === 'cancelled-popup-request') {
-                // User cancelled, no error message needed
-                // User cancelled login
-            } else {
-                setErrorMsg(t('auth.errors.google'));
-            }
-        } finally { setLoading(false); }
+            setErrorMsg(t('auth.errors.generic'));
+        } finally {
+            // Note: If redirect happens successfully, this might not run or matter as page unloads
+            setLoading(false);
+        }
     };
 
     const handlePasswordReset: SubmitHandler<ResetPasswordFormData> = async (data) => {

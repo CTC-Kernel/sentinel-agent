@@ -56,6 +56,8 @@ export function DataTable<TData extends { id: string }, TValue>({
             header: ({ table }) => (
                 <div className="px-1" onClick={(e) => e.stopPropagation()}>
                     <input
+                        id="select-all-rows"
+                        name="select-all-rows"
                         type="checkbox"
                         checked={table.getIsAllPageRowsSelected()}
                         onChange={table.getToggleAllPageRowsSelectedHandler()}
@@ -67,6 +69,8 @@ export function DataTable<TData extends { id: string }, TValue>({
             cell: ({ row }) => (
                 <div className="px-1" onClick={(e) => e.stopPropagation()}>
                     <input
+                        id={`select-row-${row.id}`}
+                        name={`select-row-${row.id}`}
                         type="checkbox"
                         checked={row.getIsSelected()}
                         disabled={!row.getCanSelect()}

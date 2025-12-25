@@ -237,6 +237,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                 render={({ field }) => (
                                     <FloatingLabelInput
                                         label="Nom de l'actif"
+                                        id="name"
+                                        autoComplete="off"
                                         {...field}
                                         error={errors.name?.message}
                                     />
@@ -300,6 +302,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             render={({ field }) => (
                                 <FloatingLabelInput
                                     label="Localisation"
+                                    id="location"
+                                    autoComplete="off"
                                     {...field}
                                     error={errors.location?.message}
                                 />
@@ -334,7 +338,13 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             name="ipAddress"
                             control={control}
                             render={({ field }) => (
-                                <FloatingLabelInput label="Adresse IP" {...field} error={errors.ipAddress?.message} />
+                                <FloatingLabelInput
+                                    label="Adresse IP"
+                                    id="ipAddress"
+                                    autoComplete="off"
+                                    {...field}
+                                    error={errors.ipAddress?.message}
+                                />
                             )}
                         />
                     </div>
@@ -349,7 +359,12 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             name="version"
                             control={control}
                             render={({ field }) => (
-                                <FloatingLabelInput label="Version" {...field} />
+                                <FloatingLabelInput
+                                    label="Version"
+                                    id="version"
+                                    autoComplete="off"
+                                    {...field}
+                                />
                             )}
                         />
                         <div>
@@ -377,21 +392,37 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             name="email"
                             control={control}
                             render={({ field }) => (
-                                <FloatingLabelInput label="Email Professionnel" {...field} error={errors.email?.message} />
+                                <FloatingLabelInput
+                                    label="Email Professionnel"
+                                    id="email"
+                                    autoComplete="email"
+                                    {...field}
+                                    error={errors.email?.message}
+                                />
                             )}
                         />
                         <Controller
                             name="role"
                             control={control}
                             render={({ field }) => (
-                                <FloatingLabelInput label="Fonction / Rôle" {...field} />
+                                <FloatingLabelInput
+                                    label="Fonction / Rôle"
+                                    id="role"
+                                    autoComplete="organization-title"
+                                    {...field}
+                                />
                             )}
                         />
                         <Controller
                             name="department"
                             control={control}
                             render={({ field }) => (
-                                <FloatingLabelInput label="Département" {...field} />
+                                <FloatingLabelInput
+                                    label="Département"
+                                    id="department"
+                                    autoComplete="organization"
+                                    {...field}
+                                />
                             )}
                         />
                     </div>
@@ -406,28 +437,49 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             name="serviceDetails.providerUrl"
                             control={control}
                             render={({ field }) => (
-                                <FloatingLabelInput label="URL du Fournisseur" {...field} error={errors.serviceDetails?.providerUrl?.message} />
+                                <FloatingLabelInput
+                                    label="URL du Fournisseur"
+                                    id="providerUrl"
+                                    autoComplete="url"
+                                    {...field}
+                                    error={errors.serviceDetails?.providerUrl?.message}
+                                />
                             )}
                         />
                         <Controller
                             name="serviceDetails.sla"
                             control={control}
                             render={({ field }) => (
-                                <FloatingLabelInput label="Niveau SLA (ex: 99.9%)" {...field} />
+                                <FloatingLabelInput
+                                    label="Niveau SLA (ex: 99.9%)"
+                                    id="sla"
+                                    autoComplete="off"
+                                    {...field}
+                                />
                             )}
                         />
                         <Controller
                             name="serviceDetails.supportContact"
                             control={control}
                             render={({ field }) => (
-                                <FloatingLabelInput label="Contact Support" {...field} />
+                                <FloatingLabelInput
+                                    label="Contact Support"
+                                    id="supportContact"
+                                    autoComplete="tel"
+                                    {...field}
+                                />
                             )}
                         />
                         <Controller
                             name="serviceDetails.hostingLocation"
                             control={control}
                             render={({ field }) => (
-                                <FloatingLabelInput label="Lieu d'hébergement" {...field} />
+                                <FloatingLabelInput
+                                    label="Lieu d'hébergement"
+                                    id="hostingLocation"
+                                    autoComplete="off"
+                                    {...field}
+                                />
                             )}
                         />
                     </div>
@@ -466,25 +518,32 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             name="dataDetails.retentionPeriod"
                             control={control}
                             render={({ field }) => (
-                                <FloatingLabelInput label="Durée de rétention (ex: 5 ans)" {...field} />
+                                <FloatingLabelInput
+                                    label="Durée de rétention (ex: 5 ans)"
+                                    id="retentionPeriod"
+                                    autoComplete="off"
+                                    {...field}
+                                />
                             )}
                         />
                         <div className="flex flex-col gap-4 justify-center md:col-span-2">
-                            <label className="flex items-center space-x-3 cursor-pointer">
+                            <label className="flex items-center space-x-3 cursor-pointer group">
                                 <input
                                     type="checkbox"
-                                    className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500"
+                                    id="isEncrypted"
+                                    className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
                                     {...control.register('dataDetails.isEncrypted')}
                                 />
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Données Chiffrées (At rest / Transit)</span>
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
                             </label>
-                            <label className="flex items-center space-x-3 cursor-pointer">
+                            <label className="flex items-center space-x-3 cursor-pointer group">
                                 <input
                                     type="checkbox"
-                                    className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500"
+                                    id="hasWorm"
+                                    className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
                                     {...control.register('dataDetails.hasWorm')}
                                 />
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Stockage Immuable (WORM)</span>
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Stockage Immuable (WORM)</span>
                             </label>
                         </div>
                     </div>
@@ -530,6 +589,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     {COMPLIANCE_SCOPES.map((scope) => (
                         <label
                             key={scope}
+                            htmlFor={`scope-${scope}`}
                             className={`cursor-pointer px-4 py-2 rounded-xl border transition-all ${(watch('scope') || []).includes(scope)
                                 ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-bold'
                                 : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
@@ -537,7 +597,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                         >
                             <input
                                 type="checkbox"
-                                className="hidden"
+                                id={`scope-${scope}`}
+                                name="scope"
+                                className="sr-only peer"
                                 value={scope}
                                 checked={(watch('scope') || []).includes(scope)}
                                 onChange={(e) => {
@@ -601,6 +663,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     <div>
                         <FloatingLabelInput
                             type="number"
+                            id="purchasePrice"
+                            autoComplete="off"
                             label="Prix d'achat (€)"
                             {...control.register('purchasePrice', { valueAsNumber: true })}
                         />
