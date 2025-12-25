@@ -6,6 +6,7 @@ import { Spotlight } from '../components/ui/aceternity/Spotlight';
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    signInWithPopup,
     signInWithRedirect,
     signInWithCredential,
     getRedirectResult,
@@ -222,18 +223,25 @@ export const Login: React.FC = () => {
                     throw new Error("No ID Token from Google");
                 }
             } else {
-                // Web Google Sign In - Use Redirect to avoid COOP/Popup blocking issues
+                // Web Google Sign In
                 const provider = new GoogleAuthProvider();
-                addToast(t('auth.redirectingGoogle'), 'info');
-                await signInWithRedirect(auth, provider);
+                try {
+                    await signInWithPopup(auth, provider);
+                    addToast(t('auth.success'), 'success');
+                    window.location.hash = '#/';
+                } catch (popupError: unknown) {
+                    // Fallback to redirect if popup fails (e.g. mobile or strict blocking)
+                    console.warn('Popup failed, trying redirect', popupError);
+                    await signInWithRedirect(auth, provider);
+                }
             }
         } catch (error: unknown) {
             ErrorLogger.error(error, 'Login.handleGoogleLogin');
             ErrorLogger.error(error as Error, 'Login.googleSignIn');
             setErrorMsg(t('auth.errors.generic'));
+        } finally {
             setLoading(false);
         }
-        // Note: loading state remains true during redirect
     };
 
     const handlePasswordReset: SubmitHandler<ResetPasswordFormData> = async (data) => {
