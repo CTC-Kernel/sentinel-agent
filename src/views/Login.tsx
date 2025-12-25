@@ -7,6 +7,7 @@ import { Spotlight } from '../components/ui/aceternity/Spotlight';
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    signInWithPopup,
     signInWithRedirect,
     signInWithCredential,
     getRedirectResult,
@@ -226,14 +227,38 @@ export const Login: React.FC = () => {
                 // Web Google Sign In
                 const provider = new GoogleAuthProvider();
                 try {
-                    addToast(t('auth.redirectingGoogle'), 'info');
-                    await signInWithRedirect(auth, provider);
-                } catch (error: unknown) {
-                    // Redirect errors are typically caught in getRedirectResult, not here,
-                    // but we keep a catch block just in case of immediate invocation errors.
-                    console.error('Redirect sign-in error:', error);
-                    ErrorLogger.error(error, 'Login.handleGoogleLogin');
-                    setErrorMsg(t('auth.errors.google'));
+                    await signInWithPopup(auth, provider);
+                    addToast(t('auth.success'), 'success');
+                    window.location.hash = '#/';
+                } catch (popupError: unknown) {
+                    const popupErrorObj = popupError as { code?: string; message?: string };
+                    const popupCode = popupErrorObj?.code;
+                    const popupMsg = popupErrorObj?.message || '';
+
+                    // Handle specific error cases where we should fallback to redirect
+                    const shouldFallback =
+                        popupCode === 'auth/popup-blocked' ||
+                        popupCode === 'auth/cancelled-popup-request' ||
+                        popupMsg.includes('Cross-Origin-Opener-Policy') ||
+                        popupMsg.includes('window.closed');
+
+                    // Do NOT fallback if user explicitly closed the popup
+                    const isUserCancellation = popupCode === 'auth/popup-closed-by-user';
+
+                    if (shouldFallback && !isUserCancellation) {
+                        console.warn('Popup sign-in failed, falling back to redirect:', popupError);
+                        addToast(t('auth.redirectingGoogle'), 'info');
+                        await signInWithRedirect(auth, provider);
+                    } else if (isUserCancellation) {
+                        // Just re-throw to be handled by the outer catch to avoid showing an error
+                        throw popupError;
+                    } else {
+                        // For other unknown errors, try redirect as a last resort method if it looks like a technical error
+                        // Otherwise rethrow
+                        console.warn('Unknown popup error, attempting redirect fallback:', popupError);
+                        addToast(t('auth.redirectingGoogle'), 'info');
+                        await signInWithRedirect(auth, provider);
+                    }
                 }
             }
         } catch (error: unknown) {
