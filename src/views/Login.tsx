@@ -3,7 +3,6 @@ import { AuroraBackground } from '../components/ui/AuroraBackground';
 import { LandingMap } from '../components/landing/LandingMap';
 import { SEO } from '../components/SEO';
 import { Spotlight } from '../components/ui/aceternity/Spotlight';
-
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
