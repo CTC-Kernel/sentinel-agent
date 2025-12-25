@@ -224,51 +224,18 @@ export const Login: React.FC = () => {
                     throw new Error("No ID Token from Google");
                 }
             } else {
-                // Web Google Sign In
+                // Web Google Sign In - Use Redirect to avoid COOP/Popup blocking issues
                 const provider = new GoogleAuthProvider();
-                try {
-                    await signInWithPopup(auth, provider);
-                    addToast(t('auth.success'), 'success');
-                    window.location.hash = '#/';
-                } catch (popupError: unknown) {
-                    const popupErrorObj = popupError as { code?: string; message?: string };
-                    const popupCode = popupErrorObj?.code;
-                    const popupMsg = popupErrorObj?.message || '';
-
-                    // Handle specific error cases where we should fallback to redirect
-                    const shouldFallback =
-                        popupCode === 'auth/popup-blocked' ||
-                        popupCode === 'auth/cancelled-popup-request' ||
-                        popupMsg.includes('Cross-Origin-Opener-Policy') ||
-                        popupMsg.includes('window.closed');
-
-                    // Do NOT fallback if user explicitly closed the popup
-                    const isUserCancellation = popupCode === 'auth/popup-closed-by-user';
-
-                    if (shouldFallback && !isUserCancellation) {
-                        console.warn('Popup sign-in failed, falling back to redirect:', popupError);
-                        addToast(t('auth.redirectingGoogle'), 'info');
-                        await signInWithRedirect(auth, provider);
-                    } else if (isUserCancellation) {
-                        // Just re-throw to be handled by the outer catch to avoid showing an error
-                        throw popupError;
-                    } else {
-                        // For other unknown errors, try redirect as a last resort method if it looks like a technical error
-                        // Otherwise rethrow
-                        console.warn('Unknown popup error, attempting redirect fallback:', popupError);
-                        addToast(t('auth.redirectingGoogle'), 'info');
-                        await signInWithRedirect(auth, provider);
-                    }
-                }
+                addToast(t('auth.redirectingGoogle'), 'info');
+                await signInWithRedirect(auth, provider);
             }
         } catch (error: unknown) {
             ErrorLogger.error(error, 'Login.handleGoogleLogin');
             ErrorLogger.error(error as Error, 'Login.googleSignIn');
             setErrorMsg(t('auth.errors.generic'));
-        } finally {
-            // Note: If redirect happens successfully, this might not run or matter as page unloads
             setLoading(false);
         }
+        // Note: loading state remains true during redirect
     };
 
     const handlePasswordReset: SubmitHandler<ResetPasswordFormData> = async (data) => {

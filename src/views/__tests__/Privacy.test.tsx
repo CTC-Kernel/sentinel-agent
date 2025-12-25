@@ -135,8 +135,56 @@ vi.mock('framer-motion', () => ({
 // ---------------------------------------------------------------------
 
 describe('Privacy View', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
+        const { usePrivacy } = await import('../../hooks/usePrivacy');
+        (usePrivacy as any).mockReturnValue({
+            activities: [
+                {
+                    id: 'act1',
+                    name: 'Gestion RH',
+                    purpose: 'Gérer les employés',
+                    manager: 'HR Manager',
+                    legalBasis: 'Contrat',
+                    dataCategories: ['État civil', 'Bancaire / Financier'],
+                    status: 'Actif',
+                    retentionPeriod: '5 ans',
+                    hasDPIA: false
+                },
+                {
+                    id: 'act2',
+                    name: 'Newsletter',
+                    purpose: 'Marketing',
+                    manager: 'Marketing Lead',
+                    legalBasis: 'Consentement',
+                    dataCategories: ['Vie personnelle'],
+                    status: 'Actif',
+                    retentionPeriod: '3 ans',
+                    hasDPIA: true
+                }
+            ],
+            usersList: [{ uid: 'u1', displayName: 'User 1' }],
+            assetsList: [{ id: 'asset1', name: 'Server A' }],
+            risksList: [{ id: 'risk1', threat: 'Data Breach' }],
+            loading: false,
+            selectedActivity: null,
+            setSelectedActivity: vi.fn(),
+            isEditing: false,
+            setIsEditing: vi.fn(),
+            viewingAssessmentId: null,
+            setViewingAssessmentId: vi.fn(),
+            showCreateModal: false,
+            setShowCreateModal: vi.fn(),
+            fetchData: vi.fn(),
+            handleCreate: vi.fn(),
+            handleUpdate: vi.fn(),
+            handleDelete: vi.fn(),
+            handleStartDPIA: vi.fn(),
+            handleViewDPIA: vi.fn(),
+            activityHistory: [],
+            stats: { total: 2, sensitive: 1, dpiaMissing: 0, review: 0 },
+            handleFileUpload: vi.fn()
+        });
     });
 
     it('renders the privacy dashboard with activities', () => {
@@ -156,7 +204,17 @@ describe('Privacy View', () => {
         const { usePrivacy } = await import('../../hooks/usePrivacy');
         const setShowCreateModal = vi.fn();
         const localMockActivities = [
-            { id: 'act1', name: 'Test Activity', status: 'Actif' }
+            {
+                id: 'act1',
+                name: 'Test Activity',
+                status: 'Actif',
+                purpose: 'Test Purpose',
+                manager: 'Test Manager',
+                legalBasis: 'Intérêt Légitime',
+                dataCategories: [],
+                retentionPeriod: '5 ans',
+                hasDPIA: false
+            }
         ];
 
         (usePrivacy as any).mockReturnValue({
