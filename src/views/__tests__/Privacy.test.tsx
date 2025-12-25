@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Privacy } from '../Privacy';
 import { MemoryRouter } from 'react-router-dom';
-import { usePersistedState } from '../../hooks/usePersistedState';
 
 // ---------------------------------------------------------------------
 // Mocks
@@ -21,7 +20,7 @@ vi.mock('../../store', () => ({
 vi.mock('../../hooks/usePersistedState', async () => {
     const React = await vi.importActual<any>('react');
     return {
-        usePersistedState: (key: any, defaultVal: any) => React.useState(defaultVal)
+        usePersistedState: (_key: any, defaultVal: any) => React.useState(defaultVal)
     };
 });
 

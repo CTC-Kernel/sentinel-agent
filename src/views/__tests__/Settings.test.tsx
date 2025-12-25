@@ -18,7 +18,7 @@ vi.mock('../../store', () => ({
 vi.mock('../../hooks/usePersistedState', async () => {
     const React = await vi.importActual<any>('react');
     return {
-        usePersistedState: (key: any, defaultVal: any) => React.useState(defaultVal)
+        usePersistedState: (_key: any, defaultVal: any) => React.useState(defaultVal)
     };
 });
 
@@ -30,7 +30,7 @@ vi.mock('../../components/SEO', () => ({
     SEO: () => null
 }));
 vi.mock('../../components/settings/SettingsLayout', () => ({
-    SettingsLayout: ({ children, currentTab, onTabChange }: any) => (
+    SettingsLayout: ({ children, currentTab: _currentTab, onTabChange }: any) => (
         <div>
             <div data-testid="settings-tabs">
                 <button onClick={() => onTabChange('profile')}>Profile</button>

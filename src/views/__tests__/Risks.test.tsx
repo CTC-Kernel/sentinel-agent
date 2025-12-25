@@ -37,7 +37,7 @@ vi.mock('../../components/risks/RiskInspector', () => ({
 }));
 
 vi.mock('../../hooks/usePersistedState', () => ({
-    usePersistedState: (key: string, initial: unknown) => React.useState(initial),
+    usePersistedState: (_key: string, initial: unknown) => React.useState(initial),
 }));
 
 vi.mock('../../hooks/useAuth', () => ({

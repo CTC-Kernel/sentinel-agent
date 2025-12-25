@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { Audits } from '../Audits';
 import { MemoryRouter } from 'react-router-dom';
@@ -73,7 +73,7 @@ describe('Audits View', () => {
             checkDependencies: vi.fn().mockResolvedValue({ hasDependencies: false }),
         });
 
-        (usePersistedState as any).mockImplementation((key: string, defaultVal: any) => React.useState(defaultVal));
+        (usePersistedState as any).mockImplementation((_key: string, defaultVal: any) => React.useState(defaultVal));
     });
 
     it('renders the dashboard by default', () => {

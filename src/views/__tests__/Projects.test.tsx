@@ -21,7 +21,7 @@ vi.mock('../../store', () => ({
 }));
 
 vi.mock('../../hooks/usePersistedState', () => ({
-    usePersistedState: vi.fn((key, defaultVal) => [defaultVal, vi.fn()])
+    usePersistedState: vi.fn((_key, defaultVal) => [defaultVal, vi.fn()])
 }));
 
 vi.mock('../../hooks/projects/useProjectLogic', () => ({
@@ -80,7 +80,7 @@ vi.mock('../../components/projects/TemplateModal', () => ({
 }));
 
 vi.mock('../../components/ui/PremiumPageControl', () => ({
-    PremiumPageControl: ({ children, rightActions, searchQuery, onSearchChange }: any) => (
+    PremiumPageControl: ({ children, rightActions: _rightActions, searchQuery, onSearchChange }: any) => (
         <div data-testid="premium-page-control">
             {children}
             <input
@@ -93,7 +93,7 @@ vi.mock('../../components/ui/PremiumPageControl', () => ({
 }));
 
 vi.mock('../../components/ui/ScrollableTabs', () => ({
-    ScrollableTabs: ({ tabs, activeTab, onTabChange }: any) => (
+    ScrollableTabs: ({ tabs, activeTab: _activeTab, onTabChange }: any) => (
         <div data-testid="scrollable-tabs">
             {tabs.map((t: any) => (
                 <button key={t.id} onClick={() => onTabChange(t.id)}>

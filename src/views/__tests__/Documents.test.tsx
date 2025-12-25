@@ -129,7 +129,7 @@ describe('Documents View', () => {
     });
 
     it('renders empty state when no documents', () => {
-        (useFirestoreCollection as any).mockImplementation((name: string) => ({
+        (useFirestoreCollection as any).mockImplementation((_name: string) => ({
             data: [],
             loading: false
         }));

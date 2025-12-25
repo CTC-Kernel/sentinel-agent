@@ -22,7 +22,7 @@ vi.mock('../../store', () => ({
 vi.mock('../../hooks/usePersistedState', async () => {
     const React = await vi.importActual<any>('react');
     return {
-        usePersistedState: (key: any, defaultVal: any) => React.useState(defaultVal)
+        usePersistedState: (_key: any, defaultVal: any) => React.useState(defaultVal)
     };
 });
 
