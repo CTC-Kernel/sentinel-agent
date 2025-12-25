@@ -41,11 +41,8 @@ vi.mock('../../components/ui/Drawer', () => ({
 }));
 
 // Import mocked hooks to set return values
-// @ts-ignore
 import { useAudits } from '../../hooks/audits/useAudits';
-// @ts-ignore
 import { useStore } from '../../store';
-// @ts-ignore
 import { usePersistedState } from '../../hooks/usePersistedState';
 
 describe('Audits View', () => {

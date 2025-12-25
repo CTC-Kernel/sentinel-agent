@@ -56,11 +56,8 @@ vi.mock('../../components/ui/DataTable', () => ({
 }));
 
 // Mock Hooks
-// @ts-ignore
 import { useFirestoreCollection } from '../../hooks/useFirestore';
-// @ts-ignore
 import { useStore } from '../../store';
-// @ts-ignore
 import { usePersistedState } from '../../hooks/usePersistedState';
 
 describe('Suppliers View', () => {

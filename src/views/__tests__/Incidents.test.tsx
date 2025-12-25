@@ -34,9 +34,7 @@ vi.mock('../../components/ui/Drawer', () => ({
 }));
 
 // Mock Hooks
-// @ts-ignore
 import { useFirestoreCollection } from '../../hooks/useFirestore';
-// @ts-ignore
 import { useStore } from '../../store';
 
 describe('Incidents View', () => {
