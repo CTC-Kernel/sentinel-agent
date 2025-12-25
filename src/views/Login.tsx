@@ -7,7 +7,6 @@ import { Spotlight } from '../components/ui/aceternity/Spotlight';
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
-    signInWithPopup,
     signInWithRedirect,
     signInWithCredential,
     getRedirectResult,
