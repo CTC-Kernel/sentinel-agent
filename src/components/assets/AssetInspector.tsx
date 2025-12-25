@@ -11,7 +11,7 @@ import { ResourceHistory } from '../shared/ResourceHistory';
 import { useAssetDetails } from '../../hooks/assets/useAssetDetails';
 import { useAssetSecurity } from '../../hooks/assets/useAssetSecurity';
 import {
-    ShieldCheck, HeartPulse, Archive, ClipboardList, ShieldAlert,
+    HeartPulse, Archive, ClipboardList, ShieldAlert,
     Siren, Flame, FolderKanban, CheckSquare, CalendarClock,
     AlertTriangle, FileText, ExternalLink, History, Search, Plus, Server
 } from '../ui/Icons';
@@ -115,13 +115,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
         return data;
     };
 
-    const getCriticalityColor = (level: string) => {
-        const l = level as unknown; // avoiding strict enum checks for simple styling
-        if (l === 'Critique') return 'bg-red-100/80 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
-        if (l === 'Élevée') return 'bg-orange-100/80 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
-        if (l === 'Moyenne') return 'bg-yellow-100/80 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
-        return 'bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800';
-    };
+
 
     const tabs = [
         { id: 'details', label: 'Détails', icon: LayoutDashboard },
@@ -175,60 +169,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                             onCancel={onClose}
                         />
 
-                        {selectedAsset && (
-                            <div className="space-y-6">
-                                {/* Dependencies Display */}
-                                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6 flex items-center">
-                                        <ShieldCheck className="h-4 w-4 mr-2" /> Dépendances Critiques
-                                    </h3>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        {['confidentiality', 'integrity', 'availability'].map((field) => (
-                                            <div key={field} className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5">
-                                                <label className="block text-[10px] font-bold uppercase text-slate-500 mb-3 tracking-wider">{field.charAt(0).toUpperCase() + field.slice(1)}</label>
-                                                <div className={`text-sm font-bold ${getCriticalityColor(selectedAsset[field as 'confidentiality' | 'integrity' | 'availability'])} px-2 py-1 rounded-lg inline-block`}>
-                                                    {selectedAsset[field as 'confidentiality' | 'integrity' | 'availability']}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
 
-                                {/* Scope */}
-                                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6 flex items-center">
-                                        <ShieldCheck className="h-4 w-4 mr-2" /> Périmètre de Conformité (Scope)
-                                    </h3>
-                                    <div className="flex flex-wrap gap-3">
-                                        {selectedAsset.scope && selectedAsset.scope.length > 0 ? selectedAsset.scope.map((scope) => (
-                                            <span key={scope} className="px-4 py-2 rounded-xl bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-bold">
-                                                {scope.replace('_', ' ')}
-                                            </span>
-                                        )) : <p className="text-sm text-slate-500 italic">Aucun périmètre défini.</p>}
-                                    </div>
-                                </div>
-
-                                {/* Supported Processes */}
-                                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center">
-                                        <HeartPulse className="h-4 w-4 mr-2" /> Processus Supportés
-                                    </h3>
-                                    {(() => {
-                                        const supported = processes.filter(p => p.supportingAssetIds?.includes(selectedAsset.id));
-                                        return supported.length > 0 ? (
-                                            <div className="space-y-2">
-                                                {supported.map(p => (
-                                                    <div key={p.id} className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 flex justify-between items-center">
-                                                        <span className="text-sm font-medium text-slate-700 dark:text-white">{p.name}</span>
-                                                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'}`}>{p.priority}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : <p className="text-sm text-slate-500 italic">Cet actif ne supporte aucun processus critique.</p>;
-                                    })()}
-                                </div>
-                            </div>
-                        )}
                     </div>
                 )}
 
@@ -498,6 +439,26 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                             </div>
                         )}
                         <p className="text-xs text-slate-400 text-center mt-4">Les contrôles sont gérés dans le module Conformité.</p>
+
+                        {/* Supported Processes (Moved from Details) */}
+                        <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center">
+                                <HeartPulse className="h-4 w-4 mr-2" /> Processus Supportés
+                            </h3>
+                            {(() => {
+                                const supported = processes.filter(p => p.supportingAssetIds?.includes(selectedAsset.id));
+                                return supported.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {supported.map(p => (
+                                            <div key={p.id} className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 flex justify-between items-center">
+                                                <span className="text-sm font-medium text-slate-700 dark:text-white">{p.name}</span>
+                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${p.priority === 'Critique' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'}`}>{p.priority}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : <p className="text-sm text-slate-500 italic">Cet actif ne supporte aucun processus critique.</p>;
+                            })()}
+                        </div>
                     </div>
                 )}
                 {inspectorTab === 'projects' && selectedAsset && (

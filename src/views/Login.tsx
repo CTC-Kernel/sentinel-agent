@@ -6,7 +6,6 @@ import { Spotlight } from '../components/ui/aceternity/Spotlight';
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
-    signInWithPopup,
     signInWithRedirect,
     signInWithCredential,
     getRedirectResult,
@@ -223,17 +222,10 @@ export const Login: React.FC = () => {
                     throw new Error("No ID Token from Google");
                 }
             } else {
-                // Web Google Sign In
+                // Web Google Sign In - Use Redirect to avoid COOP/Popup blocking issues
                 const provider = new GoogleAuthProvider();
-                try {
-                    await signInWithPopup(auth, provider);
-                    addToast(t('auth.success'), 'success');
-                    window.location.hash = '#/';
-                } catch (popupError: unknown) {
-                    // Fallback to redirect if popup fails (e.g. mobile or strict blocking)
-                    console.warn('Popup failed, trying redirect', popupError);
-                    await signInWithRedirect(auth, provider);
-                }
+                addToast(t('auth.redirectingGoogle'), 'info');
+                await signInWithRedirect(auth, provider);
             }
         } catch (error: unknown) {
             ErrorLogger.error(error, 'Login.handleGoogleLogin');
@@ -339,6 +331,7 @@ export const Login: React.FC = () => {
                         <form onSubmit={handleSubmit(handleEmailAuth)} className="space-y-5">
                             <div className="space-y-1.5">
                                 <FloatingLabelInput
+                                    id="email"
                                     label={t('auth.email')}
                                     type="email"
                                     autoComplete="email"
@@ -358,6 +351,7 @@ export const Login: React.FC = () => {
                                     )}
                                 </div>
                                 <FloatingLabelInput
+                                    id="password"
                                     label={t('auth.password')}
                                     type="password"
                                     autoComplete={isLogin ? 'current-password' : 'new-password'}
@@ -434,6 +428,7 @@ export const Login: React.FC = () => {
                                 <form onSubmit={resetForm.handleSubmit(handlePasswordReset)} className="space-y-6">
                                     <div>
                                         <FloatingLabelInput
+                                            id="resetEmail"
                                             label={t('auth.email')}
                                             type="email"
                                             {...resetForm.register('email')}
@@ -484,6 +479,7 @@ export const Login: React.FC = () => {
                             <form onSubmit={handleMfaVerification} className="space-y-6">
                                 <div>
                                     <FloatingLabelInput
+                                        id="mfaCode"
                                         label={t('auth.mfa.codeLabel')}
                                         name="mfaCode"
                                         type="text"
