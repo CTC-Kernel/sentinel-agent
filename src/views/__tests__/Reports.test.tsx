@@ -20,9 +20,9 @@ vi.mock('../../store', () => ({
 
 
 vi.mock('../../hooks/usePersistedState', async () => {
-    const React = await vi.importActual<any>('react');
+    const React = await vi.importActual<typeof import('react')>('react');
     return {
-        usePersistedState: (_key: any, defaultVal: any) => React.useState(defaultVal)
+        usePersistedState: (_key: string, defaultVal: unknown) => React.useState(defaultVal)
     };
 });
 
@@ -97,12 +97,12 @@ vi.mock('../../components/ui/MasterpieceBackground', () => ({
     MasterpieceBackground: () => null
 }));
 vi.mock('../../components/ui/PageHeader', () => ({
-    PageHeader: ({ title }: any) => <h1>{title}</h1>
+    PageHeader: ({ title }: { title: string }) => <h1>{title}</h1>
 }));
 vi.mock('../../components/ui/ScrollableTabs', () => ({
-    ScrollableTabs: ({ tabs, onTabChange }: any) => (
+    ScrollableTabs: ({ tabs, onTabChange }: { tabs: Array<{ id: string; label: string }>, onTabChange: (id: string) => void }) => (
         <div>
-            {tabs.map((t: any) => (
+            {tabs.map((t: { id: string; label: string }) => (
                 <button key={t.id} onClick={() => onTabChange(t.id)}>{t.label}</button>
             ))}
         </div>
@@ -117,9 +117,9 @@ vi.mock('../../components/reports/ReportTemplates', () => ({
 
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>,
-        section: ({ children, className, ...props }: any) => <section className={className} {...props}>{children}</section>,
-        tr: ({ children, className, ...props }: any) => <tr className={className} {...props}>{children}</tr>
+        div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>,
+        section: ({ children, className, ...props }: React.ComponentProps<'section'>) => <section className={className} {...props}>{children}</section>,
+        tr: ({ children, className, ...props }: React.ComponentProps<'tr'>) => <tr className={className} {...props}>{children}</tr>
     }
 }));
 

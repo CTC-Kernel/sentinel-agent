@@ -83,7 +83,7 @@ vi.mock('../../components/SEO', () => ({
 }));
 
 vi.mock('../../components/ui/PremiumPageControl', () => ({
-    PremiumPageControl: ({ children, rightActions, searchQuery, onSearchChange }: any) => (
+    PremiumPageControl: ({ children, rightActions, searchQuery, onSearchChange }: { children: React.ReactNode, rightActions?: React.ReactNode, searchQuery: string, onSearchChange: (v: string) => void }) => (
         <div data-testid="premium-page-control">
             {children}
             {rightActions}
@@ -102,9 +102,9 @@ vi.mock('../../components/ui/LoadingScreen', () => ({
 
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>
+        div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
     },
-    AnimatePresence: ({ children }: any) => <>{children}</>
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 // ---------------------------------------------------------------------
@@ -129,7 +129,7 @@ describe('Documents View', () => {
     });
 
     it('renders empty state when no documents', () => {
-        (useFirestoreCollection as any).mockImplementation((_name: string) => ({
+        (useFirestoreCollection as unknown as ReturnType<typeof vi.fn>).mockImplementation((_name: string) => ({
             data: [],
             loading: false
         }));

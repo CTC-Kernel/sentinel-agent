@@ -18,13 +18,11 @@ import { ThreatDiscussion } from '../components/threat-intel/ThreatDiscussion';
 import { SubmitThreatModal } from '../components/threat-intel/SubmitThreatModal';
 import { CommunitySettingsModal } from '../components/threat-intel/CommunitySettingsModal';
 import { ThreatToRiskModal } from '../components/threat-intel/ThreatToRiskModal';
-import { useFirestoreCollection } from '../hooks/useFirestore';
-import { orderBy, updateDoc, doc, increment, deleteDoc, limit } from 'firebase/firestore';
-import { db } from '../firebase';
 import { logAction } from '../services/logger';
 import { useStore } from '../store';
-import { TrustRelationship } from '../types';
 import { usePersistedState } from '../hooks/usePersistedState';
+import { useThreatIntelligence } from '../hooks/useThreatIntelligence';
+import { ErrorLogger } from '../services/errorLogger';
 
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -35,7 +33,6 @@ export const ThreatIntelligence: React.FC = () => {
 
     // UI State
     const [activeTab, setActiveTab] = usePersistedState<'overview' | 'map' | 'feed' | 'community'>('threat_intelligence_active_tab', 'map');
-
 
     const [tooltipContent, setTooltipContent] = useState('');
     const [viewMode, setViewMode] = useState<'2d' | '3d'>('3d');
@@ -53,30 +50,16 @@ export const ThreatIntelligence: React.FC = () => {
     const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
     const [threatForRisk, setThreatForRisk] = useState<Threat | null>(null);
 
-    // Filter relationships
-    const myOrgId = user?.organizationId || 'demo';
-    const { data: partners } = useFirestoreCollection<TrustRelationship>('relationships', [], { realtime: true });
-    const myPartners = useMemo(() => partners.filter(p => p.sourceOrgId === myOrgId), [partners, myOrgId]);
+    // Business Logic from Hook
+    const {
+        threats,
+        threatsLoading,
+        myPartners,
+        blockedOrgIds,
+        handleTrustAction,
+        confirmSighting
+    } = useThreatIntelligence();
 
-    const handleTrustAction = async (id: string, action: 'trust' | 'block' | 'remove') => {
-        try {
-            if (action === 'remove') {
-                await deleteDoc(doc(db, 'relationships', id));
-                addToast("Relation supprimée", "info");
-            } else {
-                await updateDoc(doc(db, 'relationships', id), { status: action === 'trust' ? 'trusted' : 'blocked' });
-                addToast(action === 'trust' ? "Partenaire ajouté aux cercles de confiance" : "Organisation bloquée", "success");
-            }
-        } catch (e) {
-            console.error("Error updating relationship", e);
-            addToast("Erreur lors de la mise à jour", "error");
-        }
-    };
-
-    const blockedOrgIds = useMemo(() => myPartners.filter(p => p.status === 'blocked').map(p => p.targetOrgId), [myPartners]);
-
-    // Data
-    const { data: threats, loading: threatsLoading } = useFirestoreCollection<Threat>('threats', [orderBy('timestamp', 'desc'), limit(100)], { realtime: true });
     const initialLoadRef = React.useRef(false);
 
     // Auto-seed LIVE data if empty (Production Behavior)
@@ -88,7 +71,9 @@ export const ThreatIntelligence: React.FC = () => {
                 .then(stats => {
                     if (stats.threats > 0) logAction(user, 'AUTO_SEED_LIVE', 'ThreatIntelligence', `Initialized with ${stats.threats} live threats`);
                 })
-                .catch(e => console.warn("Live feed auto-fetch failed:", e));
+                .catch(e => {
+                    ErrorLogger.warn(e instanceof Error ? e.message : String(e), 'ThreatIntelligence.seedLiveThreats.autoSeed');
+                });
         }
     }, [threatsLoading, threats.length, user]);
 
@@ -100,7 +85,7 @@ export const ThreatIntelligence: React.FC = () => {
             const stats = await ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo');
             addToast(`Flux mis à jour : ${stats.threats} nouvelles menaces`, "success");
         } catch (e) {
-            console.error(e);
+            ErrorLogger.error(e as Error, 'ThreatIntelligence.seedLiveThreats');
             addToast("Passage en mode simulation (Hors-ligne).", "info");
             // Fallback to simulation
             ThreatFeedService.useSimulation = true;
@@ -153,17 +138,6 @@ export const ThreatIntelligence: React.FC = () => {
         return Object.entries(counts).sort(([, a], [, b]) => b - a).slice(0, 5).map(([name, count], i) => ({ name, count, rank: i + 1 }));
     }, [threats]);
 
-    // Actions
-    const handleConfirmSighting = async (e: React.MouseEvent, threatId: string) => {
-        e.stopPropagation();
-        if (!user) return;
-        try {
-            await updateDoc(doc(db, 'threats', threatId), { votes: increment(1) });
-            logAction(user, 'CONFIRM_SIGHTING', 'ThreatIntelligence', `Confirmed sighting ${threatId}`);
-            addToast("Observation confirmée (+1)", "success");
-        } catch { addToast("Action non autorisée (Mode Démo)", "info"); }
-    };
-
     const handleDownloadRule = (e: React.MouseEvent, threat: Threat) => {
         e.stopPropagation();
         const ruleContent = `title: ${threat.title}\nstatus: experimental\ndescription: SIGMA rule for ${threat.title}\nlogsource:\n    category: process_creation\n    product: windows\ndetection:\n    selection:\n        CommandLine|contains:\n            - '${threat.title.split(' ')[0]}'\n    condition: selection\nlevel: ${threat.severity === 'Critical' ? 'critical' : 'high'}`;
@@ -191,13 +165,13 @@ export const ThreatIntelligence: React.FC = () => {
                 breadcrumbs={[{ label: 'Pilotage' }, { label: 'Threat Intel' }]}
                 actions={
                     <div className="flex gap-2">
-                        <button onClick={handleRefreshLiveFeed} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 p-2 rounded-xl backdrop-blur-md transition-all">
+                        <button onClick={handleRefreshLiveFeed} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 p-2 rounded-xl backdrop-blur-md transition-all" aria-label="Refresh threat feeds" title="Refresh threat feeds">
                             <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin' : ''}`} />
                         </button>
-                        <button onClick={() => setIsSubmitModalOpen(true)} className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl flex items-center text-sm font-bold shadow-lg shadow-brand-500/20">
+                        <button onClick={() => setIsSubmitModalOpen(true)} className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl flex items-center text-sm font-bold shadow-lg shadow-brand-500/20" aria-label="Share new threat" title="Share new threat">
                             <Share2 className="h-4 w-4 mr-2" /> Partager
                         </button>
-                        <button onClick={() => setIsSettingsOpen(true)} className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl border border-white/10">
+                        <button onClick={() => setIsSettingsOpen(true)} className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl border border-white/10" aria-label="Community settings" title="Community settings">
                             <Settings className="h-5 w-5" />
                         </button>
                     </div>
@@ -219,7 +193,7 @@ export const ThreatIntelligence: React.FC = () => {
                 actions={
                     activeTab === 'feed' && (
                         <Menu as="div" className="relative inline-block text-left">
-                            <Menu.Button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors text-sm font-medium">
+                            <Menu.Button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors text-sm font-medium" aria-label="Filter threats" title="Filter threats">
                                 <Network className="h-4 w-4 text-slate-500" />
                                 <span className="hidden md:inline">Filtre:</span> <span className="font-bold ml-1">{activeTypeFilter}</span>
                             </Menu.Button>
@@ -229,7 +203,7 @@ export const ThreatIntelligence: React.FC = () => {
                                     {['All', 'Ransomware', 'Vulnerability', 'Malware'].map(f => (
                                         <Menu.Item key={f}>
                                             {({ active }) => (
-                                                <button onClick={() => setActiveTypeFilter(f)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                <button onClick={() => setActiveTypeFilter(f)} className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors`} aria-label={`Filter by ${f}`} title={`Filter by ${f}`}>
                                                     {f}
                                                 </button>
                                             )}
@@ -257,7 +231,7 @@ export const ThreatIntelligence: React.FC = () => {
             {activeTab === 'map' && (
                 <motion.div variants={slideUpVariants} className="relative h-[70vh] min-h-[500px] w-full bg-slate-900 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden">
                     <div className="absolute top-6 right-6 z-10 flex gap-2">
-                        <button onClick={() => setViewMode(viewMode === '2d' ? '3d' : '2d')} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold backdrop-blur-md flex items-center border border-white/10 transition-all">
+                        <button onClick={() => setViewMode(viewMode === '2d' ? '3d' : '2d')} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold backdrop-blur-md flex items-center border border-white/10 transition-all" aria-label="Toggle 2D/3D view" title="Toggle 2D/3D view">
                             {viewMode === '2d' ? <Box className="h-4 w-4 mr-2" /> : <Globe className="h-4 w-4 mr-2" />}
                             {viewMode === '2d' ? 'Vue 3D' : 'Vue 2D'}
                         </button>
@@ -324,17 +298,17 @@ export const ThreatIntelligence: React.FC = () => {
                                             </div>
 
                                             <div className="flex items-center gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                                                <button onClick={(e) => handleConfirmSighting(e, threat.id)} className="flex items-center text-xs font-bold text-slate-500 hover:text-brand-500 transition-colors">
+                                                <button onClick={(e) => { e.stopPropagation(); confirmSighting(threat.id); }} className="flex items-center text-xs font-bold text-slate-500 hover:text-brand-500 transition-colors" aria-label="Confirm sighting" title="Confirm sighting">
                                                     <ThumbsUp className="h-4 w-4 mr-1.5" /> {threat.votes} Confirmations
                                                 </button>
-                                                <button className="flex items-center text-xs font-bold text-slate-500 hover:text-blue-500 transition-colors">
+                                                <button className="flex items-center text-xs font-bold text-slate-500 hover:text-blue-500 transition-colors" aria-label="View discussions" title="View discussions">
                                                     <MessageSquare className="h-4 w-4 mr-1.5" /> {threat.comments || 0} Discussions
                                                 </button>
                                                 <div className="ml-auto flex gap-2">
-                                                    <button onClick={(e) => handleDownloadRule(e, threat)} className="text-xs font-bold text-emerald-600 hover:text-emerald-500 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/10 rounded-lg transition-colors">
+                                                    <button onClick={(e) => handleDownloadRule(e, threat)} className="text-xs font-bold text-emerald-600 hover:text-emerald-500 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/10 rounded-lg transition-colors" aria-label="Download SIGMA rule" title="Download SIGMA rule">
                                                         SIGMA Rule
                                                     </button>
-                                                    <button onClick={(e) => { e.stopPropagation(); setThreatForRisk(threat); setIsRiskModalOpen(true); }} className="text-xs font-bold text-orange-600 hover:text-orange-500 px-3 py-1 bg-orange-50 dark:bg-orange-900/10 rounded-lg transition-colors">
+                                                    <button onClick={(e) => { e.stopPropagation(); setThreatForRisk(threat); setIsRiskModalOpen(true); }} className="text-xs font-bold text-orange-600 hover:text-orange-500 px-3 py-1 bg-orange-50 dark:bg-orange-900/10 rounded-lg transition-colors" aria-label="Create risk from threat" title="Create risk from threat">
                                                         Créer Risque
                                                     </button>
                                                 </div>
@@ -385,7 +359,7 @@ export const ThreatIntelligence: React.FC = () => {
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <Activity className="h-6 w-6 text-brand-500" /> Top Hunters
                             </h3>
-                            <button className="text-xs font-bold text-brand-500 hover:text-brand-400">Voir tout</button>
+                            <button className="text-xs font-bold text-brand-500 hover:text-brand-400" aria-label="View all top hunters">Voir tout</button>
                         </div>
 
                         <div className="space-y-6">

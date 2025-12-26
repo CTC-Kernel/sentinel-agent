@@ -40,7 +40,7 @@ class AnalyticsService {
             firebaseLogEvent(this.analytics, eventName as string, params);
             // In development, log to console for visibility
             if (import.meta.env.DEV) {
-                console.log(`[Analytics] ${eventName}`, params);
+                ErrorLogger.info(`[Analytics] ${eventName}`, 'AnalyticsService', { metadata: params });
             }
         } catch (error) {
             ErrorLogger.warn('Failed to log analytics event', 'AnalyticsService.logEvent', { metadata: { error, eventName: String(eventName) } });

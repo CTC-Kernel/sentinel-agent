@@ -18,9 +18,9 @@ vi.mock('../../store', () => ({
 
 
 vi.mock('../../hooks/usePersistedState', async () => {
-    const React = await vi.importActual<any>('react');
+    const React = await vi.importActual<typeof import('react')>('react');
     return {
-        usePersistedState: (_key: any, defaultVal: any) => React.useState(defaultVal)
+        usePersistedState: (_key: string, defaultVal: unknown) => React.useState(defaultVal)
     };
 });
 
@@ -61,19 +61,19 @@ vi.mock('../../components/SEO', () => ({
     SEO: () => null
 }));
 vi.mock('../../components/ui/PageHeader', () => ({
-    PageHeader: ({ title }: any) => <h1>{title}</h1>
+    PageHeader: ({ title }: { title: string }) => <h1>{title}</h1>
 }));
 vi.mock('../../components/ui/ScrollableTabs', () => ({
-    ScrollableTabs: ({ tabs, onTabChange }: any) => (
+    ScrollableTabs: ({ tabs, onTabChange }: { tabs: Array<{ id: string; label: string }>, onTabChange: (id: string) => void }) => (
         <div>
-            {tabs.map((t: any) => (
+            {tabs.map((t: { id: string; label: string }) => (
                 <button key={t.id} onClick={() => onTabChange(t.id)}>{t.label}</button>
             ))}
         </div>
     )
 }));
 vi.mock('../../components/ui/PremiumPageControl', () => ({
-    PremiumPageControl: ({ onSearchChange, actions }: any) => (
+    PremiumPageControl: ({ onSearchChange, actions }: { onSearchChange: (val: string) => void, actions?: React.ReactNode }) => (
         <div>
             <input data-testid="search-input" onChange={(e) => onSearchChange(e.target.value)} />
             {actions}
@@ -86,9 +86,9 @@ vi.mock('../../components/continuity/ContinuityDashboard', () => ({
     ContinuityDashboard: () => <div data-testid="continuity-dashboard" />
 }));
 vi.mock('../../components/continuity/ContinuityBIA', () => ({
-    ContinuityBIA: ({ processes }: any) => (
+    ContinuityBIA: ({ processes }: { processes: Array<{ id: string; name: string }> }) => (
         <div data-testid="continuity-bia">
-            {processes.map((p: any) => <div key={p.id}>{p.name}</div>)}
+            {processes.map((p: { id: string; name: string }) => <div key={p.id}>{p.name}</div>)}
         </div>
     )
 }));
@@ -102,13 +102,13 @@ vi.mock('../../components/continuity/ContinuityCrisis', () => ({
     ContinuityCrisis: () => <div data-testid="continuity-crisis" />
 }));
 vi.mock('../../components/continuity/ProcessFormModal', () => ({
-    ProcessFormModal: ({ isOpen }: any) => isOpen ? <div data-testid="process-form-modal" /> : null
+    ProcessFormModal: ({ isOpen }: { isOpen: boolean }) => isOpen ? <div data-testid="process-form-modal" /> : null
 }));
 vi.mock('../../components/continuity/DrillModal', () => ({
-    DrillModal: ({ isOpen }: any) => isOpen ? <div data-testid="drill-modal" /> : null
+    DrillModal: ({ isOpen }: { isOpen: boolean }) => isOpen ? <div data-testid="drill-modal" /> : null
 }));
 vi.mock('../../components/continuity/ProcessInspector', () => ({
-    ProcessInspector: ({ isOpen }: any) => isOpen ? <div data-testid="process-inspector" /> : null
+    ProcessInspector: ({ isOpen }: { isOpen: boolean }) => isOpen ? <div data-testid="process-inspector" /> : null
 }));
 vi.mock('../../utils/pdfGenerator', () => ({
     generateContinuityReport: vi.fn()
@@ -116,9 +116,9 @@ vi.mock('../../utils/pdfGenerator', () => ({
 
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>
+        div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
     },
-    AnimatePresence: ({ children }: any) => <>{children}</>
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 // ---------------------------------------------------------------------

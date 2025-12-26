@@ -12,7 +12,7 @@ export const SafeHTML: React.FC<SafeHTMLProps> = ({ content, className = '' }) =
     return (
         <div
             className={`prose dark:prose-invert max-w-none ${className}`}
-            dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+            dangerouslySetInnerHTML={{ __html: sanitizedContent }} // audit-ignore: DOMPurify used
         />
     );
 };

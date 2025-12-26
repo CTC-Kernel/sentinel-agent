@@ -43,6 +43,7 @@ export interface UserProfile {
     isPending?: boolean;
     createdAt?: string;
     notificationPreferences?: NotificationPreferences;
+    emailVerified?: boolean;
 
     hasGeminiKey?: boolean;
     hasShodanKey?: boolean;

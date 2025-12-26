@@ -126,8 +126,9 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
     );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SectionEditor = ({ control, register, sIndex, onRemove }: { control: any, register: any, sIndex: number, onRemove: () => void }) => {
+import { Control, UseFormRegister } from 'react-hook-form';
+
+const SectionEditor = ({ control, register, sIndex, onRemove }: { control: Control<QuestionnaireTemplate>, register: UseFormRegister<QuestionnaireTemplate>, sIndex: number, onRemove: () => void }) => {
     const { fields: questions, append, remove } = useFieldArray({
         control,
         name: `sections.${sIndex}.questions`

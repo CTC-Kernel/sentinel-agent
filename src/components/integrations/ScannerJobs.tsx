@@ -114,7 +114,7 @@ export const ScannerJobs: React.FC = () => {
                             key={job.id}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="group flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-white dark:bg-[#0B1120] rounded-2xl border border-slate-200 dark:border-white/5 hover:border-brand-500/30 transition-all shadow-sm hover:shadow-md"
+                            className="group flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-brand-500/30 transition-all shadow-sm hover:shadow-md"
                         >
                             <div className="flex items-center gap-4 mb-4 md:mb-0">
                                 <div className={`p-3 rounded-xl bg-slate-100 dark:bg-white/5 ${job.status === 'running' ? 'text-brand-500' : 'text-slate-500'}`}>

@@ -39,7 +39,7 @@ export const NotificationCenter: React.FC = () => {
                 <Bell className="h-5 w-5" aria-hidden="true" />
                 {unreadCount > 0 && (
                     <>
-                        <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-[#0B1120]" />
+                        <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-950" />
                         <span className="sr-only" aria-live="polite">{unreadCount} notifications non lues</span>
                     </>
                 )}
@@ -52,10 +52,10 @@ export const NotificationCenter: React.FC = () => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 10 }}
                         transition={{ duration: 0.1 }}
-                        className="absolute right-0 mt-2 w-96 max-h-[80vh] bg-white dark:bg-[#151e32] rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 flex flex-col origin-top-right ring-1 ring-black/5"
+                        className="absolute right-0 mt-2 w-96 max-h-[80vh] bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 flex flex-col origin-top-right ring-1 ring-black/5"
                     >
                         {/* Header */}
-                        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-[#151e32] shrink-0">
+                        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-900 shrink-0">
                             <h3 className="font-semibold text-slate-900 dark:text-white">Notifications</h3>
                             <div className="flex gap-2">
                                 <Tooltip content={filter === 'unread' ? 'Afficher tout' : 'Filtrer les non-lus'}>
@@ -115,7 +115,7 @@ export const NotificationCenter: React.FC = () => {
                         </div>
 
                         {/* Footer */}
-                        <div className="p-2 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1E293B] shrink-0 text-center">
+                        <div className="p-2 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 shrink-0 text-center">
                             <Link to="/settings/notifications" onClick={() => setIsOpen(false)} className="text-xs text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
                                 Gérer les préférences
                             </Link>

@@ -10,9 +10,9 @@ vi.mock('../../store');
 vi.mock('../../hooks/usePersistedState');
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>
+        div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
     },
-    AnimatePresence: ({ children }: any) => <>{children}</>
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 // Mock Child Components
@@ -26,26 +26,26 @@ vi.mock('../../components/suppliers/SupplierForm', () => ({
     SupplierForm: () => <div data-testid="supplier-form" />
 }));
 vi.mock('../../components/ui/Drawer', () => ({
-    Drawer: ({ isOpen, children }: any) => isOpen ? <div data-testid="drawer">{children}</div> : null
+    Drawer: ({ isOpen, children }: { isOpen: boolean, children: React.ReactNode }) => isOpen ? <div data-testid="drawer">{children}</div> : null
 }));
 
 // Smart Mock for DataTable to test Column Logic
 vi.mock('../../components/ui/DataTable', () => ({
-    DataTable: ({ data, columns }: any) => (
+    DataTable: ({ data, columns }: { data: Array<any>, columns: Array<any> }) => (
         <table data-testid="data-table">
             <thead>
                 <tr>
-                    {columns.map((col: any) => (
+                    {columns.map((col: { header: string }) => (
                         <th key={col.header}>{col.header}</th>
                     ))}
                 </tr>
             </thead>
             <tbody>
-                {data.map((row: any, i: number) => (
+                {data.map((row: Record<string, unknown>, i: number) => (
                     <tr key={i}>
-                        {columns.map((col: any) => (
+                        {columns.map((col: { header: string; cell?: (props: { row: { original: unknown } }) => React.ReactNode; accessorKey: string }) => (
                             <td key={col.header}>
-                                {col.cell ? col.cell({ row: { original: row } }) : row[col.accessorKey]}
+                                {col.cell ? col.cell({ row: { original: row } }) : (row[col.accessorKey] as React.ReactNode)}
                             </td>
                         ))}
                     </tr>
@@ -85,16 +85,16 @@ describe('Suppliers View', () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
-        (useStore as any).mockReturnValue({
+        vi.mocked(useStore).mockReturnValue({
             user: { role: 'admin', organizationId: 'org-1' },
             t: (key: string) => key,
             addToast: vi.fn(),
         });
 
-        (usePersistedState as any).mockImplementation((_key: string, defaultVal: any) => React.useState(defaultVal));
+        vi.mocked(usePersistedState).mockImplementation((_key: string, defaultVal: unknown) => React.useState(defaultVal));
 
         // Mock useFirestoreCollection behavior
-        (useFirestoreCollection as any).mockImplementation((collectionName: string) => {
+        (useFirestoreCollection as unknown as ReturnType<typeof vi.fn>).mockImplementation((collectionName: string) => {
             if (collectionName === 'suppliers') {
                 return { data: mockSuppliers, loading: false };
             }

@@ -15,13 +15,13 @@ export const configureApp = (): Express => {
   // Middleware de base
   app.use(express.json({ limit: '10kb' }));
   app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-  
+
   // Configuration CORS
   app.use(cors(corsOptions));
 
   // Limitation dédiée aux routes d'authentification sensibles
   app.use(['/api/auth', '/api/login', '/api/session'], authLimiter);
-  
+
   // Configuration de la sécurité
   configureSecurity(app);
 
@@ -44,7 +44,7 @@ export const configureApp = (): Express => {
   // Gestion des erreurs globales
   app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error('Erreur non gérée :', err);
-    
+
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'Une erreur inattendue est survenue.'
@@ -59,8 +59,8 @@ export const configureApp = (): Express => {
  */
 export const startServer = (port: number | string, app: Express): void => {
   const server = app.listen(port, () => {
-    console.log(`🚀 Serveur démarré sur le port ${port}`);
-    console.log(`🛡️  Environnement: ${process.env.NODE_ENV || 'development'}`);
+    console.info(`🚀 Serveur démarré sur le port ${port}`);
+    console.info(`🛡️  Environnement: ${process.env.NODE_ENV || 'development'}`);
   });
 
   // Gestion des erreurs non capturées
@@ -74,9 +74,9 @@ export const startServer = (port: number | string, app: Express): void => {
 
   // Gestion des signaux d'arrêt
   const shutdown = (signal: string) => {
-    console.log(`${signal} reçu. Arrêt du serveur...`);
+    console.info(`${signal} reçu. Arrêt du serveur...`);
     server.close(() => {
-      console.log('Serveur arrêté.');
+      console.info('Serveur arrêté.');
       process.exit(0);
     });
   };

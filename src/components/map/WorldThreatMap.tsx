@@ -82,7 +82,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data, setTooltipConten
                 <div className="font-bold mb-2">Threat Intensity</div>
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-red-500 rounded-sm"></div> High
-                    <div className="w-3 h-3 bg-[#EAEAEC] rounded-sm ml-2"></div> Low/None
+                    <div className="w-3 h-3 bg-slate-200 rounded-sm ml-2"></div> Low/None
                 </div>
             </div>
         </div>

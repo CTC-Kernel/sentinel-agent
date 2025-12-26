@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 
 import { VoxelStudio } from '../components/VoxelStudio';
-import { db } from '../firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight, VoxelNode, DataNode } from '../types';
 import { aiService } from '../services/aiService';
 import { ErrorLogger } from '../services/errorLogger';
 import { useStore } from '../store';
+import { useVoxels } from '../hooks/useVoxels';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { ChevronLeft, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, Search, RotateCw, Minimize2, CheckCheck, MonitorPlay, Info } from 'lucide-react';
 import { VoxelGuide } from '../components/VoxelGuide';
@@ -22,6 +21,7 @@ type LayerType = 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier
 
 
 
+// Helper functions (safeRender, formatSafeDate) are kept if used
 const formatSafeDate = (date: unknown): string => {
   if (!date) return '—';
   try {
@@ -54,32 +54,6 @@ const safeRender = (value: unknown): string => {
   return String(value);
 };
 
-
-// Helper to convert Firestore Timestamps to ISO strings
-const convertTimestamps = (obj: unknown): unknown => {
-  if (!obj || typeof obj !== 'object') return obj;
-
-  // Handle Firestore Timestamp
-  const timestampObj = obj as { seconds?: number; nanoseconds?: number };
-  if (timestampObj.seconds !== undefined && timestampObj.nanoseconds !== undefined) {
-    return new Date(timestampObj.seconds * 1000).toISOString();
-  }
-
-  // Handle arrays
-  if (Array.isArray(obj)) {
-    return obj.map(item => convertTimestamps(item));
-  }
-
-  // Handle objects recursively
-  const converted: Record<string, unknown> = {};
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      converted[key] = convertTimestamps((obj as Record<string, unknown>)[key]);
-    }
-  }
-  return converted;
-};
-
 const layerOptions: { id: LayerType; label: string; hint: string; color: string }[] = [
   { id: 'asset', label: 'Actifs', hint: 'Socle infrastructure', color: 'bg-blue-500' },
   { id: 'risk', label: 'Risques', hint: 'Menaces ISO 27005', color: 'bg-orange-500' },
@@ -91,17 +65,22 @@ const layerOptions: { id: LayerType; label: string; hint: string; color: string 
 ];
 
 export const VoxelView: React.FC = () => {
-  const { user, addToast } = useStore();
+  const { addToast } = useStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [risks, setRisks] = useState<Risk[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [audits, setAudits] = useState<Audit[]>([]);
-  const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [controls, setControls] = useState<Control[]>([]);
+  const {
+    loading,
+    assets,
+    risks,
+    projects,
+    audits,
+    incidents,
+    suppliers,
+    controls,
+    refresh
+  } = useVoxels();
+
+  // Restore State Variables
   const [selectedNode, setSelectedNode] = useState<DataNode | null>(null);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [releaseToken, setReleaseToken] = useState<number | null>(null);
@@ -181,7 +160,6 @@ export const VoxelView: React.FC = () => {
     };
   }, []);
 
-
   const detailRoutes: Record<LayerType, string> = {
     asset: '/assets',
     risk: '/risks',
@@ -191,8 +169,6 @@ export const VoxelView: React.FC = () => {
     supplier: '/suppliers',
     control: '/compliance'
   };
-
-
 
   const [activeLayers, setActiveLayers] = useState<LayerType[]>(() => {
     const saved = localStorage.getItem('voxel_activeLayers');
@@ -205,6 +181,8 @@ export const VoxelView: React.FC = () => {
   useEffect(() => { localStorage.setItem('voxel_xRayEnabled', JSON.stringify(xRayEnabled)); }, [xRayEnabled]);
   useEffect(() => { localStorage.setItem('voxel_autoRotateEnabled', JSON.stringify(autoRotateEnabled)); }, [autoRotateEnabled]);
   useEffect(() => { localStorage.setItem('voxel_activeLayers', JSON.stringify(activeLayers)); }, [activeLayers]);
+
+  // Silhouette Map (Restored)
   const silhouetteMap: Record<LayerType, React.ReactNode> = {
     asset: (
       <svg viewBox="0 0 64 64" className="w-full h-full text-blue-500 fill-current">
@@ -264,8 +242,6 @@ export const VoxelView: React.FC = () => {
     ),
   };
 
-
-
   const orderedNodes = useMemo(() => {
     const getDataLabel = (item: DataNode['data']): string => {
       if ('name' in item && item.name) return String(item.name);
@@ -323,9 +299,6 @@ export const VoxelView: React.FC = () => {
       setIsDetailMinimized(false);
     }
   };
-
-
-
 
 
   const scenarioPresets: { id: string; label: string; description: string; layers: LayerType[] }[] = [
@@ -654,54 +627,6 @@ export const VoxelView: React.FC = () => {
     setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
   };
 
-
-
-  useEffect(() => {
-    if (!user?.organizationId) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchData = async () => {
-      try {
-        const orgId = user.organizationId;
-
-        const [
-          assetsSnap,
-          risksSnap,
-          projectsSnap,
-          auditsSnap,
-          incidentsSnap,
-          suppliersSnap,
-          controlsSnap
-        ] = await Promise.all([
-          getDocs(query(collection(db, 'assets'), where('organizationId', '==', orgId))),
-          getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId))),
-          getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId))),
-          getDocs(query(collection(db, 'audits'), where('organizationId', '==', orgId))),
-          getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId))),
-          getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', orgId))),
-          getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId)))
-        ]);
-
-        setAssets(assetsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Asset[]);
-        setRisks(risksSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Risk[]);
-        setProjects(projectsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Project[]);
-        setAudits(auditsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Audit[]);
-        setIncidents(incidentsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Incident[]);
-        setSuppliers(suppliersSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Supplier[]);
-        setControls(controlsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Control[]);
-
-      } catch (error) {
-        ErrorLogger.handleErrorWithToast(error, 'VoxelView.fetchData', 'FETCH_FAILED');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [user?.organizationId, addToast]);
-
   const handleNodeClick = (node: VoxelNode | null) => {
     if (selectedNode?.id !== node?.id) {
       setIsDetailMinimized(false);
@@ -710,10 +635,14 @@ export const VoxelView: React.FC = () => {
     setFocusedNodeId(node?.id ?? null);
   };
 
+
+
   const handleRefresh = () => {
-    setLoading(true);
-    // Refetch data
-    window.location.reload();
+    refresh();
+    // Force a resize event after refresh
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 400);
   };
 
   const handleAIAnalysis = async () => {
@@ -817,21 +746,21 @@ export const VoxelView: React.FC = () => {
       <div
         ref={containerRef}
         className={`${isFullscreen
-          ? 'fixed !inset-0 !z-[9999] bg-slate-900'
+          ? 'fixed !inset-0 !z-50 bg-slate-900'
           : 'relative flex-1 min-h-[500px] rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl bg-white dark:bg-slate-950 mx-auto w-full'
 
           }`}
       >
         {isFullscreen && (
           <>
-            <div className="absolute top-6 right-96 z-[10000] flex items-center gap-2">
+            <div className="absolute top-6 right-96 z-50 flex items-center gap-2">
               <span className="text-xs text-white/70 uppercase tracking-wide">Plein écran</span>
             </div>
           </>
         )}
 
         {/* Sidebar Navigation (Available in all modes) */}
-        <aside className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-100'} bg-slate-950/80 border-l border-white/10 backdrop-blur-2xl z-[10000] p-5 overflow-hidden transition-all duration-500 ease-custom-ease flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.3)]`}>
+        <aside className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-100'} bg-slate-950/80 border-l border-white/10 backdrop-blur-2xl z-50 p-5 overflow-hidden transition-all duration-500 ease-custom-ease flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.3)]`}>
           <div className="flex items-center justify-between text-white mb-6 shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -912,7 +841,7 @@ export const VoxelView: React.FC = () => {
         </aside>
 
         {/* Unified Command Bar (Dock) */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[10000] flex items-center gap-1.5 p-1.5 rounded-full bg-slate-900/80 border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all hover:scale-[1.02] hover:bg-slate-900/90">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1.5 p-1.5 rounded-full bg-slate-900/80 border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all hover:scale-[1.02] hover:bg-slate-900/90">
           <button
             onClick={() => setShowGuide(true)}
             className="p-3 rounded-full hover:bg-white/10 text-indigo-400 hover:text-white transition tooltip-trigger group relative"
@@ -1018,7 +947,7 @@ export const VoxelView: React.FC = () => {
 
         {/* Layer Menu Popover */}
         {showLayerMenu && (
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-[10001] w-64 p-2 rounded-2xl bg-slate-900/95 border border-white/10 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-2 fade-in duration-200">
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 w-64 p-2 rounded-2xl bg-slate-900/95 border border-white/10 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-2 fade-in duration-200">
             <div className="px-3 py-2 border-b border-white/10 mb-2 flex items-center justify-between">
               <span className="text-xs font-semibold text-white">Calques actifs</span>
               <span className="text-xs text-white/50">{activeLayers.length}/{layerOptions.length}</span>
@@ -1086,7 +1015,7 @@ export const VoxelView: React.FC = () => {
 
         {/* AI Insights Panel */}
         {showInsights && aiInsights.length > 0 && (
-          <div className="absolute top-24 left-6 z-[10000] w-80 max-h-[calc(100%-200px)] overflow-y-auto rounded-2xl border border-white/20 bg-slate-900/90 backdrop-blur-xl shadow-2xl p-4 animate-[slideIn_0.3s_ease-out]">
+          <div className="absolute top-24 left-6 z-50 w-80 max-h-[calc(100%-200px)] overflow-y-auto rounded-2xl border border-white/20 bg-slate-900/90 backdrop-blur-xl shadow-2xl p-4 animate-[slideIn_0.3s_ease-out]">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2 text-indigo-400">
                 <BrainCircuit className="h-5 w-5" />

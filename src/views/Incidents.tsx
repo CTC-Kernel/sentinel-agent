@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, Transition } from '@headlessui/react';
-// import { Helmet } from 'react-helmet-async'; // Replaced by SEO component
-import { collection, where, addDoc, updateDoc, doc, writeBatch } from 'firebase/firestore';
-import { db } from '../firebase';
 import { useStore } from '../store';
-import { Incident, Asset, Risk, UserProfile, Criticality, BusinessProcess } from '../types';
+import { Incident, UserProfile, Criticality } from '../types';
 import { IncidentDashboard } from '../components/incidents/IncidentDashboard';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { logAction } from '../services/logger';
-import { NotificationService } from '../services/notificationService';
+import { useIncidents } from '../hooks/useIncidents';
+import { useIncidentsData } from '../hooks/incidents/useIncidentsData';
 
 import { PageHeader } from '../components/ui/PageHeader';
 import { Siren, Plus, ShieldAlert, BrainCircuit, Clock, AlertTriangle, MoreVertical } from '../components/ui/Icons';
@@ -19,7 +16,6 @@ import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 
 
 import { ErrorLogger } from '../services/errorLogger';
-import { sanitizeData } from '../utils/dataSanitizer';
 import { useLocation } from 'react-router-dom';
 import { Drawer } from '../components/ui/Drawer';
 import { IncidentKanban } from '../components/incidents/IncidentKanban';
@@ -28,11 +24,7 @@ import { IncidentInspector } from '../components/incidents/IncidentInspector';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { IncidentFormData } from '../schemas/incidentSchema';
 
-
-
-import { useFirestoreCollection } from '../hooks/useFirestore';
 import { canEditResource, hasPermission, canDeleteResource } from '../utils/permissions';
-import { hybridService } from '../services/hybridService';
 import { IncidentImportModal } from '../components/incidents/IncidentImportModal';
 import { SecurityEvent } from '../services/integrationService';
 
@@ -44,35 +36,29 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
 export const Incidents: React.FC = () => {
-    const { user, addToast, t } = useStore();
+    const { user, t } = useStore();
     const location = useLocation();
 
-    // Data Fetching with Hooks
-    const { data: rawIncidents, loading: loadingIncidents } = useFirestoreCollection<Incident>(
-        'incidents',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
+    // Action Hooks
+    const {
+        addIncident,
+        updateIncident,
+        deleteIncident,
+        deleteIncidentsBulk,
+        importIncidentsFromEvents,
+        simulateAttack,
+        loading: loadingAction
+    } = useIncidents();
 
-    const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>(
-        'assets',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
-
-    const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>(
-        'risks',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
-
-
-
-    const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
-        'users',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
+    // Data Hook
+    const {
+        sortedIncidents,
+        assets,
+        risks,
+        usersList,
+        rawProcesses,
+        loading: loadingData
+    } = useIncidentsData(user?.organizationId);
 
     // FIX: Ensure usersList is never empty if logged in
     const effectiveUsers = React.useMemo(() => {
@@ -81,19 +67,11 @@ export const Incidents: React.FC = () => {
         return [];
     }, [usersList, user]);
 
-    const { data: rawProcesses, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
-        'business_processes',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
-    );
-
     // State Declarations
     const [creationMode, setCreationMode] = useState(false);
 
     const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void, loading?: boolean, closeOnConfirm?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-
-
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [importModalOpen, setImportModalOpen] = useState(false);
@@ -103,7 +81,6 @@ export const Incidents: React.FC = () => {
     const [severityFilter, setSeverityFilter] = useState('');
 
     // Derived State
-    const sortedIncidents = React.useMemo(() => [...rawIncidents].sort((a, b) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime()), [rawIncidents]);
     const incidents = React.useMemo(() => {
         return sortedIncidents.filter(incident => {
             const matchesStatus = statusFilter ? incident.status === statusFilter : true;
@@ -112,96 +89,30 @@ export const Incidents: React.FC = () => {
         });
     }, [sortedIncidents, statusFilter, severityFilter]);
 
-    const assets = React.useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
-    const risks = React.useMemo(() => [...rawRisks].sort((a, b) => a.threat.localeCompare(b.threat)), [rawRisks]);
-
-    const loading = loadingIncidents || loadingAssets || loadingRisks || loadingUsers || loadingProcesses;
+    const loading = loadingData;
 
     const handleImportFromEvents = async (events: SecurityEvent[]) => {
-        if (!user?.organizationId) return;
         setIsSubmitting(true);
         try {
-            const mapSeverity = (sev: string): Criticality => {
-                switch (sev) {
-                    case 'Low': return Criticality.LOW;
-                    case 'Medium': return Criticality.MEDIUM;
-                    case 'High': return Criticality.HIGH;
-                    case 'Critical': return Criticality.CRITICAL;
-                    default: return Criticality.MEDIUM;
-                }
-            };
-
-            const batch = events.map(event => sanitizeData({
-                organizationId: user.organizationId,
-                title: event.title,
-                description: event.description + `\n\n**Source**: ${event.source}\n**Raw Data**: ${JSON.stringify(event.rawData)}`,
-                severity: mapSeverity(event.severity),
-                dateReported: new Date().toISOString(),
-                status: 'Analyse',
-                type: 'SecurityAlert',
-                reporter: 'Connecteur ' + event.source,
-                category: 'Intrusion', // Default
-                financialImpact: 0,
-                history: []
-            }));
-
-            await Promise.all(batch.map(data => addDoc(collection(db, 'incidents'), data)));
-            await logAction(user, 'IMPORT', 'Incident', `Import de ${events.length} incidents depuis ${events[0]?.source}`);
-
-            addToast(t('incidents.toastImport', { count: events.length }), "success");
+            await importIncidentsFromEvents(events);
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Incidents.handleImportFromEvents');
+            ErrorLogger.warn('Import handled in hook', 'Incidents.handleImportFromEvents', { metadata: { error } });
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleSimulateAttack = async () => {
-        if (!user?.organizationId) return;
         setIsSubmitting(true);
         try {
-            const attackData: Omit<Incident, 'id'> = {
-                organizationId: user.organizationId,
-                title: "Détection Ransomware : LockBit 3.0",
-                description: "<p><strong>Alerte Critique :</strong> L'agent EDR a détecté une activité de chiffrement massive sur le serveur de fichiers principal. Signature compatible avec <em>LockBit 3.0</em>.</p><ul><li><strong>Vecteur :</strong> Phishing suspecté (Email RH)</li><li><strong>Cibles :</strong> 245 fichiers chiffrés en 30 secondes</li><li><strong>Action EDR :</strong> Processus isolé, mais persistance détectée.</li></ul>",
-                severity: Criticality.CRITICAL,
-                status: 'Contenu',
-                category: 'Ransomware',
-                reporter: 'Sentinel AI (Automated)',
-                dateReported: new Date().toISOString(),
-                dateAnalysis: new Date().toISOString(),
-                dateContained: new Date().toISOString(),
-                financialImpact: 0,
-                history: [
-                    { date: new Date().toISOString(), user: 'Sentinel AI', action: 'DETECTION', details: 'Signature match: LockBit 3.0 behavior detected.' },
-                    { date: new Date(Date.now() + 5000).toISOString(), user: 'Sentinel AI', action: 'CONTAINMENT', details: 'Automated response: Host isolation triggers.' }
-                ],
-                tags: ['Ransomware', 'Urgent', 'Automated'],
-                playbookId: 'playbook-ransomware-standard'
-            };
-
-            const docRef = await addDoc(collection(db, 'incidents'), attackData);
-
-            await hybridService.logCriticalEvent({
-                action: 'SIMULATION',
-                resource: 'Incident',
-                details: `Simulated Attack generated: ${docRef.id}`,
-                metadata: { type: 'Ransomware' }
-            });
-
-            await NotificationService.notifyNewIncident({
-                id: docRef.id,
-                ...attackData,
-                reporter: 'SIMULATION'
-            });
-
-            addToast(t('incidents.toastSim'), "info");
-
-            // Auto-select for "Wow" effect
-            setSelectedIncident({ id: docRef.id, ...attackData } as Incident);
-
+            const result = await simulateAttack();
+            if (result) {
+                // Auto-select for "Wow" effect
+                setSelectedIncident(result);
+            }
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Incidents.handleSimulateAttack');
+            // Already handled in hook usually, but strict here
+            ErrorLogger.warn('Attack simulation handled in hook', 'Incidents.handleSimulateAttack', { metadata: { error } });
         } finally {
             setIsSubmitting(false);
         }
@@ -214,47 +125,19 @@ export const Incidents: React.FC = () => {
         if (loading || incidents.length === 0) return;
         const incident = incidents.find(i => i.id === state.voxelSelectedId);
         if (incident) {
-
             setSelectedIncident(incident);
         }
     }, [location.state, loading, incidents]);
-
 
 
     const handleCreate = async (data: IncidentFormData) => {
         if (!user?.organizationId || (!canEdit && !hasPermission(user, 'Incident', 'create'))) return;
         setIsSubmitting(true);
         try {
-            const incidentData = sanitizeData({ ...data });
-            const now = new Date().toISOString();
-
-            if (incidentData.status === 'Analyse' && !incidentData.dateAnalysis) incidentData.dateAnalysis = now;
-            if (incidentData.status === 'Contenu' && !incidentData.dateContained) incidentData.dateContained = now;
-            if ((incidentData.status === 'Résolu' || incidentData.status === 'Fermé') && !incidentData.dateResolved) incidentData.dateResolved = now;
-
-            const docRef = await addDoc(collection(db, 'incidents'), { ...incidentData, organizationId: user.organizationId, dateReported: new Date().toISOString() });
-            await logAction(user, 'CREATE', 'Incident', `Nouvel Incident: ${incidentData.title} `);
-
-            // Backend Audit Log (ISO 27001)
-            await hybridService.logCriticalEvent({
-                action: 'CREATE',
-                resource: 'Incident',
-                details: `Created incident: ${incidentData.title}`,
-                metadata: { severity: incidentData.severity, category: incidentData.category }
-            });
-
-            await NotificationService.notifyNewIncident({
-                id: docRef.id,
-                ...incidentData,
-                dateReported: new Date().toISOString(),
-                organizationId: user.organizationId,
-                reporter: user.displayName || 'Utilisateur'
-            });
-
-            addToast(t('incidents.toastDeclared'), "success");
+            await addIncident(data);
             setCreationMode(false);
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Incidents.handleCreate', 'CREATE_FAILED');
+            ErrorLogger.warn('Creation handled in hook', 'Incidents.handleCreate', { metadata: { error } });
         } finally {
             setIsSubmitting(false);
         }
@@ -264,32 +147,12 @@ export const Incidents: React.FC = () => {
         if (!user?.organizationId || !selectedIncident || !canEdit) return;
         setIsSubmitting(true);
         try {
-            const incidentData = sanitizeData({ ...data });
-            const now = new Date().toISOString();
-
-            if (incidentData.status === 'Analyse' && !incidentData.dateAnalysis) incidentData.dateAnalysis = now;
-            if (incidentData.status === 'Contenu' && !incidentData.dateContained) incidentData.dateContained = now;
-            if ((incidentData.status === 'Résolu' || incidentData.status === 'Fermé') && !incidentData.dateResolved) incidentData.dateResolved = now;
-
-            await updateDoc(doc(db, 'incidents', selectedIncident.id), incidentData);
-            await logAction(user, 'UPDATE', 'Incident', `MAJ Incident: ${incidentData.title} `);
-
-            // Backend Audit Log
-            await hybridService.logCriticalEvent({
-                action: 'UPDATE',
-                resource: 'Incident',
-                details: `Updated incident: ${incidentData.title}`,
-                metadata: {
-                    status: incidentData.status,
-                    changes: Object.keys(incidentData).join(', ')
-                }
-            });
-
-            addToast(t('incidents.toastUpdated'), "success");
-            setSelectedIncident({ ...selectedIncident, ...incidentData } as Incident);
+            const updated = await updateIncident(selectedIncident.id, data, selectedIncident);
+            if (updated) {
+                setSelectedIncident(updated);
+            }
         } catch (error) {
-
-            ErrorLogger.handleErrorWithToast(error, 'Incidents.handleUpdate', 'UPDATE_FAILED');
+            ErrorLogger.warn('Update handled in hook', 'Incidents.handleUpdate', { metadata: { error } });
         } finally {
             setIsSubmitting(false);
         }
@@ -305,45 +168,15 @@ export const Incidents: React.FC = () => {
             closeOnConfirm: false
         });
     };
-    const performDelete = async (id: string) => {
-        if (!user?.organizationId || !user?.uid) return;
-
-        const batch = writeBatch(db);
-
-        // 1. Delete Incident
-        const incidentRef = doc(db, 'incidents', id);
-        batch.delete(incidentRef);
-
-        // 2. Add Audit Log (Atomic) - Replicating System Log structure
-        const logRef = doc(collection(db, 'system_logs'));
-        const logData = {
-            organizationId: user.organizationId,
-            timestamp: new Date().toISOString(),
-            action: 'DELETE',
-            resource: 'Incident',
-            userId: user.uid,
-            userEmail: user.email || 'unknown',
-            details: `Deleted incident ID: ${id}`,
-            metadata: { incidentId: id },
-            severity: 'critical', // Deletion is always critical
-            source: 'Sentinel-Core'
-        };
-        batch.set(logRef, logData);
-
-        // 3. Commit atomically
-        await batch.commit();
-    };
 
     const handleDelete = async (id: string) => {
-        if (!canDeleteResource(user, 'Incident')) return;
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
-            await performDelete(id);
+            await deleteIncident(id);
             if (selectedIncident?.id === id) setSelectedIncident(null);
-            addToast(t('incidents.toastDeleted'), "info");
             setConfirmData(prev => ({ ...prev, isOpen: false }));
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Incidents.handleDelete', 'DELETE_FAILED');
+            ErrorLogger.warn('Delete handled in hook', 'Incidents.handleDelete', { metadata: { error } });
         } finally {
             setConfirmData(prev => ({ ...prev, loading: false }));
         }
@@ -359,13 +192,12 @@ export const Incidents: React.FC = () => {
             onConfirm: async () => {
                 setConfirmData(prev => ({ ...prev, loading: true }));
                 try {
-                    await Promise.all(ids.map(performDelete));
+                    await deleteIncidentsBulk(ids);
                     const selectedId = selectedIncident?.id;
                     if (selectedId && ids.includes(selectedId)) setSelectedIncident(null);
-                    addToast(t('incidents.toastBulkDeleted', { count: ids.length }), "info");
                     setConfirmData(prev => ({ ...prev, isOpen: false }));
                 } catch (error) {
-                    ErrorLogger.handleErrorWithToast(error, 'Incidents.handleBulkDelete', 'DELETE_FAILED');
+                    ErrorLogger.warn('Bulk delete handled in hook', 'Incidents.handleBulkDelete', { metadata: { error } });
                 } finally {
                     setConfirmData(prev => ({ ...prev, loading: false }));
                 }
@@ -373,11 +205,7 @@ export const Incidents: React.FC = () => {
         });
     };
 
-
-
     const canEdit = canEditResource(user, 'Incident');
-
-
 
     const incidentStats = React.useMemo(() => {
         const total = incidents.length;
@@ -412,12 +240,10 @@ export const Incidents: React.FC = () => {
         };
     }, [incidents]);
 
-
     const getBreadcrumbs = () => {
         const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Incidents', onClick: () => { setSelectedIncident(null); setCreationMode(false); } }];
 
         if (creationMode) {
-
             crumbs.push({ label: 'Déclaration' });
             return crumbs;
         }
@@ -445,7 +271,7 @@ export const Incidents: React.FC = () => {
                 description="Détection, analyse et réponse aux incidents de sécurité (SOC/CSIRT)."
                 keywords="Incidents, SOC, CSIRT, Cyberattaque, Réponse, Analyse, Playbooks, SIEM"
             />
-            <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} loading={confirmData.loading} closeOnConfirm={confirmData.closeOnConfirm} />
+            <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} loading={confirmData.loading || loadingAction} closeOnConfirm={confirmData.closeOnConfirm} />
 
             <motion.div variants={slideUpVariants}>
                 <PageHeader
@@ -692,7 +518,7 @@ export const Incidents: React.FC = () => {
                         processes={rawProcesses}
                         assets={assets}
                         risks={risks}
-                        isLoading={isSubmitting}
+                        isLoading={isSubmitting || loadingAction}
                     />
                 </div>
             </Drawer>

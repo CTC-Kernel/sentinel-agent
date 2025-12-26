@@ -1,8 +1,5 @@
+import React, { useState, useEffect } from 'react';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../firebase';
-import { useStore } from '../store';
 import { Search as SearchIcon, Filter, ArrowRight, ShieldCheck, AlertTriangle, FileText, FolderKanban } from '../components/ui/Icons';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
@@ -13,160 +10,32 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
-import { ErrorLogger } from '../services/errorLogger';
+import { useGlobalSearch, SearchResult } from '../hooks/useGlobalSearch';
 
-interface SearchResult {
-    id: string;
-    type: 'asset' | 'risk' | 'control' | 'document' | 'project';
-    title: string;
-    subtitle: string;
-    status?: string;
-    date?: string;
-    score?: number;
-}
+
 
 export const Search: React.FC = () => {
     const [searchParams] = useSearchParams();
     const [queryText, setQueryText] = useState(searchParams.get('q') || '');
-    const [results, setResults] = useState<SearchResult[]>([]);
-    const [loading, setLoading] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string>('all');
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
     const [advancedFilters, setAdvancedFilters] = useState<SearchFilters>({ query: '', type: 'all' });
-    const { user } = useStore();
     const navigate = useNavigate();
-
-
-
-    const performSearch = useCallback(async () => {
-        if (!user?.organizationId) return;
-        setLoading(true);
-
-        try {
-            const searchResults: SearchResult[] = [];
-            const searchTerm = (advancedFilters.query || queryText).toLowerCase();
-
-            // Helper to check if item matches
-            const matches = (text: string) => text?.toLowerCase().includes(searchTerm);
-
-            // Helper to check date range
-            const matchesDateRange = (dateStr: string) => {
-                if (!advancedFilters.dateFrom && !advancedFilters.dateTo) return true;
-                const itemDate = new Date(dateStr);
-                if (advancedFilters.dateFrom && itemDate < new Date(advancedFilters.dateFrom)) return false;
-                if (advancedFilters.dateTo && itemDate > new Date(advancedFilters.dateTo)) return false;
-                return true;
-            };
-
-            // 1. Assets
-            if (activeFilter === 'all' || activeFilter === 'asset' || advancedFilters.type === 'asset' || advancedFilters.type === 'all') {
-                const assetsSnap = await getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId)));
-                assetsSnap.forEach(doc => {
-                    const data = doc.data();
-                    if (matches(data.name) || matches(data.type)) {
-                        // Apply advanced filters
-                        if (advancedFilters.status && data.status !== advancedFilters.status) return;
-                        if (advancedFilters.owner && !data.owner?.toLowerCase().includes(advancedFilters.owner.toLowerCase())) return;
-                        if (advancedFilters.criticality && data.criticality !== advancedFilters.criticality) return;
-                        if (!matchesDateRange(data.updatedAt)) return;
-
-                        searchResults.push({
-                            id: doc.id,
-                            type: 'asset',
-                            title: data.name,
-                            subtitle: `${data.type} • ${data.criticality}`,
-                            status: data.status,
-                            date: data.updatedAt
-                        });
-                    }
-                });
-            }
-
-            // 2. Risks
-            if (activeFilter === 'all' || activeFilter === 'risk' || advancedFilters.type === 'risk' || advancedFilters.type === 'all') {
-                const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId)));
-                risksSnap.forEach(doc => {
-                    const data = doc.data();
-                    if (matches(data.threat) || matches(data.scenario)) {
-                        if (advancedFilters.status && data.status !== advancedFilters.status) return;
-                        if (advancedFilters.owner && !data.owner?.toLowerCase().includes(advancedFilters.owner.toLowerCase())) return;
-                        if (!matchesDateRange(data.updatedAt)) return;
-
-                        searchResults.push({
-                            id: doc.id,
-                            type: 'risk',
-                            title: data.threat,
-                            subtitle: `Impact: ${data.impact} • Probabilité: ${data.probability}`,
-                            score: data.score,
-                            date: data.updatedAt
-                        });
-                    }
-                });
-            }
-
-            // 3. Documents
-            if (activeFilter === 'all' || activeFilter === 'document' || advancedFilters.type === 'document' || advancedFilters.type === 'all') {
-                const docsSnap = await getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId)));
-                docsSnap.forEach(doc => {
-                    const data = doc.data();
-                    if (matches(data.title) || matches(data.reference)) {
-                        if (advancedFilters.status && data.status !== advancedFilters.status) return;
-                        if (advancedFilters.owner && !data.owner?.toLowerCase().includes(advancedFilters.owner.toLowerCase())) return;
-                        if (!matchesDateRange(data.updatedAt)) return;
-
-                        searchResults.push({
-                            id: doc.id,
-                            type: 'document',
-                            title: data.title,
-                            subtitle: `Ref: ${data.reference} • v${data.version}`,
-                            status: data.status,
-                            date: data.updatedAt
-                        });
-                    }
-                });
-            }
-
-            // 4. Projects
-            if (activeFilter === 'all' || activeFilter === 'project' || advancedFilters.type === 'project' || advancedFilters.type === 'all') {
-                const projSnap = await getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId)));
-                projSnap.forEach(doc => {
-                    const data = doc.data();
-                    if (matches(data.name) || matches(data.description)) {
-                        if (advancedFilters.status && data.status !== advancedFilters.status) return;
-                        if (advancedFilters.owner && !data.manager?.toLowerCase().includes(advancedFilters.owner.toLowerCase())) return;
-                        if (!matchesDateRange(data.dueDate)) return;
-
-                        searchResults.push({
-                            id: doc.id,
-                            type: 'project',
-                            title: data.name,
-                            subtitle: `Manager: ${data.manager || 'N/A'}`,
-                            status: data.status,
-                            date: data.dueDate
-                        });
-                    }
-                });
-            }
-
-            setResults(searchResults);
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Search.performSearch', 'FETCH_FAILED');
-        } finally {
-            setLoading(false);
-        }
-    }, [user?.organizationId, advancedFilters, queryText, activeFilter]);
+    const { results, loading, performSearch, setResults } = useGlobalSearch();
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
             if (queryText.length > 1 || advancedFilters.status || advancedFilters.owner || advancedFilters.dateFrom) {
-                performSearch();
+                performSearch(queryText, advancedFilters, activeFilter);
             } else {
                 setResults([]);
             }
         }, 500);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [queryText, activeFilter, advancedFilters, performSearch]);
+    }, [queryText, activeFilter, advancedFilters, performSearch, setResults]);
+
+
 
     const getIcon = (type: string) => {
         switch (type) {

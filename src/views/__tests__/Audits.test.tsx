@@ -10,7 +10,7 @@ vi.mock('../../store');
 vi.mock('../../hooks/usePersistedState');
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>
+        div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
     }
 }));
 
@@ -19,7 +19,7 @@ vi.mock('../../components/audits/AuditDashboard', () => ({
     AuditDashboard: () => <div data-testid="audit-dashboard">Dashboard</div>
 }));
 vi.mock('../../components/audits/AuditsList', () => ({
-    AuditsList: ({ audits }: any) => <div data-testid="audits-list">{audits.length} Audits</div>
+    AuditsList: ({ audits }: { audits: Array<unknown> }) => <div data-testid="audits-list">{audits.length} Audits</div>
 }));
 vi.mock('../../components/audits/AuditCalendar', () => ({
     AuditCalendar: () => <div data-testid="audit-calendar" />
@@ -37,7 +37,7 @@ vi.mock('../../components/audits/AuditInspector', () => ({
     AuditInspector: () => <div data-testid="audit-inspector" />
 }));
 vi.mock('../../components/ui/Drawer', () => ({
-    Drawer: ({ isOpen, children }: any) => isOpen ? <div data-testid="drawer">{children}</div> : null
+    Drawer: ({ isOpen, children }: { isOpen: boolean, children: React.ReactNode }) => isOpen ? <div data-testid="drawer">{children}</div> : null
 }));
 
 // Import mocked hooks to set return values
@@ -54,13 +54,13 @@ describe('Audits View', () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
-        (useStore as any).mockReturnValue({
+        vi.mocked(useStore).mockReturnValue({
             user: { role: 'admin', organizationId: 'org-1' },
             t: (key: string) => key,
             addToast: vi.fn(),
         });
 
-        (useAudits as any).mockReturnValue({
+        vi.mocked(useAudits).mockReturnValue({
             audits: mockAudits,
             loading: false,
             canEdit: true,
@@ -68,9 +68,9 @@ describe('Audits View', () => {
             refreshAudits: vi.fn(),
             handleDeleteAudit: vi.fn(),
             checkDependencies: vi.fn().mockResolvedValue({ hasDependencies: false }),
-        });
+        } as any);
 
-        (usePersistedState as any).mockImplementation((_key: string, defaultVal: any) => React.useState(defaultVal));
+        vi.mocked(usePersistedState).mockImplementation((_key: string, defaultVal: unknown) => React.useState(defaultVal));
     });
 
     it('renders the dashboard by default', () => {

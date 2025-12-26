@@ -73,7 +73,7 @@ vi.mock('../../hooks/usePlanLimits', () => ({
 }));
 
 vi.mock('../../components/assets/AssetList', () => ({
-    AssetList: ({ assets }: { assets: any[] }) => (
+    AssetList: ({ assets }: { assets: Array<{ id: string; name: string }> }) => (
         <div data-testid="asset-list">
             {assets.length === 0 ? "Aucun actif trouvé" : assets.map(a => <div key={a.id}>{a.name}</div>)}
         </div>

@@ -89,6 +89,7 @@ export const Audits: React.FC = () => {
     };
 
     const handleDelete = async (audit: Audit) => {
+        if (!canDelete) return;
         // Dependencies check
         const { hasDependencies, dependencies } = await checkDependencies(audit.id);
 
@@ -108,6 +109,7 @@ export const Audits: React.FC = () => {
     };
 
     const handleBulkDelete = () => {
+        if (!canDelete) return;
         if (selectedAudits.length === 0) return;
         setConfirmData({
             isOpen: true,
@@ -125,6 +127,7 @@ export const Audits: React.FC = () => {
     };
 
     const onFormSubmit = async (data: AuditFormData) => {
+        if (!canEdit) return;
         if (editingAudit) {
             await handleUpdateAudit(editingAudit.id, data);
         } else {

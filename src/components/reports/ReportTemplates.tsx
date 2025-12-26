@@ -68,7 +68,7 @@ export const ReportTemplates: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="group relative p-6 bg-white/60 dark:bg-[#0B1120]/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-white/5 hover:border-brand-500/30 transition-all hover:shadow-xl"
+                        className="group relative p-6 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-white/5 hover:border-brand-500/30 transition-all hover:shadow-xl"
                     >
                         <div className="flex justify-between items-start mb-4">
                             <div className="p-3 rounded-lg bg-slate-100 dark:bg-white/5 group-hover:bg-brand-500/10 text-slate-500 group-hover:text-brand-500 transition-colors">

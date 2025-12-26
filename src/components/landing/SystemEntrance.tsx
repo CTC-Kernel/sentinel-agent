@@ -46,7 +46,7 @@ export const SystemEntrance: React.FC = () => {
     // Boot Screen (Theme Aware)
     if (isBooting) {
         return (
-            <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-emerald-600 dark:text-emerald-500 font-mono flex items-center justify-center p-8 transition-colors duration-500">
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-emerald-600 dark:text-emerald-500 font-mono flex items-center justify-center p-8 transition-colors duration-500">
                 <div className="w-full max-w-lg">
                     {bootSequence.map((line, i) => (
                         <div key={i} className="mb-2 animate-fade-in font-bold">
@@ -61,7 +61,7 @@ export const SystemEntrance: React.FC = () => {
     }
 
     return (
-        <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-slate-50 dark:bg-[#020617] text-slate-900 dark:text-white selection:bg-brand-500 selection:text-white transition-colors duration-700">
+        <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white selection:bg-brand-500 selection:text-white transition-colors duration-700">
 
             {/* Background Map & Effects */}
             <div className="absolute inset-0 z-0">

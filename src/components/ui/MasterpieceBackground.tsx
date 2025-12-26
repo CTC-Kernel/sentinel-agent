@@ -14,7 +14,7 @@ export const MasterpieceBackground: React.FC<MasterpieceBackgroundProps> = ({
     return (
         <div className={cn("fixed inset-0 pointer-events-none overflow-hidden -z-10", className)}>
             {/* Base Background Color - Deep Space in Dark Mode */}
-            <div className="absolute inset-0 bg-slate-50 dark:bg-[#020617] transition-colors duration-500" />
+            <div className="absolute inset-0 bg-slate-50 dark:bg-slate-950 transition-colors duration-500" />
 
             {/* High-Tech Grid Pattern - subtle structure */}
             <div className="absolute inset-0 bg-grid-slate-900/[0.04] dark:bg-grid-white/[0.02] [mask-image:linear-gradient(to_bottom,white,transparent)]" />

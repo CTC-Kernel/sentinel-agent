@@ -1,27 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
-import { collection, addDoc, onSnapshot, query, where, deleteDoc, doc, updateDoc, writeBatch } from 'firebase/firestore';
-import { db } from '../firebase';
 import { ThreatTemplate } from '../types';
-import { RISK_TEMPLATES } from '../data/riskTemplates';
 import { useStore } from '../store';
+import { useThreats } from '../hooks/useThreats';
 import { Plus, Search, Trash2, ShieldAlert, BookOpen, AlertTriangle, Shield, Database, RefreshCw } from '../components/ui/Icons';
 import { Modal } from '../components/ui/Modal';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
 import { FloatingLabelTextarea } from '../components/ui/FloatingLabelTextarea';
 import { logAction } from '../services/logger';
-import { sanitizeData } from '../utils/dataSanitizer';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 
+import { hasPermission } from '../utils/permissions';
+
 export const ThreatRegistry: React.FC = () => {
-    const { user, addToast } = useStore();
-    const [threats, setThreats] = useState<ThreatTemplate[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { user } = useStore();
+    const canEdit = hasPermission(user, 'Threat', 'manage');
+    const { threats, loading, addThreat, updateThreat, deleteThreat, seedStandardThreats } = useThreats();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedThreat, setSelectedThreat] = useState<ThreatTemplate | null>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -35,51 +34,16 @@ export const ThreatRegistry: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    useEffect(() => {
-        if (!user?.organizationId) return;
-
-        const q = query(collection(db, 'threat_library'), where('organizationId', '==', user.organizationId));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ThreatTemplate));
-            setThreats(items);
-            setLoading(false);
-        }, (err) => {
-            console.error("ThreatRegistry subscription error:", err);
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, [user?.organizationId]);
-
     const handleSeed = async () => {
-        if (!user?.organizationId) return;
-
         const proceedWithSeed = async () => {
             try {
-                setLoading(true);
-                const batch = writeBatch(db);
-                let count = 0;
-
-                RISK_TEMPLATES.forEach(template => {
-                    const docRef = doc(collection(db, 'threat_library'));
-                    batch.set(docRef, sanitizeData({
-                        ...template,
-                        organizationId: user.organizationId,
-                        source: 'Standard',
-                        createdAt: new Date().toISOString()
-                    }));
-                    count++;
-                });
-
-                await batch.commit();
-                addToast(`${count} menaces standard importées`, 'success');
-                await logAction(user, 'CREATE', 'ThreatLibrary', `Import de ${count} menaces standard`);
+                const count = await seedStandardThreats();
+                if (count) {
+                    await logAction(user!, 'CREATE', 'ThreatLibrary', `Import de ${count} menaces standard`);
+                }
                 setConfirmData(prev => ({ ...prev, isOpen: false }));
-            } catch (error) {
-                console.error(error);
-                addToast("Erreur lors de l'import", "error");
-            } finally {
-                setLoading(false);
+            } catch {
+                // Error already handled in hook
             }
         };
 
@@ -102,13 +66,11 @@ export const ThreatRegistry: React.FC = () => {
             message: "Cette action est irréversible.",
             onConfirm: async () => {
                 try {
-                    await deleteDoc(doc(db, 'threat_library', id));
-                    addToast("Menace supprimée", "success");
+                    await deleteThreat(id);
                     await logAction(user!, 'DELETE', 'ThreatLibrary', `Suppression menace ${id}`);
                     setConfirmData(prev => ({ ...prev, isOpen: false }));
-                } catch (error) {
-                    console.error("Delete threat error:", error);
-                    addToast("Erreur lors de la suppression", "error");
+                } catch {
+                    // Error handled in hook
                 }
             }
         });
@@ -123,34 +85,18 @@ export const ThreatRegistry: React.FC = () => {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         try {
-            const dataToSave = sanitizeData({
-                ...formData,
-                organizationId: user!.organizationId,
-                source: formData.source || 'Custom',
-                createdAt: formData.createdAt || new Date().toISOString()
-            });
-
             if (isEditing && selectedThreat?.id) {
-                // remove id from update payload
-                const updateData = { ...dataToSave };
-                delete updateData.id;
-                await updateDoc(doc(db, 'threat_library', selectedThreat.id), updateData);
-                addToast("Menace modifiée", "success");
+                await updateThreat(selectedThreat.id, formData);
                 await logAction(user!, 'UPDATE', 'ThreatLibrary', `Modification menace ${selectedThreat.name}`);
             } else {
-                await addDoc(collection(db, 'threat_library'), dataToSave);
-                addToast("Menace créée", "success");
-                await logAction(user!, 'CREATE', 'ThreatLibrary', `Création menace ${dataToSave.name}`);
+                await addThreat(formData);
+                await logAction(user!, 'CREATE', 'ThreatLibrary', `Création menace ${formData.name}`);
             }
             setShowModal(false);
             setFormData({});
-        } catch (error) {
-            console.error(error);
-            addToast("Erreur lors de l'enregistrement", "error");
-        } finally {
-            setLoading(false);
+        } catch {
+            // Error already handled in hook
         }
     };
 
@@ -176,7 +122,7 @@ export const ThreatRegistry: React.FC = () => {
                 breadcrumbs={[{ label: 'Menaces' }]}
                 actions={
                     <div className="flex gap-3">
-                        {threats.length === 0 && (
+                        {threats.length === 0 && canEdit && (
                             <button
                                 onClick={handleSeed}
                                 className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-xl flex items-center transition-all shadow-lg shadow-purple-500/20 text-sm font-bold"
@@ -185,13 +131,15 @@ export const ThreatRegistry: React.FC = () => {
                                 Importer Standard
                             </button>
                         )}
-                        <button
-                            onClick={() => { setFormData({}); setShowModal(true); setIsEditing(false); }}
-                            className="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl flex items-center transition-all shadow-lg shadow-brand-500/20 text-sm font-bold"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Nouvelle Menace
-                        </button>
+                        {canEdit && (
+                            <button
+                                onClick={() => { setFormData({}); setShowModal(true); setIsEditing(false); }}
+                                className="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl flex items-center transition-all shadow-lg shadow-brand-500/20 text-sm font-bold"
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Nouvelle Menace
+                            </button>
+                        )}
                     </div>
                 }
             />

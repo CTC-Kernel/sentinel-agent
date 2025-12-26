@@ -1,72 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
-import { auth } from '../firebase';
-import { sendEmailVerification, signOut, reload } from 'firebase/auth';
 import { useStore } from '../store';
-import { Mail, RefreshCw, LogOut, CheckCircle2, AlertTriangle, Loader2 } from '../components/ui/Icons';
-import { useNavigate } from 'react-router-dom';
-import { ErrorLogger } from '../services/errorLogger';
+import { Mail, RefreshCw, LogOut, CheckCircle2, Loader2 } from '../components/ui/Icons';
+import { useAuthActions } from '../hooks/useAuthActions';
 
 export const VerifyEmail: React.FC = () => {
+    const { user } = useStore();
     const [loading, setLoading] = useState(false);
     const [emailSent, setEmailSent] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const { addToast } = useStore();
-    const navigate = useNavigate();
+    const { sendVerificationEmail, checkEmailVerification, logout } = useAuthActions();
 
     useEffect(() => {
         // Check if already verified on mount
-        if (auth.currentUser?.emailVerified) {
-            navigate('/dashboard');
+        if (user?.emailVerified) {
+            window.location.href = '/dashboard';
         }
-    }, [navigate]);
+    }, [user?.emailVerified]);
 
     const handleResendEmail = async () => {
-        if (!auth.currentUser) return;
         setLoading(true);
-        setError(null);
         try {
-            await sendEmailVerification(auth.currentUser);
+            await sendVerificationEmail();
             setEmailSent(true);
-            addToast("Email de vérification envoyé", "success");
-        } catch (err: unknown) {
-            const error = err as { code?: string };
-            if (error.code === 'auth/too-many-requests') {
-                setError("Trop de tentatives. Veuillez patienter.");
-            } else {
-                setError("Erreur lors de l'envoi de l'email.");
-            }
+        } catch {
+            // Error handled in hook
         } finally {
             setLoading(false);
         }
     };
 
     const handleCheckVerification = async () => {
-        if (!auth.currentUser) return;
         setLoading(true);
         try {
-            await reload(auth.currentUser);
-            if (auth.currentUser.emailVerified) {
-                addToast("Email vérifié avec succès !", "success");
-                // Force reload to update context
-                window.location.reload();
-            } else {
-                addToast("Email non vérifié. Veuillez vérifier votre boîte mail.", "info");
-            }
+            await checkEmailVerification();
         } catch {
-            addToast("Erreur lors de la vérification", "error");
+            // Error handled in hook
         } finally {
             setLoading(false);
         }
     };
 
     const handleLogout = async () => {
-        try {
-            await signOut(auth);
-            navigate('/login');
-        } catch (error) {
-            ErrorLogger.error(error, 'VerifyEmail.handleLogout');
-        }
+        await logout();
     };
 
     return (
@@ -82,15 +57,9 @@ export const VerifyEmail: React.FC = () => {
 
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Vérifiez votre email</h1>
                     <p className="text-slate-600 dark:text-slate-400 mb-8">
-                        Un lien de vérification a été envoyé à <strong>{auth.currentUser?.email}</strong>.<br />
+                        Un lien de vérification a été envoyé à <strong>{user?.email}</strong>.<br />
                         Veuillez cliquer sur le lien pour activer votre compte.
                     </p>
-
-                    {error && (
-                        <div className="w-full mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-red-600">
-                            <AlertTriangle className="h-4 w-4" /> {error}
-                        </div>
-                    )}
 
                     {emailSent && (
                         <div className="w-full mb-6 p-4 bg-green-50 border border-green-100 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-green-600">
@@ -102,7 +71,7 @@ export const VerifyEmail: React.FC = () => {
                         <button
                             onClick={handleCheckVerification}
                             disabled={loading}
-                            className="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-brand-500/20 flex items-center justify-center"
+                            className="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-brand-500/20 flex items-center justify-center hover:scale-[1.02] active:scale-[0.98]"
                         >
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                                 <>
@@ -115,7 +84,7 @@ export const VerifyEmail: React.FC = () => {
                         <button
                             onClick={handleResendEmail}
                             disabled={loading || emailSent}
-                            className="w-full py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+                            className="w-full py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
                         >
                             {loading ? <Loader2 className="h-5 w-5 animate-spin mx-auto text-slate-600" /> : "Renvoyer l'email"}
                         </button>
@@ -123,7 +92,7 @@ export const VerifyEmail: React.FC = () => {
 
                     <button
                         onClick={handleLogout}
-                        className="mt-8 text-sm font-bold text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 flex items-center transition-colors"
+                        className="mt-8 text-sm font-bold text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 flex items-center transition-colors hover:underline"
                     >
                         <LogOut className="mr-2 h-4 w-4" />
                         Se déconnecter

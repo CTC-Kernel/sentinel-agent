@@ -43,7 +43,7 @@ vi.mock('../../store', () => ({
 
 // Mock UI Components
 vi.mock('../../components/ui/AuroraBackground', () => ({
-    AuroraBackground: ({ children, className }: any) => <div className={className} data-testid="aurora-bg">{children}</div>
+    AuroraBackground: ({ children, className }: { children: React.ReactNode, className?: string }) => <div className={className} data-testid="aurora-bg">{children}</div>
 }));
 vi.mock('../../components/landing/LandingMap', () => ({
     LandingMap: () => <div data-testid="landing-map" />
@@ -61,9 +61,9 @@ vi.mock('../../components/ui/LegalModal', () => ({
 // Mock Framer Motion
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>
+        div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
     },
-    AnimatePresence: ({ children }: any) => <>{children}</>
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 // Import mocks

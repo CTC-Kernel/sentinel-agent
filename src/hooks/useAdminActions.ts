@@ -1,0 +1,52 @@
+import { useState, useCallback } from 'react';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { auth } from '../../firebase';
+import { useStore } from '../store';
+import { ErrorLogger } from '../services/errorLogger';
+import { toast } from 'sonner';
+
+export const useAdminActions = () => {
+    const { t } = useStore();
+    const [switchingOrg, setSwitchingOrg] = useState<string | null>(null);
+
+    const verifySuperAdmin = useCallback(async (): Promise<boolean> => {
+        try {
+            const functions = getFunctions();
+            const checkAdmin = httpsCallable(functions, 'verifySuperAdmin');
+            const result = await checkAdmin();
+            const data = result.data as { isSuperAdmin: boolean };
+            return data.isSuperAdmin;
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'useAdminActions.verifySuperAdmin');
+            return false;
+        }
+    }, []);
+
+    const handleManage = async (orgId: string, orgName: string) => {
+        setSwitchingOrg(orgId);
+        try {
+            const functions = getFunctions();
+            const switchOrgFn = httpsCallable(functions, 'switchOrganization');
+            await switchOrgFn({ targetOrgId: orgId });
+
+            // Force token refresh to pick up new claims
+            if (auth.currentUser) {
+                await auth.currentUser.getIdToken(true);
+            }
+
+            toast.success(t('admin.toast.switchSuccess', { name: orgName }));
+            // Redirect to dashboard
+            window.location.href = '/';
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'useAdminActions.handleManage');
+            toast.error(t('admin.toast.switchError'));
+            setSwitchingOrg(null);
+        }
+    };
+
+    return {
+        verifySuperAdmin,
+        handleManage,
+        switchingOrg
+    };
+};

@@ -16,9 +16,9 @@ vi.mock('../../store', () => ({
 
 
 vi.mock('../../hooks/usePersistedState', async () => {
-    const React = await vi.importActual<any>('react');
+    const React = await vi.importActual<typeof import('react')>('react');
     return {
-        usePersistedState: (_key: any, defaultVal: any) => React.useState(defaultVal)
+        usePersistedState: (_key: string, defaultVal: unknown) => React.useState(defaultVal)
     };
 });
 
@@ -30,7 +30,7 @@ vi.mock('../../components/SEO', () => ({
     SEO: () => null
 }));
 vi.mock('../../components/settings/SettingsLayout', () => ({
-    SettingsLayout: ({ children, currentTab: _currentTab, onTabChange }: any) => (
+    SettingsLayout: ({ children, currentTab: _currentTab, onTabChange }: { children: React.ReactNode, currentTab: string, onTabChange: (tab: string) => void }) => (
         <div>
             <div data-testid="settings-tabs">
                 <button onClick={() => onTabChange('profile')}>Profile</button>
@@ -62,9 +62,9 @@ vi.mock('../../components/settings/SystemSettings', () => ({
 
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>
+        div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
     },
-    AnimatePresence: ({ children }: any) => <>{children}</>
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 // ---------------------------------------------------------------------

@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { jsPDF } from 'jspdf';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
@@ -26,22 +26,21 @@ import {
     BarChart3
 } from 'lucide-react';
 import { useFirestoreCollection } from '../hooks/useFirestore';
-import { where, deleteDoc, doc, getDocs, query, collection, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Risk, Audit, Asset, Document, Control, Incident } from '../types';
+import { where } from 'firebase/firestore'; // Only where allowed
+import { Risk, Audit, Asset, Document, Control } from '../types';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Button } from '../components/ui/button';
 import { PdfService } from '../services/PdfService';
 import { CompliancePackService } from '../services/CompliancePackService';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
-import { db, storage } from '../firebase';
 import { hasPermission, canDeleteResource } from '../utils/permissions';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Badge } from '../components/ui/Badge';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { ReportTemplates } from '../components/reports/ReportTemplates';
+import { useReports } from '../hooks/useReports';
 
 export const Reports: React.FC = () => {
     const { user, organization, addToast, t } = useStore();
@@ -52,6 +51,9 @@ export const Reports: React.FC = () => {
     const { hasFeature } = usePlanLimits();
     const hasWhiteLabel = hasFeature('whiteLabelReports');
     const hasCompliancePack = hasFeature('customTemplates');
+
+    // Hooks
+    const { saveReport, deleteReport, fetchCompliancePackData } = useReports();
 
     // Data Fetching
     const { data: risks, loading: risksLoading } = useFirestoreCollection<Risk>(
@@ -93,54 +95,12 @@ export const Reports: React.FC = () => {
     const canReadRisks = hasPermission(user, 'Risk', 'read', organization?.ownerId);
     const canReadAudits = hasPermission(user, 'Audit', 'read', organization?.ownerId);
     const canReadAssets = hasPermission(user, 'Asset', 'read', organization?.ownerId);
-    // SoA relies on Controls/Risk/Asset, usually Risk management or Control read is good proxy.
     const canReadControls = hasPermission(user, 'Control', 'read', organization?.ownerId);
     const canManageDocuments = hasPermission(user, 'Document', 'manage', organization?.ownerId);
 
     const handleUpgradeClick = () => {
         addToast(t('reports.upgradePro'), "info");
         navigate('/pricing');
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const saveGeneratedReport = async (doc: any, filename: string, title: string) => {
-        if (!user?.organizationId || !doc) return;
-
-        try {
-            // 1. Get Blob
-            const blob = doc.output('blob');
-
-            // 2. Upload to Storage
-            const storagePath = `documents/${user.organizationId}/${Date.now()}_${filename}`;
-            const storageRef = ref(storage, storagePath);
-            const snapshot = await uploadBytes(storageRef, blob);
-            const url = await getDownloadURL(snapshot.ref);
-
-            // 3. Create Document Record
-            await addDoc(collection(db, 'documents'), {
-                title: title,
-                type: 'Rapport',
-                url: url,
-                hash: '', // Optional: could compute SHA-256
-                ownerId: user.uid,
-                owner: user.displayName || user.email || 'Système',
-                organizationId: user.organizationId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                version: '1.0',
-                size: blob.size,
-                status: 'Validé',
-                description: `Rapport généré automatiquement : ${title}`,
-                isSecure: false,
-                watermarkEnabled: false
-            });
-
-            refreshDocuments();
-        } catch (error) {
-            console.error("Error saving report to history:", error);
-            // Don't toast error to user if download success, just log it.
-            // Or maybe toast warning "Rapport téléchargé mais non sauvegardé dans l'historique".
-        }
     };
 
     const handleGenerateReport = async (type: string, title?: string) => {
@@ -152,11 +112,9 @@ export const Reports: React.FC = () => {
         }
 
         setGenerating(type);
-
         addToast(t('reports.generating'), "info");
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let generatedDoc: any = null;
+        let generatedDoc: jsPDF | null = null;
         let generatedFilename = '';
         let generatedTitle = title || 'Rapport';
 
@@ -236,29 +194,20 @@ export const Reports: React.FC = () => {
                     });
                     break;
                 case 'compliance_pack': {
-                    // Compliance Pack Service handles its own zipping and generation logic
-                    // It returns void usually or download trigger.
-                    // If we want to save history for ZIPs, we'd need Service to return Blob.
-                    // For now, assume it's standalone.
                     if (!canReadControls) throw new Error("Permission refusée");
-                    const [incidentsSnap, allDocsSnap] = await Promise.all([
-                        getDocs(query(collection(db, 'incidents'), where('organizationId', '==', user?.organizationId))),
-                        getDocs(query(collection(db, 'documents'), where('organizationId', '==', user?.organizationId)))
-                    ]);
-
-                    const incidentsData = incidentsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Incident));
-                    const allDocumentsData = allDocsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Document));
+                    const packData = await fetchCompliancePackData();
+                    if (!packData) return;
 
                     await CompliancePackService.generatePack({
                         organizationName: canWhiteLabel ? (organization?.name || 'Sentinel GRC') : 'Sentinel GRC',
                         risks,
                         controls,
-                        documents: allDocumentsData,
+                        documents: packData.documents,
                         audits,
-                        incidents: incidentsData,
+                        incidents: packData.incidents,
                         assets
                     });
-                    // Skip history saving for ZIP pack for now as it's complex blob
+
                     break;
                 }
                 default:
@@ -269,8 +218,11 @@ export const Reports: React.FC = () => {
 
             if (generatedDoc) {
                 // Save to history asynchronously
-                saveGeneratedReport(generatedDoc, generatedFilename, generatedTitle);
+                // generatedDoc.output('blob') is sync
+                const blob = generatedDoc.output('blob');
+                await saveReport(blob, generatedFilename, generatedTitle);
                 addToast(t('reports.success'), "success");
+                refreshDocuments(); // Ideally useReports would update cache or we just refresh manually
             }
 
         } catch (error) {
@@ -288,11 +240,10 @@ export const Reports: React.FC = () => {
 
         if (!confirm(t('reports.deleteTitle', { name }))) return;
         try {
-            await deleteDoc(doc(db, 'documents', id));
-            addToast(t('reports.deleteSuccess'), "success");
+            await deleteReport(id);
             refreshDocuments();
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Reports.delete', 'DELETE_FAILED');
+            ErrorLogger.warn('Reports.delete failed', 'Reports.handleDeleteReport', { metadata: { error } });
         }
     };
 
@@ -475,7 +426,7 @@ export const Reports: React.FC = () => {
                     {activeTab === 'history' && (
                         <motion.div variants={slideUpVariants} className="space-y-6">
                             {/* Search Bar for History */}
-                            <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-[#0B1120]/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl mb-2">
+                            <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-slate-950/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl mb-2">
                                 <div className="relative flex-1 min-w-0 group">
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                                     <input
@@ -617,7 +568,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ title, description, icon: Icon,
     return (
         <motion.div
             whileHover={effectiveDisabled ? {} : { y: -8, scale: 1.02 }}
-            className={`group relative flex flex-col p-8 bg-white/60 dark:bg-[#0B1120]/60 backdrop-blur-xl rounded-3xl border border-white/40 dark:border-white/5 shadow-lg shadow-slate-200/50 dark:shadow-none transition-all duration-300 ${effectiveDisabled && !showLock ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-2xl hover:border-brand-500/30 dark:hover:border-white/20'} ${showLock ? 'ring-1 ring-amber-500/20' : ''}`}
+            className={`group relative flex flex-col p-8 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl rounded-3xl border border-white/40 dark:border-white/5 shadow-lg shadow-slate-200/50 dark:shadow-none transition-all duration-300 ${effectiveDisabled && !showLock ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-2xl hover:border-brand-500/30 dark:hover:border-white/20'} ${showLock ? 'ring-1 ring-amber-500/20' : ''}`}
         >
             {/* Inner Glow Effect */}
             <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/50 to-transparent dark:from-white/5 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />

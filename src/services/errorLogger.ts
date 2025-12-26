@@ -82,7 +82,7 @@ class ErrorLoggerService {
    */
   info(message: string, context?: string, additionalContext?: ErrorContext): void {
     if (this.isDevelopment) {
-      console.log(`ℹ️ INFO [${context || 'General'}]:`, message, additionalContext || '');
+      console.info(`ℹ️ INFO [${context || 'General'}]:`, message, additionalContext || '');
     }
 
     this.logToExternal('info', {
@@ -98,7 +98,7 @@ class ErrorLoggerService {
    */
   logUserAction(action: string, details?: Record<string, unknown>): void {
     if (this.isDevelopment) {
-      console.log(`👤 USER ACTION [${action}]:`, details);
+      console.info(`👤 USER ACTION [${action}]:`, details);
     }
     // Could expand to send to analytics here
     this.logToExternal('user_action', {
@@ -160,7 +160,7 @@ class ErrorLoggerService {
    */
   logPerformance(metric: string, duration: number, context?: string): void {
     if (this.isDevelopment) {
-      console.log(`⚡ PERFORMANCE [${metric}]:`, `${duration}ms`, context);
+      console.debug(`⚡ PERFORMANCE [${metric}]:`, `${duration}ms`, context);
     }
 
     this.logToExternal('performance', {

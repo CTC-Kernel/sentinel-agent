@@ -2,16 +2,14 @@ import React, { useDeferredValue, useEffect, useMemo, useState, useRef } from 'r
 import { Menu, Transition } from '@headlessui/react';
 import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
-import { sanitizeData } from '../utils/dataSanitizer';
 
-import { collection, addDoc, query, deleteDoc, doc, updateDoc, where, writeBatch, getDocs, arrayRemove } from 'firebase/firestore';
-import { db } from '../firebase';
 import { Supplier, Document, Criticality, UserProfile, BusinessProcess, Asset, Risk, Project } from '../types';
 import { Plus, Building, Trash2, Edit, Handshake, Truck, Mail, ShieldAlert, FileText, ClipboardList, History, MessageSquare, Save, FileSpreadsheet, Link, CalendarDays, Upload, Server, BrainCircuit, Loader2, MoreVertical, ChevronRight } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { useFirestoreCollection } from '../hooks/useFirestore';
-import { logAction } from '../services/logger';
+import { where } from 'firebase/firestore';
+import { useSuppliers } from '../hooks/useSuppliers';
 import { CommentSection } from '../components/collaboration/CommentSection';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { CardSkeleton } from '../components/ui/Skeleton';
@@ -116,11 +114,7 @@ export const Suppliers: React.FC = () => {
         }
     }, [selectedSupplier, editForm]);
 
-    const { data: suppliersRaw, loading: loadingSuppliers } = useFirestoreCollection<Supplier>(
-        'suppliers',
-        [where('organizationId', '==', user?.organizationId)],
-        { logError: true, realtime: true }
-    );
+    const { suppliers: suppliersRaw, loading: loadingSuppliers, addSupplier, updateSupplier, deleteSupplier, importSuppliers, checkDependencies } = useSuppliers();
 
     const { data: usersRaw } = useFirestoreCollection<UserProfile>(
         'users',
@@ -209,56 +203,19 @@ export const Suppliers: React.FC = () => {
         suppliersSubtitle = t('suppliers.subtitle_user');
     }
 
-    // Hook Definitions (Moved up to avoid conditional hook errors)
-    const performDelete = React.useCallback(async (id: string) => {
-        // 1. Dependencies Cleanup
-        // Cleanup Controls
-        const controlQuery = query(collection(db, 'controls'), where('organizationId', '==', user?.organizationId), where('relatedSupplierIds', 'array-contains', id));
-        const riskQuery = query(collection(db, 'risks'), where('organizationId', '==', user?.organizationId), where('relatedSupplierIds', 'array-contains', id));
-
-        const [controlsSnap, risksSnap] = await Promise.all([
-            getDocs(controlQuery),
-            getDocs(riskQuery)
-        ]);
-
-        const cleanupPromises: Promise<void>[] = [];
-        controlsSnap.docs.forEach(docSnap => {
-            cleanupPromises.push(updateDoc(doc(db, 'controls', docSnap.id), { relatedSupplierIds: arrayRemove(id) }));
-        });
-        risksSnap.docs.forEach(docSnap => {
-            cleanupPromises.push(updateDoc(doc(db, 'risks', docSnap.id), { relatedSupplierIds: arrayRemove(id) }));
-        });
-
-        await Promise.all(cleanupPromises);
-
-        // 2. Delete related assessments
-        const assessmentsQuery = query(collection(db, 'supplierAssessments'), where('supplierId', '==', id));
-        const assessmentsSnap = await getDocs(assessmentsQuery);
-        const deleteAssessments = assessmentsSnap.docs.map(doc => deleteDoc(doc.ref));
-
-        // 3. Delete related incidents
-        const incidentsQuery = query(collection(db, 'supplierIncidents'), where('supplierId', '==', id));
-        const incidentsSnap = await getDocs(incidentsQuery);
-        const deleteIncidents = incidentsSnap.docs.map(doc => deleteDoc(doc.ref));
-
-        // 4. Delete the supplier itself
-        await Promise.all([...deleteAssessments, ...deleteIncidents, deleteDoc(doc(db, 'suppliers', id))]);
-    }, [user?.organizationId]);
-
+    // Hook Definitions
     const handleDelete = React.useCallback(async (id: string, name: string) => {
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
-            await performDelete(id);
-            await logAction(user, 'DELETE', 'Supplier', `Suppression Fournisseur: ${name}`);
-            addToast(t('suppliers.toastDeleted'), 'success');
+            await deleteSupplier(id, name);
             if (selectedSupplier?.id === id) setSelectedSupplier(null);
             setConfirmData(prev => ({ ...prev, isOpen: false }));
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleDelete');
+            ErrorLogger.warn('Delete handled in hook', 'Suppliers.handleDelete', { metadata: { error } });
         } finally {
             setConfirmData(prev => ({ ...prev, loading: false }));
         }
-    }, [performDelete, user, addToast, selectedSupplier, t]);
+    }, [deleteSupplier, selectedSupplier]);
 
     const initiateDelete = React.useCallback(async (id: string, name: string) => {
         if (!canEdit) return;
@@ -266,26 +223,12 @@ export const Suppliers: React.FC = () => {
         // Check dependencies
         let message = t('suppliers.deleteMessage');
         try {
-            const controlQuery = query(collection(db, 'controls'), where('organizationId', '==', user?.organizationId), where('relatedSupplierIds', 'array-contains', id));
-            const riskQuery = query(collection(db, 'risks'), where('organizationId', '==', user?.organizationId), where('relatedSupplierIds', 'array-contains', id));
-
-            const [controlsSnap, risksSnap] = await Promise.all([
-                getDocs(controlQuery),
-                getDocs(riskQuery)
-            ]);
-
-            if (!controlsSnap.empty || !risksSnap.empty) {
-                const controlNames = controlsSnap.docs.slice(0, 3).map(d => d.data().code).join(', ');
-                const riskNames = risksSnap.docs.slice(0, 3).map(d => d.data().threat || 'Risque').join(', ');
-
-                let details = "";
-                if (!controlsSnap.empty) details += `\n- ${controlsSnap.size} contrôle(s) (${controlNames}...)`;
-                if (!risksSnap.empty) details += `\n- ${risksSnap.size} risque(s) (${riskNames}...)`;
-
-                message = t('suppliers.deleteWarning', { details });
+            const deps = await checkDependencies(id);
+            if (deps.controls > 0 || deps.risks > 0) {
+                message = t('suppliers.deleteWarning', { details: deps.details });
             }
         } catch (e) {
-            console.error("Dependency check failed", e);
+            ErrorLogger.warn('Dependency check error', 'Suppliers.initiateDelete', { metadata: { error: e } });
         }
 
         setConfirmData({
@@ -385,7 +328,7 @@ export const Suppliers: React.FC = () => {
         {
             id: 'actions',
             cell: ({ row }) => (
-                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                <div className="text-right flex justify-end items-center space-x-1 hover:cursor-default" onClick={e => e.stopPropagation()}>
                     {canEdit && (
                         <CustomTooltip content="Supprimer le fournisseur">
                             <button
@@ -394,6 +337,7 @@ export const Suppliers: React.FC = () => {
                                     initiateDelete(row.original.id, row.original.name);
                                 }}
                                 className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                                aria-label={`Delete supplier ${row.original.name}`}
                             >
                                 <Trash2 className="h-4 w-4" />
                             </button>
@@ -437,7 +381,9 @@ export const Suppliers: React.FC = () => {
             const resId = await SupplierService.createAssessment(user.organizationId, supplier.id, supplier.name, tpl);
             setAssessmentMode(resId);
             addToast('Évaluation démarrée', 'success');
-        } catch (e) { console.error(e); addToast('Erreur démarage évaluation', 'error'); }
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Suppliers.startAssessment');
+        }
     };
 
     // Render Assessment View Overlay
@@ -454,7 +400,7 @@ export const Suppliers: React.FC = () => {
         return (
             <div className="p-8 max-w-5xl mx-auto animate-fade-in">
                 <div className="mb-6 flex items-center">
-                    <button onClick={() => setTemplateMode(false)} className="text-slate-500 hover:text-slate-700 mr-4">Retour</button>
+                    <button onClick={() => setTemplateMode(false)} className="text-slate-500 hover:text-slate-700 mr-4 transition-colors" aria-label="Back to dashboard">Retour</button>
                     <h1 className="text-2xl font-bold dark:text-white">Éditeur de Modèle de Questionnaire</h1>
                 </div>
                 <QuestionnaireBuilder onCancel={() => setTemplateMode(false)} onSave={() => setTemplateMode(false)} />
@@ -500,20 +446,10 @@ export const Suppliers: React.FC = () => {
         if (!canEdit || !user?.organizationId) return;
         setIsSubmitting(true);
         try {
-            const sanitizedData = sanitizeData(data);
-            await addDoc(collection(db, 'suppliers'), {
-                ...sanitizedData,
-                organizationId: user.organizationId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            });
-            await logAction(user, 'CREATE', 'Supplier', `Ajout Fournisseur: ${data.name}`);
-            addToast(t('suppliers.toastCreated'), "success");
+            await addSupplier(data);
             setCreationMode(false);
         } catch (error) {
-            console.error("Error creating supplier:", error);
-            ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleCreate');
-            // addToast("Erreur enregistrement", "error"); // ErrorLogger does this
+            ErrorLogger.warn('Creation handled in hook', 'Suppliers.handleCreate', { metadata: { error } });
         } finally {
             setIsSubmitting(false);
         }
@@ -523,19 +459,11 @@ export const Suppliers: React.FC = () => {
         if (!canEdit || !selectedSupplier) return;
         setIsSubmitting(true);
         try {
-            const sanitizedData = sanitizeData(data);
-            const now = new Date().toISOString();
-            await updateDoc(doc(db, 'suppliers', selectedSupplier.id), {
-                ...sanitizedData,
-                updatedAt: now
-            });
-            await logAction(user, 'UPDATE', 'Supplier', `MAJ Fournisseur: ${data.name}`);
-            setSelectedSupplier({ ...selectedSupplier, ...data, criticality: data.criticality as Criticality, updatedAt: now });
+            await updateSupplier(selectedSupplier.id, data);
+            setSelectedSupplier(prev => prev ? { ...prev, ...data } : null);
             setIsEditing(false);
-            addToast(t('suppliers.toastUpdated'), "success");
         } catch (error) {
-            console.error("Error updating supplier:", error);
-            ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleUpdate');
+            ErrorLogger.warn('Update handled in hook', 'Suppliers.handleUpdate', { metadata: { error } });
         } finally {
             setIsSubmitting(false);
         }
@@ -552,11 +480,10 @@ export const Suppliers: React.FC = () => {
         if (!window.confirm(t('suppliers.deleteBulk', { count: selectedIds.length }))) return;
 
         try {
-            await Promise.all(selectedIds.map(id => performDelete(id)));
-            addToast(`${selectedIds.length} fournisseurs supprimés`, 'success');
+            await Promise.all(selectedIds.map(id => deleteSupplier(id)));
             setSelectedSupplier(null);
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Suppliers.handleBulkDelete');
+            ErrorLogger.warn('Bulk delete handled in hook', 'Suppliers.handleBulkDelete', { metadata: { error } });
         }
     };
 
@@ -626,81 +553,11 @@ export const Suppliers: React.FC = () => {
         reader.onload = async (e) => {
             const text = e.target?.result as string;
             if (!text) return;
-
-            const lines = CsvParser.parseCSV(text);
-            if (lines.length === 0) { addToast("Fichier vide ou invalide", "error"); return; }
-
             setIsImporting(true);
-            addToast("Import en cours...", "info");
             try {
-                const batch = writeBatch(db);
-                let count = 0;
-
-                // Only process first 50 rows for safety in batch, or we could chunk it 
-                // but let's stick to the simpler logic for now, iterating all parsed objects.
-                // The CsvParser returns objects with keys from headers.
-                // The previous logic assumed no headers or columns index access.
-                // WE MUST ADAPT: If the CSV has headers, CsvParser uses them.
-                // If the user's CSV format is fixed columns without headers, existing logic relied on splits.
-                // Let's assume the user now provides a CSV with headers OR we map values by index if no headers were expected?
-                // Looking at the original code: 
-                // "const lines = text.split('\n').slice(1)..." -> Implies there WAS a header row.
-                // "const cols = line.split(',');" -> "cols[0]", "cols[1]"...
-                // So the CSV structure was: Name, Category, Criticality, ContactName, ContactEmail.
-
-                // With CsvParser.parseCSV, we get an array of objects.
-                // We should check if the keys match expected header names OR iterate values if the keys are generic.
-                // Since CsvParser uses the first row as headers, the objects will have keys like 'Name', 'Category' etc.
-                // IF the CSV truly has those headers. 
-
-                // Let's make it robust: Iterate the objects.
-                // If objects have properties, we try to guess or use the values.
-                // Since we don't know the EXACT header names the user might use, maybe we just take the first 5 values of each object?
-                // OR we can update the template to require headers: Name, Category, Criticality, ContactName, ContactEmail.
-
-                lines.forEach((row: Record<string, string>) => {
-                    const values = Object.values(row) as string[];
-                    // Fallback to values by index if keys don't match or for flexibility
-                    // Name is likely first, Category second...
-
-                    // Actually, let's try to look for specific keys, else fallback to index.
-                    const name = row['Nom'] || row['Name'] || values[0] || 'Inconnu';
-                    const category = row['Catégorie'] || row['Category'] || values[1] || 'Autre';
-                    const criticality = row['Criticité'] || row['Criticality'] || values[2] || 'Moyenne';
-                    const contactName = row['Contact'] || row['ContactName'] || values[3] || '';
-                    const contactEmail = row['Email'] || row['ContactEmail'] || values[4] || '';
-
-                    if (name) {
-                        const newRef = doc(collection(db, 'suppliers'));
-                        const newSupplierData: Partial<Supplier> = {
-                            organizationId: user.organizationId,
-                            name: name.trim(),
-                            category: (category.trim() || 'Autre') as Supplier['category'],
-                            criticality: (criticality.trim() || 'Moyenne') as Criticality,
-                            contactName: contactName.trim(),
-                            contactEmail: contactEmail.trim(),
-                            status: 'Actif',
-                            securityScore: 0,
-                            assessment: {
-                                hasIso27001: false, hasGdprPolicy: false, hasEncryption: false,
-                                hasBcp: false, hasIncidentProcess: false, lastAssessmentDate: new Date().toISOString()
-                            },
-                            isICTProvider: false,
-                            supportsCriticalFunction: false,
-                            doraCriticality: 'None',
-                            owner: user.displayName || 'Importé',
-                            ownerId: user.uid,
-                            createdAt: new Date().toISOString()
-                        };
-                        batch.set(newRef, sanitizeData(newSupplierData));
-                        count++;
-                    }
-                });
-                await batch.commit();
-                await logAction(user, 'IMPORT', 'Supplier', `Import CSV de ${count} fournisseurs`);
-                addToast(t('suppliers.toastImported', { count }), "success");
-            } catch {
-                addToast(t('common.error'), "error");
+                await importSuppliers(text);
+            } catch (error) {
+                ErrorLogger.warn('Import handled in hook', 'Suppliers.handleFileUpload', { metadata: { error } });
             } finally {
                 setIsImporting(false);
                 if (fileInputRef.current) fileInputRef.current.value = '';
@@ -790,8 +647,9 @@ export const Suppliers: React.FC = () => {
                                                     <button
                                                         onClick={() => fileInputRef.current?.click()}
                                                         disabled={isImporting}
-                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
+                                                        className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
+                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 transition-colors`}
+                                                        aria-label="Import Suppliers CSV"
                                                     >
                                                         {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
                                                         {t('suppliers.importCsv')}
@@ -913,7 +771,7 @@ export const Suppliers: React.FC = () => {
                             const isExpired = supplier.contractEnd && new Date(supplier.contractEnd) < new Date();
 
                             return (
-                                <div key={supplier.id} onClick={() => openInspector(supplier)} className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden h-full">
+                                <div key={supplier.id} onClick={() => openInspector(supplier)} className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden h-full hover:border-brand-500 dark:hover:border-brand-400 transition-colors">
                                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                                     <div className="relative z-10 flex flex-col h-full">
 

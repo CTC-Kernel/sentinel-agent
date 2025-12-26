@@ -211,6 +211,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                     if (snapshot.exists()) {
                         const userData = snapshot.data() as UserProfile;
+                        // Inject emailVerified from Auth (not persisted in Firestore usually)
+                        userData.emailVerified = u?.emailVerified;
 
                         // SELF-HEALING
                         if (!userData.role) {
@@ -303,7 +305,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             displayName: u.displayName || u.email?.split('@')[0] || 'Utilisateur',
                             photoURL: u.photoURL,
                             onboardingCompleted: false,
-                            createdAt: new Date().toISOString()
+                            createdAt: new Date().toISOString(),
+                            emailVerified: u.emailVerified
                         };
                         try {
                             await setDoc(userRef, initialData, { merge: true });

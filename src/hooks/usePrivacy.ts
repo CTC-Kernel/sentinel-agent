@@ -333,8 +333,8 @@ export function usePrivacy() {
             if (!snapshot.empty) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                docs.sort((a: any, b: any) => new Date(b.sentDate).getTime() - new Date(a.sentDate).getTime());
+                // Sort by sentDate
+                docs.sort((a: { sentDate: string }, b: { sentDate: string }) => new Date(b.sentDate).getTime() - new Date(a.sentDate).getTime());
                 setViewingAssessmentId(docs[0].id);
             } else {
                 handleStartDPIA(activity);

@@ -1,23 +1,13 @@
-
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { db, functions } from '../firebase';
-import { UserProfile, Invitation, JoinRequest, CustomRole } from '../types';
+import { UserProfile, JoinRequest } from '../types';
 import { Users, Mail, Plus, Building, User, Trash2, Edit, Clock, Timer, FileSpreadsheet, Check, XCircle, UserPlus } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
-import { sendEmail } from '../services/emailService';
-import { getInvitationTemplate } from '../services/emailTemplates';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { logAction } from '../services/logger';
-import { SubscriptionService } from '../services/subscriptionService';
-import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/ui/PageHeader';
-import { ErrorLogger } from '../services/errorLogger';
 import { Drawer } from '../components/ui/Drawer';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { CustomSelect } from '../components/ui/CustomSelect';
@@ -27,309 +17,123 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { userSchema, UserFormData } from '../schemas/userSchema';
 import { RoleBadge } from '../components/ui/RoleBadge';
 
-// ... (previous imports remain the same, just adding local import)
 import { RoleManager } from '../components/team/RoleManager';
 import { GroupManager } from '../components/team/GroupManager';
 import { hasPermission } from '../utils/permissions';
-import { sanitizeData } from '../utils/dataSanitizer';
 import { usePersistedState } from '../hooks/usePersistedState';
+import { useTeamManagement } from '../hooks/useTeamManagement';
 
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 
-export const Team: React.FC = () => {
-    const navigate = useNavigate();
-    const [users, setUsers] = useState<UserProfile[]>([]);
-    const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
-    const [loading, setLoading] = useState(true);
+const Team: React.FC = () => {
+    const { t } = useTranslation();
+    const { user } = useStore();
+    const [activeTab, setActiveTab] = usePersistedState<'members' | 'roles' | 'groups'>('team_active_tab', 'members');
     const [filter, setFilter] = useState('');
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [activeTab, setActiveTab] = usePersistedState<'members' | 'roles' | 'groups'>('team_active_tab', 'members');
-    const { user, addToast } = useStore();
-    const { t } = useTranslation();
-
-    // State for creating user
     const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+    const [confirmData, setConfirmData] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
-    const inviteForm = useForm<UserFormData>({
-        resolver: zodResolver(userSchema),
-        defaultValues: {
-            displayName: '',
-            email: '',
-            role: 'user',
-            department: ''
-        }
-    });
-
-    const editForm = useForm<UserFormData>({
-        resolver: zodResolver(userSchema),
-        defaultValues: {
-            displayName: '',
-            email: '',
-            role: 'user',
-            department: ''
-        }
-    });
-
-    // Confirm Dialog
-    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
-        isOpen: false, title: '', message: '', onConfirm: () => { }
-    });
-
-    // Metrics for Summary Card
-    const totalUsers = users.length;
-    const activeUsers = users.filter(u => u.lastLogin && (new Date().getTime() - new Date(u.lastLogin).getTime()) < 2592000000).length;
-    const activityRate = totalUsers > 0 ? (activeUsers / totalUsers) * 100 : 0;
-    const admins = users.filter(u => u.role === 'admin').length;
-    const pendingInvites = users.filter(u => u.isPending).length;
-    const joinRequestsCount = joinRequests.length;
+    const {
+        users,
+        joinRequests,
+        loading,
+        customRoles,
+        fetchRoles,
+        inviteUser,
+        updateUser,
+        deleteUser,
+        checkDependencies,
+        approveRequest,
+        rejectRequest
+    } = useTeamManagement();
 
     const canAdmin = hasPermission(user, 'User', 'manage');
 
-    const fetchUsers = useCallback(async () => {
-        if (!user?.organizationId) return;
-        setLoading(true);
-        try {
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'invitations'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'join_requests'), where('organizationId', '==', user.organizationId), where('status', '==', 'pending')))
-            ]);
+    const inviteForm = useForm<UserFormData>({
+        resolver: zodResolver(userSchema),
+        defaultValues: { role: 'user' }
+    });
 
-            const activeUsers = results[0].status === 'fulfilled'
-                ? results[0].value.docs.map(d => ({ ...d.data(), uid: d.id, isPending: false } as UserProfile))
-                : [];
+    const editForm = useForm<UserFormData>({
+        resolver: zodResolver(userSchema)
+    });
 
-            const pendingInvites = results[1].status === 'fulfilled'
-                ? results[1].value.docs.map(d => {
-                    const inv = d.data() as Invitation;
-                    return {
-                        uid: d.id, // Use invitation ID as temp UID
-                        email: inv.email,
-                        displayName: 'Invité (En attente)',
-                        role: inv.role,
-                        department: inv.department,
-                        organizationId: inv.organizationId,
-                        isPending: true,
-                        onboardingCompleted: false
-                    } as UserProfile;
-                })
-                : [];
-
-            const requests = results[2].status === 'fulfilled'
-                ? results[2].value.docs.map(d => ({ id: d.id, ...d.data() } as JoinRequest))
-                : [];
-
-            setUsers([...activeUsers, ...pendingInvites]);
-            setJoinRequests(requests);
-        } catch {
-            ErrorLogger.handleErrorWithToast(new Error('Fetch failed'), 'Team.fetchUsers', 'FETCH_FAILED');
-        } finally {
-            setLoading(false);
-        }
-    }, [user?.organizationId]);
-
-    useEffect(() => { fetchUsers(); }, [fetchUsers]);
-
-    const handleOpenInviteModal = async () => {
-        if (!user?.organizationId || !canAdmin) return;
-
-        // Check plan limits
-        const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', users.length);
-
-        if (!canAddUser) {
-            if (confirm("Vous avez atteint la limite d'utilisateurs de votre plan actuel. Voulez-vous passer au plan supérieur ?")) {
-                navigate('/pricing');
-            }
-            return;
-        }
-
+    const handleOpenInviteModal = () => {
+        inviteForm.reset();
         setShowInviteModal(true);
     };
 
     const handleAddUser: SubmitHandler<UserFormData> = async (data) => {
-        if (!user?.organizationId || !canAdmin) return;
-
-        try {
-            // Create an invitation in 'invitations' collection
-            await addDoc(collection(db, 'invitations'), sanitizeData({
-                ...data,
-                organizationId: user.organizationId,
-                organizationName: user.organizationName,
-                invitedBy: user.uid,
-                createdAt: new Date().toISOString()
-            }));
-
-            const inviteLink = `${window.location.origin}/#/login`;
-            const htmlContent = getInvitationTemplate(user?.displayName || 'Un administrateur', data.role, inviteLink);
-
-            await sendEmail(user, {
-                to: data.email,
-                subject: `Invitation à rejoindre ${user.organizationName || 'Sentinel GRC'}`,
-                type: 'INVITATION',
-                html: htmlContent
-            });
-
-            setShowInviteModal(false);
-            inviteForm.reset();
-            addToast("Invitation envoyée par email", "success");
-            fetchUsers();
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Team.handleInvite', 'INVITE_FAILED');
-            addToast("Erreur invitation", "error");
-        }
+        const success = await inviteUser(data);
+        if (success) setShowInviteModal(false);
     };
-
-    const filteredUsers = React.useMemo(() => {
-        const needle = filter.toLowerCase();
-        return users.filter(u =>
-            (u.displayName || '').toLowerCase().includes(needle) ||
-            (u.email || '').toLowerCase().includes(needle) ||
-            (u.department || '').toLowerCase().includes(needle)
-        );
-    }, [users, filter]);
 
     const openEditModal = (u: UserProfile) => {
         setSelectedUser(u);
         editForm.reset({
-            displayName: u.displayName || '',
+            displayName: u.displayName,
             email: u.email,
             role: u.role,
-            department: u.department || ''
+            department: u.department
         });
         setShowEditModal(true);
     };
 
     const handleUpdateUser: SubmitHandler<UserFormData> = async (data) => {
-        if (!selectedUser || !canAdmin) return;
-        if (selectedUser.isPending) return; // Cannot edit invites this way yet
-
-        try {
-            await updateDoc(doc(db, 'users', selectedUser.uid), sanitizeData({
-                role: data.role,
-                department: data.department,
-                displayName: data.displayName
-            }));
-            await logAction(user, 'UPDATE', 'User', `Modification utilisateur: ${selectedUser.email}`);
-            setUsers(prev => prev.map(u => u.uid === selectedUser.uid ? { ...u, ...data } : u));
-            setShowEditModal(false);
-            addToast("Utilisateur mis à jour", "success");
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Team.handleUpdateRole', 'UPDATE_FAILED');
-            addToast("Erreur mise à jour rôle", "error");
-        }
-    };
-
-    const handleApproveRequest = async (req: JoinRequest) => {
-        if (!user?.organizationId || !canAdmin) return;
-
-        // Check plan limits
-        const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', users.length);
-        if (!canAddUser) {
-            if (confirm("Limite d'utilisateurs atteinte. Passer au plan supérieur ?")) {
-                navigate('/pricing');
-            }
-            return;
-        }
-
-        try {
-            const approveFn = httpsCallable(functions, 'approveJoinRequest');
-            await approveFn({ requestId: req.id });
-
-            // 3. Notify (Optional - could be email)
-            // For now just toast
-            addToast(`Accès approuvé pour ${req.displayName}`, "success");
-
-            // Refresh
-            fetchUsers();
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Team.handleApproveRequest');
-            addToast("Erreur lors de l'approbation", "error");
-        }
-    };
-
-    const handleRejectRequest = async (req: JoinRequest) => {
-        if (!user || !canAdmin) return;
-        if (!confirm(`Refuser la demande de ${req.displayName} ?`)) return;
-        try {
-            const rejectFn = httpsCallable(functions, 'rejectJoinRequest');
-            await rejectFn({ requestId: req.id });
-
-            addToast("Demande refusée", "info");
-            fetchUsers();
-        } catch {
-            addToast("Erreur lors du refus", "error");
-        }
-    };
-
-    const checkDependencies = async (uid: string): Promise<string[]> => {
-        const dependencies: string[] = [];
-
-        const assetsSnap = await getDocs(query(collection(db, 'assets'), where('ownerId', '==', uid)));
-        if (!assetsSnap.empty) dependencies.push(`${assetsSnap.size} actif(s)`);
-
-        const risksSnap = await getDocs(query(collection(db, 'risks'), where('ownerId', '==', uid)));
-        if (!risksSnap.empty) dependencies.push(`${risksSnap.size} risque(s)`);
-
-        const docsSnap = await getDocs(query(collection(db, 'documents'), where('ownerId', '==', uid)));
-        if (!docsSnap.empty) dependencies.push(`${docsSnap.size} document(s)`);
-
-        return dependencies;
+        if (!selectedUser) return;
+        const success = await updateUser(selectedUser.uid, data, !!selectedUser.isPending);
+        if (success) setShowEditModal(false);
     };
 
     const initiateDelete = async (u: UserProfile) => {
-        if (!canAdmin) return;
-        if (u.uid === user?.uid) {
-            addToast("Vous ne pouvez pas vous supprimer vous-même.", "error");
-            return;
-        }
-
-        let message = u.isPending
-            ? `Voulez-vous révoquer l'invitation pour ${u.email} ?`
-            : `L'utilisateur ${u.email} perdra définitivement l'accès à l'organisation.`;
-
         if (!u.isPending) {
-            // Check for dependencies
-            const deps = await checkDependencies(u.uid);
-            // Also check by email for Risks since they might use email string
-            const risksSnap = await getDocs(query(collection(db, 'risks'), where('owner', '==', u.displayName)));
-            if (!risksSnap.empty) deps.push(`${risksSnap.size} risque(s)`);
-
-            if (deps.length > 0) {
-                message += `\n\nATTENTION: Cet utilisateur est propriétaire de : ${deps.join(', ')}. Ces éléments resteront orphelins.`;
+            const dependencies = await checkDependencies(u.uid);
+            if (dependencies.length > 0) {
+                setConfirmData({
+                    isOpen: true,
+                    title: "Impossible de supprimer",
+                    message: `Cet utilisateur possède des éléments liés : ${dependencies.join(', ')}. Réassignez-les avant de supprimer.`,
+                    onConfirm: () => setConfirmData(prev => ({ ...prev, isOpen: false }))
+                });
+                return;
             }
         }
 
         setConfirmData({
             isOpen: true,
-            title: u.isPending ? "Annuler l'invitation ?" : "Supprimer l'utilisateur ?",
-            message,
-            onConfirm: () => handleDeleteUser(u)
+            title: t('team.delete.title'),
+            message: t('team.delete.message', { name: u.displayName }),
+            onConfirm: async () => {
+                await deleteUser(u);
+                setConfirmData(prev => ({ ...prev, isOpen: false }));
+            }
         });
     };
 
-    const handleDeleteUser = async (u: UserProfile) => {
-        if (!canAdmin) return;
-        try {
-            if (u.isPending) {
-                await deleteDoc(doc(db, 'invitations', u.uid));
-                addToast("Invitation annulée", "info");
-            } else {
-                await deleteDoc(doc(db, 'users', u.uid));
-                await logAction(user, 'DELETE', 'User', `Suppression utilisateur: ${u.email}`);
-                addToast("Utilisateur supprimé", "info");
-            }
-            setUsers(prev => prev.filter(user => user.uid !== u.uid));
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Team.handleDeleteUser', 'DELETE_FAILED');
-            addToast("Erreur suppression", "error");
-        }
+    const handleApproveRequest = async (req: JoinRequest) => {
+        await approveRequest(req);
     };
 
-    const handleExportCSV = () => {
+    const handleRejectRequest = async (req: JoinRequest) => {
+        await rejectRequest(req);
+    };
+
+    const filteredUsers = users.filter(u =>
+        u.displayName?.toLowerCase().includes(filter.toLowerCase()) ||
+        u.email?.toLowerCase().includes(filter.toLowerCase()) ||
+        u.department?.toLowerCase().includes(filter.toLowerCase())
+    );
+
+    const pendingInvites = users.filter(u => u.isPending).length;
+    const activeUsersCount = users.filter(u => !u.isPending).length;
+    const joinRequestsCount = joinRequests.length;
+
+    const exportCSV = () => {
         const headers = ["Nom", "Email", "Rôle", "Département", "Statut", "Dernière Connexion"];
         const rows = users.map(u => [
             u.displayName || '',
@@ -349,26 +153,14 @@ export const Team: React.FC = () => {
         URL.revokeObjectURL(url);
     };
 
+    // Calculate activity rate for the visual ring (mock logic for now or based on login)
+    const activeUsersLast30Days = users.filter(u => {
+        if (!u.lastLogin) return false;
+        const diff = new Date().getTime() - new Date(u.lastLogin).getTime();
+        return diff < 30 * 24 * 60 * 60 * 1000;
+    }).length;
+    const activityRate = users.length > 0 ? (activeUsersLast30Days / users.length) * 100 : 0;
 
-
-
-
-    const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
-
-    const fetchRoles = useCallback(async () => {
-        if (!user?.organizationId) return;
-        try {
-            const q = query(collection(db, 'custom_roles'), where('organizationId', '==', user.organizationId));
-            const snapshot = await getDocs(q);
-            setCustomRoles(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as CustomRole)));
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Team.fetchRoles');
-        }
-    }, [user?.organizationId]);
-
-    useEffect(() => {
-        fetchRoles();
-    }, [fetchRoles]);
 
     return (
         <motion.div
@@ -398,7 +190,7 @@ export const Team: React.FC = () => {
                         <CustomTooltip content={t('team.actions.exportCsv')}>
                             <Button
                                 variant="outline"
-                                onClick={handleExportCSV}
+                                onClick={exportCSV}
                                 className="gap-2"
                             >
                                 <FileSpreadsheet className="h-4 w-4" /> {t('team.actions.exportCsv')}
@@ -447,48 +239,32 @@ export const Team: React.FC = () => {
                                 r="40"
                                 cx="48"
                                 cy="48"
-                                style={{ filter: 'drop-shadow(0 0 4px currentColor)' }}
                             />
                         </svg>
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                            <span className="text-xl font-black text-foreground">{Math.round(activityRate)}%</span>
+                        <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
+                            <span className={`text-2xl font-black ${activityRate >= 80 ? 'text-emerald-600 dark:text-emerald-400' : activityRate >= 50 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                                {Math.round(activityRate)}%
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Actifs</span>
                         </div>
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-foreground mb-1">{t('team.stats.activityRate')}</h3>
-                        <p className="text-sm text-muted-foreground max-w-[200px]">
-                            {t('team.stats.activityDesc')}
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">Vue d'ensemble</h2>
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
+                            {users.length} comptes gérés sur votre organisation.
                         </p>
                     </div>
                 </div>
 
-                {/* Key Metrics Breakdown */}
-                <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border px-6 mx-2">
-                    <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1">
-                            <Users className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('team.stats.total')}</div>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-3 gap-4 md:gap-8 w-full md:w-auto relative z-10">
+                    <div className="flex items-center justify-between p-2.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
+                        <div className="flex items-center gap-2">
+                            <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{t('team.stats.active')}</span>
                         </div>
-                        <div className="text-xl font-black text-foreground">{totalUsers}</div>
+                        <span className="text-sm font-black text-emerald-700 dark:text-emerald-400">{activeUsersCount}</span>
                     </div>
-                    <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1">
-                            <User className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('team.stats.admins')}</div>
-                        </div>
-                        <div className="text-xl font-black text-foreground">{admins}</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1">
-                            <Mail className="h-4 w-4 text-slate-500" />
-                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('team.stats.guests')}</div>
-                        </div>
-                        <div className="text-xl font-black text-foreground">{pendingInvites}</div>
-                    </div>
-                </div>
-
-                {/* Alerts/Status */}
-                <div className="flex flex-col gap-3 min-w-[180px]">
                     <div className="flex items-center justify-between p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
                         <div className="flex items-center gap-2">
                             <UserPlus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -524,7 +300,8 @@ export const Team: React.FC = () => {
                         }`}
                 >
                     {t('team.tabs.roles')}
-                </button>                <button
+                </button>
+                <button
                     onClick={() => setActiveTab('groups')}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'groups'
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
@@ -535,152 +312,155 @@ export const Team: React.FC = () => {
                 </button>
             </motion.div>
 
+            {activeTab === 'roles' ? (
+                <motion.div variants={slideUpVariants}>
+                    <RoleManager roles={customRoles} onRefresh={fetchRoles} />
+                </motion.div>
+            ) : activeTab === 'groups' ? (
+                <motion.div variants={slideUpVariants}>
+                    <GroupManager users={users} />
+                </motion.div>
+            ) : (
+                <motion.div variants={slideUpVariants} className="flex flex-col gap-6">
+                    <PremiumPageControl
+                        searchQuery={filter}
+                        onSearchChange={setFilter}
+                        searchPlaceholder={t('common.settings.searchMembers')}
+                    />
 
-
-            {
-                activeTab === 'roles' ? (
-                    <motion.div variants={slideUpVariants}>
-                        <RoleManager roles={customRoles} onRefresh={fetchRoles} />
-                    </motion.div>
-                ) : activeTab === 'groups' ? (
-                    <motion.div variants={slideUpVariants}>
-                        <GroupManager users={users} />
-                    </motion.div>
-                ) : (
-                    <motion.div variants={slideUpVariants} className="flex flex-col gap-6">
-                        <PremiumPageControl
-                            searchQuery={filter}
-                            onSearchChange={setFilter}
-                            searchPlaceholder={t('common.settings.searchMembers')}
-                        />
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {/* Pending Join Requests Section */}
-                            {joinRequests.length > 0 && (
-                                <div className="col-span-full mb-4">
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center">
-                                        <UserPlus className="h-5 w-5 mr-2 text-blue-500" />
-                                        Demandes d'accès ({joinRequests.length})
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {joinRequests.map(req => (
-                                            <div key={req.id} className="glass-panel p-5 rounded-2xl border border-blue-200/50 dark:border-blue-900/30 shadow-sm flex flex-col relative overflow-hidden group">
-                                                <div className="absolute inset-0 bg-blue-50/30 dark:bg-blue-900/10 pointer-events-none" />
-                                                <div className="relative z-10">
-                                                    <div className="flex items-center gap-3 mb-3">
-                                                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold shadow-sm">
-                                                            {req.displayName.charAt(0).toUpperCase()}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-bold text-slate-900 dark:text-white">{req.displayName}</p>
-                                                            <p className="text-xs text-slate-600 dark:text-slate-400">{req.userEmail}</p>
-                                                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {/* Pending Join Requests Section */}
+                        {joinRequests.length > 0 && (
+                            <div className="col-span-full mb-4">
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center">
+                                    <UserPlus className="h-5 w-5 mr-2 text-blue-500" />
+                                    Demandes d'accès ({joinRequests.length})
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {joinRequests.map(req => (
+                                        <div key={req.id} className="glass-panel p-5 rounded-2xl border border-blue-200/50 dark:border-blue-900/30 shadow-sm flex flex-col relative overflow-hidden group">
+                                            <div className="absolute inset-0 bg-blue-50/30 dark:bg-blue-900/10 pointer-events-none" />
+                                            <div className="relative z-10">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold shadow-sm">
+                                                        {req.displayName.charAt(0).toUpperCase()}
                                                     </div>
-                                                    <div className="mt-auto flex gap-2 pt-3">
-                                                        <CustomTooltip content={t('team.actions.reject')}>
-                                                            <button
-                                                                onClick={() => handleRejectRequest(req)}
-                                                                className="flex-1 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all flex items-center justify-center gap-1"
-                                                            >
-                                                                <XCircle className="h-3.5 w-3.5" /> {t('team.actions.reject')}
-                                                            </button>
-                                                        </CustomTooltip>
-                                                        <CustomTooltip content={t('team.actions.approve')}>
-                                                            <button
-                                                                onClick={() => handleApproveRequest(req)}
-                                                                className="flex-1 py-2 bg-blue-600 text-white border border-blue-500 rounded-xl text-xs font-bold hover:bg-blue-700 hover:shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-1"
-                                                            >
-                                                                <Check className="h-3.5 w-3.5" /> {t('team.actions.approve')}
-                                                            </button>
-                                                        </CustomTooltip>
+                                                    <div>
+                                                        <p className="font-bold text-slate-900 dark:text-white">{req.displayName}</p>
+                                                        <p className="text-xs text-slate-600 dark:text-slate-400">{req.userEmail}</p>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="h-px bg-slate-200 dark:bg-white/10 my-6" />
-                                </div>
-                            )}
-
-                            {loading ? (
-                                <div className="col-span-full"><CardSkeleton count={3} /></div>
-                            ) : filteredUsers.length === 0 ? (
-                                <div className="col-span-full">
-                                    <EmptyState
-                                        icon={Users}
-                                        title={t('team.empty.title')}
-                                        description={filter ? t('team.empty.descSearch') : t('team.empty.desc')}
-                                        actionLabel={canAdmin && !filter ? t('team.actions.invite') : undefined}
-                                        onAction={canAdmin && !filter ? handleOpenInviteModal : undefined}
-                                    />
-                                </div>
-                            ) : (
-                                filteredUsers.map((u, i) => (
-                                    <div key={i} className={`glass-panel rounded-[2.5rem] p-6 flex flex-col items-center text-center card-hover group relative border border-white/50 dark:border-white/5 ${u.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
-                                        {canAdmin && (
-                                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                {!u.isPending && (
-                                                    <CustomTooltip content={t('team.actions.edit')}>
-                                                        <button onClick={() => openEditModal(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all">
-                                                            <Edit className="h-4 w-4" />
+                                                <div className="mt-auto flex gap-2 pt-3">
+                                                    <CustomTooltip content={t('team.actions.reject')}>
+                                                        <button
+                                                            onClick={() => handleRejectRequest(req)}
+                                                            className="flex-1 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all flex items-center justify-center gap-1"
+                                                        >
+                                                            <XCircle className="h-3.5 w-3.5" /> {t('team.actions.reject')}
                                                         </button>
                                                     </CustomTooltip>
-                                                )}
-                                                <CustomTooltip content={u.isPending ? t('team.delete.titleInvite').replace('?', '') : t('team.actions.delete')}>
-                                                    <button onClick={() => initiateDelete(u)} className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-red-500 shadow-sm hover:scale-105 transition-all">
-                                                        <Trash2 className="h-4 w-4" />
+                                                    <CustomTooltip content={t('team.actions.approve')}>
+                                                        <button
+                                                            onClick={() => handleApproveRequest(req)}
+                                                            className="flex-1 py-2 bg-blue-600 text-white border border-blue-500 rounded-xl text-xs font-bold hover:bg-blue-700 hover:shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-1"
+                                                        >
+                                                            <Check className="h-3.5 w-3.5" /> {t('team.actions.approve')}
+                                                        </button>
+                                                    </CustomTooltip>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="h-px bg-slate-200 dark:bg-white/10 my-6" />
+                            </div>
+                        )}
+
+                        {loading ? (
+                            <div className="col-span-full"><CardSkeleton count={3} /></div>
+                        ) : filteredUsers.length === 0 ? (
+                            <div className="col-span-full">
+                                <EmptyState
+                                    icon={Users}
+                                    title={t('team.empty.title')}
+                                    description={filter ? t('team.empty.descSearch') : t('team.empty.desc')}
+                                    actionLabel={canAdmin && !filter ? t('team.actions.invite') : undefined}
+                                    onAction={canAdmin && !filter ? handleOpenInviteModal : undefined}
+                                />
+                            </div>
+                        ) : (
+                            filteredUsers.map((u) => (
+                                <div key={u.uid} className={`glass-panel rounded-[2.5rem] p-6 flex flex-col items-center text-center card-hover group relative border border-white/50 dark:border-white/5 ${u.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
+                                    {canAdmin && (
+                                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {!u.isPending && (
+                                                <CustomTooltip content={t('team.actions.edit')}>
+                                                    <button
+                                                        onClick={() => openEditModal(u)}
+                                                        className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all"
+                                                        aria-label={t('team.actions.edit')}
+                                                    >
+                                                        <Edit className="h-4 w-4" />
                                                     </button>
                                                 </CustomTooltip>
+                                            )}
+                                            <CustomTooltip content={u.isPending ? t('team.delete.titleInvite').replace('?', '') : t('team.actions.delete')}>
+                                                <button
+                                                    onClick={() => initiateDelete(u)}
+                                                    className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-red-500 shadow-sm hover:scale-105 transition-all"
+                                                    aria-label={t('team.actions.delete')}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </CustomTooltip>
+                                        </div>
+                                    )}
+
+                                    <div className="relative mb-4 mt-2">
+                                        {u.photoURL ? (
+                                            <img src={u.photoURL} alt={u.displayName} className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50 grayscale' : ''}`} />
+                                        ) : (
+                                            <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-3xl font-bold text-slate-600 dark:text-slate-300 shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50' : ''}`}>
+                                                {u.displayName ? u.displayName.charAt(0).toUpperCase() : 'U'}
                                             </div>
                                         )}
+                                        <div className="absolute bottom-0 right-0 transform translate-x-2 translate-y-1">
+                                            <RoleBadge role={u.role} />
+                                        </div>
+                                    </div>
 
-                                        <div className="relative mb-4 mt-2">
-                                            {u.photoURL ? (
-                                                <img src={u.photoURL} alt={u.displayName} className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50 grayscale' : ''}`} />
-                                            ) : (
-                                                <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-3xl font-bold text-slate-600 dark:text-slate-300 shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50' : ''}`}>
-                                                    {u.displayName ? u.displayName.charAt(0).toUpperCase() : 'U'}
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{u.displayName}</h3>
+                                    <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full">
+                                        <Mail className="h-3 w-3 mr-1.5 opacity-70" /> {u.email}
+                                    </div>
+
+                                    {u.isPending ? (
+                                        <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-center items-center text-xs mt-auto">
+                                            <div className="flex items-center text-amber-500 font-bold bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg">
+                                                <Timer className="h-3.5 w-3.5 mr-1.5" />
+                                                {t('team.invite.success').split(' ')[0]} {t('team.stats.pending')}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center text-xs mt-auto">
+                                            <div className="flex items-center text-slate-600 dark:text-slate-300 font-medium">
+                                                <Building className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
+                                                {u.department || 'Général'}
+                                            </div>
+                                            {u.lastLogin && (
+                                                <div className="flex items-center text-slate-500 font-medium" title={t('team.columns.lastLogin')}>
+                                                    <Clock className="h-3.5 w-3.5 mr-1.5" />
+                                                    {new Date(u.lastLogin).toLocaleDateString()}
                                                 </div>
                                             )}
-                                            <div className="absolute bottom-0 right-0 transform translate-x-2 translate-y-1">
-                                                <RoleBadge role={u.role} />
-                                            </div>
                                         </div>
-
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{u.displayName}</h3>
-                                        <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full">
-                                            <Mail className="h-3 w-3 mr-1.5 opacity-70" /> {u.email}
-                                        </div>
-
-                                        {u.isPending ? (
-                                            <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-center items-center text-xs mt-auto">
-                                                <div className="flex items-center text-amber-500 font-bold bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg">
-                                                    <Timer className="h-3.5 w-3.5 mr-1.5" />
-                                                    {t('team.invite.success').split(' ')[0]} {t('team.stats.pending')}
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center text-xs mt-auto">
-                                                <div className="flex items-center text-slate-600 dark:text-slate-300 font-medium">
-                                                    <Building className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
-                                                    {u.department || 'Général'}
-                                                </div>
-                                                {u.lastLogin && (
-                                                    <div className="flex items-center text-slate-500 font-medium" title={t('team.columns.lastLogin')}>
-                                                        <Clock className="h-3.5 w-3.5 mr-1.5" />
-                                                        {new Date(u.lastLogin).toLocaleDateString()}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </motion.div>
-                )
-            }
-
+                                    )}
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </motion.div>
+            )}
 
             {/* INVITE DRAWER */}
             <Drawer
@@ -806,6 +586,8 @@ export const Team: React.FC = () => {
                     </form>
                 )}
             </Drawer>
-        </motion.div >
+        </motion.div>
     );
 };
+
+export default Team;

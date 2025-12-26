@@ -86,7 +86,7 @@ vi.mock('../../components/ui/RoleBadge', () => ({
     RoleBadge: () => <div data-testid="role-badge" />
 }));
 vi.mock('../../components/ui/PremiumPageControl', () => ({
-    PremiumPageControl: ({ children, rightActions }: any) => (
+    PremiumPageControl: ({ children, rightActions }: { children: React.ReactNode, rightActions?: React.ReactNode }) => (
         <div data-testid="premium-page-control">
             {children}
             {rightActions}
@@ -94,20 +94,20 @@ vi.mock('../../components/ui/PremiumPageControl', () => ({
     )
 }));
 vi.mock('../../components/ui/MasterpieceBackground', () => ({
-    MasterpieceBackground: ({ children }: any) => <>{children}</>
+    MasterpieceBackground: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 vi.mock('../../components/ui/Drawer', () => ({
-    Drawer: ({ isOpen, children }: any) => isOpen ? <div data-testid="drawer">{children}</div> : null
+    Drawer: ({ isOpen, children }: { isOpen: boolean, children: React.ReactNode }) => isOpen ? <div data-testid="drawer">{children}</div> : null
 }));
 vi.mock('../../components/ui/ConfirmModal', () => ({
-    ConfirmModal: ({ isOpen, onConfirm }: any) => isOpen ? <button onClick={onConfirm} data-testid="confirm-btn">Confirm</button> : null
+    ConfirmModal: ({ isOpen, onConfirm }: { isOpen: boolean, onConfirm: () => void }) => isOpen ? <button onClick={onConfirm} data-testid="confirm-btn">Confirm</button> : null
 }));
 
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>
+        div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
     },
-    AnimatePresence: ({ children }: any) => <>{children}</>
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 // ---------------------------------------------------------------------
@@ -126,10 +126,19 @@ describe('Team View', () => {
         ];
 
         // Mock getDocs sequence for users, invitations, and join requests
-        (getDocs as any)
-            .mockResolvedValueOnce({ docs: mockUsers.map(u => ({ id: u.id, data: () => u })) })
-            .mockResolvedValueOnce({ docs: [] })
-            .mockResolvedValueOnce({ docs: [] });
+        vi.mocked(getDocs)
+            .mockResolvedValueOnce({
+                docs: mockUsers.map(u => ({ id: u.id, data: () => u })) as any,
+                empty: false,
+                size: mockUsers.length,
+                query: {} as any,
+                metadata: {} as any,
+                forEach: (cb: (doc: unknown) => void) => mockUsers.map(u => ({ id: u.id, data: () => u })).forEach(cb),
+                docChanges: () => [],
+                toJSON: () => ({})
+            } as any)
+            .mockResolvedValueOnce({ docs: [], empty: true, size: 0, query: {} as any, metadata: {} as any, forEach: () => { }, docChanges: () => [], toJSON: () => ({}) } as any)
+            .mockResolvedValueOnce({ docs: [], empty: true, size: 0, query: {} as any, metadata: {} as any, forEach: () => { }, docChanges: () => [], toJSON: () => ({}) } as any);
 
         render(
             <MemoryRouter>
@@ -145,8 +154,8 @@ describe('Team View', () => {
     });
 
     it('handles tab switching', async () => {
-        (getDocs as any).mockResolvedValue({ docs: [] });
-        (usePersistedState as any).mockReturnValue(['roles', vi.fn()]);
+        vi.mocked(getDocs).mockResolvedValue({ docs: [], empty: true, size: 0, query: {} as any, metadata: {} as any, forEach: () => { }, docChanges: () => [], toJSON: () => ({}) } as any);
+        vi.mocked(usePersistedState).mockReturnValue(['roles', vi.fn()]);
 
         render(
             <MemoryRouter>

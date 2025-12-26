@@ -1,23 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Activity, Database, Server, Shield, Globe, Cpu, HardDrive, Users, Zap, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
-import { collection, getCountFromServer, query, where } from 'firebase/firestore';
-import { db } from '../firebase';
-import { useStore } from '../store';
+import { useSystemHealth } from '../hooks/useSystemHealth';
 
 export const SystemHealth: React.FC = () => {
-    // Real metrics state
-    const [userCount, setUserCount] = useState<number>(0);
-    const [loading, setLoading] = useState(true);
-    const { user } = useStore();
-
-    // Simulated system stats
-    const [systemLoad, setSystemLoad] = useState(24);
-    const [memoryUsage, setMemoryUsage] = useState(42);
-    const [networkLatency, setNetworkLatency] = useState(35);
+    const { userCount, loading, metrics } = useSystemHealth();
 
     // Service Status (Simulated for "Live" feel)
     const services = [
@@ -28,33 +18,6 @@ export const SystemHealth: React.FC = () => {
         { name: 'CDN Global', status: 'operational', icon: Globe, uptime: '100%' },
         { name: 'AI Engine (Gemini)', status: 'operational', icon: Cpu, uptime: '99.9%' },
     ];
-
-    useEffect(() => {
-        const fetchMetrics = async () => {
-            if (!user?.organizationId) return;
-            try {
-                // Fetch real user count filtered by Org
-                const q = query(collection(db, 'users'), where('organizationId', '==', user.organizationId));
-                const snapshot = await getCountFromServer(q);
-                setUserCount(snapshot.data().count);
-            } catch (error) {
-                console.error("Error fetching metrics:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchMetrics();
-
-        // Simulate live metric updates
-        const interval = setInterval(() => {
-            setSystemLoad(prev => Math.min(Math.max(prev + (Math.random() - 0.5) * 5, 10), 60));
-            setMemoryUsage(prev => Math.min(Math.max(prev + (Math.random() - 0.5) * 3, 30), 80));
-            setNetworkLatency(prev => Math.min(Math.max(prev + (Math.random() - 0.5) * 10, 20), 80));
-        }, 3000);
-
-        return () => clearInterval(interval);
-    }, [user?.organizationId]);
 
     const getStatusColor = (status: string) => {
         return status === 'operational' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]';
@@ -75,9 +38,9 @@ export const SystemHealth: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                     { label: 'Utilisateurs Actifs', value: loading ? '...' : userCount, icon: Users, color: 'text-blue-500', sub: 'Comptes total' },
-                    { label: 'Charge Système', value: `${Math.round(systemLoad)}%`, icon: Cpu, color: 'text-violet-500', sub: 'Usage vCPU' },
-                    { label: 'Mémoire', value: `${Math.round(memoryUsage)}%`, icon: Server, color: 'text-emerald-500', sub: 'RAM Allouée' },
-                    { label: 'Latence', value: `${Math.round(networkLatency)}ms`, icon: Activity, color: 'text-amber-500', sub: 'Ping Global' },
+                    { label: 'Charge Système', value: `${Math.round(metrics.systemLoad)}%`, icon: Cpu, color: 'text-violet-500', sub: 'Usage vCPU' },
+                    { label: 'Mémoire', value: `${Math.round(metrics.memoryUsage)}%`, icon: Server, color: 'text-emerald-500', sub: 'RAM Allouée' },
+                    { label: 'Latence', value: `${Math.round(metrics.networkLatency)}ms`, icon: Activity, color: 'text-amber-500', sub: 'Ping Global' },
                 ].map((metric, idx) => (
                     <motion.div
                         key={idx}

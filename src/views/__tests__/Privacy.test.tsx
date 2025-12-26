@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Privacy } from '../Privacy';
 import { MemoryRouter } from 'react-router-dom';
@@ -18,9 +18,9 @@ vi.mock('../../store', () => ({
 
 
 vi.mock('../../hooks/usePersistedState', async () => {
-    const React = await vi.importActual<any>('react');
+    const React = await vi.importActual<typeof import('react')>('react');
     return {
-        usePersistedState: (_key: any, defaultVal: any) => React.useState(defaultVal)
+        usePersistedState: (_key: string, defaultVal: unknown) => React.useState(defaultVal)
     };
 });
 
@@ -88,7 +88,7 @@ vi.mock('../../components/SEO', () => ({
     SEO: () => null
 }));
 vi.mock('../../components/ui/PremiumPageControl', () => ({
-    PremiumPageControl: ({ onSearchChange, actions }: any) => (
+    PremiumPageControl: ({ onSearchChange, actions }: { onSearchChange: (val: string) => void, actions?: React.ReactNode }) => (
         <div data-testid="premium-page-control">
             <input
                 placeholder="Rechercher..."
@@ -100,7 +100,7 @@ vi.mock('../../components/ui/PremiumPageControl', () => ({
     )
 }));
 vi.mock('../../components/ui/Drawer', () => ({
-    Drawer: ({ isOpen, children, title }: any) => isOpen ? (
+    Drawer: ({ isOpen, children, title }: { isOpen: boolean, children: React.ReactNode, title: string }) => isOpen ? (
         <div data-testid="drawer">
             <h2>{title}</h2>
             {children}
@@ -108,7 +108,7 @@ vi.mock('../../components/ui/Drawer', () => ({
     ) : null
 }));
 vi.mock('../../components/ui/ConfirmModal', () => ({
-    ConfirmModal: ({ isOpen }: any) => isOpen ? <div data-testid="confirm-modal" /> : null
+    ConfirmModal: ({ isOpen }: { isOpen: boolean }) => isOpen ? <div data-testid="confirm-modal" /> : null
 }));
 vi.mock('../../components/collaboration/CommentSection', () => ({
     CommentSection: () => <div data-testid="comment-section" />
@@ -123,11 +123,11 @@ vi.mock('../../utils/permissions', () => ({
 
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, className, onClick, ...props }: any) => (
+        div: ({ children, className, onClick, ...props }: React.ComponentProps<'div'>) => (
             <div className={className} onClick={onClick} {...props}>{children}</div>
         )
     },
-    AnimatePresence: ({ children }: any) => <>{children}</>
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 // ---------------------------------------------------------------------
@@ -138,7 +138,7 @@ describe('Privacy View', () => {
     beforeEach(async () => {
         vi.clearAllMocks();
         const { usePrivacy } = await import('../../hooks/usePrivacy');
-        (usePrivacy as any).mockReturnValue({
+        (usePrivacy as unknown as Mock).mockReturnValue({
             activities: [
                 {
                     id: 'act1',
@@ -217,7 +217,7 @@ describe('Privacy View', () => {
             }
         ];
 
-        (usePrivacy as any).mockReturnValue({
+        (usePrivacy as unknown as Mock).mockReturnValue({
             activities: localMockActivities,
             usersList: [],
             assetsList: [],

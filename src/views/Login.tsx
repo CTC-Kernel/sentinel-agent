@@ -3,30 +3,15 @@ import { AuroraBackground } from '../components/ui/AuroraBackground';
 import { LandingMap } from '../components/landing/LandingMap';
 import { SEO } from '../components/SEO';
 import { Spotlight } from '../components/ui/aceternity/Spotlight';
-import {
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    signInWithRedirect,
-    signInWithCredential,
-    getRedirectResult,
-    GoogleAuthProvider,
-    OAuthProvider,
-    getMultiFactorResolver,
-    TotpMultiFactorGenerator,
-    MultiFactorResolver,
-    MultiFactorError
-} from 'firebase/auth';
-import { httpsCallable } from 'firebase/functions';
-import { auth, functions } from '../firebase';
 import { Lock, Mail, ArrowRight, AlertTriangle, X, CheckCircle2 } from '../components/ui/Icons';
 import { Button } from '../components/ui/button';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { useStore } from '../store';
-import { ErrorLogger } from '../services/errorLogger';
 import { LegalModal } from '../components/ui/LegalModal';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, registerSchema, resetPasswordSchema, LoginFormData, RegisterFormData, ResetPasswordFormData } from '../schemas/authSchema';
+import { useAuthActions } from '../hooks/useAuthActions';
 
 // Google SVG optimized
 const GoogleIcon = () => (
@@ -40,44 +25,23 @@ const GoogleIcon = () => (
 
 export const Login: React.FC = () => {
     const [isLogin, setIsLogin] = useState(true);
-    const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const { addToast, t } = useStore();
+    const { t } = useStore();
 
-    const getIsNativePlatform = async (): Promise<boolean> => {
-        try {
-            const { Capacitor } = await import('@capacitor/core');
-            return Capacitor.isNativePlatform();
-        } catch {
-            // If Capacitor isn't available (web build / bundler), default to web behavior.
-            return false;
-        }
-    };
-
-    // Finalize Google redirect flow on page load
-    useEffect(() => {
-        let isMounted = true;
-
-        (async () => {
-            try {
-                const result = await getRedirectResult(auth);
-                if (!isMounted) return;
-
-                if (result?.user) {
-                    addToast(t('auth.success'), 'success');
-                    window.location.hash = '#/';
-                }
-            } catch (error: unknown) {
-                if (!isMounted) return;
-                ErrorLogger.error(error, 'Login.getRedirectResult');
-                setErrorMsg(t('auth.errors.google'));
-            }
-        })();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [addToast, t]);
+    // Auth Actions Hook
+    const {
+        loading,
+        errorMsg,
+        setErrorMsg,
+        handleEmailAuth,
+        handleGoogleLogin,
+        handleAppleLogin,
+        handlePasswordReset,
+        handleMfaVerification,
+        showMfaModal,
+        setShowMfaModal,
+        mfaLoading,
+        mfaError
+    } = useAuthActions();
 
     // Main Auth Form
     const { register, handleSubmit, formState: { errors }, clearErrors } = useForm<LoginFormData | RegisterFormData>({
@@ -97,161 +61,33 @@ export const Login: React.FC = () => {
     const [showLegalModal, setShowLegalModal] = useState(false);
     const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms' | 'cgv'>('mentions');
 
-    // MFA State
-    const [showMfaModal, setShowMfaModal] = useState(false);
-    const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(null);
+    // MFA State from Hook
     const [mfaCode, setMfaCode] = useState('');
-    const [mfaLoading, setMfaLoading] = useState(false);
-    const [mfaError, setMfaError] = useState<string | null>(null);
 
-    const handleMfaVerification = async (e: React.FormEvent) => {
+    const onMfaSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!mfaResolver || !mfaCode) return;
-        setMfaLoading(true);
-        setMfaError(null);
-        try {
-            const hint = mfaResolver.hints.find(h => h.factorId === TotpMultiFactorGenerator.FACTOR_ID);
-            if (!hint) {
-                throw new Error(t('auth.errors.totpNotFound'));
-            }
-            const multiFactorAssertion = TotpMultiFactorGenerator.assertionForSignIn(hint.uid, mfaCode);
-            await mfaResolver.resolveSignIn(multiFactorAssertion);
-            setShowMfaModal(false);
-            addToast(t('auth.success'), "success");
-        } catch (error) {
-            setMfaError(t('auth.mfa.error'));
-            ErrorLogger.error(error, 'Login.handleMfaVerification');
-        } finally {
-            setMfaLoading(false);
-        }
+        await handleMfaVerification(mfaCode);
     };
 
     // Clear errors when switching modes
     useEffect(() => {
         clearErrors();
-    }, [isLogin, clearErrors]);
-
-    const handleEmailAuth: SubmitHandler<LoginFormData | RegisterFormData> = async (data) => {
-        setLoading(true);
         setErrorMsg(null);
-        try {
-            if (isLogin) {
-                await signInWithEmailAndPassword(auth, data.email, data.password);
-                addToast(t('auth.success'), "success");
-            } else {
-                await createUserWithEmailAndPassword(auth, data.email, data.password);
-                addToast(t('auth.created'), "success");
-            }
-        } catch (error: unknown) {
-            console.error('Auth Error Details:', error);
-            const err = error as { code?: string; message?: string };
-            if (err.code === 'auth/multi-factor-auth-required') {
-                const resolver = getMultiFactorResolver(auth, error as MultiFactorError);
-                setMfaResolver(resolver);
-                setShowMfaModal(true);
-                return;
-            }
-            let msg = t('auth.errors.auth');
-            const code = (error as { code?: string })?.code;
-            if (code === 'auth/invalid-credential') msg = t('auth.errors.invalid');
-            if (code === 'auth/email-already-in-use') msg = t('auth.errors.emailInUse');
-            if (code === 'auth/weak-password') msg = t('auth.errors.weak');
-            setErrorMsg(msg);
-        } finally { setLoading(false); }
+    }, [isLogin, clearErrors, setErrorMsg]);
+
+    const onEmailAuthSubmit: SubmitHandler<LoginFormData | RegisterFormData> = async (data) => {
+        await handleEmailAuth(data, isLogin);
     };
 
-    const handleAppleLogin = async () => {
-        setLoading(true);
-        setErrorMsg(null);
-        try {
-            const isNative = await getIsNativePlatform();
-
-            if (isNative) {
-                const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
-                const result = await FirebaseAuthentication.signInWithApple();
-
-                if (result.credential?.idToken) {
-                    const provider = new OAuthProvider('apple.com');
-                    const credential = provider.credential({
-                        idToken: result.credential.idToken
-                    });
-
-                    await signInWithCredential(auth, credential);
-                    addToast(t('auth.success'), 'success');
-                    window.location.hash = '#/';
-                } else {
-                    throw new Error('No ID Token from Apple');
-                }
-            } else {
-                const provider = new OAuthProvider('apple.com');
-                provider.addScope('email');
-                provider.addScope('name');
-                await signInWithRedirect(auth, provider);
-            }
-        } catch (error: unknown) {
-            ErrorLogger.error(error, 'Login.handleAppleLogin');
-            setErrorMsg(t('auth.errors.generic'));
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleGoogleLogin = async () => {
-        setLoading(true);
-        setErrorMsg(null);
-        try {
-            const isNative = await getIsNativePlatform();
-
-            if (isNative) {
-                const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
-
-                // Native Google Sign In
-                const result = await FirebaseAuthentication.signInWithGoogle();
-
-                if (result.credential?.idToken) {
-                    // Sync with Firebase JS SDK
-                    const credential = GoogleAuthProvider.credential(
-                        result.credential.idToken,
-                        result.credential.accessToken // Optional depending on config, but good to pass if present
-                    );
-
-                    await signInWithCredential(auth, credential);
-                    addToast(t('auth.success'), "success");
-                    window.location.hash = '#/';
-                } else {
-                    throw new Error("No ID Token from Google");
-                }
-            } else {
-                // Web Google Sign In - Use Redirect to avoid COOP/Popup blocking issues
-                const provider = new GoogleAuthProvider();
-                addToast(t('auth.redirectingGoogle'), 'info');
-                await signInWithRedirect(auth, provider);
-            }
-        } catch (error: unknown) {
-            ErrorLogger.error(error, 'Login.handleGoogleLogin');
-            ErrorLogger.error(error as Error, 'Login.googleSignIn');
-            setErrorMsg(t('auth.errors.generic'));
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handlePasswordReset: SubmitHandler<ResetPasswordFormData> = async (data) => {
-        setLoading(true);
-        try {
-            const requestResetFn = httpsCallable(functions, 'requestPasswordReset');
-            await requestResetFn({ email: data.email });
+    const onPasswordResetSubmit: SubmitHandler<ResetPasswordFormData> = async (data) => {
+        const success = await handlePasswordReset(data);
+        if (success) {
             setResetSent(true);
-            addToast(t('auth.resetSent'), "success");
-        } catch (_error) {
-            ErrorLogger.handleErrorWithToast(_error, 'Login.handlePasswordReset');
-        } finally {
-            setLoading(false);
         }
     };
 
     return (
-        <AuroraBackground className="min-h-screen py-4 sm:py-0 px-4 flex flex-col items-center justify-center bg-slate-50 dark:bg-[#020617] bg-opacity-100 dark:bg-opacity-100 relative font-sans selection:bg-brand-500 selection:text-white overflow-hidden">
+        <AuroraBackground className="min-h-screen py-4 sm:py-0 px-4 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 bg-opacity-100 dark:bg-opacity-100 relative font-sans selection:bg-brand-500 selection:text-white overflow-hidden">
             <SEO
                 title="Connexion"
                 description="Connectez-vous à votre espace sécurisé Sentinel GRC."
@@ -271,8 +107,6 @@ export const Login: React.FC = () => {
             <div className="absolute inset-0 w-full h-full pointer-events-none">
                 <div className="absolute top-[-20%] left-[-10%] w-[60rem] h-[60rem] bg-blue-300/30 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float"></div>
                 <div className="absolute bottom-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-300/30 dark:bg-slate-900/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-70 animate-float" style={{ animationDelay: '3s' }}></div>
-
-
             </div>
 
             <div className="w-full max-w-[440px] p-6 relative z-10 animate-scale-in flex-1 flex flex-col justify-center mx-auto px-4 sm:px-6 min-w-0">
@@ -315,7 +149,7 @@ export const Login: React.FC = () => {
                             {!loading && (
                                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-.98-.4-2.05-.4-3.08.4-1.05.45-2.05.45-3.08-.4-1.05-.85-2.05-2.4-2.05-4.6 0-3.15 2.05-4.8 4.1-4.8 1.05 0 2.05.45 3.08.45 1.05 0 2.05-.45 3.08-.45 1.05 0 2.05.45 3.08.45.98 0 1.95-.45 2.55-1.15-2.05-1.15-2.05-3.6-2.05-3.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15zM12.03 7.25c-.05-.25-.05-.5-.05-.75 1.55-.65 2.55-1.9 2.55-3.15.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15z" />
-                                    <path d="M12.03 7.25c.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15-.05-.25-.05-.5-.05-.75 1.55-.65-2.55 1.9-2.55-3.15z" fill="none" />
+                                    <path d="M12.03 7.25c.05.25.05.5.05.75-1.55.65-2.55 1.9-2.55 3.15-.05-.25-.05-.5-.05-.75 1.55-.65-2.55 1.9-2.55 3.15z" fill="none" />
                                     <path d="M13.03 2.1c-1.55.65-2.55 1.9-2.55 3.15.05.25.05.5.05.75 1.55-.65 2.55-1.9 2.55-3.15-.05-.25-.05-.5-.05-.75z" />
                                     <path d="M17.03 11.28c-.6-.7-1.55-1.15-2.55-1.15-1.03 0-2.03.45-3.08.45-1.03 0-2.03-.45-3.08-.45-2.05 0-4.1 1.65-4.1 4.8 0 2.2 1 3.75 2.05 4.6 1.03.85 2.03.85 3.08.4 1.03-.8 2.1-.8 3.08.4 1.03.48 2.1.55 3.08-.4 1.03-.85 2.03-2.4 2.05-4.6-.05-.15-2.05-1.15-2.05-3.75.05-.15 2.05-1.15 2.05-3.75z" />
                                 </svg>
@@ -328,7 +162,7 @@ export const Login: React.FC = () => {
                             <div className="relative flex justify-center"><span className="px-4 bg-white/80 dark:bg-black/40 backdrop-blur-sm text-[11px] uppercase tracking-widest font-bold text-slate-500">{t('auth.orEmail')}</span></div>
                         </div>
 
-                        <form onSubmit={handleSubmit(handleEmailAuth)} className="space-y-5">
+                        <form onSubmit={handleSubmit(onEmailAuthSubmit)} className="space-y-5">
                             <div className="space-y-1.5">
                                 <FloatingLabelInput
                                     id="email"
@@ -425,7 +259,7 @@ export const Login: React.FC = () => {
                             </div>
 
                             {!resetSent ? (
-                                <form onSubmit={resetForm.handleSubmit(handlePasswordReset)} className="space-y-6">
+                                <form onSubmit={resetForm.handleSubmit(onPasswordResetSubmit)} className="space-y-6">
                                     <div>
                                         <FloatingLabelInput
                                             id="resetEmail"
@@ -476,7 +310,7 @@ export const Login: React.FC = () => {
                                 </div>
                             )}
 
-                            <form onSubmit={handleMfaVerification} className="space-y-6">
+                            <form onSubmit={onMfaSubmit} className="space-y-6">
                                 <div>
                                     <FloatingLabelInput
                                         id="mfaCode"

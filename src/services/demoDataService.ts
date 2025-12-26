@@ -12,7 +12,7 @@ export const DemoDataService = {
         if (!import.meta.env.DEV && !isDemoUser) {
             throw new Error('Demo data generation is disabled in production');
         }
-        if (import.meta.env.DEV || isDemoUser) console.log('Starting Demo Data Generation...');
+        if (import.meta.env.DEV || isDemoUser) console.info('Starting Demo Data Generation...');
         const batch = writeBatch(db);
         const now = new Date();
         const userId = currentUser.uid;
@@ -333,7 +333,7 @@ export const DemoDataService = {
             });
 
             await batch.commit();
-            if (import.meta.env.DEV) console.log('Demo data generated successfully!');
+            if (import.meta.env.DEV) console.info('Demo data generated successfully!');
             return { success: true, count: assets.length + risks.length + projects.length };
         } catch (error) {
             if (import.meta.env.DEV) console.error('Error generating demo data:', error);

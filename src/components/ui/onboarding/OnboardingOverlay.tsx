@@ -48,7 +48,7 @@ export const OnboardingOverlay: React.FC = () => {
 
     // Create a portal to render at the top level (body)
     return createPortal(
-        <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden">
+        <div className="fixed inset-0 z-max pointer-events-none overflow-hidden">
             <AnimatePresence>
                 {/* Backdrop with SVG Mask for Spotlight */}
                 <motion.div

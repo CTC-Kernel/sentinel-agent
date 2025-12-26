@@ -5,18 +5,15 @@ import { useFirestoreCollection } from '../hooks/useFirestore';
 
 import { UserProfile } from '../types';
 import { useStore } from '../store';
-import { ErrorLogger } from '../services/errorLogger';
 import { ShieldAlert, Users, Building, Activity, Search } from 'lucide-react';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { auth } from '../firebase';
-import { toast } from 'sonner';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants, slideUpVariants } from '../components/ui/animationVariants';
+import { useAdminActions } from '../hooks/useAdminActions';
 
 interface OrganizationSummary {
     id: string;
@@ -32,7 +29,9 @@ export const AdminDashboard: React.FC = () => {
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [checkingAuth, setCheckingAuth] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [switchingOrg, setSwitchingOrg] = useState<string | null>(null);
+
+    // Use the custom hook for admin actions
+    const { verifySuperAdmin, handleManage, switchingOrg } = useAdminActions();
 
     const { data: organizations, loading: orgsLoading } = useFirestoreCollection<OrganizationSummary>(
         'organizations',
@@ -59,60 +58,16 @@ export const AdminDashboard: React.FC = () => {
     const loading = checkingAuth || (isSuperAdmin && (orgsLoading || usersLoading));
 
     useEffect(() => {
-        const verifySuperAdmin = async () => {
-            try {
-                const functions = getFunctions();
-                // Check if user has superAdmin claim OR check via backend function
-                // We use a backend check to be sure
-                const checkAdmin = httpsCallable(functions, 'verifySuperAdmin');
-                const result = await checkAdmin();
-                const data = result.data as { isSuperAdmin: boolean };
-
-                if (data.isSuperAdmin) {
-                    setIsSuperAdmin(true);
-                } else {
-                    setIsSuperAdmin(false);
-                }
-            } catch (error) {
-                // If it fails (e.g. not found), check custom claim or just assume false
-                // But we can check context claim too?
-                // For now stick to existing logic but safe check
-                ErrorLogger.error(error, 'AdminDashboard.verifySuperAdmin');
-                setIsSuperAdmin(false);
-            } finally {
-                setCheckingAuth(false);
+        const checkAdmin = async () => {
+            if (user) {
+                const isAdmin = await verifySuperAdmin();
+                setIsSuperAdmin(isAdmin);
             }
+            setCheckingAuth(false);
         };
 
-        if (user) {
-            verifySuperAdmin();
-        } else {
-            setCheckingAuth(false);
-        }
-    }, [user]);
-
-    const handleManage = async (orgId: string, orgName: string) => {
-        setSwitchingOrg(orgId);
-        try {
-            const functions = getFunctions();
-            const switchOrgFn = httpsCallable(functions, 'switchOrganization');
-            await switchOrgFn({ targetOrgId: orgId });
-
-            // Force token refresh to pick up new claims
-            if (auth.currentUser) {
-                await auth.currentUser.getIdToken(true);
-            }
-
-            toast.success(t('admin.toast.switchSuccess', { name: orgName }));
-            // Redirect to dashboard
-            window.location.href = '/';
-        } catch (error) {
-            ErrorLogger.error(error, 'AdminDashboard.handleManage');
-            toast.error(t('admin.toast.switchError'));
-            setSwitchingOrg(null);
-        }
-    };
-
+        checkAdmin();
+    }, [user, verifySuperAdmin]);
 
     if (checkingAuth) return <LoadingScreen />;
 
@@ -187,7 +142,7 @@ export const AdminDashboard: React.FC = () => {
             {/* Tenants Table */}
             <motion.div variants={slideUpVariants} className="space-y-6">
                 {/* Search Bar - Premium Glass Design */}
-                <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-[#0B1120]/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl">
+                <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-slate-950/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl">
                     <div className="relative flex-1 min-w-0 group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                         <input

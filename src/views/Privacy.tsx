@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { processingActivitySchema, ProcessingActivityFormData } from '../schemas/privacySchema';
 import { ProcessingActivity } from '../types';
@@ -81,7 +81,7 @@ export const Privacy: React.FC = () => {
         shouldUnregister: true
     });
 
-    const onInvalid = (errors: any) => {
+    const onInvalid = (errors: FieldErrors<ProcessingActivityFormData>) => {
         console.error("Form Validation Errors:", errors);
         const missingFields = Object.keys(errors).join(', ');
         toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);

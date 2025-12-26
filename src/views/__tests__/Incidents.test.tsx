@@ -8,14 +8,14 @@ vi.mock('../../hooks/useFirestore');
 vi.mock('../../store');
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>
+        div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
     },
-    AnimatePresence: ({ children }: any) => <>{children}</>
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 // Mock Child Components
 vi.mock('../../components/incidents/IncidentDashboard', () => ({
-    IncidentDashboard: ({ incidents }: any) => <div data-testid="incident-dashboard">{incidents.length} Incidents</div>
+    IncidentDashboard: ({ incidents }: { incidents: unknown[] }) => <div data-testid="incident-dashboard">{incidents.length} Incidents</div>
 }));
 vi.mock('../../components/incidents/IncidentKanban', () => ({
     IncidentKanban: () => <div data-testid="incident-kanban" />
@@ -30,7 +30,7 @@ vi.mock('../../components/incidents/IncidentInspector', () => ({
     IncidentInspector: () => <div data-testid="incident-inspector" />
 }));
 vi.mock('../../components/ui/Drawer', () => ({
-    Drawer: ({ isOpen, children }: any) => isOpen ? <div data-testid="drawer">{children}</div> : null
+    Drawer: ({ isOpen, children }: { isOpen: boolean, children: React.ReactNode }) => isOpen ? <div data-testid="drawer">{children}</div> : null
 }));
 
 // Mock Hooks
@@ -46,14 +46,14 @@ describe('Incidents View', () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
-        (useStore as any).mockReturnValue({
+        vi.mocked(useStore).mockReturnValue({
             user: { role: 'admin', organizationId: 'org-1' },
             t: (key: string) => key,
             addToast: vi.fn(),
         });
 
         // Mock useFirestoreCollection behavior
-        (useFirestoreCollection as any).mockImplementation((collectionName: string) => {
+        (useFirestoreCollection as unknown as ReturnType<typeof vi.fn>).mockImplementation((collectionName: string) => {
             if (collectionName === 'incidents') {
                 return { data: mockIncidents, loading: false };
             }

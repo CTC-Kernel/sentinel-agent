@@ -31,10 +31,10 @@ export default {
         sans: [
           '-apple-system',
           'BlinkMacSystemFont',
-          '"SF Pro Text"',
-          '"Helvetica Neue"',
-          'Helvetica',
-          'Arial',
+          'San Francisco',
+          'Segoe UI',
+          'Roboto',
+          'Helvetica Neue',
           'sans-serif',
         ],
         display: [

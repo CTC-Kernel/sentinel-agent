@@ -7,6 +7,7 @@ import { Search, ShieldCheck, Cloud, Code, LayoutGrid, Key } from 'lucide-react'
 import { toast } from 'sonner';
 
 import { useStore } from '../store';
+import { ErrorLogger } from '../services/errorLogger';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SEO } from '../components/SEO';
@@ -97,6 +98,7 @@ export const Integrations: React.FC = () => {
             setApiKeyModalOpen(false);
         } catch (error) {
             console.error(error);
+            ErrorLogger.error(error as Error, 'Integrations.confirmConnect');
             toast.error(`Échec de la connexion à ${selectedProvider.name}`);
         } finally {
             setIsSubmittingKey(false);
@@ -181,7 +183,7 @@ export const Integrations: React.FC = () => {
             {activeTab === 'providers' ? (
                 <>
                     {/* Filters & Search - Premium Glass Design */}
-                    <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-[#0B1120]/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl mb-8">
+                    <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-slate-950/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl mb-8">
                         <div className="relative flex-1 min-w-0 group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                             <input

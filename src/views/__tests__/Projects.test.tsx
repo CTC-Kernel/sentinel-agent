@@ -13,7 +13,7 @@ vi.mock('../../store', () => ({
     useStore: vi.fn().mockReturnValue({
         user: { uid: 'test-user', organizationId: 'test-org', role: 'admin' },
         addToast: vi.fn(),
-        t: (k: string, options?: any) => {
+        t: (k: string, options?: Record<string, unknown>) => {
             if (options) return `${k} ${JSON.stringify(options)}`;
             return k;
         },
@@ -52,15 +52,15 @@ vi.mock('../../components/projects/PortfolioDashboard', () => ({
 }));
 
 vi.mock('../../components/projects/ProjectList', () => ({
-    ProjectList: ({ projects }: any) => (
+    ProjectList: ({ projects }: { projects: Array<{ id: string; name: string }> }) => (
         <div data-testid="project-list">
-            {projects.map((p: any) => <div key={p.id}>{p.name}</div>)}
+            {projects.map((p: { id: string; name: string }) => <div key={p.id}>{p.name}</div>)}
         </div>
     )
 }));
 
 vi.mock('../../components/projects/ProjectCard', () => ({
-    ProjectCard: ({ project }: any) => <div data-testid="project-card">{project.name}</div>
+    ProjectCard: ({ project }: { project: { name: string } }) => <div data-testid="project-card">{project.name}</div>
 }));
 
 vi.mock('../../components/projects/ProjectForm', () => ({
@@ -80,7 +80,7 @@ vi.mock('../../components/projects/TemplateModal', () => ({
 }));
 
 vi.mock('../../components/ui/PremiumPageControl', () => ({
-    PremiumPageControl: ({ children, rightActions: _rightActions, searchQuery, onSearchChange }: any) => (
+    PremiumPageControl: ({ children, rightActions: _rightActions, searchQuery, onSearchChange }: { children: React.ReactNode, rightActions?: React.ReactNode, searchQuery: string, onSearchChange: (val: string) => void }) => (
         <div data-testid="premium-page-control">
             {children}
             <input
@@ -93,9 +93,9 @@ vi.mock('../../components/ui/PremiumPageControl', () => ({
 }));
 
 vi.mock('../../components/ui/ScrollableTabs', () => ({
-    ScrollableTabs: ({ tabs, activeTab: _activeTab, onTabChange }: any) => (
+    ScrollableTabs: ({ tabs, activeTab: _activeTab, onTabChange }: { tabs: Array<{ id: string; label: string }>, activeTab: string, onTabChange: (id: string) => void }) => (
         <div data-testid="scrollable-tabs">
-            {tabs.map((t: any) => (
+            {tabs.map((t: { id: string; label: string }) => (
                 <button key={t.id} onClick={() => onTabChange(t.id)}>
                     {t.label}
                 </button>
@@ -110,9 +110,9 @@ vi.mock('../../components/SEO', () => ({
 
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>
+        div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
     },
-    AnimatePresence: ({ children }: any) => <>{children}</>
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
 // ---------------------------------------------------------------------
@@ -139,7 +139,7 @@ describe('Projects View', () => {
 
 
     it('renders projects and filter works', () => {
-        (usePersistedState as any).mockReturnValue(['list', vi.fn()]);
+        vi.mocked(usePersistedState).mockReturnValue(['list', vi.fn()]);
 
         render(
             <MemoryRouter>
