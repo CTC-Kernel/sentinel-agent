@@ -85,7 +85,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                                 anchor="bottom start"
                                 transition
                                 portal={true}
-                                className="z-[1055] w-[var(--button-width)] mt-2 max-h-60 overflow-auto rounded-2xl glass-panel py-2 text-base ring-1 ring-black/5 focus:outline-none sm:text-sm custom-scrollbar transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
+                                className="z-[99999] w-[var(--button-width)] mt-2 max-h-60 overflow-auto rounded-2xl glass-panel py-2 text-base ring-1 ring-black/5 focus:outline-none sm:text-sm custom-scrollbar transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
                             >
                                 {options.map((option, optionIdx) => (
                                     <ListboxOption

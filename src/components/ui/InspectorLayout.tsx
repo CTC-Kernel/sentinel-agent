@@ -46,7 +46,7 @@ export const InspectorLayout: React.FC<InspectorLayoutProps> = ({
     children,
     loading = false,
     breadcrumbs,
-    disableFocusTrap = false,
+    disableFocusTrap = true,
     footer,
     disableContentPadding = false,
     disableContentScroll = false
