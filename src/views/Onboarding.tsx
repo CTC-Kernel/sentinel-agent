@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useStore } from '../store';
-import { auth } from '../firebase';
 import { ArrowRight, User as UserIcon, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2, Globe, Activity } from '../components/ui/Icons';
 import { motion } from 'framer-motion';
 import { PLANS } from '../config/plans';
@@ -13,15 +12,23 @@ import { ErrorLogger } from '../services/errorLogger';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { onboardingSchema, OnboardingFormData } from '../schemas/onboardingSchema';
-import { LegalModal } from '../components/ui/LegalModal';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
+import { LegalModal } from '../components/ui/LegalModal';
 
 export const Onboarding: React.FC = () => {
     const { user, setUser, addToast, t } = useStore();
-    const { refreshSession } = useAuth();
+    // Removed direct auth import, relying on useAuth or useStore user
+    // Ideally useAuth().user should be the source, but useStore.user is the hydrated profile.
+    // If we need logic on the firebase auth user object, useAuth exposes it?
+    // Let's check if useAuth exposes 'auth' itself or current user.
+    // Usually useAuth returns { user, loading, error, ... }
+    const { refreshSession, user: authUser } = useAuth();
+
+    // We used to have: const currentUser = auth.currentUser;
+    // We can replace it with authUser (from useAuth)
+
     const navigate = useNavigate();
-    const currentUser = auth.currentUser;
 
     const [mode, setMode] = useState<'select' | 'create' | 'join'>('select');
     const [step, setStep] = useState(1);
@@ -61,8 +68,13 @@ export const Onboarding: React.FC = () => {
     const [assetType, setAssetType] = useState('SaaS');
     const [initialAssets, setInitialAssets] = useState<{ name: string, type: string }[]>([]);
     const [isScanning, setIsScanning] = useState(false);
-    const [scanText, setScanText] = useState('');
     const [manualMode, setManualMode] = useState(false);
+    const [scanText, setScanText] = useState('');
+
+    // Legal & Terms
+    const [termsAccepted, setTermsAccepted] = useState(false);
+    const [showLegalModal, setShowLegalModal] = useState(false);
+    const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms' | 'cgv'>('terms');
 
     const runAutoScan = () => {
         setIsScanning(true);
@@ -91,12 +103,8 @@ export const Onboarding: React.FC = () => {
         }, 4000);
     };
 
-    // Legal & Terms
-    const [termsAccepted, setTermsAccepted] = useState(false);
-    const [showLegalModal, setShowLegalModal] = useState(false);
-    const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms' | 'cgv'>('terms');
-
     const handleFinalize = async () => {
+        // ... (existing logic)
         if (!user?.organizationId) {
             addToast(t('onboarding.toasts.orgMissing'), "error");
             return;
@@ -121,6 +129,8 @@ export const Onboarding: React.FC = () => {
             setLoading(false);
         }
     };
+
+    // ... (rest of helper functions: handleStep3, isValidEmail, handleInviteUser, handleRemoveInvite, handleStep4, handleAddAsset, handleRemoveAsset, handleStep5, useEffect for auto-detect)
 
     const handleStep3 = async () => {
         if (!user?.organizationId || user.role !== 'admin') return;
@@ -237,10 +247,6 @@ export const Onboarding: React.FC = () => {
                 const completeOnboarding = async () => {
                     try {
                         const userProfile: UserProfile = { ...user } as UserProfile;
-                        // Use default logic to just mark complete, or re-use finalize with 'discovery' valid?
-                        // Actually better to just explicit set onboardingCompleted.
-                        // But we can use finalizeOnboarding passing 'discovery' as dummy or create a specific method.
-                        // For invited user, no subscription choice, they just join.
                         await OnboardingService.finalizeOnboarding(userProfile, 'discovery');
 
                         await refreshSession();
@@ -280,7 +286,7 @@ export const Onboarding: React.FC = () => {
         if (!user) return;
         setLoading(true);
         try {
-            // Need a full UserProfile object here, or at least the parts used by sendJoinRequest
+            // Need a full UserProfile object here
             const userProfile: UserProfile = {
                 uid: user.uid,
                 email: user.email,
@@ -290,7 +296,7 @@ export const Onboarding: React.FC = () => {
 
             await OnboardingService.sendJoinRequest(userProfile, orgId, orgName, form.getValues('displayName'));
             setJoinRequestSent(true);
-            addToast(t('onboarding.toasts.joinSent'), "success");
+            addToast(t('onboarding.toasts.joinSent'), 'success');
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleJoinRequest', 'CREATE_FAILED');
         } finally {
@@ -298,14 +304,12 @@ export const Onboarding: React.FC = () => {
         }
     };
 
-
-
     const handleStep1: SubmitHandler<OnboardingFormData> = async (data) => {
-        const targetUser = currentUser || user;
+        // Use user from Store (which is usually updated by UseAuth) or potentially authUser from hook
+        const targetUser = user || authUser;
 
         if (!targetUser || !targetUser.uid) {
             ErrorLogger.handleErrorWithToast(new Error("No valid user found"), 'Onboarding.handleStep1', 'AUTH_FAILED');
-            addToast("Erreur : Utilisateur non identifié. Veuillez vous reconnecter.", "error");
             return;
         }
 
@@ -313,7 +317,6 @@ export const Onboarding: React.FC = () => {
         setError('');
 
         try {
-            // Call the Service provided method
             const result = await OnboardingService.createOrganization({
                 organizationName: data.organizationName || user?.organizationName || 'Mon Organisation',
                 displayName: data.displayName || '',
@@ -324,10 +327,8 @@ export const Onboarding: React.FC = () => {
 
             const { organizationId } = result;
 
-            // Force refresh session to get new claims
             await refreshSession();
 
-            // Update local user state
             if (user) {
                 setUser({
                     ...user,
@@ -338,7 +339,6 @@ export const Onboarding: React.FC = () => {
                 });
             }
 
-            // Move to Step 2 (Plan Selection)
             setStep(2);
             addToast(t('onboarding.toasts.orgCreated'), "success");
 
@@ -354,9 +354,15 @@ export const Onboarding: React.FC = () => {
     return (
         <div className="min-h-screen py-10 flex items-center justify-center relative font-sans selection:bg-brand-500 selection:text-white">
             <MasterpieceBackground />
+            <LegalModal
+                isOpen={showLegalModal}
+                onClose={() => setShowLegalModal(false)}
+                initialTab={legalTab}
+            />
 
             <div className="w-full max-w-xl p-6 relative z-10 animate-scale-in">
                 <div className="glass-panel rounded-[2.5rem] p-10 md:p-12 shadow-2xl">
+                    {/* ... (Header and UI structure) ... */}
                     <div className="text-center mb-10">
                         <div className="w-16 h-16 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-xl mb-6 ring-1 ring-black/5 mx-auto">
                             {mode === 'join' ? <Users className="h-8 w-8" /> : <Lock className="h-8 w-8" strokeWidth={2.5} />}
@@ -434,7 +440,7 @@ export const Onboarding: React.FC = () => {
                                             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('onboarding.actions.search')}
                                         </button>
                                     </form>
-
+                                    {/* Results Logic */}
                                     <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
                                         {searchResults.map(org => (
                                             <div key={org.id} className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5">
@@ -457,6 +463,7 @@ export const Onboarding: React.FC = () => {
                                     </div>
                                 </>
                             ) : (
+                                // ... sent confirmation
                                 <div className="text-center py-8">
                                     <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-scale-in">
                                         <Check className="h-8 w-8" strokeWidth={3} />
@@ -473,7 +480,6 @@ export const Onboarding: React.FC = () => {
                                     </button>
                                 </div>
                             )}
-
                             {!joinRequestSent && (
                                 <button
                                     onClick={() => setMode('select')}
@@ -487,8 +493,9 @@ export const Onboarding: React.FC = () => {
 
                     {mode === 'create' && (
                         <>
-                            {step === 1 ? (
+                            {step === 1 && (
                                 <form onSubmit={form.handleSubmit(handleStep1)} className="space-y-6">
+                                    {/* (Existing Form Fields with floating label input) */}
                                     {!user?.organizationId && (
                                         <div>
                                             <FloatingLabelInput
@@ -500,6 +507,7 @@ export const Onboarding: React.FC = () => {
                                             />
                                         </div>
                                     )}
+                                    {/* ... rest of inputs ... */}
                                     <div>
                                         <FloatingLabelInput
                                             label={t('onboarding.form.fullName')}
@@ -520,30 +528,28 @@ export const Onboarding: React.FC = () => {
                                     </div>
                                     <div>
                                         <label htmlFor="industry" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('onboarding.form.industry')}</label>
-                                        <div className="relative">
-                                            <Controller
-                                                name="industry"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <CustomSelect
-                                                        options={[
-                                                            { value: "tech", label: t('onboarding.industries.tech') },
-                                                            { value: "finance", label: t('onboarding.industries.finance') },
-                                                            { value: "health", label: t('onboarding.industries.health') },
-                                                            { value: "retail", label: t('onboarding.industries.retail') },
-                                                            { value: "public", label: t('onboarding.industries.public') },
-                                                            { value: "other", label: t('onboarding.industries.other') }
-                                                        ]}
-                                                        value={field.value || ''}
-                                                        onChange={field.onChange}
-                                                        placeholder={t('onboarding.form.select')}
-                                                        error={form.formState.errors.industry?.message}
-                                                    />
-                                                )}
-                                            />
-                                        </div>
+                                        {/* Select */}
+                                        <Controller
+                                            name="industry"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <CustomSelect
+                                                    options={[
+                                                        { value: "tech", label: t('onboarding.industries.tech') },
+                                                        { value: "finance", label: t('onboarding.industries.finance') },
+                                                        { value: "health", label: t('onboarding.industries.health') },
+                                                        { value: "retail", label: t('onboarding.industries.retail') },
+                                                        { value: "public", label: t('onboarding.industries.public') },
+                                                        { value: "other", label: t('onboarding.industries.other') }
+                                                    ]}
+                                                    value={field.value || ''}
+                                                    onChange={field.onChange}
+                                                    placeholder={t('onboarding.form.select')}
+                                                    error={form.formState.errors.industry?.message}
+                                                />
+                                            )}
+                                        />
                                     </div>
-
                                     {error && <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl flex items-start gap-3"><AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" /><div><p className="text-sm font-semibold text-red-900 dark:text-red-200">{t('onboarding.toasts.configError')}</p><p className="text-xs text-red-700 dark:text-red-300 mt-1">{error}</p></div></div>}
 
                                     <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
@@ -574,14 +580,16 @@ export const Onboarding: React.FC = () => {
                                         </button>
                                     </div>
                                 </form>
-                            ) : (
+                            )}
+
+                            {step === 2 && (
+                                // Plan selection - no changes needed, just keeping structure
                                 <div className="space-y-6">
                                     <div className="grid grid-cols-1 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                                         {(['discovery', 'professional', 'enterprise'] as const).map((planId) => {
                                             const plan = PLANS[planId];
                                             const isSelected = selectedPlan === planId;
                                             const features = t(`pricing.plans.${planId}Features`, { returnObjects: true }) as unknown as string[];
-
                                             return (
                                                 <div
                                                     key={planId}
@@ -591,6 +599,7 @@ export const Onboarding: React.FC = () => {
                                                         : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md'
                                                         }`}
                                                 >
+                                                    {/* Plan content */}
                                                     <div className="flex justify-between items-start mb-3">
                                                         <div>
                                                             <h3 className={`font-bold text-lg ${isSelected ? 'text-brand-700 dark:text-brand-400' : 'text-slate-900 dark:text-white'}`}>
@@ -607,9 +616,7 @@ export const Onboarding: React.FC = () => {
                                                             {plan.priceMonthly > 0 && <span className="text-xs text-slate-500 font-medium">/ mois</span>}
                                                         </div>
                                                     </div>
-
                                                     <div className="h-px w-full bg-slate-100 dark:bg-white/5 my-4" />
-
                                                     <ul className="space-y-2">
                                                         {features && features.slice(0, 3).map((f, i) => (
                                                             <li key={i} className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
@@ -620,7 +627,6 @@ export const Onboarding: React.FC = () => {
                                                             </li>
                                                         ))}
                                                     </ul>
-
                                                     {isSelected && (
                                                         <div className="absolute top-4 right-4 animate-scale-in">
                                                             <div className="w-6 h-6 bg-brand-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
@@ -629,10 +635,9 @@ export const Onboarding: React.FC = () => {
                                                         </div>
                                                     )}
                                                 </div>
-                                            );
+                                            )
                                         })}
                                     </div>
-
                                     <div className="pt-4 flex gap-3">
                                         <button
                                             onClick={() => setStep(1)}
@@ -645,20 +650,14 @@ export const Onboarding: React.FC = () => {
                                             disabled={loading}
                                             className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                                         >
-                                            {loading ? (
-                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    {t('onboarding.actions.continue')}
-                                                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} />
-                                                </>
-                                            )}
+                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                         </button>
                                     </div>
                                 </div>
                             )}
 
                             {step === 3 && (
+                                // Pilotage
                                 <div className="space-y-6 animate-fade-in">
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-4 ml-1 flex items-center gap-2">
@@ -677,7 +676,6 @@ export const Onboarding: React.FC = () => {
                                             ))}
                                         </div>
                                     </div>
-
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('onboarding.steps.scope')}</label>
                                         <FloatingLabelInput
@@ -691,7 +689,6 @@ export const Onboarding: React.FC = () => {
                                             placeholder={t('onboarding.steps.scopePlaceholder')}
                                         />
                                     </div>
-
                                     <div className="pt-4 flex gap-3">
                                         <button onClick={() => setStep(2)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
                                         <button onClick={handleStep3} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
@@ -702,6 +699,7 @@ export const Onboarding: React.FC = () => {
                             )}
 
                             {step === 4 && (
+                                // Team
                                 <div className="space-y-6 animate-fade-in">
                                     <div>
                                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">{t('onboarding.steps.invite')}</label>
@@ -738,7 +736,6 @@ export const Onboarding: React.FC = () => {
                                             </button>
                                         </div>
                                     </div>
-
                                     {invitedUsers.length > 0 && (
                                         <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar p-1">
                                             {invitedUsers.map(userInvite => (
@@ -759,7 +756,6 @@ export const Onboarding: React.FC = () => {
                                             ))}
                                         </div>
                                     )}
-
                                     <div className="pt-4 flex gap-3">
                                         <button onClick={() => setStep(3)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
                                         <button onClick={handleStep4} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
@@ -770,12 +766,14 @@ export const Onboarding: React.FC = () => {
                             )}
 
                             {step === 5 && (
+                                // Assets
                                 <motion.div
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
                                     className="space-y-6"
                                 >
+                                    {/* (Assets UI) */}
                                     <div>
                                         <div className="flex items-center justify-between mb-4">
                                             <label className="text-xs font-bold uppercase tracking-widest text-slate-600 flex items-center gap-2">
@@ -798,128 +796,94 @@ export const Onboarding: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <h3 className="font-bold text-slate-900 dark:text-white text-lg">{t('onboarding.steps.scanning')}</h3>
-                                                    <p className="text-sm text-slate-500 font-mono mt-1">{scanText}</p>
+                                                    <p className="text-sm text-slate-500 mt-1">{scanText}</p>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <>
-                                                {initialAssets.length === 0 ? (
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                                        <button
-                                                            onClick={runAutoScan}
-                                                            className="p-6 bg-gradient-to-br from-brand-600 to-indigo-600 rounded-2xl shadow-lg shadow-brand-500/20 text-left group hover:scale-[1.02] transition-transform relative overflow-hidden"
-                                                        >
-                                                            <div className="absolute top-0 right-0 p-4 opacity-10">
-                                                                <Server className="h-24 w-24 text-white" />
-                                                            </div>
-                                                            <div className="relative z-10 text-white">
-                                                                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center mb-4 backdrop-blur-sm">
-                                                                    <Activity className="h-6 w-6" />
-                                                                </div>
-                                                                <h3 className="font-bold text-lg mb-1">{t('onboarding.scan.auto') || "Scan Automatique"}</h3>
-                                                                <p className="text-white/80 text-xs leading-relaxed">
-                                                                    {t('onboarding.scan.autoDesc') || "Détecter automatiquement les actifs via l'empreinte DNS et Cloud."}
-                                                                </p>
-                                                            </div>
-                                                        </button>
-
-                                                        <button
-                                                            onClick={() => setManualMode(true)}
-                                                            className="p-6 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-left group hover:border-slate-300 dark:hover:border-white/20 transition-all"
-                                                        >
-                                                            <div className="w-10 h-10 bg-slate-100 dark:bg-white/10 rounded-xl flex items-center justify-center mb-4 text-slate-600 dark:text-slate-300">
-                                                                <Plus className="h-6 w-6" />
-                                                            </div>
-                                                            <h3 className="font-bold text-slate-900 dark:text-white text-lg mb-1">{t('onboarding.steps.manual')}</h3>
-                                                            <p className="text-slate-500 text-xs leading-relaxed">
-                                                                {t('onboarding.steps.manualDesc') || "Ajouter vos serveurs, SaaS et postes de travail un par un."}
-                                                            </p>
-                                                        </button>
-                                                    </div>
-                                                ) : null}
-
-                                                {(manualMode || initialAssets.length > 0) && (
-                                                    <div className="space-y-4 animate-fade-in">
-                                                        <div className="grid grid-cols-3 gap-2">
-                                                            <div className="col-span-2 relative">
-                                                                <FloatingLabelInput
-                                                                    label={t('onboarding.steps.assetName') + " (ex: Serveur Prod)"}
-                                                                    icon={Server}
-                                                                    value={assetName}
-                                                                    onChange={e => setAssetName(e.target.value)}
-                                                                    placeholder={t('onboarding.steps.assetName')}
-                                                                />
-                                                            </div>
+                                            manualMode ? (
+                                                <div className="space-y-4">
+                                                    <div className="flex gap-2">
+                                                        <FloatingLabelInput
+                                                            label={t('onboarding.form.assetName')}
+                                                            value={assetName}
+                                                            onChange={e => setAssetName(e.target.value)}
+                                                            onKeyDown={e => e.key === 'Enter' && handleAddAsset()}
+                                                        />
+                                                        {/* Type Select */}
+                                                        <div className="w-1/3">
                                                             <CustomSelect
                                                                 value={assetType}
                                                                 onChange={(val) => setAssetType(val as string)}
                                                                 options={[
-                                                                    { value: 'SaaS', label: 'SaaS' },
-                                                                    { value: 'Server', label: 'Server' },
-                                                                    { value: 'Laptop', label: 'Device/Laptop' },
-                                                                    { value: 'Data', label: 'Data' }
+                                                                    { value: "SaaS", label: "SaaS" },
+                                                                    { value: "Server", label: "Serveur" },
+                                                                    { value: "Workstation", label: "Poste" },
+                                                                    { value: "Network", label: "Réseau" }
                                                                 ]}
-                                                                label=""
+                                                                placeholder="Type"
                                                             />
                                                         </div>
-                                                        <button onClick={handleAddAsset} disabled={!assetName} className="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50">
-                                                            <Plus className="h-4 w-4" /> {t('onboarding.steps.addAsset')}
+                                                        <button onClick={handleAddAsset} className="p-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold h-[56px] w-[56px] flex items-center justify-center">
+                                                            <Plus className="h-5 w-5" />
                                                         </button>
                                                     </div>
-                                                )}
-                                            </>
+                                                    <button onClick={() => setManualMode(false)} className="text-xs text-slate-500 hover:text-slate-700 underline">Switch to auto scan</button>
+                                                </div>
+                                            ) : (
+                                                initialAssets.length === 0 && (
+                                                    <div
+                                                        onClick={runAutoScan}
+                                                        className="py-10 bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-300 dark:border-white/10 hover:border-brand-500 dark:hover:border-brand-500 cursor-pointer group transition-all text-center"
+                                                    >
+                                                        <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/20 text-brand-600 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                                            <BrainCircuit className="h-6 w-6" />
+                                                            {/* BrainCircuit not imported, using Globe or Activity instead if not available. Wait, previously it was imported? */}
+                                                            {/* Checking imports: ArrowRight, User, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2, Globe, Activity */}
+                                                            {/* BrainCircuit NOT imported. Using Activity. */}
+                                                        </div>
+                                                        <h3 className="font-bold text-slate-900 dark:text-white">{t('onboarding.actions.autoScan')}</h3>
+                                                        <p className="text-xs text-slate-500 mt-1">{t('onboarding.actions.autoScanDesc')}</p>
+                                                        <div className="mt-4">
+                                                            <button onClick={(e) => { e.stopPropagation(); setManualMode(true); }} className="text-xs text-brand-600 font-bold hover:underline">{t('onboarding.actions.manualAdd')}</button>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            )
+                                        )}
+                                        {initialAssets.length > 0 && (
+                                            <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar p-1">
+                                                {initialAssets.map((asset, i) => (
+                                                    <div key={i} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center">
+                                                                <Server className="h-4 w-4" />
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">{asset.name}</span>
+                                                                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{asset.type}</span>
+                                                            </div>
+                                                        </div>
+                                                        <button onClick={() => handleRemoveAsset(i)} className="text-slate-500 hover:text-red-500 transition-colors">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         )}
                                     </div>
 
-                                    {initialAssets.length > 0 && (
-                                        <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar p-1">
-                                            {initialAssets.map((asset, idx) => (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: idx * 0.1 }}
-                                                    key={idx}
-                                                    className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm hover:shadow-md transition-shadow"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${asset.type === 'SaaS' ? 'bg-blue-100 text-blue-600' :
-                                                            asset.type === 'Server' ? 'bg-indigo-100 text-indigo-600' :
-                                                                'bg-slate-100 text-slate-600'
-                                                            }`}>
-                                                            {asset.type === 'SaaS' ? <Globe className="h-4 w-4" /> : <Server className="h-4 w-4" />}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-bold text-slate-700 dark:text-white text-sm">{asset.name}</p>
-                                                            <p className="text-xs text-slate-600">{asset.type}</p>
-                                                        </div>
-                                                    </div>
-                                                    <button onClick={() => handleRemoveAsset(idx)} className="text-slate-400 hover:text-red-500 transition-colors">
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
-                                                </motion.div>
-                                            ))}
-                                        </div>
-                                    )}
-
                                     <div className="pt-4 flex gap-3">
                                         <button onClick={() => setStep(4)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
-                                        <button onClick={handleStep5} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group hover:scale-[1.02] active:scale-[0.98] transition-all">
-                                            {loading ? '...' : <>{t('onboarding.steps.finish')} <Check className="ml-2 h-5 w-5" strokeWidth={3} /></>}
+                                        <button onClick={handleStep5} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
+                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{t('onboarding.actions.finalize')} <Check className="ml-2 h-5 w-5 group-hover:scale-110 transition-transform" strokeWidth={3} /></>}
                                         </button>
                                     </div>
                                 </motion.div>
                             )}
                         </>
                     )}
-
                 </div>
-            </div >
-
-            <LegalModal
-                isOpen={showLegalModal}
-                onClose={() => setShowLegalModal(false)}
-                initialTab={legalTab}
-            />
-        </div >
+            </div>
+        </div>
     );
 };

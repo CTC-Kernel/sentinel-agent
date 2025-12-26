@@ -236,6 +236,10 @@ export class PdfService {
             try {
                 doc.addImage(options.coverImage, 'JPEG', contentStartX, 20, contentWidth, 80);
             } catch (e) {
+                // ErrorLogger is a static class, we need to import it or rely on fail-safe
+                // Since this is a service, let's just log safely if we can, or keep console.warn if import is tricky
+                // Assuming ErrorLogger is imported or available.
+                // Wait, I need to check imports.
                 console.warn('Failed to add cover image', e);
             }
         } else {

@@ -9,15 +9,13 @@ import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
-import { useFirestoreCollection } from '../hooks/useFirestore';
-import { BusinessProcess, BcpDrill, Asset, Risk, Supplier, UserProfile } from '../types';
+import { BusinessProcess, BcpDrill } from '../types';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { BusinessProcessFormData } from '../schemas/continuitySchema';
 import { ProcessFormModal } from '../components/continuity/ProcessFormModal';
 import { ProcessInspector } from '../components/continuity/ProcessInspector';
 import { DrillModal } from '../components/continuity/DrillModal';
-import { where, orderBy } from 'firebase/firestore';
 import { generateContinuityReport } from '../utils/pdfGenerator';
 import { ContinuityDashboard } from '../components/continuity/ContinuityDashboard';
 import { ContinuityBIA } from '../components/continuity/ContinuityBIA';
@@ -28,209 +26,168 @@ import { slideUpVariants, staggerContainerVariants } from '../components/ui/anim
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useContinuity } from '../hooks/useContinuity';
+import { useContinuityData } from '../hooks/continuity/useContinuityData';
 import { ErrorLogger } from '../services/errorLogger';
 
 type ContinuityTab = 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis';
 
-const Continuity: React.FC = () => {
+export const Continuity: React.FC = () => {
     const { user, t } = useStore();
     const [activeTab, setActiveTab] = usePersistedState<ContinuityTab>('continuity_active_tab', 'overview');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
     const [isDrillModalOpen, setIsDrillModalOpen] = useState(false);
     const [selectedProcess, setSelectedProcess] = useState<BusinessProcess | null>(null);
-    const [editingProcess, setEditingProcess] = useState<BusinessProcess | null>(null);
+    const [selectedDrill, setSelectedDrill] = useState<BcpDrill | null>(null);
     const [filter, setFilter] = useState('');
 
-    // Hooks
-    const { addProcess, updateProcess, deleteProcess, logDrill } = useContinuity();
+    // Actions Hook
+    const { addProcess, updateProcess, deleteProcess, addDrill, updateDrill, deleteDrill, loading: loadingAction } = useContinuity();
 
-    // Confirm Dialog
-    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
-        isOpen: false, title: '', message: '', onConfirm: () => { }
-    });
+    // Data Hook
+    const {
+        processes,
+        drills,
+        assets,
+        risks,
+        suppliers,
+        users,
+        incidents,
+        loading: loadingData
+    } = useContinuityData(user?.organizationId);
 
-    // Data Fetching
-    const { data: processes, loading, refresh } = useFirestoreCollection<BusinessProcess>('business_processes',
-        user?.organizationId ? [where('organizationId', '==', user.organizationId)] : [],
-        { enabled: !!user?.organizationId }
-    );
+    const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void, loading?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
-    const { data: drills, refresh: refreshDrills } = useFirestoreCollection<BcpDrill>('bcp_drills',
-        user?.organizationId ? [where('organizationId', '==', user.organizationId), orderBy('date', 'desc')] : [],
-        { enabled: !!user?.organizationId }
-    );
-
-    const { data: assets } = useFirestoreCollection<Asset>('assets',
-        user?.organizationId ? [where('organizationId', '==', user.organizationId)] : [],
-        { enabled: !!user?.organizationId }
-    );
-    const { data: risks } = useFirestoreCollection<Risk>('risks',
-        user?.organizationId ? [where('organizationId', '==', user.organizationId)] : [],
-        { enabled: !!user?.organizationId }
-    );
-    const { data: suppliers } = useFirestoreCollection<Supplier>('suppliers',
-        user?.organizationId ? [where('organizationId', '==', user.organizationId)] : [],
-        { enabled: !!user?.organizationId }
-    );
-    const { data: users } = useFirestoreCollection<UserProfile>('users',
-        user?.organizationId ? [where('organizationId', '==', user.organizationId)] : [],
-        { enabled: !!user?.organizationId }
-    );
-
+    // Derived Logic
     const filteredProcesses = useMemo(() => {
         return processes.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
     }, [processes, filter]);
 
-    const filteredDrills = useMemo(() => {
-        return drills.filter(d => d.type.toLowerCase().includes(filter.toLowerCase()));
-    }, [drills, filter]);
-
     const handleCreateProcess = async (data: BusinessProcessFormData) => {
+        if (!user?.organizationId) return;
         try {
             await addProcess(data);
             setIsProcessModalOpen(false);
-            refresh();
-        } catch (error) {
-            ErrorLogger.warn('Error handled by hook', 'Continuity.handleCreateProcess', { metadata: { error } });
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Continuity.handleCreateProcess');
         }
     };
 
     const handleUpdateProcess = async (data: BusinessProcessFormData) => {
-        if (!editingProcess) return;
+        if (!selectedProcess) return;
         try {
-            await updateProcess(editingProcess.id, data);
+            await updateProcess(selectedProcess.id, data);
+            setSelectedProcess(null); // Close inspector/modal or update state? Inspector closes usually.
             setIsProcessModalOpen(false);
-            setEditingProcess(null);
-            refresh();
-            if (selectedProcess?.id === editingProcess.id) {
-                // Optimistic update or refetch needed if deeply nested
-                setSelectedProcess(prev => prev ? ({ ...prev, ...data }) : null);
-            }
-        } catch (error) {
-            ErrorLogger.warn('Error handled by hook', 'Continuity.handleUpdateProcess', { metadata: { error } });
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Continuity.handleUpdateProcess');
         }
     };
 
     const handleDeleteProcess = async (id: string) => {
         setConfirmData({
             isOpen: true,
-            title: t('continuity.deleteTitle'),
-            message: t('continuity.deleteMessage'),
+            title: t('continuity.deleteProcessTitle'),
+            message: t('continuity.deleteProcessMessage'),
             onConfirm: async () => {
+                setConfirmData(prev => ({ ...prev, loading: true }));
                 try {
                     await deleteProcess(id);
-                    setSelectedProcess(null);
-                    refresh();
-                } catch (error) {
-                    ErrorLogger.warn('Error handled by hook', 'Continuity.handleDeleteProcess', { metadata: { error } });
+                    if (selectedProcess?.id === id) setSelectedProcess(null);
+                    setConfirmData(prev => ({ ...prev, isOpen: false }));
+                } catch (e) {
+                    ErrorLogger.handleErrorWithToast(e, 'Continuity.handleDeleteProcess');
+                } finally {
+                    setConfirmData(prev => ({ ...prev, loading: false }));
                 }
             }
         });
     };
 
-    const handleLogDrill = async (data: Partial<BcpDrill>) => {
+    const handleCreateDrill = async (data: any) => {
+        if (!user?.organizationId) return;
         try {
-            await logDrill(data);
+            await addDrill(data);
             setIsDrillModalOpen(false);
-            refreshDrills();
-            refresh(); // To update process lastTestDate
-        } catch (error) {
-            ErrorLogger.warn('Error handled by hook', 'Continuity.handleLogDrill', { metadata: { error } });
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Continuity.handleCreateDrill');
         }
     };
 
-    // Tabs Definition
-    const tabs = useMemo(() => [
+    const handleGenerateReport = () => {
+        try {
+            generateContinuityReport(processes, drills);
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'Continuity.generateReport');
+        }
+    };
+
+    const tabs: { id: ContinuityTab; label: string; icon: any }[] = [
         { id: 'overview', label: t('continuity.tabs.overview'), icon: Activity },
-        { id: 'bia', label: t('continuity.tabs.bia'), icon: ShieldCheck },
-        { id: 'strategies', label: t('continuity.tabs.strategies'), icon: FileText },
+        { id: 'bia', label: t('continuity.tabs.bia'), icon: AlertOctagon },
+        { id: 'strategies', label: t('continuity.tabs.strategies'), icon: ShieldCheck },
         { id: 'drills', label: t('continuity.tabs.drills'), icon: Zap },
-        { id: 'crisis', label: t('continuity.tabs.crisis'), icon: AlertOctagon },
-    ], [t]);
+        { id: 'crisis', label: t('continuity.tabs.crisis'), icon: FileText },
+    ];
+
+    const loading = loadingData;
 
     return (
         <motion.div
             variants={staggerContainerVariants}
             initial="initial"
             animate="visible"
-            className="space-y-6"
+            className="space-y-8"
         >
-            <PageHeader
-                title={t('continuity.title')}
-                subtitle={t('continuity.subtitle')}
-                icon={<Activity className="h-6 w-6 text-white" />}
-                breadcrumbs={[{ label: t('continuity.title') }]}
-                trustType="availability"
-            />
             <MasterpieceBackground />
-            <SEO title={t('continuity.title')} description={t('continuity.subtitle')} />
-
+            <SEO
+                title={t('continuity.title')}
+                description={t('continuity.subtitle')}
+                keywords="BIA, PCA, PRA, Crise, Audit"
+            />
             <ConfirmModal
                 isOpen={confirmData.isOpen}
                 onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}
+                loading={confirmData.loading || loadingAction}
             />
 
-            {/* Main Tabs Navigation */}
-            <ScrollableTabs
-                tabs={tabs}
-                activeTab={activeTab}
-                onTabChange={(id) => { setActiveTab(id as ContinuityTab); setFilter(''); }}
-            />
-
-            {/* Page Controls (Contextual) */}
             <motion.div variants={slideUpVariants}>
-                <PremiumPageControl
-                    searchQuery={filter}
-                    onSearchChange={setFilter}
-                    searchPlaceholder={
-                        activeTab === 'bia' ? t('continuity.searchBia') :
-                            activeTab === 'drills' ? t('continuity.searchDrills') :
-                                t('continuity.searchPlaceholder')
-                    }
-                    viewMode={activeTab === 'bia' ? viewMode : undefined} // Only BIA supports grid/list for now
-                    onViewModeChange={activeTab === 'bia' ? (m) => setViewMode(m as 'grid' | 'list') : undefined}
+                <PageHeader
+                    title={t('continuity.title')}
+                    subtitle={t('continuity.subtitle')}
+                    icon={<Activity className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                    trustType="availability"
                     actions={
-                        <div className="flex gap-2">
+                        <>
                             <button
-                                onClick={() => generateContinuityReport(processes, drills)}
-                                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/10 text-slate-700 dark:text-white rounded-xl text-sm font-bold border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/20 transition-all shadow-sm"
-                                title={t('continuity.report')}
+                                onClick={handleGenerateReport}
+                                className="p-2 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 transition-colors"
                             >
-                                <Download className="h-4 w-4" />
-                                <span className="hidden sm:inline">{t('continuity.report')}</span>
+                                <Download className="h-5 w-5" />
                             </button>
-
-                            {activeTab === 'bia' && (
-                                <button
-                                    onClick={() => { setEditingProcess(null); setIsProcessModalOpen(true); }}
-                                    className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                                    title={t('continuity.newProcess')}
-                                >
-                                    <Plus className="h-4 w-4" />
-                                    <span className="hidden sm:inline">{t('continuity.newProcess')}</span>
-                                </button>
-                            )}
-
-                            {activeTab === 'drills' && (
-                                <button
-                                    onClick={() => setIsDrillModalOpen(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                                    title={t('continuity.newDrill')}
-                                >
-                                    <Plus className="h-4 w-4" />
-                                    <span className="hidden sm:inline">{t('continuity.newDrill')}</span>
-                                </button>
-                            )}
-                        </div>
+                            <button
+                                onClick={() => setIsProcessModalOpen(true)}
+                                className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-brand-600/20"
+                            >
+                                <Plus className="h-5 w-5 mr-2" />
+                                {t('continuity.newProcess')}
+                            </button>
+                        </>
                     }
                 />
             </motion.div>
 
-            {/* Content Area */}
+            <motion.div variants={slideUpVariants} className="sticky top-[80px] z-30 mb-8">
+                <ScrollableTabs
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                />
+            </motion.div>
+
             <AnimatePresence mode="wait">
                 <motion.div
                     key={activeTab}
@@ -240,50 +197,55 @@ const Continuity: React.FC = () => {
                     transition={{ duration: 0.2 }}
                 >
                     {activeTab === 'overview' && (
-                        <div className="space-y-6">
-                            <ContinuityDashboard processes={processes} drills={drills} />
-                            {/* Additional dashboard widgets could go here */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <div className="glass-panel p-6 rounded-2xl border border-white/10">
-                                    <h3 className="font-bold text-lg mb-4">Prochaines Revues</h3>
-                                    <EmptyState
-                                        icon={Activity}
-                                        title={t('continuity.emptyReviewTitle')}
-                                        description={t('continuity.emptyReviewDesc')}
-                                        color="emerald"
-                                    />
-                                </div>
-                                {/* More placeholders or summary charts */}
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'bia' && (
-                        <ContinuityBIA
-                            processes={filteredProcesses}
+                        <ContinuityDashboard
+                            processes={processes}
+                            drills={drills}
                             loading={loading}
-                            viewMode={viewMode}
-                            onOpenInspector={setSelectedProcess}
-                            onNewProcess={() => { setEditingProcess(null); setIsProcessModalOpen(true); }}
-                            onDelete={handleDeleteProcess}
                         />
                     )}
 
+                    {activeTab === 'bia' && (
+                        <div className="space-y-6">
+                            <PremiumPageControl
+                                searchQuery={filter}
+                                onSearchChange={setFilter}
+                                searchPlaceholder={t('continuity.searchPlaceholder')}
+                            />
+                            {filteredProcesses.length === 0 && !loading ? (
+                                <EmptyState
+                                    icon={AlertOctagon}
+                                    title="Aucun processus défini"
+                                    description="Commencez par cartographier vos processus critiques pour réaliser votre BIA."
+                                    actionLabel="Ajouter un processus"
+                                    onAction={() => setIsProcessModalOpen(true)}
+                                />
+                            ) : (
+                                <ContinuityBIA
+                                    processes={filteredProcesses}
+                                    onSelect={setSelectedProcess}
+                                />
+                            )}
+                        </div>
+                    )}
+
                     {activeTab === 'strategies' && (
-                        <ContinuityStrategies assets={assets} />
+                        <ContinuityStrategies processes={processes} />
                     )}
 
                     {activeTab === 'drills' && (
                         <ContinuityDrills
-                            processes={processes}
-                            drills={filteredDrills}
-                            loading={loading}
-                            onNewDrill={() => setIsDrillModalOpen(true)}
+                            drills={drills}
+                            onCreate={() => setIsDrillModalOpen(true)}
+                            onDelete={async (id) => {
+                                if (window.confirm("Supprimer cet exercice ?")) {
+                                    try { await deleteDrill(id); } catch (e) { ErrorLogger.handleErrorWithToast(e, 'DeleteDrill'); }
+                                }
+                            }}
                         />
                     )}
 
                     {activeTab === 'crisis' && (
-                        <ContinuityCrisis users={users} />
+                        <ContinuityCrisis incidents={incidents} />
                     )}
                 </motion.div>
             </AnimatePresence>
@@ -291,37 +253,40 @@ const Continuity: React.FC = () => {
             {/* Modals */}
             <ProcessFormModal
                 isOpen={isProcessModalOpen}
-                onClose={() => { setIsProcessModalOpen(false); setEditingProcess(null); }}
-                onSubmit={editingProcess ? handleUpdateProcess : handleCreateProcess}
-                initialData={editingProcess || undefined}
-                title={editingProcess ? t('continuity.editProcess') : t('continuity.newProcess')}
-                isEditing={!!editingProcess}
+                onClose={() => setIsProcessModalOpen(false)}
+                onSubmit={handleCreateProcess}
+                categories={['Metier', 'Support', 'IT', 'Management']} // Example
+                isSubmitting={loadingAction}
                 assets={assets}
-                suppliers={suppliers}
                 risks={risks}
-                users={users}
+                suppliers={suppliers}
             />
+
+            {selectedProcess && (
+                <ProcessInspector
+                    isOpen={!!selectedProcess}
+                    onClose={() => setSelectedProcess(null)}
+                    process={selectedProcess}
+                    onUpdate={async (data) => {
+                        try {
+                            await updateProcess(selectedProcess.id, data);
+                            // Keep open?
+                        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'UpdateProcess'); }
+                    }}
+                    onDelete={() => handleDeleteProcess(selectedProcess.id)}
+                    assets={assets}
+                    risks={risks}
+                    suppliers={suppliers}
+                />
+            )}
 
             <DrillModal
                 isOpen={isDrillModalOpen}
                 onClose={() => setIsDrillModalOpen(false)}
-                onSubmit={handleLogDrill}
-                processes={processes}
+                onSubmit={handleCreateDrill}
+                isSubmitting={loadingAction}
             />
 
-            <ProcessInspector
-                process={selectedProcess}
-                isOpen={!!selectedProcess}
-                onClose={() => setSelectedProcess(null)}
-                onEdit={(p) => { setSelectedProcess(null); setEditingProcess(p); setIsProcessModalOpen(true); }}
-                onDelete={handleDeleteProcess}
-                assets={assets}
-                suppliers={suppliers}
-                risks={risks}
-                drills={drills.filter(d => d.processId === selectedProcess?.id)}
-            />
-        </motion.div >
+        </motion.div>
     );
 };
-
-export default Continuity;

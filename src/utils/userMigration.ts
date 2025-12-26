@@ -1,6 +1,8 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getApp } from 'firebase/app';
 
+import { ErrorLogger } from '../services/errorLogger';
+
 /**
  * ADMIN ONLY: Fix all users by adding organizationId and setting custom claims
  * This should be run once to migrate existing users
@@ -32,6 +34,7 @@ export const fixAllUsers = async (): Promise<{
             error?: string;
         };
     } catch (error) {
+        ErrorLogger.error(error, 'UserMigration.fixAllUsers');
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error'

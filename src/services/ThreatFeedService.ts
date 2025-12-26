@@ -2,6 +2,7 @@
 import { db } from '../firebase';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { Threat, Vulnerability } from '../types';
+import { ErrorLogger } from './errorLogger';
 
 
 interface CisaVulnerability {
@@ -74,8 +75,8 @@ export class ThreatFeedService {
                 const url = proxy(targetUrl);
                 const response = await fetch(url);
                 if (response.ok) return await response.json();
-            } catch {
-                console.warn(`Proxy failed, trying next...`);
+            } catch (error) {
+                ErrorLogger.warn(`Proxy failed: ${proxy.name || 'anonymous'}`, 'ThreatFeedService.fetchWithFailover', { metadata: { error } });
             }
         }
         throw new Error("Impossible de joindre les serveurs de Threat Intel (CISA/URLhaus). Vérifiez votre connexion.");
@@ -102,7 +103,7 @@ export class ThreatFeedService {
             }));
 
         } catch (error) {
-            console.warn("Failed to fetch CISA KEV:", error);
+            ErrorLogger.warn('Failed to fetch CISA KEV', 'ThreatFeedService.fetchCisaKev', { metadata: { error } });
             return [];
         }
     }
@@ -132,7 +133,7 @@ export class ThreatFeedService {
             }));
 
         } catch (error) {
-            console.warn("Failed to fetch URLhaus:", error);
+            ErrorLogger.warn("Failed to fetch URLhaus", 'ThreatFeedService.fetchUrlHaus', { metadata: { error } });
             return [];
         }
     }
@@ -157,7 +158,7 @@ export class ThreatFeedService {
                 this.fetchCisaKev()
             ]);
         } catch (e) {
-            console.error("Critical failure fetching live feeds:", e);
+            ErrorLogger.error(e, 'ThreatFeedService.seedLiveThreats');
             throw new Error("Impossible de récupérer les flux de menaces en temps réel.");
         }
 

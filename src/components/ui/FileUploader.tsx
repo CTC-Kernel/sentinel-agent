@@ -3,6 +3,7 @@ import { Upload, X, File, CheckCircle2, AlertTriangle, ShieldCheck } from '../ui
 import { uploadFile, validateFile, formatFileSize, generateFilePath } from '../../services/fileUploadService';
 import { useStore } from '../../store';
 import CryptoJS from 'crypto-js';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface FileUploaderProps {
     onUploadComplete: (url: string, fileName: string, hash?: string, isSecure?: boolean, size?: number, type?: string) => void;
@@ -119,6 +120,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 if (fileInputRef.current) fileInputRef.current.value = '';
             }, 500);
         } catch (err) {
+            ErrorLogger.error(err, 'FileUploader.handleUpload');
             setError(err instanceof Error ? err.message : 'Upload failed');
             setUploading(false);
             setProgress(0);

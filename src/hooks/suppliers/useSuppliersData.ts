@@ -1,0 +1,69 @@
+import { where } from 'firebase/firestore';
+import { useFirestoreCollection } from '../useFirestore';
+import { Document, UserProfile, BusinessProcess, Asset, Risk, Project } from '../../types';
+import { QuestionnaireTemplate, SupplierQuestionnaireResponse } from '../../types/business';
+
+export const useSuppliersData = (organizationId?: string) => {
+    // Queries
+    const { data: usersRaw, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
+        'users',
+        [where('organizationId', '==', organizationId)],
+        { logError: true, realtime: true, enabled: !!organizationId }
+    );
+
+    const { data: documentsRaw, loading: loadingDocuments } = useFirestoreCollection<Document>(
+        'documents',
+        [where('organizationId', '==', organizationId)],
+        { logError: true, realtime: true, enabled: !!organizationId }
+    );
+
+    const { data: processesRaw, loading: loadingProcesses } = useFirestoreCollection<BusinessProcess>(
+        'business_processes',
+        [where('organizationId', '==', organizationId)],
+        { logError: true, realtime: true, enabled: !!organizationId }
+    );
+
+    const { data: assetsRaw, loading: loadingAssets } = useFirestoreCollection<Asset>(
+        'assets',
+        [where('organizationId', '==', organizationId)],
+        { logError: true, realtime: true, enabled: !!organizationId }
+    );
+
+    const { data: risksRaw, loading: loadingRisks } = useFirestoreCollection<Risk>(
+        'risks',
+        [where('organizationId', '==', organizationId)],
+        { logError: true, realtime: true, enabled: !!organizationId }
+    );
+
+    const { data: projectsRaw, loading: loadingProjects } = useFirestoreCollection<Project>(
+        'projects',
+        [where('organizationId', '==', organizationId)],
+        { logError: true, realtime: true, enabled: !!organizationId }
+    );
+
+    const { data: templates, loading: loadingTemplates } = useFirestoreCollection<QuestionnaireTemplate>(
+        'questionnaire_templates',
+        [where('organizationId', '==', organizationId)],
+        { logError: true, realtime: true, enabled: !!organizationId }
+    );
+
+    const { data: assessments, loading: loadingAssessments } = useFirestoreCollection<SupplierQuestionnaireResponse>(
+        'questionnaire_responses',
+        [where('organizationId', '==', organizationId)],
+        { logError: true, realtime: true, enabled: !!organizationId }
+    );
+
+    const loading = loadingUsers || loadingDocuments || loadingProcesses || loadingAssets || loadingRisks || loadingProjects || loadingTemplates || loadingAssessments;
+
+    return {
+        usersRaw,
+        documentsRaw,
+        processesRaw,
+        assetsRaw,
+        risksRaw,
+        projectsRaw,
+        templates,
+        assessments,
+        loading
+    };
+};

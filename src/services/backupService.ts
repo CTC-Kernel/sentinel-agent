@@ -79,9 +79,9 @@ export class BackupService {
           backupData[collectionName] = data;
           totalSize += JSON.stringify(data).length;
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (_error) {
+        } catch (error) {
           // Silently skip collections that cannot be backed up
-          // Skip
+          ErrorLogger.warn(`Skipping backup collection ${collectionName}`, 'BackupService.createBackup', { metadata: { error } });
         }
       }
 
@@ -105,6 +105,7 @@ export class BackupService {
       return backupId;
 
     } catch (error) {
+      ErrorLogger.error(error, 'BackupService.createBackup');
       await updateDoc(doc(db, this.BACKUP_COLLECTION, backupId), {
         status: 'failed',
         error: error instanceof Error ? error.message : 'Erreur inconnue'
@@ -189,6 +190,7 @@ export class BackupService {
           summary.restored += summary.collections[collectionName].restored;
 
         } catch (error) {
+          ErrorLogger.error(error, `BackupService.restoreBackup.collection.${collectionName}`);
           const errorMsg = `Erreur lors de la restauration de ${collectionName}: ${error}`;
           summary.errors.push(errorMsg);
         }
@@ -198,6 +200,7 @@ export class BackupService {
       return { success: summary.errors.length === 0, summary };
 
     } catch (error) {
+      ErrorLogger.error(error, 'BackupService.restoreBackup');
       await logAction(user, 'ERROR', 'Backup', `Erreur restauration: ${error}`);
       throw error;
     }
@@ -212,7 +215,8 @@ export class BackupService {
       );
       return snapshot.docs.map(doc => doc.data() as BackupMetadata);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_error) {
+    } catch (error) {
+      ErrorLogger.error(error, 'BackupService.listBackups');
       return [];
     }
   }
@@ -230,6 +234,7 @@ export class BackupService {
 
       await logAction(user, 'DELETE', 'Backup', `Backup supprimé: ${backupId}`);
     } catch (error) {
+      ErrorLogger.error(error, 'BackupService.deleteBackup');
       await logAction(user, 'ERROR', 'Backup', `Erreur suppression backup: ${error}`);
       throw error;
     }
@@ -271,8 +276,8 @@ export class BackupService {
         : undefined;
 
       return { totalBackups, totalSize, lastBackup };
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_error) {
+    } catch (error) {
+      ErrorLogger.error(error, 'BackupService.getBackupStats');
       return { totalBackups: 0, totalSize: 0 };
     }
   }
