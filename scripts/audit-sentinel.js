@@ -96,8 +96,83 @@ const RULES = [
     {
         id: 'missing-aria-label',
         human: 'Interactive element missing aria-label or title',
-        regex: /<(button|input|a)(?![^>]*\b(aria-label|title|children)\b)[^>]*>/g,
-        severity: 'info'
+        severity: 'info',
+        check: (content, filePath) => {
+            if (!filePath.endsWith('.tsx')) return null;
+            const errors = [];
+
+            // Regex to find start of button/input/a tags
+            const tagRegex = /<(button|input|a)\b/g;
+            let match;
+            while ((match = tagRegex.exec(content)) !== null) {
+                const startIndex = match.index;
+                const tagName = match[1];
+
+                if (filePath.includes('Onboarding.tsx')) {
+                    console.log(`DEBUG: Onboarding match at ${startIndex}: ${match[0]}`);
+                    console.log(`DEBUG: Snippet: ${content.substring(startIndex, startIndex + 50)}`);
+                }
+
+                // Extract context: from start of tag, look forward until we find a closing `>` 
+                // that is NOT part of an arrow function `=>` or inside a string.
+                // This is complex, so we'll use a heuristic: scan next 2000 chars.
+                const buffer = content.slice(startIndex, startIndex + 2000);
+
+                // We want to find the end of the opening tag.
+                // We count braces/parens to ensure we don't stop inside a prop expression.
+                let depth = 0;
+                let inString = null; // ' or " or `
+                let tagEndIndex = -1;
+
+                for (let i = tagName.length + 1; i < buffer.length; i++) {
+                    const char = buffer[i];
+                    const prev = buffer[i - 1];
+
+                    if (inString) {
+                        if (char === inString && prev !== '\\') inString = null;
+                        continue;
+                    }
+
+                    if (char === "'" || char === '"' || char === '`') {
+                        inString = char;
+                        continue;
+                    }
+
+                    if (char === '{') depth++;
+                    else if (char === '}') depth--;
+                    else if (char === '>' && depth === 0) {
+                        tagEndIndex = i;
+                        break;
+                    }
+                }
+
+                if (tagEndIndex === -1) continue; // Could not find end, skip
+
+                const tagContent = buffer.slice(0, tagEndIndex + 1);
+
+                // Now check attributes in tagContent
+                const hasAriaLabel = /aria-label=/.test(tagContent);
+                const hasTitle = /title=/.test(tagContent);
+
+                // We assume if it has neither, it's a violation. 
+                // (Ignoring 'children' prop check as it's rare on these tags, and text content usually implies accessible name but explicit label is better for icons).
+
+                if (!hasAriaLabel && !hasTitle) {
+                    // Extract line number
+                    const linesBefore = content.slice(0, startIndex).split('\n');
+                    const lineNo = linesBefore.length - 1;
+
+                    // Snippet for report
+                    const snippet = tagContent.replace(/\s+/g, ' ').slice(0, 80) + '...';
+
+                    errors.push({
+                        line: lineNo,
+                        match: `Interactive element missing aria-label or title\n    Code: ${snippet}`
+                    });
+                }
+            }
+            return errors.length ? errors : null;
+        }
     },
     {
         id: 'check-z-index',
