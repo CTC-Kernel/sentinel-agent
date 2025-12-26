@@ -77,7 +77,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             >
                 <div className="w-full px-4 py-3.5 flex items-center justify-between">
                     <span className={`font-medium ${value ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>
-                        {displayValue || placeholder}
+                        {displayValue || (isOpen ? placeholder : (label ? '' : placeholder))}
                     </span>
                     <CalendarIcon className={`h-4 w-4 text-slate-500 transition-colors ${isOpen ? 'text-brand-500' : ''}`} />
                 </div>
