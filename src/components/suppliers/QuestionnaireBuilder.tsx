@@ -5,6 +5,7 @@ import { Plus, Trash2, Save, GripVertical as Grip } from '../ui/Icons';
 import { db } from '../../firebase';
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { useStore } from '../../store';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface Props {
     initialData?: QuestionnaireTemplate;
@@ -53,8 +54,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
             }
             if (onSave) onSave();
         } catch (error) {
-            console.error(error);
-            addToast("Erreur lors de l'enregistrement", 'error');
+            ErrorLogger.handleErrorWithToast(error, 'QuestionnaireBuilder.onSubmit', 'UPDATE_FAILED');
         }
     };
 

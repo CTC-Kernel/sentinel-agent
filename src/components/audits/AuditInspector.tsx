@@ -13,6 +13,7 @@ import { canDeleteResource } from '../../utils/permissions';
 import { useForm } from 'react-hook-form'; // Removed Controller
 import { zodResolver } from '@hookform/resolvers/zod';
 import { findingSchema, FindingFormData } from '../../schemas/findingSchema';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface AuditInspectorProps {
     audit: Audit;
@@ -68,7 +69,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
             // The hook as written in `useAuditDetails` (viewed previously) only created the doc.
             // We need to Link it.
         } catch (error) {
-            console.error(error);
+            ErrorLogger.handleErrorWithToast(error, 'AuditInspector.handleFileUpload', 'FILE_UPLOAD_FAILED');
         } finally {
             setUploadingFindingId(null);
         }

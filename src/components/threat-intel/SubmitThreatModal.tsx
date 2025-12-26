@@ -9,6 +9,7 @@ import { useStore } from '../../store';
 import { db } from '../../firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import { Button } from '../ui/button';
+import { ErrorLogger } from '../../services/errorLogger';
 
 // Generic schema for user submission (simplified version of Threat)
 const submissionSchema = z.object({
@@ -60,7 +61,7 @@ export const SubmitThreatModal: React.FC<SubmitThreatModalProps> = ({ isOpen, on
             onSuccess();
             onClose();
         } catch (error) {
-            console.error("Submission failed:", error);
+            ErrorLogger.handleErrorWithToast(error, 'SubmitThreatModal.onSubmit', 'CREATE_FAILED');
         }
     };
 

@@ -10,6 +10,7 @@ import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { Button } from '../ui/button';
 import { Threat, Asset } from '../../types';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
+import { ErrorLogger } from '../../services/errorLogger';
 
 const schema = z.object({
     assetId: z.string().min(1, "L'actif est requis"),
@@ -83,8 +84,7 @@ export const ThreatToRiskModal: React.FC<ThreatToRiskModalProps> = ({ isOpen, on
             reset();
             onClose();
         } catch (error) {
-            console.error("Failed to create risk:", error);
-            addToast("Erreur lors de la création du risque", "error");
+            ErrorLogger.handleErrorWithToast(error, 'ThreatToRiskModal.onSubmit', 'CREATE_FAILED');
         }
     };
 

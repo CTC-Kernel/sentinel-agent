@@ -5,6 +5,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Save, Check, ChevronRight } from '../ui/Icons';
 import { SupplierService } from '../../services/SupplierService';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface Props {
     responseId: string;
@@ -34,8 +35,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                     setTemplate({ id: tplSnap.id, ...tplSnap.data() } as QuestionnaireTemplate);
                 }
             } catch (error) {
-                console.error(error);
-                addToast('Erreur de chargement', 'error');
+                ErrorLogger.handleErrorWithToast(error, 'AssessmentView.loadData', 'FETCH_FAILED');
             } finally {
                 setLoading(false);
             }
@@ -75,8 +75,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
             addToast(submit ? 'Évaluation soumise' : 'Sauvegardé', 'success');
             if (submit) onClose();
         } catch (error) {
-            console.error(error);
-            addToast('Erreur sauvegarde', 'error');
+            ErrorLogger.handleErrorWithToast(error, 'AssessmentView.handleSave', 'UPDATE_FAILED');
         }
     };
 

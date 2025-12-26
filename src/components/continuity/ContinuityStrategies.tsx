@@ -8,6 +8,7 @@ import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
 import { EmptyState } from '../ui/EmptyState';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface Strategy {
     id: string;
@@ -46,8 +47,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
             setNewStrategy({});
             refresh();
         } catch (error) {
-            console.error(error);
-            addToast('Erreur lors de la sauvegarde', 'error');
+            ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.handleSave', 'CREATE_FAILED');
         }
     };
 
@@ -57,8 +57,8 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
             await deleteDoc(doc(db, 'bcp_strategies', id));
             refresh();
             addToast('Stratégie supprimée', 'success');
-        } catch {
-            addToast('Erreur suppression', 'error');
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.handleDelete', 'DELETE_FAILED');
         }
     };
 

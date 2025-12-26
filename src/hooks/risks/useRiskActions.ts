@@ -29,7 +29,9 @@ export const useRiskActions = (onRefresh: () => void) => {
             if (!validationResult.success) {
                 const errorMessage = validationResult.error.issues[0]?.message || 'Données invalides';
                 toast.error(errorMessage);
-                console.error('Validation error:', validationResult.error);
+                ErrorLogger.warn('Risk validation failed', 'useRiskActions.createRisk', {
+                    metadata: { issues: validationResult.error.issues }
+                });
                 return false;
             }
 
@@ -64,9 +66,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             }
             return true;
         } catch (error) {
-            console.error('Error creating risk:', error);
-            ErrorLogger.error(error as Error, 'CREATE_FAILED');
-            toast.error('Erreur lors de la création du risque');
+            ErrorLogger.handleErrorWithToast(error, 'useRiskActions.createRisk', 'CREATE_FAILED');
             return false;
         } finally {
             setSubmitting(false);
@@ -102,9 +102,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             onRefresh();
             return true;
         } catch (error) {
-            console.error('Error updating risk:', error);
-            ErrorLogger.error(error as Error, 'UPDATE_FAILED');
-            toast.error('Erreur lors de la mise à jour');
+            ErrorLogger.handleErrorWithToast(error, 'useRiskActions.updateRisk', 'UPDATE_FAILED');
             return false;
         } finally {
             setSubmitting(false);
@@ -152,7 +150,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             onRefresh();
             return true;
         } catch (error) {
-            console.error('Error deleting risk:', error);
+            ErrorLogger.handleErrorWithToast(error, 'useRiskActions.deleteRisk', 'DELETE_FAILED');
             toast.error('Erreur lors de la suppression');
             return false;
         } finally {
@@ -202,7 +200,7 @@ export const useRiskActions = (onRefresh: () => void) => {
                     resolve();
                 }
             } catch (error) {
-                console.error('Export failed:', error);
+                ErrorLogger.handleErrorWithToast(error, 'useRiskActions.exportRisks', 'UNKNOWN_ERROR');
                 toast.error("Erreur lors de l'export");
                 reject(error);
             }
@@ -271,7 +269,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             toast.success(`${ids.length} risques supprimés` + (cleanedDependenciesCount > 0 ? ` (${cleanedDependenciesCount} liens nettoyés)` : ''));
             onRefresh();
         } catch (error) {
-            console.error('Bulk delete error', error);
+            ErrorLogger.handleErrorWithToast(error, 'useRiskActions.bulkDeleteRisks', 'DELETE_FAILED');
             toast.error('Erreur suppression multiple');
         } finally {
             setSubmitting(false);
@@ -307,7 +305,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             onRefresh();
             return true;
         } catch (error) {
-            console.error('Import error process:', error);
+            ErrorLogger.handleErrorWithToast(error, 'useRiskActions.importRisks', 'UNKNOWN_ERROR');
             toast.error("Erreur critique lors de l'import");
             return false;
         } finally {

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { TokenService } from '../services/tokenService';
+import { logger } from '../utils/logger';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -55,8 +56,7 @@ export const authenticate = (requiredRole?: string) => {
         throw error;
       }
     } catch (error) {
-      // ErrorLogger context
-      console.error('Authentication error:', error);
+      logger.error({ err: error }, 'Authentication error');
       return res.status(500).json({
         error: 'Authentication Error',
         message: 'An error occurred during authentication'
@@ -88,7 +88,7 @@ export const refreshTokenMiddleware = async (
       expiresIn: 900 // 15 minutes en secondes
     });
   } catch (error) {
-    console.error('Token refresh error:', error);
+    logger.error({ err: error }, 'Token refresh error');
     res.status(401).json({
       error: 'Unauthorized',
       message: 'Invalid refresh token'

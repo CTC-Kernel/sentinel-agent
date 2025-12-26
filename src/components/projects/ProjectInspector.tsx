@@ -17,6 +17,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { TaskFormModal } from './TaskFormModal';
 import { sanitizeData } from '../../utils/dataSanitizer';
+import { ErrorLogger } from '../../services/errorLogger';
 
 import './gantt.css';
 
@@ -79,7 +80,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
             const snap = await getDocs(q);
             setProjectMilestones(snap.docs.map(d => ({ id: d.id, ...d.data() } as ProjectMilestone)));
         } catch (e) {
-            console.error("Error fetching milestones", e);
+            ErrorLogger.handleErrorWithToast(e, 'ProjectInspector.fetchMilestones', 'FETCH_FAILED');
         }
     }, [user?.organizationId]);
 
