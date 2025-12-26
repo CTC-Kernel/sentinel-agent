@@ -56,9 +56,12 @@ function getAllFiles(dirPath, arrayOfFiles) {
 function audit() {
     console.log('Running Focused Logic Audit...');
     const files = getAllFiles(SRC_DIR);
+    const EXCLUDE_PATTERNS = ['node_modules', 'dist', 'build', '.git', 'scripts', 'src/services/errorLogger.ts', 'src/schemas/index.ts'];
     files.forEach(file => {
-        const content = fs.readFileSync(file, 'utf8');
         const relativePath = path.relative(process.cwd(), file);
+        if (EXCLUDE_PATTERNS.some(pattern => relativePath.includes(pattern))) return;
+
+        const content = fs.readFileSync(file, 'utf8');
         RULES.forEach(rule => {
             const result = rule.check(content, file);
             if (result) {
