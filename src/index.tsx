@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
+import { ErrorLogger } from './services/errorLogger';
 import './index.css';
 import './i18n'; // Initialize i18n
 import { HelmetProvider } from 'react-helmet-async';
@@ -45,7 +46,7 @@ const initializeApp = async () => {
     }
   } catch (error) {
     // Silently fail on web or if plugins are missing
-    console.debug('Capacitor initialization skipped or failed:', error);
+    ErrorLogger.warn('Capacitor initialization skipped or failed', 'index.initializeApp', { metadata: { error } });
   }
 };
 
@@ -79,7 +80,7 @@ const cleanupLegacyServiceWorkers = () => {
     } catch (e) {
       // If anything goes wrong, do not block the app.
       sessionStorage.setItem(guardKey, 'true');
-      console.debug('Service worker cleanup skipped or failed:', e);
+      ErrorLogger.warn('Service worker cleanup skipped or failed', 'index.cleanupLegacyServiceWorkers', { metadata: { error: e } });
     }
   });
 };

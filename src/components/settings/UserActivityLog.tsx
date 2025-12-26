@@ -54,7 +54,7 @@ export const UserActivityLog: React.FC = () => {
                 const fetchedLogs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog));
                 setLogs(fetchedLogs);
             } catch (error) {
-                console.warn('Query failed, falling back to simple query', error);
+                ErrorLogger.warn('Query failed, falling back to simple query', 'UserActivityLog.fetchLogs', { metadata: { error } });
                 try {
                     // Fallback strategy if indexes are missing
                     const simpleQ = query(

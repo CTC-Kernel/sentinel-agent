@@ -58,7 +58,10 @@ class HybridService {
             });
 
             if (!response.ok) {
-                const errorText = await response.text().catch(() => '');
+                const errorText = await response.text().catch((e) => {
+                    ErrorLogger.warn('Failed to read error text', 'HybridService.request', { metadata: { error: e } });
+                    return '';
+                });
                 const message = errorText || `Request failed with status ${response.status}`;
                 throw new Error(message);
             }

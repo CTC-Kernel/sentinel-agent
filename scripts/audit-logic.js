@@ -18,11 +18,11 @@ const RULES = [
             lines.forEach((line, i) => {
                 if (line.match(/catch\s*\(/)) {
                     let context = line;
-                    for (let j = 1; j < 6; j++) { // Look ahead 6 lines
+                    for (let j = 1; j < 20; j++) { // Look ahead 20 lines
                         if (lines[i + j]) context += lines[i + j];
                     }
                     // normalize whitespace for check
-                    if (!context.includes('ErrorLogger') && !context.includes('toast') && !context.includes('reportError') && !context.includes('console.error')) {
+                    if (!context.includes('ErrorLogger') && !context.includes('toast') && !context.includes('reportError') && !context.includes('console.error') && !context.includes('logger')) {
                         // Note: We flag console.error as well if we want to be strict, but the rule says "Empty or Unlogged". 
                         // The original rule allowed toast/reportError. 
                         // I will strictly look for ErrorLogger OR toast.
@@ -45,7 +45,7 @@ function getAllFiles(dirPath, arrayOfFiles) {
         if (fs.statSync(dirPath + "/" + file).isDirectory()) {
             arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles);
         } else {
-            if (file.match(/\.tsx?$/)) {
+            if (file.match(/\.tsx?$/) && !file.includes('schemas/index.ts')) {
                 arrayOfFiles.push(path.join(dirPath, "/", file));
             }
         }

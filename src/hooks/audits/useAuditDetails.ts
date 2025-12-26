@@ -265,7 +265,9 @@ export const useAuditDetails = (
                         const r = await fetch(d.url);
                         const b = await r.blob();
                         evFolder?.file(`${d.title}.pdf`, b);
-                    } catch (e) { console.warn('Failed to fetch evidence URL', e); }
+                    } catch (e) {
+                        ErrorLogger.warn('Failed to fetch evidence URL', 'useAuditDetails.handleExportPack', { metadata: { error: e } });
+                    }
                 }));
             }
 

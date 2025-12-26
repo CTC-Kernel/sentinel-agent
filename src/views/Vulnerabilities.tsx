@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { useStore } from '../store';
-import { Vulnerability, Asset, Project } from '../types';
+import { Vulnerability } from '../types';
 import { VulnerabilityDashboard } from '../components/vulnerabilities/VulnerabilityDashboard';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useVulnerabilities } from '../hooks/useVulnerabilities';
 import { useVulnerabilitiesData } from '../hooks/vulnerabilities/useVulnerabilitiesData';
 
 import { PageHeader } from '../components/ui/PageHeader';
-import { Bug, Plus, FileSpreadsheet, Upload, MoreVertical, BrainCircuit } from '../components/ui/Icons';
+import { Bug, Plus, Upload, MoreVertical } from '../components/ui/Icons';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
@@ -47,7 +47,6 @@ export const Vulnerabilities: React.FC = () => {
         addVulnerability,
         updateVulnerability,
         deleteVulnerability,
-        importVulnerabilities,
         loading: loadingAction
     } = useVulnerabilities();
 
@@ -61,7 +60,7 @@ export const Vulnerabilities: React.FC = () => {
     } = useVulnerabilitiesData(user?.organizationId);
 
     const filteredVulnerabilities = React.useMemo(() => {
-        return vulnerabilities.filter(v => v.title.toLowerCase().includes(filter.toLowerCase()) || v.cveId?.toLowerCase().includes(filter.toLowerCase()));
+        return vulnerabilities.filter(v => (v.title || '').toLowerCase().includes(filter.toLowerCase()) || v.cveId?.toLowerCase().includes(filter.toLowerCase()));
     }, [vulnerabilities, filter]);
 
     const loading = loadingData;
@@ -87,9 +86,9 @@ export const Vulnerabilities: React.FC = () => {
     };
 
     const handleUpdate = async (data: any) => {
-        if (!selectedVulnerability) return;
+        if (!selectedVulnerability || !selectedVulnerability.id) return;
         try {
-            await updateVulnerability(selectedVulnerability.id, data);
+            await updateVulnerability(selectedVulnerability.id, data || {});
             setSelectedVulnerability(null);
         } catch (error) {
             ErrorLogger.warn('Update handled in hook');
@@ -140,7 +139,7 @@ export const Vulnerabilities: React.FC = () => {
             <VulnerabilityImportModal
                 isOpen={importModalOpen}
                 onClose={() => setImportModalOpen(false)}
-                onImport={async (file) => {
+                onImport={async () => {
                     // Logic for file handling usually in component or hook
                     // Here passing empty implementation as Placeholder for future CSV logic if needed
                 }}
@@ -169,7 +168,7 @@ export const Vulnerabilities: React.FC = () => {
                 actions={
                     canEdit && (
                         <>
-                            <custom-actions>
+                            <div className="flex items-center">
                                 <Menu as="div" className="relative inline-block text-left mr-2">
                                     <Menu.Button className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
                                         <MoreVertical className="h-5 w-5" />
@@ -212,7 +211,7 @@ export const Vulnerabilities: React.FC = () => {
                                         <span className="hidden sm:inline">{t('vulnerabilities.declare')}</span>
                                     </button>
                                 </CustomTooltip>
-                            </custom-actions>
+                            </div>
                         </>
                     )
                 }

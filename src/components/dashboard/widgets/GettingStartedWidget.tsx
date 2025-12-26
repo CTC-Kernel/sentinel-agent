@@ -2,6 +2,7 @@ import React from 'react';
 import { CheckCircle2, Circle, ArrowRight, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../../store';
+import { ErrorLogger } from '../../../services/errorLogger';
 
 let lastStatusFetchAt = 0;
 let lastStatusOrgId: string | null = null;
@@ -101,6 +102,8 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                     sessionStorage.setItem(blockedKey, '1');
                     return;
                 }
+                // Log other errors specifically
+                ErrorLogger.warn('Failed to check getting started status', 'GettingStartedWidget', { metadata: { error } });
             }
             finally {
                 inFlightKeyRef.current = false;

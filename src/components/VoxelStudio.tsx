@@ -5,6 +5,7 @@ import { Vector3, Color, AdditiveBlending, Mesh, MeshBasicMaterial, Group, Doubl
 import { OrbitControls as OrbitControlsImpl, OBJLoader } from 'three-stdlib';
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control, VoxelNode, AISuggestedLink } from '../types';
 import { VoxelDetailOverlay } from './VoxelDetailOverlay';
+import { ErrorLogger } from '../services/errorLogger';
 
 const resolveHslCssVar = (cssVarName: string, fallbackHsl: string) => {
   if (typeof window === 'undefined' || !window.document?.documentElement) return `hsl(${fallbackHsl})`;
@@ -183,7 +184,7 @@ const ModelLibraryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
           return loader.parse(text);
         } catch (error) {
-          console.warn(`Failed to load 3D model from ${url}`, error);
+          ErrorLogger.warn(`Failed to load 3D model from ${url}`, 'VoxelStudio.loadModels', { metadata: { error } });
           // Return an empty group as fallback to prevent crash
           return new Group();
         }

@@ -33,6 +33,8 @@ import { QuestionnaireBuilder } from '../components/suppliers/QuestionnaireBuild
 import { AssessmentView } from '../components/suppliers/AssessmentView';
 
 import { SupplierService } from '../services/SupplierService';
+import { ResourceHistory } from '../components/shared/ResourceHistory';
+import { CommentSection } from '../components/collaboration/CommentSection';
 
 const getCriticalityColor = (c: Criticality) => {
     switch (c) {

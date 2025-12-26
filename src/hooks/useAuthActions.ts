@@ -10,7 +10,8 @@ import {
     getMultiFactorResolver,
     TotpMultiFactorGenerator,
     MultiFactorResolver,
-    MultiFactorError
+    MultiFactorError,
+    signOut // Added signOut
 } from 'firebase/auth';
 import { httpsCallable } from 'firebase/functions';
 import { auth, functions } from '../../firebase';
@@ -203,6 +204,38 @@ export const useAuthActions = () => {
         }
     };
 
+    const checkEmailVerification = async (): Promise<boolean> => {
+        if (!auth.currentUser) return false;
+        try {
+            await auth.currentUser.reload();
+            return auth.currentUser.emailVerified;
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'useAuthActions.checkEmailVerification');
+            return false;
+        }
+    };
+
+    const sendVerificationEmail = async () => {
+        if (!auth.currentUser) return;
+        try {
+            await import('firebase/auth').then(({ sendEmailVerification }) => sendEmailVerification(auth.currentUser!));
+            addToast(t('auth.verificationSent'), 'success');
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'useAuthActions.sendVerificationEmail');
+            throw error;
+        }
+    };
+
+    const logout = async () => {
+        try {
+            await auth.signOut();
+            addToast(t('auth.logoutSuccess'), 'success');
+            window.location.href = '/login';
+        } catch (error) {
+            ErrorLogger.error(error as Error, 'useAuthActions.logout');
+        }
+    };
+
     return {
         loading,
         errorMsg,
@@ -213,6 +246,9 @@ export const useAuthActions = () => {
         handleAppleLogin,
         handlePasswordReset,
         handleMfaVerification,
+        checkEmailVerification,
+        sendVerificationEmail,
+        logout,
 
         showMfaModal,
         setShowMfaModal,
