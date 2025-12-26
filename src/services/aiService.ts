@@ -456,6 +456,7 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
             return text;
         }
     } catch (error: unknown) {
+        // ErrorLogger context
         const anyError = error as { code?: unknown; message?: unknown };
         const code = typeof anyError.code === 'string' ? anyError.code : undefined;
         const message = typeof anyError.message === 'string' ? anyError.message : '';
@@ -492,6 +493,7 @@ async function runChatSafe(systemPrompt: string, message: string, modelName: str
             return text;
         }
     } catch (error: unknown) {
+        // ErrorLogger context
         const anyError = error as { code?: unknown; message?: unknown };
         const code = typeof anyError.code === 'string' ? anyError.code : undefined;
         const message = typeof anyError.message === 'string' ? anyError.message : '';

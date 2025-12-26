@@ -69,6 +69,7 @@ export const VerifyEmail: React.FC = () => {
 
                     <div className="space-y-4 w-full">
                         <button
+                            aria-label="J'ai vérifié mon email"
                             onClick={handleCheckVerification}
                             disabled={loading}
                             className="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-brand-500/20 flex items-center justify-center hover:scale-[1.02] active:scale-[0.98]"
@@ -82,6 +83,7 @@ export const VerifyEmail: React.FC = () => {
                         </button>
 
                         <button
+                            aria-label="Renvoyer l'email"
                             onClick={handleResendEmail}
                             disabled={loading || emailSent}
                             className="w-full py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -91,6 +93,7 @@ export const VerifyEmail: React.FC = () => {
                     </div>
 
                     <button
+                        aria-label="Se déconnecter"
                         onClick={handleLogout}
                         className="mt-8 text-sm font-bold text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 flex items-center transition-colors hover:underline"
                     >

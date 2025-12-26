@@ -160,6 +160,7 @@ export const Integrations: React.FC = () => {
                         }}
                     />
                     <button
+                        aria-label="Connecteurs"
                         onClick={() => setActiveTab('providers')}
                         className={`relative z-10 px-8 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 ${activeTab === 'providers'
                             ? 'text-slate-900 dark:text-white'
@@ -169,6 +170,7 @@ export const Integrations: React.FC = () => {
                         Connecteurs
                     </button>
                     <button
+                        aria-label="Tâches & Scans"
                         onClick={() => setActiveTab('jobs')}
                         className={`relative z-10 px-8 py-2.5 text-sm font-bold rounded-xl transition-colors duration-300 ${activeTab === 'jobs'
                             ? 'text-slate-900 dark:text-white'
@@ -187,6 +189,7 @@ export const Integrations: React.FC = () => {
                         <div className="relative flex-1 min-w-0 group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                             <input
+                                aria-label="Rechercher une intégration"
                                 type="text"
                                 placeholder="Rechercher une intégration..."
                                 value={searchQuery}
@@ -203,6 +206,7 @@ export const Integrations: React.FC = () => {
                             ].map((cat) => (
                                 <button
                                     key={cat.id}
+                                    aria-label={cat.label}
                                     onClick={() => setCategoryFilter(cat.id)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${categoryFilter === cat.id
                                         ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg shadow-slate-900/20 dark:shadow-white/20'
@@ -267,12 +271,14 @@ export const Integrations: React.FC = () => {
 
                             <div className="flex justify-end gap-3 pt-4">
                                 <button
+                                    aria-label="Annuler la connexion"
                                     onClick={() => setApiKeyModalOpen(false)}
                                     className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
                                 >
                                     Annuler
                                 </button>
                                 <button
+                                    aria-label="Connecter l'intégration"
                                     onClick={confirmConnect}
                                     disabled={isSubmittingKey || !apiKey.trim()}
                                     className="px-4 py-2 text-sm font-bold text-white bg-brand-500 hover:bg-brand-600 rounded-lg shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"

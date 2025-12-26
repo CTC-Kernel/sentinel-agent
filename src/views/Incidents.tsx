@@ -425,6 +425,7 @@ export const Incidents: React.FC = () => {
                                             <Menu.Item>
                                                 {({ active }) => (
                                                     <button
+                                                        aria-label={t('incidents.importSiem')}
                                                         onClick={() => setImportModalOpen(true)}
                                                         className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
                                                             } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
@@ -437,6 +438,7 @@ export const Incidents: React.FC = () => {
                                             <Menu.Item>
                                                 {({ active }) => (
                                                     <button
+                                                        aria-label={t('incidents.simulateAttack')}
                                                         onClick={handleSimulateAttack}
                                                         className={`${active ? 'bg-red-500 text-white' : 'text-red-600 dark:text-red-400'
                                                             } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
@@ -453,6 +455,7 @@ export const Incidents: React.FC = () => {
 
                             <CustomTooltip content={t('incidents.declare')}>
                                 <button
+                                    aria-label={t('incidents.declare')}
                                     onClick={() => setCreationMode(true)}
                                     className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
                                 >

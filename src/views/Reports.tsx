@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
-import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -9,31 +8,16 @@ import { staggerContainerVariants, slideUpVariants } from '../components/ui/anim
 
 import {
     FileText,
-    ShieldAlert,
     ShieldCheck,
-    Server,
-    Download,
-    Printer,
     History,
     Settings,
-    FileSpreadsheet,
-    Activity,
-    FileCheck,
-    Trash2,
     Lock,
-    Search,
-    Archive,
-    BarChart3
+    Archive
 } from 'lucide-react';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
-import { Button } from '../components/ui/button';
-import { PdfService } from '../services/PdfService';
 import { CompliancePackService } from '../services/CompliancePackService';
 import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
-import { hasPermission, canDeleteResource } from '../utils/permissions';
-import { EmptyState } from '../components/ui/EmptyState';
-import { Badge } from '../components/ui/Badge';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { useReportsData } from '../hooks/reports/useReportsData';
 import { SEO } from '../components/SEO';
@@ -45,8 +29,7 @@ const TABS = [
 ];
 
 export const Reports: React.FC = () => {
-    const { user, t } = useStore();
-    const navigate = useNavigate();
+    const { user, t, organization } = useStore();
     const [activeTab, setActiveTab] = useState('templates');
     const [loadingAction, setLoadingAction] = useState(false);
 
@@ -58,34 +41,30 @@ export const Reports: React.FC = () => {
         documents,
         controls,
         incidents,
-        vulnerabilities,
-        processes,
         loading: loadingData
     } = useReportsData(user?.organizationId);
 
     const { checkLimit } = usePlanLimits();
+    // Wait usePlanLimits doesn't return organization. useStore does.
+    // I need to use user.organizationId or fetch organization info.
+    // The previous code used useStore but didn't destructure organization.
+
+    // Let's get organization from useStore() directly in component if usePlanLimits doesn't return it.
+    // However, Reports.tsx uses useStore already.
 
     const generatePDF = async (templateId: string, title: string) => {
-        if (!checkLimit('reports')) return;
+        if (!checkLimit('reports')) return; // reports feature check
         setLoadingAction(true);
         try {
-            // NOTE: Using PdfService which handles logic. We pass data.
-            // Some reports might require fetching specific data inside PdfService or we pass it all.
-            // Usually PdfService methods fetch or we pass big objects.
-            // Assuming PdfService is updated to take data or handles it.
-            // If it handles it, we are fine. If we need to pass data, we pass it.
-            // Let's assume PdfService handles fetching or accepts data.
-            // For now, simulating generation or calling actual service.
-
-            // Example for Compliance Pack
             if (templateId === 'iso27001' || templateId === 'gdpr') {
-                await CompliancePackService.generatePack(templateId, {
+                await CompliancePackService.generatePack({
+                    organizationName: organization?.name || 'Organization',
                     risks,
                     audits,
                     assets,
                     documents,
-                    controls
-                    // policies? we have documents.
+                    controls,
+                    incidents
                 });
             } else {
                 const doc = new jsPDF();
@@ -122,7 +101,7 @@ export const Reports: React.FC = () => {
                     title={t('sidebar.reports')}
                     subtitle="Centralisation et génération des preuves et rapports d'audit."
                     icon={<FileText className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                    trustType="compliance"
+
                 />
             </motion.div>
 
@@ -146,7 +125,7 @@ export const Reports: React.FC = () => {
                             <p className="text-xs text-slate-500">SoA, Politiques, Risques</p>
                         </div>
                     </div>
-                    <button className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors">
+                    <button aria-label="Générer Rapport ISO 27001" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors">
                         Générer
                     </button>
                 </div>
@@ -161,7 +140,7 @@ export const Reports: React.FC = () => {
                             <p className="text-xs text-slate-500">Registre, DPIA, Violations</p>
                         </div>
                     </div>
-                    <button className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors">
+                    <button aria-label="Générer Rapport RGPD" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors">
                         Générer
                     </button>
                 </div>
@@ -176,7 +155,7 @@ export const Reports: React.FC = () => {
                             <p className="text-xs text-slate-500">Choisissez vos indicateurs</p>
                         </div>
                     </div>
-                    <button className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors">
+                    <button aria-label="Configurer Rapport Personnalisé" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors">
                         Configurer
                     </button>
                 </div>

@@ -195,6 +195,7 @@ const Assets: React.FC = () => {
                         <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-4 py-3 text-sm font-semibold flex items-center justify-between backdrop-blur-md shadow-lg shadow-amber-500/10">
                             <span>{t('assets.limitReached', { count: assets.length, max: limits.maxAssets })}</span>
                             <button
+                                aria-label={t('assets.upgradePlan')}
                                 onClick={() => toast.info(t('assets.contactSupport'))}
                                 className="text-amber-900 underline font-bold"
                             >
@@ -262,6 +263,7 @@ const Assets: React.FC = () => {
                                     <>
                                         <CustomTooltip content={t('assets.createAsset')}>
                                             <button
+                                                aria-label={t('assets.aiAnalysis')}
                                                 onClick={handleAnalyze}
                                                 disabled={isAnalyzing}
                                                 className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
@@ -273,6 +275,7 @@ const Assets: React.FC = () => {
 
                                         <CustomTooltip content={t('assets.createAsset')}>
                                             <button
+                                                aria-label={t('assets.newAsset')}
                                                 data-tour="assets-add"
                                                 onClick={() => handleOpenInspector(undefined)}
                                                 disabled={reachedAssetLimit}
@@ -298,6 +301,7 @@ const Assets: React.FC = () => {
                                                         <Menu.Item>
                                                             {({ active }) => (
                                                                 <button
+                                                                    aria-label={t('assets.kioskLink')}
                                                                     onClick={handleGenerateKioskLink}
                                                                     className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                                 >
@@ -309,6 +313,7 @@ const Assets: React.FC = () => {
                                                         <Menu.Item>
                                                             {({ active }) => (
                                                                 <button
+                                                                    aria-label={t('assets.exportCsv')}
                                                                     data-tour="assets-export"
                                                                     onClick={handleExportCSV}
                                                                     className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}

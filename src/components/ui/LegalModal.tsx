@@ -35,6 +35,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Transparence et conformité</p>
                     </div>
                     <button
+                        aria-label="Fermer la fenêtre"
                         onClick={onClose}
                         className="p-2.5 text-slate-500 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-all"
                     >
@@ -47,6 +48,9 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
+                            aria-label={`Onglet ${tab.label}`}
+                            aria-selected={activeTab === tab.id}
+                            role="tab"
                             onClick={() => setActiveTab(tab.id)}
                             className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap ${activeTab === tab.id
                                 ? 'border-brand-500 text-brand-600 dark:text-brand-400'
@@ -225,6 +229,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                 {/* Footer */}
                 <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex justify-end">
                     <button
+                        aria-label="Fermer la fenêtre"
                         onClick={onClose}
                         className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl hover:scale-105 transition-transform shadow-lg text-sm"
                     >

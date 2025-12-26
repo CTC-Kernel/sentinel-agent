@@ -269,7 +269,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                             />
                                         </div>
                                     </div>
-                                    <button onClick={handleAddMaintenance} disabled={isAddingMaintenance} className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:opacity-50 flex justify-center items-center">{isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}Ajouter Intervention</button>
+                                    <button onClick={handleAddMaintenance} disabled={isAddingMaintenance} aria-label="Ajouter une intervention de maintenance" className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:opacity-50 flex justify-center items-center">{isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}Ajouter Intervention</button>
                                 </div>
                             )}
                             <div className="space-y-3">
@@ -295,6 +295,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                 <button
                                     onClick={scanShodan}
                                     disabled={scanning}
+                                    aria-label="Lancer un scan Shodan"
                                     className="flex-1 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform flex items-center justify-center disabled:opacity-50"
                                 >
                                     {scanning ? <span className="animate-spin mr-2">⏳</span> : <Search className="w-4 h-4 mr-2" />}
@@ -305,6 +306,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                 <button
                                     onClick={checkCVEs}
                                     disabled={scanning}
+                                    aria-label="Rechercher des vulnérabilités CVE"
                                     className="flex-1 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-xl text-sm font-bold shadow-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors flex items-center justify-center disabled:opacity-50"
                                 >
                                     {scanning ? <span className="animate-spin mr-2">⏳</span> : <ShieldAlert className="w-4 h-4 mr-2" />}
@@ -342,6 +344,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                                     <CustomTooltip content="Créer un risque">
                                                         <button
                                                             onClick={() => createRiskFromVuln(vuln)}
+                                                            aria-label={`Créer un risque pour ${vuln.cveId}`}
                                                             className="p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded text-red-600 dark:text-red-400 transition-colors"
                                                         >
                                                             <Plus className="h-4 w-4" />
@@ -363,6 +366,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                 </h3>
                                 <button
                                     onClick={() => selectedAsset && navigate('/risks', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } })}
+                                    aria-label="Créer un nouveau risque"
                                     className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center"
                                 >
                                     <Plus className="h-3 w-3 mr-1" /> Nouveau Risque
@@ -393,6 +397,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                 </h3>
                                 <button
                                     onClick={() => selectedAsset && navigate('/incidents', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } })}
+                                    aria-label="Signaler un incident"
                                     className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center"
                                 >
                                     <Plus className="h-3 w-3 mr-1" /> Signaler Incident
@@ -534,7 +539,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                         <div className="flex items-center justify-between mt-3">
                                             <span className="text-xs text-slate-500">{doc.type} • v{doc.version}</span>
                                             <CustomTooltip content="Ouvrir le document dans un nouvel onglet">
-                                                <a href={doc.url} target="_blank" rel="noreferrer" className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center">
+                                                <a href={doc.url} target="_blank" rel="noreferrer" aria-label={`Voir le document ${doc.title}`} className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center">
                                                     Voir <ExternalLink className="h-3 w-3 ml-1" />
                                                 </a>
                                             </CustomTooltip>
@@ -557,7 +562,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                             ) : (
                                 <div className="space-y-4">
                                     {selectedAsset.history.slice().reverse().map((h, i) => (
-                                        <div key={i} className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                                        <div key={`rec-${i}`} className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
                                             <div className="flex justify-between items-center mb-2">
                                                 <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{new Date(h.date).toLocaleString()}</span>
                                                 <span className="text-xs font-medium text-slate-500">par {h.userName}</span>

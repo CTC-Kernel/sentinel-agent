@@ -33,7 +33,7 @@ export const useVulnerabilitiesData = (organizationId?: string) => {
     // Derived Data
     // Sort by discovery date descending by default
     const vulnerabilities = useMemo(() =>
-        [...rawVulnerabilities].sort((a, b) => new Date(b.dateDiscovered).getTime() - new Date(a.dateDiscovered).getTime()),
+        [...rawVulnerabilities].sort((a, b) => new Date(b.dateDiscovered || b.publishedDate).getTime() - new Date(a.dateDiscovered || a.publishedDate).getTime()),
         [rawVulnerabilities]
     );
 

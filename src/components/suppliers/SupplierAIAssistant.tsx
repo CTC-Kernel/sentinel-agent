@@ -115,6 +115,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                     onClick={() => handleAction('risk')}
                     disabled={loading}
                     className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'risk' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    aria-label="Lancer l'analyse de risque par IA"
                 >
                     {loading && mode === 'risk' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5 mr-2" />}
                     Analyse Risque
@@ -123,6 +124,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                     onClick={() => handleAction('clauses')}
                     disabled={loading}
                     className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'clauses' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    aria-label="Suggérer des clauses contractuelles par IA"
                 >
                     {loading && mode === 'clauses' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <Scale className="h-3.5 w-3.5 mr-2" />}
                     Clauses Contrat
@@ -131,6 +133,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                     onClick={() => handleAction('dora')}
                     disabled={loading}
                     className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'dora' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    aria-label="Vérifier la conformité DORA par IA"
                 >
                     {loading && mode === 'dora' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
                     Conformité DORA
@@ -148,7 +151,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                             <Bot className="h-3.5 w-3.5 mr-1.5" />
                             Réponse de l'IA
                         </h4>
-                        <button onClick={() => setResponse(null)} className="text-slate-500 hover:text-slate-600"><X className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => setResponse(null)} className="text-slate-500 hover:text-slate-600" aria-label="Fermer la réponse IA"><X className="h-3.5 w-3.5" /></button>
                     </div>
 
                     <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
@@ -158,7 +161,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                                 <p className="mt-1"><em>{String(response.justification)}</em></p>
                                 {Array.isArray(response.recommendations) && (
                                     <ul className="list-disc pl-4 mt-2 space-y-1">
-                                        {response.recommendations.map((r: unknown, i: number) => <li key={i}>{String(r)}</li>)}
+                                        {response.recommendations.map((r: unknown, i: number) => <li key={`rec-${i}`}>{String(r)}</li>)}
                                     </ul>
                                 )}
                                 {onUpdate && (
@@ -181,7 +184,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                         {mode === 'clauses' && Array.isArray(response.clauses) && (
                             <div className="space-y-3">
                                 {response.clauses.map((c: AIClause, i: number) => (
-                                    <div key={i} className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-white/5">
+                                    <div key={`risk-${i}`} className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-white/5">
                                         <div className="flex justify-between items-center mb-1">
                                             <span className="font-bold text-slate-800 dark:text-slate-200">{c.title}</span>
                                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${c.importance === 'High' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>{c.importance}</span>
@@ -199,7 +202,7 @@ export const SupplierAIAssistant: React.FC<SupplierAIAssistantProps> = ({ suppli
                                     <div className="mt-2">
                                         <p className="font-bold mb-1">Exigences clés :</p>
                                         <ul className="list-disc pl-4 space-y-1">
-                                            {response.requirements.map((r: unknown, i: number) => <li key={i}>{String(r)}</li>)}
+                                            {response.requirements.map((r: unknown, i: number) => <li key={`req-${i}`}>{String(r)}</li>)}
                                         </ul>
                                     </div>
                                 )}

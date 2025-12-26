@@ -55,6 +55,7 @@ export const authenticate = (requiredRole?: string) => {
         throw error;
       }
     } catch (error) {
+      // ErrorLogger context
       console.error('Authentication error:', error);
       return res.status(500).json({
         error: 'Authentication Error',

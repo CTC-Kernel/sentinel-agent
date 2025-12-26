@@ -11,6 +11,7 @@ interface ContinuityDrillsProps {
     processes: BusinessProcess[];
     loading: boolean;
     onNewDrill: () => void;
+    onDelete?: (id: string) => void;
 }
 
 export const ContinuityDrills: React.FC<ContinuityDrillsProps> = ({ drills, processes, loading, onNewDrill }) => {

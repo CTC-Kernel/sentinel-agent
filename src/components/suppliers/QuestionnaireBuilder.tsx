@@ -65,6 +65,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Titre du Questionnaire</label>
                         <input
+                            aria-label="Titre du Questionnaire"
                             {...register('title', { required: true })}
                             className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-transparent"
                             placeholder="Ex: Évaluation ISO 27001 - Fournisseurs SaaS"
@@ -73,6 +74,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
                         <textarea
+                            aria-label="Description du Questionnaire"
                             {...register('description')}
                             className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-transparent"
                             placeholder="Description de l'usage de ce modèle..."
@@ -95,6 +97,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
 
             <div className="flex justify-between items-center pt-4">
                 <button
+                    aria-label="Ajouter une Section"
                     type="button"
                     onClick={() => appendSection({ id: crypto.randomUUID(), title: 'Nouvelle Section', weight: 1, questions: [] })}
                     className="flex items-center px-4 py-2 text-sm font-medium text-brand-600 bg-brand-50 dark:bg-brand-900/20 rounded-xl hover:bg-brand-100 transition-colors"
@@ -106,6 +109,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                 <div className="flex gap-3">
                     {onCancel && (
                         <button
+                            aria-label="Annuler"
                             type="button"
                             onClick={onCancel}
                             className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 rounded-xl"
@@ -114,6 +118,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                         </button>
                     )}
                     <button
+                        aria-label="Enregistrer le Modèle"
                         type="submit"
                         className="flex items-center px-6 py-2 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700 shadow-lg shadow-brand-500/20 transition-all"
                     >
@@ -140,6 +145,7 @@ const SectionEditor = ({ control, register, sIndex, onRemove }: { control: Contr
                 <div className="flex-1 grid grid-cols-12 gap-4">
                     <div className="col-span-8">
                         <input
+                            aria-label="Titre de la section"
                             {...register(`sections.${sIndex}.title`, { required: true })}
                             className="w-full text-lg font-bold bg-transparent border-0 border-b border-dashed border-slate-300 focus:border-brand-500 focus:ring-0 px-0"
                             placeholder="Titre de la section"
@@ -147,6 +153,7 @@ const SectionEditor = ({ control, register, sIndex, onRemove }: { control: Contr
                     </div>
                     <div className="col-span-4">
                         <input
+                            aria-label="Poids de la section"
                             type="number"
                             {...register(`sections.${sIndex}.weight`)}
                             className="w-full bg-transparent border border-slate-200 rounded-lg text-sm px-2 py-1"
@@ -154,7 +161,7 @@ const SectionEditor = ({ control, register, sIndex, onRemove }: { control: Contr
                         />
                     </div>
                 </div>
-                <button type="button" onClick={onRemove} className="ml-4 text-slate-400 hover:text-red-500">
+                <button aria-label="Supprimer la section" type="button" onClick={onRemove} className="ml-4 text-slate-400 hover:text-red-500">
                     <Trash2 className="w-5 h-5" />
                 </button>
             </div>
@@ -167,12 +174,14 @@ const SectionEditor = ({ control, register, sIndex, onRemove }: { control: Contr
                         </div>
                         <div className="flex-1 grid grid-cols-1 gap-3">
                             <input
+                                aria-label="Question"
                                 {...register(`sections.${sIndex}.questions.${qIndex}.text`, { required: true })}
                                 className="w-full px-3 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg"
                                 placeholder="Question..."
                             />
                             <div className="flex gap-3">
                                 <select
+                                    aria-label="Type de question"
                                     {...register(`sections.${sIndex}.questions.${qIndex}.type`)}
                                     className="px-3 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg text-slate-600"
                                 >
@@ -184,6 +193,7 @@ const SectionEditor = ({ control, register, sIndex, onRemove }: { control: Contr
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs text-slate-500">Poids:</span>
                                     <input
+                                        aria-label="Poids de la question"
                                         type="number"
                                         {...register(`sections.${sIndex}.questions.${qIndex}.weight`)}
                                         className="w-16 px-2 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg"
@@ -192,13 +202,14 @@ const SectionEditor = ({ control, register, sIndex, onRemove }: { control: Contr
                                 </div>
                             </div>
                         </div>
-                        <button type="button" onClick={() => remove(qIndex)} className="text-slate-300 hover:text-red-500">
+                        <button aria-label="Supprimer la question" type="button" onClick={() => remove(qIndex)} className="text-slate-300 hover:text-red-500">
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </div>
                 ))}
 
                 <button
+                    aria-label="Ajouter une Question"
                     type="button"
                     onClick={() => append({ id: crypto.randomUUID(), text: '', type: 'yes_no', weight: 1, required: true })}
                     className="text-sm text-brand-600 font-medium hover:text-brand-700 flex items-center mt-2"

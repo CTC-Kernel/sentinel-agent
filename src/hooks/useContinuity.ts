@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { collection, addDoc, deleteDoc, updateDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
@@ -9,9 +9,11 @@ import { BusinessProcessFormData } from '../schemas/continuitySchema';
 
 export const useContinuity = () => {
     const { user, addToast, t } = useStore();
+    const [loading, setLoading] = useState(false);
 
     const addProcess = useCallback(async (data: BusinessProcessFormData) => {
         if (!user?.organizationId) return;
+        setLoading(true);
         try {
             const newProcess = {
                 ...data,
@@ -29,26 +31,32 @@ export const useContinuity = () => {
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useContinuity.addProcess', 'CREATE_FAILED');
             throw error;
+        } finally {
+            setLoading(false);
         }
     }, [user, addToast, t]);
 
-    const updateProcess = useCallback(async (id: string, data: BusinessProcessFormData) => {
+    const updateProcess = useCallback(async (id: string, data: Partial<BusinessProcessFormData>) => {
         if (!user?.organizationId) return;
+        setLoading(true);
         try {
             await updateDoc(doc(db, 'business_processes', id), {
                 ...data,
                 updatedAt: new Date().toISOString()
             });
-            await logAction(user, 'UPDATE', 'BusinessProcess', `Updated process: ${data.name}`);
+            await logAction(user, 'UPDATE', 'BusinessProcess', `Updated process: ${data.name || id}`);
             addToast(t('continuity.toastUpdated'), 'success');
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useContinuity.updateProcess', 'UPDATE_FAILED');
             throw error;
+        } finally {
+            setLoading(false);
         }
     }, [user, addToast, t]);
 
     const deleteProcess = useCallback(async (id: string) => {
         if (!user?.organizationId) return;
+        setLoading(true);
         try {
             await deleteDoc(doc(db, 'business_processes', id));
             await logAction(user, 'DELETE', 'BusinessProcess', `Deleted process: ${id}`);
@@ -56,11 +64,14 @@ export const useContinuity = () => {
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useContinuity.deleteProcess', 'DELETE_FAILED');
             throw error;
+        } finally {
+            setLoading(false);
         }
     }, [user, addToast, t]);
 
-    const logDrill = useCallback(async (data: Partial<BcpDrill>) => {
+    const addDrill = useCallback(async (data: Partial<BcpDrill>) => {
         if (!user?.organizationId) return;
+        setLoading(true);
         try {
             const batch = writeBatch(db);
 
@@ -87,8 +98,41 @@ export const useContinuity = () => {
             addToast(t('continuity.toastDrill'), 'success');
             return { id: drillRef.id, ...newDrill };
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'useContinuity.logDrill', 'CREATE_FAILED');
+            ErrorLogger.handleErrorWithToast(error, 'useContinuity.addDrill', 'CREATE_FAILED');
             throw error;
+        } finally {
+            setLoading(false);
+        }
+    }, [user, addToast, t]);
+
+    const updateDrill = useCallback(async (id: string, data: Partial<BcpDrill>) => {
+        if (!user?.organizationId) return;
+        setLoading(true);
+        try {
+            await updateDoc(doc(db, 'bcp_drills', id), {
+                ...data,
+                updatedAt: new Date().toISOString()
+            });
+            addToast(t('continuity.toastDrillUpdated'), 'success');
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'useContinuity.updateDrill', 'UPDATE_FAILED');
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }, [user, addToast, t]);
+
+    const deleteDrill = useCallback(async (id: string) => {
+        if (!user?.organizationId) return;
+        setLoading(true);
+        try {
+            await deleteDoc(doc(db, 'bcp_drills', id));
+            addToast(t('continuity.toastDrillDeleted'), 'success');
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'useContinuity.deleteDrill', 'DELETE_FAILED');
+            throw e;
+        } finally {
+            setLoading(false);
         }
     }, [user, addToast, t]);
 
@@ -96,6 +140,9 @@ export const useContinuity = () => {
         addProcess,
         updateProcess,
         deleteProcess,
-        logDrill
+        addDrill,
+        updateDrill,
+        deleteDrill,
+        loading
     };
 };

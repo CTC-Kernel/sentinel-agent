@@ -209,6 +209,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
             <button
               onClick={onClose}
               className="text-slate-500 hover:text-slate-600"
+              aria-label="Fermer le playbook"
             >
               <XCircle className="h-6 w-6" />
             </button>
@@ -236,6 +237,14 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                         : 'border-gray-200 hover:border-gray-300'
                         }`}
                       onClick={() => setSelectedPlaybook(playbook)}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Sélectionner le playbook ${playbook.title}`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          setSelectedPlaybook(playbook);
+                        }
+                      }}
                     >
                       <div className="flex items-center justify-between">
                         <div>
@@ -268,6 +277,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                     onClick={handleInitiateResponse}
                     disabled={initiating}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    aria-label="Initier la réponse à l'incident"
                   >
                     {initiating ? 'Initialisation...' : 'Initier la Response'}
                   </button>
@@ -303,6 +313,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                   <button
                     onClick={handleEscalate}
                     className="px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm"
+                    aria-label="Escalader l'incident"
                   >
                     <ArrowRight className="h-3 w-3 inline mr-1" />
                     Escalader
@@ -310,6 +321,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                   <button
                     onClick={handleCompleteResponse}
                     className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                    aria-label="Terminer la réponse"
                   >
                     <CheckCircle2 className="h-3 w-3 inline mr-1" />
                     Terminer
@@ -390,6 +402,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
                           <button
                             onClick={() => handleStepComplete(step.id)}
                             className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
+                            aria-label={`Valider l'étape ${step.title}`}
                           >
                             Valider l'étape
                           </button>

@@ -69,6 +69,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                 {/* Left: Mobile Menu & Search Trigger */}
                 <div className="flex items-center flex-1 gap-4">
                     <button
+                        aria-label="Ouvrir le menu mobile"
                         onClick={() => setMobileOpen(true)}
                         className="p-2 -ml-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors lg:hidden rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
                     >
@@ -80,6 +81,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
 
                     {/* Modern Search Bar Trigger */}
                     <button
+                        aria-label="Rechercher (Cmd+K)"
                         data-tour="command-palette"
                         onClick={openCommandPalette}
                         className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-100/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl text-sm text-slate-600 dark:text-slate-400 transition-all duration-200 group w-full max-w-sm shadow-sm hover:shadow-md"
@@ -94,6 +96,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
 
                     {/* Mobile Search Icon */}
                     <button
+                        aria-label="Rechercher"
                         onClick={openCommandPalette}
                         className="md:hidden p-2 text-slate-500 hover:text-slate-600 dark:hover:text-white transition-colors"
                     >
@@ -142,6 +145,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
 
                     <div className="relative" ref={userMenuRef}>
                         <button
+                            aria-label="Menu utilisateur"
                             data-tour="header-profile"
                             className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-slate-50 dark:hover:bg-white/5 transition-all group focus:outline-none focus:ring-2 focus:ring-brand-500/50"
                             onClick={() => setShowUserMenu(!showUserMenu)}
@@ -196,6 +200,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                         {t('settings.plansAndBilling')}
                                     </Link>
                                     <button
+                                        aria-label="Donner un avis"
                                         onClick={() => { setShowUserMenu(false); setShowFeedback(true); }}
                                         className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors"
                                     >
@@ -206,6 +211,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                 <div className="h-px bg-slate-100 dark:bg-white/5 mx-2"></div>
                                 <div className="p-2">
                                     <button
+                                        aria-label="Se déconnecter"
                                         onClick={() => { handleLogout(); setShowUserMenu(false); }}
                                         className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors"
                                     >

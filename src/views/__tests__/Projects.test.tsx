@@ -84,6 +84,7 @@ vi.mock('../../components/ui/PremiumPageControl', () => ({
         <div data-testid="premium-page-control">
             {children}
             <input
+                aria-label="Rechercher"
                 placeholder="Rechercher..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
@@ -96,7 +97,7 @@ vi.mock('../../components/ui/ScrollableTabs', () => ({
     ScrollableTabs: ({ tabs, activeTab: _activeTab, onTabChange }: { tabs: Array<{ id: string; label: string }>, activeTab: string, onTabChange: (id: string) => void }) => (
         <div data-testid="scrollable-tabs">
             {tabs.map((t: { id: string; label: string }) => (
-                <button key={t.id} onClick={() => onTabChange(t.id)}>
+                <button aria-label={t.label} key={t.id} onClick={() => onTabChange(t.id)}>
                     {t.label}
                 </button>
             ))}

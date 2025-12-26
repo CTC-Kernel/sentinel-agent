@@ -57,6 +57,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                     {/* SUBMIT (Owner + Draft) */}
                     {isOwner && isDraft && (
                         <button
+                            aria-label="Soumettre le document pour revue"
                             onClick={() => setActionView(actionView === 'submit' ? 'none' : 'submit')}
                             className="flex items-center px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 transition"
                         >
@@ -69,6 +70,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                     {isReviewer && isInReview && (
                         <>
                             <button
+                                aria-label="Approuver le document"
                                 onClick={() => approveDocument(document)}
                                 disabled={loading}
                                 className="flex items-center px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition"
@@ -77,6 +79,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                                 Approuver
                             </button>
                             <button
+                                aria-label="Rejeter le document"
                                 onClick={() => setActionView(actionView === 'reject' ? 'none' : 'reject')}
                                 className="flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition"
                             >
@@ -89,6 +92,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                     {/* PUBLISH (Owner + Approved) */}
                     {isOwner && isApproved && (
                         <button
+                            aria-label="Publier officiellement le document"
                             onClick={() => onPublish ? onPublish() : publishDocument(document)}
                             disabled={loading}
                             className="flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition"
@@ -105,6 +109,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                         <div>
                             <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">Sélectionner les réviseurs</label>
                             <select
+                                aria-label="Sélectionner les réviseurs"
                                 multiple
                                 className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2 min-h-[80px]"
                                 onChange={(e) => setSelectedReviewers(Array.from(e.target.selectedOptions, option => option.value))}
@@ -116,6 +121,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                             <p className="text-[10px] text-slate-500 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs.</p>
                         </div>
                         <input
+                            aria-label="Message pour les réviseurs"
                             type="text"
                             placeholder="Message pour les réviseurs..."
                             className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2"
@@ -123,8 +129,8 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                             onChange={(e) => setComment(e.target.value)}
                         />
                         <div className="flex justify-end gap-2">
-                            <button onClick={() => setActionView('none')} className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1">Annuler</button>
-                            <button onClick={handleSubmit} disabled={loading || selectedReviewers.length === 0} className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 disabled:opacity-50">Confirmer</button>
+                            <button aria-label="Annuler la soumission" onClick={() => setActionView('none')} className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1">Annuler</button>
+                            <button aria-label="Confirmer la soumission" onClick={handleSubmit} disabled={loading || selectedReviewers.length === 0} className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 disabled:opacity-50">Confirmer</button>
                         </div>
                     </motion.div>
                 )}
@@ -132,14 +138,15 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                 {actionView === 'reject' && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3 bg-white dark:bg-slate-800 p-3 rounded-lg border border-red-200 dark:border-red-900/30">
                         <textarea
+                            aria-label="Raison du rejet"
                             placeholder="Raison du rejet (obligatoire)..."
                             className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                         />
                         <div className="flex justify-end gap-2">
-                            <button onClick={() => setActionView('none')} className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1">Annuler</button>
-                            <button onClick={handleReject} disabled={loading || !comment} className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:opacity-50">Confirmer le Rejet</button>
+                            <button aria-label="Annuler le rejet" onClick={() => setActionView('none')} className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1">Annuler</button>
+                            <button aria-label="Confirmer le rejet" onClick={handleReject} disabled={loading || !comment} className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:opacity-50">Confirmer le Rejet</button>
                         </div>
                     </motion.div>
                 )}

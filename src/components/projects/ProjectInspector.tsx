@@ -194,27 +194,27 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                 actions={
                     <>
                         <CustomTooltip content="Générer un rapport exécutif PDF">
-                            <button onClick={onExportExecutiveReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><FileText className="h-5 w-5 text-indigo-500" /></button>
+                            <button aria-label="Générer un rapport exécutif PDF" onClick={onExportExecutiveReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><FileText className="h-5 w-5 text-indigo-500" /></button>
                         </CustomTooltip>
                         <CustomTooltip content="Télécharger le rapport">
-                            <button onClick={onGenerateReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Download className="h-5 w-5" /></button>
+                            <button aria-label="Télécharger le rapport" onClick={onGenerateReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Download className="h-5 w-5" /></button>
                         </CustomTooltip>
                         {canEdit && (
                             <CustomTooltip content="Dupliquer le projet">
-                                <button onClick={() => onDuplicateProject(project)} disabled={isSubmitting} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                <button aria-label="Dupliquer le projet" onClick={() => onDuplicateProject(project)} disabled={isSubmitting} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm disabled:opacity-50">
                                     {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Copy className="h-5 w-5" />}
                                 </button>
                             </CustomTooltip>
                         )}
                         {canEdit && (
                             <CustomTooltip content="Modifier le projet">
-                                <button onClick={() => onEditProject(project)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                                <button aria-label="Modifier le projet" onClick={() => onEditProject(project)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                             </CustomTooltip>
                         )}
                         {/* Delete handled by parent via onDeleteProject which likely triggers ConfirmModal */}
                         {onDeleteProject && (
                             <CustomTooltip content="Supprimer le projet">
-                                <button onClick={() => onDeleteProject(project.id, project.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                                <button aria-label="Supprimer le projet" onClick={() => onDeleteProject(project.id, project.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
                             </CustomTooltip>
                         )}
                     </>
@@ -246,11 +246,11 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                             <div className="space-y-6 h-full flex flex-col">
                                 <div className="flex justify-between items-center">
                                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700">
-                                        <button onClick={() => setViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Liste</button>
-                                        <button onClick={() => setViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Tableau</button>
+                                        <button aria-label="Vue Liste" onClick={() => setViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Liste</button>
+                                        <button aria-label="Vue Tableau" onClick={() => setViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Tableau</button>
                                     </div>
                                     {canEdit && (
-                                        <button onClick={() => { setEditingTask(undefined); setShowTaskModal(true); }} className="flex items-center gap-2 px-4 py-2 text-xs font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 hover:scale-105 transition-all shadow-lg shadow-brand-500/30">
+                                        <button aria-label="Nouvelle tâche" onClick={() => { setEditingTask(undefined); setShowTaskModal(true); }} className="flex items-center gap-2 px-4 py-2 text-xs font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 hover:scale-105 transition-all shadow-lg shadow-brand-500/30">
                                             <Plus className="h-4 w-4" /> Nouvelle tâche
                                         </button>
                                     )}
@@ -259,13 +259,13 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     <div className="space-y-2">
                                         {project.tasks?.map(task => (
                                             <div key={task.id} className="flex items-center p-3 glass-panel rounded-xl border border-white/60 dark:border-white/10 group hover:shadow-apple transition-all">
-                                                <button onClick={() => toggleTaskStatus(task.id)} disabled={!canEdit} className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-green-500'}`}>
+                                                <button aria-label={`Marquer comme ${task.status === 'Terminé' ? 'à faire' : 'terminé'}`} onClick={() => toggleTaskStatus(task.id)} disabled={!canEdit} className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-green-500'}`}>
                                                     {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
                                                 </button>
                                                 <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'}`}>{task.title}</span>
                                                 {canEdit && (
                                                     <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <button onClick={() => {
+                                                        <button aria-label="Télécharger l'ICS de la tâche" onClick={() => {
                                                             const startDate = task.startDate ? new Date(task.startDate) : new Date();
                                                             const endDate = task.dueDate ? new Date(task.dueDate) : new Date(startDate.getTime() + 60 * 60 * 1000);
                                                             const ics = generateICS([{
@@ -277,7 +277,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                                             }]);
                                                             downloadICS(`task_${task.id}.ics`, ics);
                                                         }} className="p-1.5 text-slate-500 hover:text-blue-500 transition-all"><CalendarDays className="h-3.5 w-3.5" /></button>
-                                                        <button onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-500 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
+                                                        <button aria-label="Supprimer la tâche" onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-500 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
                                                     </div>
                                                 )}
                                             </div>

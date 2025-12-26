@@ -1,4 +1,5 @@
 import { db } from '../firebase';
+import { ErrorLogger } from './errorLogger';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export interface Dependency {
@@ -78,7 +79,7 @@ export class DependencyService {
             };
 
         } catch (error) {
-            console.error('Error checking dependencies:', error);
+            ErrorLogger.error(error, 'DependencyService.checkRiskDependencies');
             // Fail safe: assume dependencies exist if error to prevent accidental deletion
             return {
                 hasDependencies: true,
@@ -116,7 +117,7 @@ export class DependencyService {
                 blockingReasons: dependencies.length > 0 ? [`Cet actif est lié à ${dependencies.length} risques.`] : []
             };
         } catch (error) {
-            console.error('Error checking asset dependencies:', error);
+            ErrorLogger.error(error, 'DependencyService.checkAssetDependencies');
             return { hasDependencies: true, dependencies: [], canDelete: false, blockingReasons: ['Erreur lors de la vérification.'] };
         }
     }
@@ -157,7 +158,7 @@ export class DependencyService {
                 blockingReasons: dependencies.length > 0 ? [`Ce contrôle est lié à ${dependencies.length} éléments.`] : []
             };
         } catch (error) {
-            console.error('Error checking control dependencies:', error);
+            ErrorLogger.error(error, 'DependencyService.checkControlDependencies');
             return { hasDependencies: true, dependencies: [], canDelete: false, blockingReasons: ['Erreur lors de la vérification.'] };
         }
     }

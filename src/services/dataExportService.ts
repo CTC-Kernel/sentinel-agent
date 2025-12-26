@@ -1,5 +1,6 @@
 import { db } from '../firebase';
 import { collection, getDocs, query, where, DocumentData } from 'firebase/firestore';
+import { ErrorLogger } from './errorLogger';
 import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
 
@@ -28,7 +29,7 @@ export class DataExportService {
             saveAs(content, `sentinel_export_${organizationId}_${timestamp}.zip`);
 
         } catch (error) {
-            console.error('Export failed:', error);
+            ErrorLogger.error(error, 'DataExportService.exportOrganizationData');
             throw error;
         }
     }

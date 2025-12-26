@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useStore } from '../store';
-import { ArrowRight, User as UserIcon, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2, Globe, Activity } from '../components/ui/Icons';
+import { ArrowRight, User as UserIcon, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2, BrainCircuit } from '../components/ui/Icons';
 import { motion } from 'framer-motion';
 import { PLANS } from '../config/plans';
 import { PlanType, UserProfile } from '../types';
@@ -388,6 +388,7 @@ export const Onboarding: React.FC = () => {
                     {mode === 'select' && (
                         <div className="grid grid-cols-1 gap-4">
                             <button
+                                aria-label={t('onboarding.actions.createOrg')}
                                 onClick={() => setMode('create')}
                                 className="group relative p-6 rounded-3xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-500 dark:hover:border-brand-400 hover:shadow-lg transition-all text-left"
                             >
@@ -403,6 +404,7 @@ export const Onboarding: React.FC = () => {
                             </button>
 
                             <button
+                                aria-label={t('onboarding.actions.joinOrg')}
                                 onClick={() => setMode('join')}
                                 className="group relative p-6 rounded-3xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-500 dark:hover:border-brand-400 hover:shadow-lg transition-all text-left"
                             >
@@ -426,6 +428,7 @@ export const Onboarding: React.FC = () => {
                                     <form onSubmit={handleSearchOrg} className="relative">
                                         <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
                                         <input
+                                            aria-label={t('onboarding.actions.search')}
                                             type="text"
                                             className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500"
                                             placeholder={t('onboarding.actions.search') + "..."}
@@ -433,6 +436,7 @@ export const Onboarding: React.FC = () => {
                                             onChange={e => setSearchQuery(e.target.value)}
                                         />
                                         <button
+                                            aria-label={t('onboarding.actions.search')}
                                             type="submit"
                                             disabled={loading || !searchQuery}
                                             className="absolute right-2 top-2 px-4 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs shadow-lg disabled:opacity-50"
@@ -449,6 +453,7 @@ export const Onboarding: React.FC = () => {
                                                     <p className="text-xs text-slate-600">{org.industry || 'Non spécifié'}</p>
                                                 </div>
                                                 <button
+                                                    aria-label={t('onboarding.actions.join')}
                                                     onClick={() => handleJoinRequest(org.id, org.name)}
                                                     disabled={loading}
                                                     className="px-4 py-2 bg-brand-50 dark:bg-slate-900 text-brand-600 dark:bg-slate-900/20 dark:text-brand-400 rounded-xl text-sm font-bold hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors disabled:opacity-50"
@@ -473,6 +478,7 @@ export const Onboarding: React.FC = () => {
                                         {t('onboarding.actions.sentDesc')}
                                     </p>
                                     <button
+                                        aria-label={t('onboarding.actions.home')}
                                         onClick={() => window.location.reload()}
                                         className="mt-8 px-6 py-3 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
                                     >
@@ -482,6 +488,7 @@ export const Onboarding: React.FC = () => {
                             )}
                             {!joinRequestSent && (
                                 <button
+                                    aria-label={t('onboarding.actions.back')}
                                     onClick={() => setMode('select')}
                                     className="w-full py-4 text-slate-600 hover:text-slate-700 dark:hover:text-slate-300 font-bold transition-colors"
                                 >
@@ -555,6 +562,7 @@ export const Onboarding: React.FC = () => {
                                     <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
                                         <div className="flex items-center h-5 mt-0.5">
                                             <input
+                                                aria-label={t('onboarding.form.terms')}
                                                 id="terms"
                                                 type="checkbox"
                                                 checked={termsAccepted}
@@ -564,18 +572,19 @@ export const Onboarding: React.FC = () => {
                                         </div>
                                     </div>
                                     <label htmlFor="terms" className="text-sm text-slate-600 dark:text-slate-400">
-                                        {t('onboarding.form.terms')} <button type="button" onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="text-brand-600 dark:text-brand-400 font-bold hover:underline">{t('onboarding.form.conditions')}</button>...
+                                        {t('onboarding.form.terms')} <button aria-label="Lire les conditions générales" type="button" onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="text-brand-600 dark:text-brand-400 font-bold hover:underline">{t('onboarding.form.conditions')}</button>...
                                     </label>
 
                                     <div className="pt-4 flex gap-3">
                                         <button
+                                            aria-label="Retour à l'étape précédente"
                                             type="button"
                                             onClick={() => setMode('select')}
                                             className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                                         >
                                             {t('onboarding.actions.back')}
                                         </button>
-                                        <button type="submit" disabled={loading || (!user?.organizationId && !form.watch('organizationName')) || !termsAccepted} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <button aria-label="Continuer vers l'étape suivante" type="submit" disabled={loading || (!user?.organizationId && !form.watch('organizationName')) || !termsAccepted} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
                                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                         </button>
                                     </div>
@@ -618,8 +627,8 @@ export const Onboarding: React.FC = () => {
                                                     </div>
                                                     <div className="h-px w-full bg-slate-100 dark:bg-white/5 my-4" />
                                                     <ul className="space-y-2">
-                                                        {features && features.slice(0, 3).map((f, i) => (
-                                                            <li key={i} className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
+                                                        {features && features.slice(0, 3).map((f) => (
+                                                            <li key={f} className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-300">
                                                                 <div className={`mr-2 p-0.5 rounded-full ${isSelected ? 'bg-brand-100 dark:bg-slate-900/30 text-brand-600 dark:text-brand-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-600'}`}>
                                                                     <Check className="h-2.5 w-2.5" strokeWidth={3} />
                                                                 </div>
@@ -640,12 +649,14 @@ export const Onboarding: React.FC = () => {
                                     </div>
                                     <div className="pt-4 flex gap-3">
                                         <button
+                                            aria-label="Retour à l'étape 1"
                                             onClick={() => setStep(1)}
                                             className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                                         >
                                             {t('onboarding.actions.back')}
                                         </button>
                                         <button
+                                            aria-label="Valider le plan et continuer"
                                             onClick={() => setStep(3)}
                                             disabled={loading}
                                             className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
@@ -690,8 +701,8 @@ export const Onboarding: React.FC = () => {
                                         />
                                     </div>
                                     <div className="pt-4 flex gap-3">
-                                        <button onClick={() => setStep(2)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
-                                        <button onClick={handleStep3} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
+                                        <button aria-label="Retour à l'étape 2" onClick={() => setStep(2)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
+                                        <button aria-label="Valider le périmètre et continuer" onClick={handleStep3} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
                                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                         </button>
                                     </div>
@@ -731,7 +742,7 @@ export const Onboarding: React.FC = () => {
                                                     label=""
                                                 />
                                             </div>
-                                            <button onClick={handleInviteUser} className="px-4 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold hover:opacity-90 transition-opacity h-[56px] flex items-center justify-center">
+                                            <button aria-label="Inviter l'utilisateur" onClick={handleInviteUser} className="px-4 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold hover:opacity-90 transition-opacity h-[56px] flex items-center justify-center">
                                                 <Plus className="h-5 w-5" />
                                             </button>
                                         </div>
@@ -749,7 +760,7 @@ export const Onboarding: React.FC = () => {
                                                             <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{userInvite.role}</span>
                                                         </div>
                                                     </div>
-                                                    <button onClick={() => handleRemoveInvite(userInvite.email)} className="text-slate-500 hover:text-red-500 transition-colors">
+                                                    <button aria-label="Retirer l'invitation" onClick={() => handleRemoveInvite(userInvite.email)} className="text-slate-500 hover:text-red-500 transition-colors">
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
                                                 </div>
@@ -757,8 +768,8 @@ export const Onboarding: React.FC = () => {
                                         </div>
                                     )}
                                     <div className="pt-4 flex gap-3">
-                                        <button onClick={() => setStep(3)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
-                                        <button onClick={handleStep4} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
+                                        <button aria-label="Retour à l'étape 3" onClick={() => setStep(3)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
+                                        <button aria-label="Continuer vers l'étape 5" onClick={handleStep4} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
                                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{invitedUsers.length > 0 ? t('onboarding.actions.inviteContinue') : t('onboarding.actions.skip')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
                                         </button>
                                     </div>
@@ -823,11 +834,11 @@ export const Onboarding: React.FC = () => {
                                                                 placeholder="Type"
                                                             />
                                                         </div>
-                                                        <button onClick={handleAddAsset} className="p-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold h-[56px] w-[56px] flex items-center justify-center">
+                                                        <button onClick={handleAddAsset} aria-label="Ajouter l'actif" className="p-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold h-[56px] w-[56px] flex items-center justify-center">
                                                             <Plus className="h-5 w-5" />
                                                         </button>
                                                     </div>
-                                                    <button onClick={() => setManualMode(false)} className="text-xs text-slate-500 hover:text-slate-700 underline">Switch to auto scan</button>
+                                                    <button onClick={() => setManualMode(false)} aria-label="Passer au scan automatique" className="text-xs text-slate-500 hover:text-slate-700 underline">Switch to auto scan</button>
                                                 </div>
                                             ) : (
                                                 initialAssets.length === 0 && (
@@ -844,7 +855,7 @@ export const Onboarding: React.FC = () => {
                                                         <h3 className="font-bold text-slate-900 dark:text-white">{t('onboarding.actions.autoScan')}</h3>
                                                         <p className="text-xs text-slate-500 mt-1">{t('onboarding.actions.autoScanDesc')}</p>
                                                         <div className="mt-4">
-                                                            <button onClick={(e) => { e.stopPropagation(); setManualMode(true); }} className="text-xs text-brand-600 font-bold hover:underline">{t('onboarding.actions.manualAdd')}</button>
+                                                            <button onClick={(e) => { e.stopPropagation(); setManualMode(true); }} aria-label="Ajouter manuellement un actif" className="text-xs text-brand-600 font-bold hover:underline">{t('onboarding.actions.manualAdd')}</button>
                                                         </div>
                                                     </div>
                                                 )
@@ -853,7 +864,7 @@ export const Onboarding: React.FC = () => {
                                         {initialAssets.length > 0 && (
                                             <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar p-1">
                                                 {initialAssets.map((asset, i) => (
-                                                    <div key={i} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
+                                                    <div key={`${asset.name}-${i}`} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl shadow-sm">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center">
                                                                 <Server className="h-4 w-4" />
@@ -863,7 +874,7 @@ export const Onboarding: React.FC = () => {
                                                                 <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{asset.type}</span>
                                                             </div>
                                                         </div>
-                                                        <button onClick={() => handleRemoveAsset(i)} className="text-slate-500 hover:text-red-500 transition-colors">
+                                                        <button onClick={() => handleRemoveAsset(i)} aria-label="Supprimer l'actif" className="text-slate-500 hover:text-red-500 transition-colors">
                                                             <Trash2 className="h-4 w-4" />
                                                         </button>
                                                     </div>
@@ -873,8 +884,8 @@ export const Onboarding: React.FC = () => {
                                     </div>
 
                                     <div className="pt-4 flex gap-3">
-                                        <button onClick={() => setStep(4)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
-                                        <button onClick={handleStep5} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
+                                        <button onClick={() => setStep(4)} aria-label="Retour à l'étape 4" className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
+                                        <button onClick={handleStep5} disabled={loading} aria-label="Finaliser l'inscription" className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
                                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{t('onboarding.actions.finalize')} <Check className="ml-2 h-5 w-5 group-hover:scale-110 transition-transform" strokeWidth={3} /></>}
                                         </button>
                                     </div>

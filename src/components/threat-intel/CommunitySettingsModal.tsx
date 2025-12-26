@@ -94,7 +94,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                     </h2>
                                     <p className="text-sm text-slate-500">Confidentialité et Réseau de Confiance</p>
                                 </div>
-                                <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-colors">
+                                <button aria-label="Fermer la fenêtre" onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-colors">
                                     <X className="h-5 w-5 text-slate-400" />
                                 </button>
                             </div>
@@ -102,12 +102,18 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                             {/* Tabs */}
                             <div className="flex border-b border-slate-200 dark:border-slate-800 px-6">
                                 <button
+                                    role="tab"
+                                    aria-selected={activeTab === 'general'}
+                                    aria-label="Onglet Paramètres Généraux"
                                     onClick={() => setActiveTab('general')}
                                     className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'general' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                                 >
                                     Paramètres Généraux
                                 </button>
                                 <button
+                                    role="tab"
+                                    aria-selected={activeTab === 'network'}
+                                    aria-label={`Onglet Mon Réseau, ${partners.filter(p => p.status === 'trusted').length} partenaires de confiance`}
                                     onClick={() => setActiveTab('network')}
                                     className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'network' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                                 >
@@ -139,6 +145,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                     ].map((option) => (
                                                         <button
                                                             key={option.id}
+                                                            aria-label={`Définir la portée sur ${option.label}`}
                                                             onClick={() => setSettings({ ...settings, defaultScope: option.id as SharingPreferences['defaultScope'] })}
                                                             className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${settings.defaultScope === option.id
                                                                 ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300 ring-1 ring-brand-500'
@@ -220,21 +227,21 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                     <div className="flex items-center gap-2">
                                                         {partner.status === 'pending' && (
                                                             <>
-                                                                <button onClick={() => onTrustAction(partner.id, 'trust')} className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100" title="Approuver">
+                                                                <button aria-label="Approuver le partenaire" onClick={() => onTrustAction(partner.id, 'trust')} className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100" title="Approuver">
                                                                     <Check className="h-4 w-4" />
                                                                 </button>
-                                                                <button onClick={() => onTrustAction(partner.id, 'block')} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100" title="Bloquer">
+                                                                <button aria-label="Bloquer le partenaire" onClick={() => onTrustAction(partner.id, 'block')} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100" title="Bloquer">
                                                                     <X className="h-4 w-4" />
                                                                 </button>
                                                             </>
                                                         )}
                                                         {partner.status === 'trusted' && (
-                                                            <button onClick={() => onTrustAction(partner.id, 'remove')} className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50">
+                                                            <button aria-label="Révoquer le statut de confiance" onClick={() => onTrustAction(partner.id, 'remove')} className="px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50">
                                                                 Révoquer
                                                             </button>
                                                         )}
                                                         {partner.status === 'blocked' && (
-                                                            <button onClick={() => onTrustAction(partner.id, 'trust')} className="px-3 py-1.5 text-xs font-medium text-green-600 border border-green-200 rounded-lg hover:bg-green-50">
+                                                            <button aria-label="Débloquer le partenaire" onClick={() => onTrustAction(partner.id, 'trust')} className="px-3 py-1.5 text-xs font-medium text-green-600 border border-green-200 rounded-lg hover:bg-green-50">
                                                                 Débloquer
                                                             </button>
                                                         )}

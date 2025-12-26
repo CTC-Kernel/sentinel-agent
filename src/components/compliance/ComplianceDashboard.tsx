@@ -373,7 +373,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </h4>
                     <div className="space-y-3 relative z-10">
                         {criticalControls.slice(0, 5).map((control, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10 hover:bg-white/70 dark:hover:bg-white/10 transition-colors">
+                            <div key={`task-${index}`} className="flex items-center justify-between p-3 bg-white/50 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10 hover:bg-white/70 dark:hover:bg-white/10 transition-colors">
                                 <div className="flex-1">
                                     <p className="font-bold text-sm text-foreground">{control.code} - {control.name}</p>
                                     <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{control.description}</p>

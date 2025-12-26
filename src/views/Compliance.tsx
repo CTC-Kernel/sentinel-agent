@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 import { SoAView } from '../components/compliance/SoAView';
 import { Button } from '../components/ui/button';
 import { ProjectFormData } from '../schemas/projectSchema';
+import { ErrorLogger } from '../services/errorLogger';
 
 export const Compliance: React.FC = () => {
     const { user, addToast, t } = useStore();
@@ -137,7 +138,7 @@ export const Compliance: React.FC = () => {
             );
             closeProjectDrawer();
         } catch (error) {
-            console.error(error);
+            ErrorLogger.handleErrorWithToast(error, 'Compliance.handleProjectCreation');
         }
     };
 
@@ -158,10 +159,18 @@ export const Compliance: React.FC = () => {
                         actions={
                             canEdit ? (
                                 <div className="flex gap-2">
-                                    <button className="btn-secondary" onClick={() => handleCreateClick('risk')}>
+                                    <button
+                                        aria-label={t('compliance.newRisk')}
+                                        className="btn-secondary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                        onClick={() => handleCreateClick('risk')}
+                                    >
                                         <ShieldCheck className="h-4 w-4 mr-2" /> + {t('compliance.newRisk')}
                                     </button>
-                                    <button className="btn-secondary" onClick={() => toast.info(t('compliance.exportInfo'))}>
+                                    <button
+                                        aria-label={t('compliance.export')}
+                                        className="btn-secondary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                        onClick={() => toast.info(t('compliance.exportInfo'))}
+                                    >
                                         <Download className="h-4 w-4 mr-2" /> {t('compliance.export')}
                                     </button>
                                 </div>

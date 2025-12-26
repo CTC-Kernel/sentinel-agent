@@ -98,7 +98,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
                         {cards.map((card, i) => (
-                            <button key={i} onClick={() => navigate(card.link)} className="group/card relative p-8 rounded-3xl bg-card/60 border border-border hover:border-brand-500/50 dark:hover:border-brand-400/50 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 overflow-hidden">
+                            <button key={card.link || `card-${i}`} onClick={() => navigate(card.link)} className="group/card relative p-8 rounded-3xl bg-card/60 border border-border hover:border-brand-500/50 dark:hover:border-brand-400/50 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 overflow-hidden" aria-label={card.title}>
                                 <div className={`absolute -right-10 -bottom-10 w-40 h-40 bg-${card.color}-500/10 rounded-full blur-3xl group-hover/card:bg-${card.color}-500/20 transition-all duration-500`} />
 
                                 <div className={`w-14 h-14 rounded-2xl bg-${card.color}-50 dark:bg-${card.color}-500/10 flex items-center justify-center mb-6 group-hover/card:scale-110 transition-transform duration-500 shadow-sm`}>
@@ -180,6 +180,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <button
                                         onClick={onToggleEdit}
                                         className={`p-2 rounded-md transition-all ${isEditing ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-muted-foreground hover:text-foreground hover:bg-background border border-transparent'}`}
+                                        aria-label={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')}
                                     >
                                         {isEditing ? <Check className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
                                     </button>
@@ -192,6 +193,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         onClick={generateExecutiveReport}
                                         disabled={isGeneratingReport}
                                         className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all disabled:opacity-50"
+                                        aria-label={t('dashboard.executiveReport')}
                                     >
                                         {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
                                     </button>
@@ -200,10 +202,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <button
                                         onClick={generateICal}
                                         className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all"
+                                        aria-label={t('dashboard.exportIcal')}
                                     >
                                         <CalendarDays className="h-4 w-4" />
                                     </button>
                                 </Tooltip>
+
                             </div>
 
                             {role === 'admin' && (
@@ -211,12 +215,14 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <button
                                         onClick={() => navigate('/team')}
                                         className="hidden sm:flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:-translate-y-0.5"
+                                        aria-label={t('dashboard.inviteMember')}
                                     >
                                         <Users className="h-4 w-4" />
                                         <span className="hidden xl:inline">{t('dashboard.inviteMember')}</span>
                                     </button>
                                 </Tooltip>
                             )}
+
                         </div>
                     </div>
                 </div>

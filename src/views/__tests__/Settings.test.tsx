@@ -33,8 +33,8 @@ vi.mock('../../components/settings/SettingsLayout', () => ({
     SettingsLayout: ({ children, currentTab: _currentTab, onTabChange }: { children: React.ReactNode, currentTab: string, onTabChange: (tab: string) => void }) => (
         <div>
             <div data-testid="settings-tabs">
-                <button onClick={() => onTabChange('profile')}>Profile</button>
-                <button onClick={() => onTabChange('organization')}>Organization</button>
+                <button aria-label="Profile" onClick={() => onTabChange('profile')}>Profile</button>
+                <button aria-label="Organization" onClick={() => onTabChange('organization')}>Organization</button>
             </div>
             {children}
         </div>

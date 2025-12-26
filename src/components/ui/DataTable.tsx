@@ -156,6 +156,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                     {selectable && selectedIds.length > 0 && onBulkDelete && (
                         <Tooltip content="Supprimer la sélection">
                             <button
+                                aria-label="Supprimer la sélection"
                                 onClick={() => onBulkDelete(selectedIds)}
                                 className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors animate-fade-in"
                             >
@@ -168,6 +169,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                     {exportable && (
                         <Tooltip content="Exporter en CSV">
                             <button
+                                aria-label="Exporter les données en CSV"
                                 onClick={handleExport}
                                 className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform"
                             >
@@ -222,9 +224,9 @@ export function DataTable<TData extends { id: string }, TValue>({
                     <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                         {loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
-                                <tr key={i}>
+                                <tr key={`skeleton-row-${i}`}>
                                     {tableColumns.map((_, j) => (
-                                        <td key={j} className="px-3 py-3 sm:px-6 sm:py-4">
+                                        <td key={`skeleton-cell-${j}`} className="px-3 py-3 sm:px-6 sm:py-4">
                                             <Skeleton className="h-4 w-full" />
                                         </td>
                                     ))}
@@ -280,6 +282,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                     <div className="flex gap-2">
                         <Tooltip content="Page précédente">
                             <button
+                                aria-label="Page précédente"
                                 onClick={() => table.previousPage()}
                                 disabled={!table.getCanPreviousPage()}
                                 className="w-10 h-10 rounded-2xl flex items-center justify-center border border-slate-200 dark:border-white/10 text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
@@ -307,6 +310,8 @@ export function DataTable<TData extends { id: string }, TValue>({
                                 return (
                                     <button
                                         key={pageNum}
+                                        aria-label={`Page ${pageNum}`}
+                                        aria-current={currentPage === pageNum ? 'page' : undefined}
                                         onClick={() => table.setPageIndex(pageNum - 1)}
                                         className={cn(
                                             "w-10 h-10 rounded-xl text-sm font-bold transition-colors",
@@ -323,6 +328,7 @@ export function DataTable<TData extends { id: string }, TValue>({
 
                         <Tooltip content="Page suivante">
                             <button
+                                aria-label="Page suivante"
                                 onClick={() => table.nextPage()}
                                 disabled={!table.getCanNextPage()}
                                 className="p-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-white/10 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors backdrop-blur-sm"

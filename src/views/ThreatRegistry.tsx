@@ -124,6 +124,7 @@ export const ThreatRegistry: React.FC = () => {
                     <div className="flex gap-3">
                         {threats.length === 0 && canEdit && (
                             <button
+                                aria-label="Importer Standard"
                                 onClick={handleSeed}
                                 className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-xl flex items-center transition-all shadow-lg shadow-purple-500/20 text-sm font-bold"
                             >
@@ -133,6 +134,7 @@ export const ThreatRegistry: React.FC = () => {
                         )}
                         {canEdit && (
                             <button
+                                aria-label="Nouvelle Menace"
                                 onClick={() => { setFormData({}); setShowModal(true); setIsEditing(false); }}
                                 className="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl flex items-center transition-all shadow-lg shadow-brand-500/20 text-sm font-bold"
                             >
@@ -156,6 +158,7 @@ export const ThreatRegistry: React.FC = () => {
                 <div className="flex items-center space-x-4 mb-6 relative">
                     <Search className="h-5 w-5 text-slate-500 absolute left-4" />
                     <input
+                        aria-label="Rechercher une menace"
                         type="text"
                         placeholder="Rechercher une menace, un scénario..."
                         className="w-full bg-slate-50 dark:bg-slate-900/50 pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-500"
@@ -174,7 +177,7 @@ export const ThreatRegistry: React.FC = () => {
                         <h3 className="text-lg font-medium text-slate-900 dark:text-white">Aucune menace trouvée</h3>
                         <p className="text-slate-600 mt-2">Commencez par importer la bibliothèque standard ou créez votre première menace.</p>
                         {threats.length === 0 && (
-                            <button onClick={handleSeed} className="mt-6 text-brand-500 hover:underline">
+                            <button aria-label="Importer les modèles standards" onClick={handleSeed} className="mt-6 text-brand-500 hover:underline">
                                 Importer les modèles standards
                             </button>
                         )}
@@ -190,6 +193,7 @@ export const ThreatRegistry: React.FC = () => {
                                     <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                                         <button
                                             onClick={(e) => { e.stopPropagation(); handleDelete(threat.id!); }}
+                                            aria-label="Supprimer la menace"
                                             className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"
                                         >
                                             <Trash2 className="h-4 w-4" />
@@ -325,6 +329,7 @@ export const ThreatRegistry: React.FC = () => {
                     <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
                         <button
                             type="button"
+                            aria-label="Annuler"
                             onClick={() => setShowModal(false)}
                             className="px-4 py-2 text-slate-600 hover:text-slate-900 font-medium"
                         >
@@ -332,6 +337,7 @@ export const ThreatRegistry: React.FC = () => {
                         </button>
                         <button
                             type="submit"
+                            aria-label="Sauvegarder"
                             disabled={loading}
                             className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-2 rounded-xl flex items-center shadow-lg shadow-brand-500/20"
                         >

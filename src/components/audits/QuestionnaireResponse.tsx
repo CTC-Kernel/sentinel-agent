@@ -174,6 +174,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
         return (
             <div className="mt-3">
                 <button
+                    aria-label={isOpen ? "Masquer les preuves" : "Afficher et gérer les preuves"}
                     onClick={() => setOpenEvidenceQuestionId(isOpen ? null : questionId)}
                     className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center hover:underline"
                 >
@@ -293,6 +294,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                         {[1, 2, 3, 4, 5].map((rating) => (
                             <button
                                 key={rating}
+                                aria-label={`Note ${rating} sur 5`}
                                 onClick={() => handleAnswerChange(question.id, rating)}
                                 disabled={readOnly || status === 'Submitted'}
                                 className={`w - 10 h - 10 rounded - full font - bold transition - all ${value === rating
@@ -361,6 +363,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 {/* Footer */}
                 <div className="p-6 border-t border-gray-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
                     <button
+                        aria-label="Fermer la vue questionnaire"
                         onClick={onClose}
                         className="px-4 py-2 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-white/5 rounded-xl transition-colors"
                     >
@@ -369,6 +372,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                     {!readOnly && status !== 'Submitted' && (
                         <>
                             <button
+                                aria-label="Enregistrer le brouillon"
                                 onClick={() => handleSave(false)}
                                 disabled={saving}
                                 className="px-4 py-2 text-brand-600 font-bold hover:bg-brand-50 dark:hover:bg-white/5 rounded-xl transition-colors"
@@ -376,6 +380,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 Enregistrer brouillon
                             </button>
                             <button
+                                aria-label="Lancer l'analyse IA"
                                 onClick={runAIAnalysis} // This should probably be enabled even if readOnly? Or mainly for Auditor?
                                 // Let's simplify: View AI button if answers exist.
                                 disabled={analyzing}
@@ -385,6 +390,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                                 {analysis ? 'Relancer IA' : 'Analyser'}
                             </button>
                             <button
+                                aria-label="Soumettre le questionnaire"
                                 onClick={() => handleSave(true)}
                                 disabled={saving}
                                 className="flex items-center px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors disabled:opacity-50"

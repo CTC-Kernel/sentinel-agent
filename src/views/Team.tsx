@@ -192,6 +192,7 @@ const Team: React.FC = () => {
                                 variant="outline"
                                 onClick={exportCSV}
                                 className="gap-2"
+                                aria-label={t('team.actions.exportCsv')}
                             >
                                 <FileSpreadsheet className="h-4 w-4" /> {t('team.actions.exportCsv')}
                             </Button>
@@ -200,6 +201,7 @@ const Team: React.FC = () => {
                             <Button
                                 onClick={handleOpenInviteModal}
                                 className="gap-2 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
+                                aria-label={t('team.actions.invite')}
                             >
                                 <Plus className="h-4 w-4" />
                                 {t('team.actions.invite')}
@@ -284,6 +286,7 @@ const Team: React.FC = () => {
 
             <motion.div variants={slideUpVariants} className="flex space-x-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl w-fit">
                 <button
+                    aria-label={t('team.tabs.members')}
                     onClick={() => setActiveTab('members')}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'members'
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
@@ -293,6 +296,7 @@ const Team: React.FC = () => {
                     {t('team.tabs.members')}
                 </button>
                 <button
+                    aria-label={t('team.tabs.roles')}
                     onClick={() => setActiveTab('roles')}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'roles'
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
@@ -302,6 +306,7 @@ const Team: React.FC = () => {
                     {t('team.tabs.roles')}
                 </button>
                 <button
+                    aria-label={t('team.tabs.groups')}
                     onClick={() => setActiveTab('groups')}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'groups'
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
@@ -353,6 +358,7 @@ const Team: React.FC = () => {
                                                 <div className="mt-auto flex gap-2 pt-3">
                                                     <CustomTooltip content={t('team.actions.reject')}>
                                                         <button
+                                                            aria-label={t('team.actions.reject')}
                                                             onClick={() => handleRejectRequest(req)}
                                                             className="flex-1 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all flex items-center justify-center gap-1"
                                                         >
@@ -361,6 +367,7 @@ const Team: React.FC = () => {
                                                     </CustomTooltip>
                                                     <CustomTooltip content={t('team.actions.approve')}>
                                                         <button
+                                                            aria-label={t('team.actions.approve')}
                                                             onClick={() => handleApproveRequest(req)}
                                                             className="flex-1 py-2 bg-blue-600 text-white border border-blue-500 rounded-xl text-xs font-bold hover:bg-blue-700 hover:shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-1"
                                                         >

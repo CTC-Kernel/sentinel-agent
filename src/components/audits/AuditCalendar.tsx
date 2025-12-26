@@ -41,9 +41,9 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
                         {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                     </h2>
                     <div className="flex gap-1 bg-slate-100 dark:bg-white/5 rounded-lg p-1">
-                        <button onClick={prevMonth} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors"><ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" /></button>
+                        <button onClick={prevMonth} aria-label="Mois précédent" className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors"><ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" /></button>
                         <button onClick={today} className="px-3 py-1 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors">Aujourd'hui</button>
-                        <button onClick={nextMonth} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors"><ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-400" /></button>
+                        <button onClick={nextMonth} aria-label="Mois suivant" className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors"><ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-400" /></button>
                     </div>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-slate-500">

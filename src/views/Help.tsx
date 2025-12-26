@@ -190,6 +190,7 @@ export const Help: React.FC = () => {
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                             <input
+                                aria-label="Rechercher dans l'aide"
                                 type="text"
                                 placeholder="Rechercher..."
                                 value={search}
@@ -202,6 +203,7 @@ export const Help: React.FC = () => {
                             {filteredContent.map(category => (
                                 <button
                                     key={category.id}
+                                    aria-label={category.title}
                                     onClick={() => {
                                         setSelectedCategory(category.id);
                                         setSelectedArticle(null);
@@ -228,6 +230,7 @@ export const Help: React.FC = () => {
 
                         <div className="mt-auto pt-6 border-t border-slate-200 dark:border-slate-800 space-y-3">
                             <button
+                                aria-label="Donner mon avis"
                                 onClick={() => setIsFeedbackOpen(true)}
                                 className="w-full py-3 bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 rounded-xl text-sm font-bold border border-brand-200 dark:border-brand-500/20 hover:bg-brand-100 dark:hover:bg-brand-500/20 transition-all flex items-center justify-center gap-2"
                             >
@@ -235,6 +238,7 @@ export const Help: React.FC = () => {
                                 Donner mon avis
                             </button>
                             <button
+                                aria-label="Contacter le support"
                                 onClick={() => setIsContactOpen(true)}
                                 className="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
                             >
@@ -251,6 +255,7 @@ export const Help: React.FC = () => {
                     <div className="md:hidden p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900">
                         <span className="font-bold text-slate-900 dark:text-white">Menu</span>
                         <button
+                            aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800"
                         >
@@ -284,6 +289,7 @@ export const Help: React.FC = () => {
                                                 }`}
                                         >
                                             <button
+                                                aria-label={`Voir l'article ${article.title}`}
                                                 onClick={() => setSelectedArticle(selectedArticle === article.id ? null : article.id)}
                                                 className="w-full flex items-start gap-4 p-6 text-left"
                                             >

@@ -201,6 +201,7 @@ export function validateData<T>(
     const validatedData = schema.parse(data);
     return { success: true, data: validatedData };
   } catch (error) {
+    // ErrorLogger not required for validation (handled by caller)
     if (error instanceof z.ZodError) {
       const errors = error.issues.map(err =>
         `${err.path.join('.')}: ${err.message}`
@@ -222,6 +223,7 @@ export function getValidationError<T>(
     schema.parse(data);
     return null;
   } catch (error) {
+    // ErrorLogger not required for validation (handled by caller)
     if (error instanceof z.ZodError) {
       return error.issues[0]?.message || "Données invalides";
     }

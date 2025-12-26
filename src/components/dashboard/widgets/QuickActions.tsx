@@ -25,7 +25,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ navigate, t, stats }
                 </div>
             </button>
 
-            <button onClick={() => navigate('/incidents')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-red-300 dark:hover:border-red-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow">
+            <button onClick={() => navigate('/incidents')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-red-300 dark:hover:border-red-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow" aria-label={t('dashboard.incidents')}>
                 <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none" />
                 <div className="relative z-10 flex flex-col items-center gap-3">
                     {stats && stats.activeIncidents > 0 && (
@@ -40,7 +40,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ navigate, t, stats }
                 </div>
             </button>
 
-            <button onClick={() => navigate('/risks')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-orange-300 dark:hover:border-orange-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow">
+            <button onClick={() => navigate('/risks')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-orange-300 dark:hover:border-orange-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow" aria-label={t('dashboard.risks')}>
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent pointer-events-none" />
                 <div className="relative z-10 flex flex-col items-center gap-3">
                     {stats && stats.highRisks > 0 && (
@@ -55,7 +55,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ navigate, t, stats }
                 </div>
             </button>
 
-            <button onClick={() => navigate('/assets')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-blue-300 dark:hover:border-blue-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow">
+            <button onClick={() => navigate('/assets')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-blue-300 dark:hover:border-blue-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow" aria-label={t('dashboard.assets')}>
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none" />
                 <div className="relative z-10 flex flex-col items-center gap-3">
                     {stats && stats.assets > 0 && (
@@ -70,7 +70,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ navigate, t, stats }
                 </div>
             </button>
 
-            <button onClick={() => navigate('/team')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-emerald-300 dark:hover:border-emerald-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow">
+            <button onClick={() => navigate('/team')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-emerald-300 dark:hover:border-emerald-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow" aria-label={t('dashboard.team')}>
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none" />
                 <div className="relative z-10 flex flex-col items-center gap-3">
                     <div className="p-3 bg-emerald-50 dark:bg-emerald-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/30">

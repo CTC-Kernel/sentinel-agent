@@ -207,6 +207,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                             }
                         }}
                         className="flex items-center px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                        aria-label="Exporter les preuves (ZIP)"
                     >
                         <FileText className="w-4 h-4 mr-2" />
                         Exporter (ZIP)
@@ -215,6 +216,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                         <button
                             onClick={() => setIsCreating(!isCreating)}
                             className="flex items-center px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform"
+                            aria-label={isCreating ? "Annuler la création" : "Nouvelle demande de preuve"}
                         >
                             {isCreating ? <X className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
                             {isCreating ? 'Annuler' : 'Nouvelle Demande'}
@@ -223,50 +225,52 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                 </div>
             </div>
 
-            {isCreating && (
-                <form onSubmit={handleCreate} className="bg-slate-50 dark:bg-white/5 p-6 rounded-2xl border border-slate-100 dark:border-white/10 space-y-4 animate-fade-in">
-                    <FloatingLabelInput
-                        label="Titre de la demande"
-                        value={formData.title}
-                        onChange={e => setFormData({ ...formData, title: e.target.value })}
-                        required
-                    />
-                    <FloatingLabelTextarea
-                        label="Description détaillée"
-                        value={formData.description}
-                        onChange={e => setFormData({ ...formData, description: e.target.value })}
-                        required
-                        rows={3}
-                    />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <CustomSelect
-                            label="Assigné à"
-                            value={formData.assignedTo}
-                            onChange={val => setFormData({ ...formData, assignedTo: val as string })}
-                            options={users.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                            placeholder="Sélectionner un responsable..."
-                        />
+            {
+                isCreating && (
+                    <form onSubmit={handleCreate} className="bg-slate-50 dark:bg-white/5 p-6 rounded-2xl border border-slate-100 dark:border-white/10 space-y-4 animate-fade-in">
                         <FloatingLabelInput
-                            label="Date d'échéance"
-                            type="date"
-                            value={formData.dueDate}
-                            onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
+                            label="Titre de la demande"
+                            value={formData.title}
+                            onChange={e => setFormData({ ...formData, title: e.target.value })}
+                            required
                         />
-                    </div>
-                    <CustomSelect
-                        label="Lier à un contrôle (Optionnel)"
-                        value={formData.relatedControlId}
-                        onChange={val => setFormData({ ...formData, relatedControlId: val as string })}
-                        options={controls.map(c => ({ value: c.id, label: `${c.code} - ${c.name}` }))}
-                        placeholder="Sélectionner un contrôle..."
-                    />
-                    <div className="flex justify-end pt-2">
-                        <button type="submit" className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors">
-                            Créer la demande
-                        </button>
-                    </div>
-                </form>
-            )}
+                        <FloatingLabelTextarea
+                            label="Description détaillée"
+                            value={formData.description}
+                            onChange={e => setFormData({ ...formData, description: e.target.value })}
+                            required
+                            rows={3}
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <CustomSelect
+                                label="Assigné à"
+                                value={formData.assignedTo}
+                                onChange={val => setFormData({ ...formData, assignedTo: val as string })}
+                                options={users.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
+                                placeholder="Sélectionner un responsable..."
+                            />
+                            <FloatingLabelInput
+                                label="Date d'échéance"
+                                type="date"
+                                value={formData.dueDate}
+                                onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
+                            />
+                        </div>
+                        <CustomSelect
+                            label="Lier à un contrôle (Optionnel)"
+                            value={formData.relatedControlId}
+                            onChange={val => setFormData({ ...formData, relatedControlId: val as string })}
+                            options={controls.map(c => ({ value: c.id, label: `${c.code} - ${c.name}` }))}
+                            placeholder="Sélectionner un contrôle..."
+                        />
+                        <div className="flex justify-end pt-2">
+                            <button type="submit" aria-label="Soumettre la demande" className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors">
+                                Créer la demande
+                            </button>
+                        </div>
+                    </form>
+                )
+            }
 
             <div className="space-y-4">
                 {requests.length === 0 && !isCreating && (
@@ -368,18 +372,18 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                                         <div className="flex flex-col gap-2 min-w-[150px]">
                                             <h5 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Actions</h5>
                                             {req.status !== 'Accepted' && (
-                                                <button onClick={() => handleStatusChange(req, 'Accepted')} className="w-full px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 transition-colors flex items-center justify-center">
+                                                <button onClick={() => handleStatusChange(req, 'Accepted')} aria-label="Accepter la demande" className="w-full px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 transition-colors flex items-center justify-center">
                                                     <ShieldCheck className="w-4 h-4 mr-2" />
                                                     Accepter
                                                 </button>
                                             )}
                                             {req.status !== 'Rejected' && (
-                                                <button onClick={() => handleStatusChange(req, 'Rejected')} className="w-full px-3 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-bold hover:bg-red-200 transition-colors flex items-center justify-center">
+                                                <button onClick={() => handleStatusChange(req, 'Rejected')} aria-label="Rejeter la demande" className="w-full px-3 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-bold hover:bg-red-200 transition-colors flex items-center justify-center">
                                                     <X className="w-4 h-4 mr-2" />
                                                     Rejeter
                                                 </button>
                                             )}
-                                            <button onClick={() => handleDelete(req.id)} className="w-full px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors flex items-center justify-center mt-auto">
+                                            <button onClick={() => handleDelete(req.id)} aria-label="Supprimer la demande" className="w-full px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors flex items-center justify-center mt-auto">
                                                 <Trash2 className="w-4 h-4 mr-2" />
                                                 Supprimer
                                             </button>
@@ -391,6 +395,6 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                     </div>
                 ))}
             </div>
-        </div>
+        </div >
     );
 };

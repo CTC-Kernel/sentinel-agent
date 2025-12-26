@@ -173,6 +173,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                     onClick={() => handleAction('analyze')}
                     disabled={loading}
                     className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'analyze' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    aria-label="Analyser le risque avec l'IA"
                 >
                     {loading && mode === 'analyze' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5 mr-2" />}
                     Analyser le risque
@@ -181,6 +182,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                     onClick={() => handleAction('mitigate')}
                     disabled={loading}
                     className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'mitigate' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    aria-label="Suggérer des mesures d'atténuation par IA"
                 >
                     {loading && mode === 'mitigate' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 mr-2" />}
                     Suggérer mesures
@@ -189,6 +191,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                     onClick={() => handleAction('improve')}
                     disabled={loading}
                     className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'improve' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    aria-label="Améliorer le texte du risque par IA"
                 >
                     {loading && mode === 'improve' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <FileText className="h-3.5 w-3.5 mr-2" />}
                     Améliorer texte
@@ -206,7 +209,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                             <Bot className="h-3.5 w-3.5 mr-1.5" />
                             Réponse de l'IA
                         </h4>
-                        <button onClick={handleDismiss} className="text-slate-500 hover:text-slate-600"><X className="h-3.5 w-3.5" /></button>
+                        <button onClick={handleDismiss} className="text-slate-500 hover:text-slate-600" aria-label="Fermer la réponse IA"><X className="h-3.5 w-3.5" /></button>
                     </div>
 
                     <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
@@ -219,7 +222,7 @@ export const RiskAIAssistant: React.FC<RiskAIAssistantProps> = ({ risk, onUpdate
                         )}
                         {mode === 'mitigate' && Array.isArray(response.measures) && (
                             <ul className="list-disc pl-4 space-y-1">
-                                {response.measures.map((m: unknown, i: number) => <li key={i}>{String(m)}</li>)}
+                                {response.measures.map((m: unknown, i: number) => <li key={`measure-${i}`}>{String(m)}</li>)}
                             </ul>
                         )}
                         {mode === 'improve' && typeof response.threat === 'string' && (

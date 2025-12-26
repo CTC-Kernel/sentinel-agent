@@ -55,7 +55,7 @@ export const LandingMap: React.FC = memo(() => {
 
                     {/* Animated "Pulse" Markers */}
                     {visualThreats.map((marker, i) => (
-                        <Marker key={i} coordinates={marker.coordinates as [number, number]}>
+                        <Marker key={`marker-${i}`} coordinates={marker.coordinates as [number, number]}>
                             <circle r={2} fill="#94a3b8" className="animate-ping opacity-75" />
                             <circle r={1} fill="#e2e8f0" />
                         </Marker>

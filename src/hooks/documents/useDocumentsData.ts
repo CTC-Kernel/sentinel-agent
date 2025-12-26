@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { where, orderBy, limit } from 'firebase/firestore';
+import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '../useFirestore';
 import { Document, UserProfile, Control, Asset, Audit, DocumentFolder, Risk } from '../../types';
 import { EncryptionService } from '../../services/encryptionService';

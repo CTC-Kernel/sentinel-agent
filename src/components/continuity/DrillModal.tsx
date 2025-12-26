@@ -11,6 +11,7 @@ interface DrillModalProps {
     onClose: () => void;
     onSubmit: (data: Partial<BcpDrill>) => Promise<void>;
     processes: BusinessProcess[];
+    isLoading?: boolean;
 }
 
 export const DrillModal: React.FC<DrillModalProps> = ({ isOpen, onClose, onSubmit, processes }) => {

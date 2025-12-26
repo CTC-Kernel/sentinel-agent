@@ -126,6 +126,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Questions</h3>
                         <button
+                            aria-label="Ajouter une question"
                             onClick={addQuestion}
                             className="flex items-center px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
                         >
@@ -166,6 +167,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                     </div>
                                     <div className="md:col-span-1 flex items-center justify-end">
                                         <button
+                                            aria-label="Supprimer la question"
                                             onClick={() => removeQuestion(q.id)}
                                             className="p-2 text-slate-500 hover:text-red-500 transition-colors"
                                             title="Supprimer"
@@ -193,6 +195,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                                             placeholder={`Option ${optIndex + 1}`}
                                                         />
                                                         <button
+                                                            aria-label="Supprimer l'option"
                                                             onClick={() => {
                                                                 const newOptions = q.options?.filter((_, i) => i !== optIndex);
                                                                 updateQuestion(q.id, { options: newOptions });
@@ -204,6 +207,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                                     </div>
                                                 ))}
                                                 <button
+                                                    aria-label="Ajouter une option à la question"
                                                     onClick={() => updateQuestion(q.id, { options: [...(q.options || []), ''] })}
                                                     className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center mt-2"
                                                 >
@@ -235,12 +239,14 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
             {/* Footer */}
             <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
                 <button
+                    aria-label="Annuler les modifications"
                     onClick={onClose}
                     className="px-4 py-2 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
                 >
                     Annuler
                 </button>
                 <button
+                    aria-label="Enregistrer le questionnaire"
                     onClick={handleSave}
                     disabled={saving}
                     className="flex items-center px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors disabled:opacity-50 shadow-lg shadow-brand-600/20"

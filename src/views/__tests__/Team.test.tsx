@@ -1,7 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { Team } from '../Team';
+import Team from '../Team';
 import { MemoryRouter } from 'react-router-dom';
 import { usePersistedState } from '../../hooks/usePersistedState';
 import { getDocs } from 'firebase/firestore';
@@ -100,7 +100,7 @@ vi.mock('../../components/ui/Drawer', () => ({
     Drawer: ({ isOpen, children }: { isOpen: boolean, children: React.ReactNode }) => isOpen ? <div data-testid="drawer">{children}</div> : null
 }));
 vi.mock('../../components/ui/ConfirmModal', () => ({
-    ConfirmModal: ({ isOpen, onConfirm }: { isOpen: boolean, onConfirm: () => void }) => isOpen ? <button onClick={onConfirm} data-testid="confirm-btn">Confirm</button> : null
+    ConfirmModal: ({ isOpen, onConfirm }: { isOpen: boolean, onConfirm: () => void }) => isOpen ? <button aria-label="Confirm" onClick={onConfirm} data-testid="confirm-btn">Confirm</button> : null
 }));
 
 vi.mock('framer-motion', () => ({

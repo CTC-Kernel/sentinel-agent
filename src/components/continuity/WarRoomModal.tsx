@@ -143,7 +143,7 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
                                         </h3>
                                         <div className="space-y-2">
                                             {['Plan de Continuité (PCA)', 'Annuaire de Crise', 'Procédures de Restauration'].map((doc, i) => (
-                                                <div key={i} className="group flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/30 hover:bg-white/10 cursor-pointer transition-all">
+                                                <div key={`drill-${i}`} className="group flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/30 hover:bg-white/10 cursor-pointer transition-all">
                                                     <div className="flex items-center gap-3">
                                                         <div className="p-2 rounded-lg bg-slate-800 text-slate-400 group-hover:text-white transition-colors">
                                                             <FileText className="w-4 h-4" />

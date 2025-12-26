@@ -88,6 +88,7 @@ vi.mock('../../components/ui/PremiumPageControl', () => ({
             {children}
             {rightActions}
             <input
+                aria-label="Rechercher"
                 placeholder="Rechercher..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}

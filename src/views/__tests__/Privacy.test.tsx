@@ -91,6 +91,7 @@ vi.mock('../../components/ui/PremiumPageControl', () => ({
     PremiumPageControl: ({ onSearchChange, actions }: { onSearchChange: (val: string) => void, actions?: React.ReactNode }) => (
         <div data-testid="premium-page-control">
             <input
+                aria-label="Rechercher"
                 placeholder="Rechercher..."
                 onChange={(e) => onSearchChange(e.target.value)}
                 data-testid="search-input"

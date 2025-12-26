@@ -51,6 +51,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                             }
                         }} // Simplified logic, ideally DataTable should handle this but we are bypassing for strict control
                         className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        aria-label="Tout sélectionner"
                     />
                 </div>
             ),
@@ -68,6 +69,7 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                             }
                         }}
                         className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        aria-label={`Sélectionner l'audit ${row.original.name}`}
                     />
                 </div>
             ),
@@ -79,9 +81,9 @@ export const AuditsList: React.FC<AuditsListProps> = ({
             header: 'Audit',
             cell: ({ row }) => (
                 <div className="flex flex-col">
-                    <span className="font-semibold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors" onClick={() => onOpen(row.original)}>
+                    <button className="text-left font-semibold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors" onClick={() => onOpen(row.original)} aria-label={`Ouvrir l'audit ${row.original.name}`}>
                         {row.original.name}
-                    </span>
+                    </button>
                     <span className="text-xs text-slate-500">{row.original.type}</span>
                 </div>
             )
@@ -128,20 +130,20 @@ export const AuditsList: React.FC<AuditsListProps> = ({
             cell: ({ row }) => (
                 <div className="flex items-center gap-2 justify-end transition-opacity">
                     <Tooltip content="Ouvrir">
-                        <button onClick={() => onOpen(row.original)} className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                        <button onClick={() => onOpen(row.original)} className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" aria-label={`Ouvrir ${row.original.name}`}>
                             <ClipboardCheck className="w-4 h-4" />
                         </button>
                     </Tooltip>
                     {canEdit && (
                         <Tooltip content="Modifier">
-                            <button onClick={() => onEdit(row.original)} className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                            <button onClick={() => onEdit(row.original)} className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" aria-label={`Modifier ${row.original.name}`}>
                                 <Edit className="w-4 h-4" />
                             </button>
                         </Tooltip>
                     )}
                     {canDelete && (
                         <Tooltip content="Supprimer">
-                            <button onClick={() => onDelete(row.original)} className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors">
+                            <button onClick={() => onDelete(row.original)} className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors" aria-label={`Supprimer ${row.original.name}`}>
                                 <Trash2 className="w-4 h-4" />
                             </button>
                         </Tooltip>

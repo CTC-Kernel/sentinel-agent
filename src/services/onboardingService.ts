@@ -11,6 +11,7 @@ import { sendEmail } from '../services/emailService';
 import { getInvitationTemplate } from '../services/emailTemplates';
 import { SubscriptionService } from '../services/subscriptionService';
 import { analyticsService } from '../services/analyticsService';
+import { ErrorLogger } from '../services/errorLogger';
 import i18n from '../i18n';
 
 export interface SearchResult {
@@ -163,7 +164,7 @@ export class OnboardingService {
                         type: 'INVITATION'
                     }, false);
                 } catch (error) {
-                    console.error('Failed to send invite email to ' + invite.email, error);
+                    ErrorLogger.error(error, 'OnboardingService.sendInvites', { metadata: { email: invite.email } });
                 }
             };
             invitePromises.push(sendInviteEmail());

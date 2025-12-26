@@ -716,6 +716,7 @@ export const VoxelView: React.FC = () => {
 
             {/* Action Buttons */}
             <button
+              aria-label="Actualiser"
               onClick={handleRefresh}
               className="p-2.5 bg-white/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 hover:bg-slate-500/10 dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm backdrop-blur-sm"
               title="Actualiser"
@@ -724,6 +725,7 @@ export const VoxelView: React.FC = () => {
             </button>
 
             <button
+              aria-label={analyzing ? 'Analyse en cours' : 'Lancer l\'analyse IA'}
               onClick={handleAIAnalysis}
               disabled={analyzing}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${analyzing
@@ -760,7 +762,7 @@ export const VoxelView: React.FC = () => {
         )}
 
         {/* Sidebar Navigation (Available in all modes) */}
-        <aside className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-100'} bg-slate-950/80 border-l border-white/10 backdrop-blur-2xl z-50 p-5 overflow-hidden transition-all duration-500 ease-custom-ease flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.3)]`}>
+        <aside aria-label="Navigation latérale" className={`absolute inset-y-0 right-0 ${navCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-80 opacity-100'} bg-slate-950/80 border-l border-white/10 backdrop-blur-2xl z-50 p-5 overflow-hidden transition-all duration-500 ease-custom-ease flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.3)]`}>
           <div className="flex items-center justify-between text-white mb-6 shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -773,6 +775,7 @@ export const VoxelView: React.FC = () => {
             </div>
             <button
               onClick={() => setNavCollapsed(true)}
+              aria-label="Fermer le menu"
               className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
             >
               <XCircle className="h-5 w-5" />
@@ -782,6 +785,7 @@ export const VoxelView: React.FC = () => {
           <div className="relative mb-6 shrink-0 group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-indigo-400 transition-colors" />
             <input
+              aria-label="Rechercher"
               id="voxel-search"
               type="text"
               value={searchQuery}
@@ -804,6 +808,7 @@ export const VoxelView: React.FC = () => {
                 <div className="space-y-1">
                   {category.items.map(item => (
                     <button
+                      aria-label={item.label}
                       key={item.id}
                       onClick={() => applyFocus(item.id, category.id)}
                       className={`w-full text-left px-3 py-2.5 rounded-xl border text-sm transition-all duration-200 flex items-center gap-3 group relative overflow-hidden ${focusedNodeId === item.id
@@ -843,6 +848,7 @@ export const VoxelView: React.FC = () => {
         {/* Unified Command Bar (Dock) */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1.5 p-1.5 rounded-full bg-slate-900/80 border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all hover:scale-[1.02] hover:bg-slate-900/90">
           <button
+            aria-label="Guide du module"
             onClick={() => setShowGuide(true)}
             className="p-3 rounded-full hover:bg-white/10 text-indigo-400 hover:text-white transition tooltip-trigger group relative"
             title="Guide du module"
@@ -853,6 +859,7 @@ export const VoxelView: React.FC = () => {
           <div className="w-px h-6 bg-white/10 mx-1" />
 
           <button
+            aria-label="Rechercher (Cmd+K)"
             onClick={() => { setNavCollapsed(false); setTimeout(() => document.getElementById('voxel-search')?.focus(), 100); }}
             className={`p-3 rounded-full transition tooltip-trigger group relative ${!navCollapsed ? 'bg-white text-slate-900' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
             title="Rechercher (Cmd+K)"
@@ -865,6 +872,7 @@ export const VoxelView: React.FC = () => {
 
           {/* Navigation buttons */}
           <button
+            aria-label="Élément précédent"
             onClick={() => focusByOffset(-1)}
             disabled={!orderedNodes.length}
             className="p-3 rounded-full transition hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
@@ -873,6 +881,7 @@ export const VoxelView: React.FC = () => {
             <ChevronLeft className="h-5 w-5" />
           </button>
           <button
+            aria-label="Élément suivant"
             onClick={() => focusByOffset(1)}
             disabled={!orderedNodes.length}
             className="p-3 rounded-full transition hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
@@ -884,6 +893,7 @@ export const VoxelView: React.FC = () => {
           <div className="w-px h-6 bg-white/10 mx-1" />
 
           <button
+            aria-label="Calques"
             onClick={() => setShowLayerMenu(!showLayerMenu)}
             className={`p-3 rounded-full transition relative ${showLayerMenu ? 'bg-white text-slate-900' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
             title="Calques"
@@ -895,6 +905,7 @@ export const VoxelView: React.FC = () => {
           </button>
 
           <button
+            aria-label="Heatmap"
             onClick={() => setHeatmapEnabled(!heatmapEnabled)}
             className={`p-3 rounded-full transition ${heatmapEnabled ? 'bg-orange-500/20 text-orange-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
             title="Heatmap"
@@ -903,6 +914,7 @@ export const VoxelView: React.FC = () => {
           </button>
 
           <button
+            aria-label="Mode X-Ray"
             onClick={() => setXRayEnabled(!xRayEnabled)}
             className={`p-3 rounded-full transition ${xRayEnabled ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
             title="Mode X-Ray"
@@ -911,6 +923,7 @@ export const VoxelView: React.FC = () => {
           </button>
 
           <button
+            aria-label="Auto-rotate"
             onClick={() => setAutoRotateEnabled(!autoRotateEnabled)}
             className={`p-3 rounded-full transition ${autoRotateEnabled ? 'bg-green-500/20 text-green-400' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
             title="Auto-rotate"
@@ -919,6 +932,7 @@ export const VoxelView: React.FC = () => {
           </button>
 
           <button
+            aria-label="Mode Présentation (Auto-Pilot)"
             onClick={() => setPresentationMode(!presentationMode)}
             className={`p-3 rounded-full transition ${presentationMode ? 'bg-indigo-500/20 text-indigo-400 animate-pulse' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
             title="Mode Présentation (Auto-Pilot)"
@@ -929,6 +943,7 @@ export const VoxelView: React.FC = () => {
           <div className="w-px h-6 bg-white/10 mx-1" />
 
           <button
+            aria-label="Réinitialiser la vue"
             onClick={handleResetView}
             className="p-3 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition"
             title="Réinitialiser la vue"
@@ -937,6 +952,7 @@ export const VoxelView: React.FC = () => {
           </button>
 
           <button
+            aria-label={isFullscreen ? "Quitter plein écran" : "Plein écran"}
             onClick={handleFullscreenToggle}
             className="p-3 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition"
             title={isFullscreen ? "Quitter plein écran" : "Plein écran"}
@@ -957,6 +973,7 @@ export const VoxelView: React.FC = () => {
                 const isActive = activeLayers.includes(option.id);
                 return (
                   <button
+                    aria-label={option.label}
                     key={option.id}
                     onClick={() => handleLayerToggle(option.id)}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition ${isActive ? 'bg-white/10 text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'}`}
@@ -1022,6 +1039,7 @@ export const VoxelView: React.FC = () => {
                 <h3 className="font-bold text-white">Insights IA</h3>
               </div>
               <button
+                aria-label="Fermer"
                 onClick={() => setShowInsights(false)}
                 className="p-1 hover:bg-white/10 rounded-full text-white/60 hover:text-white transition"
               >
@@ -1065,6 +1083,7 @@ export const VoxelView: React.FC = () => {
           <div className="grid md:grid-cols-3 gap-3">
             {scenarioPresets.map(preset => (
               <button
+                aria-label={preset.label}
                 key={preset.id}
                 onClick={() => handleScenarioPreset(preset)}
                 className="text-left px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-white/5 transition"
@@ -1106,6 +1125,7 @@ export const VoxelView: React.FC = () => {
               { title: 'Incidents actifs', value: `${incidents.length}`, route: '/incidents' }
             ].map(card => (
               <button
+                aria-label={card.title}
                 key={card.title}
                 onClick={() => navigate(card.route)}
                 className="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-white/5 transition text-left"
@@ -1125,6 +1145,7 @@ export const VoxelView: React.FC = () => {
               <h3 className="text-lg font-semibold">Vue contextuelle</h3>
             </div>
             <button
+              aria-label="Ouvrir la fiche"
               disabled={!selectedNode}
               onClick={() => {
                 if (!selectedNode) return;
@@ -1152,6 +1173,7 @@ export const VoxelView: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <button
+              aria-label="Précédent"
               onClick={() => focusByOffset(-1)}
               disabled={!orderedNodes.length}
               className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-40"
@@ -1159,6 +1181,7 @@ export const VoxelView: React.FC = () => {
               ◀ Précédent
             </button>
             <button
+              aria-label="Suivant"
               onClick={() => focusByOffset(1)}
               disabled={!orderedNodes.length}
               className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-40"
@@ -1219,6 +1242,7 @@ export const VoxelView: React.FC = () => {
                   <div className="flex flex-wrap gap-2">
                     {relatedElements.map(item => (
                       <button
+                        aria-label={item.label}
                         key={item.id}
                         onClick={() => applyFocus(item.id, item.type)}
                         className="px-3 py-1.5 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 text-xs"
@@ -1233,12 +1257,14 @@ export const VoxelView: React.FC = () => {
 
               <div className="flex gap-2">
                 <button
+                  aria-label="Explorer les dépendances"
                   onClick={() => selectedNode && navigate('/risks')}
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition"
                 >
                   <Activity className="h-4 w-4" /> Explorer les dépendances
                 </button>
                 <button
+                  aria-label="Voir les actions"
                   onClick={() => selectedNode && navigate('/projects')}
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-white/20 hover:bg-white/10 transition"
                 >

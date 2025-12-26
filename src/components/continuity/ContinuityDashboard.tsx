@@ -12,6 +12,7 @@ import { BusinessProcess, BcpDrill } from '../../types';
 interface ContinuityDashboardProps {
     processes: BusinessProcess[];
     drills: BcpDrill[];
+    loading?: boolean;
 }
 
 export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ processes, drills }) => {
@@ -250,8 +251,8 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
                                     </div>
                                 </div>
                                 <span className={`text-xs font-bold px-2 py-1 rounded-md ${drill.result === 'Succès' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' :
-                                        drill.result === 'Échec' ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300' :
-                                            'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
+                                    drill.result === 'Échec' ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300' :
+                                        'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
                                     }`}>
                                     {drill.result}
                                 </span>

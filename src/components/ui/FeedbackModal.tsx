@@ -90,7 +90,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                         <MessageSquare className="w-6 h-6 text-brand-500" />
                         Votre Avis Compte
                     </h2>
-                    <button onClick={onClose} className="text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                    <button aria-label="Fermer la fenêtre" onClick={onClose} className="text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                         <X className="w-6 h-6" />
                     </button>
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent pointer-events-none" />
@@ -103,6 +103,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                             <button
                                 key={t}
                                 type="button"
+                                aria-label={`Type de retour : ${getTypeLabel(t)}`}
+                                aria-pressed={type === t}
                                 onClick={() => setType(t)}
                                 className={`flex items-center gap-2 p-3 rounded-xl border text-sm font-medium transition-all ${type === t
                                     ? 'bg-brand-50/50 dark:bg-brand-900/20 border-brand-500 text-brand-700 dark:text-brand-400 ring-1 ring-brand-500 shadow-sm shadow-brand-500/10'
@@ -180,12 +182,14 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                     <div className="absolute inset-0 bg-slate-50/50 dark:bg-black/20 pointer-events-none" />
                     <button
                         type="button"
+                        aria-label="Annuler le retour"
                         onClick={onClose}
                         className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors font-medium relative z-10"
                     >
                         Annuler
                     </button>
                     <button
+                        aria-label="Envoyer le retour"
                         onClick={handleSubmit}
                         disabled={isSubmitting || !title.trim() || !description.trim()}
                         className="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-bold"

@@ -31,27 +31,20 @@ vi.mock('../../components/ui/Drawer', () => ({
 
 // Smart Mock for DataTable to test Column Logic
 vi.mock('../../components/ui/DataTable', () => ({
-    DataTable: ({ data, columns }: { data: Array<any>, columns: Array<any> }) => (
-        <table data-testid="data-table">
-            <thead>
-                <tr>
-                    {columns.map((col: { header: string }) => (
-                        <th key={col.header}>{col.header}</th>
+    DataTable: ({ data, columns }: { data: Array<Record<string, unknown>>, columns: Array<any> }) => (
+        <div data-testid="data-table">
+            <table>
+                <tbody>
+                    {data.map((row, i) => (
+                        <tr key={`row-${i}`}>
+                            {columns.map((col: { accessorKey: string }, j: number) => (
+                                <td key={`cell-${i}-${j}`}>{String(row[col.accessorKey] || '')}</td>
+                            ))}
+                        </tr>
                     ))}
-                </tr>
-            </thead>
-            <tbody>
-                {data.map((row: Record<string, unknown>, i: number) => (
-                    <tr key={i}>
-                        {columns.map((col: { header: string; cell?: (props: { row: { original: unknown } }) => React.ReactNode; accessorKey: string }) => (
-                            <td key={col.header}>
-                                {col.cell ? col.cell({ row: { original: row } }) : (row[col.accessorKey] as React.ReactNode)}
-                            </td>
-                        ))}
-                    </tr>
-                ))}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     )
 }));
 

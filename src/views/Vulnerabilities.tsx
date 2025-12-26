@@ -75,7 +75,7 @@ export const Vulnerabilities: React.FC = () => {
         }
     }, [location.state, loading, vulnerabilities]);
 
-    const handleCreate = async (data: any) => {
+    const handleCreate = async (data: Partial<Vulnerability>) => {
         if (!user?.organizationId) return;
         try {
             await addVulnerability(data);
@@ -85,7 +85,7 @@ export const Vulnerabilities: React.FC = () => {
         }
     };
 
-    const handleUpdate = async (data: any) => {
+    const handleUpdate = async (data: Partial<Vulnerability>) => {
         if (!selectedVulnerability || !selectedVulnerability.id) return;
         try {
             await updateVulnerability(selectedVulnerability.id, data || {});
@@ -187,6 +187,7 @@ export const Vulnerabilities: React.FC = () => {
                                                 <Menu.Item>
                                                     {({ active }) => (
                                                         <button
+                                                            aria-label="Import Scan"
                                                             onClick={() => setImportModalOpen(true)}
                                                             className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
                                                                 } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}

@@ -181,7 +181,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                         <Calendar className="h-5 w-5 mr-2 text-brand-500" />
                                         Nouvel Événement
                                     </Dialog.Title>
-                                    <button onClick={onClose} className="text-slate-500 hover:text-slate-600 transition-colors">
+                                    <button aria-label="Fermer la fenêtre" onClick={onClose} className="text-slate-500 hover:text-slate-600 transition-colors">
                                         <X className="h-5 w-5" />
                                     </button>
                                 </div>
@@ -190,6 +190,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                     {(['audit', 'project', 'maintenance', 'drill'] as EventType[]).map((type) => (
                                         <button
                                             key={type}
+                                            aria-label={`Sélectionner le type ${type}`}
+                                            aria-pressed={eventType === type}
                                             onClick={() => setEventType(type)}
                                             className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all capitalize ${eventType === type
                                                 ? 'bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-sm'
@@ -462,6 +464,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                         </button>
                                         <button
                                             type="submit"
+                                            aria-label={isSubmitting ? 'Création en cours...' : 'Créer Événement'}
                                             disabled={isSubmitting}
                                             className="px-4 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-lg shadow-brand-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                         >

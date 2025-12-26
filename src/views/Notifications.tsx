@@ -94,6 +94,7 @@ export const Notifications: React.FC = () => {
                 icon={<Bell className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={notifications.some(n => !n.read) && (
                     <Button
+                        aria-label={t('notifications.markAll')}
                         onClick={markAll}
                         variant="outline"
                         className="gap-2"
@@ -111,12 +112,14 @@ export const Notifications: React.FC = () => {
             >
                 <div className="flex gap-2">
                     <button
+                        aria-label={t('notifications.filter.all')}
                         onClick={() => setFilterStatus('all')}
                         className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filterStatus === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'bg-white/50 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10'}`}
                     >
                         {t('notifications.filter.all')}
                     </button>
                     <button
+                        aria-label={t('notifications.filter.unread')}
                         onClick={() => setFilterStatus('unread')}
                         className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filterStatus === 'unread' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'bg-white/50 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10'}`}
                     >
@@ -149,13 +152,13 @@ export const Notifications: React.FC = () => {
                                 </div>
                                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{notif.message}</p>
                                 {notif.link && (
-                                    <a href={notif.link} className="inline-flex items-center mt-3 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
+                                    <a href={notif.link} aria-label={t('notifications.viewDetails')} className="inline-flex items-center mt-3 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
                                         {t('notifications.viewDetails')} <ArrowRight className="h-3 w-3 ml-1" />
                                     </a>
                                 )}
                             </div>
                             {!notif.read && (
-                                <button onClick={() => markAsRead(notif.id)} className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all self-center">
+                                <button aria-label="Marquer comme lu" onClick={() => markAsRead(notif.id)} className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all self-center">
                                     <X className="h-4 w-4" />
                                 </button>
                             )}

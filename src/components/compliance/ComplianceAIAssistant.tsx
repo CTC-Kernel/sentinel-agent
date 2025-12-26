@@ -54,15 +54,15 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
 
             {!response && !loading && (
                 <div className="grid grid-cols-1 gap-2 relative z-10">
-                    <button onClick={() => handleAction('explain')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10">
+                    <button onClick={() => handleAction('explain')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10" aria-label="Comprendre ce contrôle avec l'IA">
                         <Lightbulb className="w-4 h-4 mr-3 text-amber-500" />
                         Comprendre ce contrôle
                     </button>
-                    <button onClick={() => handleAction('evidence')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10">
+                    <button onClick={() => handleAction('evidence')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10" aria-label="Suggérer des preuves avec l'IA">
                         <FileText className="w-4 h-4 mr-3 text-blue-500" />
                         Suggérer des preuves
                     </button>
-                    <button onClick={() => handleAction('policy')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10">
+                    <button onClick={() => handleAction('policy')} className="flex items-center p-3 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10" aria-label="Générer une politique avec l'IA">
                         <Sparkles className="w-4 h-4 mr-3 text-purple-500" />
                         Générer une politique
                     </button>
@@ -80,15 +80,15 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
                 <div className="animate-fade-in relative z-10">
                     <div className="bg-white dark:bg-slate-800/80 rounded-2xl p-4 text-sm text-slate-700 dark:text-slate-300 leading-relaxed shadow-sm border border-white/50 dark:border-white/5 mb-4 max-h-60 overflow-y-auto custom-scrollbar">
                         <div className="prose dark:prose-invert max-w-none text-sm">
-                            {response.split('\n').map((line, i) => <p key={i} className="mb-2 last:mb-0">{line}</p>)}
+                            {response.split('\n').map((line, i) => <p key={`line-${i}`} className="mb-2 last:mb-0">{line}</p>)}
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        <button onClick={() => setResponse(null)} className="flex-1 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                        <button onClick={() => setResponse(null)} className="flex-1 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" aria-label="Retour">
                             Retour
                         </button>
                         {mode === 'policy' && (
-                            <button onClick={() => onApplyPolicy(response)} className="flex-1 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20">
+                            <button onClick={() => onApplyPolicy(response)} className="flex-1 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20" aria-label="Insérer la politique générée">
                                 Insérer dans la justification
                             </button>
                         )}

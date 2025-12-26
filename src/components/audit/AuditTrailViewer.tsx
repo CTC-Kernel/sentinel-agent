@@ -201,6 +201,7 @@ export const AuditTrailViewer: React.FC = () => {
                     <button
                         onClick={handleExport}
                         className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-500/20 transition-all active:scale-95"
+                        aria-label="Exporter les logs d'audit en CSV"
                     >
                         <Download className="h-4 w-4" />
                         Exporter CSV
@@ -220,6 +221,7 @@ export const AuditTrailViewer: React.FC = () => {
                             value={filters.searchQuery}
                             onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
                             className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            aria-label="Rechercher dans les logs"
                         />
                     </div>
 
@@ -228,6 +230,7 @@ export const AuditTrailViewer: React.FC = () => {
                         value={filters.action}
                         onChange={(e) => setFilters({ ...filters, action: e.target.value as 'all' | 'create' | 'update' | 'delete' })}
                         className="px-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        aria-label="Filtrer par action"
                     >
                         <option value="all">Toutes les actions</option>
                         <option value="create">Création</option>
@@ -240,6 +243,7 @@ export const AuditTrailViewer: React.FC = () => {
                         value={filters.entityType}
                         onChange={(e) => setFilters({ ...filters, entityType: e.target.value })}
                         className="px-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        aria-label="Filtrer par type d'entité"
                     >
                         <option value="all">Tous les types</option>
                         {entityTypes.map(type => (
@@ -252,6 +256,7 @@ export const AuditTrailViewer: React.FC = () => {
                         value={filters.userId}
                         onChange={(e) => setFilters({ ...filters, userId: e.target.value })}
                         className="px-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        aria-label="Filtrer par utilisateur"
                     >
                         <option value="all">Tous les utilisateurs</option>
                         {users.map(u => (
@@ -269,6 +274,7 @@ export const AuditTrailViewer: React.FC = () => {
                             value={dateRange.start.toISOString().split('T')[0]}
                             onChange={(e) => setDateRange({ ...dateRange, start: new Date(e.target.value) })}
                             className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            aria-label="Date de début"
                         />
                     </div>
                     <div className="relative">
@@ -278,6 +284,7 @@ export const AuditTrailViewer: React.FC = () => {
                             value={dateRange.end.toISOString().split('T')[0]}
                             onChange={(e) => setDateRange({ ...dateRange, end: new Date(e.target.value) })}
                             className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            aria-label="Date de fin"
                         />
                     </div>
                 </div>
@@ -306,6 +313,7 @@ export const AuditTrailViewer: React.FC = () => {
                                     ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800'
                                     : 'bg-card border-border hover:border-brand-200 dark:hover:border-brand-800'
                                     }`}
+                                aria-label={`Voir les détails du log ${log.action} sur ${log.entityType} par ${log.userName}`}
                             >
                                 <div className="flex items-start justify-between mb-2">
                                     <div className="flex items-center gap-2">

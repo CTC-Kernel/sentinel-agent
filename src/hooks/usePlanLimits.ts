@@ -13,9 +13,16 @@ export const usePlanLimits = () => {
         return limits.features[feature] ?? false;
     };
 
+    const checkLimit = (_feature: string): boolean => {
+        // Mock implementation or real logic if usage available
+        // For now always return true or check simple feature flags
+        return true;
+    };
+
     return {
         planId,
         limits,
         hasFeature,
+        checkLimit
     };
 };

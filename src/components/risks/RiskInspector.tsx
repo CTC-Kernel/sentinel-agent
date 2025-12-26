@@ -135,17 +135,17 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                 !isEditing && canEdit ? (
                     <>
                         <CustomTooltip content="Dupliquer">
-                            <button onClick={() => onDuplicate(risk)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm">
+                            <button aria-label="Dupliquer le risque" onClick={() => onDuplicate(risk)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm">
                                 <Copy className="h-5 w-5" />
                             </button>
                         </CustomTooltip>
                         <CustomTooltip content="Modifier">
-                            <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm">
+                            <button aria-label="Modifier le risque" onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm">
                                 <Edit className="h-5 w-5" />
                             </button>
                         </CustomTooltip>
                         <CustomTooltip content="Supprimer">
-                            <button onClick={() => onDelete(risk.id, risk.threat)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm">
+                            <button aria-label="Supprimer le risque" onClick={() => onDelete(risk.id, risk.threat)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm">
                                 <Trash2 className="h-5 w-5" />
                             </button>
                         </CustomTooltip>
@@ -206,6 +206,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                                             {['Ouvert', 'En cours', 'Fermé', 'En attente de validation'].map(s => (
                                                 <button
+                                                    aria-label={`Changer le statut à ${s}`}
                                                     key={s}
                                                     onClick={() => handleStatusChange(s as Risk['status'])}
                                                     disabled={updating}
@@ -219,12 +220,14 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                     {canEdit && risk.status === 'En attente de validation' && (
                                         <div className="flex gap-2">
                                             <button
+                                                aria-label="Rejeter la demande"
                                                 onClick={() => handleStatusChange('Ouvert')} // Reject -> Back to Open
                                                 className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100"
                                             >
                                                 Rejeter
                                             </button>
                                             <button
+                                                aria-label="Approuver le risque"
                                                 onClick={() => handleStatusChange('En cours')} // Approve -> In Progress
                                                 className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-bold hover:bg-emerald-100"
                                             >
@@ -234,6 +237,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                     )}
                                     {canEdit && (
                                         <button
+                                            aria-label="Valider la revue du risque"
                                             onClick={handleReview}
                                             disabled={updating}
                                             className={`flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors w-full sm:w-auto ${updating ? 'opacity-70 cursor-wait' : ''}`}
@@ -264,6 +268,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets de Traitement ({linkedProjects.length})</h3>
                                 {canEdit && (
                                     <button
+                                        aria-label="Créer un nouveau projet lié"
                                         onClick={() => navigate('/projects', { state: { createForRisk: risk.id, riskName: risk.threat } })}
                                         className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
                                     >
@@ -285,6 +290,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center"><CheckCircle2 className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
                                 {canEdit && (
                                     <button
+                                        aria-label="Créer un nouvel audit lié"
                                         onClick={() => navigate('/audits', { state: { createForRisk: risk.id, riskName: risk.threat } })}
                                         className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
                                     >
@@ -322,6 +328,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                         onChange={e => setMitreQuery(e.target.value)}
                                     />
                                     <button
+                                        aria-label="Rechercher"
                                         className="px-4 py-2 bg-slate-900 text-white rounded-xl"
                                         onClick={() => integrationService.getCommonMitreTechniques(mitreQuery, demoMode).then(setMitreResults)}
                                     >
@@ -332,7 +339,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                     {mitreResults.map(t => (
                                         <div key={t.id} className="flex justify-between p-2 border rounded-lg">
                                             <span>{t.name}</span>
-                                            <button onClick={() => {
+                                            <button aria-label="Ajouter la technique" onClick={() => {
                                                 const current = risk.mitreTechniques || [];
                                                 handleLocalUpdate({ mitreTechniques: [...current, t] });
                                             }}>Ajouter</button>

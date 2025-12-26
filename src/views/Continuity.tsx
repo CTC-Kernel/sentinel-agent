@@ -9,7 +9,7 @@ import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
-import { BusinessProcess, BcpDrill } from '../types';
+import { BusinessProcess } from '../types';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { BusinessProcessFormData } from '../schemas/continuitySchema';
@@ -28,21 +28,25 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useContinuity } from '../hooks/useContinuity';
 import { useContinuityData } from '../hooks/continuity/useContinuityData';
 import { ErrorLogger } from '../services/errorLogger';
+import { hasPermission, canEditResource, canDeleteResource } from '../utils/permissions';
 
 type ContinuityTab = 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis';
 
 export const Continuity: React.FC = () => {
     const { user, t } = useStore();
+    // Use utility functions instead of non-existent hook
+    const canCreate = hasPermission(user, 'BusinessProcess', 'create');
+    const canUpdate = canEditResource(user, 'BusinessProcess');
+    const canDelete = canDeleteResource(user, 'BusinessProcess');
     const [activeTab, setActiveTab] = usePersistedState<ContinuityTab>('continuity_active_tab', 'overview');
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'list' | 'matrix' | 'kanban'>('grid');
     const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
     const [isDrillModalOpen, setIsDrillModalOpen] = useState(false);
     const [selectedProcess, setSelectedProcess] = useState<BusinessProcess | null>(null);
-    const [selectedDrill, setSelectedDrill] = useState<BcpDrill | null>(null);
     const [filter, setFilter] = useState('');
 
     // Actions Hook
-    const { addProcess, updateProcess, deleteProcess, addDrill, updateDrill, deleteDrill, loading: loadingAction } = useContinuity();
+    const { addProcess, updateProcess, deleteProcess, addDrill, deleteDrill, loading: loadingAction } = useContinuity();
 
     // Data Hook
     const {
@@ -52,7 +56,6 @@ export const Continuity: React.FC = () => {
         risks,
         suppliers,
         users,
-        incidents,
         loading: loadingData
     } = useContinuityData(user?.organizationId);
 
@@ -75,6 +78,7 @@ export const Continuity: React.FC = () => {
 
     const handleUpdateProcess = async (data: BusinessProcessFormData) => {
         if (!selectedProcess) return;
+        if (!canUpdate) return;
         try {
             await updateProcess(selectedProcess.id, data);
             setSelectedProcess(null); // Close inspector/modal or update state? Inspector closes usually.
@@ -85,6 +89,7 @@ export const Continuity: React.FC = () => {
     };
 
     const handleDeleteProcess = async (id: string) => {
+        if (!canDelete) return;
         setConfirmData({
             isOpen: true,
             title: t('continuity.deleteProcessTitle'),
@@ -163,18 +168,22 @@ export const Continuity: React.FC = () => {
                     actions={
                         <>
                             <button
+                                aria-label="Générer le rapport"
                                 onClick={handleGenerateReport}
                                 className="p-2 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 transition-colors"
                             >
                                 <Download className="h-5 w-5" />
                             </button>
-                            <button
-                                onClick={() => setIsProcessModalOpen(true)}
-                                className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-brand-600/20"
-                            >
-                                <Plus className="h-5 w-5 mr-2" />
-                                {t('continuity.newProcess')}
-                            </button>
+                            {canCreate && (
+                                <button
+                                    aria-label={t('continuity.newProcess')}
+                                    onClick={() => setIsProcessModalOpen(true)}
+                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-brand-600/20"
+                                >
+                                    <Plus className="h-5 w-5 mr-2" />
+                                    {t('continuity.newProcess')}
+                                </button>
+                            )}
                         </>
                     }
                 />
@@ -184,7 +193,7 @@ export const Continuity: React.FC = () => {
                 <ScrollableTabs
                     tabs={tabs}
                     activeTab={activeTab}
-                    onTabChange={setActiveTab}
+                    onTabChange={(id) => setActiveTab(id as ContinuityTab)}
                 />
             </motion.div>
 
@@ -210,6 +219,8 @@ export const Continuity: React.FC = () => {
                                 searchQuery={filter}
                                 onSearchChange={setFilter}
                                 searchPlaceholder={t('continuity.searchPlaceholder')}
+                                viewMode={viewMode}
+                                onViewModeChange={setViewMode}
                             />
                             {filteredProcesses.length === 0 && !loading ? (
                                 <EmptyState
@@ -222,20 +233,25 @@ export const Continuity: React.FC = () => {
                             ) : (
                                 <ContinuityBIA
                                     processes={filteredProcesses}
-                                    onSelect={setSelectedProcess}
+                                    loading={loading}
+                                    viewMode={viewMode as 'grid' | 'list'}
+                                    onOpenInspector={setSelectedProcess}
+                                    onNewProcess={() => setIsProcessModalOpen(true)}
                                 />
                             )}
                         </div>
                     )}
 
                     {activeTab === 'strategies' && (
-                        <ContinuityStrategies processes={processes} />
+                        <ContinuityStrategies assets={assets} />
                     )}
 
                     {activeTab === 'drills' && (
                         <ContinuityDrills
                             drills={drills}
-                            onCreate={() => setIsDrillModalOpen(true)}
+                            processes={processes}
+                            loading={loading}
+                            onNewDrill={() => setIsDrillModalOpen(true)}
                             onDelete={async (id) => {
                                 if (window.confirm("Supprimer cet exercice ?")) {
                                     try { await deleteDrill(id); } catch (e) { ErrorLogger.handleErrorWithToast(e, 'DeleteDrill'); }
@@ -245,7 +261,7 @@ export const Continuity: React.FC = () => {
                     )}
 
                     {activeTab === 'crisis' && (
-                        <ContinuityCrisis incidents={incidents} />
+                        <ContinuityCrisis users={users} />
                     )}
                 </motion.div>
             </AnimatePresence>
@@ -254,12 +270,15 @@ export const Continuity: React.FC = () => {
             <ProcessFormModal
                 isOpen={isProcessModalOpen}
                 onClose={() => setIsProcessModalOpen(false)}
-                onSubmit={handleCreateProcess}
-                categories={['Metier', 'Support', 'IT', 'Management']} // Example
-                isSubmitting={loadingAction}
+                onSubmit={selectedProcess ? handleUpdateProcess : handleCreateProcess}
+                isLoading={loadingAction}
+                title={selectedProcess ? "Modifier Processus" : "Nouveau Processus"}
+                initialData={selectedProcess || undefined}
+                isEditing={!!selectedProcess}
                 assets={assets}
                 risks={risks}
                 suppliers={suppliers}
+                users={users}
             />
 
             {selectedProcess && (
@@ -267,16 +286,12 @@ export const Continuity: React.FC = () => {
                     isOpen={!!selectedProcess}
                     onClose={() => setSelectedProcess(null)}
                     process={selectedProcess}
-                    onUpdate={async (data) => {
-                        try {
-                            await updateProcess(selectedProcess.id, data);
-                            // Keep open?
-                        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'UpdateProcess'); }
-                    }}
+                    onEdit={() => setIsProcessModalOpen(true)}
                     onDelete={() => handleDeleteProcess(selectedProcess.id)}
                     assets={assets}
                     risks={risks}
                     suppliers={suppliers}
+                    drills={drills}
                 />
             )}
 
@@ -284,9 +299,12 @@ export const Continuity: React.FC = () => {
                 isOpen={isDrillModalOpen}
                 onClose={() => setIsDrillModalOpen(false)}
                 onSubmit={handleCreateDrill}
-                isSubmitting={loadingAction}
+                isLoading={loadingAction}
+                processes={processes}
             />
 
         </motion.div>
     );
 };
+
+export default Continuity;

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { ErrorLogger } from '../services/errorLogger';
 
 export interface WidgetLayout {
     id: string; // Unique instance ID
@@ -30,7 +31,7 @@ export const useDashboardPreferences = (userId: string | undefined, role: string
                     return { layout: [...parsed.layout, ...newWidgets] };
                 }
             } catch (e) {
-                console.error("Failed to parse dashboard preferences", e);
+                ErrorLogger.warn("Failed to parse dashboard preferences", 'useDashboardPreferences.init', { metadata: { error: e } });
             }
         }
         return { layout: defaultLayout };
@@ -70,7 +71,7 @@ export const useDashboardPreferences = (userId: string | undefined, role: string
                     }, 0);
                 }
             } catch (e) {
-                console.error("Failed to parse dashboard preferences", e);
+                ErrorLogger.warn("Failed to parse dashboard preferences", 'useDashboardPreferences.effect', { metadata: { error: e } });
                 setTimeout(() => {
                     setPreferences({ layout: defaultLayout });
                     setHasLoaded(true);

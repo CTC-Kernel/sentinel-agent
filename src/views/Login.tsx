@@ -179,8 +179,8 @@ export const Login: React.FC = () => {
                             <div className="space-y-1.5">
                                 <div className="flex justify-between items-center ml-1 mb-1">
                                     {isLogin && (
-                                        <button type="button" onClick={() => setShowResetModal(true)} className="text-[11px] font-bold text-brand-600 hover:text-brand-500 transition-colors ml-auto">
-                                            {t('auth.forgot')}
+                                        <button type="button" aria-label={t('auth.forgotPassword')} onClick={() => setShowResetModal(true)} className="text-[13px] font-bold text-brand-600 hover:text-brand-700 transition-colors">
+                                            {t('auth.forgotPassword')}
                                         </button>
                                     )}
                                 </div>
@@ -209,6 +209,7 @@ export const Login: React.FC = () => {
 
                     <div className="mt-8 text-center">
                         <button
+                            aria-label={isLogin ? t('auth.switchSignup') : t('auth.switchLogin')}
                             onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); }}
                             className="text-[13px] font-bold text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
                         >
@@ -222,19 +223,19 @@ export const Login: React.FC = () => {
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{t('auth.footer.developedBy')}</p>
                 <p className="text-sm text-slate-500 break-words">
                     {t('auth.footer.recaptcha')}
-                    <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-slate-600 ml-1">
+                    <button aria-label={t('auth.footer.privacy')} onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="underline hover:text-slate-600 ml-1">
                         {t('auth.footer.privacy')}
                     </button>
                     {' '}{t('common.and')}{' '}
-                    <button onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
+                    <button aria-label={t('auth.footer.terms')} onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
                         {t('auth.footer.terms')}
                     </button>
                     ,{' '}
-                    <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
+                    <button aria-label={t('auth.footer.cgv')} onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
                         {t('auth.footer.cgv')}
                     </button>
                     {' '}{t('common.and')}{' '}
-                    <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
+                    <button aria-label={t('auth.footer.legal')} onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="underline hover:text-slate-600">
                         {t('auth.footer.legal')}
                     </button>
                     {' '}{t('auth.footer.apply')}
@@ -246,7 +247,7 @@ export const Login: React.FC = () => {
                 showResetModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
                         <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
-                            <button onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <button aria-label="Fermer" onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
                                 <X className="h-5 w-5" />
                             </button>
 
@@ -280,7 +281,7 @@ export const Login: React.FC = () => {
                                         <CheckCircle2 className="h-4 w-4 mr-2" /> {t('auth.reset.sent')}
                                     </div>
                                     <p className="text-sm text-slate-600 mb-6">{t('auth.reset.checkEmail')}</p>
-                                    <button onClick={() => setShowResetModal(false)} className="text-sm font-bold text-brand-600 hover:underline">{t('auth.reset.back')}</button>
+                                    <button aria-label={t('auth.reset.back')} onClick={() => setShowResetModal(false)} className="text-sm font-bold text-brand-600 hover:underline">{t('auth.reset.back')}</button>
                                 </div>
                             )}
                         </div>
@@ -292,7 +293,7 @@ export const Login: React.FC = () => {
                 showMfaModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
                         <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
-                            <button onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <button aria-label="Fermer" onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
                                 <X className="h-5 w-5" />
                             </button>
 

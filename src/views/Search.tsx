@@ -100,6 +100,7 @@ export const Search: React.FC = () => {
                     <SearchIcon className="h-6 w-6 text-slate-500" />
                 </div>
                 <input
+                    aria-label="Rechercher"
                     type="text"
                     placeholder="Rechercher quelque chose..."
                     className="flex-1 bg-transparent border-none focus:ring-0 text-lg dark:text-white py-3 font-medium placeholder-gray-400"
@@ -109,6 +110,7 @@ export const Search: React.FC = () => {
                 />
                 {loading && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-brand-600 mr-4"></div>}
                 <button
+                    aria-label="Filtres"
                     onClick={() => setShowAdvancedSearch(true)}
                     className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-sm shadow-lg transition-all hover:scale-105 flex items-center gap-2"
                 >
@@ -141,6 +143,7 @@ export const Search: React.FC = () => {
                         </span>
                     )}
                     <button
+                        aria-label="Effacer les filtres"
                         onClick={clearAdvancedFilters}
                         className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                     >
@@ -158,6 +161,7 @@ export const Search: React.FC = () => {
                     { id: 'project', label: 'Projets' }
                 ].map(filter => (
                     <button
+                        aria-label={filter.label}
                         key={filter.id}
                         onClick={() => setActiveFilter(filter.id)}
                         className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeFilter === filter.id

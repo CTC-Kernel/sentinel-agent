@@ -21,7 +21,7 @@ export const useNotifications = () => {
         // Initial fetch to ensure we have data quickly
         NotificationService.getUnread(user.uid).then(_unread => {
             // managed by subscription generally, but good for quick check logic if needed
-        }).catch(console.error);
+        }).catch(err => ErrorLogger.error(err, 'useNotifications.getUnread'));
 
         return () => unsubscribe();
     }, [user?.uid]);

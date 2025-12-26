@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import { ErrorLogger } from './errorLogger';
 
 // Fallback key for development/demo if env var is missing
 // In production, this MUST be set in environment variables
@@ -20,7 +21,7 @@ export class EncryptionService {
             const ciphertext = CryptoJS.AES.encrypt(data, this.getKey()).toString();
             return `ENC::${ciphertext}`;
         } catch (error) {
-            console.error('Encryption failed:', error);
+            ErrorLogger.error(error, 'EncryptionService.encrypt');
             throw new Error('Encryption failed');
         }
     }
@@ -51,7 +52,7 @@ export class EncryptionService {
             }
             return plaintext;
         } catch (error) {
-            console.error('Decryption failed:', error);
+            ErrorLogger.error(error, 'EncryptionService.decrypt');
             // Return placeholder so UI doesn't crash, but user knows data is secure/inaccessible
             return '[Locked Data]';
         }

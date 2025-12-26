@@ -52,6 +52,7 @@ const markdownComponents: Components = {
                             navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
                         }}
                         className="hover:text-indigo-500 transition-colors"
+                        aria-label="Copier le code"
                     >
                         Copier
                     </button>
@@ -347,6 +348,7 @@ export const GeminiAssistant: React.FC = () => {
                         onClick={() => setIsExpanded(!isExpanded)}
                         className="hidden md:block p-2 hover:bg-slate-200/50 dark:hover:bg-white/10 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
                         title={isExpanded ? "Réduire" : "Agrandir"}
+                        aria-label={isExpanded ? "Réduire le chat" : "Agrandir le chat"}
                     >
                         {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                     </button>
@@ -354,6 +356,7 @@ export const GeminiAssistant: React.FC = () => {
                         onClick={() => setIsOpen(false)}
                         className="p-2 hover:bg-rose-100/50 dark:hover:bg-rose-900/20 hover:text-rose-600 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
                         title="Fermer"
+                        aria-label="Fermer le chat"
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -404,6 +407,7 @@ export const GeminiAssistant: React.FC = () => {
                                                 <button
                                                     onClick={() => copyToClipboard(msg.content, msg.id)}
                                                     className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500 hover:text-indigo-600 transition-colors"
+                                                    aria-label="Copier la réponse"
                                                 >
                                                     {copiedId === msg.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                                                     {copiedId === msg.id ? 'Copié' : 'Copier'}
@@ -418,6 +422,7 @@ export const GeminiAssistant: React.FC = () => {
                                                         setIsOpen(false);
                                                     }}
                                                     className="w-full py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                                    aria-label="Mettre à niveau mon plan"
                                                 >
                                                     <Zap className="h-3 w-3" />
                                                     Mettre à niveau mon plan
@@ -458,6 +463,7 @@ export const GeminiAssistant: React.FC = () => {
                             key={i}
                             onClick={(e) => handleSend(e, qp.prompt)}
                             className="whitespace-nowrap flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:text-indigo-600 dark:hover:text-indigo-300 transition-all"
+                            aria-label={`Prompt rapide : ${qp.label}`}
                         >
                             <Zap className="h-3 w-3" />
                             {qp.label}
@@ -504,6 +510,7 @@ export const GeminiAssistant: React.FC = () => {
                                 ? "bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed"
                                 : "bg-gradient-to-br from-indigo-600 to-violet-600 text-white hover:shadow-indigo-500/25 hover:scale-105 active:scale-95"
                         )}
+                        aria-label="Envoyer le message"
                     >
                         <Send className="h-5 w-5" />
                     </button>

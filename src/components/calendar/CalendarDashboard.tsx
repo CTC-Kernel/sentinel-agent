@@ -223,9 +223,9 @@ export const CalendarDashboard: React.FC = () => {
             <div className="flex flex-col xl:flex-row items-center justify-between mb-6 gap-4 animate-fade-in">
                 <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
                     <div className="flex bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-white/10 p-1 shadow-sm w-full md:w-auto justify-between md:justify-start">
-                        <button onClick={goToBack} className="p-2 md:p-2.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300"><ChevronLeft className="h-5 w-5" /></button>
-                        <button onClick={goToCurrent} className="px-3 md:px-5 text-xs md:text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors">Aujourd'hui</button>
-                        <button onClick={goToNext} className="p-2 md:p-2.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300"><ChevronRight className="h-5 w-5" /></button>
+                        <button aria-label="Mois précédent" onClick={goToBack} className="p-2 md:p-2.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300"><ChevronLeft className="h-5 w-5" /></button>
+                        <button aria-label="Aller à aujourd'hui" onClick={goToCurrent} className="px-3 md:px-5 text-xs md:text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors">Aujourd'hui</button>
+                        <button aria-label="Mois suivant" onClick={goToNext} className="p-2 md:p-2.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300"><ChevronRight className="h-5 w-5" /></button>
                     </div>
                     {label()}
                 </div>
@@ -239,6 +239,8 @@ export const CalendarDashboard: React.FC = () => {
                         ].map(opt => (
                             <button
                                 key={opt.v}
+                                aria-label={`Vue ${opt.l}`}
+                                aria-pressed={view === opt.v}
                                 onClick={() => { setView(opt.v); toolbar.onView(opt.v); }}
                                 className={`px-4 md:px-5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap ${view === opt.v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5'}`}
                             >
@@ -269,10 +271,12 @@ export const CalendarDashboard: React.FC = () => {
                             }}
                             className="bg-white/80 dark:bg-white/5 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-300 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm"
                             title="Exporter le calendrier"
+                            aria-label="Exporter le calendrier"
                         >
                             <Download className="h-5 w-5" />
                         </button>
                         <button
+                            aria-label="Ajouter un nouvel événement"
                             onClick={() => {
                                 setSelectedDate(new Date());
                                 setIsCreateModalOpen(true);
@@ -299,6 +303,8 @@ export const CalendarDashboard: React.FC = () => {
                 {Object.keys(filters).map(key => (
                     <button
                         key={key}
+                        aria-label={`Filtrer par ${key}`}
+                        aria-pressed={filters[key as keyof typeof filters]}
                         onClick={() => setFilters(prev => ({ ...prev, [key]: !prev[key as keyof typeof filters] }))}
                         className={`
                             px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 border flex items-center gap-2 shadow-sm shrink-0

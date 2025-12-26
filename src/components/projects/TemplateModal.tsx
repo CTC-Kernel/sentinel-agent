@@ -69,6 +69,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                         </p>
                     </div>
                     <button
+                        aria-label="Fermer la fenêtre"
                         onClick={onClose}
                         className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
                     >
@@ -84,6 +85,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                 {PROJECT_TEMPLATES.map(template => (
                                     <button
                                         key={template.id}
+                                        aria-label={`Sélectionner le modèle ${template.name}`}
                                         onClick={() => setSelectedTemplate(template)}
                                         className="text-left p-6 rounded-xl border-2 border-slate-200 dark:border-white/10 hover:border-brand-500 dark:hover:border-brand-500 transition-all hover:shadow-lg group"
                                     >
@@ -204,6 +206,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                             <div className="flex gap-3">
                                 <button
                                     type="button"
+                                    aria-label="Retour à la sélection de modèle"
                                     onClick={() => setSelectedTemplate(null)}
                                     className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                                 >
@@ -211,6 +214,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                 </button>
                                 <button
                                     type="submit"
+                                    aria-label="Créer le projet"
                                     className="flex-1 px-4 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20"
                                 >
                                     Créer le Projet

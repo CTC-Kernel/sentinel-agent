@@ -260,12 +260,14 @@ export const BackupRestore: React.FC = () => {
         actions={
           <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl max-w-full overflow-x-auto">
             <button
+              aria-label="Mode Sauvegarde"
               onClick={() => setActiveTab('backup')}
               className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'backup' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'}`}
             >
               Sauvegarder
             </button>
             <button
+              aria-label="Mode Restauration"
               onClick={() => setActiveTab('restore')}
               className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'restore' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'}`}
             >
@@ -363,13 +365,14 @@ export const BackupRestore: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mr-2">Planifier :</span>
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                      <button type="button" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Quotidien</button>
-                      <button type="button" onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Hebdo</button>
-                      <button type="button" onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Mensuel</button>
+                      <button type="button" aria-label="Programmer une sauvegarde quotidienne" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Quotidien</button>
+                      <button type="button" aria-label="Programmer une sauvegarde hebdomadaire" onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Hebdo</button>
+                      <button type="button" aria-label="Programmer une sauvegarde mensuelle" onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm">Mensuel</button>
                     </div>
                   </div>
                   <button
                     type="submit"
+                    aria-label="Lancer la sauvegarde"
                     disabled={loading}
                     className="btn-primary px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-500/20 w-full sm:w-auto justify-center"
                   >
@@ -450,6 +453,7 @@ export const BackupRestore: React.FC = () => {
                   <div className="flex justify-end pt-4">
                     <button
                       type="submit"
+                      aria-label="Lancer la restauration"
                       disabled={loading}
                       className={`px-6 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg transition-all ${restoreForm.watch('dryRun') ? 'bg-slate-800 text-white hover:bg-slate-900' : 'bg-red-600 text-white hover:bg-red-700 shadow-red-500/20'}`}
                     >
@@ -496,6 +500,7 @@ export const BackupRestore: React.FC = () => {
                       <div className="flex gap-1">
                         {backup.status === 'completed' && (
                           <button
+                            aria-label="Télécharger le backup"
                             onClick={(e) => { e.stopPropagation(); handleDownloadBackup(backup.id); }}
                             className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                             title="Télécharger"
@@ -504,6 +509,7 @@ export const BackupRestore: React.FC = () => {
                           </button>
                         )}
                         <button
+                          aria-label="Supprimer le backup"
                           onClick={(e) => {
                             e.stopPropagation();
                             setConfirmData({

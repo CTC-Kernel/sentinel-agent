@@ -30,6 +30,7 @@ export interface Vulnerability {
     score?: number;
     cvssVector?: string;
     publishedDate: string;
+    dateDiscovered?: string;
     detectedAt?: string;
     remediatedAt?: string;
     status?: 'Open' | 'In Progress' | 'Resolved' | 'False Positive';

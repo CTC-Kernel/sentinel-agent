@@ -29,6 +29,7 @@ interface ProcessFormModalProps {
     initialData?: Partial<BusinessProcessFormData>;
     title: string;
     isEditing?: boolean;
+    isLoading?: boolean;
     assets: Asset[];
     suppliers: Supplier[];
     risks: Risk[];
@@ -148,6 +149,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                     onClick={handleAISuggestion}
                                     disabled={isGenerating}
                                     className="text-xs font-bold bg-white dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 px-3 py-1.5 rounded-lg border border-brand-200 dark:border-brand-900/30 hover:bg-brand-50 transition-colors flex items-center gap-2"
+                                    aria-label="Générer une proposition par IA"
                                 >
                                     {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
                                     {isGenerating ? 'IA...' : 'Auto-complétion IA'}
@@ -323,13 +325,13 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                 <div>
                     <div className="flex justify-between items-center mb-3">
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600">Plan de Reprise (Étapes)</label>
-                        <button type="button" onClick={addRecoveryTask} className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1">
+                        <button type="button" onClick={addRecoveryTask} className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1" aria-label="Ajouter une étape au plan de reprise">
                             <Plus className="h-3 w-3" /> Ajouter une étape
                         </button>
                     </div>
                     <div className="space-y-3">
                         {watchedRecoveryTasks?.map((_, index) => (
-                            <div key={index} className="flex gap-3 items-start bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10">
+                            <div key={`resource-${index}`} className="flex gap-3 items-start bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10">
                                 <div className="mt-2.5 text-[10px] font-bold text-slate-500 w-5 text-center bg-white dark:bg-black/20 rounded h-5 leading-5 border border-slate-200 dark:border-white/10">{index + 1}</div>
                                 <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3">
                                     <div className="md:col-span-6">
@@ -372,7 +374,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                         />
                                     </div>
                                 </div>
-                                <button type="button" onClick={() => removeRecoveryTask(index)} className="mt-2 text-slate-500 hover:text-red-500">
+                                <button type="button" onClick={() => removeRecoveryTask(index)} className="mt-2 text-slate-500 hover:text-red-500" aria-label={`Supprimer l'étape ${index + 1}`}>
                                     <Trash2 className="h-4 w-4" />
                                 </button>
                             </div>
@@ -386,8 +388,8 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/10">
-                    <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-slate-700 dark:text-white">Annuler</button>
-                    <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-sm hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20 disabled:opacity-50 flex items-center gap-2">
+                    <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-slate-700 dark:text-white" aria-label="Annuler">Annuler</button>
+                    <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-sm hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20 disabled:opacity-50 flex items-center gap-2" aria-label={isEditing ? 'Mettre à jour le processus' : 'Créer le processus'}>
                         {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                         {isEditing ? 'Mettre à jour' : 'Créer le processus'}
                     </button>

@@ -50,7 +50,9 @@ export class AccountService {
           // Start manual forced cleanup of org doc just in case cloud function fails or isn't called
           try {
             await deleteDoc(doc(db, 'organizations', user.organizationId));
-          } catch (e) { console.error(e); }
+          } catch (e) {
+            ErrorLogger.error(e, 'AccountService.deleteAccount.manualCleanup');
+          }
         }
       }
 

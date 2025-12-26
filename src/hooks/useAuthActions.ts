@@ -11,10 +11,10 @@ import {
     TotpMultiFactorGenerator,
     MultiFactorResolver,
     MultiFactorError,
-    signOut // Added signOut
+    // signOut removed
 } from 'firebase/auth';
 import { httpsCallable } from 'firebase/functions';
-import { auth, functions } from '../../firebase';
+import { auth, functions } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { LoginFormData, RegisterFormData, ResetPasswordFormData } from '../schemas/authSchema';

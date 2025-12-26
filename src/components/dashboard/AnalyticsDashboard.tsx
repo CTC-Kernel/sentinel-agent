@@ -254,7 +254,7 @@ export const AnalyticsDashboard: React.FC = () => {
                     <div className="h-8 bg-accent rounded w-1/4"></div>
                     <div className="grid grid-cols-4 gap-6">
                         {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="h-32 bg-accent rounded-2xl"></div>
+                            <div key={`chart-${i}`} className="h-32 bg-accent rounded-2xl"></div>
                         ))}
                     </div>
                 </div>

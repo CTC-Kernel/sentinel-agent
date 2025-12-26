@@ -405,7 +405,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                 />
                             </div>
                             <datalist id="threatsList">
-                                {STANDARD_THREATS.map((t, i) => <option key={i} value={t} />)}
+                                {STANDARD_THREATS.map((t) => <option key={t} value={t} />)}
                             </datalist>
                         </div>
 

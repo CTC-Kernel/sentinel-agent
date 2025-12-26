@@ -84,6 +84,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                     <button
                                         onClick={onClose}
                                         className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600"
+                                        aria-label="Fermer"
                                     >
                                         <X className="w-5 h-5" />
                                     </button>
@@ -168,6 +169,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                             type="submit"
                                             disabled={loading}
                                             className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                            aria-label="Envoyer le message"
                                         >
                                             {loading ? (
                                                 <Loader2 className="w-5 h-5 animate-spin" />

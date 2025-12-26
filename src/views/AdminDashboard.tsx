@@ -163,6 +163,7 @@ export const AdminDashboard: React.FC = () => {
                     <div className="relative flex-1 min-w-0 group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
                         <input
+                            aria-label={t('admin.orgs.searchPlaceholder')}
                             type="text"
                             placeholder={t('admin.orgs.searchPlaceholder')}
                             value={searchTerm}
@@ -203,6 +204,7 @@ export const AdminDashboard: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <button
+                                                aria-label={switchingOrg === org.id ? t('admin.orgs.switching') : t('admin.orgs.manage')}
                                                 onClick={() => handleManage(org.id, org.name)}
                                                 disabled={switchingOrg === org.id}
                                                 className="px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-slate-600 dark:text-slate-300 text-sm font-bold hover:bg-brand-50 dark:hover:bg-brand-500/20 hover:text-brand-600 dark:hover:text-brand-400 hover:border-brand-200 dark:hover:border-brand-500/30 transition-all disabled:opacity-50 shadow-sm"

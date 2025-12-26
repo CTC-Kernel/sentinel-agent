@@ -3,7 +3,7 @@ import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { useLocation } from 'react-router-dom';
-import { Document, UserProfile } from '../types';
+import { Document } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { Plus, Bell, FileText, History, Edit, CheckCircle2 } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
@@ -163,6 +163,7 @@ export const Documents: React.FC = () => {
                 actions={canCreate && (
                     <CustomTooltip content={t('documents.newDocument')}>
                         <button
+                            aria-label={t('documents.newDocument')}
                             onClick={() => setShowCreateModal(true)}
                             className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                         >
@@ -274,6 +275,7 @@ export const Documents: React.FC = () => {
                             onSearchChange={setFilter}
                             actions={
                                 <button
+                                    aria-label={t('documents.exportCsv')}
                                     onClick={() => handleExportCSV(filteredDocuments)}
                                     className="p-2 text-slate-500 hover:text-brand-600 transition-colors"
                                     title={t('documents.exportCsv')}
@@ -289,6 +291,7 @@ export const Documents: React.FC = () => {
                             <div className="flex items-center gap-2">
                                 <label className="flex items-center gap-2 cursor-pointer bg-slate-100 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-transparent hover:border-brand-200 transition-all">
                                     <input
+                                        aria-label={t('documents.digitalSafe')}
                                         type="checkbox"
                                         checked={isDigitalSafeMode}
                                         onChange={() => setIsDigitalSafeMode(!isDigitalSafeMode)}

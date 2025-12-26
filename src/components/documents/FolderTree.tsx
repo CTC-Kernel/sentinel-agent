@@ -78,6 +78,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                     }}
                 >
                     <button
+                        aria-label={isExpanded ? "Replier le dossier" : "Déplier le dossier"}
                         onClick={(e) => toggleExpand(folder.id, e)}
                         className={`p-1 rounded hover:bg-slate-200 dark:hover:bg-white/10 mr-1 ${children.length === 0 ? 'invisible' : ''}`}
                     >
@@ -86,6 +87,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
 
                     {isEditing ? (
                         <input
+                            aria-label="Renommer le dossier"
                             type="text"
                             value={newFolderName}
                             onChange={(e) => setNewFolderName(e.target.value)}
@@ -103,6 +105,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                     )}
 
                     <button
+                        aria-label="Options du dossier"
                         className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-200 dark:hover:bg-white/10 rounded transition-opacity"
                         onClick={(e) => {
                             e.stopPropagation();
@@ -123,6 +126,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
             <div className="p-4 border-b border-gray-100 dark:border-white/5 flex justify-between items-center">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-600">Dossiers</h3>
                 <button
+                    aria-label="Créer un nouveau dossier racine"
                     onClick={() => {
                         setCreateParentId(undefined);
                         setShowCreateModal(true);
@@ -154,6 +158,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                         <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white relative z-10">Nouveau Dossier</h3>
                         <form onSubmit={handleCreateSubmit}>
                             <input
+                                aria-label="Nom du nouveau dossier"
                                 type="text"
                                 value={newFolderName}
                                 onChange={e => setNewFolderName(e.target.value)}
@@ -162,8 +167,8 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                 autoFocus
                             />
                             <div className="flex justify-end gap-2 relative z-10">
-                                <button type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors" disabled={isCreatingFolder}>Annuler</button>
-                                <button type="submit" className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center transition-all hover:scale-105 active:scale-95" disabled={isCreatingFolder}>
+                                <button aria-label="Annuler la création" type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors" disabled={isCreatingFolder}>Annuler</button>
+                                <button aria-label="Confirmer la création" type="submit" className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center transition-all hover:scale-105 active:scale-95" disabled={isCreatingFolder}>
                                     {isCreatingFolder && <span className="animate-spin mr-2">⏳</span>} Créer
                                 </button>
                             </div>
@@ -181,6 +186,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                     >
                         <button
+                            aria-label="Nouveau sous-dossier"
                             onClick={() => {
                                 setCreateParentId(contextMenu.id);
                                 setShowCreateModal(true);
@@ -191,6 +197,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                             <Plus className="h-4 w-4 mr-2" /> Nouveau sous-dossier
                         </button>
                         <button
+                            aria-label="Renommer le dossier"
                             onClick={() => {
                                 setEditingFolderId(contextMenu.id);
                                 const folder = folders.find(f => f.id === contextMenu.id);
@@ -203,6 +210,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                         </button>
                         <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />
                         <button
+                            aria-label="Supprimer le dossier"
                             onClick={() => {
                                 setConfirmDelete({ isOpen: true, id: contextMenu.id });
                                 setContextMenu(null);

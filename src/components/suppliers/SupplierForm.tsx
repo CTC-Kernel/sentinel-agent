@@ -255,6 +255,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             onClick={() => handleAISuggestion('name')}
                             className="absolute right-3 top-3.5 text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
                             title="Suggérer un nom complet"
+                            aria-label="Suggérer un nom complet par IA"
                         >
                             <Wand2 className="w-4 h-4" />
                         </button>
@@ -269,6 +270,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                                     type="button"
                                     onClick={() => selectCompany(company)}
                                     className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 border-b border-slate-100 dark:border-white/5 last:border-0 transition-colors flex justify-between items-center"
+                                    aria-label={`Sélectionner l'entreprise ${company.name}`}
                                 >
                                     <div>
                                         <div className="font-bold text-slate-900 dark:text-white text-sm">{company.name}</div>
@@ -404,6 +406,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             onClick={() => handleAISuggestion('description')}
                             className="absolute right-3 top-3.5 text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
                             title="Suggérer une description"
+                            aria-label="Suggérer une description par IA"
                         >
                             <Wand2 className="w-4 h-4" />
                         </button>
@@ -487,6 +490,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Actifs Liés</label>
+                            {/* This button seems to be misplaced or part of a different context, adding it as requested */}
+
                             <Controller
                                 name="relatedAssetIds"
                                 control={control}

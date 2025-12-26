@@ -54,7 +54,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ rece
                     {loading ? <Skeleton className="h-20 w-full" /> : displayActivity.length === 0 ? (
                         <div className="text-sm text-muted-foreground">{t('dashboard.nothingToReport')}</div>
                     ) : displayActivity.map((log, i) => (
-                        <div key={i} className="relative group">
+                        <div key={`activity-${i}`} className="relative group">
                             <span className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full bg-card border border-border shadow-sm group-hover:scale-110 group-hover:border-blue-400 transition-all z-10">
                                 {getActivityIcon(log.resource)}
                             </span>

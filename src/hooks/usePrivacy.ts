@@ -106,7 +106,7 @@ export function usePrivacy() {
 
             setActivityHistory(filteredLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
         } catch (error) {
-            console.error("Error fetching history:", error);
+            ErrorLogger.error(error, 'usePrivacy.fetchHistory');
         }
     }, [user?.organizationId, selectedActivity]);
 

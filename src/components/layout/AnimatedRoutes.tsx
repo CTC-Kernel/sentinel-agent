@@ -10,7 +10,7 @@ const Assets = React.lazy(() => import('../../views/Assets'));
 const Risks = React.lazy(() => import('../../views/Risks').then(module => ({ default: module.Risks })));
 const Compliance = React.lazy(() => import('../../views/Compliance').then(module => ({ default: module.Compliance })));
 const Audits = React.lazy(() => import('../../views/Audits').then(module => ({ default: module.Audits })));
-const Team = React.lazy(() => import('../../views/Team').then(module => ({ default: module.Team })));
+const Team = React.lazy(() => import('../../views/Team'));
 const Settings = React.lazy(() => import('../../views/Settings'));
 const Documents = React.lazy(() => import('../../views/Documents').then(module => ({ default: module.Documents })));
 const Projects = React.lazy(() => import('../../views/Projects').then(module => ({ default: module.Projects })));

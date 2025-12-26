@@ -1,7 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import Continuity from '../Continuity';
+import { Continuity } from '../Continuity';
 import { MemoryRouter } from 'react-router-dom';
 
 // ---------------------------------------------------------------------
@@ -67,7 +67,7 @@ vi.mock('../../components/ui/ScrollableTabs', () => ({
     ScrollableTabs: ({ tabs, onTabChange }: { tabs: Array<{ id: string; label: string }>, onTabChange: (id: string) => void }) => (
         <div>
             {tabs.map((t: { id: string; label: string }) => (
-                <button key={t.id} onClick={() => onTabChange(t.id)}>{t.label}</button>
+                <button aria-label={t.label} key={t.id} onClick={() => onTabChange(t.id)}>{t.label}</button>
             ))}
         </div>
     )
@@ -75,7 +75,7 @@ vi.mock('../../components/ui/ScrollableTabs', () => ({
 vi.mock('../../components/ui/PremiumPageControl', () => ({
     PremiumPageControl: ({ onSearchChange, actions }: { onSearchChange: (val: string) => void, actions?: React.ReactNode }) => (
         <div>
-            <input data-testid="search-input" onChange={(e) => onSearchChange(e.target.value)} />
+            <input aria-label="Search" data-testid="search-input" onChange={(e) => onSearchChange(e.target.value)} />
             {actions}
         </div>
     )

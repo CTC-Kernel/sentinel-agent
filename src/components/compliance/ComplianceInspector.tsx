@@ -86,6 +86,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                             <span className="font-medium">Lier ce contrôle au projet <strong>{linkingToProjectName}</strong> ?</span>
                         </div>
                         <button
+                            aria-label={`Lier le contrôle au projet ${linkingToProjectName}`}
                             onClick={() => handleLinkProject(control, linkingToProjectId)}
                             disabled={updating || (control.relatedProjectIds || []).includes(linkingToProjectId)}
                             className="text-xs bg-brand-600 hover:bg-brand-700 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center shadow-sm disabled:opacity-50"
@@ -123,6 +124,8 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                         {(['Non commencé', 'Partiel', 'Implémenté', 'En revue', 'Non applicable', 'Exclu'] as Control['status'][]).map((s) => (
                                             <button
                                                 key={s}
+                                                aria-label={`Changer le statut à ${s}`}
+                                                aria-pressed={control.status === s}
                                                 onClick={() => handleStatusChange(control, s)}
                                                 disabled={updating}
                                                 className={`px-2 py-2 rounded-lg text-[10px] font-bold border transition-all duration-200 flex items-center justify-center ${control.status === s
@@ -197,7 +200,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                         return asset ? (
                                             <div key={assetId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
                                                 <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
-                                                {canEdit && <button onClick={() => handleUnlinkAsset(control, assetId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
+                                                {canEdit && <button aria-label="Délier l'actif" onClick={() => handleUnlinkAsset(control, assetId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
                                             </div>
                                         ) : null;
                                     })}
@@ -224,7 +227,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                         return supplier ? (
                                             <div key={supplierId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
                                                 <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{supplier.name}</span>
-                                                {canEdit && <button onClick={() => handleUnlinkSupplier(control, supplierId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
+                                                {canEdit && <button aria-label="Délier le fournisseur" onClick={() => handleUnlinkSupplier(control, supplierId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
                                             </div>
                                         ) : null;
                                     })}
@@ -260,7 +263,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                                     <span className="text-xs text-slate-500">{project.status}</span>
                                                 </div>
                                             </div>
-                                            {canEdit && <button onClick={() => handleUnlinkProject(control, pid)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
+                                            {canEdit && <button aria-label="Délier le projet" onClick={() => handleUnlinkProject(control, pid)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
                                         </div>
                                     ) : null;
                                 })}
@@ -352,7 +355,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                                     <ExternalLink className="h-4 w-4" />
                                                 </a>
                                                 {canEdit && (
-                                                    <button onClick={() => handleUnlinkDocument(control, docId)} className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                                                    <button aria-label="Délier le document" onClick={() => handleUnlinkDocument(control, docId)} className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                                                         <X className="h-4 w-4" />
                                                     </button>
                                                 )}

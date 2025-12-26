@@ -165,13 +165,13 @@ export const ThreatIntelligence: React.FC = () => {
                 breadcrumbs={[{ label: 'Pilotage' }, { label: 'Threat Intel' }]}
                 actions={
                     <div className="flex gap-2">
-                        <button onClick={handleRefreshLiveFeed} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 p-2 rounded-xl backdrop-blur-md transition-all" aria-label="Refresh threat feeds" title="Refresh threat feeds">
+                        <button aria-label="Refresh threat feeds" onClick={handleRefreshLiveFeed} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 p-2 rounded-xl backdrop-blur-md transition-all" title="Refresh threat feeds">
                             <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin' : ''}`} />
                         </button>
-                        <button onClick={() => setIsSubmitModalOpen(true)} className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl flex items-center text-sm font-bold shadow-lg shadow-brand-500/20" aria-label="Share new threat" title="Share new threat">
+                        <button aria-label="Share new threat" onClick={() => setIsSubmitModalOpen(true)} className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl flex items-center text-sm font-bold shadow-lg shadow-brand-500/20" title="Share new threat">
                             <Share2 className="h-4 w-4 mr-2" /> Partager
                         </button>
-                        <button onClick={() => setIsSettingsOpen(true)} className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl border border-white/10" aria-label="Community settings" title="Community settings">
+                        <button aria-label="Community settings" onClick={() => setIsSettingsOpen(true)} className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl border border-white/10" title="Community settings">
                             <Settings className="h-5 w-5" />
                         </button>
                     </div>
@@ -203,7 +203,7 @@ export const ThreatIntelligence: React.FC = () => {
                                     {['All', 'Ransomware', 'Vulnerability', 'Malware'].map(f => (
                                         <Menu.Item key={f}>
                                             {({ active }) => (
-                                                <button onClick={() => setActiveTypeFilter(f)} className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors`} aria-label={`Filter by ${f}`} title={`Filter by ${f}`}>
+                                                <button aria-label={`Filter by ${f}`} onClick={() => setActiveTypeFilter(f)} className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors`} title={`Filter by ${f}`}>
                                                     {f}
                                                 </button>
                                             )}
@@ -231,7 +231,7 @@ export const ThreatIntelligence: React.FC = () => {
             {activeTab === 'map' && (
                 <motion.div variants={slideUpVariants} className="relative h-[70vh] min-h-[500px] w-full bg-slate-900 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden">
                     <div className="absolute top-6 right-6 z-10 flex gap-2">
-                        <button onClick={() => setViewMode(viewMode === '2d' ? '3d' : '2d')} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold backdrop-blur-md flex items-center border border-white/10 transition-all" aria-label="Toggle 2D/3D view" title="Toggle 2D/3D view">
+                        <button aria-label="Toggle 2D/3D view" onClick={() => setViewMode(viewMode === '2d' ? '3d' : '2d')} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold backdrop-blur-md flex items-center border border-white/10 transition-all" title="Toggle 2D/3D view">
                             {viewMode === '2d' ? <Box className="h-4 w-4 mr-2" /> : <Globe className="h-4 w-4 mr-2" />}
                             {viewMode === '2d' ? 'Vue 3D' : 'Vue 2D'}
                         </button>
@@ -298,17 +298,17 @@ export const ThreatIntelligence: React.FC = () => {
                                             </div>
 
                                             <div className="flex items-center gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                                                <button onClick={(e) => { e.stopPropagation(); confirmSighting(threat.id); }} className="flex items-center text-xs font-bold text-slate-500 hover:text-brand-500 transition-colors" aria-label="Confirm sighting" title="Confirm sighting">
+                                                <button aria-label="Confirm sighting" onClick={(e) => { e.stopPropagation(); confirmSighting(threat.id); }} className="flex items-center text-xs font-bold text-slate-500 hover:text-brand-500 transition-colors" title="Confirm sighting">
                                                     <ThumbsUp className="h-4 w-4 mr-1.5" /> {threat.votes} Confirmations
                                                 </button>
-                                                <button className="flex items-center text-xs font-bold text-slate-500 hover:text-blue-500 transition-colors" aria-label="View discussions" title="View discussions">
+                                                <button aria-label="View discussions" className="flex items-center text-xs font-bold text-slate-500 hover:text-blue-500 transition-colors" title="View discussions">
                                                     <MessageSquare className="h-4 w-4 mr-1.5" /> {threat.comments || 0} Discussions
                                                 </button>
                                                 <div className="ml-auto flex gap-2">
-                                                    <button onClick={(e) => handleDownloadRule(e, threat)} className="text-xs font-bold text-emerald-600 hover:text-emerald-500 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/10 rounded-lg transition-colors" aria-label="Download SIGMA rule" title="Download SIGMA rule">
+                                                    <button aria-label="Download SIGMA rule" onClick={(e) => handleDownloadRule(e, threat)} className="text-xs font-bold text-emerald-600 hover:text-emerald-500 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/10 rounded-lg transition-colors" title="Download SIGMA rule">
                                                         SIGMA Rule
                                                     </button>
-                                                    <button onClick={(e) => { e.stopPropagation(); setThreatForRisk(threat); setIsRiskModalOpen(true); }} className="text-xs font-bold text-orange-600 hover:text-orange-500 px-3 py-1 bg-orange-50 dark:bg-orange-900/10 rounded-lg transition-colors" aria-label="Create risk from threat" title="Create risk from threat">
+                                                    <button aria-label="Create risk from threat" onClick={(e) => { e.stopPropagation(); setThreatForRisk(threat); setIsRiskModalOpen(true); }} className="text-xs font-bold text-orange-600 hover:text-orange-500 px-3 py-1 bg-orange-50 dark:bg-orange-900/10 rounded-lg transition-colors" title="Create risk from threat">
                                                         Créer Risque
                                                     </button>
                                                 </div>
@@ -359,7 +359,7 @@ export const ThreatIntelligence: React.FC = () => {
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <Activity className="h-6 w-6 text-brand-500" /> Top Hunters
                             </h3>
-                            <button className="text-xs font-bold text-brand-500 hover:text-brand-400" aria-label="View all top hunters">Voir tout</button>
+                            <button aria-label="View all top hunters" className="text-xs font-bold text-brand-500 hover:text-brand-400">Voir tout</button>
                         </div>
 
                         <div className="space-y-6">

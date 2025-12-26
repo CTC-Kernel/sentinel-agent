@@ -197,22 +197,26 @@ export const Privacy: React.FC = () => {
                 icon={<GlobeLock className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 actions={canEdit && (
                     <>
-                        <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="flex items-center px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
-                        >
-                            <Upload className="h-4 w-4 mr-2" /> Importer
-                        </button>
-                        <button
-                            onClick={() => {
-                                createActivityForm.reset({ name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '', legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [], retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif' });
-                                setShowCreateModal(true);
-                            }}
-                            className="flex items-center px-5 py-2.5 bg-purple-600 text-white text-sm font-bold rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30"
-                        >
-                            <Plus className="h-4 w-4 mr-2" /> Nouveau Traitement
-                        </button>
+                        <div className="flex gap-2 mb-2">
+                            <input aria-label="Import activities from CSV" type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} hidden />
+                            <button
+                                aria-label="Importer"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex items-center px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
+                            >
+                                <Upload className="h-4 w-4 mr-2" /> Importer
+                            </button>
+                            <button
+                                aria-label="Nouveau Traitement"
+                                onClick={() => {
+                                    createActivityForm.reset({ name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '', legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [], retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif' });
+                                    setShowCreateModal(true);
+                                }}
+                                className="flex items-center px-5 py-2.5 bg-purple-600 text-white text-sm font-bold rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30"
+                            >
+                                <Plus className="h-4 w-4 mr-2" /> Nouveau Traitement
+                            </button>
+                        </div>
                     </>
                 )}
             />
@@ -302,7 +306,7 @@ export const Privacy: React.FC = () => {
                     </div>
                 ) : (
                     filteredActivities.map(activity => (
-                        <motion.div variants={slideUpVariants} key={activity.id} onClick={() => openInspector(activity)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5">
+                        <motion.div variants={slideUpVariants} key={activity.id} onClick={() => openInspector(activity)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5 hover:border-purple-500/30 transition-all">
                             <div className="flex justify-between items-start mb-5">
                                 <div className="p-3 bg-purple-50 dark:bg-slate-800 rounded-2xl text-purple-600 shadow-inner">
                                     <Fingerprint className="h-6 w-6" />
@@ -343,7 +347,7 @@ export const Privacy: React.FC = () => {
                             {
                                 canEdit && (
                                     <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={(e) => { e.stopPropagation(); initiateDelete(activity.id, activity.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-50 shadow-sm backdrop-blur-sm"><Trash2 className="h-4 w-4" /></button>
+                                        <button aria-label="Delete" onClick={(e) => { e.stopPropagation(); initiateDelete(activity.id, activity.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-50 shadow-sm backdrop-blur-sm"><Trash2 className="h-4 w-4" /></button>
                                     </div>
                                 )
                             }
@@ -370,13 +374,13 @@ export const Privacy: React.FC = () => {
                     selectedActivity && (
                         <>
                             {canEdit && !isEditing && (
-                                <button onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                                <button aria-label="Edit Activity" onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
                             )}
                             {canEdit && isEditing && (
-                                <button onClick={editActivityForm.handleSubmit(handleUpdate, onInvalid)} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
+                                <button aria-label="Save Activity" onClick={editActivityForm.handleSubmit(handleUpdate, onInvalid)} className="p-2.5 text-brand-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Save className="h-5 w-5" /></button>
                             )}
                             {canEdit && (
-                                <button onClick={() => initiateDelete(selectedActivity.id, selectedActivity.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
+                                <button aria-label="Delete Activity" onClick={() => initiateDelete(selectedActivity.id, selectedActivity.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
                             )}
                         </>
                     )
@@ -524,6 +528,7 @@ export const Privacy: React.FC = () => {
                                                     </p>
                                                     {selectedActivity.hasDPIA ? (
                                                         <button
+                                                            aria-label="Consulter le DPIA"
                                                             onClick={() => handleViewDPIA(selectedActivity)}
                                                             className="text-xs font-bold bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
                                                         >
@@ -531,6 +536,7 @@ export const Privacy: React.FC = () => {
                                                         </button>
                                                     ) : (
                                                         <button
+                                                            aria-label="Démarrer une analyse"
                                                             onClick={() => handleStartDPIA(selectedActivity)}
                                                             className="text-xs font-bold bg-white text-purple-600 border border-purple-200 px-4 py-2 rounded-lg hover:bg-purple-50 transition"
                                                         >
@@ -550,7 +556,7 @@ export const Privacy: React.FC = () => {
                             {inspectorTab === 'history' && selectedActivity && (
                                 <div className="relative border-l-2 border-gray-100 dark:border-white/5 ml-3 space-y-8 pl-8 py-2">
                                     {activityHistory.map((log, i) => (
-                                        <div key={i} className="relative">
+                                        <div key={`${log.timestamp}-${i}`} className="relative">
                                             <span className="absolute -left-[41px] top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-800 border-2 border-brand-100 dark:border-brand-900">
                                                 <div className="h-2 w-2 rounded-full bg-brand-600"></div>
                                             </span>
@@ -670,8 +676,9 @@ export const Privacy: React.FC = () => {
             {/* Assessment View Overlay */}
             {
                 viewingAssessmentId && (
-                    <div className="fixed inset-0 z-[60] bg-white dark:bg-slate-900 animate-in fade-in slide-in-from-bottom-10 duration-300 flex flex-col">
+                    <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 animate-in fade-in slide-in-from-bottom-10 duration-300 flex flex-col">
                         <button
+                            aria-label="Close"
                             onClick={() => {
                                 setViewingAssessmentId(null);
                                 fetchActivities();
@@ -793,8 +800,8 @@ export const Privacy: React.FC = () => {
                     </div>
 
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                        <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
-                        <button type="submit" className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-purple-500/30">Enregistrer</button>
+                        <button aria-label="Cancel creation" type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Annuler</button>
+                        <button aria-label="Save creation" type="submit" className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-purple-500/30">Enregistrer</button>
                     </div>
                 </form>
             </Drawer >

@@ -297,6 +297,7 @@ export const Risks: React.FC = () => {
                                     <button
                                         data-tour="risks-filters"
                                         onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                                        aria-label={t('assets.advancedFilters')}
                                         className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
                                             ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
                                             : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
@@ -321,28 +322,28 @@ export const Risks: React.FC = () => {
                                                 </div>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button onClick={handleExportPDF} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`} aria-label={t('risks.reports')}>
+                                                        <button aria-label={t('risks.reports')} onClick={handleExportPDF} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                             <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} /> {t('risks.reports')} (PDF)
                                                         </button>
                                                     )}
                                                 </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button onClick={handleExportExecutive} disabled={isGeneratingReport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`} aria-label={t('risks.executiveReport')}>
+                                                        <button aria-label={t('risks.executiveReport')} onClick={handleExportExecutive} disabled={isGeneratingReport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                             {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} />} {t('risks.executiveReport')}
                                                         </button>
                                                     )}
                                                 </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button onClick={() => exportCSV(filteredRisks)} disabled={isExportingCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`} aria-label={t('risks.exportCsv')}>
+                                                        <button aria-label={t('risks.exportCsv')} onClick={() => exportCSV(filteredRisks)} disabled={isExportingCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                             {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} {t('risks.exportCsv')}
                                                         </button>
                                                     )}
                                                 </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`} aria-label={t('risks.obsidian')}>
+                                                        <button aria-label={t('risks.obsidian')} onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                             <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} /> {t('risks.obsidian')}
                                                         </button>
                                                     )}
@@ -354,9 +355,10 @@ export const Risks: React.FC = () => {
                                                     <Menu.Item>
                                                         {({ active }) => (
                                                             <button
+                                                                aria-label={t('risks.importCsv')}
                                                                 onClick={() => fileInputRef.current?.click()}
                                                                 disabled={isImporting}
-                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                             >
                                                                 {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} {t('risks.importCsv')}
                                                             </button>
@@ -364,7 +366,7 @@ export const Risks: React.FC = () => {
                                                     </Menu.Item>
                                                     <Menu.Item>
                                                         {({ active }) => (
-                                                            <button onClick={() => setIsTemplateModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                            <button aria-label={t('risks.templates')} onClick={() => setIsTemplateModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                                 <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> {t('risks.templates')}
                                                             </button>
                                                         )}
@@ -394,6 +396,7 @@ export const Risks: React.FC = () => {
                                                     }
                                                 }}
                                                 disabled={isAnalyzing}
+                                                aria-label={isAnalyzing ? t('risks.analyzing') : t('risks.aiAnalysis')}
                                                 className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
                                             >
                                                 {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
@@ -404,6 +407,7 @@ export const Risks: React.FC = () => {
                                             <button
                                                 data-tour="risks-create"
                                                 onClick={() => { setEditingRisk(null); setCreationMode(true); }}
+                                                aria-label={t('risks.newRisk')}
                                                 className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                             >
                                                 <Plus className="h-4 w-4" />
@@ -419,7 +423,7 @@ export const Risks: React.FC = () => {
             )}
 
             {/* Hidden Input for Import */}
-            <input type="file" ref={fileInputRef} hidden accept=".csv" onChange={onFileInputChange} />
+            <input aria-label={t('risks.importCsv')} type="file" ref={fileInputRef} hidden accept=".csv" onChange={onFileInputChange} />
 
             {/* Advanced Search Panel Placeholder */}
             <AnimatePresence>

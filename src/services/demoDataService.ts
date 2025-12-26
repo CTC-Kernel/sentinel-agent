@@ -1,4 +1,5 @@
 import { db } from '../firebase';
+import { ErrorLogger } from './errorLogger';
 import { doc, writeBatch } from 'firebase/firestore';
 import {
     Asset, Risk, Project, Audit, Document, Incident, Supplier,
@@ -336,7 +337,7 @@ export const DemoDataService = {
             if (import.meta.env.DEV) console.info('Demo data generated successfully!');
             return { success: true, count: assets.length + risks.length + projects.length };
         } catch (error) {
-            if (import.meta.env.DEV) console.error('Error generating demo data:', error);
+            ErrorLogger.error(error, 'DemoDataService.generateDemoData');
             throw error;
         }
     }

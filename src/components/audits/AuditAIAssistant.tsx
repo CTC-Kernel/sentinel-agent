@@ -105,6 +105,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                     onClick={() => handleAction('summary')}
                     disabled={loading}
                     className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'summary' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    aria-label="Générer un résumé exécutif"
                 >
                     {loading && mode === 'summary' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <FileText className="h-3.5 w-3.5 mr-2" />}
                     Résumé Exécutif
@@ -113,6 +114,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                     onClick={() => handleAction('analysis')}
                     disabled={loading}
                     className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'analysis' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    aria-label="Analyser les constats"
                 >
                     {loading && mode === 'analysis' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5 mr-2" />}
                     Analyse Constats
@@ -121,6 +123,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                     onClick={() => handleAction('scope')}
                     disabled={loading}
                     className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'scope' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    aria-label="Revoir le périmètre"
                 >
                     {loading && mode === 'scope' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ClipboardCheck className="h-3.5 w-3.5 mr-2" />}
                     Revue Périmètre
@@ -138,7 +141,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                             <Bot className="h-3.5 w-3.5 mr-1.5" />
                             Réponse de l'IA
                         </h4>
-                        <button onClick={() => setResponse(null)} className="text-slate-500 hover:text-slate-600"><X className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => setResponse(null)} className="text-slate-500 hover:text-slate-600" aria-label="Fermer la réponse IA"><X className="h-3.5 w-3.5" /></button>
                     </div>
 
                     <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
@@ -149,7 +152,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                                     <div className="mt-2">
                                         <p className="font-bold mb-1">Points Clés :</p>
                                         <ul className="list-disc pl-4 space-y-1">
-                                            {response.keyTakeaways.map((r: unknown, i: number) => <li key={i}>{String(r)}</li>)}
+                                            {response.keyTakeaways.map((r: unknown, i: number) => <li key={`takeaway-${i}`}>{String(r)}</li>)}
                                         </ul>
                                     </div>
                                 )}
@@ -160,11 +163,11 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                             <div>
                                 <p className="font-bold mb-1">Causes Racines :</p>
                                 <ul className="list-disc pl-4 mb-2 space-y-1">
-                                    {response.rootCauses.map((r: unknown, i: number) => <li key={i}>{String(r)}</li>)}
+                                    {response.rootCauses.map((r: unknown, i: number) => <li key={`cause-${i}`}>{String(r)}</li>)}
                                 </ul>
                                 <p className="font-bold mb-1">Recommandations :</p>
                                 <ul className="list-disc pl-4 space-y-1">
-                                    {Array.isArray(response.recommendations) && response.recommendations.map((r: unknown, i: number) => <li key={i}>{String(r)}</li>)}
+                                    {Array.isArray(response.recommendations) && response.recommendations.map((r: unknown, i: number) => <li key={`rec-${i}`}>{String(r)}</li>)}
                                 </ul>
                             </div>
                         )}
@@ -172,13 +175,13 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                             <div>
                                 <p className="font-bold mb-1">Suggestions :</p>
                                 <ul className="list-disc pl-4 mb-2 space-y-1">
-                                    {response.suggestions.map((r: unknown, i: number) => <li key={i}>{String(r)}</li>)}
+                                    {response.suggestions.map((r: unknown, i: number) => <li key={`sugg-${i}`}>{String(r)}</li>)}
                                 </ul>
                                 {Array.isArray(response.missingAreas) && response.missingAreas.length > 0 && (
                                     <>
                                         <p className="font-bold mb-1">Zones Manquantes :</p>
                                         <ul className="list-disc pl-4 space-y-1">
-                                            {response.missingAreas.map((r: unknown, i: number) => <li key={i}>{String(r)}</li>)}
+                                            {response.missingAreas.map((r: unknown, i: number) => <li key={`missing-${i}`}>{String(r)}</li>)}
                                         </ul>
                                     </>
                                 )}
@@ -190,6 +193,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                                             onUpdate({ scope: newScope });
                                         }}
                                         className="mt-2 text-xs text-indigo-600 hover:underline"
+                                        aria-label="Ajouter les suggestions au périmètre"
                                     >
                                         Ajouter au périmètre
                                     </button>

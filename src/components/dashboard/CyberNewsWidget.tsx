@@ -98,14 +98,14 @@ export const CyberNewsWidget: React.FC = () => {
                 {loading && news.length === 0 ? (
                     <div className="space-y-4">
                         {[1, 2, 3].map(i => (
-                            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+                            <Skeleton key={`news-skel-${i}`} className="h-24 w-full rounded-2xl" />
                         ))}
                     </div>
                 ) : news.length > 0 ? (
                     <div className="space-y-3">
                         {displayNews.map((item, index) => (
                             <a
-                                key={index}
+                                key={`news-${index}`}
                                 href={item.link}
                                 target="_blank"
                                 rel="noopener noreferrer"

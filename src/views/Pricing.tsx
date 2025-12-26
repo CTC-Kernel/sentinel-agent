@@ -109,12 +109,14 @@ const Pricing = () => {
             className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white dark:bg-slate-600 rounded-full shadow-sm transition-all duration-300 ease-out ${isAnnual ? 'translate-x-[calc(100%+6px)]' : 'translate-x-0'}`}
           />
           <button
+            aria-label={t('pricing.monthly')}
             onClick={() => setIsAnnual(false)}
             className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 rounded-full ${!isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
             {t('pricing.monthly')}
           </button>
           <button
+            aria-label={t('pricing.annual')}
             onClick={() => setIsAnnual(true)}
             className={`relative z-10 px-6 py-2 text-sm font-bold transition-colors duration-300 rounded-full flex items-center gap-2 ${isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
@@ -178,7 +180,7 @@ const Pricing = () => {
                 <div className="space-y-4 mb-8 flex-1">
                   {plan.featuresList.map((feature, i) => (
                     <div
-                      key={i}
+                      key={`${feature.substring(0, 10)}-${i}`}
                       className="text-sm text-slate-700 dark:text-slate-300 font-medium"
                     >
                       <span className="leading-relaxed">{feature}</span>
@@ -194,6 +196,7 @@ const Pricing = () => {
                   </div>
                 ) : (
                   <button
+                    aria-label={price === 0 ? t('pricing.startFree') : t('pricing.choose')}
                     onClick={() => handleSubscribe(id)}
                     disabled={loading !== null}
                     className={`w-full py-4 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${popular
@@ -235,8 +238,8 @@ const Pricing = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-              {features.map((feature, i) => (
-                <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
+              {features.map((feature) => (
+                <tr key={feature.name} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
                   <td className="py-5 px-10 text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
                     {feature.name}
                     {feature.tooltip && (
@@ -299,8 +302,10 @@ const Pricing = () => {
 
         <div className="divide-y divide-slate-100 dark:divide-white/5">
           {faqs.map((faq, i) => (
-            <div key={i} className="group">
+            <div key={faq.q} className="group">
               <button
+                aria-label={faq.q}
+                aria-expanded={openFaq === i}
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 className="w-full flex items-center justify-between p-8 text-left hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"
               >
@@ -330,6 +335,7 @@ const Pricing = () => {
         <p className="text-sm text-slate-500 font-medium">
           {t('pricing.contact.text')}
           <button
+            aria-label={t('pricing.contact.link')}
             onClick={() => setIsContactOpen(true)}
             className="ml-1 text-slate-900 dark:text-white hover:underline font-bold focus:outline-none"
           >
@@ -345,9 +351,9 @@ const Pricing = () => {
       />
 
       <div className="flex flex-wrap gap-4 justify-center items-center text-xs font-medium text-slate-500 pb-8">
-        <button onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors">CGV</button>
-        <button onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors">Confidentialité</button>
-        <button onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors">Mentions Légales</button>
+        <button aria-label="Conditions Générales de Vente" onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors">CGV</button>
+        <button aria-label="Politique de Confidentialité" onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors">Confidentialité</button>
+        <button aria-label="Mentions Légales" onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors">Mentions Légales</button>
       </div>
 
       <LegalModal

@@ -111,7 +111,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                 <div className="flex items-center gap-2">
                     {canDeleteResource(user, 'Audit') && (
                         <CustomTooltip content="Supprimer l'audit">
-                            <button onClick={() => onDelete(audit.id, audit.name)} className="p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-500 transition-colors">
+                            <button onClick={() => onDelete(audit.id, audit.name)} aria-label="Supprimer l'audit" className="p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-500 transition-colors">
                                 <Trash2 className="h-5 w-5" />
                             </button>
                         </CustomTooltip>
@@ -122,6 +122,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                         <button
                             onClick={validateAudit}
                             disabled={isValidating}
+                            aria-label="Valider l'audit"
                             className={`px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-colors shadow-lg shadow-indigo-500/20 flex items-center gap-2 ${isValidating ? 'opacity-75 cursor-wait' : ''}`}
                         >
                             {isValidating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCheck className="h-4 w-4" />}
@@ -130,12 +131,12 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                     )}
 
                     <CustomTooltip content="Rapport PDF">
-                        <button onClick={() => generateAuditReport([])} disabled={isGeneratingReport} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-blue-500">
+                        <button onClick={() => generateAuditReport([])} disabled={isGeneratingReport} aria-label="Générer le rapport PDF" className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-blue-500">
                             {isGeneratingReport ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileText className="h-5 w-5" />}
                         </button>
                     </CustomTooltip>
                     <CustomTooltip content="Pack Audit (ZIP)">
-                        <button onClick={handleExportPack} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-emerald-500">
+                        <button onClick={handleExportPack} aria-label="Exporter le pack d'audit ZIP" className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-500 hover:text-emerald-500">
                             <Download className="h-5 w-5" />
                         </button>
                     </CustomTooltip>
@@ -175,7 +176,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                                         </select>
                                     </div>
                                     <div className="flex justify-end">
-                                        <button type="submit" className="btn-primary">Ajouter</button>
+                                        <button type="submit" aria-label="Ajouter le constat" className="btn-primary">Ajouter</button>
                                     </div>
                                 </div>
                             </form>
@@ -205,6 +206,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                                                             {uploadingFindingId === f.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                                                             <input
                                                                 type="file"
+                                                                aria-label="Upload de preuve pour le constat"
                                                                 className="hidden"
                                                                 onChange={(e) => handleFileUpload(e, f.id)}
                                                                 disabled={!!uploadingFindingId}
@@ -212,7 +214,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                                                         </label>
                                                     </CustomTooltip>
                                                     <CustomTooltip content="Supprimer">
-                                                        <button onClick={() => handleDeleteFinding(f.id)} className="text-slate-400 hover:text-red-500 p-1">
+                                                        <button onClick={() => handleDeleteFinding(f.id)} aria-label="Supprimer le constat" className="text-slate-400 hover:text-red-500 p-1">
                                                             <Trash2 className="h-4 w-4" />
                                                         </button>
                                                     </CustomTooltip>
@@ -231,7 +233,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                         <div className="flex justify-between items-center">
                             <h3 className="text-lg font-bold">Checklist d'Audit</h3>
                             {canEdit && (
-                                <button onClick={generateChecklist} className="btn-secondary text-sm flex items-center gap-2">
+                                <button onClick={generateChecklist} aria-label="Générer une checklist avec l'IA" className="btn-secondary text-sm flex items-center gap-2">
                                     <BrainCircuit className="h-4 w-4" /> Générer avec IA
                                 </button>
                             )}
@@ -247,6 +249,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                                                 <button
                                                     key={opt}
                                                     onClick={() => handleChecklistAnswer(q.id, opt)}
+                                                    aria-label={`Marquer comme ${opt}`}
                                                     className={`px-3 py-1 rounded-lg text-sm border ${q.response === opt ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-900/30' : 'border-slate-200 text-slate-600'}`}
                                                 >
                                                     {opt}
@@ -259,7 +262,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                         ) : (
                             <div className="text-center py-10 border-2 border-dashed border-slate-200 rounded-2xl">
                                 <p className="text-slate-500 mb-4">Aucune checklist générée.</p>
-                                <button onClick={generateChecklist} className="btn-primary">Générer maintenant</button>
+                                <button onClick={generateChecklist} aria-label="Générer une checklist maintenant" className="btn-primary">Générer maintenant</button>
                             </div>
                         )}
                     </div>

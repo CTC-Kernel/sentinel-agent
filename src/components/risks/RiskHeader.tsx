@@ -77,6 +77,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                     <Menu.Item>
                                         {({ active }) => (
                                             <button
+                                                aria-label="Exporter le RTP au format PDF"
                                                 onClick={onExportRTP}
                                                 disabled={isGeneratingReport}
                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
@@ -89,6 +90,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                     <Menu.Item>
                                         {({ active }) => (
                                             <button
+                                                aria-label="Exporter le rapport exécutif"
                                                 onClick={onExportExecutiveReport}
                                                 disabled={isGeneratingReport}
                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
@@ -101,6 +103,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                     <Menu.Item>
                                         {({ active }) => (
                                             <button
+                                                aria-label="Exporter le registre au format PDF"
                                                 onClick={onExportPDF}
                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                             >
@@ -112,6 +115,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                     <Menu.Item>
                                         {({ active }) => (
                                             <button
+                                                aria-label="Exporter vers Obsidian"
                                                 onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)}
                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                             >
@@ -123,6 +127,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                     <Menu.Item>
                                         {({ active }) => (
                                             <button
+                                                aria-label="Exporter au format CSV"
                                                 onClick={onExportCSV}
                                                 disabled={isExportingCSV}
                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
@@ -142,6 +147,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                             <Menu.Item>
                                                 {({ active }) => (
                                                     <button
+                                                        aria-label="Importer depuis un CSV"
                                                         onClick={onImportCSV}
                                                         disabled={importing}
                                                         className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
@@ -154,6 +160,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                                             <Menu.Item>
                                                 {({ active }) => (
                                                     <button
+                                                        aria-label="Gérer les modèles de risque"
                                                         onClick={onTemplateModalOpen}
                                                         className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                     >
@@ -173,6 +180,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                         <>
                             <CustomTooltip content="Lancer l'analyse IA">
                                 <button
+                                    aria-label="Lancer l'analyse IA"
                                     onClick={onAIAnalysis}
                                     disabled={isAnalyzing}
                                     className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
@@ -183,6 +191,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                             </CustomTooltip>
                             <CustomTooltip content="Créer un nouveau risque">
                                 <button
+                                    aria-label="Créer un nouveau risque"
                                     onClick={onNewRisk}
                                     className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                 >

@@ -58,6 +58,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
                     {searchQuery && (
                         <Tooltip content="Effacer la recherche">
                             <button
+                                aria-label="Effacer la recherche"
                                 type="button"
                                 onClick={() => onSearchChange('')}
                                 className="p-2.5 bg-slate-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
@@ -77,6 +78,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
                     {/* Filter Toggle */}
                     {onAdvancedSearch && (
                         <button
+                            aria-label={activeFiltersCount && activeFiltersCount > 0 ? `Filtres actifs (${activeFiltersCount})` : "Afficher les filtres"}
                             onClick={onAdvancedSearch}
                             className={`
                                 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200
@@ -111,6 +113,8 @@ export const PageControls: React.FC<PageControlsProps> = ({
                     <div className="flex bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                         <Tooltip content="Vue Grille">
                             <button
+                                aria-label="Passer en vue grille"
+                                aria-pressed={viewMode === 'grid'}
                                 onClick={() => onViewModeChange('grid')}
                                 className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'grid'
                                     ? 'bg-white dark:bg-slate-800 text-brand-600 shadow-sm scale-100'
@@ -121,6 +125,8 @@ export const PageControls: React.FC<PageControlsProps> = ({
                         </Tooltip>
                         <Tooltip content="Vue Liste">
                             <button
+                                aria-label="Passer en vue liste"
+                                aria-pressed={viewMode === 'list'}
                                 onClick={() => onViewModeChange('list')}
                                 className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'list'
                                     ? 'bg-white dark:bg-slate-800 text-brand-600 shadow-sm scale-100'
@@ -131,6 +137,8 @@ export const PageControls: React.FC<PageControlsProps> = ({
                         </Tooltip>
                         <Tooltip content="Vue Matrice">
                             <button
+                                aria-label="Passer en vue matrice"
+                                aria-pressed={viewMode === 'matrix'}
                                 onClick={() => onViewModeChange('matrix')}
                                 className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'matrix'
                                     ? 'bg-white dark:bg-slate-800 text-brand-600 shadow-sm scale-100'

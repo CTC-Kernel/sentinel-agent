@@ -93,11 +93,11 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                     <p className="text-sm text-slate-500">{response.supplierName} - {response.status}</p>
                 </div>
                 <div className="flex gap-3">
-                    <button onClick={() => handleSave(false)} className="flex items-center px-4 py-2 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:opacity-80">
+                    <button aria-label="Sauvegarder les modifications" onClick={() => handleSave(false)} className="flex items-center px-4 py-2 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:opacity-80">
                         <Save className="w-4 h-4 mr-2" />
                         Sauvegarder
                     </button>
-                    <button onClick={() => handleSave(true)} className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-500/20">
+                    <button aria-label="Soumettre l'évaluation" onClick={() => handleSave(true)} className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-500/20">
                         <Check className="w-4 h-4 mr-2" />
                         Soumettre
                     </button>
@@ -110,6 +110,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                     {template.sections.map((section, idx) => (
                         <button
                             key={section.id}
+                            aria-label={`Aller à la section ${section.title}`}
                             onClick={() => setCurrentSectionIndex(idx)}
                             className={`text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors ${currentSectionIndex === idx
                                 ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400'
@@ -161,6 +162,8 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                                                 return (
                                                     <button
                                                         key={opt}
+                                                        aria-label={`Sélectionner ${opt}`}
+                                                        aria-pressed={isSelected}
                                                         onClick={() => setAnswers(prev => ({ ...prev, [q.id]: { ...prev[q.id], value: val } }))}
                                                         className={`px-6 py-2 rounded-lg border font-medium transition-all ${isSelected
                                                             ? 'bg-indigo-600 text-white border-indigo-600'
@@ -189,6 +192,8 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                                             {[1, 2, 3, 4, 5].map(rating => (
                                                 <button
                                                     key={rating}
+                                                    aria-label={`Noter ${rating} sur 5`}
+                                                    aria-pressed={answers[q.id]?.value === rating}
                                                     onClick={() => setAnswers(prev => ({ ...prev, [q.id]: { ...prev[q.id], value: rating } }))}
                                                     className={`w-10 h-10 rounded-lg font-bold flex items-center justify-center transition-all ${answers[q.id]?.value === rating
                                                         ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
@@ -218,6 +223,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                         <div className="flex justify-end pt-4">
                             {currentSectionIndex < template.sections.length - 1 ? (
                                 <button
+                                    aria-label="Passer à la section suivante"
                                     onClick={() => setCurrentSectionIndex(prev => prev + 1)}
                                     className="flex items-center px-6 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 shadow-lg"
                                 >

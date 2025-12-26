@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { collection, addDoc, updateDoc, deleteDoc, doc, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';

@@ -3,8 +3,8 @@ import { Menu, Transition } from '@headlessui/react';
 import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
 
-import { Supplier, Criticality, UserProfile, Asset, Risk, Project } from '../types';
-import { Plus, Building, Trash2, Handshake, Truck, ShieldAlert, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical } from '../components/ui/Icons';
+import { Supplier, Criticality, UserProfile } from '../types';
+import { Plus, Building, Trash2, Handshake, Truck, ShieldAlert, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, MessageSquare } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { useSuppliers } from '../hooks/useSuppliers';
@@ -63,7 +63,6 @@ export const Suppliers: React.FC = () => {
     const [assessmentMode, setAssessmentMode] = useState<string | null>(null); // responseId
 
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
     const [isExportingCSV, setIsExportingCSV] = useState(false);
@@ -119,9 +118,7 @@ export const Suppliers: React.FC = () => {
         processesRaw,
         assetsRaw,
         risksRaw,
-        projectsRaw,
         templates,
-        assessments,
         loading: loadingData
     } = useSuppliersData(user?.organizationId);
 
@@ -138,7 +135,7 @@ export const Suppliers: React.FC = () => {
 
     useEffect(() => {
         if (selectedOwnerId) {
-            const selectedUser = usersRaw.find(u => u.uid === selectedOwnerId);
+            const selectedUser = usersRaw.find(u => u.displayName === selectedOwnerId || u.uid === selectedOwnerId); // Enhanced check
             if (selectedUser) editForm.setValue('owner', selectedUser.displayName || '');
         }
     }, [selectedOwnerId, usersRaw, editForm]);
@@ -335,13 +332,13 @@ export const Suppliers: React.FC = () => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
         if (!state.fromVoxel || !state.voxelSelectedId) return;
 
-        if (loadingSuppliers || loadingProcesses || suppliers.length === 0) return;
+        if (loadingSuppliers || loadingData || suppliers.length === 0) return;
         const supplier = suppliers.find(s => s.id === state.voxelSelectedId);
         if (supplier) {
             setSelectedSupplier(supplier);
             setInspectorTab('profile');
         }
-    }, [location.state, loadingSuppliers, loadingProcesses, suppliers]);
+    }, [location.state, loadingSuppliers, loadingData, suppliers]);
 
     // Logic to start assessment
     const startAssessment = async (supplier: Supplier, templateId: string) => {
@@ -371,7 +368,7 @@ export const Suppliers: React.FC = () => {
         return (
             <div className="p-8 max-w-5xl mx-auto animate-fade-in">
                 <div className="mb-6 flex items-center">
-                    <button onClick={() => setTemplateMode(false)} className="text-slate-500 hover:text-slate-700 mr-4 transition-colors" aria-label="Back to dashboard">Retour</button>
+                    <button aria-label="Retour au tableau de bord" onClick={() => setTemplateMode(false)} className="text-slate-500 hover:text-slate-700 mr-4 transition-colors" title="Retour au tableau de bord">Retour</button>
                     <h1 className="text-2xl font-bold dark:text-white">Éditeur de Modèle de Questionnaire</h1>
                 </div>
                 <QuestionnaireBuilder onCancel={() => setTemplateMode(false)} onSave={() => setTemplateMode(false)} />
@@ -402,9 +399,6 @@ export const Suppliers: React.FC = () => {
             serviceType: supplier.serviceType,
             supportedProcessIds: supplier.supportedProcessIds || []
         });
-        setIsEditing(false);
-
-        setIsEditing(false);
     };
 
     const openCreationDrawer = () => {
@@ -432,7 +426,6 @@ export const Suppliers: React.FC = () => {
         try {
             await updateSupplier(selectedSupplier.id, data);
             setSelectedSupplier(prev => prev ? { ...prev, ...data } : null);
-            setIsEditing(false);
         } catch (error) {
             ErrorLogger.warn('Update handled in hook', 'Suppliers.handleUpdate', { metadata: { error } });
         } finally {
@@ -452,22 +445,7 @@ export const Suppliers: React.FC = () => {
         }
     };
 
-    const toggleAssessment = (field: keyof NonNullable<Supplier['assessment']>) => {
-        const currentAssessment = editForm.getValues('assessment') || {};
-        const updated = { ...currentAssessment, [field]: !currentAssessment[field] };
 
-        // Recalculate score
-        let score = 0;
-        if (updated.hasIso27001) score += 30;
-        if (updated.hasGdprPolicy) score += 20;
-        if (updated.hasEncryption) score += 20;
-        if (updated.hasBcp) score += 15;
-        if (updated.hasIncidentProcess) score += 15;
-
-        editForm.setValue('assessment', updated);
-        editForm.setValue('securityScore', score);
-        setIsEditing(true); // Flag as edited so we can save
-    };
 
     const handleExportCSV = async () => {
         if (isExportingCSV) return;
@@ -564,9 +542,9 @@ export const Suppliers: React.FC = () => {
                     icon={<Handshake className="h-6 w-6 text-white" strokeWidth={2.5} />}
                     actions={canEdit && (
                         <>
-                            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+                            <input aria-label={t('common.import')} type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                             <Menu as="div" className="relative inline-block text-left">
-                                <Menu.Button className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                <Menu.Button aria-label={t('common.more')} className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
                                     <MoreVertical className="h-5 w-5" />
                                 </Menu.Button>
                                 <Transition
@@ -605,6 +583,7 @@ export const Suppliers: React.FC = () => {
                                             <Menu.Item>
                                                 {({ active }) => (
                                                     <button
+                                                        aria-label={t('suppliers.exportCsv')}
                                                         onClick={handleExportCSV}
                                                         disabled={isExportingCSV}
                                                         className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
@@ -618,6 +597,7 @@ export const Suppliers: React.FC = () => {
                                             <Menu.Item>
                                                 {({ active }) => (
                                                     <button
+                                                        aria-label="Export DORA"
                                                         onClick={handleExportDORARegister}
                                                         disabled={isExportingDORA}
                                                         className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
@@ -635,6 +615,7 @@ export const Suppliers: React.FC = () => {
 
                             <CustomTooltip content="Gérer les modèles d'évaluation">
                                 <button
+                                    aria-label="Gérer les modèles d'évaluation"
                                     onClick={() => setTemplateMode(true)}
                                     className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm"
                                 >
@@ -644,6 +625,7 @@ export const Suppliers: React.FC = () => {
 
                             <CustomTooltip content="Ajouter un nouveau fournisseur">
                                 <button
+                                    aria-label={t('suppliers.newSupplier')}
                                     onClick={() => openCreationDrawer()}
                                     className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                 >
@@ -708,7 +690,6 @@ export const Suppliers: React.FC = () => {
                         </div>
                     ) : (
                         filteredSuppliers.map(supplier => {
-                            const linkedDoc = documentsRaw.find(d => d.id === supplier.contractDocumentId);
                             const isExpired = supplier.contractEnd && new Date(supplier.contractEnd) < new Date();
 
                             return (
@@ -775,12 +756,11 @@ export const Suppliers: React.FC = () => {
                     <SupplierForm
                         onSubmit={handleCreate}
                         onCancel={() => setCreationMode(false)}
-                        isSubmitting={isSubmitting}
+                        isLoading={isSubmitting}
                         users={effectiveUsers}
                         processes={processesRaw}
                         assets={assetsRaw}
                         risks={risksRaw}
-                        projects={projectsRaw}
                         documents={documentsRaw}
                     />
                 </div>
@@ -793,103 +773,104 @@ export const Suppliers: React.FC = () => {
                 title={selectedSupplier?.name || ''}
                 subtitle="Détails du fournisseur"
                 width="max-w-4xl"
-                extraActions={
+                actions={
                     <div className="flex items-center gap-2">
                         {selectedSupplier && (
                             <CustomTooltip content="Démarrer une évaluation">
                                 <button
+                                    aria-label="Démarrer une évaluation"
                                     onClick={() => {
                                         // Auto-select first template or open selector? 
-                                        // For now, simple demo trigger
+                                        // For now just demo one
                                         if (templates.length > 0) startAssessment(selectedSupplier, templates[0].id);
+                                        else addToast('Aucun modèle disponible', 'error');
                                     }}
-                                    className="p-2 text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors"
+                                    className="p-2 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
                                 >
                                     <ClipboardList className="h-5 w-5" />
                                 </button>
                             </CustomTooltip>
                         )}
+                        <button
+                            aria-label="Discussion"
+                            onClick={() => setInspectorTab('comments')}
+                            className={`p-2 rounded-lg transition-colors ${inspectorTab === 'comments' ? 'bg-brand-50 text-brand-600' : 'text-slate-500 hover:bg-slate-100'}`}
+                        >
+                            <MessageSquare className="h-5 w-5" />
+                        </button>
                     </div>
                 }
             >
                 {selectedSupplier && (
                     <div className="h-full flex flex-col">
                         {/* Tabs */}
-                        <div className="px-6 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 z-10 sticky top-0">
-                            <div className="flex space-x-6 overflow-x-auto no-scrollbar">
-                                {[
-                                    { id: 'profile', label: "Profil & Contrat", icon: Building },
-                                    { id: 'assessment', label: "Évaluation & DORA", icon: ShieldAlert },
-                                    { id: 'incidents', label: "Incidents", icon: LoadingScreen }, // Using arbitrary icon
-                                    { id: 'history', label: "Historique", icon: History },
-                                    { id: 'comments', label: "Commentaires", icon: MessageSquare },
-                                ].map((tab) => (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setInspectorTab(tab.id as any)}
-                                        className={`
-                                            flex items-center py-4 px-2 text-sm font-bold border-b-2 transition-colors whitespace-nowrap
-                                            ${inspectorTab === tab.id
-                                                ? 'border-brand-500 text-brand-600 dark:text-brand-400'
-                                                : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
-                                            }
-                                        `}
-                                    >
-                                        <tab.icon className={`h-4 w-4 mr-2 ${inspectorTab === tab.id ? 'text-brand-500' : 'text-slate-400'}`} />
-                                        {tab.label}
-                                    </button>
-                                ))}
-                            </div>
+                        <div className="flex items-center space-x-1 px-6 border-b border-slate-100 dark:border-white/5 overflow-x-auto custom-scrollbar">
+                            {[
+                                { id: 'profile', label: 'Profil', icon: Building },
+                                { id: 'history', label: 'Historique', icon: FileSpreadsheet }, // Using FileSpreadsheet as generic history/log icon for now or Clock if avail
+                                { id: 'comments', label: 'Commentaires', icon: MessageSquare }
+                            ].map(tab => (
+                                <button
+                                    key={tab.id}
+                                    aria-label={tab.label}
+                                    onClick={() => setInspectorTab(tab.id as any)}
+                                    className={`flex items-center px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${inspectorTab === tab.id
+                                        ? 'border-brand-500 text-brand-600'
+                                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                                        }`}
+                                >
+                                    <tab.icon className="h-4 w-4 mr-2" />
+                                    {tab.label}
+                                </button>
+                            ))}
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                        <div className="flex-1 overflow-hidden relative">
                             {inspectorTab === 'profile' && (
                                 <SupplierForm
                                     initialData={selectedSupplier}
                                     onSubmit={handleUpdate}
                                     onCancel={() => setSelectedSupplier(null)}
-                                    isSubmitting={isSubmitting}
+                                    isLoading={isSubmitting}
                                     users={effectiveUsers}
                                     processes={processesRaw}
                                     assets={assetsRaw}
                                     risks={risksRaw}
-                                    projects={projectsRaw}
                                     documents={documentsRaw}
+                                    isEditing={true} // It is editing mode here
                                 />
                             )}
-
                             {inspectorTab === 'assessment' && (
-                                <div className="space-y-6">
-                                    <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-white/5">
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Conformité DORA & Sécurité</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                                <div>
-                                                    <p className="font-bold text-slate-900 dark:text-white">ISO 27001</p>
-                                                    <p className="text-xs text-slate-500">Certifié</p>
-                                                </div>
-                                                <div className={`h-6 w-11 rounded-full relative cursor-pointer transition-colors ${editForm.getValues('assessment')?.hasIso27001 ? 'bg-brand-500' : 'bg-slate-300'}`} onClick={() => toggleAssessment('hasIso27001')}>
-                                                    <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${editForm.getValues('assessment')?.hasIso27001 ? 'translate-x-5' : ''}`} />
-                                                </div>
-                                            </div>
-                                            {/* Other toggles... */}
-                                        </div>
+                                <div className="p-6 h-full overflow-y-auto">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="font-bold text-lg">Évaluations</h3>
+                                        <button
+                                            aria-label="Nouvelle Évaluation"
+                                            onClick={() => templates.length > 0 && startAssessment(selectedSupplier, templates[0].id)}
+                                            className="px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-lg hover:bg-brand-700"
+                                        >
+                                            Nouvelle Évaluation
+                                        </button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {/* List assessments for this supplier */}
+                                        <EmptyState
+                                            icon={ClipboardList}
+                                            title="Aucune évaluation"
+                                            description="Lancez une évaluation pour ce fournisseur."
+                                        />
                                     </div>
                                 </div>
                             )}
-
                             {inspectorTab === 'history' && (
-                                <ResourceHistory
-                                    resourceId={selectedSupplier.id}
-                                    resourceType="Supplier"
-                                />
+                                <div className="p-6 h-full overflow-y-auto">
+                                    <ResourceHistory resourceId={selectedSupplier.id} resourceType="suppliers" />
+                                </div>
                             )}
-
                             {inspectorTab === 'comments' && (
-                                <CommentSection
-                                    resourceId={selectedSupplier.id}
-                                    resourceType="Supplier"
-                                />
+                                <div className="p-6 h-full overflow-y-auto">
+                                    <CommentSection collectionName="suppliers" documentId={selectedSupplier.id} />
+                                </div>
                             )}
                         </div>
                     </div>
@@ -899,7 +880,4 @@ export const Suppliers: React.FC = () => {
     );
 };
 
-// Helper for icon mismatch
-function LoadingScreen(props: any) {
-    return <Loader2 {...props} />;
-}
+

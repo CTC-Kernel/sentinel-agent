@@ -91,7 +91,7 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
 
                 {/* Key Metrics Breakdown */}
                 <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/5 px-6 mx-2 relative z-10">
-                    <div onClick={() => onFilterChange?.(null)} className="cursor-pointer group/item text-center">
+                    <div onClick={() => onFilterChange?.(null)} className="cursor-pointer group/item text-center hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors p-2 -my-2">
                         <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-500 mb-2 tracking-widest group-hover/item:text-brand-500 transition-colors">Total Audits</div>
                         <div className="text-3xl font-black text-slate-900 dark:text-white font-mono">{totalAudits}</div>
                     </div>

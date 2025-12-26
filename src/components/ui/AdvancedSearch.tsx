@@ -49,6 +49,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                             Recherche Avancée
                         </h2>
                         <button
+                            aria-label="Fermer la recherche avancée"
                             onClick={onClose}
                             className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors"
                         >
@@ -60,6 +61,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                     <div className="relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
                         <input
+                            aria-label="Champ de recherche principal"
                             type="text"
                             value={filters.query}
                             onChange={(e) => updateFilter('query', e.target.value)}
@@ -74,6 +76,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                 {/* Filters Toggle */}
                 <div className="px-6 py-3 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50">
                     <button
+                        aria-label={showFilters ? 'Masquer les filtres' : 'Afficher les filtres'}
                         onClick={() => setShowFilters(!showFilters)}
                         className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
                     >
@@ -91,6 +94,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                 Type de ressource
                             </label>
                             <select
+                                aria-label="Filtrer par type de ressource"
                                 value={filters.type}
                                 onChange={(e) => updateFilter('type', e.target.value as SearchFilters['type'])}
                                 className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -111,6 +115,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                 Statut
                             </label>
                             <input
+                                aria-label="Filtrer par statut"
                                 type="text"
                                 value={filters.status || ''}
                                 onChange={(e) => updateFilter('status', e.target.value)}
@@ -126,6 +131,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                 Propriétaire
                             </label>
                             <input
+                                aria-label="Filtrer par propriétaire"
                                 type="text"
                                 value={filters.owner || ''}
                                 onChange={(e) => updateFilter('owner', e.target.value)}
@@ -142,6 +148,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                     Date de début
                                 </label>
                                 <input
+                                    aria-label="Date de début"
                                     type="date"
                                     value={filters.dateFrom || ''}
                                     onChange={(e) => updateFilter('dateFrom', e.target.value)}
@@ -153,6 +160,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                     Date de fin
                                 </label>
                                 <input
+                                    aria-label="Date de fin"
                                     type="date"
                                     value={filters.dateTo || ''}
                                     onChange={(e) => updateFilter('dateTo', e.target.value)}
@@ -167,6 +175,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                 Criticité
                             </label>
                             <select
+                                aria-label="Filtrer par criticité"
                                 value={filters.criticality || ''}
                                 onChange={(e) => updateFilter('criticality', e.target.value as SearchFilters['criticality'])}
                                 className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -184,6 +193,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                 {/* Actions */}
                 <div className="p-6 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
                     <button
+                        aria-label="Réinitialiser les filtres"
                         onClick={handleReset}
                         className="px-6 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
                     >
@@ -191,12 +201,14 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                     </button>
                     <div className="flex gap-3">
                         <button
+                            aria-label="Annuler la recherche"
                             onClick={onClose}
                             className="px-6 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors"
                         >
                             Annuler
                         </button>
                         <button
+                            aria-label="Lancer la recherche"
                             onClick={handleSearch}
                             className="px-8 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all hover:scale-105"
                         >

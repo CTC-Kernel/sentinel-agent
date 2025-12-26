@@ -157,7 +157,7 @@ export const AssetList = React.memo<AssetListProps>(({
                 assets.map((asset) => {
                     const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
                     return (
-                        <div key={asset.id} onClick={() => onEdit(asset)} className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden">
+                        <div key={asset.id} onClick={() => onEdit(asset)} className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 hover:border-brand-500/30 transition-all relative overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                             <div className="relative z-10 flex flex-col h-full">
                                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">

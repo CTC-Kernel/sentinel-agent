@@ -301,6 +301,7 @@ export const InteractiveTimeline: React.FC = () => {
                 </div>
 
                 <button
+                    aria-label="Exporter la timeline en image PNG"
                     onClick={handleExportPNG}
                     className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform"
                 >
@@ -312,6 +313,7 @@ export const InteractiveTimeline: React.FC = () => {
             {/* Filters */}
             <div className="flex flex-wrap gap-3">
                 <button
+                    aria-label={filters.incidents ? "Masquer les incidents" : "Afficher les incidents"}
                     onClick={() => toggleFilter('incidents')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.incidents
                         ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
@@ -323,6 +325,7 @@ export const InteractiveTimeline: React.FC = () => {
                 </button>
 
                 <button
+                    aria-label={filters.audits ? "Masquer les audits" : "Afficher les audits"}
                     onClick={() => toggleFilter('audits')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.audits
                         ? 'bg-blue-100 text-blue-700 dark:bg-slate-900/20 dark:text-blue-400'
@@ -334,6 +337,7 @@ export const InteractiveTimeline: React.FC = () => {
                 </button>
 
                 <button
+                    aria-label={filters.projects ? "Masquer les projets" : "Afficher les projets"}
                     onClick={() => toggleFilter('projects')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.projects
                         ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400'
@@ -345,6 +349,7 @@ export const InteractiveTimeline: React.FC = () => {
                 </button>
 
                 <button
+                    aria-label={filters.risks ? "Masquer les risques" : "Afficher les risques"}
                     onClick={() => toggleFilter('risks')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.risks
                         ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
@@ -356,6 +361,7 @@ export const InteractiveTimeline: React.FC = () => {
                 </button>
 
                 <button
+                    aria-label={filters.documents ? "Masquer les documents" : "Afficher les documents"}
                     onClick={() => toggleFilter('documents')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.documents
                         ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
@@ -372,6 +378,7 @@ export const InteractiveTimeline: React.FC = () => {
                 {(['day', 'week', 'month', 'year'] as const).map((level) => (
                     <button
                         key={level}
+                        aria-label={`Zoom niveau ${level}`}
                         onClick={() => applyZoom(level)}
                         className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${zoomLevel === level
                             ? 'bg-brand-600 text-white'

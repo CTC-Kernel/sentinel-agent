@@ -62,7 +62,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
         return (
             <div className="space-y-4">
                 {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="glass-panel p-6 flex items-center gap-4 rounded-xl border border-white/20">
+                    <div key={`skel-${i}`} className="glass-panel p-6 flex items-center gap-4 rounded-xl border border-white/20">
                         <Skeleton className="w-12 h-12 rounded-xl" />
                         <div className="space-y-2 flex-1">
                             <Skeleton className="h-5 w-48" />

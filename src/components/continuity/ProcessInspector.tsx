@@ -115,7 +115,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Plan de Reprise (Étapes)</h3>
                             <div className="space-y-3">
                                 {process.recoveryTasks?.length ? process.recoveryTasks.map((task, i) => (
-                                    <div key={i} className="flex gap-4 p-4 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5 group hover:border-brand-200 dark:hover:border-brand-800 transition-colors">
+                                    <div key={`dep-${i}`} className="flex gap-4 p-4 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5 group hover:border-brand-200 dark:hover:border-brand-800 transition-colors">
                                         <div className="flex-none">
                                             <div className="w-8 h-8 rounded-full bg-white dark:bg-white/10 flex items-center justify-center text-xs font-bold text-slate-500 border border-slate-200 dark:border-white/10 shadow-sm">
                                                 {i + 1}
