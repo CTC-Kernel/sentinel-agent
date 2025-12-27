@@ -22,7 +22,7 @@ import { useRiskData } from '../hooks/risks/useRiskData';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
 import { useRiskFilters } from '../hooks/risks/useRiskFilters';
 
-
+import { RiskFormData } from '../schemas/riskSchema';
 import { RiskList } from '../components/risks/RiskList';
 import { RiskGrid } from '../components/risks/RiskGrid';
 import { RiskMatrix } from '../components/risks/RiskMatrix';
@@ -237,14 +237,14 @@ export const Risks: React.FC = () => {
         createRisk(newRisk as Risk);
     }, [t, createRisk]);
 
-    const handleFormSubmit = React.useCallback(async (data: Partial<Risk>) => {
+    const handleFormSubmit = React.useCallback(async (data: RiskFormData) => {
         if (editingRisk) {
             await updateRisk(editingRisk.id, {
                 ...data,
-                probability: data.probability,
-                impact: data.impact,
-                residualProbability: data.residualProbability,
-                residualImpact: data.residualImpact,
+                probability: data.probability as Risk['probability'],
+                impact: data.impact as Risk['impact'],
+                residualProbability: data.residualProbability as Risk['probability'],
+                residualImpact: data.residualImpact as Risk['impact'],
                 aiAnalysis: data.aiAnalysis || undefined
             }, editingRisk);
         } else {
@@ -290,12 +290,12 @@ export const Risks: React.FC = () => {
     }
 
     // UI Handlers
-    const handleTabChange = React.useCallback((id: string) => setActiveTab(id as any), [setActiveTab]);
-    const handleMatrixFilterChange = React.useCallback((filter: any) => {
+    const handleTabChange = React.useCallback((id: string) => setActiveTab(id as 'overview' | 'list' | 'matrix'), [setActiveTab]);
+    const handleMatrixFilterChange = React.useCallback((filter: { p: number; i: number } | null) => {
         setMatrixFilter(filter);
         if (filter) setActiveTab('list');
     }, [setMatrixFilter, setActiveTab]);
-    const handleViewModeChange = React.useCallback((mode: string) => setViewMode(mode as any), [setViewMode]);
+    const handleViewModeChange = React.useCallback((mode: string) => setViewMode(mode as 'list' | 'grid'), [setViewMode]);
     const handleAdvancedSearchClose = React.useCallback(() => setShowAdvancedSearch(false), [setShowAdvancedSearch]);
     const handleAdvancedSearchToggle = React.useCallback(() => setShowAdvancedSearch(prev => !prev), [setShowAdvancedSearch]);
     const handleResetMatrixFilter = React.useCallback(() => setMatrixFilter(null), [setMatrixFilter]);

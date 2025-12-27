@@ -81,7 +81,12 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, n
                     className="flex items-center gap-3 cursor-pointer group rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && navigate('/incidents')}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            navigate('/incidents');
+                        }
+                    }}
                 >
                     <div className="p-2 rounded-lg bg-red-500/10 text-red-600 group-hover:bg-red-500/20 transition-colors">
                         <Siren className="h-5 w-5" />
@@ -97,7 +102,12 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, n
                     className="flex items-center gap-3 cursor-pointer group rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && navigate('/risks')}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            navigate('/risks');
+                        }
+                    }}
                 >
                     <div className="p-2 rounded-lg bg-orange-500/10 text-orange-600 group-hover:bg-orange-500/20 transition-colors">
                         <ShieldAlert className="h-5 w-5" />
@@ -113,7 +123,12 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, n
                     className="flex items-center gap-3 cursor-pointer group rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && navigate('/risks')}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            navigate('/risks');
+                        }
+                    }}
                 >
                     <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 group-hover:bg-blue-500/20 transition-colors">
                         <TrendingUp className="h-5 w-5" />
@@ -131,7 +146,12 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, n
                     className="flex items-center gap-3 cursor-pointer group rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && navigate('/compliance')}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            navigate('/compliance');
+                        }
+                    }}
                 >
                     <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 group-hover:bg-emerald-500/20 transition-colors">
                         <Activity className="h-5 w-5" />

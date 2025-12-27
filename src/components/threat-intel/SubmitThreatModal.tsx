@@ -50,7 +50,7 @@ export const SubmitThreatModal: React.FC<SubmitThreatModalProps> = ({ isOpen, on
                 votes: 0,
                 comments: 0,
                 active: true,
-                timestamp: Date.now(),
+                timestamp: new Date().getTime(),
                 organizationId: user.organizationId, // Optional, depending on if its private or public
                 verified: false,
                 source: 'Community Submission'

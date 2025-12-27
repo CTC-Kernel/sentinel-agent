@@ -110,7 +110,7 @@ export const Continuity: React.FC = () => {
         });
     }, [canDelete, t, deleteProcess, selectedProcess]);
 
-    const handleCreateDrill = useCallback(async (data: any) => {
+    const handleCreateDrill = useCallback(async (data: Partial<import('../types').BcpDrill>) => {
         if (!user?.organizationId) return;
         try {
             await addDrill(data);
@@ -136,7 +136,7 @@ export const Continuity: React.FC = () => {
 
     // UI Handlers
     const handleTabChange = useCallback((id: string) => setActiveTab(id as ContinuityTab), [setActiveTab]);
-    const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as any), []);
+    const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as 'grid' | 'list' | 'matrix' | 'kanban'), []);
     const handleOpenProcessModal = useCallback(() => setIsProcessModalOpen(true), []);
     const handleCloseProcessModal = useCallback(() => setIsProcessModalOpen(false), []);
     const handleOpenDrillModal = useCallback(() => setIsDrillModalOpen(true), []);

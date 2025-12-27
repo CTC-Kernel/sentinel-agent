@@ -36,7 +36,7 @@ export const Projects: React.FC = () => {
     // Tabs
     const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'board' | 'gantt'>('projects_active_tab', 'overview');
     const [ganttViewMode, setGanttViewMode] = useState<'Day' | 'Week' | 'Month'>('Month');
-    const handleGanttViewModeChange = useCallback((mode: any) => setGanttViewMode(mode), []);
+    const handleGanttViewModeChange = useCallback((mode: 'Day' | 'Week' | 'Month') => setGanttViewMode(mode), []);
 
     const tabs = useMemo(() => [
         { id: 'overview', label: t('projects.overview'), icon: LayoutDashboard },
@@ -121,7 +121,7 @@ export const Projects: React.FC = () => {
             console.error(error);
             addToast(t('projects.toastError'), "error");
         }
-    }, [usersList, user?.organizationId, addToast, t]);
+    }, [usersList, user, addToast, t]);
 
     // Exports
     const handleExportCSV = useCallback(() => {
@@ -153,16 +153,16 @@ export const Projects: React.FC = () => {
     }, [selectedProject, generateReport]);
 
     // UI Checks
-    const handleTabChange = useCallback((id: string) => setActiveTab(id as any), [setActiveTab]);
-    const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as any), []);
+    const handleTabChange = useCallback((id: string) => setActiveTab(id as 'overview' | 'list' | 'board' | 'gantt'), [setActiveTab]);
+    const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as 'list' | 'grid' | 'matrix' | 'kanban'), []);
     const handleNewProjectClick = useCallback(() => { setCreationMode(true); setEditingProject(null); }, []);
     const handleOpenTemplateModal = useCallback(() => setShowTemplateModal(true), []);
     const handleCloseTemplateModal = useCallback(() => setShowTemplateModal(false), []);
     const handleCloseDrawer = useCallback(() => { setCreationMode(false); setEditingProject(null); }, []);
     const handleCloseInspector = useCallback(() => setSelectedProject(null), []);
     const handleConfirmClose = useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
-    const handleDrawerSubmit = useCallback((data: any) => handleProjectFormSubmit(data, editingProject), [handleProjectFormSubmit, editingProject]);
-    const handleInspectorUpdateTasks = useCallback(async (p: Project, t: any) => { await updateProjectTasks(p, t); }, [updateProjectTasks]);
+    const handleDrawerSubmit = useCallback((data: import('../schemas/projectSchema').ProjectFormData) => handleProjectFormSubmit(data as unknown as import('../types').Project, editingProject), [handleProjectFormSubmit, editingProject]);
+    const handleInspectorUpdateTasks = useCallback(async (p: Project, t: import('../types').ProjectTask[]) => { await updateProjectTasks(p, t); }, [updateProjectTasks]);
 
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-8 pb-20">

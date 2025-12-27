@@ -257,7 +257,7 @@ export const Incidents: React.FC = () => {
     }, [creationMode, selectedIncident]);
 
     // UI Handlers
-    const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as any), [setViewMode]);
+    const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as 'list' | 'grid' | 'kanban'), [setViewMode]);
     const handleConfirmClose = useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
     const handleImportModalClose = useCallback(() => setImportModalOpen(false), []);
     const handleStatusFilterChange = useCallback((val: string | string[]) => setStatusFilter(val as string), []);

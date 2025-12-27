@@ -61,8 +61,6 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         onClose();
     }, [onClose]);
 
-    if (!risk) return null;
-
     const getAssetName = React.useCallback((id?: string) => assets.find(a => a.id === id)?.name || 'Actif inconnu', [assets]);
 
     const handleLocalUpdate = React.useCallback(async (updates: Partial<Risk>) => {
@@ -92,26 +90,29 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         toast.success("Revue validée pour aujourd'hui");
     }, [canEdit, handleLocalUpdate]);
 
-    const linkedProjects = React.useMemo(() => projects.filter(p => p.relatedRiskIds?.includes(risk.id)), [projects, risk.id]);
-    const linkedAudits = React.useMemo(() => audits.filter(a => a.relatedRiskIds?.includes(risk.id)), [audits, risk.id]);
+    const linkedProjects = React.useMemo(() => !risk ? [] : projects.filter(p => p.relatedRiskIds?.includes(risk.id)), [projects, risk]);
+    const linkedAudits = React.useMemo(() => !risk ? [] : audits.filter(a => a.relatedRiskIds?.includes(risk.id)), [audits, risk]);
 
     const handleTabChange = React.useCallback((id: string) => setInspectorTab(id as typeof inspectorTab), []);
-    const handleDuplicate = React.useCallback(() => onDuplicate(risk), [onDuplicate, risk]);
+    const handleDuplicate = React.useCallback(() => risk && onDuplicate(risk), [onDuplicate, risk]);
     const handleEditStart = React.useCallback(() => setIsEditing(true), []);
     const handleEditCancel = React.useCallback(() => setIsEditing(false), []);
-    const handleDeleteRisk = React.useCallback(() => onDelete(risk.id, risk.threat), [onDelete, risk]);
-    const handleRiskFormSubmit = React.useCallback((data: any) => handleLocalUpdate(data as Partial<Risk>), [handleLocalUpdate]);
-    const handleAIAssistantUpdate = React.useCallback((updates: Partial<Risk>) => handleLocalUpdate({ ...risk, ...updates } as Risk), [handleLocalUpdate, risk]);
-    const handleTreatmentUpdate = React.useCallback((treatment: any) => handleLocalUpdate({ treatment }), [handleLocalUpdate]);
+    const handleDeleteRisk = React.useCallback(() => risk && onDelete(risk.id, risk.threat), [onDelete, risk]);
 
-    const handleNavigateToProject = React.useCallback(() => navigate('/projects', { state: { createForRisk: risk.id, riskName: risk.threat } }), [navigate, risk.id, risk.threat]);
-    const handleNavigateToAudit = React.useCallback(() => navigate('/audits', { state: { createForRisk: risk.id, riskName: risk.threat } }), [navigate, risk.id, risk.threat]);
+    // Use imported RiskFormData or define it if import fails
+    const handleRiskFormSubmit = React.useCallback((data: import('../../schemas/riskSchema').RiskFormData) => handleLocalUpdate(data as unknown as Partial<Risk>), [handleLocalUpdate]);
+
+    const handleAIAssistantUpdate = React.useCallback((updates: Partial<Risk>) => risk && handleLocalUpdate({ ...risk, ...updates } as Risk), [handleLocalUpdate, risk]);
+    const handleTreatmentUpdate = React.useCallback((treatment: Partial<Risk['treatment']>) => handleLocalUpdate({ treatment }), [handleLocalUpdate]);
+
+    const handleNavigateToProject = React.useCallback(() => risk && navigate('/projects', { state: { createForRisk: risk.id, riskName: risk.threat } }), [navigate, risk]);
+    const handleNavigateToAudit = React.useCallback(() => risk && navigate('/audits', { state: { createForRisk: risk.id, riskName: risk.threat } }), [navigate, risk]);
 
     const handleMitreSearch = React.useCallback(() => integrationService.getCommonMitreTechniques(mitreQuery, demoMode).then(setMitreResults), [mitreQuery, demoMode]);
     const handleMitreAdd = React.useCallback((t: MitreTechnique) => {
-        const current = risk.mitreTechniques || [];
+        const current = risk?.mitreTechniques || [];
         handleLocalUpdate({ mitreTechniques: [...current, t] });
-    }, [risk.mitreTechniques, handleLocalUpdate]);
+    }, [risk?.mitreTechniques, handleLocalUpdate]);
     const handleMitreQueryChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => setMitreQuery(e.target.value), []);
 
     const tabs = React.useMemo(() => [
@@ -125,6 +126,8 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         { id: 'graph', label: 'Graphe', icon: Network },
         { id: 'threats', label: 'Menaces', icon: ShieldAlert }
     ], []);
+
+    if (!risk) return null;
 
     return (
         <InspectorLayout

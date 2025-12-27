@@ -162,9 +162,9 @@ const Team: React.FC = () => {
     }).length, [users]);
     const activityRate = users.length > 0 ? (activeUsersLast30Days / users.length) * 100 : 0;
 
-    const handleMembersTab = React.useCallback(() => setActiveTab('members'), []);
-    const handleRolesTab = React.useCallback(() => setActiveTab('roles'), []);
-    const handleGroupsTab = React.useCallback(() => setActiveTab('groups'), []);
+    const handleMembersTab = React.useCallback(() => setActiveTab('members'), [setActiveTab]);
+    const handleRolesTab = React.useCallback(() => setActiveTab('roles'), [setActiveTab]);
+    const handleGroupsTab = React.useCallback(() => setActiveTab('groups'), [setActiveTab]);
 
 
 

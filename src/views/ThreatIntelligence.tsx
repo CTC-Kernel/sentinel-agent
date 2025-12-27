@@ -156,7 +156,7 @@ export const ThreatIntelligence: React.FC = () => {
     }, [addToast]);
 
     // UI Handlers
-    const handleViewChange = React.useCallback((view: string) => setActiveTab(view as any), [setActiveTab]);
+    const handleViewChange = React.useCallback((view: string) => setActiveTab(view as 'overview' | 'map' | 'feed' | 'community'), [setActiveTab]);
     const handleSettingsOpen = React.useCallback(() => setIsSettingsOpen(true), []);
     const handleSubmitModalOpen = React.useCallback(() => setIsSubmitModalOpen(true), []);
     const handleSearchChange = React.useCallback((q: string) => setSearchTerm(q), []);
