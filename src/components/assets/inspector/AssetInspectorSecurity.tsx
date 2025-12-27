@@ -20,7 +20,7 @@ interface AssetInspectorSecurityProps {
     scanShodan: () => void;
     checkCVEs: () => void;
     createRiskFromVuln: (vuln: Vulnerability) => void;
-    navigate: (path: string, state?: any) => void;
+    navigate: (path: string, state?: Record<string, unknown>) => void;
 }
 
 export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
