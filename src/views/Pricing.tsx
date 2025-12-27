@@ -238,51 +238,59 @@ const Pricing = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-              {features.map((feature) => (
-                <tr key={feature.name} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
-                  <td className="py-5 px-10 text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                    {feature.name}
-                    {feature.tooltip && (
-                      <Tooltip content={feature.tooltip}>
-                        <Info className="w-4 h-4 text-slate-500 hover:text-blue-500 transition-colors cursor-help" />
-                      </Tooltip>
-                    )}
-                  </td>
-                  <td className="py-5 px-6 text-center">
-                    {typeof feature.discovery === 'boolean' ? (
-                      feature.discovery ? (
-                        <div className="flex justify-center"><Check className="w-5 h-5 text-slate-900 dark:text-white" strokeWidth={2.5} /></div>
-                      ) : (
-                        <span className="text-slate-300 dark:text-slate-600 font-medium">—</span>
-                      )
-                    ) : (
-                      <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{feature.discovery}</span>
-                    )}
-                  </td>
-                  <td className="py-5 px-6 text-center bg-blue-50/10 dark:bg-blue-500/5 border-x border-blue-100/50 dark:border-blue-500/10">
-                    {typeof feature.professional === 'boolean' ? (
-                      feature.professional ? (
-                        <div className="flex justify-center"><Check className="w-5 h-5 text-blue-600 dark:text-blue-400" strokeWidth={2.5} /></div>
-                      ) : (
-                        <span className="text-slate-300 dark:text-slate-600 font-medium">—</span>
-                      )
-                    ) : (
-                      <span className="text-sm font-bold text-slate-900 dark:text-white">{feature.professional}</span>
-                    )}
-                  </td>
-                  <td className="py-5 px-6 text-center">
-                    {typeof feature.enterprise === 'boolean' ? (
-                      feature.enterprise ? (
-                        <div className="flex justify-center"><Check className="w-5 h-5 text-slate-900 dark:text-white" strokeWidth={2.5} /></div>
-                      ) : (
-                        <span className="text-slate-300 dark:text-slate-600 font-medium">—</span>
-                      )
-                    ) : (
-                      <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{feature.enterprise}</span>
-                    )}
+              {features.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="py-12 text-center">
+                    <p className="text-slate-600 dark:text-slate-400 font-medium">{t('pricing.noFeatures')}</p>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                features.map((feature) => (
+                  <tr key={feature.name} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
+                    <td className="py-5 px-10 text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                      {feature.name}
+                      {feature.tooltip && (
+                        <Tooltip content={feature.tooltip}>
+                          <Info className="w-4 h-4 text-slate-500 hover:text-blue-500 transition-colors cursor-help" />
+                        </Tooltip>
+                      )}
+                    </td>
+                    <td className="py-5 px-6 text-center">
+                      {typeof feature.discovery === 'boolean' ? (
+                        feature.discovery ? (
+                          <div className="flex justify-center"><Check className="w-5 h-5 text-slate-900 dark:text-white" strokeWidth={2.5} /></div>
+                        ) : (
+                          <span className="text-slate-300 dark:text-slate-600 font-medium">—</span>
+                        )
+                      ) : (
+                        <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{feature.discovery}</span>
+                      )}
+                    </td>
+                    <td className="py-5 px-6 text-center bg-blue-50/10 dark:bg-blue-500/5 border-x border-blue-100/50 dark:border-blue-500/10">
+                      {typeof feature.professional === 'boolean' ? (
+                        feature.professional ? (
+                          <div className="flex justify-center"><Check className="w-5 h-5 text-blue-600 dark:text-blue-400" strokeWidth={2.5} /></div>
+                        ) : (
+                          <span className="text-slate-300 dark:text-slate-600 font-medium">—</span>
+                        )
+                      ) : (
+                        <span className="text-sm font-bold text-slate-900 dark:text-white">{feature.professional}</span>
+                      )}
+                    </td>
+                    <td className="py-5 px-6 text-center">
+                      {typeof feature.enterprise === 'boolean' ? (
+                        feature.enterprise ? (
+                          <div className="flex justify-center"><Check className="w-5 h-5 text-slate-900 dark:text-white" strokeWidth={2.5} /></div>
+                        ) : (
+                          <span className="text-slate-300 dark:text-slate-600 font-medium">—</span>
+                        )
+                      ) : (
+                        <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{feature.enterprise}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

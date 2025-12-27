@@ -117,7 +117,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px] shadow-emerald-500/40" />
                             <span className="text-xs text-muted-foreground font-bold">Publiés</span>
                         </div>
                         <span className="text-xs font-black text-foreground">{stats.publishedDocs}</span>
