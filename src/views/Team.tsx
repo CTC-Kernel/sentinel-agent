@@ -384,6 +384,7 @@ const Team: React.FC = () => {
                 title={t('team.invite.title')}
                 subtitle={t('team.invite.subtitle', { org: user?.organizationName || t('common.settings.organization') })}
                 width="max-w-4xl"
+            // Headless UI handles FocusTrap and keyboard navigation for accessibility
             >
                 <form onSubmit={inviteForm.handleSubmit(handleAddUser)} className="p-4 sm:p-8 space-y-6">
                     <div className="flex justify-center mb-6">

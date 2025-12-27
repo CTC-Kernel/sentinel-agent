@@ -123,7 +123,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         {
             id: 'actions',
             cell: ({ row }) => (
-                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()} role="presentation">
                     {canEdit && (
                         <>
                             <CustomTooltip content={t('projects.tooltips.edit')}>

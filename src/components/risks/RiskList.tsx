@@ -122,7 +122,7 @@ export const RiskList = React.memo<RiskListProps>(({
             id: 'actions',
             header: '',
             cell: ({ row }) => (
-                <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()} role="presentation">
                     {canEdit && (
                         <>
                             <CustomTooltip content="Modifier le risque">

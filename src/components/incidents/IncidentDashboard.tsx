@@ -108,7 +108,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         {
             id: 'actions',
             cell: ({ row }) => (
-                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()} role="presentation">
                     {canDelete && onDelete && (
                         <CustomTooltip content="Supprimer l'incident">
                             <button

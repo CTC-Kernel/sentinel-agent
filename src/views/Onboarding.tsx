@@ -603,6 +603,14 @@ export const Onboarding: React.FC = () => {
                                                 <div
                                                     key={planId}
                                                     onClick={() => setSelectedPlan(planId)}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' || e.key === ' ') {
+                                                            e.preventDefault();
+                                                            setSelectedPlan(planId);
+                                                        }
+                                                    }}
                                                     className={`relative p-6 rounded-3xl border transition-all duration-300 cursor-pointer group ${isSelected
                                                         ? 'bg-brand-50/50 dark:bg-slate-900/10 border-brand-500 ring-1 ring-brand-500 shadow-lg shadow-brand-500/10'
                                                         : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md'

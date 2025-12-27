@@ -176,7 +176,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                     className="fixed inset-0 z-modal flex items-center justify-center bg-black/20 backdrop-blur-sm cursor-default"
                     onClick={handleBackdropClick}
                 >
-                    <div className="glass-panel p-6 rounded-[2rem] shadow-2xl w-80 border border-white/20 relative overflow-hidden" onClick={e => e.stopPropagation()}>
+                    <div className="glass-panel p-6 rounded-[2rem] shadow-2xl w-80 border border-white/20 relative overflow-hidden" onClick={e => e.stopPropagation()} role="presentation">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
                         <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white relative z-10">Nouveau Dossier</h3>
                         <form onSubmit={handleCreateSubmit}>

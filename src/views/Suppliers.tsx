@@ -411,7 +411,11 @@ export const Suppliers: React.FC = () => {
         {
             id: 'actions',
             cell: ({ row }) => (
-                <div className="text-right flex justify-end items-center space-x-1 hover:cursor-default" onClick={handleMenuClick}>
+                <div
+                    className="text-right flex justify-end items-center space-x-1 hover:cursor-default"
+                    onClick={handleMenuClick}
+                    role="presentation"
+                >
                     {canEdit && (
                         <CustomTooltip content="Supprimer le fournisseur">
                             <button
@@ -760,7 +764,19 @@ export const Suppliers: React.FC = () => {
                             const isExpired = supplier.contractEnd && new Date(supplier.contractEnd) < new Date();
 
                             return (
-                                <div key={supplier.id} onClick={() => openInspector(supplier)} className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden h-full hover:border-brand-500 dark:hover:border-brand-400 transition-colors">
+                                <div
+                                    key={supplier.id}
+                                    onClick={() => openInspector(supplier)}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            openInspector(supplier);
+                                        }
+                                    }}
+                                    className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden h-full hover:border-brand-500 dark:hover:border-brand-400 transition-colors"
+                                >
                                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                                     <div className="relative z-10 flex flex-col h-full">
 

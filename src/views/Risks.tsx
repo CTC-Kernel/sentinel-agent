@@ -604,6 +604,7 @@ export const Risks: React.FC = () => {
                 onUpdate={updateRisk}
                 onDelete={handleInspectorDelete}
                 onDuplicate={handleDuplicateRisk}
+            // FocusTrap and keyboard navigation are handled internally by Headless UI's Dialog/Drawer components
             />
 
             <Drawer

@@ -82,7 +82,18 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({ notification
     }
 
     return (
-        <div onClick={handleRead} className="cursor-pointer mb-2">
+        <div
+            onClick={handleRead}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleRead();
+                }
+            }}
+            className="cursor-pointer mb-2"
+        >
             {Content}
         </div>
     );

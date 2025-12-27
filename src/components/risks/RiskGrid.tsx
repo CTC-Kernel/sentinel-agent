@@ -77,7 +77,19 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                 const trend = risk.previousScore && risk.score > risk.previousScore ? 'up' : risk.previousScore && risk.score < risk.previousScore ? 'down' : 'stable';
 
                 return (
-                    <div key={risk.id} onClick={() => onSelect(risk)} className="group glass-panel p-6 rounded-[2rem] card-hover flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5 overflow-hidden">
+                    <div
+                        key={risk.id}
+                        onClick={() => onSelect(risk)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                onSelect(risk);
+                            }
+                        }}
+                        className="group glass-panel p-6 rounded-[2rem] card-hover flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5 overflow-hidden"
+                    >
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                         <div className="relative z-10 flex flex-col h-full">
                             <div className="flex justify-between items-start mb-5">

@@ -115,7 +115,18 @@ export const Reports: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Template Cards Demo */}
-                <div className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group" onClick={() => generatePDF('iso27001', 'Rapport ISO 27001')}>
+                <div
+                    className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group"
+                    onClick={() => generatePDF('iso27001', 'Rapport ISO 27001')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            generatePDF('iso27001', 'Rapport ISO 27001');
+                        }
+                    }}
+                >
                     <div className="flex items-center gap-4 mb-4">
                         <div className="p-3 bg-brand-100 dark:bg-brand-900/30 rounded-xl text-brand-600 group-hover:scale-110 transition-transform">
                             <ShieldCheck className="h-6 w-6" />
@@ -130,7 +141,18 @@ export const Reports: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group" onClick={() => generatePDF('gdpr', 'Rapport RGPD')}>
+                <div
+                    className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group"
+                    onClick={() => generatePDF('gdpr', 'Rapport RGPD')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            generatePDF('gdpr', 'Rapport RGPD');
+                        }
+                    }}
+                >
                     <div className="flex items-center gap-4 mb-4">
                         <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600 group-hover:scale-110 transition-transform">
                             <Lock className="h-6 w-6" />
@@ -145,7 +167,18 @@ export const Reports: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group" onClick={() => generatePDF('custom', 'Rapport Personnalisé')}>
+                <div
+                    className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group"
+                    onClick={() => generatePDF('custom', 'Rapport Personnalisé')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            generatePDF('custom', 'Rapport Personnalisé');
+                        }
+                    }}
+                >
                     <div className="flex items-center gap-4 mb-4">
                         <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600 group-hover:scale-110 transition-transform">
                             <Settings className="h-6 w-6" />

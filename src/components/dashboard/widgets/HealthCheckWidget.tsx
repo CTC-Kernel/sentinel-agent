@@ -53,7 +53,18 @@ export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = ({ healthIssu
                     <div className="space-y-3">
                         {displayIssues.map(issue => (
                             <CustomTooltip key={issue.id} content={t('dashboard.clickToResolve')} position="top" className="w-full">
-                                <div onClick={() => navigate(issue.link)} className={`flex items-start p-4 rounded-2xl border cursor-pointer hover:scale-[1.02] transition-all w-full ${issue.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 hover:shadow-md hover:shadow-red-500/5' : 'bg-orange-50/80 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30 hover:shadow-md hover:shadow-orange-500/5'}`}>
+                                <div
+                                    onClick={() => navigate(issue.link)}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            navigate(issue.link);
+                                        }
+                                    }}
+                                    className={`flex items-start p-4 rounded-2xl border cursor-pointer hover:scale-[1.02] transition-all w-full ${issue.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 hover:shadow-md hover:shadow-red-500/5' : 'bg-orange-50/80 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30 hover:shadow-md hover:shadow-orange-500/5'}`}
+                                >
                                     <AlertTriangle className={`h-5 w-5 mr-3 mt-0.5 flex-shrink-0 ${issue.type === 'danger' ? 'text-red-500' : 'text-orange-500'}`} />
                                     <div>
                                         <p className={`text-sm font-bold leading-tight ${issue.type === 'danger' ? 'text-red-800 dark:text-red-200' : 'text-orange-800 dark:text-orange-200'}`}>{issue.message}</p>
@@ -66,9 +77,12 @@ export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = ({ healthIssu
                 )}
                 {!isExpanded && healthIssues.length > 3 && (
                     <div className="mt-3 text-center">
-                        <span className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer" onClick={() => setIsExpanded(true)}>
+                        <button
+                            className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 rounded"
+                            onClick={() => setIsExpanded(true)}
+                        >
                             +{healthIssues.length - 3} {t('common.more').toLowerCase()}
-                        </span>
+                        </button>
                     </div>
                 )}
             </div>
