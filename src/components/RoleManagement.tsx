@@ -132,6 +132,12 @@ export const RoleManagement: React.FC = () => {
 
             {/* Users Table */}
             <div className="glass-panel rounded-2xl overflow-hidden border border-white/40 dark:border-white/10">
+                {users.length === 0 ? (
+                    <div className="text-center py-12">
+                        <Info className="h-12 w-12 mx-auto text-slate-400 dark:text-slate-600 mb-4" />
+                        <p className="text-slate-600 dark:text-slate-400">Aucun utilisateur trouvé dans votre organisation.</p>
+                    </div>
+                ) : (
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-white/10">
@@ -252,6 +258,7 @@ export const RoleManagement: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
+                )}
             </div>
 
             {/* Info Box */}
