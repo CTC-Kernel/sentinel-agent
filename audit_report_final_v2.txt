@@ -49,6 +49,10 @@
    [35mPerformance[0m | useEffect doit avoir un tableau de dépendances.
    [90m→[0m useEffect potentiellement sans tableau de dépendances
 
+🟠 [31m[ERROR][0m [36msrc/components/AssetIntake/KioskPage.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/AssetIntake/KioskPage.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (8 niveaux) - utiliser early returns
@@ -229,6 +233,10 @@
    [35mUX/UI[0m | Les composants doivent supporter le dark mode.
    [90m→[0m Composant avec couleurs sans support dark mode
 
+🔵 [34m[INFO][0m [36msrc/components/VoxelGuide.tsx[0m:14
+   [35mUX/UI[0m | Utiliser une échelle de z-index cohérente.
+   [90m→[0m z-index arbitraire élevé (11000) - utiliser l'échelle standard
+
 🔵 [34m[INFO][0m [36msrc/components/VoxelGuide.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (11 niveaux) - utiliser early returns
@@ -301,6 +309,10 @@
    [35mImports[0m | Les imports doivent être organisés (React, libs, local).
    [90m→[0m Imports désorganisés - React d'abord, puis libs, puis local
 
+🟠 [31m[ERROR][0m [36msrc/components/activity/ActivityLogList.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/activity/ActivityLogList.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (12 niveaux) - utiliser early returns
@@ -309,9 +321,17 @@
    [35mArchitecture[0m | Les Components ne doivent PAS importer Firebase directement (sauf hooks).
    [90m→[0m Import direct de "db" depuis Firebase dans un composant
 
+🟠 [31m[ERROR][0m [36msrc/components/admin/MigrationTool.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/admin/MigrationTool.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (9 niveaux) - utiliser early returns
+
+🟠 [31m[ERROR][0m [36msrc/components/ai/AIAssistButton.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🟠 [31m[ERROR][0m [36msrc/components/ai/GeminiAssistant.tsx[0m:1
    [35mArchitecture[0m | Les Components ne doivent PAS importer Firebase directement (sauf hooks).
@@ -353,6 +373,10 @@
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
    [90m→[0m Mutation sans update optimiste - UX peut sembler lente
 
+🟠 [31m[ERROR][0m [36msrc/components/assets/AssetAIAssistant.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/assets/AssetAIAssistant.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (9 niveaux) - utiliser early returns
@@ -361,11 +385,11 @@
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
 
-🟠 [31m[ERROR][0m [36msrc/components/assets/AssetDashboard.tsx[0m:239
+🟠 [31m[ERROR][0m [36msrc/components/assets/AssetDashboard.tsx[0m:231
    [35mUX/UI[0m | Utiliser les classes Tailwind au lieu de couleurs hardcodées.
    [90m→[0m Couleur RGB inline - utiliser les variables CSS ou Tailwind
 
-🟠 [31m[ERROR][0m [36msrc/components/assets/AssetDashboard.tsx[0m:315
+🟠 [31m[ERROR][0m [36msrc/components/assets/AssetDashboard.tsx[0m:307
    [35mUX/UI[0m | Utiliser les classes Tailwind au lieu de couleurs hardcodées.
    [90m→[0m Couleur RGB inline - utiliser les variables CSS ou Tailwind
 
@@ -373,39 +397,39 @@
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (10 niveaux) - utiliser early returns
 
-🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:208
+🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:200
    [35mLogique[0m | Éviter les magic numbers - utiliser des constantes.
    [90m→[0m Magic number détecté - extraire en constante
 
-🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:275
+🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:267
    [35mLogique[0m | Éviter les magic numbers - utiliser des constantes.
    [90m→[0m Magic number détecté - extraire en constante
 
-🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:353
+🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:345
    [35mLogique[0m | Éviter les magic numbers - utiliser des constantes.
    [90m→[0m Magic number détecté - extraire en constante
 
-🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:163
+🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:155
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:176
+🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:168
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:247
+🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:239
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:275
+🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:267
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:323
+🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:315
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:353
+🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:345
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
@@ -413,11 +437,11 @@
    [35mPerformance[0m | Les calculs coûteux devraient utiliser useMemo.
    [90m→[0m Calculs coûteux (filter/map/reduce/sort) sans useMemo
 
-🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:239
+🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:231
    [35mReact[0m | Éviter les styles inline - utiliser Tailwind/CSS.
    [90m→[0m Style inline complexe - extraire dans une classe CSS/Tailwind
 
-🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:315
+🟡 [33m[WARNING][0m [36msrc/components/assets/AssetDashboard.tsx[0m:307
    [35mReact[0m | Éviter les styles inline - utiliser Tailwind/CSS.
    [90m→[0m Style inline complexe - extraire dans une classe CSS/Tailwind
 
@@ -561,6 +585,10 @@
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (11 niveaux) - utiliser early returns
 
+🟠 [31m[ERROR][0m [36msrc/components/audits/AuditCalendar.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/audits/AuditCalendar.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (12 niveaux) - utiliser early returns
@@ -633,6 +661,10 @@
    [35mFirebase[0m | Gérer le mode offline pour les opérations critiques.
    [90m→[0m Opérations d'écriture sans gestion du mode offline
 
+🟠 [31m[ERROR][0m [36msrc/components/audits/AuditTeam.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/audits/AuditTeam.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (11 niveaux) - utiliser early returns
@@ -640,6 +672,10 @@
 🔵 [34m[INFO][0m [36msrc/components/audits/AuditTeam.tsx[0m:1
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
    [90m→[0m Mutation sans update optimiste - UX peut sembler lente
+
+🟠 [31m[ERROR][0m [36msrc/components/audits/AuditsHeader.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/audits/AuditsHeader.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -705,13 +741,13 @@
    [35mFirebase[0m | Gérer le mode offline pour les opérations critiques.
    [90m→[0m Opérations d'écriture sans gestion du mode offline
 
+🟠 [31m[ERROR][0m [36msrc/components/audits/EvidenceRequestList.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/audits/EvidenceRequestList.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (15 niveaux) - utiliser early returns
-
-🟡 [33m[WARNING][0m [36msrc/components/audits/EvidenceRequestList.tsx[0m:292
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
 
 🔵 [34m[INFO][0m [36msrc/components/audits/EvidenceRequestList.tsx[0m:1
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
@@ -725,13 +761,13 @@
    [35mTableaux[0m | Les colonnes de tableaux devraient être triables.
    [90m→[0m Tableau sans fonctionnalité de tri
 
+🟠 [31m[ERROR][0m [36msrc/components/audits/FindingsList.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/audits/FindingsList.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (15 niveaux) - utiliser early returns
-
-🟡 [33m[WARNING][0m [36msrc/components/audits/FindingsList.tsx[0m:153
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
 
 🟠 [31m[ERROR][0m [36msrc/components/audits/QuestionnaireBuilder.tsx[0m:1
    [35mArchitecture[0m | Les Components ne doivent PAS importer Firebase directement (sauf hooks).
@@ -780,6 +816,10 @@
 🟡 [33m[WARNING][0m [36msrc/components/audits/QuestionnaireList.tsx[0m:1
    [35mFirebase[0m | Gérer le mode offline pour les opérations critiques.
    [90m→[0m Opérations d'écriture sans gestion du mode offline
+
+🟠 [31m[ERROR][0m [36msrc/components/audits/QuestionnaireList.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/audits/QuestionnaireList.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -849,6 +889,10 @@
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
    [90m→[0m Mutation sans update optimiste - UX peut sembler lente
 
+🟠 [31m[ERROR][0m [36msrc/components/audits/SeveritySelector.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/audits/SeveritySelector.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (9 niveaux) - utiliser early returns
@@ -861,9 +905,17 @@
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (10 niveaux) - utiliser early returns
 
+🟠 [31m[ERROR][0m [36msrc/components/auth/AuthGuard.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🟡 [33m[WARNING][0m [36msrc/components/calendar/CalendarDashboard.tsx[0m:254
    [35mBoutons[0m | Les boutons d'action async doivent afficher un indicateur de chargement.
    [90m→[0m Bouton async sans indicateur de chargement visible
+
+🟠 [31m[ERROR][0m [36msrc/components/calendar/CalendarDashboard.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/calendar/CalendarDashboard.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -877,15 +929,15 @@
    [35mPerformance[0m | useEffect doit avoir un tableau de dépendances.
    [90m→[0m useEffect potentiellement sans tableau de dépendances
 
-🟡 [33m[WARNING][0m [36msrc/components/calendar/CalendarDashboard.tsx[0m:366
+🟡 [33m[WARNING][0m [36msrc/components/calendar/CalendarDashboard.tsx[0m:367
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟡 [33m[WARNING][0m [36msrc/components/calendar/CalendarDashboard.tsx[0m:377
+🟡 [33m[WARNING][0m [36msrc/components/calendar/CalendarDashboard.tsx[0m:378
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟡 [33m[WARNING][0m [36msrc/components/calendar/CalendarDashboard.tsx[0m:451
+🟡 [33m[WARNING][0m [36msrc/components/calendar/CalendarDashboard.tsx[0m:452
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
@@ -965,6 +1017,10 @@
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (12 niveaux) - utiliser early returns
 
+🟠 [31m[ERROR][0m [36msrc/components/compliance/ComplianceAIAssistant.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/compliance/ComplianceAIAssistant.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (8 niveaux) - utiliser early returns
@@ -973,35 +1029,27 @@
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
 
-🟠 [31m[ERROR][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:269
+🟠 [31m[ERROR][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:257
    [35mUX/UI[0m | Utiliser les classes Tailwind au lieu de couleurs hardcodées.
    [90m→[0m Couleur RGB inline - utiliser les variables CSS ou Tailwind
 
-🟠 [31m[ERROR][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:357
+🟠 [31m[ERROR][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:345
    [35mUX/UI[0m | Utiliser les classes Tailwind au lieu de couleurs hardcodées.
    [90m→[0m Couleur RGB inline - utiliser les variables CSS ou Tailwind
 
 🔵 [34m[INFO][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
-   [90m→[0m Imbrication profonde détectée (12 niveaux) - utiliser early returns
+   [90m→[0m Imbrication profonde détectée (13 niveaux) - utiliser early returns
 
 🟠 [31m[ERROR][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:35
    [35mPerformance[0m | useEffect doit avoir un tableau de dépendances.
    [90m→[0m useEffect potentiellement sans tableau de dépendances
 
-🟡 [33m[WARNING][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:210
+🟡 [33m[WARNING][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:265
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟡 [33m[WARNING][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:223
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
-
-🟡 [33m[WARNING][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:277
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
-
-🟡 [33m[WARNING][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:360
+🟡 [33m[WARNING][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:348
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
@@ -1009,11 +1057,11 @@
    [35mPerformance[0m | Les calculs coûteux devraient utiliser useMemo.
    [90m→[0m Calculs coûteux (filter/map/reduce/sort) sans useMemo
 
-🟡 [33m[WARNING][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:269
+🟡 [33m[WARNING][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:257
    [35mReact[0m | Éviter les styles inline - utiliser Tailwind/CSS.
    [90m→[0m Style inline complexe - extraire dans une classe CSS/Tailwind
 
-🟡 [33m[WARNING][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:357
+🟡 [33m[WARNING][0m [36msrc/components/compliance/ComplianceDashboard.tsx[0m:345
    [35mReact[0m | Éviter les styles inline - utiliser Tailwind/CSS.
    [90m→[0m Style inline complexe - extraire dans une classe CSS/Tailwind
 
@@ -1089,11 +1137,11 @@
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
 
-🟠 [31m[ERROR][0m [36msrc/components/continuity/ContinuityBIA.tsx[0m:106
+🟠 [31m[ERROR][0m [36msrc/components/continuity/ContinuityBIA.tsx[0m:98
    [35mBoutons[0m | Les boutons critiques (delete, submit) doivent prévenir le double-clic.
    [90m→[0m Bouton de suppression sans protection contre le double-clic
 
-🟠 [31m[ERROR][0m [36msrc/components/continuity/ContinuityBIA.tsx[0m:137
+🟠 [31m[ERROR][0m [36msrc/components/continuity/ContinuityBIA.tsx[0m:129
    [35mBoutons[0m | Les éléments cliquables non-bouton doivent être accessibles au clavier.
    [90m→[0m Élément cliquable non-bouton sans role="button" et tabIndex
 
@@ -1105,6 +1153,10 @@
    [35mTableaux[0m | Les colonnes de tableaux devraient être triables.
    [90m→[0m Tableau sans fonctionnalité de tri
 
+🟠 [31m[ERROR][0m [36msrc/components/continuity/ContinuityBIA.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/continuity/ContinuityBIA.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (14 niveaux) - utiliser early returns
@@ -1113,15 +1165,11 @@
    [35mLogique[0m | Éviter les magic numbers - utiliser des constantes.
    [90m→[0m Magic number détecté - extraire en constante
 
-🟡 [33m[WARNING][0m [36msrc/components/continuity/ContinuityBIA.tsx[0m:134
+🟡 [33m[WARNING][0m [36msrc/components/continuity/ContinuityBIA.tsx[0m:126
    [35mLogique[0m | Éviter les magic numbers - utiliser des constantes.
    [90m→[0m Magic number détecté - extraire en constante
 
-🟡 [33m[WARNING][0m [36msrc/components/continuity/ContinuityBIA.tsx[0m:72
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
-
-🟡 [33m[WARNING][0m [36msrc/components/continuity/ContinuityBIA.tsx[0m:137
+🟡 [33m[WARNING][0m [36msrc/components/continuity/ContinuityBIA.tsx[0m:129
    [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
    [90m→[0m Élément cliquable sans rôle sémantique
 
@@ -1181,6 +1229,10 @@
    [35mFirebase[0m | Gérer le mode offline pour les opérations critiques.
    [90m→[0m Opérations d'écriture sans gestion du mode offline
 
+🟠 [31m[ERROR][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (11 niveaux) - utiliser early returns
@@ -1213,6 +1265,10 @@
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
    [90m→[0m Mutation sans update optimiste - UX peut sembler lente
 
+🟠 [31m[ERROR][0m [36msrc/components/continuity/DrillModal.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/continuity/DrillModal.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (9 niveaux) - utiliser early returns
@@ -1229,6 +1285,10 @@
    [35mAccessibilité[0m | Les modales doivent supporter la navigation clavier.
    [90m→[0m Modal sans support clavier (Escape pour fermer, focus trap)
 
+🟠 [31m[ERROR][0m [36msrc/components/continuity/ProcessFormModal.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/continuity/ProcessFormModal.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (13 niveaux) - utiliser early returns
@@ -1244,6 +1304,10 @@
 🟠 [31m[ERROR][0m [36msrc/components/continuity/ProcessInspector.tsx[0m:71
    [35mBoutons[0m | Les boutons critiques (delete, submit) doivent prévenir le double-clic.
    [90m→[0m Bouton de suppression sans protection contre le double-clic
+
+🟠 [31m[ERROR][0m [36msrc/components/continuity/ProcessInspector.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/continuity/ProcessInspector.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -1345,13 +1409,13 @@
    [35mBoutons[0m | Les boutons avec onClick doivent avoir un handler défini (pas inline complexe).
    [90m→[0m onClick avec logique inline trop complexe - extraire dans une fonction
 
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/ApprovalsWidget.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/dashboard/ApprovalsWidget.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (8 niveaux) - utiliser early returns
-
-🟡 [33m[WARNING][0m [36msrc/components/dashboard/ApprovalsWidget.tsx[0m:55
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
 
 🟡 [33m[WARNING][0m [36msrc/components/dashboard/ApprovalsWidget.tsx[0m:1
    [35mInternationalisation[0m | Utiliser Intl.DateTimeFormat ou date-fns pour les dates.
@@ -1365,6 +1429,14 @@
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
 
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/CyberNewsWidget.tsx[0m:138
+   [35mBoutons[0m | Les éléments cliquables non-bouton doivent être accessibles au clavier.
+   [90m→[0m Élément cliquable non-bouton sans role="button" et tabIndex
+
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/CyberNewsWidget.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/dashboard/CyberNewsWidget.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (10 niveaux) - utiliser early returns
@@ -1377,6 +1449,10 @@
    [35mPerformance[0m | Les calculs coûteux devraient utiliser useMemo.
    [90m→[0m Calculs coûteux (filter/map/reduce/sort) sans useMemo
 
+🟡 [33m[WARNING][0m [36msrc/components/dashboard/CyberNewsWidget.tsx[0m:138
+   [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
+   [90m→[0m Élément cliquable sans rôle sémantique
+
 🔵 [34m[INFO][0m [36msrc/components/dashboard/CyberNewsWidget.tsx[0m:1
    [35mImports[0m | Les imports doivent être organisés (React, libs, local).
    [90m→[0m Imports désorganisés - React d'abord, puis libs, puis local
@@ -1384,6 +1460,10 @@
 🔵 [34m[INFO][0m [36msrc/components/dashboard/DashboardCard.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (8 niveaux) - utiliser early returns
+
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/TopRisksWidget.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/dashboard/TopRisksWidget.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -1421,9 +1501,17 @@
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
 
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/configurable/SortableWidget.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/dashboard/configurable/SortableWidget.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (8 niveaux) - utiliser early returns
+
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/views/AdminDashboardView.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/dashboard/views/AdminDashboardView.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -1440,6 +1528,10 @@
 🟠 [31m[ERROR][0m [36msrc/components/dashboard/views/AdminDashboardView.tsx[0m:1
    [35mAccessibilité[0m | Les modales doivent supporter la navigation clavier.
    [90m→[0m Modal sans support clavier (Escape pour fermer, focus trap)
+
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/AssetStatsWidget.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/dashboard/widgets/AssetStatsWidget.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -1464,6 +1556,10 @@
 🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/ComplianceEvolutionWidget.tsx[0m:64
    [35mBoutons[0m | Les éléments cliquables non-bouton doivent être accessibles au clavier.
    [90m→[0m Élément cliquable non-bouton sans role="button" et tabIndex
+
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/ComplianceEvolutionWidget.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/dashboard/widgets/ComplianceEvolutionWidget.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -1497,6 +1593,10 @@
    [35mReact[0m | Éviter les styles inline - utiliser Tailwind/CSS.
    [90m→[0m Style inline complexe - extraire dans une classe CSS/Tailwind
 
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/ContinuityPlansWidget.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/dashboard/widgets/ContinuityPlansWidget.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (7 niveaux) - utiliser early returns
@@ -1505,9 +1605,17 @@
    [35mInternationalisation[0m | Utiliser Intl.DateTimeFormat ou date-fns pour les dates.
    [90m→[0m Formatage de date sans locale explicite
 
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/DashboardHeader.tsx[0m:160
+   [35mBoutons[0m | Les éléments cliquables non-bouton doivent être accessibles au clavier.
+   [90m→[0m Élément cliquable non-bouton sans role="button" et tabIndex
+
 🟡 [33m[WARNING][0m [36msrc/components/dashboard/widgets/DashboardHeader.tsx[0m:1
    [35mFirebase[0m | Gérer le mode offline pour les opérations critiques.
    [90m→[0m Opérations d'écriture sans gestion du mode offline
+
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/DashboardHeader.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/dashboard/widgets/DashboardHeader.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -1528,6 +1636,10 @@
 🔵 [34m[INFO][0m [36msrc/components/dashboard/widgets/DashboardHeader.tsx[0m:1
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
    [90m→[0m Mutation sans update optimiste - UX peut sembler lente
+
+🟡 [33m[WARNING][0m [36msrc/components/dashboard/widgets/DashboardHeader.tsx[0m:160
+   [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
+   [90m→[0m Élément cliquable sans rôle sémantique
 
 🔵 [34m[INFO][0m [36msrc/components/dashboard/widgets/DashboardStats.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -1565,6 +1677,10 @@
    [35mReact[0m | Éviter les styles inline - utiliser Tailwind/CSS.
    [90m→[0m Style inline complexe - extraire dans une classe CSS/Tailwind
 
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/GettingStartedWidget.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/GettingStartedWidget.tsx[0m:99
    [35mLogique[0m | Les blocs catch doivent utiliser ErrorLogger ou toast.
    [90m→[0m Bloc catch sans gestion d'erreur (ErrorLogger/toast)
@@ -1573,17 +1689,9 @@
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (10 niveaux) - utiliser early returns
 
-🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/GettingStartedWidget.tsx[0m:202
-   [35mSécurité[0m | Valider les URLs avant redirection.
-   [90m→[0m Redirection avec URL potentiellement non validée
-
 🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/GettingStartedWidget.tsx[0m:33
    [35mPerformance[0m | useEffect doit avoir un tableau de dépendances.
    [90m→[0m useEffect potentiellement sans tableau de dépendances
-
-🟡 [33m[WARNING][0m [36msrc/components/dashboard/widgets/GettingStartedWidget.tsx[0m:199
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
 
 🟡 [33m[WARNING][0m [36msrc/components/dashboard/widgets/GettingStartedWidget.tsx[0m:1
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
@@ -1617,17 +1725,29 @@
    [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
    [90m→[0m Élément cliquable sans rôle sémantique
 
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/IncidentsStatsWidget.tsx[0m:89
+   [35mBoutons[0m | Les éléments cliquables non-bouton doivent être accessibles au clavier.
+   [90m→[0m Élément cliquable non-bouton sans role="button" et tabIndex
+
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/IncidentsStatsWidget.tsx[0m:102
+   [35mBoutons[0m | Les éléments cliquables non-bouton doivent être accessibles au clavier.
+   [90m→[0m Élément cliquable non-bouton sans role="button" et tabIndex
+
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/IncidentsStatsWidget.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/dashboard/widgets/IncidentsStatsWidget.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (8 niveaux) - utiliser early returns
 
-🟡 [33m[WARNING][0m [36msrc/components/dashboard/widgets/IncidentsStatsWidget.tsx[0m:92
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
+🟡 [33m[WARNING][0m [36msrc/components/dashboard/widgets/IncidentsStatsWidget.tsx[0m:89
+   [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
+   [90m→[0m Élément cliquable sans rôle sémantique
 
-🟡 [33m[WARNING][0m [36msrc/components/dashboard/widgets/IncidentsStatsWidget.tsx[0m:116
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
+🟡 [33m[WARNING][0m [36msrc/components/dashboard/widgets/IncidentsStatsWidget.tsx[0m:102
+   [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
+   [90m→[0m Élément cliquable sans rôle sémantique
 
 🔵 [34m[INFO][0m [36msrc/components/dashboard/widgets/MaturityRadarWidget.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -1685,6 +1805,10 @@
    [35mInternationalisation[0m | Utiliser Intl.DateTimeFormat ou date-fns pour les dates.
    [90m→[0m Formatage de date sans locale explicite
 
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/QuickActions.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/dashboard/widgets/QuickActions.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (7 niveaux) - utiliser early returns
@@ -1717,9 +1841,17 @@
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
 
+🟠 [31m[ERROR][0m [36msrc/components/dashboard/widgets/SuppliersStatsWidget.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/dashboard/widgets/SuppliersStatsWidget.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (7 niveaux) - utiliser early returns
+
+🟠 [31m[ERROR][0m [36msrc/components/documents/ApprovalFlow.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/documents/ApprovalFlow.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -1772,6 +1904,10 @@
 🟠 [31m[ERROR][0m [36msrc/components/documents/DocumentInspector.tsx[0m:103
    [35mBoutons[0m | Les boutons critiques (delete, submit) doivent prévenir le double-clic.
    [90m→[0m Bouton de suppression sans protection contre le double-clic
+
+🟠 [31m[ERROR][0m [36msrc/components/documents/DocumentInspector.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/documents/DocumentInspector.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -1840,6 +1976,10 @@
 🟡 [33m[WARNING][0m [36msrc/components/documents/DocumentUploadWizard.tsx[0m:179
    [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
    [90m→[0m Élément cliquable sans rôle sémantique
+
+🟠 [31m[ERROR][0m [36msrc/components/documents/DocumentUploadZone.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/documents/DocumentUploadZone.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -1929,6 +2069,10 @@
    [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
    [90m→[0m Élément cliquable sans rôle sémantique
 
+🟠 [31m[ERROR][0m [36msrc/components/incidents/IncidentAIAssistant.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/incidents/IncidentAIAssistant.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (8 niveaux) - utiliser early returns
@@ -1941,13 +2085,13 @@
    [35mUX/UI[0m | Les éléments interactifs doivent avoir un état hover.
    [90m→[0m Élément interactif sans état hover
 
+🟠 [31m[ERROR][0m [36msrc/components/incidents/IncidentDashboard.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/incidents/IncidentDashboard.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (13 niveaux) - utiliser early returns
-
-🟡 [33m[WARNING][0m [36msrc/components/incidents/IncidentDashboard.tsx[0m:264
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
 
 🟡 [33m[WARNING][0m [36msrc/components/incidents/IncidentDashboard.tsx[0m:111
    [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
@@ -1977,13 +2121,17 @@
    [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
    [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
+🟠 [31m[ERROR][0m [36msrc/components/incidents/IncidentImportModal.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/incidents/IncidentImportModal.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (12 niveaux) - utiliser early returns
 
-🟡 [33m[WARNING][0m [36msrc/components/incidents/IncidentImportModal.tsx[0m:137
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
+🟠 [31m[ERROR][0m [36msrc/components/incidents/IncidentImportModal.tsx[0m:1
+   [35mAccessibilité[0m | Les modales doivent supporter la navigation clavier.
+   [90m→[0m Modal sans support clavier (Escape pour fermer, focus trap)
 
 🟡 [33m[WARNING][0m [36msrc/components/incidents/IncidentImportModal.tsx[0m:1
    [35mInternationalisation[0m | Utiliser Intl.DateTimeFormat ou date-fns pour les dates.
@@ -2021,13 +2169,13 @@
    [35mBoutons[0m | Les boutons avec onClick doivent avoir un handler défini (pas inline complexe).
    [90m→[0m onClick avec logique inline trop complexe - extraire dans une fonction
 
+🟠 [31m[ERROR][0m [36msrc/components/incidents/IncidentPlaybook.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/incidents/IncidentPlaybook.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (11 niveaux) - utiliser early returns
-
-🟡 [33m[WARNING][0m [36msrc/components/incidents/IncidentPlaybook.tsx[0m:217
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
 
 🟡 [33m[WARNING][0m [36msrc/components/incidents/IncidentPlaybook.tsx[0m:1
    [35mPerformance[0m | Les calculs coûteux devraient utiliser useMemo.
@@ -2036,6 +2184,10 @@
 🟡 [33m[WARNING][0m [36msrc/components/incidents/IncidentPlaybook.tsx[0m:1
    [35mInternationalisation[0m | Utiliser Intl.DateTimeFormat ou date-fns pour les dates.
    [90m→[0m Formatage de date sans locale explicite
+
+🟠 [31m[ERROR][0m [36msrc/components/incidents/IncidentPlaybookModal.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🟠 [31m[ERROR][0m [36msrc/components/incidents/IncidentPlaybookModal.tsx[0m:1
    [35mAccessibilité[0m | Les modales doivent supporter la navigation clavier.
@@ -2053,9 +2205,17 @@
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (8 niveaux) - utiliser early returns
 
+🟠 [31m[ERROR][0m [36msrc/components/integrations/IntegrationCard.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/integrations/IntegrationCard.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (7 niveaux) - utiliser early returns
+
+🟠 [31m[ERROR][0m [36msrc/components/integrations/ScannerJobs.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/integrations/ScannerJobs.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -2241,6 +2401,10 @@
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
 
+🟠 [31m[ERROR][0m [36msrc/components/notifications/NotificationCenter.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/notifications/NotificationCenter.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (12 niveaux) - utiliser early returns
@@ -2261,6 +2425,10 @@
    [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
    [90m→[0m Élément cliquable sans rôle sémantique
 
+🟠 [31m[ERROR][0m [36msrc/components/onboarding/OnboardingTrigger.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/onboarding/OnboardingTrigger.tsx[0m:1
    [35mUX/UI[0m | Les composants doivent supporter le dark mode.
    [90m→[0m Composant avec couleurs sans support dark mode
@@ -2273,6 +2441,10 @@
    [35mPerformance[0m | useEffect doit avoir un tableau de dépendances.
    [90m→[0m useEffect potentiellement sans tableau de dépendances
 
+🟠 [31m[ERROR][0m [36msrc/components/projects/GanttChart.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/projects/GanttChart.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (11 niveaux) - utiliser early returns
@@ -2281,11 +2453,7 @@
    [35mLogique[0m | Éviter les magic numbers - utiliser des constantes.
    [90m→[0m Magic number détecté - extraire en constante
 
-🟡 [33m[WARNING][0m [36msrc/components/projects/GanttChart.tsx[0m:233
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
-
-🟡 [33m[WARNING][0m [36msrc/components/projects/GanttChart.tsx[0m:133
+🟡 [33m[WARNING][0m [36msrc/components/projects/GanttChart.tsx[0m:126
    [35mPerformance[0m | Les images doivent avoir width/height et loading="lazy".
    [90m→[0m Image sans loading="lazy"
 
@@ -2296,6 +2464,10 @@
 🟠 [31m[ERROR][0m [36msrc/components/projects/KanbanColumn.tsx[0m:55
    [35mBoutons[0m | Les boutons critiques (delete, submit) doivent prévenir le double-clic.
    [90m→[0m Bouton de suppression sans protection contre le double-clic
+
+🟠 [31m[ERROR][0m [36msrc/components/projects/KanbanColumn.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/projects/KanbanColumn.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -2321,6 +2493,10 @@
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
 
+🟠 [31m[ERROR][0m [36msrc/components/projects/ProjectAIAssistant.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/projects/ProjectAIAssistant.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (8 niveaux) - utiliser early returns
@@ -2337,17 +2513,29 @@
    [35mBoutons[0m | Les boutons critiques (delete, submit) doivent prévenir le double-clic.
    [90m→[0m Bouton de suppression sans protection contre le double-clic
 
-🟠 [31m[ERROR][0m [36msrc/components/projects/ProjectCard.tsx[0m:74
+🟠 [31m[ERROR][0m [36msrc/components/projects/ProjectCard.tsx[0m:63
    [35mBoutons[0m | Les boutons critiques (delete, submit) doivent prévenir le double-clic.
    [90m→[0m Bouton de suppression sans protection contre le double-clic
+
+🟠 [31m[ERROR][0m [36msrc/components/projects/ProjectCard.tsx[0m:39
+   [35mBoutons[0m | Les éléments cliquables non-bouton doivent être accessibles au clavier.
+   [90m→[0m Élément cliquable non-bouton sans role="button" et tabIndex
+
+🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectCard.tsx[0m:39
+   [35mUX/UI[0m | Les éléments interactifs doivent avoir un état hover.
+   [90m→[0m Élément interactif sans état hover
+
+🟠 [31m[ERROR][0m [36msrc/components/projects/ProjectCard.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/projects/ProjectCard.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (11 niveaux) - utiliser early returns
 
-🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectCard.tsx[0m:41
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
+🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectCard.tsx[0m:39
+   [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
+   [90m→[0m Élément cliquable sans rôle sémantique
 
 🔵 [34m[INFO][0m [36msrc/components/projects/ProjectDashboard.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -2385,6 +2573,18 @@
    [35mArchitecture[0m | Les Components ne doivent PAS importer Firebase directement (sauf hooks).
    [90m→[0m Import direct de "db" depuis Firebase dans un composant
 
+🟠 [31m[ERROR][0m [36msrc/components/projects/ProjectInspector.tsx[0m:346
+   [35mBoutons[0m | Les éléments cliquables non-bouton doivent être accessibles au clavier.
+   [90m→[0m Élément cliquable non-bouton sans role="button" et tabIndex
+
+🟠 [31m[ERROR][0m [36msrc/components/projects/ProjectInspector.tsx[0m:395
+   [35mBoutons[0m | Les éléments cliquables non-bouton doivent être accessibles au clavier.
+   [90m→[0m Élément cliquable non-bouton sans role="button" et tabIndex
+
+🟠 [31m[ERROR][0m [36msrc/components/projects/ProjectInspector.tsx[0m:418
+   [35mBoutons[0m | Les éléments cliquables non-bouton doivent être accessibles au clavier.
+   [90m→[0m Élément cliquable non-bouton sans role="button" et tabIndex
+
 🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectInspector.tsx[0m:250
    [35mUX/UI[0m | Les éléments interactifs doivent avoir un état hover.
    [90m→[0m Élément interactif sans état hover
@@ -2413,29 +2613,29 @@
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectInspector.tsx[0m:349
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
-
-🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectInspector.tsx[0m:410
+🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectInspector.tsx[0m:473
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
 🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectInspector.tsx[0m:444
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
-
-🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectInspector.tsx[0m:508
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
-
-🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectInspector.tsx[0m:479
    [35mPerformance[0m | Les images doivent avoir width/height et loading="lazy".
    [90m→[0m Image sans loading="lazy"
 
 🟠 [31m[ERROR][0m [36msrc/components/projects/ProjectInspector.tsx[0m:1
    [35mFormulaires[0m | Les formulaires doivent avoir une validation.
    [90m→[0m Formulaire sans validation visible
+
+🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectInspector.tsx[0m:346
+   [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
+   [90m→[0m Élément cliquable sans rôle sémantique
+
+🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectInspector.tsx[0m:395
+   [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
+   [90m→[0m Élément cliquable sans rôle sémantique
+
+🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectInspector.tsx[0m:418
+   [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
+   [90m→[0m Élément cliquable sans rôle sémantique
 
 🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectInspector.tsx[0m:1
    [35mInternationalisation[0m | Utiliser Intl.DateTimeFormat ou date-fns pour les dates.
@@ -2489,6 +2689,10 @@
    [35mFirebase[0m | Gérer le mode offline pour les opérations critiques.
    [90m→[0m Opérations d'écriture sans gestion du mode offline
 
+🟠 [31m[ERROR][0m [36msrc/components/projects/ProjectMilestones.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/projects/ProjectMilestones.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (10 niveaux) - utiliser early returns
@@ -2500,6 +2704,10 @@
 🟡 [33m[WARNING][0m [36msrc/components/projects/ProjectMilestones.tsx[0m:1
    [35mInternationalisation[0m | Utiliser Intl.DateTimeFormat ou date-fns pour les dates.
    [90m→[0m Formatage de date sans locale explicite
+
+🟠 [31m[ERROR][0m [36msrc/components/projects/TaskFormModal.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/projects/TaskFormModal.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -2564,6 +2772,10 @@
 🟡 [33m[WARNING][0m [36msrc/components/reports/ReportTemplates.tsx[0m:1
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
+
+🟠 [31m[ERROR][0m [36msrc/components/risks/RiskAIAssistant.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/risks/RiskAIAssistant.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -2769,6 +2981,10 @@
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (21 niveaux) - utiliser early returns
 
+🟠 [31m[ERROR][0m [36msrc/components/risks/RiskMatrixSelector.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/risks/RiskMatrixSelector.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (12 niveaux) - utiliser early returns
@@ -2776,6 +2992,10 @@
 🟡 [33m[WARNING][0m [36msrc/components/risks/RiskMatrixSelector.tsx[0m:1
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
+
+🟠 [31m[ERROR][0m [36msrc/components/risks/RiskRecommendationsModal.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/risks/RiskRecommendationsModal.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -2788,6 +3008,10 @@
 🔵 [34m[INFO][0m [36msrc/components/risks/RiskStats.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (9 niveaux) - utiliser early returns
+
+🟠 [31m[ERROR][0m [36msrc/components/risks/RiskTemplateModal.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/risks/RiskTemplateModal.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -3001,6 +3225,10 @@
    [35mFormulaires[0m | Les formulaires doivent empêcher la soumission multiple.
    [90m→[0m Formulaire sans e.preventDefault()
 
+🟠 [31m[ERROR][0m [36msrc/components/settings/SettingsLayout.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/settings/SettingsLayout.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (12 niveaux) - utiliser early returns
@@ -3045,6 +3273,10 @@
    [35mTableaux[0m | Les très grandes listes devraient utiliser la virtualisation.
    [90m→[0m Grande liste sans virtualisation - considérer react-window
 
+🟠 [31m[ERROR][0m [36msrc/components/settings/UserActivityLog.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/settings/UserActivityLog.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (8 niveaux) - utiliser early returns
@@ -3052,6 +3284,10 @@
 🟠 [31m[ERROR][0m [36msrc/components/settings/UserActivityLog.tsx[0m:22
    [35mPerformance[0m | useEffect doit avoir un tableau de dépendances.
    [90m→[0m useEffect potentiellement sans tableau de dépendances
+
+🟠 [31m[ERROR][0m [36msrc/components/shared/ComplianceCertificate.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/shared/ComplianceCertificate.tsx[0m:1
    [35mUX/UI[0m | Les composants doivent supporter le dark mode.
@@ -3065,6 +3301,10 @@
    [35mInternationalisation[0m | Utiliser Intl.DateTimeFormat ou date-fns pour les dates.
    [90m→[0m Formatage de date sans locale explicite
 
+🟠 [31m[ERROR][0m [36msrc/components/shared/ResourceHistory.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/shared/ResourceHistory.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (13 niveaux) - utiliser early returns
@@ -3073,6 +3313,10 @@
    [35mArchitecture[0m | Les Components ne doivent PAS importer Firebase directement (sauf hooks).
    [90m→[0m Import direct de "db" depuis Firebase dans un composant
 
+🟠 [31m[ERROR][0m [36msrc/components/shared/TimelineView.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/shared/TimelineView.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (16 niveaux) - utiliser early returns
@@ -3080,10 +3324,6 @@
 🟠 [31m[ERROR][0m [36msrc/components/shared/TimelineView.tsx[0m:47
    [35mPerformance[0m | useEffect doit avoir un tableau de dépendances.
    [90m→[0m useEffect potentiellement sans tableau de dépendances
-
-🟡 [33m[WARNING][0m [36msrc/components/shared/TimelineView.tsx[0m:148
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
 
 🟡 [33m[WARNING][0m [36msrc/components/skeletons/DashboardSkeleton.tsx[0m:1
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
@@ -3197,6 +3437,10 @@
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
    [90m→[0m Mutation sans update optimiste - UX peut sembler lente
 
+🟠 [31m[ERROR][0m [36msrc/components/suppliers/SupplierAIAssistant.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/suppliers/SupplierAIAssistant.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (12 niveaux) - utiliser early returns
@@ -3269,6 +3513,10 @@
    [35mFirebase[0m | Gérer le mode offline pour les opérations critiques.
    [90m→[0m Opérations d'écriture sans gestion du mode offline
 
+🟠 [31m[ERROR][0m [36msrc/components/team/GroupManager.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/team/GroupManager.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (12 niveaux) - utiliser early returns
@@ -3281,11 +3529,7 @@
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟡 [33m[WARNING][0m [36msrc/components/team/GroupManager.tsx[0m:207
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
-
-🟡 [33m[WARNING][0m [36msrc/components/team/GroupManager.tsx[0m:243
+🟡 [33m[WARNING][0m [36msrc/components/team/GroupManager.tsx[0m:235
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
@@ -3300,6 +3544,10 @@
 🔵 [34m[INFO][0m [36msrc/components/team/GroupManager.tsx[0m:1
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
    [90m→[0m Mutation sans update optimiste - UX peut sembler lente
+
+🟠 [31m[ERROR][0m [36msrc/components/team/GroupManager.tsx[0m:1
+   [35mAccessibilité[0m | Les modales doivent supporter la navigation clavier.
+   [90m→[0m Modal sans support clavier (Escape pour fermer, focus trap)
 
 🟠 [31m[ERROR][0m [36msrc/components/team/RoleManager.tsx[0m:1
    [35mArchitecture[0m | Les Components ne doivent PAS importer Firebase directement (sauf hooks).
@@ -3328,6 +3576,10 @@
 🟡 [33m[WARNING][0m [36msrc/components/team/RoleManager.tsx[0m:1
    [35mFirebase[0m | Gérer le mode offline pour les opérations critiques.
    [90m→[0m Opérations d'écriture sans gestion du mode offline
+
+🟠 [31m[ERROR][0m [36msrc/components/team/RoleManager.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/team/RoleManager.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -3425,6 +3677,10 @@
    [35mAccessibilité[0m | Les modales doivent supporter la navigation clavier.
    [90m→[0m Modal sans support clavier (Escape pour fermer, focus trap)
 
+🟠 [31m[ERROR][0m [36msrc/components/threat-intel/ThreatDiscussion.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/threat-intel/ThreatDiscussion.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (8 niveaux) - utiliser early returns
@@ -3481,6 +3737,10 @@
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
 
+🟠 [31m[ERROR][0m [36msrc/components/timeline/InteractiveTimeline.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/timeline/InteractiveTimeline.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (7 niveaux) - utiliser early returns
@@ -3492,6 +3752,10 @@
 🟡 [33m[WARNING][0m [36msrc/components/ui/AIAssistantHeader.tsx[0m:1
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
+
+🟠 [31m[ERROR][0m [36msrc/components/ui/AddToCalendar.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/ui/AddToCalendar.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -3537,19 +3801,23 @@
    [35mTableaux[0m | Les colonnes de tableaux devraient être triables.
    [90m→[0m Tableau sans fonctionnalité de tri
 
+🟠 [31m[ERROR][0m [36msrc/components/ui/CSVImport.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/ui/CSVImport.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (14 niveaux) - utiliser early returns
 
-🟡 [33m[WARNING][0m [36msrc/components/ui/CSVImport.tsx[0m:247
+🟡 [33m[WARNING][0m [36msrc/components/ui/CSVImport.tsx[0m:245
    [35mLogique[0m | Éviter les magic numbers - utiliser des constantes.
    [90m→[0m Magic number détecté - extraire en constante
 
-🟠 [31m[ERROR][0m [36msrc/components/ui/CSVImport.tsx[0m:181
+🟠 [31m[ERROR][0m [36msrc/components/ui/CSVImport.tsx[0m:179
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
 
-🟡 [33m[WARNING][0m [36msrc/components/ui/CSVImport.tsx[0m:181
+🟡 [33m[WARNING][0m [36msrc/components/ui/CSVImport.tsx[0m:179
    [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
    [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
@@ -3601,6 +3869,10 @@
    [35mAccessibilité[0m | Les modales doivent supporter la navigation clavier.
    [90m→[0m Modal sans support clavier (Escape pour fermer, focus trap)
 
+🟠 [31m[ERROR][0m [36msrc/components/ui/ContentBlockerError.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/ui/ContentBlockerError.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (7 niveaux) - utiliser early returns
@@ -3608,6 +3880,10 @@
 🟡 [33m[WARNING][0m [36msrc/components/ui/ContentBlockerError.tsx[0m:25
    [35mAccessibilité[0m | Les headings doivent suivre un ordre logique (h1 > h2 > h3).
    [90m→[0m Saut de niveau de heading: h1 -> h3
+
+🟠 [31m[ERROR][0m [36msrc/components/ui/CookieConsent.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/ui/CookieConsent.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -3693,13 +3969,13 @@
    [35mImports[0m | Les imports doivent être organisés (React, libs, local).
    [90m→[0m Imports désorganisés - React d'abord, puis libs, puis local
 
+🟠 [31m[ERROR][0m [36msrc/components/ui/DatePicker.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/ui/DatePicker.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (8 niveaux) - utiliser early returns
-
-🟡 [33m[WARNING][0m [36msrc/components/ui/DatePicker.tsx[0m:68
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
 
 🟠 [31m[ERROR][0m [36msrc/components/ui/DateRangePicker.tsx[0m:35
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
@@ -3724,6 +4000,10 @@
 🟡 [33m[WARNING][0m [36msrc/components/ui/Drawer.tsx[0m:93
    [35mReact[0m | Éviter les styles inline - utiliser Tailwind/CSS.
    [90m→[0m Style inline complexe - extraire dans une classe CSS/Tailwind
+
+🟠 [31m[ERROR][0m [36msrc/components/ui/EmptyState.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🟡 [33m[WARNING][0m [36msrc/components/ui/FeedbackAnimations.tsx[0m:1
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
@@ -3776,6 +4056,10 @@
 🟡 [33m[WARNING][0m [36msrc/components/ui/FeedbackModal.tsx[0m:49
    [35mRoutes[0m | Utiliser useNavigate au lieu de window.location.
    [90m→[0m Utiliser useNavigate() au lieu de window.location
+
+🟠 [31m[ERROR][0m [36msrc/components/ui/FilePreview.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/ui/FilePreview.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -3841,6 +4125,10 @@
    [35mImports[0m | Les imports doivent être organisés (React, libs, local).
    [90m→[0m Imports désorganisés - React d'abord, puis libs, puis local
 
+🟠 [31m[ERROR][0m [36msrc/components/ui/LegalModal.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/ui/LegalModal.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (11 niveaux) - utiliser early returns
@@ -3849,6 +4137,10 @@
    [35mAccessibilité[0m | Les modales doivent supporter la navigation clavier.
    [90m→[0m Modal sans support clavier (Escape pour fermer, focus trap)
 
+🟠 [31m[ERROR][0m [36msrc/components/ui/LoadingScreen.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/ui/LoadingScreen.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (7 niveaux) - utiliser early returns
@@ -3856,6 +4148,10 @@
 🟠 [31m[ERROR][0m [36msrc/components/ui/Modal.tsx[0m:25
    [35mPerformance[0m | useEffect doit avoir un tableau de dépendances.
    [90m→[0m useEffect potentiellement sans tableau de dépendances
+
+🟠 [31m[ERROR][0m [36msrc/components/ui/NotificationPermissionBanner.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/ui/NotificationPermissionBanner.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -3913,6 +4209,10 @@
    [35mPerformance[0m | useEffect doit avoir un tableau de dépendances.
    [90m→[0m useEffect potentiellement sans tableau de dépendances
 
+🟠 [31m[ERROR][0m [36msrc/components/ui/ScrollableTabs.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/ui/ScrollableTabs.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (9 niveaux) - utiliser early returns
@@ -3920,6 +4220,10 @@
 🟡 [33m[WARNING][0m [36msrc/components/ui/ScrollableTabs.tsx[0m:1
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
+
+🟠 [31m[ERROR][0m [36msrc/components/ui/ShortcutsHelp.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/ui/ShortcutsHelp.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -3985,6 +4289,10 @@
    [35mImports[0m | Les imports doivent être organisés (React, libs, local).
    [90m→[0m Imports désorganisés - React d'abord, puis libs, puis local
 
+🟠 [31m[ERROR][0m [36msrc/components/ui/onboarding/TourCard.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/ui/onboarding/TourCard.tsx[0m:71
    [35mUX/UI[0m | Utiliser une échelle de z-index cohérente.
    [90m→[0m z-index arbitraire élevé (10000) - utiliser l'échelle standard
@@ -4025,17 +4333,29 @@
    [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
    [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
+🟠 [31m[ERROR][0m [36msrc/components/vulnerabilities/VulnerabilityImportModal.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
+
 🔵 [34m[INFO][0m [36msrc/components/vulnerabilities/VulnerabilityImportModal.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (12 niveaux) - utiliser early returns
 
-🟡 [33m[WARNING][0m [36msrc/components/vulnerabilities/VulnerabilityImportModal.tsx[0m:129
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
+🟠 [31m[ERROR][0m [36msrc/components/vulnerabilities/VulnerabilityImportModal.tsx[0m:1
+   [35mAccessibilité[0m | Les modales doivent supporter la navigation clavier.
+   [90m→[0m Modal sans support clavier (Escape pour fermer, focus trap)
 
-🟠 [31m[ERROR][0m [36msrc/components/vulnerabilities/VulnerabilityList.tsx[0m:34
+🟠 [31m[ERROR][0m [36msrc/components/vulnerabilities/VulnerabilityList.tsx[0m:22
    [35mBoutons[0m | Les boutons critiques (delete, submit) doivent prévenir le double-clic.
    [90m→[0m Bouton de suppression sans protection contre le double-clic
+
+🟠 [31m[ERROR][0m [36msrc/components/vulnerabilities/VulnerabilityList.tsx[0m:18
+   [35mBoutons[0m | Les éléments cliquables non-bouton doivent être accessibles au clavier.
+   [90m→[0m Élément cliquable non-bouton sans role="button" et tabIndex
+
+🟠 [31m[ERROR][0m [36msrc/components/vulnerabilities/VulnerabilityList.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🔵 [34m[INFO][0m [36msrc/components/vulnerabilities/VulnerabilityList.tsx[0m:1
    [35mUX/UI[0m | Les changements d'état visuels doivent avoir des transitions.
@@ -4045,9 +4365,13 @@
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (7 niveaux) - utiliser early returns
 
-🟡 [33m[WARNING][0m [36msrc/components/vulnerabilities/VulnerabilityList.tsx[0m:21
-   [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
-   [90m→[0m Callback inline comme prop - utiliser useCallback
+🟡 [33m[WARNING][0m [36msrc/components/vulnerabilities/VulnerabilityList.tsx[0m:18
+   [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
+   [90m→[0m Élément cliquable sans rôle sémantique
+
+🔴 [31m[CRITICAL][0m [36msrc/contexts/AuthContext.tsx[0m:1
+   [35mFirebase[0m | Ne pas contourner les règles de sécurité côté client.
+   [90m→[0m Pattern potentiellement dangereux pour les règles de sécurité
 
 🟡 [33m[WARNING][0m [36msrc/contexts/AuthContext.tsx[0m:332
    [35mLogique[0m | Les fonctions async doivent avoir await ou retourner une Promise.
@@ -4517,19 +4841,19 @@
    [35mLogique[0m | Les blocs catch doivent utiliser ErrorLogger ou toast.
    [90m→[0m Bloc catch sans gestion d'erreur (ErrorLogger/toast)
 
-🟠 [31m[ERROR][0m [36msrc/hooks/usePrivacy.ts[0m:153
+🟠 [31m[ERROR][0m [36msrc/hooks/usePrivacy.ts[0m:152
    [35mLogique[0m | Les blocs catch doivent utiliser ErrorLogger ou toast.
    [90m→[0m Bloc catch sans gestion d'erreur (ErrorLogger/toast)
 
-🟠 [31m[ERROR][0m [36msrc/hooks/usePrivacy.ts[0m:172
+🟠 [31m[ERROR][0m [36msrc/hooks/usePrivacy.ts[0m:171
    [35mLogique[0m | Les blocs catch doivent utiliser ErrorLogger ou toast.
    [90m→[0m Bloc catch sans gestion d'erreur (ErrorLogger/toast)
 
-🟠 [31m[ERROR][0m [36msrc/hooks/usePrivacy.ts[0m:222
+🟠 [31m[ERROR][0m [36msrc/hooks/usePrivacy.ts[0m:221
    [35mLogique[0m | Les blocs catch doivent utiliser ErrorLogger ou toast.
    [90m→[0m Bloc catch sans gestion d'erreur (ErrorLogger/toast)
 
-🟠 [31m[ERROR][0m [36msrc/hooks/usePrivacy.ts[0m:240
+🟠 [31m[ERROR][0m [36msrc/hooks/usePrivacy.ts[0m:239
    [35mLogique[0m | Les blocs catch doivent utiliser ErrorLogger ou toast.
    [90m→[0m Bloc catch sans gestion d'erreur (ErrorLogger/toast)
 
@@ -4809,6 +5133,10 @@
    [35mLogique[0m | Éviter les magic numbers - utiliser des constantes.
    [90m→[0m Magic number détecté - extraire en constante
 
+🔴 [31m[CRITICAL][0m [36msrc/services/PrivacyService.ts[0m:1
+   [35mFirebase[0m | Ne pas contourner les règles de sécurité côté client.
+   [90m→[0m Pattern potentiellement dangereux pour les règles de sécurité
+
 🔵 [34m[INFO][0m [36msrc/services/PrivacyService.ts[0m:1
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
    [90m→[0m Mutation sans update optimiste - UX peut sembler lente
@@ -4892,6 +5220,10 @@
 🟡 [33m[WARNING][0m [36msrc/services/accountService.ts[0m:91
    [35mFirebase[0m | Utiliser serverTimestamp() pour les dates de création/modification.
    [90m→[0m Utiliser serverTimestamp() au lieu de new Date() pour les timestamps
+
+🔴 [31m[CRITICAL][0m [36msrc/services/aiService.ts[0m:1
+   [35mFirebase[0m | Ne pas contourner les règles de sécurité côté client.
+   [90m→[0m Pattern potentiellement dangereux pour les règles de sécurité
 
 🟡 [33m[WARNING][0m [36msrc/services/aiService.ts[0m:211
    [35mLogique[0m | Éviter les magic numbers - utiliser des constantes.
@@ -5164,6 +5496,10 @@
 🟡 [33m[WARNING][0m [36msrc/utils/riskTemplates.ts[0m:357
    [35mFirebase[0m | Utiliser serverTimestamp() pour les dates de création/modification.
    [90m→[0m Utiliser serverTimestamp() au lieu de new Date() pour les timestamps
+
+🟠 [31m[ERROR][0m [36msrc/views/ActivityLogs.tsx[0m:1
+   [35mUX/UI[0m | Les éléments focusables doivent avoir un indicateur focus-visible.
+   [90m→[0m Éléments focusables sans indicateur de focus visible
 
 🟡 [33m[WARNING][0m [36msrc/views/ActivityLogs.tsx[0m:1
    [35mUX/UI[0m | Les composants principaux doivent être responsive.
@@ -6454,26 +6790,26 @@
 [1m  📊 RÉSUMÉ DE L'AUDIT[0m
 [36m══════════════════════════════════════════════════════════════════════[0m
 
-⏱️  Durée: 0.74s
+⏱️  Durée: 0.69s
 📁 Fichiers analysés: 489
 📋 Règles vérifiées: 89
 
-🎯 Total des violations: [31m1611[0m
+🎯 Total des violations: [31m1695[0m
 
 [1mPar catégorie:[0m
   [36mArchitecture[0m: [31m0[0m critical, [31m34[0m error, [33m7[0m warning, [34m0[0m info
-  [36mBoutons[0m: [31m0[0m critical, [31m47[0m error, [33m19[0m warning, [34m0[0m info
+  [36mBoutons[0m: [31m0[0m critical, [31m56[0m error, [33m19[0m warning, [34m0[0m info
   [36mTableaux[0m: [31m0[0m critical, [31m3[0m error, [33m3[0m warning, [34m16[0m info
-  [36mFirebase[0m: [31m0[0m critical, [31m4[0m error, [33m183[0m warning, [34m0[0m info
-  [36mUX/UI[0m: [31m0[0m critical, [31m8[0m error, [33m46[0m warning, [34m18[0m info
+  [36mFirebase[0m: [31m3[0m critical, [31m4[0m error, [33m183[0m warning, [34m0[0m info
+  [36mUX/UI[0m: [31m0[0m critical, [31m89[0m error, [33m47[0m warning, [34m19[0m info
   [36mLogique[0m: [31m0[0m critical, [31m7[0m error, [33m75[0m warning, [34m244[0m info
-  [36mSécurité[0m: [31m0[0m critical, [31m10[0m error, [33m0[0m warning, [34m0[0m info
-  [36mPerformance[0m: [31m0[0m critical, [31m81[0m error, [33m272[0m warning, [34m0[0m info
+  [36mSécurité[0m: [31m0[0m critical, [31m9[0m error, [33m0[0m warning, [34m0[0m info
+  [36mPerformance[0m: [31m0[0m critical, [31m81[0m error, [33m250[0m warning, [34m0[0m info
   [36mTypeScript[0m: [31m0[0m critical, [31m0[0m error, [33m3[0m warning, [34m7[0m info
   [36mReact[0m: [31m0[0m critical, [31m0[0m error, [33m10[0m warning, [34m0[0m info
   [36mFormulaires[0m: [31m0[0m critical, [31m97[0m error, [33m82[0m warning, [34m0[0m info
   [36mÉtats[0m: [31m0[0m critical, [31m1[0m error, [33m64[0m warning, [34m52[0m info
-  [36mAccessibilité[0m: [31m0[0m critical, [31m56[0m error, [33m36[0m warning, [34m0[0m info
+  [36mAccessibilité[0m: [31m0[0m critical, [31m59[0m error, [33m45[0m warning, [34m0[0m info
   [36mInternationalisation[0m: [31m0[0m critical, [31m0[0m error, [33m44[0m warning, [34m0[0m info
   [36mTests[0m: [31m0[0m critical, [31m0[0m error, [33m33[0m warning, [34m0[0m info
   [36mHooks[0m: [31m0[0m critical, [31m4[0m error, [33m0[0m warning, [34m0[0m info
@@ -6485,8 +6821,8 @@
   1. [36msrc/views/Risks.tsx[0m: 27 violations
   2. [36msrc/views/Suppliers.tsx[0m: 25 violations
   3. [36msrc/components/documents/FolderTree.tsx[0m: 20 violations
-  4. [36msrc/components/VoxelStudio.tsx[0m: 17 violations
-  5. [36msrc/components/projects/ProjectInspector.tsx[0m: 17 violations
+  4. [36msrc/components/projects/ProjectInspector.tsx[0m: 20 violations
+  5. [36msrc/components/VoxelStudio.tsx[0m: 17 violations
   6. [36msrc/components/settings/OrganizationSettings.tsx[0m: 17 violations
   7. [36msrc/components/suppliers/QuestionnaireBuilder.tsx[0m: 17 violations
   8. [36msrc/views/Continuity.tsx[0m: 17 violations
@@ -6495,25 +6831,26 @@
 
 [1mTop 10 règles les plus violées:[0m
   1. [35mlogic-early-return[0m: 244 (info)
-  2. [35mperf-memo-missing[0m: 240 (warning)
+  2. [35mperf-memo-missing[0m: 218 (warning)
   3. [35mfirebase-timestamp[0m: 104 (warning)
   4. [35mform-controlled-inputs[0m: 82 (warning)
-  5. [35mperf-useeffect-deps[0m: 81 (error)
-  6. [35mstate-empty-state[0m: 64 (warning)
-  7. [35mfirebase-query-optimization[0m: 59 (warning)
-  8. [35mlogic-magic-numbers[0m: 58 (warning)
-  9. [35mstate-optimistic-update[0m: 52 (info)
-  10. [35ma11y-keyboard-navigation[0m: 52 (error)
+  5. [35mui-focus-visible[0m: 81 (error)
+  6. [35mperf-useeffect-deps[0m: 81 (error)
+  7. [35mstate-empty-state[0m: 64 (warning)
+  8. [35mfirebase-query-optimization[0m: 59 (warning)
+  9. [35mlogic-magic-numbers[0m: 58 (warning)
+  10. [35ma11y-keyboard-navigation[0m: 55 (error)
 
 [36m══════════════════════════════════════════════════════════════════════[0m
-  🏆 SCORE DE QUALITÉ: [33m63%[0m
+  🏆 SCORE DE QUALITÉ: [33m61%[0m
 [36m══════════════════════════════════════════════════════════════════════[0m
 
 [1m💡 RECOMMANDATIONS PRIORITAIRES:[0m
+[31m  ⚠️  3 violations CRITIQUES à corriger immédiatement![0m
   📌 Catégories à améliorer en priorité:
      - Performance
      - Formulaires
-     - Logique
+     - UX/UI
 
 [32m✨ Audit terminé.[0m
 
