@@ -96,6 +96,9 @@ vi.mock('../../utils/permissions', () => ({
 vi.mock('../../components/ui/MasterpieceBackground', () => ({
     MasterpieceBackground: () => null
 }));
+vi.mock('../../components/SEO', () => ({
+    SEO: () => <div data-testid="seo-mock" />
+}));
 vi.mock('../../components/ui/PageHeader', () => ({
     PageHeader: ({ title }: { title: string }) => <h1>{title}</h1>
 }));
@@ -140,8 +143,8 @@ describe('Reports View', () => {
         );
 
         expect(screen.getByText('reports.title')).toBeInTheDocument();
-        expect(screen.getByText('reports.risksTitle')).toBeInTheDocument();
-        expect(screen.getByText('reports.auditsTitle')).toBeInTheDocument();
+        expect(screen.getByText('Pack ISO 27001')).toBeInTheDocument();
+        expect(screen.getByText('Pack RGPD')).toBeInTheDocument();
     });
 
     it('renders history tab', () => {
