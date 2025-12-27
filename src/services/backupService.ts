@@ -78,7 +78,7 @@ export class BackupService {
           const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           backupData[collectionName] = data;
           totalSize += JSON.stringify(data).length;
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
         } catch (error) {
           // Silently skip collections that cannot be backed up
           ErrorLogger.warn(`Skipping backup collection ${collectionName}`, 'BackupService.createBackup', { metadata: { error } });
@@ -214,7 +214,7 @@ export class BackupService {
         query(collection(db, this.BACKUP_COLLECTION), where('organizationId', '==', organizationId))
       );
       return snapshot.docs.map(doc => doc.data() as BackupMetadata);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     } catch (error) {
       ErrorLogger.error(error, 'BackupService.listBackups');
       return [];

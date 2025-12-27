@@ -80,7 +80,7 @@ export const Vulnerabilities: React.FC = () => {
         try {
             await addVulnerability(data);
             setCreationMode(false);
-        } catch (error) {
+        } catch {
             ErrorLogger.warn('Creation handled in hook');
         }
     };
@@ -90,7 +90,7 @@ export const Vulnerabilities: React.FC = () => {
         try {
             await updateVulnerability(selectedVulnerability.id, data || {});
             setSelectedVulnerability(null);
-        } catch (error) {
+        } catch {
             ErrorLogger.warn('Update handled in hook');
         }
     };
@@ -101,7 +101,7 @@ export const Vulnerabilities: React.FC = () => {
             await deleteVulnerability(id);
             if (selectedVulnerability?.id === id) setSelectedVulnerability(null);
             setConfirmData(prev => ({ ...prev, isOpen: false }));
-        } catch (error) {
+        } catch {
             ErrorLogger.warn('Delete handled in hook');
         } finally {
             setConfirmData(prev => ({ ...prev, loading: false }));
@@ -164,7 +164,7 @@ export const Vulnerabilities: React.FC = () => {
                 onSearchChange={setFilter}
                 searchPlaceholder={t('vulnerabilities.searchPlaceholder')}
                 viewMode={viewMode}
-                onViewModeChange={(mode) => setViewMode(mode as any)}
+                onViewModeChange={(mode) => setViewMode(mode as 'list' | 'grid' | 'kanban')}
                 actions={
                     canEdit && (
                         <>

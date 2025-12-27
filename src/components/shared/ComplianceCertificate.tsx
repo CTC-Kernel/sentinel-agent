@@ -72,7 +72,7 @@ export const ComplianceCertificate: React.FC<ComplianceCertificateProps> = ({
 
             {/* Actions */}
             <div className="mt-6 flex justify-center gap-4">
-                <button className="flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-lg shadow-brand-500/20 font-bold transition-all hover:-translate-y-1">
+                <button className="flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-lg shadow-brand-500/20 font-bold transition-all hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
                     <Download className="h-5 w-5" />
                     Télécharger PDF
                 </button>

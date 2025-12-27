@@ -66,7 +66,7 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                         <button
                             key={range}
                             onClick={(e) => { e.stopPropagation(); setTimeRange(range); }}
-                            className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${timeRange === range
+                            className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${timeRange === range
                                 ? 'bg-white dark:bg-slate-700 shadow-sm text-foreground'
                                 : 'text-muted-foreground hover:text-foreground'
                                 }`}

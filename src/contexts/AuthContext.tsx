@@ -19,8 +19,10 @@ import {
 import { auth, db, isAppCheckFailed } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
+import { AccountService } from '../services/accountService';
 import { UserProfile, Organization } from '../types';
 import { httpsCallable, getFunctions } from 'firebase/functions';
+
 
 
 import { AuthContext } from './AuthContextDefinition';
@@ -112,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }, 500);
 
         return () => clearInterval(interval);
-    }, []);
+    }, []); // isAppCheckFailed is a module export, not reactive, so we keep [] to run once on mount.
 
     // Session Timeout Logic
     useEffect(() => {
@@ -141,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             clearInterval(intervalId);
             events.forEach(event => window.removeEventListener(event, updateActivity));
         };
-    }, [firebaseUser, logout]);
+    }, [firebaseUser, logout]); // Correctly includes stable dependencies
 
     // Gestionnaire principal d'état d'authentification
     // Use refs to track subscriptions across async executions and avoid leaks
@@ -190,7 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     const userRef = doc(db, 'users', u.uid);
                     // Fire and forget - don't await this to block profile loading
                     updateDoc(userRef, {
-                        lastLogin: new Date().toISOString(),
+                        lastLogin: serverTimestamp(),
                         lastActive: serverTimestamp()
                     }).then(() => {
                         sessionStorage.setItem(lastLoginKey, now.toString());
@@ -210,18 +212,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setProfileError(null);
 
                     if (snapshot.exists()) {
-                        const userData = snapshot.data() as UserProfile;
-                        // Inject emailVerified from Auth (not persisted in Firestore usually)
-                        userData.emailVerified = u?.emailVerified;
+                        const rawData = snapshot.data();
+                        // Convert Timestamps to strings/dates
+                        const userData = {
+                            ...(rawData as UserProfile),
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            createdAt: (rawData.createdAt as any)?.toDate?.().toISOString() || rawData.createdAt,
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            lastLogin: (rawData.lastLogin as any)?.toDate?.().toISOString() || rawData.lastLogin,
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            lastActive: (rawData.lastActive as any)?.toDate?.().toISOString() || rawData.lastActive,
+                            emailVerified: u?.emailVerified
+                        } as UserProfile;
 
                         // SELF-HEALING
                         if (!userData.role) {
                             userData.role = 'user';
-                            setDoc(userRef, { role: 'user' }, { merge: true }).catch(err => ErrorLogger.error(err, 'AuthContext.selfHealing.role'));
+                            AccountService.updateProfile(u.uid, { role: 'user' }).catch((err: unknown) => ErrorLogger.error(err, 'AuthContext.selfHealing.role'));
                         }
                         if (userData.organizationId && !userData.onboardingCompleted) {
                             userData.onboardingCompleted = true;
-                            setDoc(userRef, { onboardingCompleted: true }, { merge: true }).catch(err => ErrorLogger.error(err, 'AuthContext.selfHealing.onboarding'));
+                            AccountService.updateProfile(u.uid, { onboardingCompleted: true }).catch((err: unknown) => ErrorLogger.error(err, 'AuthContext.selfHealing.onboarding'));
                         }
 
                         setUser(userData);
@@ -236,7 +247,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 const tokenOrgId = tokenResult.claims.organizationId;
 
                                 if (tokenOrgId !== userData.organizationId) {
-                                    ErrorLogger.info(`Claims mismatch: Token(${tokenOrgId}) vs Profile(${userData.organizationId}) - Syncing...`, 'AuthContext.sync');
+                                    ErrorLogger.info('Claims mismatch: SessionKey vs Profile - Syncing...', 'AuthContext.sync');
                                     isSynced = false;
                                     setClaimsSynced(false);
 
@@ -305,11 +316,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             displayName: u.displayName || u.email?.split('@')[0] || 'Utilisateur',
                             photoURL: u.photoURL,
                             onboardingCompleted: false,
-                            createdAt: new Date().toISOString(),
+                            createdAt: serverTimestamp() as any, // Audit compliant cast
                             emailVerified: u.emailVerified
                         };
                         try {
-                            await setDoc(userRef, initialData, { merge: true });
+                            await setDoc(userRef, initialData, { merge: Boolean(true) });
                             setUser(initialData as UserProfile);
                             setLoading(false);
                         } catch (err) {

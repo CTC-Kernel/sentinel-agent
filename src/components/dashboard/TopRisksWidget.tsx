@@ -18,7 +18,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
                     <h3 className="text-lg font-bold text-foreground">Risques Critiques</h3>
                     <p className="text-sm text-muted-foreground">Priorité d'action</p>
                 </div>
-                <button className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl hover:bg-red-100 transition-colors">
+                <button className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl hover:bg-red-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
                     <ShieldAlert className="h-5 w-5" />
                 </button>
             </div>
@@ -46,7 +46,7 @@ export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigat
                                 </span>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onMitigate(risk); }}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs font-bold text-brand-600 hover:text-brand-700"
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs font-bold text-brand-600 hover:text-brand-700 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
                                 >
                                     Traiter <ArrowRight className="h-3 w-3 ml-1" />
                                 </button>

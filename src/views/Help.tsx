@@ -319,7 +319,7 @@ export const Help: React.FC = () => {
                                                     <div className="px-6 pb-6 pt-0 space-y-6">
                                                         <div className="h-px w-full bg-slate-200 dark:bg-slate-700/50 mb-6" />
                                                         {article.sections.map((section, idx) => (
-                                                            <div key={idx} className="prose prose-slate dark:prose-invert max-w-none">
+                                                            <div key={`section-${idx}-${section.title || 'untitled'}`} className="prose prose-slate dark:prose-invert max-w-none">
                                                                 {section.title && (
                                                                     <h4 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
                                                                         <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />

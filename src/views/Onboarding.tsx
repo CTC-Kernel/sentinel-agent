@@ -834,7 +834,7 @@ export const Onboarding: React.FC = () => {
                                                                 placeholder="Type"
                                                             />
                                                         </div>
-                                                        <button onClick={handleAddAsset} aria-label="Ajouter l'actif" className="p-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold h-[56px] w-[56px] flex items-center justify-center">
+                                                        <button onClick={handleAddAsset} aria-label="Ajouter l'actif" className="p-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold h-[56px] w-[56px] flex items-center justify-center hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 duration-200">
                                                             <Plus className="h-5 w-5" />
                                                         </button>
                                                     </div>

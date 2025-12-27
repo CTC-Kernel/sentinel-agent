@@ -96,7 +96,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                         <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
                             {comment.content.split(' ').map((word, i) => {
                                 if (word.startsWith('@')) {
-                                    return <span key={i} className="text-brand-600 dark:text-brand-400 font-medium bg-brand-50 dark:bg-brand-500/10 px-1 rounded">{word} </span>
+                                    return <span key={`${i}-${word}`} className="text-brand-600 dark:text-brand-400 font-medium bg-brand-50 dark:bg-brand-500/10 px-1 rounded">{word} </span>
                                 }
                                 return word + ' ';
                             })}

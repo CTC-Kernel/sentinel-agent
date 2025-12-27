@@ -11,15 +11,20 @@ export const SubscriptionService = {
    * Get current plan limits for an organization
    */
   getLimits: async (organizationId: string): Promise<PlanLimits> => {
-    const orgRef = doc(db, 'organizations', organizationId);
-    const orgSnap = await getDoc(orgRef);
+    try {
+      const orgRef = doc(db, 'organizations', organizationId);
+      const orgSnap = await getDoc(orgRef);
 
-    if (!orgSnap.exists()) return getPlanLimits('discovery');
+      if (!orgSnap.exists()) return getPlanLimits('discovery');
 
-    const orgData = orgSnap.data() as Organization;
-    const planId = orgData.subscription?.planId || 'discovery';
+      const orgData = orgSnap.data() as Organization;
+      const planId = orgData.subscription?.planId || 'discovery';
 
-    return getPlanLimits(planId);
+      return getPlanLimits(planId);
+    } catch (error) {
+      ErrorLogger.error(error, 'SubscriptionService.getLimits');
+      return getPlanLimits('discovery');
+    }
   },
 
   /**
@@ -59,19 +64,24 @@ export const SubscriptionService = {
    * Initiate Checkout Session
    */
   startSubscription: async (organizationId: string, planId: PlanType, interval: 'month' | 'year' = 'month') => {
-    const functions = getFunctions();
-    const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession');
+    try {
+      const functions = getFunctions();
+      const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession');
 
-    const { data } = await createCheckoutSession({
-      organizationId,
-      planId,
-      interval,
-      successUrl: `${window.location.origin}/settings?billing_success=true`,
-      cancelUrl: `${window.location.origin}/pricing?canceled=true`
-    }) as { data: { url: string } };
+      const { data } = await createCheckoutSession({
+        organizationId,
+        planId,
+        interval,
+        successUrl: `${window.location.origin}/settings?billing_success=true`,
+        cancelUrl: `${window.location.origin}/pricing?canceled=true`
+      }) as { data: { url: string } };
 
-    if (data.url) {
-      window.location.href = data.url;
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      ErrorLogger.error(error, 'SubscriptionService.startSubscription');
+      throw error;
     }
   },
 

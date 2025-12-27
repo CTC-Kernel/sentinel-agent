@@ -303,7 +303,7 @@ export const InteractiveTimeline: React.FC = () => {
                 <button
                     aria-label="Exporter la timeline en image PNG"
                     onClick={handleExportPNG}
-                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform"
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                 >
                     <Download className="h-4 w-4" />
                     Exporter PNG
@@ -315,7 +315,7 @@ export const InteractiveTimeline: React.FC = () => {
                 <button
                     aria-label={filters.incidents ? "Masquer les incidents" : "Afficher les incidents"}
                     onClick={() => toggleFilter('incidents')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.incidents
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 ${filters.incidents
                         ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
                         : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
                         }`}
@@ -327,7 +327,7 @@ export const InteractiveTimeline: React.FC = () => {
                 <button
                     aria-label={filters.audits ? "Masquer les audits" : "Afficher les audits"}
                     onClick={() => toggleFilter('audits')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.audits
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${filters.audits
                         ? 'bg-blue-100 text-blue-700 dark:bg-slate-900/20 dark:text-blue-400'
                         : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
                         }`}
@@ -339,7 +339,7 @@ export const InteractiveTimeline: React.FC = () => {
                 <button
                     aria-label={filters.projects ? "Masquer les projets" : "Afficher les projets"}
                     onClick={() => toggleFilter('projects')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.projects
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 ${filters.projects
                         ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400'
                         : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
                         }`}
@@ -351,7 +351,7 @@ export const InteractiveTimeline: React.FC = () => {
                 <button
                     aria-label={filters.risks ? "Masquer les risques" : "Afficher les risques"}
                     onClick={() => toggleFilter('risks')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.risks
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${filters.risks
                         ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
                         : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
                         }`}
@@ -363,7 +363,7 @@ export const InteractiveTimeline: React.FC = () => {
                 <button
                     aria-label={filters.documents ? "Masquer les documents" : "Afficher les documents"}
                     onClick={() => toggleFilter('documents')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${filters.documents
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 ${filters.documents
                         ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
                         : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
                         }`}
@@ -380,7 +380,7 @@ export const InteractiveTimeline: React.FC = () => {
                         key={level}
                         aria-label={`Zoom niveau ${level}`}
                         onClick={() => applyZoom(level)}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${zoomLevel === level
+                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${zoomLevel === level
                             ? 'bg-brand-600 text-white'
                             : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                             }`}

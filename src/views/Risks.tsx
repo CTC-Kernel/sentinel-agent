@@ -185,6 +185,99 @@ export const Risks: React.FC = () => {
     };
 
 
+    // Callbacks
+    const handleFilterChange = React.useCallback((filter: any) => {
+        if (!filter) {
+            setActiveFilters(prev => ({ ...prev, query: '' }));
+            setFrameworkFilter('');
+        } else if (filter.type === 'level') {
+            setFrameworkFilter('');
+        }
+    }, [setActiveFilters, setFrameworkFilter]);
+
+    const handleSearchChange = React.useCallback((q: string) => {
+        setActiveFilters(prev => ({ ...prev, query: q }));
+    }, [setActiveFilters]);
+
+    const handleViewChange = React.useCallback((mode: string) => {
+        setViewMode(mode as 'list' | 'grid');
+    }, [setViewMode]);
+
+    const handleFrameworkChange = React.useCallback((val: string | string[]) => {
+        setFrameworkFilter(val as string);
+    }, [setFrameworkFilter]);
+
+    const handleStartTour = React.useCallback(() => {
+        OnboardingService.startRisksTour();
+    }, []);
+
+    const handleAdvancedSearch = React.useCallback((filters: any) => {
+        setActiveFilters(prev => ({ ...prev, query: filters.query }));
+        setShowAdvancedSearch(false);
+    }, [setActiveFilters, setShowAdvancedSearch]);
+
+    const handleDeleteRiskItem = React.useCallback((id: string) => {
+        const r = risks.find(x => x.id === id);
+        handleDelete({ id, name: r?.threat || t('common.unknown') });
+    }, [risks, t]); // handleDelete depends on local state (confirmData).
+
+    const handleDuplicateRisk = React.useCallback((r: Risk) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, history, ...rest } = r;
+
+        const newRisk: Omit<Risk, 'id'> = {
+            ...rest,
+            threat: `${r.threat} (${t('common.copy')})`,
+            probability: r.probability,
+            impact: r.impact,
+            status: 'Ouvert',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        createRisk(newRisk as Risk);
+    }, [t, createRisk]);
+
+    const handleFormSubmit = React.useCallback(async (data: any) => {
+        if (editingRisk) {
+            await updateRisk(editingRisk.id, {
+                ...data,
+                probability: data.probability,
+                impact: data.impact,
+                residualProbability: data.residualProbability,
+                residualImpact: data.residualImpact,
+                aiAnalysis: data.aiAnalysis || undefined
+            }, editingRisk);
+        } else {
+            await createRisk(data as Risk);
+        }
+        setCreationMode(false);
+        setEditingRisk(null);
+    }, [editingRisk, updateRisk, createRisk]);
+
+    const handleTemplateSelect = React.useCallback(async (template: any, ownerId: string) => {
+        const promises = template.risks.map((risk: any) => createRisk({
+            threat: risk.threat,
+            vulnerability: risk.vulnerability,
+            probability: risk.probability,
+            impact: risk.impact,
+            strategy: risk.strategy,
+            status: 'Ouvert',
+            framework: 'ISO27001',
+            owner: ownerId,
+        }));
+
+        try {
+            await Promise.all(promises);
+            toast.success(t('risks.templateSuccess', { count: template.risks.length }));
+        } catch (error) {
+            console.error('Template import error', error);
+            toast.error(t('risks.templateError'));
+        }
+        setIsTemplateModalOpen(false);
+    }, [createRisk, t]);
+
+
     // Role Logic
     const role = user?.role || 'user';
     let risksTitle = t('risks.title');
@@ -226,24 +319,7 @@ export const Risks: React.FC = () => {
                     <RiskDashboard
                         risks={filteredRisks}
                         assets={assets}
-                        onFilterChange={(filter) => {
-                            if (!filter) {
-                                setActiveFilters(prev => ({ ...prev, query: '' }));
-                                setFrameworkFilter('');
-                            } else if (filter.type === 'level') {
-                                // Reset other filters to avoid conflicts/confusion or additive logic depending on UX
-                                // For now, simple override
-                                setFrameworkFilter('');
-                                // We don't have a direct "level" filter in useRiskFilters exposed easily other than custom filtering
-                                // integrating basic text search or we might need to extend useRiskFilters for exact matches
-                                // For this demo, let's just log or ignoring since the Dashboard is visualization-first 
-                                // But ideally we should wire this up.
-                                // integrating basic text search or we might need to extend useRiskFilters for exact matches
-                                // For this demo, let's just log or ignoring since the Dashboard is visualization-first 
-                                // But ideally we should wire this up.
-
-                            }
-                        }}
+                        onFilterChange={handleFilterChange}
                     />
                 </motion.div>
             )}
@@ -253,10 +329,10 @@ export const Risks: React.FC = () => {
                 <motion.div variants={slideUpVariants}>
                     <PremiumPageControl
                         searchQuery={activeFilters.query}
-                        onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
+                        onSearchChange={handleSearchChange}
                         searchPlaceholder={t('risks.searchPlaceholder')}
                         activeView={activeTab === 'list' ? viewMode : undefined}
-                        onViewChange={activeTab === 'list' ? (mode) => setViewMode(mode as 'list' | 'grid') : undefined}
+                        onViewChange={activeTab === 'list' ? handleViewChange : undefined}
                         viewOptions={[
                             { id: 'list', label: t('assets.viewList'), icon: List },
                             { id: 'grid', label: t('assets.viewGrid'), icon: Grid3x3 }
@@ -267,7 +343,7 @@ export const Risks: React.FC = () => {
                                 <div className="hidden md:block w-48">
                                     <CustomSelect
                                         value={frameworkFilter}
-                                        onChange={(val) => setFrameworkFilter(val as string)}
+                                        onChange={handleFrameworkChange}
                                         options={[
                                             { value: '', label: t('risks.allFrameworks') },
                                             { value: 'ISO 27001', label: 'ISO 27001' },
@@ -283,8 +359,8 @@ export const Risks: React.FC = () => {
 
                                 <CustomTooltip content={t('risks.startTour')}>
                                     <button
-                                        onClick={() => OnboardingService.startRisksTour()}
-                                        className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
+                                        onClick={handleStartTour}
+                                        className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                         aria-label={t('risks.startTour')}
                                     >
                                         <HelpCircle className="h-5 w-5" />
@@ -298,7 +374,7 @@ export const Risks: React.FC = () => {
                                         data-tour="risks-filters"
                                         onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
                                         aria-label={t('assets.advancedFilters')}
-                                        className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
+                                        className={`p-2.5 rounded-xl transition-all border shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${showAdvancedSearch
                                             ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
                                             : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
                                             }`}
@@ -311,7 +387,7 @@ export const Risks: React.FC = () => {
 
                                 {/* Actions Menu */}
                                 <Menu as="div" className="relative inline-block text-left">
-                                    <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm" aria-label="More options">
+                                    <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="More options">
                                         <MoreVertical className="h-5 w-5" />
                                     </Menu.Button>
                                     <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
@@ -322,7 +398,7 @@ export const Risks: React.FC = () => {
                                                 </div>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button aria-label={t('risks.reports')} onClick={handleExportPDF} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        <button aria-label={t('risks.reports')} onClick={handleExportPDF} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}>
                                                             <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} /> {t('risks.reports')} (PDF)
                                                         </button>
                                                     )}
@@ -397,7 +473,7 @@ export const Risks: React.FC = () => {
                                                 }}
                                                 disabled={isAnalyzing}
                                                 aria-label={isAnalyzing ? t('risks.analyzing') : t('risks.aiAnalysis')}
-                                                className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                                                className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
                                             >
                                                 {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
                                                 <span className="hidden xl:inline">{isAnalyzing ? t('risks.analyzing') : t('risks.aiAnalysis')}</span>
@@ -408,7 +484,7 @@ export const Risks: React.FC = () => {
                                                 data-tour="risks-create"
                                                 onClick={() => { setEditingRisk(null); setCreationMode(true); }}
                                                 aria-label={t('risks.newRisk')}
-                                                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500"
                                             >
                                                 <Plus className="h-4 w-4" />
                                                 <span className="hidden sm:inline">{t('risks.newRisk')}</span>
@@ -429,13 +505,7 @@ export const Risks: React.FC = () => {
             <AnimatePresence>
                 {showAdvancedSearch && (
                     <AdvancedSearch
-                        onSearch={(filters) => {
-                            setActiveFilters(prev => ({ ...prev, query: filters.query }));
-                            setShowAdvancedSearch(false);
-                            if (filters.status || filters.owner || filters.criticality) {
-                                // Optional toast
-                            }
-                        }}
+                        onSearch={handleAdvancedSearch}
                         onClose={() => setShowAdvancedSearch(false)}
                     />
                 )}
@@ -449,7 +519,7 @@ export const Risks: React.FC = () => {
                             risks={filteredRisks}
                             loading={loading}
                             onEdit={handleEdit}
-                            onDelete={(id) => { const r = risks.find(x => x.id === id); handleDelete({ id, name: r?.threat || t('common.unknown') }); }}
+                            onDelete={handleDeleteRiskItem}
                             onSelect={setSelectedRisk}
                             canEdit={canEdit}
                             onBulkDelete={bulkDeleteRisks}
@@ -512,28 +582,7 @@ export const Risks: React.FC = () => {
                 demoMode={demoMode}
                 onUpdate={updateRisk}
                 onDelete={(id, name) => handleDelete({ id, name })}
-                onDuplicate={(r) => {
-                    // Remove id and history for the new copy
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    const { id, history, ...rest } = r;
-
-                    const newRisk: Omit<Risk, 'id'> = {
-                        ...rest,
-                        threat: `${r.threat} (${t('common.copy')})`,
-                        // Ensure enums are preserved. Typescript inference should handle this if types match, 
-                        // but explicit cast protects against 'number' vs '1|2..'.
-                        probability: r.probability,
-                        impact: r.impact,
-                        status: 'Ouvert', // Reset status for new risk
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                    };
-
-                    createRisk(newRisk as Risk); // CreateRisk expects Risk (typically without ID before DB, but types might say Risk has ID). 
-                    // Actually createRisk usually takes Omit<Risk, 'id'> or handles missing ID. 
-                    // Let's check useRiskActions.createRisk signature if needed, but 'as Risk' is safe enough if we know ID is generated.
-                    // Better: cast to Omit<Risk, 'id'> if createRisk accepts it, otherwise keep 'as Risk' but cleaner.
-                }}
+                onDuplicate={handleDuplicateRisk}
             />
 
             <Drawer
@@ -545,22 +594,7 @@ export const Risks: React.FC = () => {
                 <div className="p-6">
                     <RiskForm
                         initialData={editingRisk || undefined}
-                        onSubmit={async (data) => {
-                            if (editingRisk) {
-                                await updateRisk(editingRisk.id, {
-                                    ...data,
-                                    probability: data.probability as 1 | 2 | 3 | 4 | 5,
-                                    impact: data.impact as 1 | 2 | 3 | 4 | 5,
-                                    residualProbability: data.residualProbability as 1 | 2 | 3 | 4 | 5 | undefined,
-                                    residualImpact: data.residualImpact as 1 | 2 | 3 | 4 | 5 | undefined,
-                                    aiAnalysis: data.aiAnalysis || undefined
-                                }, editingRisk);
-                            } else {
-                                await createRisk(data as Risk);
-                            }
-                            setCreationMode(false);
-                            setEditingRisk(null);
-                        }}
+                        onSubmit={handleFormSubmit}
                         onCancel={() => { setCreationMode(false); setEditingRisk(null); }}
                         assets={assets}
                         usersList={usersList}
@@ -575,28 +609,7 @@ export const Risks: React.FC = () => {
             <RiskTemplateModal
                 isOpen={isTemplateModalOpen}
                 onClose={() => setIsTemplateModalOpen(false)}
-                onSelectTemplate={async (template, ownerId) => {
-                    const promises = template.risks.map(risk => createRisk({
-                        threat: risk.threat,
-                        vulnerability: risk.vulnerability,
-                        probability: risk.probability as 1 | 2 | 3 | 4 | 5,
-                        impact: risk.impact as 1 | 2 | 3 | 4 | 5,
-                        strategy: risk.strategy as 'Accepter' | 'Transférer' | 'Atténuer' | 'Éviter',
-                        status: 'Ouvert',
-                        framework: 'ISO27001', // Default or map correctly if possible
-                        owner: ownerId,
-                        // You can map other fields if they exist in RiskTemplate's risk objects
-                    }));
-
-                    try {
-                        await Promise.all(promises);
-                        toast.success(t('risks.templateSuccess', { count: template.risks.length }));
-                    } catch (error) {
-                        console.error('Template import error', error);
-                        toast.error(t('risks.templateError'));
-                    }
-                    setIsTemplateModalOpen(false);
-                }}
+                onSelectTemplate={handleTemplateSelect}
                 users={usersList}
             />
 

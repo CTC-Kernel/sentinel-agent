@@ -102,7 +102,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-500 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors"
+                        className="p-2 text-slate-500 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -296,7 +296,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             min="0"
                             max="100"
                             {...register('progress', { valueAsNumber: true })}
-                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         />
                         {errors.progress && <p className="text-red-500 text-xs mt-1">{errors.progress.message}</p>}
                     </div>
@@ -325,13 +325,13 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+                            className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                         >
                             Annuler
                         </button>
                         <button
                             type="submit"
-                            className="px-8 py-3 bg-gradient-to-r from-brand-600 to-brand-500 text-white rounded-xl hover:from-brand-500 hover:to-brand-400 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-brand-500/30"
+                            className="px-8 py-3 bg-gradient-to-r from-brand-600 to-brand-500 text-white rounded-xl hover:from-brand-500 hover:to-brand-400 hover:scale-105 transition-all font-bold text-sm shadow-lg shadow-brand-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                         >
                             {existingTask ? 'Mettre à jour' : 'Créer la tâche'}
                         </button>

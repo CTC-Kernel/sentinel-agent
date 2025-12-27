@@ -54,7 +54,7 @@ export function DataTable<TData extends { id: string }, TValue>({
         const selectionColumn: ColumnDef<TData, unknown> = {
             id: 'select',
             header: ({ table }) => (
-                <div className="px-1" onClick={(e) => e.stopPropagation()}>
+                <div className="px-1 hover:bg-transparent" onClick={(e) => e.stopPropagation()}>
                     <input
                         id="select-all-rows"
                         name="select-all-rows"
@@ -67,7 +67,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                 </div>
             ),
             cell: ({ row }) => (
-                <div className="px-1" onClick={(e) => e.stopPropagation()}>
+                <div className="px-1 hover:bg-transparent" onClick={(e) => e.stopPropagation()}>
                     <input
                         id={`select-row-${row.id}`}
                         name={`select-row-${row.id}`}

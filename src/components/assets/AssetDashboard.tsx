@@ -59,10 +59,10 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
     });
 
     const distributionData = [
-        { name: 'Critique', value: criticalityCounts['Critique'], color: '#ef4444' },
-        { name: 'Élevé', value: criticalityCounts['Élevé'], color: '#f97316' },
-        { name: 'Moyen', value: criticalityCounts['Moyen'], color: '#eab308' },
-        { name: 'Faible', value: criticalityCounts['Faible'], color: '#22c55e' }
+        { name: 'Critique', value: criticalityCounts['Critique'], color: 'hsl(var(--destructive))' },
+        { name: 'Élevé', value: criticalityCounts['Élevé'], color: 'hsl(var(--orange-500))' },
+        { name: 'Moyen', value: criticalityCounts['Moyen'], color: 'hsl(var(--yellow-500))' },
+        { name: 'Faible', value: criticalityCounts['Faible'], color: 'hsl(var(--success))' }
     ];
 
     // Distribution by Location
@@ -90,7 +90,15 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
     }, {} as Record<string, number>);
 
     const scopeChartData = Object.entries(scopeData).map(([name, value]) => ({ name, value }));
-    const SCOPE_COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#10b981', '#6366f1', 'hsl(var(--muted-foreground) / 0.55)'];
+    const SCOPE_COLORS = [
+        'hsl(var(--primary))',
+        'hsl(var(--violet-500))',
+        'hsl(var(--pink-500))',
+        'hsl(var(--rose-500))',
+        'hsl(var(--emerald-500))',
+        'hsl(var(--indigo-500))',
+        'hsl(var(--muted-foreground) / 0.55)'
+    ];
 
     return (
         <div className="space-y-6">
@@ -147,14 +155,26 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
 
                 {/* Key Metrics Breakdown */}
                 <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-border/50 px-6 mx-2">
-                    <div className="text-center cursor-pointer hover:opacity-80 transition-opacity group/metric" onClick={() => onFilterChange?.(null)}>
+                    <div
+                        className="text-center cursor-pointer hover:opacity-80 transition-opacity group/metric focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg"
+                        onClick={() => onFilterChange?.(null)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.(null)}
+                    >
                         <div className="flex items-center justify-center gap-2 mb-2">
                             <Server className="h-4 w-4 text-slate-500 group-hover/metric:text-brand-500 transition-colors" />
                             <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Total</div>
                         </div>
                         <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{totalAssets}</div>
                     </div>
-                    <div className="text-center cursor-pointer hover:opacity-80 transition-opacity group/metric" onClick={() => onFilterChange?.({ type: 'criticality', value: 'Critique' })}>
+                    <div
+                        className="text-center cursor-pointer hover:opacity-80 transition-opacity group/metric focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg"
+                        onClick={() => onFilterChange?.({ type: 'criticality', value: 'Critique' })}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.({ type: 'criticality', value: 'Critique' })}
+                    >
                         <div className="flex items-center justify-center gap-2 mb-2">
                             <ShieldAlert className="h-4 w-4 text-slate-500 group-hover/metric:text-red-500 transition-colors" />
                             <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Critiques</div>
@@ -262,7 +282,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                     dx={-10}
                                 />
                                 <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.1)', radius: 4 }} />
-                                <Bar dataKey="value" fill="#3b82f6" name="Nombre d'actifs" radius={[6, 6, 0, 0]} barSize={24} animationDuration={1000} />
+                                <Bar dataKey="value" fill="hsl(var(--primary))" name="Nombre d'actifs" radius={[6, 6, 0, 0]} barSize={24} animationDuration={1000} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -333,7 +353,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                     tickFormatter={(value) => value.length > 12 ? `${value.substring(0, 12)}...` : value}
                                 />
                                 <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.1)', radius: 4 }} />
-                                <Bar dataKey="value" fill="#10b981" name="Nombre d'actifs" radius={[0, 4, 4, 0]} barSize={20} animationDuration={1000} />
+                                <Bar dataKey="value" fill="hsl(var(--emerald-500))" name="Nombre d'actifs" radius={[0, 4, 4, 0]} barSize={20} animationDuration={1000} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>

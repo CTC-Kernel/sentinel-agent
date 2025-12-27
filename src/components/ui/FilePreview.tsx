@@ -47,7 +47,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                         {onDownload && (
                             <button
                                 onClick={onDownload}
-                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 title="Télécharger"
                             >
                                 <Download className="h-5 w-5 text-slate-600 dark:text-slate-400" />
@@ -57,14 +57,14 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                             href={url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             title="Ouvrir dans un nouvel onglet"
                         >
                             <ExternalLink className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                         </a>
                         <button
                             onClick={onClose}
-                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         >
                             <X className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                         </button>
@@ -108,7 +108,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                                 href={url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors flex items-center"
+                                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                             >
                                 <ExternalLink className="h-4 w-4 mr-2" />
                                 Ouvrir le fichier

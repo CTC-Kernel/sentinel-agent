@@ -202,7 +202,7 @@ export const Privacy: React.FC = () => {
                             <button
                                 aria-label="Importer"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white"
+                                className="flex items-center px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm text-slate-700 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
                                 <Upload className="h-4 w-4 mr-2" /> Importer
                             </button>
@@ -212,7 +212,7 @@ export const Privacy: React.FC = () => {
                                     createActivityForm.reset({ name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '', legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [], retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif' });
                                     setShowCreateModal(true);
                                 }}
-                                className="flex items-center px-5 py-2.5 bg-purple-600 text-white text-sm font-bold rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30"
+                                className="flex items-center px-5 py-2.5 bg-purple-600 text-white text-sm font-bold rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
                                 <Plus className="h-4 w-4 mr-2" /> Nouveau Traitement
                             </button>
@@ -282,7 +282,7 @@ export const Privacy: React.FC = () => {
                 onSearchChange={setFilter}
                 searchPlaceholder="Rechercher un traitement (ex: Paie, CRM)..."
                 actions={
-                    <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors" title="Exporter le Registre">
+                    <button onClick={handleExportCSV} className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" title="Exporter le Registre">
                         <FileSpreadsheet className="h-4 w-4" />
                     </button>
                 }
@@ -347,7 +347,7 @@ export const Privacy: React.FC = () => {
                             {
                                 canEdit && (
                                     <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button aria-label="Delete" onClick={(e) => { e.stopPropagation(); initiateDelete(activity.id, activity.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-50 shadow-sm backdrop-blur-sm"><Trash2 className="h-4 w-4" /></button>
+                                        <button aria-label="Delete" onClick={(e) => { e.stopPropagation(); initiateDelete(activity.id, activity.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-50 shadow-sm backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Trash2 className="h-4 w-4" /></button>
                                     </div>
                                 )
                             }

@@ -31,7 +31,7 @@ vi.mock('../../components/ui/Drawer', () => ({
 
 // Smart Mock for DataTable to test Column Logic
 vi.mock('../../components/ui/DataTable', () => ({
-    DataTable: ({ data, columns }: { data: Array<Record<string, unknown>>, columns: Array<any> }) => (
+    DataTable: ({ data, columns }: { data: Array<Record<string, unknown>>, columns: Array<{ accessorKey: string } & Record<string, unknown>> }) => (
         <div data-testid="data-table">
             <table>
                 <tbody>

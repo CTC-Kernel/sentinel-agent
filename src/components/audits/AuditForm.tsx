@@ -100,6 +100,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 relatedProjectIds: initialData?.relatedProjectIds || []
             });
         }
+
     }, [existingAudit, initialData, reset]);
 
     const [isGenerating, setIsGenerating] = React.useState(false);

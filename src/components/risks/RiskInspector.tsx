@@ -135,17 +135,17 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                 !isEditing && canEdit ? (
                     <>
                         <CustomTooltip content="Dupliquer">
-                            <button aria-label="Dupliquer le risque" onClick={() => onDuplicate(risk)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm">
+                            <button aria-label="Dupliquer le risque" onClick={() => onDuplicate(risk)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 <Copy className="h-5 w-5" />
                             </button>
                         </CustomTooltip>
                         <CustomTooltip content="Modifier">
-                            <button aria-label="Modifier le risque" onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm">
+                            <button aria-label="Modifier le risque" onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 <Edit className="h-5 w-5" />
                             </button>
                         </CustomTooltip>
                         <CustomTooltip content="Supprimer">
-                            <button aria-label="Supprimer le risque" onClick={() => onDelete(risk.id, risk.threat)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm">
+                            <button aria-label="Supprimer le risque" onClick={() => onDelete(risk.id, risk.threat)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 <Trash2 className="h-5 w-5" />
                             </button>
                         </CustomTooltip>
@@ -210,7 +210,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                                     key={s}
                                                     onClick={() => handleStatusChange(s as Risk['status'])}
                                                     disabled={updating}
-                                                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'} ${updating ? 'opacity-50 cursor-wait' : ''}`}
+                                                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'} ${updating ? 'opacity-50 cursor-wait' : ''}`}
                                                 >
                                                     {s}
                                                 </button>
@@ -222,14 +222,14 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                             <button
                                                 aria-label="Rejeter la demande"
                                                 onClick={() => handleStatusChange('Ouvert')} // Reject -> Back to Open
-                                                className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100"
+                                                className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                             >
                                                 Rejeter
                                             </button>
                                             <button
                                                 aria-label="Approuver le risque"
                                                 onClick={() => handleStatusChange('En cours')} // Approve -> In Progress
-                                                className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-bold hover:bg-emerald-100"
+                                                className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-bold hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                             >
                                                 Approuver
                                             </button>
@@ -240,7 +240,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                             aria-label="Valider la revue du risque"
                                             onClick={handleReview}
                                             disabled={updating}
-                                            className={`flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors w-full sm:w-auto ${updating ? 'opacity-70 cursor-wait' : ''}`}
+                                            className={`flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${updating ? 'opacity-70 cursor-wait' : ''}`}
                                         >
                                             {updating ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <CalendarDays className="h-3.5 w-3.5 mr-2" />}
                                             Valider la revue
@@ -270,7 +270,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                     <button
                                         aria-label="Créer un nouveau projet lié"
                                         onClick={() => navigate('/projects', { state: { createForRisk: risk.id, riskName: risk.threat } })}
-                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     >
                                         <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouveau Projet
                                     </button>
@@ -292,7 +292,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                     <button
                                         aria-label="Créer un nouvel audit lié"
                                         onClick={() => navigate('/audits', { state: { createForRisk: risk.id, riskName: risk.threat } })}
-                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     >
                                         <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouvel Audit
                                     </button>
@@ -329,7 +329,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                     />
                                     <button
                                         aria-label="Rechercher"
-                                        className="px-4 py-2 bg-slate-900 text-white rounded-xl"
+                                        className="px-4 py-2 bg-slate-900 text-white rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                         onClick={() => integrationService.getCommonMitreTechniques(mitreQuery, demoMode).then(setMitreResults)}
                                     >
                                         Chercher

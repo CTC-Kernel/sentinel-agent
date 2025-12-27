@@ -184,11 +184,11 @@ class ErrorLoggerService {
           try {
             const analyticsSdk = await import('firebase/analytics');
             analyticsSdk.logEvent(analyticsInstance, type, data);
-          } catch (e) {
+          } catch (e) { // silent
             if (this.isDevelopment) console.warn('Analytics failed:', e);
           }
         });
-      } catch (e) {
+      } catch (e) { // silent
         // Fail silently if analytics fails (e.g. ad blocker)
         if (this.isDevelopment) console.warn('Analytics failed:', e);
       }

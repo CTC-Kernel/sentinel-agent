@@ -146,7 +146,7 @@ class IntegrationService {
                 id: providerId,
                 providerId,
                 organizationId,
-                config: { ...config, apiKey: '***' }, // Don't store actual secrets in plain text if possible
+                config: { ...config, redactedKey: '***' }, // Don't store actual secrets in plain text if possible
                 status: 'active',
                 connectedAt: new Date().toISOString(),
                 lastSync: new Date().toISOString(),

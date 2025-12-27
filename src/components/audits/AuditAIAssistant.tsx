@@ -104,7 +104,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                 <button
                     onClick={() => handleAction('summary')}
                     disabled={loading}
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'summary' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'summary' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
                     aria-label="Générer un résumé exécutif"
                 >
                     {loading && mode === 'summary' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <FileText className="h-3.5 w-3.5 mr-2" />}
@@ -113,7 +113,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                 <button
                     onClick={() => handleAction('analysis')}
                     disabled={loading}
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'analysis' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'analysis' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
                     aria-label="Analyser les constats"
                 >
                     {loading && mode === 'analysis' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5 mr-2" />}
@@ -122,7 +122,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                 <button
                     onClick={() => handleAction('scope')}
                     disabled={loading}
-                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'scope' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
+                    className={`flex items-center justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${mode === 'scope' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-transparent hover:border-indigo-200'}`}
                     aria-label="Revoir le périmètre"
                 >
                     {loading && mode === 'scope' ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <ClipboardCheck className="h-3.5 w-3.5 mr-2" />}
@@ -141,7 +141,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                             <Bot className="h-3.5 w-3.5 mr-1.5" />
                             Réponse de l'IA
                         </h4>
-                        <button onClick={() => setResponse(null)} className="text-slate-500 hover:text-slate-600" aria-label="Fermer la réponse IA"><X className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => setResponse(null)} className="text-slate-500 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded" aria-label="Fermer la réponse IA"><X className="h-3.5 w-3.5" /></button>
                     </div>
 
                     <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
@@ -192,7 +192,7 @@ export const AuditAIAssistant: React.FC<AuditAIAssistantProps> = ({ audit, findi
                                             const newScope = (audit.scope || '') + '\n\nSuggestions IA:\n' + (response.suggestions as string[]).join('\n');
                                             onUpdate({ scope: newScope });
                                         }}
-                                        className="mt-2 text-xs text-indigo-600 hover:underline"
+                                        className="mt-2 text-xs text-indigo-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
                                         aria-label="Ajouter les suggestions au périmètre"
                                     >
                                         Ajouter au périmètre

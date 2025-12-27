@@ -119,6 +119,8 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
 
       <div style={{ transform: 'translateX(-50%)' }}>
         <div
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && onRequestFocus?.()}
           className={`
             rounded-[2rem] border border-white/20 
             bg-gradient-to-br ${selectedNodeDetails.gradient} 
@@ -127,6 +129,7 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
             animate-[fadeIn_0.4s_cubic-bezier(0.2,0.8,0.2,1)] 
             max-h-[85vh] overflow-y-auto custom-scrollbar 
             transition-all duration-300
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
             ${isDragging ? 'cursor-grabbing scale-[1.02] shadow-[0_30px_90px_rgba(0,0,0,0.6)]' : ''}
             ${isDetailMinimized ? 'w-64' : 'w-80'}
           `}
@@ -140,7 +143,7 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
             <div className="flex items-center gap-1 shrink-0">
               <button
                 onPointerDown={handleDragStart}
-                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all cursor-grab active:cursor-grabbing backdrop-blur-sm"
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all cursor-grab active:cursor-grabbing backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                 title="Déplacer la fiche"
               >
                 <Move className="h-4 w-4" />
@@ -148,7 +151,7 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
               {hasMoved && (
                 <button
                   onClick={handleResetPosition}
-                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all cursor-pointer animate-fade-in backdrop-blur-sm"
+                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all cursor-pointer animate-fade-in backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                   title="Réinitialiser la position"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -178,14 +181,14 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
             <div className="flex items-center gap-1 shrink-0">
               <button
                 onClick={(e) => { e.stopPropagation(); setIsDetailMinimized(prev => !prev); }}
-                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all cursor-pointer backdrop-blur-sm"
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all cursor-pointer backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                 title={isDetailMinimized ? "Agrandir" : "Réduire"}
               >
                 {isDetailMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); handleSelectionClear(); }}
-                className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 text-white/80 hover:text-red-200 transition-all cursor-pointer backdrop-blur-sm"
+                className="p-2 rounded-full bg-white/10 hover:bg-red-500/20 text-white/80 hover:text-red-200 transition-all cursor-pointer backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                 title="Fermer"
               >
                 <XCircle className="h-4 w-4" />
@@ -230,7 +233,7 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
                       <button
                         key={related.id}
                         onClick={(e) => { e.stopPropagation(); applyFocus(related.id, related.type); }}
-                        className="group flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 hover:scale-105 transition-all duration-200 border border-white/10 cursor-pointer shrink-0"
+                        className="group flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 hover:scale-105 transition-all duration-200 border border-white/10 cursor-pointer shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${related.type === 'risk' ? 'bg-orange-400' :
                           related.type === 'asset' ? 'bg-blue-400' :
@@ -251,7 +254,7 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
               <div className="flex items-center gap-3 pt-1">
                 <button
                   onClick={(e) => { e.stopPropagation(); handleOpenSelected(); }}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-blue-600 hover:from-brand-500 hover:to-blue-500 text-white font-bold text-sm transition-all shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-blue-600 hover:from-brand-500 hover:to-blue-500 text-white font-bold text-sm transition-all shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                 >
                   <span>Voir détails</span>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -261,7 +264,7 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
                 {setImpactMode && (
                   <button
                     onClick={(e) => { e.stopPropagation(); setImpactMode(!impactMode); }}
-                    className={`px-4 py-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-2 ${impactMode
+                    className={`px-4 py-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 ${impactMode
                       ? 'bg-red-500 text-white border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.4)]'
                       : 'border-white/30 bg-white/5 text-white hover:bg-white/10 hover:border-white/50'
                       }`}
@@ -272,7 +275,7 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
                 )}
                 <button
                   onClick={(e) => { e.stopPropagation(); handleSelectionClear(); }}
-                  className="px-4 py-2.5 rounded-xl border border-white/30 bg-white/5 text-sm font-semibold hover:bg-white/10 hover:border-white/50 transition-all cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl border border-white/30 bg-white/5 text-sm font-semibold hover:bg-white/10 hover:border-white/50 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                 >
                   Fermer
                 </button>

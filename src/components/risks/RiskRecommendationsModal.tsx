@@ -28,7 +28,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                             <p className="text-slate-600 dark:text-slate-400">Recommandations générées par le moteur d'IA souverain (OVH)</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors">
+                    <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                         <X className="w-6 h-6 text-slate-600" />
                     </button>
                 </div>
@@ -50,8 +50,8 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                         </div>
                     ) : recommendations.length > 0 ? (
                         <div className="grid gap-6">
-                            {recommendations.map((rec, idx) => (
-                                <div key={idx} className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group">
+                            {recommendations.map((rec) => (
+                                <div key={rec.title} className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
                                             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${rec.priority === 'urgent' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
@@ -77,8 +77,8 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                                     <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-5">
                                         <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Actions Suggérées</h4>
                                         <ul className="space-y-3">
-                                            {rec.suggested_actions.map((action, i) => (
-                                                <li key={i} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-200">
+                                            {rec.suggested_actions.map((action) => (
+                                                <li key={action.action} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-200">
                                                     <div className="mt-0.5 p-1 bg-brand-100 dark:bg-brand-900/30 rounded-full text-brand-600 dark:text-brand-400">
                                                         <CheckCircle2 className="w-3 h-3" />
                                                     </div>
@@ -105,7 +105,7 @@ export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> =
                 <div className="p-6 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-800/50 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+                        className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl font-bold text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         Fermer
                     </button>

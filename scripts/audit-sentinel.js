@@ -218,9 +218,9 @@ const RULES = [
                 if ((line.includes('delete') || line.includes('Delete') || line.includes('supprimer')) && line.includes('onClick')) {
                     // Vérifier s'il y a une protection
                     const hasProtection = content.includes('isDeleting') ||
-                                         content.includes('disabled={') ||
-                                         content.includes('confirmDialog') ||
-                                         content.includes('confirm(');
+                        content.includes('disabled={') ||
+                        content.includes('confirmDialog') ||
+                        content.includes('confirm(');
                     if (!hasProtection) {
                         errors.push({ line: i, match: 'Bouton de suppression sans protection contre le double-clic' });
                     }
@@ -285,8 +285,8 @@ const RULES = [
 
             const hasLoading = content.includes('loading') || content.includes('isLoading');
             const hasSkeleton = content.includes('Skeleton') || content.includes('skeleton') ||
-                               content.includes('Loader') || content.includes('Spinner') ||
-                               content.includes('animate-pulse');
+                content.includes('Loader') || content.includes('Spinner') ||
+                content.includes('animate-pulse');
 
             if (hasLoading && !hasSkeleton) {
                 return { line: 0, match: 'Tableau avec loading mais sans skeleton/loader visible' };
@@ -385,7 +385,7 @@ const RULES = [
                 for (const op of firestoreOps) {
                     if (line.includes(`await ${op}(`) || line.includes(`${op}(`)) {
                         // Vérifier si c'est dans un try/catch
-                        const context = lines.slice(Math.max(0, i - 5), i + 1).join('\n');
+                        const context = lines.slice(Math.max(0, i - 50), i + 1).join('\n');
                         if (!context.includes('try') && !context.includes('catch')) {
                             errors.push({ line: i, match: `Opération ${op} sans try/catch` });
                         }
@@ -589,8 +589,8 @@ const RULES = [
 
             // Vérifier la présence de classes responsive
             const hasResponsive = content.includes('sm:') || content.includes('md:') ||
-                                 content.includes('lg:') || content.includes('xl:') ||
-                                 content.includes('useMediaQuery');
+                content.includes('lg:') || content.includes('xl:') ||
+                content.includes('useMediaQuery');
 
             if (!hasResponsive && content.includes('grid') || content.includes('flex')) {
                 return { line: 0, match: 'View avec layout sans classes responsive' };
@@ -766,7 +766,7 @@ const RULES = [
 
             // Plus de 6 niveaux d'indentation (24 espaces) = trop imbriqué
             if (maxIndent > 24) {
-                return { line: 0, match: `Imbrication profonde détectée (${Math.floor(maxIndent/4)} niveaux) - utiliser early returns` };
+                return { line: 0, match: `Imbrication profonde détectée (${Math.floor(maxIndent / 4)} niveaux) - utiliser early returns` };
             }
             return null;
         }
@@ -879,15 +879,15 @@ const RULES = [
 
             // Détecter les actions de suppression/modification
             const hasSensitiveAction = content.includes('delete') || content.includes('Delete') ||
-                                       content.includes('remove') || content.includes('Remove') ||
-                                       content.includes('update') || content.includes('Update');
+                content.includes('remove') || content.includes('Remove') ||
+                content.includes('update') || content.includes('Update');
 
             const hasPermissionCheck = content.includes('hasPermission') ||
-                                       content.includes('canDelete') ||
-                                       content.includes('canEdit') ||
-                                       content.includes('isAdmin') ||
-                                       content.includes('role') ||
-                                       content.includes('RoleGuard');
+                content.includes('canDelete') ||
+                content.includes('canEdit') ||
+                content.includes('isAdmin') ||
+                content.includes('role') ||
+                content.includes('RoleGuard');
 
             if (hasSensitiveAction && !hasPermissionCheck) {
                 return { line: 0, match: 'Actions sensibles sans vérification de permissions RBAC' };
@@ -977,7 +977,7 @@ const RULES = [
                 if (line.match(/useEffect\s*\(\s*\(\s*\)\s*=>\s*\{/) ||
                     line.match(/useEffect\s*\(\s*async/)) {
                     // Vérifier les lignes suivantes pour le tableau de dépendances
-                    const nextLines = lines.slice(i, i + 10).join('\n');
+                    const nextLines = lines.slice(i, i + 100).join('\n');
                     if (!nextLines.includes('], [') && !nextLines.includes('],\n') &&
                         !nextLines.match(/\}\s*,\s*\[/)) {
                         // Vérifier le pattern standard

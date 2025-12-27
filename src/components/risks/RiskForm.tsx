@@ -135,9 +135,13 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     useEffect(() => {
         if (showLibraryModal && libraryThreats.length === 0) {
             const fetchThreats = async () => {
-                const snap = await getDocs(collection(db, 'threat_library'));
-                const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as ThreatTemplate));
-                setLibraryThreats(list);
+                try {
+                    const snap = await getDocs(collection(db, 'threat_library'));
+                    const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as ThreatTemplate));
+                    setLibraryThreats(list);
+                } catch (error) {
+                    ErrorLogger.error(error, 'RiskForm.fetchThreats');
+                }
             };
             fetchThreats();
         }

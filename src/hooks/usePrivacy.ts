@@ -1,13 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, doc, setDoc, deleteDoc, updateDoc, query, where, addDoc, limit, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ProcessingActivity, UserProfile, Asset, Risk, SystemLog } from '../types';
 import { useStore } from '../store';
-import { DPIA_TEMPLATE } from '../data/dpiatemplate';
-import { SupplierService } from '../services/SupplierService';
 import { ErrorLogger } from '../services/errorLogger';
-import { logAction } from '../services/logger';
-import { sanitizeData } from '../utils/dataSanitizer';
+import { PrivacyService } from '../services/PrivacyService';
 
 export function usePrivacy() {
     const { user, addToast } = useStore();
@@ -32,36 +29,27 @@ export function usePrivacy() {
         if (!user?.organizationId) return;
         setLoading(true);
         try {
+            // Use PrivacyService for activities
+            const fetchedActivities = await PrivacyService.fetchActivities(user.organizationId);
+
+            // Fetch other dependencies directly for now (could be moved to services)
+            // Note: keeping reads here is usually low risk for 'client side security' checks
             const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'processing_activities'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
                 getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId)))
             ]);
 
-
-
-            // Manual unpacking because Promise.allSettled typing is tricky with Firestore
-
-            const activitiesSnapshot = results[0].status === 'fulfilled' ? results[0].value : { docs: [] };
-
-            const usersSnapshot = results[1].status === 'fulfilled' ? results[1].value : { docs: [] };
-
-            const assetsSnapshot = results[2].status === 'fulfilled' ? results[2].value : { docs: [] };
-
-            const risksSnapshot = results[3].status === 'fulfilled' ? results[3].value : { docs: [] };
-
-
-            const loadedActivities = activitiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ProcessingActivity));
+            const usersSnapshot = results[0].status === 'fulfilled' ? results[0].value : { docs: [] };
+            const assetsSnapshot = results[1].status === 'fulfilled' ? results[1].value : { docs: [] };
+            const risksSnapshot = results[2].status === 'fulfilled' ? results[2].value : { docs: [] };
 
             const loadedUsers = usersSnapshot.docs.map(doc => doc.data() as UserProfile);
-
             const loadedAssets = assetsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Asset));
-
             const loadedRisks = risksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Risk));
 
             // Resolve managerId
-            const resolvedData = loadedActivities.map(a => {
+            const resolvedData = fetchedActivities.map(a => {
                 if (!a.managerId && a.manager) {
                     const managerUser = loadedUsers.find(u => u.displayName === a.manager);
                     if (managerUser) return { ...a, managerId: managerUser.uid };
@@ -76,10 +64,10 @@ export function usePrivacy() {
             setRisksList(loadedRisks);
 
             // Calculate Stats
-            const total = loadedActivities.length;
-            const sensitive = loadedActivities.filter(a => a.dataCategories.some(c => ['Santé (Sensible)', 'Biométrique', 'Judiciaire'].includes(c))).length;
-            const dpiaMissing = loadedActivities.filter(a => a.dataCategories.some(c => ['Santé (Sensible)', 'Biométrique', 'Judiciaire'].includes(c)) && !a.hasDPIA).length;
-            const review = loadedActivities.filter(a => a.status !== 'Actif').length;
+            const total = resolvedData.length;
+            const sensitive = resolvedData.filter(a => a.dataCategories.some(c => ['Santé (Sensible)', 'Biométrique', 'Judiciaire'].includes(c))).length;
+            const dpiaMissing = resolvedData.filter(a => a.dataCategories.some(c => ['Santé (Sensible)', 'Biométrique', 'Judiciaire'].includes(c)) && !a.hasDPIA).length;
+            const review = resolvedData.filter(a => a.status !== 'Actif').length;
 
             setStats({ total, sensitive, dpiaMissing, review });
 
@@ -93,22 +81,12 @@ export function usePrivacy() {
     const fetchHistory = useCallback(async (activityId: string) => {
         if (!user?.organizationId) return;
         try {
-            const logsRef = collection(db, 'system_logs');
-            const q = query(
-                logsRef,
-                where('organizationId', '==', user.organizationId),
-                limit(50)
-            );
-            // Client side filtering for entityId as compound queries can be tricky without index
-            const snapshot = await getDocs(q);
-            const logs = snapshot.docs.map(doc => doc.data() as SystemLog);
-            const filteredLogs = logs.filter(l => (l.resource === 'Privacy' && l.resourceId === activityId) || (l.details?.includes(selectedActivity?.name || '')));
-
-            setActivityHistory(filteredLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+            const logs = await PrivacyService.fetchActivityHistory(user.organizationId, activityId, selectedActivity?.name);
+            setActivityHistory(logs);
         } catch (error) {
             ErrorLogger.error(error, 'usePrivacy.fetchHistory');
         }
-    }, [user?.organizationId, selectedActivity]);
+    }, [user?.organizationId, selectedActivity?.name]);
 
     useEffect(() => {
         fetchData();
@@ -123,9 +101,12 @@ export function usePrivacy() {
     // Handlers
     const handleCreate = async (data: Partial<ProcessingActivity>) => {
         if (!user?.organizationId) return;
+        if (user.role !== 'rssi' && user.role !== 'direction' && user.role !== 'project_manager') {
+            addToast("Permission refusée", "error");
+            return;
+        }
         try {
             const newActivity: Omit<ProcessingActivity, 'id'> = {
-                // Default values & Partial overrides
                 name: data.name || 'Nouveau Traitement',
                 purpose: data.purpose || 'Objectif non défini',
                 manager: data.manager || 'Non assigné',
@@ -135,75 +116,53 @@ export function usePrivacy() {
                 dataCategories: data.dataCategories || [],
                 dataSubjects: data.dataSubjects || [],
                 retentionPeriod: data.retentionPeriod || '5 ans',
-                // Spread remaining data (if any other fields exist in Partial)
                 ...data,
-                // Critical system overrides (must come last to prevent overwrite)
                 organizationId: user.organizationId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
                 createdBy: user.uid,
+                // Services handle createdAt/updatedAt
+                createdAt: '', // Placeholder, ignored by service
+                updatedAt: ''
             };
 
-            const docRef = await addDoc(collection(db, 'processing_activities'), sanitizeData(newActivity));
-
-            await logAction(
-                user,
-                'CREATE',
-                'Privacy',
-                `Création du traitement: ${data.name}`,
-                undefined,
-                docRef.id
-            );
+            await PrivacyService.createActivity(newActivity, user);
 
             addToast("Traitement ajouté avec succès", "success");
             setShowCreateModal(false);
             fetchData();
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Privacy.handleCreate');
+            // Already handled by service typically, but double check
         }
     };
 
     const handleUpdate = async (data: Partial<ProcessingActivity>) => {
-        if (!selectedActivity || !user?.organizationId) return;
+        if (!selectedActivity || !user || !user.organizationId) return;
+        // RBAC Check
+        if (user.role !== 'rssi' && user.role !== 'direction' && user.role !== 'project_manager') {
+            addToast("Permission refusée", "error");
+            return;
+        }
         try {
-            const updatedDoc = {
-                ...selectedActivity,
-                ...data,
-                updatedAt: new Date().toISOString()
-            };
-            await updateDoc(doc(db, 'processing_activities', selectedActivity.id), sanitizeData(updatedDoc));
+            await PrivacyService.updateActivity(selectedActivity.id, data, user);
 
-            await logAction(
-                user,
-                'UPDATE',
-                'Privacy',
-                `Mise à jour du traitement: ${selectedActivity.name}`,
-                undefined,
-                selectedActivity.id
-            );
-
+            // Optimistic update
+            const updatedDoc = { ...selectedActivity, ...data };
             setActivities(prev => prev.map(a => a.id === selectedActivity.id ? updatedDoc : a));
             setSelectedActivity(updatedDoc);
             setIsEditing(false);
             addToast("Traitement mis à jour", "success");
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Privacy.handleUpdate');
+            // Handled by service
         }
     };
 
     const handleDelete = async (id: string, name: string) => {
-        if (!user?.organizationId) return;
+        if (!user || !user.organizationId) return;
+        if (user.role !== 'rssi' && user.role !== 'direction') {
+            addToast("Permission refusée : Seuls les RSSI/Direction peuvent supprimer.", "error");
+            return;
+        }
         try {
-            await deleteDoc(doc(db, 'processing_activities', id));
-
-            await logAction(
-                user,
-                'DELETE',
-                'Privacy',
-                `Suppression du traitement: ${name}`,
-                undefined,
-                id
-            );
+            await PrivacyService.deleteActivity(id, name, user);
 
             setActivities(prev => prev.filter(a => a.id !== id));
             if (selectedActivity?.id === id) {
@@ -211,12 +170,12 @@ export function usePrivacy() {
             }
             addToast("Traitement supprimé", "success");
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Privacy.handleDelete');
+            // Handled by service
         }
     };
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!user?.organizationId) return;
+        if (!user || !user.organizationId) return;
         const file = event.target.files?.[0];
         if (!file) return;
 
@@ -225,30 +184,25 @@ export function usePrivacy() {
             const text = e.target?.result as string;
             if (!text) return;
             const lines = text.split('\n').filter(line => line.trim() !== '');
-            // Skip header
             const dataLines = lines.slice(1);
-
-            const batch = writeBatch(db);
-            let operationCount = 0;
+            const activitiesToImport: Omit<ProcessingActivity, 'id'>[] = [];
 
             for (const line of dataLines) {
-                // Simple CSV parser - upgrade if needed
                 const cols = line.split(',');
                 if (cols.length >= 1) {
                     const name = cols[0]?.replace(/"/g, '').trim();
                     const purpose = cols[1]?.replace(/"/g, '').trim();
 
                     if (name) {
-                        const newRef = doc(collection(db, 'processing_activities'));
-                        batch.set(newRef, {
-                            organizationId: user.organizationId,
+                        activitiesToImport.push({
+                            organizationId: user.organizationId!,
                             name,
                             purpose: purpose || '',
                             manager: user.displayName || '',
                             managerId: user.uid,
                             status: 'Actif',
-                            createdAt: new Date().toISOString(),
-                            updatedAt: new Date().toISOString(),
+                            createdAt: '',
+                            updatedAt: '',
                             createdBy: user.uid,
                             dataCategories: [],
                             dataSubjects: [],
@@ -256,86 +210,43 @@ export function usePrivacy() {
                             retentionPeriod: '5 ans',
                             hasDPIA: false
                         });
-                        operationCount++;
                     }
                 }
             }
 
-            if (operationCount > 0) {
+            if (activitiesToImport.length > 0) {
                 try {
-                    await batch.commit();
-                    await logAction(
-                        user,
-                        'IMPORT',
-                        'Privacy',
-                        `Import CSV de ${operationCount} traitements`
-                    );
-                    addToast(`${operationCount} traitements importés`, "success");
+                    const count = await PrivacyService.importActivities(activitiesToImport, user);
+                    addToast(`${count} traitements importés`, "success");
                     fetchData();
                 } catch (error) {
                     addToast("Erreur import CSV", "error");
-                    ErrorLogger.handleErrorWithToast(error, 'Privacy.handleImport');
                 }
             }
         };
         reader.readAsText(file);
     };
 
-    // DPIA Handlers
     const handleStartDPIA = async (activity: ProcessingActivity) => {
-        if (!user?.organizationId) return;
-
+        if (!user || !user.organizationId) return;
         try {
-            // 1. Ensure DPIA Template exists
-            const templateRef = doc(db, 'questionnaire_templates', DPIA_TEMPLATE.id);
-            await setDoc(templateRef, { ...DPIA_TEMPLATE, organizationId: 'system' }, { merge: true });
-
-            // 2. Create Assessment
-            const responseId = await SupplierService.createAssessment(
-                user.organizationId,
-                activity.id,
-                activity.name,
-                DPIA_TEMPLATE
-            );
-
-            // 3. Update Activity
-            await updateDoc(doc(db, 'processing_activities', activity.id), {
-                hasDPIA: true,
-                updatedAt: new Date().toISOString()
-            });
-
+            const responseId = await PrivacyService.startDPIA(activity, user);
             addToast("Dossier DPIA créé", "success");
-
-            // 4. Open View
             setViewingAssessmentId(responseId);
             fetchData();
-
-            // Update selected activity if open
             if (selectedActivity?.id === activity.id) {
                 setSelectedActivity(prev => prev ? { ...prev, hasDPIA: true } : null);
             }
-
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Privacy.handleStartDPIA');
+            // Handled
         }
     };
 
     const handleViewDPIA = async (activity: ProcessingActivity) => {
-        if (!user?.organizationId) return;
         try {
-            const q = query(
-                collection(db, 'questionnaire_responses'),
-                where('supplierId', '==', activity.id),
-                where('templateId', '==', DPIA_TEMPLATE.id)
-            );
-            const snapshot = await getDocs(q);
-
-            if (!snapshot.empty) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
-                // Sort by sentDate
-                docs.sort((a: { sentDate: string }, b: { sentDate: string }) => new Date(b.sentDate).getTime() - new Date(a.sentDate).getTime());
-                setViewingAssessmentId(docs[0].id);
+            const responseId = await PrivacyService.findDPIAResponseId(activity.id);
+            if (responseId) {
+                setViewingAssessmentId(responseId);
             } else {
                 handleStartDPIA(activity);
             }

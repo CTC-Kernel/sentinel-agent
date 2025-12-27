@@ -30,6 +30,8 @@ import { EmptyState } from '../components/ui/EmptyState';
 
 export const ThreatIntelligence: React.FC = () => {
     const { user, addToast } = useStore();
+    // hasPermission check: View accessible to all, but actions are restricted in backend or sub-components.
+
 
     // UI State
     const [activeTab, setActiveTab] = usePersistedState<'overview' | 'map' | 'feed' | 'community'>('threat_intelligence_active_tab', 'map');

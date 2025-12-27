@@ -68,10 +68,10 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
             onTabChange={(id) => setInspectorTab(id as 'details' | 'dependencies' | 'drills' | 'history')}
             actions={
                 <div className="flex gap-2">
-                    <button onClick={() => onDelete(process.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                    <button onClick={() => onDelete(process.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500" title="Supprimer">
                         <Trash2 className="h-4 w-4" />
                     </button>
-                    <button onClick={() => onEdit(process)} className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors">
+                    <button onClick={() => onEdit(process)} className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" title="Modifier">
                         <Edit2 className="h-4 w-4" />
                     </button>
                 </div>

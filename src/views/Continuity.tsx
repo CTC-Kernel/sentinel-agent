@@ -109,7 +109,7 @@ export const Continuity: React.FC = () => {
         });
     };
 
-    const handleCreateDrill = async (data: any) => {
+    const handleCreateDrill = async (data: Record<string, unknown>) => {
         if (!user?.organizationId) return;
         try {
             await addDrill(data);
@@ -127,7 +127,7 @@ export const Continuity: React.FC = () => {
         }
     };
 
-    const tabs: { id: ContinuityTab; label: string; icon: any }[] = [
+    const tabs: { id: ContinuityTab; label: string; icon: React.ElementType<{ className?: string }> }[] = [
         { id: 'overview', label: t('continuity.tabs.overview'), icon: Activity },
         { id: 'bia', label: t('continuity.tabs.bia'), icon: AlertOctagon },
         { id: 'strategies', label: t('continuity.tabs.strategies'), icon: ShieldCheck },
@@ -170,7 +170,7 @@ export const Continuity: React.FC = () => {
                             <button
                                 aria-label="Générer le rapport"
                                 onClick={handleGenerateReport}
-                                className="p-2 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 transition-colors"
+                                className="p-2 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
                                 <Download className="h-5 w-5" />
                             </button>
@@ -178,7 +178,7 @@ export const Continuity: React.FC = () => {
                                 <button
                                     aria-label={t('continuity.newProcess')}
                                     onClick={() => setIsProcessModalOpen(true)}
-                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-brand-600/20"
+                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-brand-600/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-600"
                                 >
                                     <Plus className="h-5 w-5 mr-2" />
                                     {t('continuity.newProcess')}

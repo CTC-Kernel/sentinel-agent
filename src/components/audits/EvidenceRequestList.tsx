@@ -206,7 +206,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                                 addToast("Erreur lors de l'export", "error");
                             }
                         }}
-                        className="flex items-center px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                        className="flex items-center px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         aria-label="Exporter les preuves (ZIP)"
                     >
                         <FileText className="w-4 h-4 mr-2" />
@@ -215,7 +215,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                     {canEdit && (
                         <button
                             onClick={() => setIsCreating(!isCreating)}
-                            className="flex items-center px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform"
+                            className="flex items-center px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             aria-label={isCreating ? "Annuler la création" : "Nouvelle demande de preuve"}
                         >
                             {isCreating ? <X className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
@@ -264,7 +264,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                             placeholder="Sélectionner un contrôle..."
                         />
                         <div className="flex justify-end pt-2">
-                            <button type="submit" aria-label="Soumettre la demande" className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors">
+                            <button type="submit" aria-label="Soumettre la demande" className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 Créer la demande
                             </button>
                         </div>
@@ -285,8 +285,11 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                 {requests.map(req => (
                     <div key={req.id} className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-white/5 rounded-xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-brand-200 dark:hover:border-brand-800/30 group">
                         <div
-                            className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 dark:hover:bg-white/5"
+                            className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-xl"
                             onClick={() => setExpandedId(expandedId === req.id ? null : req.id)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setExpandedId(expandedId === req.id ? null : req.id)}
                         >
                             <div className="flex items-center gap-4 min-w-0">
                                 <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${req.status === 'Accepted' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
@@ -344,7 +347,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                                                             <FileText className="w-4 h-4 text-brand-500 mr-2 flex-shrink-0" />
                                                             <span className="truncate font-medium text-slate-700 dark:text-slate-200">{docObj.title}</span>
                                                         </div>
-                                                        <a href={docObj.url} target="_blank" rel="noreferrer" className="text-brand-600 hover:text-brand-700 text-xs font-bold px-3 py-1 bg-brand-50 dark:bg-brand-900/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <a href={docObj.url} target="_blank" rel="noreferrer" className="text-brand-600 hover:text-brand-700 text-xs font-bold px-3 py-1 bg-brand-50 dark:bg-brand-900/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                                             Voir
                                                         </a>
                                                     </div>
@@ -372,18 +375,18 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                                         <div className="flex flex-col gap-2 min-w-[150px]">
                                             <h5 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Actions</h5>
                                             {req.status !== 'Accepted' && (
-                                                <button onClick={() => handleStatusChange(req, 'Accepted')} aria-label="Accepter la demande" className="w-full px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 transition-colors flex items-center justify-center">
+                                                <button onClick={() => handleStatusChange(req, 'Accepted')} aria-label="Accepter la demande" className="w-full px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
                                                     <ShieldCheck className="w-4 h-4 mr-2" />
                                                     Accepter
                                                 </button>
                                             )}
                                             {req.status !== 'Rejected' && (
-                                                <button onClick={() => handleStatusChange(req, 'Rejected')} aria-label="Rejeter la demande" className="w-full px-3 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-bold hover:bg-red-200 transition-colors flex items-center justify-center">
+                                                <button onClick={() => handleStatusChange(req, 'Rejected')} aria-label="Rejeter la demande" className="w-full px-3 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-bold hover:bg-red-200 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
                                                     <X className="w-4 h-4 mr-2" />
                                                     Rejeter
                                                 </button>
                                             )}
-                                            <button onClick={() => handleDelete(req.id)} aria-label="Supprimer la demande" className="w-full px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors flex items-center justify-center mt-auto">
+                                            <button onClick={() => handleDelete(req.id)} aria-label="Supprimer la demande" className="w-full px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors flex items-center justify-center mt-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
                                                 <Trash2 className="w-4 h-4 mr-2" />
                                                 Supprimer
                                             </button>

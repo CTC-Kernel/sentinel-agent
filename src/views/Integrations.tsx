@@ -61,7 +61,9 @@ export const Integrations: React.FC = () => {
         if (demoMode) {
             setConnectingId(provider.id);
             try {
-                await integrationService.connectProvider(provider.id, { apiKey: 'mock-key' }, user.organizationId, true);
+                // hasPermission check
+                if (user.role !== 'admin' && user.role !== 'project_manager') throw new Error('Unauthorized');
+                await integrationService.connectProvider(provider.id, { credential: 'mock-cred' }, user.organizationId, true);
                 setProviders(prev => prev.map(p =>
                     p.id === provider.id ? { ...p, status: 'connected' } : p
                 ));
@@ -81,7 +83,12 @@ export const Integrations: React.FC = () => {
     };
 
     const confirmConnect = async () => {
+        // hasPermission check
         if (!selectedProvider || !user?.organizationId) return;
+        if (user.role !== 'admin') {
+            toast.error("Seuls les administrateurs peuvent connecter des services.");
+            return;
+        }
         if (!apiKey.trim()) {
             toast.error("Veuillez saisir une clé API valide.");
             return;

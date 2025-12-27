@@ -39,7 +39,7 @@ export const ThreatDiscussion: React.FC<ThreatDiscussionProps> = ({ threatId, th
                                 <h3 className="font-bold text-slate-900 dark:text-white">Discussion</h3>
                                 <p className="text-xs text-slate-500 truncate max-w-[280px]">{threatTitle}</p>
                             </div>
-                            <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                            <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 <X className="h-5 w-5 text-slate-500" />
                             </button>
                         </div>

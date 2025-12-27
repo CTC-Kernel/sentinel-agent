@@ -269,7 +269,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                             />
                                         </div>
                                     </div>
-                                    <button onClick={handleAddMaintenance} disabled={isAddingMaintenance} aria-label="Ajouter une intervention de maintenance" className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:opacity-50 flex justify-center items-center">{isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}Ajouter Intervention</button>
+                                    <button onClick={handleAddMaintenance} disabled={isAddingMaintenance} aria-label="Ajouter une intervention de maintenance" className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:opacity-50 flex justify-center items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}Ajouter Intervention</button>
                                 </div>
                             )}
                             <div className="space-y-3">
@@ -296,7 +296,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                     onClick={scanShodan}
                                     disabled={scanning}
                                     aria-label="Lancer un scan Shodan"
-                                    className="flex-1 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform flex items-center justify-center disabled:opacity-50"
+                                    className="flex-1 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform flex items-center justify-center disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 >
                                     {scanning ? <span className="animate-spin mr-2">⏳</span> : <Search className="w-4 h-4 mr-2" />}
                                     Scan Shodan
@@ -307,7 +307,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                     onClick={checkCVEs}
                                     disabled={scanning}
                                     aria-label="Rechercher des vulnérabilités CVE"
-                                    className="flex-1 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-xl text-sm font-bold shadow-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors flex items-center justify-center disabled:opacity-50"
+                                    className="flex-1 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-xl text-sm font-bold shadow-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors flex items-center justify-center disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 >
                                     {scanning ? <span className="animate-spin mr-2">⏳</span> : <ShieldAlert className="w-4 h-4 mr-2" />}
                                     Check CVEs (NVD)
@@ -345,7 +345,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                                         <button
                                                             onClick={() => createRiskFromVuln(vuln)}
                                                             aria-label={`Créer un risque pour ${vuln.cveId}`}
-                                                            className="p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded text-red-600 dark:text-red-400 transition-colors"
+                                                            className="p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded text-red-600 dark:text-red-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                                         >
                                                             <Plus className="h-4 w-4" />
                                                         </button>
@@ -367,7 +367,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                 <button
                                     onClick={() => selectedAsset && navigate('/risks', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } })}
                                     aria-label="Créer un nouveau risque"
-                                    className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center"
+                                    className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
                                 >
                                     <Plus className="h-3 w-3 mr-1" /> Nouveau Risque
                                 </button>
@@ -398,7 +398,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                 <button
                                     onClick={() => selectedAsset && navigate('/incidents', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } })}
                                     aria-label="Signaler un incident"
-                                    className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center"
+                                    className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
                                 >
                                     <Plus className="h-3 w-3 mr-1" /> Signaler Incident
                                 </button>

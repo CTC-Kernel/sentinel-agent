@@ -148,7 +148,7 @@ export const CalendarDashboard: React.FC = () => {
     };
 
     const eventStyleGetter = (event: CalendarEvent) => {
-        let className = 'border-none rounded-md shadow-sm font-semibold text-xs transition-shadow hover:shadow-md ';
+        let className = 'border-none rounded-md shadow-sm font-semibold text-xs transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-500 ';
 
         if (event.type === 'audit') className += 'bg-purple-600 text-white';
         else if (event.type === 'drill') className += 'bg-orange-500 text-white';
@@ -223,9 +223,9 @@ export const CalendarDashboard: React.FC = () => {
             <div className="flex flex-col xl:flex-row items-center justify-between mb-6 gap-4 animate-fade-in">
                 <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
                     <div className="flex bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-white/10 p-1 shadow-sm w-full md:w-auto justify-between md:justify-start">
-                        <button aria-label="Mois précédent" onClick={goToBack} className="p-2 md:p-2.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300"><ChevronLeft className="h-5 w-5" /></button>
-                        <button aria-label="Aller à aujourd'hui" onClick={goToCurrent} className="px-3 md:px-5 text-xs md:text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors">Aujourd'hui</button>
-                        <button aria-label="Mois suivant" onClick={goToNext} className="p-2 md:p-2.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300"><ChevronRight className="h-5 w-5" /></button>
+                        <button aria-label="Mois précédent" onClick={goToBack} className="p-2 md:p-2.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronLeft className="h-5 w-5" /></button>
+                        <button aria-label="Aller à aujourd'hui" onClick={goToCurrent} className="px-3 md:px-5 text-xs md:text-sm font-bold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Aujourd'hui</button>
+                        <button aria-label="Mois suivant" onClick={goToNext} className="p-2 md:p-2.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors text-slate-600 dark:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronRight className="h-5 w-5" /></button>
                     </div>
                     {label()}
                 </div>
@@ -242,7 +242,7 @@ export const CalendarDashboard: React.FC = () => {
                                 aria-label={`Vue ${opt.l}`}
                                 aria-pressed={view === opt.v}
                                 onClick={() => { setView(opt.v); toolbar.onView(opt.v); }}
-                                className={`px-4 md:px-5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap ${view === opt.v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5'}`}
+                                className={`px-4 md:px-5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${view === opt.v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5'}`}
                             >
                                 {opt.l}
                             </button>
@@ -269,19 +269,18 @@ export const CalendarDashboard: React.FC = () => {
                                     toast.error("Erreur lors de l'export");
                                 }
                             }}
-                            className="bg-white/80 dark:bg-white/5 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-300 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm"
+                            className="bg-white/80 dark:bg-white/5 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-300 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             title="Exporter le calendrier"
                             aria-label="Exporter le calendrier"
                         >
                             <Download className="h-5 w-5" />
                         </button>
                         <button
-                            aria-label="Ajouter un nouvel événement"
                             onClick={() => {
                                 setSelectedDate(new Date());
                                 setIsCreateModalOpen(true);
                             }}
-                            className="w-full md:w-auto flex-1 flex items-center justify-center px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-brand-500/25 transition-all hover:scale-105 active:scale-95 shrink-0"
+                            className="w-full md:w-auto flex-1 flex items-center justify-center px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-brand-500/25 transition-all hover:scale-105 active:scale-95 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         >
                             <Plus className="h-5 w-5 mr-2" />
                             <span className="md:hidden">Ajouter</span>
@@ -289,7 +288,7 @@ export const CalendarDashboard: React.FC = () => {
                         </button>
                     </div>
                 </div>
-            </div>
+            </div >
         );
     };
 
@@ -307,7 +306,7 @@ export const CalendarDashboard: React.FC = () => {
                         aria-pressed={filters[key as keyof typeof filters]}
                         onClick={() => setFilters(prev => ({ ...prev, [key]: !prev[key as keyof typeof filters] }))}
                         className={`
-                            px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 border flex items-center gap-2 shadow-sm shrink-0
+                            px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 border flex items-center gap-2 shadow-sm shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
                             ${filters[key as keyof typeof filters]
                                 ? key === 'audit' ? 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20 shadow-purple-500/10'
                                     : key === 'project' ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20 shadow-blue-500/10'

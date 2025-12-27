@@ -4,7 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import Team from '../Team';
 import { MemoryRouter } from 'react-router-dom';
 import { usePersistedState } from '../../hooks/usePersistedState';
-import { getDocs } from 'firebase/firestore';
+import { getDocs, QuerySnapshot, DocumentData } from 'firebase/firestore';
 
 // ---------------------------------------------------------------------
 // Mocks
@@ -128,17 +128,17 @@ describe('Team View', () => {
         // Mock getDocs sequence for users, invitations, and join requests
         vi.mocked(getDocs)
             .mockResolvedValueOnce({
-                docs: mockUsers.map(u => ({ id: u.id, data: () => u })) as any,
+                docs: mockUsers.map(u => ({ id: u.id, data: () => u })) as unknown,
                 empty: false,
                 size: mockUsers.length,
-                query: {} as any,
-                metadata: {} as any,
+                query: {} as unknown,
+                metadata: {} as unknown,
                 forEach: (cb: (doc: unknown) => void) => mockUsers.map(u => ({ id: u.id, data: () => u })).forEach(cb),
                 docChanges: () => [],
                 toJSON: () => ({})
-            } as any)
-            .mockResolvedValueOnce({ docs: [], empty: true, size: 0, query: {} as any, metadata: {} as any, forEach: () => { }, docChanges: () => [], toJSON: () => ({}) } as any)
-            .mockResolvedValueOnce({ docs: [], empty: true, size: 0, query: {} as any, metadata: {} as any, forEach: () => { }, docChanges: () => [], toJSON: () => ({}) } as any);
+            } as unknown as QuerySnapshot<unknown, DocumentData>)
+            .mockResolvedValueOnce({ docs: [], empty: true, size: 0, query: {} as unknown, metadata: {} as unknown, forEach: () => { }, docChanges: () => [], toJSON: () => ({}) } as unknown as QuerySnapshot<unknown, DocumentData>)
+            .mockResolvedValueOnce({ docs: [], empty: true, size: 0, query: {} as unknown, metadata: {} as unknown, forEach: () => { }, docChanges: () => [], toJSON: () => ({}) } as unknown as QuerySnapshot<unknown, DocumentData>);
 
         render(
             <MemoryRouter>
@@ -154,7 +154,7 @@ describe('Team View', () => {
     });
 
     it('handles tab switching', async () => {
-        vi.mocked(getDocs).mockResolvedValue({ docs: [], empty: true, size: 0, query: {} as any, metadata: {} as any, forEach: () => { }, docChanges: () => [], toJSON: () => ({}) } as any);
+        vi.mocked(getDocs).mockResolvedValue({ docs: [], empty: true, size: 0, query: {} as unknown, metadata: {} as unknown, forEach: () => { }, docChanges: () => [], toJSON: () => ({}) } as unknown as QuerySnapshot<unknown, DocumentData>);
         vi.mocked(usePersistedState).mockReturnValue(['roles', vi.fn()]);
 
         render(

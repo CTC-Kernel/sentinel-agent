@@ -42,7 +42,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                         key={tab.id}
                                         onClick={() => onTabChange(tab.id)}
                                         className={cn(
-                                            "relative flex items-center whitespace-nowrap px-4 py-2 rounded-lg font-medium text-sm transition-all flex-shrink-0 select-none snap-center",
+                                            "relative flex items-center whitespace-nowrap px-4 py-2 rounded-lg font-medium text-sm transition-all flex-shrink-0 select-none snap-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
                                             isActive ? "text-white" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                                         )}
                                     >
@@ -73,7 +73,7 @@ export const SettingsLayout: React.FC<SettingsLayoutProps> = ({ currentTab, onTa
                                         key={tab.id}
                                         onClick={() => onTabChange(tab.id)}
                                         className={cn(
-                                            "group flex items-center w-full px-4 py-3.5 rounded-xl font-medium text-sm transition-all text-left relative overflow-hidden",
+                                            "group flex items-center w-full px-4 py-3.5 rounded-xl font-medium text-sm transition-all text-left relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset",
                                             isActive
                                                 ? "bg-gradient-to-r from-brand-500/10 to-brand-500/5 dark:from-brand-500/20 dark:to-brand-500/10 text-brand-700 dark:text-brand-300 shadow-sm border border-brand-500/10"
                                                 : "text-slate-600 dark:text-slate-400 hover:bg-slate-50/50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200"

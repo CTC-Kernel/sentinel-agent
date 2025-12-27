@@ -50,9 +50,11 @@ export const AuditTrailViewer: React.FC = () => {
         end: new Date()
     });
 
+    const orgId = user?.organizationId;
+
     // Fetch audit logs
     useEffect(() => {
-        if (!user?.organizationId) return;
+        if (!orgId) return;
 
         const fetchLogs = async () => {
             setLoading(true);
@@ -60,11 +62,11 @@ export const AuditTrailViewer: React.FC = () => {
                 const logsRef = collection(db, 'system_logs');
                 const q = query(
                     logsRef,
-                    where('organizationId', '==', user.organizationId),
+                    where('organizationId', '==', orgId),
                     orderBy('timestamp', 'desc'),
                     limit(500)
                 );
-
+                // ... existing logic ...
                 const snapshot = await getDocs(q);
                 const fetchedLogs: AuditLog[] = [];
 
@@ -93,7 +95,7 @@ export const AuditTrailViewer: React.FC = () => {
         };
 
         fetchLogs();
-    }, [user?.organizationId]);
+    }, [orgId]);
 
     // Filter logs
     const filteredLogs = useMemo(() => {
@@ -420,7 +422,7 @@ export const AuditTrailViewer: React.FC = () => {
                                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Champs modifiés</h4>
                                     <ul className="space-y-1">
                                         {selectedLog.changes.map((change, idx) => (
-                                            <li key={idx} className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                                            <li key={`${idx}-${change}`} className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
                                                 <span className="w-2 h-2 bg-brand-500 rounded-full"></span>
                                                 {change}
                                             </li>

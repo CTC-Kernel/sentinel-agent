@@ -126,12 +126,12 @@ export const RiskList = React.memo<RiskListProps>(({
                     {canEdit && (
                         <>
                             <CustomTooltip content="Modifier le risque">
-                                <button onClick={() => onEdit(row.original)} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all">
+                                <button onClick={() => onEdit(row.original)} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                     <Edit className="h-4 w-4" />
                                 </button>
                             </CustomTooltip>
                             <CustomTooltip content="Supprimer le risque">
-                                <button onClick={() => onDelete(row.original.id, row.original.threat)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all">
+                                <button onClick={() => onDelete(row.original.id, row.original.threat)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                     <Trash2 className="h-4 w-4" />
                                 </button>
                             </CustomTooltip>

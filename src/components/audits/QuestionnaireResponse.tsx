@@ -187,7 +187,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                         <div className="mb-3 space-y-1">
                             {fileIds.length > 0 ? (
                                 fileIds.map((fid, idx) => (
-                                    <div key={idx} className="flex items-center text-xs text-slate-600 dark:text-slate-400">
+                                    <div key={fid} className="flex items-center text-xs text-slate-600 dark:text-slate-400">
                                         <FileText className="h-3 w-3 mr-2" />
                                         Preuve #{idx + 1} (ID: {fid.substring(0, 8)}...)
                                     </div>

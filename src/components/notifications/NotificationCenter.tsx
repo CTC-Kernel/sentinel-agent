@@ -33,7 +33,7 @@ export const NotificationCenter: React.FC = () => {
         <div className="relative" ref={containerRef}>
             <button
                 onClick={toggle}
-                className="relative p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-white/5"
+                className="relative p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 aria-label={unreadCount > 0 ? `Notifications - ${unreadCount} non lues` : "Notifications"}
             >
                 <Bell className="h-5 w-5" aria-hidden="true" />
@@ -62,7 +62,7 @@ export const NotificationCenter: React.FC = () => {
                                     <button
                                         onClick={() => setFilter(f => f === 'all' ? 'unread' : 'all')}
                                         className={cn(
-                                            "p-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1",
+                                            "p-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
                                             filter === 'unread'
                                                 ? "bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"
                                                 : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
@@ -75,7 +75,7 @@ export const NotificationCenter: React.FC = () => {
                                 <Tooltip content="Tout marquer comme lu">
                                     <button
                                         onClick={() => markAllAsRead()}
-                                        className="p-1.5 text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                                        className="p-1.5 text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     >
                                         <CheckCheck className="h-4 w-4" />
                                     </button>
@@ -116,7 +116,7 @@ export const NotificationCenter: React.FC = () => {
 
                         {/* Footer */}
                         <div className="p-2 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 shrink-0 text-center">
-                            <Link to="/settings/notifications" onClick={() => setIsOpen(false)} className="text-xs text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                            <Link to="/settings/notifications" onClick={() => setIsOpen(false)} className="text-xs text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
                                 Gérer les préférences
                             </Link>
                         </div>

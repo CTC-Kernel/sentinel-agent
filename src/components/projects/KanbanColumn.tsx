@@ -51,8 +51,8 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-sm font-bold text-slate-900 dark:text-white line-clamp-2">{task.title}</span>
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={() => onEditTask(task)} className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded text-slate-500 hover:text-brand-500"><Edit className="h-3.5 w-3.5" /></button>
-                                    <button onClick={() => onDeleteTask(task.id)} className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-slate-500 hover:text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => onEditTask(task)} className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded text-slate-500 hover:text-brand-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Edit className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => onDeleteTask(task.id)} className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-slate-500 hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
                                 </div>
                             </div>
                             <div className="flex items-center justify-between mt-2">

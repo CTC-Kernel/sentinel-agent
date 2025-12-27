@@ -40,10 +40,10 @@ export const AuditsDonutWidget: React.FC<AuditsDonutWidgetProps> = ({ navigate, 
         });
 
         return [
-            { name: 'Planifié', value: counts['Planifié'], color: '#3b82f6' }, // blue-500
-            { name: 'En cours', value: counts['En cours'], color: '#f59e0b' }, // amber-500
-            { name: 'Terminé', value: counts['Terminé'], color: '#10b981' }, // emerald-500
-            { name: 'Retard', value: counts['Retard'], color: '#ef4444' }   // red-500
+            { name: 'Planifié', value: counts['Planifié'], color: 'hsl(var(--primary))' }, // blue-500
+            { name: 'En cours', value: counts['En cours'], color: 'hsl(var(--warning))' }, // amber-500
+            { name: 'Terminé', value: counts['Terminé'], color: 'hsl(var(--success))' }, // emerald-500
+            { name: 'Retard', value: counts['Retard'], color: 'hsl(var(--destructive))' }   // red-500
         ].filter(d => d.value > 0);
     }, [audits]);
 

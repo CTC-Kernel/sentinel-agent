@@ -100,8 +100,8 @@ const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
                 <meshBasicMaterial color="#3b82f6" wireframe transparent opacity={0.05} />
             </mesh>
 
-            {markers.map((m, i) => (
-                <ThreatMarker key={i} position={m.vec3} name={m.name} intensity={m.intensity} />
+            {markers.map((m) => (
+                <ThreatMarker key={m.name} position={m.vec3} name={m.name} intensity={m.intensity} />
             ))}
         </group>
     );

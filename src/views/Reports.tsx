@@ -125,7 +125,7 @@ export const Reports: React.FC = () => {
                             <p className="text-xs text-slate-500">SoA, Politiques, Risques</p>
                         </div>
                     </div>
-                    <button aria-label="Générer Rapport ISO 27001" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors">
+                    <button aria-label="Générer Rapport ISO 27001" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                         Générer
                     </button>
                 </div>
@@ -140,7 +140,7 @@ export const Reports: React.FC = () => {
                             <p className="text-xs text-slate-500">Registre, DPIA, Violations</p>
                         </div>
                     </div>
-                    <button aria-label="Générer Rapport RGPD" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors">
+                    <button aria-label="Générer Rapport RGPD" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                         Générer
                     </button>
                 </div>
@@ -155,7 +155,7 @@ export const Reports: React.FC = () => {
                             <p className="text-xs text-slate-500">Choisissez vos indicateurs</p>
                         </div>
                     </div>
-                    <button aria-label="Configurer Rapport Personnalisé" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors">
+                    <button aria-label="Configurer Rapport Personnalisé" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                         Configurer
                     </button>
                 </div>

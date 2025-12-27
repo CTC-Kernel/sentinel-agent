@@ -136,7 +136,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, handlers }) =
                                         {control.maturity ? (
                                             <div className="flex gap-1">
                                                 {[1, 2, 3, 4, 5].map(i => (
-                                                    <div key={i} className={`h-1.5 w-3 rounded-sm ${i <= control.maturity! ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
+                                                    <div key={`star-${i}`} className={`h-1.5 w-3 rounded-sm ${i <= control.maturity! ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
                                                 ))}
                                             </div>
                                         ) : '-'}

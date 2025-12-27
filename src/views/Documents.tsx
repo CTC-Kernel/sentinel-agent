@@ -116,6 +116,62 @@ export const Documents: React.FC = () => {
         return matchesSearch && matchesFolder && matchesCategory && matchesDigitalSafe;
     }), [documents, deferredFilter, selectedFolderId, categoryFilter, isDigitalSafeMode]);
 
+    // --- Handlers (Moved here to access filteredDocuments) ---
+    const handleDeleteFolderClick = React.useCallback(async (id: string) => {
+        await handleDeleteFolder(id, folders, documents, selectedFolderId, setSelectedFolderId);
+    }, [handleDeleteFolder, folders, documents, selectedFolderId]);
+
+    const handleExportClick = React.useCallback(() => {
+        handleExportCSV(filteredDocuments);
+    }, [handleExportCSV, filteredDocuments]);
+
+    const handleDigitalSafeToggle = React.useCallback(() => {
+        setIsDigitalSafeMode(prev => !prev);
+    }, []);
+
+    const handleCategoryChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+        setCategoryFilter(e.target.value);
+    }, []);
+
+    const handleCreateClick = React.useCallback(() => {
+        setShowCreateModal(true);
+    }, []);
+
+    const handleCloseInspector = React.useCallback(() => {
+        setSelectedDocument(null);
+    }, [setSelectedDocument]);
+
+    const handleEditClick = React.useCallback(() => {
+        setIsEditing(true);
+    }, []);
+
+    const handleDeleteDocumentClick = React.useCallback(() => {
+        if (selectedDocument) initiateDelete(selectedDocument, controls);
+    }, [selectedDocument, initiateDelete, controls]);
+
+    const handleWorkflowActionClick = React.useCallback((action: any) => {
+        if (selectedDocument) handleWorkflowAction(selectedDocument, action);
+    }, [selectedDocument, handleWorkflowAction]);
+
+    const handleCloseDrawer = React.useCallback(() => {
+        setShowCreateModal(false);
+        setIsEditing(false);
+    }, []);
+
+    const handleFormSubmit = React.useCallback(async (data: any) => {
+        if (isEditing && selectedDocument) {
+            const updated = await handleUpdate(selectedDocument.id, data, selectedDocument);
+            if (updated) setIsEditing(false);
+        } else {
+            const success = await handleCreate(data);
+            if (success) setShowCreateModal(false);
+        }
+    }, [isEditing, selectedDocument, handleUpdate, handleCreate]);
+
+    const handleCloseSignatureModal = React.useCallback(() => {
+        setShowSignatureModal(false);
+    }, [setShowSignatureModal]);
+
 
     if (loading) {
         return <LoadingScreen />;
@@ -137,7 +193,7 @@ export const Documents: React.FC = () => {
 
             <ConfirmModal
                 isOpen={confirmData.isOpen}
-                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+                onClose={React.useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), [setConfirmData])}
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}
@@ -147,7 +203,7 @@ export const Documents: React.FC = () => {
 
             <DocumentSignature
                 isOpen={showSignatureModal}
-                onClose={() => setShowSignatureModal(false)}
+                onClose={handleCloseSignatureModal}
                 onSign={handleSignatureSubmit}
                 signaturePadRef={signaturePadRef}
             />
@@ -164,7 +220,7 @@ export const Documents: React.FC = () => {
                     <CustomTooltip content={t('documents.newDocument')}>
                         <button
                             aria-label={t('documents.newDocument')}
-                            onClick={() => setShowCreateModal(true)}
+                            onClick={handleCreateClick}
                             className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                         >
                             <Plus className="h-4 w-4 mr-2" /> {t('documents.newDocument')}
@@ -262,7 +318,7 @@ export const Documents: React.FC = () => {
                         onSelectFolder={setSelectedFolderId}
                         onCreateFolder={handleCreateFolder}
                         onUpdateFolder={handleUpdateFolder}
-                        onDeleteFolder={(id) => handleDeleteFolder(id, folders, documents, selectedFolderId, setSelectedFolderId)}
+                        onDeleteFolder={handleDeleteFolderClick}
                     />
                 </div>
 
@@ -276,7 +332,7 @@ export const Documents: React.FC = () => {
                             actions={
                                 <button
                                     aria-label={t('documents.exportCsv')}
-                                    onClick={() => handleExportCSV(filteredDocuments)}
+                                    onClick={handleExportClick}
                                     className="p-2 text-slate-500 hover:text-brand-600 transition-colors"
                                     title={t('documents.exportCsv')}
                                 >
@@ -294,7 +350,7 @@ export const Documents: React.FC = () => {
                                         aria-label={t('documents.digitalSafe')}
                                         type="checkbox"
                                         checked={isDigitalSafeMode}
-                                        onChange={() => setIsDigitalSafeMode(!isDigitalSafeMode)}
+                                        onChange={handleDigitalSafeToggle}
                                         className="rounded text-brand-600 focus:ring-brand-500"
                                     />
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('documents.digitalSafe')}</span>
@@ -302,7 +358,7 @@ export const Documents: React.FC = () => {
 
                                 <select
                                     value={categoryFilter}
-                                    onChange={(e) => setCategoryFilter(e.target.value)}
+                                    onChange={handleCategoryChange}
                                     className="bg-slate-100 dark:bg-white/5 border-none rounded-lg text-sm px-3 py-1.5 focus:ring-2 focus:ring-brand-500"
                                 >
                                     <option value="all">{t('documents.allCategories')}</option>
@@ -321,7 +377,7 @@ export const Documents: React.FC = () => {
                             title={t('documents.emptyTitle')}
                             description={t('documents.emptyDesc')}
                             actionLabel={t('documents.newDocument')}
-                            onAction={canCreate ? () => setShowCreateModal(true) : undefined}
+                            onAction={canCreate ? handleCreateClick : undefined}
                         />
                     ) : (
                         <div
@@ -332,11 +388,11 @@ export const Documents: React.FC = () => {
                             `}
                         >
                             {filteredDocuments.map(doc => (
-                                <DocumentCard
+                                <MemoizedDocumentCard
                                     key={doc.id}
                                     doc={doc}
                                     viewMode={viewMode}
-                                    onClick={() => setSelectedDocument(doc)}
+                                    onSelect={setSelectedDocument}
                                 />
                             ))}
                         </div>
@@ -347,24 +403,21 @@ export const Documents: React.FC = () => {
             {/* Document Details Drawer (Inspector) */}
             <DocumentInspector
                 isOpen={!!selectedDocument && !showSignatureModal && !isEditing}
-                onClose={() => setSelectedDocument(null)}
+                onClose={handleCloseInspector}
                 document={selectedDocument}
                 controls={controls}
                 canEdit={canEditResource(user, 'Document', selectedDocument?.ownerId || selectedDocument?.owner)}
                 users={effectiveUsers}
-                onEdit={() => setIsEditing(true)}
-                onDelete={() => selectedDocument && initiateDelete(selectedDocument, controls)}
-                onWorkflowAction={(action) => selectedDocument && handleWorkflowAction(selectedDocument, action)}
+                onEdit={handleEditClick}
+                onDelete={handleDeleteDocumentClick}
+                onWorkflowAction={handleWorkflowActionClick}
                 onSecureView={handleSecureView}
             />
 
             {/* Create/Edit Drawer */}
             <Drawer
                 isOpen={showCreateModal || (isEditing && !!selectedDocument)}
-                onClose={() => {
-                    setShowCreateModal(false);
-                    setIsEditing(false);
-                }}
+                onClose={handleCloseDrawer}
                 title={isEditing ? "Modifier le document" : "Nouveau Document"}
                 subtitle={isEditing && selectedDocument ? selectedDocument.title : "Créer un nouveau document"}
                 width="max-w-4xl"
@@ -373,19 +426,8 @@ export const Documents: React.FC = () => {
                 <div className="h-full overflow-y-auto px-6 py-8 custom-scrollbar">
                     <DocumentForm
                         initialData={isEditing ? selectedDocument! : undefined}
-                        onCancel={() => {
-                            setShowCreateModal(false);
-                            setIsEditing(false);
-                        }}
-                        onSubmit={async (data) => {
-                            if (isEditing && selectedDocument) {
-                                const updated = await handleUpdate(selectedDocument.id, data, selectedDocument);
-                                if (updated) setIsEditing(false);
-                            } else {
-                                const success = await handleCreate(data);
-                                if (success) setShowCreateModal(false);
-                            }
-                        }}
+                        onCancel={handleCloseDrawer}
+                        onSubmit={handleFormSubmit}
                         isLoading={isSubmitting}
                         users={effectiveUsers}
                         folders={folders}
@@ -401,10 +443,13 @@ export const Documents: React.FC = () => {
 };
 
 // Mini-component for rendering card (Internal)
-const DocumentCard: React.FC<{ doc: Document; viewMode: string; onClick: () => void }> = ({ doc, viewMode, onClick }) => {
+// Mini-component for rendering card (Internal)
+const MemoizedDocumentCard = React.memo(({ doc, viewMode, onSelect }: { doc: Document; viewMode: string; onSelect: (d: Document) => void }) => {
+    const handleClick = React.useCallback(() => onSelect(doc), [onSelect, doc]);
+
     return (
         <div
-            onClick={onClick}
+            onClick={handleClick}
             className={`glass-panel p-4 rounded-xl border border-white/50 dark:border-white/5 hover:border-brand-500/50 transition-all cursor-pointer group relative overflow-hidden flex flex-col gap-3 ${viewMode === 'list' ? 'flex-row items-center' : ''}`}
         >
             <div className="flex-1">
@@ -420,4 +465,4 @@ const DocumentCard: React.FC<{ doc: Document; viewMode: string; onClick: () => v
             </div>
         </div>
     );
-};
+});

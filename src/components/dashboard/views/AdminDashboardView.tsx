@@ -90,7 +90,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
                     >
                         <button
                             onClick={resetLayout}
-                            className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-6 py-3 rounded-full shadow-xl font-bold border border-slate-200 dark:border-slate-700 hover:scale-105 transition-all"
+                            className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-6 py-3 rounded-full shadow-xl font-bold border border-slate-200 dark:border-slate-700 hover:scale-105 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                         >
                             {props.t('common.reset')}
                         </button>
@@ -99,7 +99,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
                             onClick={() => setIsAddWidgetModalOpen(true)}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            className="bg-brand-600 text-white px-6 py-3 rounded-full shadow-xl font-bold flex items-center gap-2 border border-brand-500 hover:bg-brand-700 transition-colors"
+                            className="bg-brand-600 text-white px-6 py-3 rounded-full shadow-xl font-bold flex items-center gap-2 border border-brand-500 hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         >
                             <Plus className="w-5 h-5" /> <span>{props.t('dashboard.addWidget')}</span>
                         </motion.button>

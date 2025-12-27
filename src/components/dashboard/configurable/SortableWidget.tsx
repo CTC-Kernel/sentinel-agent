@@ -64,7 +64,7 @@ export const SortableWidget = ({ widget, isEditing, children, onRemove }: Sortab
                         <Tooltip content="Supprimer ce widget" position="top">
                             <button
                                 onClick={(e) => { e.stopPropagation(); onRemove(widget.id); }}
-                                className="absolute -top-2 -right-2 z-20 p-1.5 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 hover:scale-110 active:scale-90 transition-all border-2 border-white dark:border-slate-900"
+                                className="absolute -top-2 -right-2 z-20 p-1.5 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 hover:scale-110 active:scale-90 transition-all border-2 border-white dark:border-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500"
                             >
                                 <X className="w-4 h-4" />
                             </button>

@@ -29,13 +29,13 @@ export class StatsService {
         const docId = `${organizationId}_${today}`;
         const docRef = doc(db, this.COLLECTION, docId);
 
-        // Check if snapshot already exists for today
-        const existingdoc = await getDoc(docRef);
-        if (existingdoc.exists()) {
-            return; // Already snapped today
-        }
-
         try {
+            // Check if snapshot already exists for today
+            const existingdoc = await getDoc(docRef);
+            if (existingdoc.exists()) {
+                return; // Already snapped today
+            }
+
             // Fetch current data counts
             const [risksSnap, incidentsSnap, controlsSnap, assetsSnap, projectsSnap] = await Promise.all([
                 getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId))),

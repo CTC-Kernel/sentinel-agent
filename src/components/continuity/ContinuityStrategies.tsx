@@ -33,7 +33,22 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
     const { data: strategies, refresh } = useFirestoreCollection<Strategy>('bcp_strategies');
 
     const handleSave = async () => {
-        if (!newStrategy.title || !newStrategy.type) return;
+        // Sanitize and validate inputs
+        const safeTitle = newStrategy.title?.trim();
+        const safeType = newStrategy.type;
+        const safeRto = newStrategy.rto?.trim();
+        const safeRpo = newStrategy.rpo?.trim();
+
+        if (!safeTitle || !safeType || !safeRto || !safeRpo) {
+            addToast('Veuillez remplir tous les champs obligatoires (Titre, Type, RTO, RPO)', 'error');
+            return;
+        }
+
+        // Basic XSS prevention (though React/Firestore handle most)
+        if (safeTitle.length > 100 || safeRto.length > 20 || safeRpo.length > 20) {
+            addToast('Champs trop longs', 'error');
+            return;
+        }
 
         try {
             await addDoc(collection(db, 'bcp_strategies'), {
@@ -80,12 +95,12 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <input
                             placeholder="Titre (ex: Réplication S3 Cross-Region)"
-                            className="input-field"
+                            className="input-field focus:outline-none focus:ring-2 focus:ring-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500"
                             value={newStrategy.title || ''}
                             onChange={e => setNewStrategy({ ...newStrategy, title: e.target.value })}
                         />
                         <select
-                            className="input-field"
+                            className="input-field focus:outline-none focus:ring-2 focus:ring-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500"
                             value={newStrategy.type || ''}
                             onChange={e => setNewStrategy({ ...newStrategy, type: e.target.value as 'Active-Active' | 'Active-Passive' | 'Cold Standby' | 'Cloud DR' })}
                         >
@@ -98,16 +113,16 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                         <div className="flex gap-2">
                             <div className="flex-1 relative">
                                 <Clock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                                <input placeholder="RTO (ex: 4h)" className="input-field pl-10" value={newStrategy.rto || ''} onChange={e => setNewStrategy({ ...newStrategy, rto: e.target.value })} />
+                                <input placeholder="RTO (ex: 4h)" className="input-field pl-10 focus:outline-none focus:ring-2 focus:ring-brand-500" value={newStrategy.rto || ''} onChange={e => setNewStrategy({ ...newStrategy, rto: e.target.value })} />
                             </div>
                             <div className="flex-1 relative">
                                 <DatabaseIcon className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                                <input placeholder="RPO (ex: 15min)" className="input-field pl-10" value={newStrategy.rpo || ''} onChange={e => setNewStrategy({ ...newStrategy, rpo: e.target.value })} />
+                                <input placeholder="RPO (ex: 15min)" className="input-field pl-10 focus:outline-none focus:ring-2 focus:ring-brand-500" value={newStrategy.rpo || ''} onChange={e => setNewStrategy({ ...newStrategy, rpo: e.target.value })} />
                             </div>
                         </div>
                         <select
                             multiple
-                            className="input-field h-24"
+                            className="input-field h-24 focus:outline-none focus:ring-2 focus:ring-brand-500"
                             onChange={e => {
                                 const selected = Array.from(e.target.selectedOptions, option => option.value);
                                 setNewStrategy({ ...newStrategy, linkedAssets: selected });
@@ -126,7 +141,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {strategies.map(strategy => (
                     <div key={strategy.id} className="glass-panel p-6 rounded-2xl relative group hover:border-brand-500/30 transition-all">
-                        <button onClick={() => handleDelete(strategy.id)} className="absolute top-4 right-4 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => handleDelete(strategy.id)} className="absolute top-4 right-4 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
                             <Trash2 className="w-4 h-4" />
                         </button>
                         <div className="flex items-center gap-3 mb-4">

@@ -160,7 +160,7 @@ export const PulseSkeleton: React.FC<PulseSkeletonProps> = ({
     <>
       {Array.from({ length: count }).map((_, i) => (
         <div
-          key={i}
+          key={`pulse-${i}`}
           className={`${baseClasses} ${variantClasses[variant]} ${className}`}
           style={{ animationDelay: `${i * 100}ms` }}
         />

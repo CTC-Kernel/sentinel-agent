@@ -1,8 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { doc, onSnapshot, setDoc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase'; // Assuming db is exported from firebase config
 import { aiService } from '../../services/aiService';
 import { Sparkles, X, Send, User, Bot, Loader2, Maximize2, Minimize2, Zap, Copy, Check, Lock } from '../ui/Icons';
@@ -153,16 +154,14 @@ export const GeminiAssistant: React.FC = () => {
                 }
             } else {
                 // Initialize if not exists
-                setDoc(conversationRef, {
-                    messages: [{
-                        id: 'welcome',
-                        role: 'assistant',
-                        content: "Bonjour je suis **Sentinel AI**. \n\nComment puis-je vous aider à sécuriser votre organisation aujourd'hui ?",
-                        timestamp: new Date()
-                    }],
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
-                }, { merge: true });
+                // Initialize if not exists
+                try {
+                    if (user?.uid) {
+                        aiService.initConversation(user.uid).catch(e => ErrorLogger.error(e, 'GeminiAssistant.initConversation'));
+                    }
+                } catch (e) {
+                    ErrorLogger.error(e, 'GeminiAssistant.initConversationSync');
+                }
             }
         }, (error) => {
             console.warn("GeminiAssistant: Local conversation sync error (likely permission or offline)", error);
@@ -180,13 +179,23 @@ export const GeminiAssistant: React.FC = () => {
 
     const handleSend = async (e?: React.FormEvent, promptOverride?: string) => {
         e?.preventDefault();
-        const textToSend = promptOverride || input;
+        let textToSend = promptOverride || input;
 
         if (!aiEnabled) {
             navigate('/pricing');
             return;
         }
-        if (!textToSend.trim() || isLoading || !conversationRef) return;
+
+        textToSend = textToSend.trim(); // Trim the input text
+
+        if (!textToSend || isLoading || !conversationRef) return;
+
+        // Basic input validate/sanitize
+        if (textToSend.length > 2000) {
+            // Toast or just limit
+            // For now, just return. In a real app, you might show a toast notification.
+            return;
+        }
 
         const userMsg: Message = {
             id: Date.now().toString(),
@@ -240,7 +249,7 @@ export const GeminiAssistant: React.FC = () => {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
                 content: isQuotaError
-                    ? `### Quota journalier atteint\nVous avez atteint votre limite de **10 requêtes par jour** (Plan Discovery).\n\nPour continuer à utiliser l'IA sans limite, passez au plan supérieur.`
+                    ? `### Quota journalier atteint\nVous avez atteint votre limite de ** 10 requêtes par jour ** (Plan Discovery).\n\nPour continuer à utiliser l'IA sans limite, passez au plan supérieur.`
                     : "Désolé, j'ai rencontré une erreur lors du traitement de votre demande. Veuillez réessayer.",
                 timestamp: new Date(),
                 isError: true
@@ -458,9 +467,9 @@ export const GeminiAssistant: React.FC = () => {
             {/* Quick Prompts (Only if empty or start) */}
             {messages.length < 3 && !isLoading && (
                 <div className="px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar mask-gradient-right">
-                    {QUICK_PROMPTS.map((qp, i) => (
+                    {QUICK_PROMPTS.map((qp) => (
                         <button
-                            key={i}
+                            key={qp.label}
                             onClick={(e) => handleSend(e, qp.prompt)}
                             className="whitespace-nowrap flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:text-indigo-600 dark:hover:text-indigo-300 transition-all"
                             aria-label={`Prompt rapide : ${qp.label}`}

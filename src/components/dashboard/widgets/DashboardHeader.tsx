@@ -98,7 +98,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
                         {cards.map((card, i) => (
-                            <button key={card.link || `card-${i}`} onClick={() => navigate(card.link)} className="group/card relative p-8 rounded-3xl bg-card/60 border border-border hover:border-brand-500/50 dark:hover:border-brand-400/50 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 overflow-hidden" aria-label={card.title}>
+                            <button key={card.link || `card-${i}`} onClick={() => {
+                                if (card.link && card.link.startsWith('/')) navigate(card.link); // validateUrl check
+                            }} className="group/card relative p-8 rounded-3xl bg-card/60 border border-border hover:border-brand-500/50 dark:hover:border-brand-400/50 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={card.title}>
                                 <div className={`absolute -right-10 -bottom-10 w-40 h-40 bg-${card.color}-500/10 rounded-full blur-3xl group-hover/card:bg-${card.color}-500/20 transition-all duration-500`} />
 
                                 <div className={`w-14 h-14 rounded-2xl bg-${card.color}-50 dark:bg-${card.color}-500/10 flex items-center justify-center mb-6 group-hover/card:scale-110 transition-transform duration-500 shadow-sm`}>
@@ -155,7 +157,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         {/* Middle: Integrated Insight Banner */}
                         <div className="flex-1 w-full lg:w-auto">
                             {insight?.text ? (
-                                <div className={`flex items-start sm:items-center gap-3 p-3 rounded-xl border ${insight.type === 'danger' ? 'bg-red-500/5 border-red-500/10' : insight.type === 'warning' ? 'bg-orange-500/5 border-orange-500/10' : 'bg-emerald-500/5 border-emerald-500/10'} hover:bg-opacity-80 transition-colors cursor-pointer group/insight`} onClick={() => navigate(insight.link || '')}>
+                                <button
+                                    onClick={() => {
+                                        if (insight.link && insight.link.startsWith('/')) navigate(insight.link); // validateUrl check
+                                    }}
+                                    className={`flex w-full text-left items-start sm:items-center gap-3 p-3 rounded-xl border ${insight.type === 'danger' ? 'bg-red-500/5 border-red-500/10' : insight.type === 'warning' ? 'bg-orange-500/5 border-orange-500/10' : 'bg-emerald-500/5 border-emerald-500/10'} hover:bg-opacity-80 transition-colors cursor-pointer group/insight focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                >
                                     <div className={`p-1.5 rounded-lg shrink-0 ${insight.type === 'danger' ? 'bg-red-500/10 text-red-600' : 'bg-orange-500/10 text-orange-600'}`}>
                                         {insight.type === 'danger' ? <AlertTriangle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
                                     </div>
@@ -164,7 +171,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <p className="text-xs text-muted-foreground truncate hidden sm:block">{insight.details}</p>
                                     </div>
                                     {insight.link && <ArrowRight className="h-4 w-4 text-muted-foreground group-hover/insight:translate-x-1 transition-transform" />}
-                                </div>
+                                </button>
                             ) : (
                                 <div className="hidden lg:flex items-center gap-2 p-3 rounded-xl bg-accent/30 border border-border/50 text-muted-foreground text-sm">
                                     <Activity className="h-4 w-4" />
@@ -179,7 +186,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                 <Tooltip content={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')} position="bottom">
                                     <button
                                         onClick={onToggleEdit}
-                                        className={`p-2 rounded-md transition-all ${isEditing ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-muted-foreground hover:text-foreground hover:bg-background border border-transparent'}`}
+                                        className={`p-2 rounded-md transition-all ${isEditing ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-muted-foreground hover:text-foreground hover:bg-background border border-transparent'} focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
                                         aria-label={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')}
                                     >
                                         {isEditing ? <Check className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
@@ -192,7 +199,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     <button
                                         onClick={generateExecutiveReport}
                                         disabled={isGeneratingReport}
-                                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all disabled:opacity-50"
+                                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                         aria-label={t('dashboard.executiveReport')}
                                     >
                                         {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
