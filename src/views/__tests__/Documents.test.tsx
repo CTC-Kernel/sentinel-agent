@@ -18,25 +18,18 @@ vi.mock('../../store', () => ({
 }));
 
 // Mock Headless UI
-vi.mock('@headlessui/react', () => ({
-    Transition: ({ children, show }: { children: React.ReactNode; show?: boolean }) => (show ? <div>{children}</div> : null),
-    Dialog: ({ children, open, onClose }: { children: React.ReactNode; open: boolean; onClose: () => void }) => (
-        open ? <div data-testid="dialog" onClick={onClose}>{children}</div> : null
-    ),
-}));
-// Mock property attachments to Dialog
-const DialogMock = ({ children, open, onClose }: { children: React.ReactNode; open: boolean; onClose: () => void }) => (
-    open ? <div data-testid="dialog" onClick={onClose}>{children}</div> : null
-);
-(DialogMock as any).Panel = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
-(DialogMock as any).Title = ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>;
-(DialogMock as any).Description = ({ children }: { children: React.ReactNode }) => <p>{children}</p>;
-
-// Update the mock implementation
 vi.mock('@headlessui/react', () => {
+    const MockDialog = ({ children, open, onClose }: { children: React.ReactNode; open: boolean; onClose: () => void }) => (
+        open ? <div data-testid="dialog" onClick={onClose}>{children}</div> : null
+    );
+    // Attach sub-components to the functional component
+    (MockDialog as any).Panel = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+    (MockDialog as any).Title = ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>;
+    (MockDialog as any).Description = ({ children }: { children: React.ReactNode }) => <p>{children}</p>;
+
     return {
-        Transition: ({ children, show }: any) => show ? <div>{children}</div> : null,
-        Dialog: DialogMock,
+        Transition: ({ children, show }: { children: React.ReactNode; show?: boolean }) => show ? <div>{children}</div> : null,
+        Dialog: MockDialog,
         Listbox: {
             Button: ({ children }: any) => <button>{children}</button>,
             Options: ({ children }: any) => <ul>{children}</ul>,

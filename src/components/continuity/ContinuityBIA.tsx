@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { HeartPulse, LayoutDashboard, Server, ClipboardCheck, Edit, Trash2 } from '../ui/Icons';
 import { slideUpVariants } from '../ui/animationVariants';
@@ -16,6 +16,21 @@ interface ContinuityBIAProps {
 }
 
 export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading, viewMode, onOpenInspector, onNewProcess, onDelete }) => {
+    const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+
+    const handleDelete = async (id: string) => {
+        if (!onDelete || deletingIds.has(id)) return;
+        setDeletingIds(prev => new Set(prev).add(id));
+        try {
+            await onDelete(id);
+        } finally {
+            setDeletingIds(prev => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+        }
+    };
 
     const getPriorityColor = (p: string) => {
         switch (p) {
@@ -103,9 +118,10 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                                                 </button>
                                                 {onDelete && (
                                                     <button
-                                                        onClick={(e) => { e.stopPropagation(); onDelete(proc.id); }}
-                                                        className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                                                        title="Supprimer"
+                                                        onClick={(e) => { e.stopPropagation(); handleDelete(proc.id); }}
+                                                        disabled={deletingIds.has(proc.id)}
+                                                        className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        title={deletingIds.has(proc.id) ? "Suppression..." : "Supprimer"}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>

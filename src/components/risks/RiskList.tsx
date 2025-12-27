@@ -44,6 +44,21 @@ const getSLAStatus = (risk: Risk) => {
 export const RiskList = React.memo<RiskListProps>(({
     risks, loading, canEdit, assets, onEdit, onDelete, onBulkDelete, onSelect
 }) => {
+    const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set());
+
+    const handleDelete = React.useCallback(async (id: string, name: string) => {
+        if (deletingIds.has(id)) return;
+        setDeletingIds(prev => new Set(prev).add(id));
+        try {
+            await onDelete(id, name);
+        } finally {
+            setDeletingIds(prev => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+        }
+    }, [deletingIds, onDelete]);
 
     const columns = useMemo<ColumnDef<Risk>[]>(() => [
         {
@@ -130,8 +145,8 @@ export const RiskList = React.memo<RiskListProps>(({
                                     <Edit className="h-4 w-4" />
                                 </button>
                             </CustomTooltip>
-                            <CustomTooltip content="Supprimer le risque">
-                                <button onClick={() => onDelete(row.original.id, row.original.threat)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={`Supprimer le risque ${row.original.threat}`}>
+                            <CustomTooltip content={deletingIds.has(row.original.id) ? "Suppression..." : "Supprimer le risque"}>
+                                <button onClick={() => handleDelete(row.original.id, row.original.threat)} disabled={deletingIds.has(row.original.id)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Supprimer le risque ${row.original.threat}`}>
                                     <Trash2 className="h-4 w-4" />
                                 </button>
                             </CustomTooltip>
@@ -140,7 +155,7 @@ export const RiskList = React.memo<RiskListProps>(({
                 </div>
             ),
         },
-    ], [canEdit, assets, onEdit, onDelete]);
+    ], [canEdit, assets, onEdit, handleDelete, deletingIds]);
 
     return (
         <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">

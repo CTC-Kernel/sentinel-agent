@@ -29,6 +29,18 @@ const ProjectCardTooltip = ({ content, children }: { content: string, children: 
 export const ProjectCard: React.FC<ProjectCardProps> = ({
     project, canEdit, user, usersList = [], onEdit, onDelete, onClick, onDuplicate, compact
 }) => {
+    const [isDeleting, setIsDeleting] = React.useState(false);
+
+    const handleDelete = async () => {
+        if (isDeleting) return;
+        setIsDeleting(true);
+        try {
+            await onDelete(project.id, project.name);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     // Calculate members
     const memberIds = project.members || [];
     const members = usersList.filter(u => memberIds.includes(u.uid));
@@ -70,8 +82,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                                     </button>
                                 </ProjectCardTooltip>
                                 {canDeleteResource(user, 'Project') && (
-                                    <ProjectCardTooltip content="Supprimer">
-                                        <button onClick={(e) => { e.stopPropagation(); onDelete(project.id, project.name); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors border border-slate-200 dark:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={`Supprimer le projet ${project.name}`}>
+                                    <ProjectCardTooltip content={isDeleting ? "Suppression..." : "Supprimer"}>
+                                        <button onClick={(e) => { e.stopPropagation(); handleDelete(); }} disabled={isDeleting} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors border border-slate-200 dark:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Supprimer le projet ${project.name}`}>
                                             <Trash2 className="h-3.5 w-3.5" />
                                         </button>
                                     </ProjectCardTooltip>

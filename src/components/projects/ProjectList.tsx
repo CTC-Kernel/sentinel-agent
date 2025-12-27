@@ -28,6 +28,21 @@ export const ProjectList: React.FC<ProjectListProps> = ({
     projects, loading, canEdit, user, usersList = [], onEdit, onDelete, onBulkDelete, onSelect
 }) => {
     const { t } = useStore();
+    const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set());
+
+    const handleDelete = React.useCallback(async (id: string, name: string) => {
+        if (deletingIds.has(id)) return;
+        setDeletingIds(prev => new Set(prev).add(id));
+        try {
+            await onDelete(id, name);
+        } finally {
+            setDeletingIds(prev => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+        }
+    }, [deletingIds, onDelete]);
 
     const columns = useMemo<ColumnDef<Project>[]>(() => [
         {
@@ -132,8 +147,8 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                                 </button>
                             </CustomTooltip>
                             {canDeleteResource(user, 'Project') && (
-                                <CustomTooltip content={t('projects.tooltips.delete')}>
-                                    <button onClick={(e) => { e.stopPropagation(); onDelete(row.original.id, row.original.name); }} className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={`Supprimer le projet ${row.original.name}`}>
+                                <CustomTooltip content={deletingIds.has(row.original.id) ? "Suppression..." : t('projects.tooltips.delete')}>
+                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(row.original.id, row.original.name); }} disabled={deletingIds.has(row.original.id)} className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Supprimer le projet ${row.original.name}`}>
                                         <Trash2 className="h-4 w-4" />
                                     </button>
                                 </CustomTooltip>
@@ -143,7 +158,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                 </div>
             )
         }
-    ], [canEdit, onEdit, onDelete, user, usersList, t]);
+    ], [canEdit, onEdit, handleDelete, deletingIds, user, usersList, t]);
 
     return (
         <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
