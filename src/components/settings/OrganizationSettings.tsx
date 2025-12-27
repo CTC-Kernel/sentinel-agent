@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useStore } from '../../store';
 import { Building, Users, FileSpreadsheet, Search } from '../ui/Icons';
+import { useNavigate } from 'react-router-dom';
 
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,8 +19,11 @@ import { Organization, UserProfile } from '../../types';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { UserRow } from './UserRow';
 
+const SECONDS_TO_MS = 1000;
+
 export const OrganizationSettings: React.FC = () => {
     const { user, setUser, addToast, t } = useStore();
+    const navigate = useNavigate();
     const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
     const [savingOrg, setSavingOrg] = useState(false);
     const [subLoading, setSubLoading] = useState(false);
@@ -112,7 +116,7 @@ export const OrganizationSettings: React.FC = () => {
         setSubLoading(true);
         try {
             if (currentOrg?.subscription?.planId === 'discovery') {
-                window.location.href = '#/pricing';
+                navigate('/pricing');
             } else {
                 await SubscriptionService.manageSubscription(user.organizationId);
             }
@@ -162,13 +166,14 @@ export const OrganizationSettings: React.FC = () => {
             });
 
             addToast(t('settings.transferSuccess'), 'success');
-            window.location.reload();
+            // Refresh details instead of reloading
+            await fetchOrgDetails();
         } catch (error: unknown) {
             ErrorLogger.error(error, 'OrganizationSettings.handleTransferOwnership');
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             addToast(t('settings.transferError') + errorMessage, 'error');
         }
-    }, [currentOrg, user, t, addToast]);
+    }, [currentOrg, user, t, addToast, fetchOrgDetails]);
 
     const initiateTransfer = React.useCallback((targetId: string) => {
         setConfirmTransferData({
@@ -209,6 +214,15 @@ export const OrganizationSettings: React.FC = () => {
         u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.email?.toLowerCase().includes(searchTerm.toLowerCase())
     ), [usersList, searchTerm]);
+
+    const formatDate = (timestamp: unknown) => {
+        if (!timestamp) return '';
+        const ts = timestamp as { seconds?: number } | string | number;
+        const ms = (typeof ts === 'object' && 'seconds' in ts && ts.seconds)
+            ? ts.seconds * SECONDS_TO_MS
+            : Number(ts);
+        return new Date(ms).toLocaleDateString();
+    };
 
     return (
         <div className="space-y-6 animate-fade-in-up">
@@ -253,7 +267,7 @@ export const OrganizationSettings: React.FC = () => {
                                 </div>
                                 {currentOrg?.subscription?.currentPeriodEnd && (
                                     <p className="text-sm text-indigo-200 mt-1">
-                                        {t('settings.renewalDate').replace('{date}', new Date((currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds ? (currentOrg.subscription.currentPeriodEnd as unknown as { seconds: number }).seconds * 1000 : (currentOrg.subscription.currentPeriodEnd as string | number)).toLocaleDateString())}
+                                        {t('settings.renewalDate').replace('{date}', formatDate(currentOrg.subscription.currentPeriodEnd))}
                                     </p>
                                 )}
                             </div>

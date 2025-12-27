@@ -30,7 +30,8 @@ vi.mock('firebase/functions', () => ({
 
 vi.mock('../../firebase', () => ({
     auth: {},
-    functions: {}
+    functions: {},
+    analytics: {}
 }));
 
 // Mock Store
