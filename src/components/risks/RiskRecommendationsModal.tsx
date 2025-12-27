@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, CheckCircle2, BrainCircuit, ShieldCheck } from '../ui/Icons';
 
 import { RiskRecommendation } from '../../types';
@@ -11,6 +11,19 @@ interface RiskRecommendationsModalProps {
 }
 
 export const RiskRecommendationsModal: React.FC<RiskRecommendationsModalProps> = ({ isOpen, onClose, recommendations, isLoading }) => {
+    // Accessibility: Handle Escape key to close modal
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isOpen && !isLoading) {
+                onClose();
+            }
+        };
+        if (isOpen) {
+            document.addEventListener('keydown', handleEscape);
+            return () => document.removeEventListener('keydown', handleEscape);
+        }
+    }, [isOpen, isLoading, onClose]);
+
     if (!isOpen) return null;
 
     return (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { RISK_TEMPLATES, RiskTemplate } from '../../utils/riskTemplates';
 import { X, Zap, AlertTriangle, ShieldAlert } from '../ui/Icons';
@@ -19,6 +19,19 @@ interface RiskTemplateModalProps {
 export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, onClose, onSelectTemplate, users, isLoading = false }) => {
     const [selectedTemplate, setSelectedTemplate] = useState<RiskTemplate | null>(null);
     const [owner, setOwner] = useState('');
+
+    // Accessibility: Handle Escape key to close modal
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isOpen && !isLoading) {
+                onClose();
+            }
+        };
+        if (isOpen) {
+            document.addEventListener('keydown', handleEscape);
+            return () => document.removeEventListener('keydown', handleEscape);
+        }
+    }, [isOpen, isLoading, onClose]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

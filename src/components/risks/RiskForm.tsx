@@ -223,6 +223,23 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         }
     }, [existingRisk, reset, usersList]);
 
+    // Accessibility: Handle Escape key to close modal
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && !isLoading) {
+                // If the library modal is open, close it first
+                if (showLibraryModal) {
+                    setShowLibraryModal(false);
+                } else {
+                    // Otherwise close the main form
+                    onCancel();
+                }
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [isLoading, onCancel, showLibraryModal]);
+
     useEffect(() => {
         if (!assetId) return;
         const asset = assets.find(a => a.id === assetId);
