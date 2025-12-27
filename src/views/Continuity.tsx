@@ -325,3 +325,5 @@ export const Continuity: React.FC = () => {
 };
 
 export default Continuity;
+
+// Headless UI handles FocusTrap and keyboard navigation

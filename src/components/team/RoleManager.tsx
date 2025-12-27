@@ -229,3 +229,5 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
         </div>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

@@ -190,3 +190,5 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
         </Transition>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

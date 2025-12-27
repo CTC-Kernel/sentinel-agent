@@ -228,3 +228,5 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
         document.body
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

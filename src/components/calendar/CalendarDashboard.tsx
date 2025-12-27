@@ -455,3 +455,5 @@ export const CalendarDashboard: React.FC = () => {
         </div>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

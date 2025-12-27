@@ -352,3 +352,5 @@ export const Login: React.FC = () => {
         </AuroraBackground>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

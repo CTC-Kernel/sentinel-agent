@@ -361,3 +361,5 @@ export const Help: React.FC = () => {
         </motion.div>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

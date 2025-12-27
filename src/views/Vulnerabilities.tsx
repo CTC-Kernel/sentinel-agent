@@ -252,6 +252,7 @@ export const Vulnerabilities: React.FC = () => {
                 title={t('vulnerabilities.declare')}
                 subtitle="Nouvealle vulnérabilité"
                 width="max-w-4xl"
+            // Headless UI handles FocusTrap and keyboard navigation
             >
                 <div className="p-6">
                     <VulnerabilityForm

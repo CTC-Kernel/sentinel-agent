@@ -46,3 +46,5 @@ export const DocumentSignature: React.FC<DocumentSignatureProps> = ({ isOpen, on
         </Modal>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

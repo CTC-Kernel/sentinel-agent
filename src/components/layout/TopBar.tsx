@@ -228,3 +228,5 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
         </header>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

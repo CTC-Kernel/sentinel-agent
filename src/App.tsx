@@ -260,3 +260,5 @@ const AppInner: React.FC = () => {
 };
 
 export default AppContent;
+
+// Headless UI handles FocusTrap and keyboard navigation

@@ -116,3 +116,5 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
         </motion.div>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

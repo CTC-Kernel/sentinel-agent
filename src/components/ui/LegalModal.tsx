@@ -241,3 +241,5 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
         document.body
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

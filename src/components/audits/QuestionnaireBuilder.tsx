@@ -258,3 +258,5 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
         </Modal>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

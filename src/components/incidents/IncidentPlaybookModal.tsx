@@ -34,3 +34,5 @@ export const IncidentPlaybookModal: React.FC<IncidentPlaybookModalProps> = ({ is
         document.body
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

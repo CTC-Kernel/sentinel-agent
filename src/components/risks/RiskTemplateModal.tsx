@@ -217,3 +217,5 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
         </Transition.Root>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

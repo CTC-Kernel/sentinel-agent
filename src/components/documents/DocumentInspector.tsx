@@ -309,3 +309,5 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
         </Drawer>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

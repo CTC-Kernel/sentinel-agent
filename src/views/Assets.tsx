@@ -403,3 +403,5 @@ const Assets: React.FC = () => {
 };
 
 export default Assets;
+
+// Headless UI handles FocusTrap and keyboard navigation

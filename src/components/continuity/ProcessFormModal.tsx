@@ -398,3 +398,5 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
         </Modal>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

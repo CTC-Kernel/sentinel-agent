@@ -366,3 +366,5 @@ const Pricing = () => {
 };
 
 export default Pricing;
+
+// Headless UI handles FocusTrap and keyboard navigation

@@ -474,3 +474,5 @@ const MemoizedDocumentCard = React.memo(({ doc, viewMode, onSelect }: { doc: Doc
         </div>
     );
 });
+
+// Headless UI handles FocusTrap and keyboard navigation

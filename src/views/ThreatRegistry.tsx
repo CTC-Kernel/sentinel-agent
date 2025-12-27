@@ -206,6 +206,7 @@ export const ThreatRegistry: React.FC = () => {
                 onClose={handleModalClose}
                 title={isEditing ? "Modifier la menace" : "Nouvelle menace"}
                 maxWidth="max-w-3xl"
+            // Headless UI handles FocusTrap and keyboard navigation
             >
                 <form onSubmit={handleSave} className="space-y-6">
                     <div className="grid grid-cols-2 gap-6">

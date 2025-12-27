@@ -162,9 +162,8 @@ export const RoleManagement: React.FC = () => {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-3">
                                             {u.photoURL ? (
-                                                <img
+                                                <img alt={u.displayName || 'User'}
                                                     src={u.photoURL}
-                                                    alt={u.displayName}
                                                     className="h-10 w-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800"
                                                 />
                                             ) : (

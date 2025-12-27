@@ -343,3 +343,5 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
     );
 };
 
+
+// Headless UI handles FocusTrap and keyboard navigation

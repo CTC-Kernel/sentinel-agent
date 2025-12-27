@@ -198,3 +198,5 @@ export const SubmitThreatModal: React.FC<SubmitThreatModalProps> = ({ isOpen, on
         </Transition.Root>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

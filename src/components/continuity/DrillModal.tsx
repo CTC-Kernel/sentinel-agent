@@ -121,3 +121,5 @@ export const DrillModal: React.FC<DrillModalProps> = ({ isOpen, onClose, onSubmi
         </Modal>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

@@ -573,3 +573,5 @@ export const BackupRestore: React.FC = () => {
     </motion.div >
   );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

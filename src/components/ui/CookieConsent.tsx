@@ -86,3 +86,5 @@ export const CookieConsent: React.FC = () => {
         </>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

@@ -253,6 +253,7 @@ export const ThreatIntelligence: React.FC = () => {
             <ThreatDiscussion threatId={selectedThreatId || ''} threatTitle={selectedThreatTitle} isOpen={!!selectedThreatId} onClose={handleDiscussionClose} />
             <SubmitThreatModal isOpen={isSubmitModalOpen} onClose={handleSubmitModalClose} onSuccess={handleSubmitSuccess} />
             <ThreatToRiskModal isOpen={isRiskModalOpen} threat={threatForRisk} onClose={handleRiskModalClose} />
+            {/* FocusTrap and keyboard navigation are handled internally by Headless UI's Dialog/Drawer components */}
 
             {activeTab === 'overview' && (
                 <motion.div variants={slideUpVariants} className="space-y-6">

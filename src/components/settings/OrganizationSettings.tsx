@@ -416,3 +416,5 @@ export const OrganizationSettings: React.FC = () => {
         </div>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

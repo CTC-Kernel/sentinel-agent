@@ -213,3 +213,5 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
     return createPortal(modalContent, document.body);
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

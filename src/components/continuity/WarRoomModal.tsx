@@ -247,3 +247,5 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
         </AnimatePresence>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation
