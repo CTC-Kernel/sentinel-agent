@@ -264,6 +264,7 @@ export const CommandPalette: React.FC = () => {
                         placeholder={t('commandPalette.placeholder')}
                         className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-slate-900 dark:text-white placeholder-slate-400 outline-none font-medium h-auto py-0"
                         autoFocus
+                        aria-label="Rechercher une commande"
                     />
                     <div className="hidden sm:flex items-center gap-2">
                         {loading && <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>}

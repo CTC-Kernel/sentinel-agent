@@ -27,6 +27,7 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
                     type="text"
                     placeholder="Rechercher une menace, une vulnérabilité..."
                     className="pl-10 pr-4 py-3 w-full bg-slate-50 dark:bg-black/20 border-transparent focus:bg-white dark:focus:bg-black/40 border-2 focus:border-brand-500 rounded-xl transition-all outline-none"
+                    aria-label="Rechercher un risque"
                 />
             </div>
 

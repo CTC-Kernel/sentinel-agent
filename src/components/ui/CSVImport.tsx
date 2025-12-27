@@ -183,6 +183,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     onChange={handleFileUpload}
                                     className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
                                     id="csv-upload"
+                                    aria-label="Importer un fichier CSV"
                                 />
                                 <div className="relative z-0">
                                     <Upload className="h-12 w-12 text-slate-500 mx-auto mb-3" />
