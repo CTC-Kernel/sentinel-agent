@@ -25,13 +25,15 @@ vi.mock('firebase/auth', () => ({
 
 vi.mock('firebase/functions', () => ({
     getFunctions: vi.fn(),
-    httpsCallable: vi.fn(),
+    httpsCallable: vi.fn().mockReturnValue(vi.fn().mockResolvedValue({})),
 }));
 
 vi.mock('../../firebase', () => ({
+    __esModule: true,
     auth: {},
     functions: {},
-    analytics: {}
+    analytics: {},
+    default: { auth: {}, functions: {}, analytics: {} }
 }));
 
 // Mock Store
