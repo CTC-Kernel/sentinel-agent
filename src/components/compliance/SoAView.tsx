@@ -118,6 +118,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, handlers }) =
                                                 : 'border-none placeholder-slate-400'
                                                 }`}
                                             placeholder={missingJustification ? "Justification requise !" : "Ajouter une justification..."}
+                                            aria-label={`Justification pour ${control.title}`}
                                         />
                                     </td>
                                     <td className="px-4 py-3">

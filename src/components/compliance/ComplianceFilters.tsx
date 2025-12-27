@@ -29,6 +29,7 @@ export const ComplianceFilters: React.FC<ComplianceFiltersProps> = ({
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all text-sm"
+                    aria-label="Rechercher un contrôle"
                 />
             </div>
             <div className="flex gap-3">
