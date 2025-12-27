@@ -1,4 +1,4 @@
-import React, { useDeferredValue, useMemo, useState } from 'react';
+import React, { useDeferredValue, useMemo, useState, useCallback } from 'react';
 import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
@@ -22,6 +22,10 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useDocumentWorkflow } from '../hooks/documents/useDocumentWorkflow';
 import { useDocumentActions } from '../hooks/documents/useDocumentActions';
 import { useDocumentsData } from '../hooks/documents/useDocumentsData';
+import { DocumentFormData } from '../schemas/documentSchema';
+
+type WorkflowAction = 'submit' | 'approve' | 'reject' | 'sign';
+type DocumentFormPayload = DocumentFormData & { fileUrl?: string; fileHash?: string; isSecure?: boolean };
 
 export const Documents: React.FC = () => {
     const { user, t } = useStore();
@@ -149,7 +153,7 @@ export const Documents: React.FC = () => {
         if (selectedDocument) initiateDelete(selectedDocument, controls);
     }, [selectedDocument, initiateDelete, controls]);
 
-    const handleWorkflowActionClick = React.useCallback((action: any) => {
+    const handleWorkflowActionClick = useCallback((action: WorkflowAction) => {
         if (selectedDocument) handleWorkflowAction(selectedDocument, action);
     }, [selectedDocument, handleWorkflowAction]);
 
@@ -158,7 +162,7 @@ export const Documents: React.FC = () => {
         setIsEditing(false);
     }, []);
 
-    const handleFormSubmit = React.useCallback(async (data: any) => {
+    const handleFormSubmit = useCallback(async (data: DocumentFormPayload) => {
         if (isEditing && selectedDocument) {
             const updated = await handleUpdate(selectedDocument.id, data, selectedDocument);
             if (updated) setIsEditing(false);
@@ -168,9 +172,13 @@ export const Documents: React.FC = () => {
         }
     }, [isEditing, selectedDocument, handleUpdate, handleCreate]);
 
-    const handleCloseSignatureModal = React.useCallback(() => {
+    const handleCloseSignatureModal = useCallback(() => {
         setShowSignatureModal(false);
     }, [setShowSignatureModal]);
+
+    const handleConfirmClose = useCallback(() => {
+        setConfirmData(prev => ({ ...prev, isOpen: false }));
+    }, [setConfirmData]);
 
 
     if (loading) {
@@ -193,7 +201,7 @@ export const Documents: React.FC = () => {
 
             <ConfirmModal
                 isOpen={confirmData.isOpen}
-                onClose={React.useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), [setConfirmData])}
+                onClose={handleConfirmClose}
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}

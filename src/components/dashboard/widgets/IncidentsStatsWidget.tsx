@@ -70,7 +70,9 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
                     Incidents
                 </h3>
                 <button
-                    onClick={() => navigate && navigate('/incidents')}
+                    onClick={() => {
+                        if (navigate) navigate('/incidents');
+                    }}
                     className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                 >
                     Voir tout
@@ -92,11 +94,13 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
-                                navigate && navigate('/incidents');
+                                if (navigate) navigate('/incidents');
                             }
                         }}
                         className="rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/10 dark:to-emerald-900/20 border border-emerald-100/50 dark:border-emerald-900/40 p-3 flex flex-col justify-between hover:scale-[1.02] transition-transform cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                        onClick={() => navigate && navigate('/incidents')}
+                        onClick={() => {
+                            if (navigate) navigate('/incidents');
+                        }}
                     >
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">MTTR</span>
@@ -116,11 +120,13 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
-                                navigate && navigate('/incidents');
+                                if (navigate) navigate('/incidents');
                             }
                         }}
                         className="rounded-xl bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-900/10 dark:to-orange-900/20 border border-orange-100/50 dark:border-orange-900/40 p-3 flex flex-col justify-between hover:scale-[1.02] transition-transform cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
-                        onClick={() => navigate && navigate('/incidents')}
+                        onClick={() => {
+                            if (navigate) navigate('/incidents');
+                        }}
                     >
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">Critiques</span>

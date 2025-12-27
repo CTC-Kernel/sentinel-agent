@@ -59,10 +59,10 @@ export const Risks: React.FC = () => {
 
     // ... existing code ...
 
-    const handleDelete = async (risk: { id: string, name: string }) => {
+    const handleDelete = React.useCallback(async (risk: { id: string, name: string }) => {
         // Optimistic UI or Loading state could be added here if checkDependencies is slow
         // For now, we just await it.
-        if (!canEdit) {
+        if (!canEditResource(user as UserProfile, 'Risk')) {
             toast.error("Permission refusée");
             return;
         }
@@ -80,7 +80,7 @@ export const Risks: React.FC = () => {
             message: message,
             onConfirm: () => deleteRisk(risk.id, risk.name)
         });
-    };
+    }, [user, t, checkDependencies, deleteRisk]);
 
     // ... existing code ...
 
@@ -133,15 +133,16 @@ export const Risks: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Helper functions
-    const handleEdit = (risk: Risk) => {
-        if (!canEdit) return;
+    // Helper functions
+    const handleEdit = React.useCallback((risk: Risk) => {
+        if (!canEditResource(user as UserProfile, 'Risk')) return;
         setEditingRisk(risk);
         setCreationMode(true);
-    };
+    }, [user]);
 
 
 
-    const handleExportExecutive = async () => {
+    const handleExportExecutive = React.useCallback(async () => {
         setIsGeneratingReport(true);
         try {
             await PdfService.generateRiskExecutiveReport(filteredRisks, {
@@ -158,14 +159,14 @@ export const Risks: React.FC = () => {
         } finally {
             setIsGeneratingReport(false);
         }
-    };
+    }, [filteredRisks, t, user, setIsGeneratingReport]);
 
-    const handleExportPDF = async () => {
+    const handleExportPDF = React.useCallback(async () => {
         // Re-using executive report for now as it's the main PDF export
         handleExportExecutive();
-    };
+    }, [handleExportExecutive]);
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
@@ -178,11 +179,11 @@ export const Risks: React.FC = () => {
             }
         };
         reader.readAsText(file);
-    };
+    }, [importRisks]);
 
-    const onFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onFileInputChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         handleFileUpload(e);
-    };
+    }, [handleFileUpload]);
 
 
     // Callbacks
@@ -199,9 +200,7 @@ export const Risks: React.FC = () => {
         setActiveFilters(prev => ({ ...prev, query: q }));
     }, [setActiveFilters]);
 
-    const handleViewChange = React.useCallback((mode: string) => {
-        setViewMode(mode as 'list' | 'grid');
-    }, [setViewMode]);
+
 
     const handleFrameworkChange = React.useCallback((val: string | string[]) => {
         setFrameworkFilter(val as string);
@@ -290,6 +289,40 @@ export const Risks: React.FC = () => {
         risksSubtitle = t('risks.subtitle_exec');
     }
 
+    // UI Handlers
+    const handleTabChange = React.useCallback((id: string) => setActiveTab(id as any), [setActiveTab]);
+    const handleMatrixFilterChange = React.useCallback((filter: any) => {
+        setMatrixFilter(filter);
+        if (filter) setActiveTab('list');
+    }, [setMatrixFilter, setActiveTab]);
+    const handleViewModeChange = React.useCallback((mode: string) => setViewMode(mode as any), [setViewMode]);
+    const handleAdvancedSearchClose = React.useCallback(() => setShowAdvancedSearch(false), [setShowAdvancedSearch]);
+    const handleAdvancedSearchToggle = React.useCallback(() => setShowAdvancedSearch(prev => !prev), [setShowAdvancedSearch]);
+    const handleResetMatrixFilter = React.useCallback(() => setMatrixFilter(null), [setMatrixFilter]);
+    const handleEmptyAction = React.useCallback(() => setCreationMode(true), []);
+    const handleInspectorClose = React.useCallback(() => setSelectedRisk(null), []);
+    const handleInspectorDelete = React.useCallback((id: string, name: string) => handleDelete({ id, name }), [handleDelete]);
+    const handleCreationClose = React.useCallback(() => setCreationMode(false), []);
+    const handleFormCancel = React.useCallback(() => { setCreationMode(false); setEditingRisk(null); }, []);
+    const handleTemplateModalClose = React.useCallback(() => setIsTemplateModalOpen(false), []);
+    const handleConfirmClose = React.useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
+    const handleNewRiskClick = React.useCallback(() => { setEditingRisk(null); setCreationMode(true); }, []);
+    const handleImportClick = React.useCallback(() => fileInputRef.current?.click(), []);
+    const handleTemplateModalOpen = React.useCallback(() => setIsTemplateModalOpen(true), []);
+    const handleObsidianExport = React.useCallback(() => ObsidianService.exportRisksToObsidian(filteredRisks), [filteredRisks]);
+    const handleCSVExport = React.useCallback(() => exportCSV(filteredRisks), [exportCSV, filteredRisks]);
+
+    const tabs = React.useMemo(() => [
+        { id: 'overview', label: t('risks.overview'), icon: LayoutDashboard },
+        { id: 'list', label: t('risks.registry'), icon: List },
+        { id: 'matrix', label: t('risks.matrix'), icon: Grid3x3 },
+    ], [t]);
+
+    const viewOptions = React.useMemo(() => [
+        { id: 'list', label: t('assets.viewList'), icon: List },
+        { id: 'grid', label: t('assets.viewGrid'), icon: Grid3x3 }
+    ], [t]);
+
 
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-6">
@@ -304,13 +337,9 @@ export const Risks: React.FC = () => {
 
             {/* TABS */}
             <ScrollableTabs
-                tabs={[
-                    { id: 'overview', label: t('risks.overview'), icon: LayoutDashboard },
-                    { id: 'list', label: t('risks.registry'), icon: List },
-                    { id: 'matrix', label: t('risks.matrix'), icon: Grid3x3 },
-                ]}
+                tabs={tabs}
                 activeTab={activeTab}
-                onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'matrix')}
+                onTabChange={handleTabChange}
             />
 
             {/* OVERVIEW TAB */}
@@ -332,11 +361,8 @@ export const Risks: React.FC = () => {
                         onSearchChange={handleSearchChange}
                         searchPlaceholder={t('risks.searchPlaceholder')}
                         activeView={activeTab === 'list' ? viewMode : undefined}
-                        onViewChange={activeTab === 'list' ? handleViewChange : undefined}
-                        viewOptions={[
-                            { id: 'list', label: t('assets.viewList'), icon: List },
-                            { id: 'grid', label: t('assets.viewGrid'), icon: Grid3x3 }
-                        ]}
+                        onViewChange={activeTab === 'list' ? handleViewModeChange : undefined}
+                        viewOptions={viewOptions}
                         actions={
                             <>
                                 {/* Framework Filter */}
@@ -372,7 +398,7 @@ export const Risks: React.FC = () => {
                                 <CustomTooltip content={t('assets.advancedFilters')}>
                                     <button
                                         data-tour="risks-filters"
-                                        onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                                        onClick={handleAdvancedSearchToggle}
                                         aria-label={t('assets.advancedFilters')}
                                         className={`p-2.5 rounded-xl transition-all border shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${showAdvancedSearch
                                             ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
@@ -412,14 +438,14 @@ export const Risks: React.FC = () => {
                                                 </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button aria-label={t('risks.exportCsv')} onClick={() => exportCSV(filteredRisks)} disabled={isExportingCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        <button aria-label={t('risks.exportCsv')} onClick={handleCSVExport} disabled={isExportingCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                             {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} {t('risks.exportCsv')}
                                                         </button>
                                                     )}
                                                 </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button aria-label={t('risks.obsidian')} onClick={() => ObsidianService.exportRisksToObsidian(filteredRisks)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        <button aria-label={t('risks.obsidian')} onClick={handleObsidianExport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                             <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} /> {t('risks.obsidian')}
                                                         </button>
                                                     )}
@@ -432,7 +458,7 @@ export const Risks: React.FC = () => {
                                                         {({ active }) => (
                                                             <button
                                                                 aria-label={t('risks.importCsv')}
-                                                                onClick={() => fileInputRef.current?.click()}
+                                                                onClick={handleImportClick}
                                                                 disabled={isImporting}
                                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                             >
@@ -442,7 +468,7 @@ export const Risks: React.FC = () => {
                                                     </Menu.Item>
                                                     <Menu.Item>
                                                         {({ active }) => (
-                                                            <button aria-label={t('risks.templates')} onClick={() => setIsTemplateModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                            <button aria-label={t('risks.templates')} onClick={handleTemplateModalOpen} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                                 <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> {t('risks.templates')}
                                                             </button>
                                                         )}
@@ -482,7 +508,7 @@ export const Risks: React.FC = () => {
                                         <CustomTooltip content="Créer un nouveau risque">
                                             <button
                                                 data-tour="risks-create"
-                                                onClick={() => { setEditingRisk(null); setCreationMode(true); }}
+                                                onClick={handleNewRiskClick}
                                                 aria-label={t('risks.newRisk')}
                                                 className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500"
                                             >
@@ -506,7 +532,7 @@ export const Risks: React.FC = () => {
                 {showAdvancedSearch && (
                     <AdvancedSearch
                         onSearch={handleAdvancedSearch}
-                        onClose={() => setShowAdvancedSearch(false)}
+                        onClose={handleAdvancedSearchClose}
                     />
                 )}
             </AnimatePresence>
@@ -535,7 +561,7 @@ export const Risks: React.FC = () => {
                             emptyStateTitle={t('assets.emptyTitle')}
                             emptyStateDescription={t('assets.emptyDesc')}
                             emptyStateActionLabel={canEdit ? t('risks.newRisk') : undefined}
-                            onEmptyStateAction={canEdit ? () => setCreationMode(true) : undefined}
+                            onEmptyStateAction={canEdit ? handleEmptyAction : undefined}
                         />
                     )}
                 </motion.div>
@@ -550,18 +576,13 @@ export const Risks: React.FC = () => {
                                 {t('risks.matrix')} : {t('risks.searchPlaceholder')}
                             </span>
                             {/* Note: searchPlaceholder mismatch for Matrix filter, using "Filtre Matrice" text which wasn't fully translated. Let's fix locally or use a placeholder */}
-                            <button onClick={() => setMatrixFilter(null)} className="text-xs text-red-500 font-bold hover:underline" aria-label={t('common.reset')}>{t('common.reset')}</button>
+                            <button onClick={handleResetMatrixFilter} className="text-xs text-red-500 font-bold hover:underline" aria-label={t('common.reset')}>{t('common.reset')}</button>
                         </div>
                     )}
                     <RiskMatrix
                         risks={filteredRisks}
                         matrixFilter={matrixFilter}
-                        setMatrixFilter={(filter) => {
-                            setMatrixFilter(filter);
-                            // Optionally switch to list, but here we keep in Matrix logic if it shows details
-                            // If Matrix selection requires showing items, we might need a sub-view in Matrix tab
-                            if (filter) setActiveTab('list'); // Redirect to list to show filtered results
-                        }}
+                        setMatrixFilter={handleMatrixFilterChange}
                         frameworkFilter={frameworkFilter}
                     />
                 </motion.div>
@@ -569,7 +590,7 @@ export const Risks: React.FC = () => {
 
             <RiskInspector
                 isOpen={!!selectedRisk}
-                onClose={() => setSelectedRisk(null)}
+                onClose={handleInspectorClose}
                 risk={selectedRisk}
                 assets={assets}
                 controls={controls}
@@ -581,13 +602,13 @@ export const Risks: React.FC = () => {
                 canEdit={canEdit}
                 demoMode={demoMode}
                 onUpdate={updateRisk}
-                onDelete={(id, name) => handleDelete({ id, name })}
+                onDelete={handleInspectorDelete}
                 onDuplicate={handleDuplicateRisk}
             />
 
             <Drawer
                 isOpen={creationMode}
-                onClose={() => setCreationMode(false)}
+                onClose={handleCreationClose}
                 title={t('risks.newRisk')}
                 width="max-w-4xl"
             >
@@ -595,7 +616,7 @@ export const Risks: React.FC = () => {
                     <RiskForm
                         initialData={editingRisk || undefined}
                         onSubmit={handleFormSubmit}
-                        onCancel={() => { setCreationMode(false); setEditingRisk(null); }}
+                        onCancel={handleFormCancel}
                         assets={assets}
                         usersList={usersList}
                         processes={rawProcesses}
@@ -608,14 +629,14 @@ export const Risks: React.FC = () => {
 
             <RiskTemplateModal
                 isOpen={isTemplateModalOpen}
-                onClose={() => setIsTemplateModalOpen(false)}
+                onClose={handleTemplateModalClose}
                 onSelectTemplate={handleTemplateSelect}
                 users={usersList}
             />
 
             <ConfirmModal
                 isOpen={confirmData.isOpen}
-                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+                onClose={handleConfirmClose}
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}

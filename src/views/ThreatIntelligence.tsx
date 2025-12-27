@@ -79,7 +79,7 @@ export const ThreatIntelligence: React.FC = () => {
         }
     }, [threatsLoading, threats.length, user]);
 
-    const handleRefreshLiveFeed = async () => {
+    const handleRefreshLiveFeed = React.useCallback(async () => {
         if (isSeeding) return;
         setIsSeeding(true);
         addToast("Actualisation des flux live CISA & URLhaus...", "info");
@@ -95,7 +95,7 @@ export const ThreatIntelligence: React.FC = () => {
         } finally {
             setIsSeeding(false);
         }
-    };
+    }, [isSeeding, addToast, user?.organizationId]);
 
 
     const mapData = useMemo(() => {
@@ -140,7 +140,7 @@ export const ThreatIntelligence: React.FC = () => {
         return Object.entries(counts).sort(([, a], [, b]) => b - a).slice(0, 5).map(([name, count], i) => ({ name, count, rank: i + 1 }));
     }, [threats]);
 
-    const handleDownloadRule = (e: React.MouseEvent, threat: Threat) => {
+    const handleDownloadRule = React.useCallback((e: React.MouseEvent, threat: Threat) => {
         e.stopPropagation();
         const ruleContent = `title: ${threat.title}\nstatus: experimental\ndescription: SIGMA rule for ${threat.title}\nlogsource:\n    category: process_creation\n    product: windows\ndetection:\n    selection:\n        CommandLine|contains:\n            - '${threat.title.split(' ')[0]}'\n    condition: selection\nlevel: ${threat.severity === 'Critical' ? 'critical' : 'high'}`;
         const blob = new Blob([ruleContent], { type: 'text/yaml' });
@@ -153,7 +153,43 @@ export const ThreatIntelligence: React.FC = () => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         addToast("Règle de détection téléchargée", "success");
-    };
+    }, [addToast]);
+
+    // UI Handlers
+    const handleViewChange = React.useCallback((view: string) => setActiveTab(view as any), [setActiveTab]);
+    const handleSettingsOpen = React.useCallback(() => setIsSettingsOpen(true), []);
+    const handleSubmitModalOpen = React.useCallback(() => setIsSubmitModalOpen(true), []);
+    const handleSearchChange = React.useCallback((q: string) => setSearchTerm(q), []);
+    const handleTypeFilterChange = React.useCallback((f: string) => setActiveTypeFilter(f), []);
+    const handleCommunitySettingsClose = React.useCallback(() => setIsSettingsOpen(false), []);
+    const handleDiscussionClose = React.useCallback(() => setSelectedThreatId(null), []);
+    const handleSubmitModalClose = React.useCallback(() => setIsSubmitModalOpen(false), []);
+    const handleSubmitSuccess = React.useCallback(() => addToast("Menace signalée !", "success"), [addToast]);
+    const handleRiskModalClose = React.useCallback(() => setIsRiskModalOpen(false), []);
+    const handleToggleViewMode = React.useCallback(() => setViewMode(prev => prev === '2d' ? '3d' : '2d'), []);
+
+    const handleThreatSelect = React.useCallback((t: Threat) => {
+        setSelectedThreatId(t.id);
+        setSelectedThreatTitle(t.title);
+    }, []);
+
+    const handleConfirmSighting = React.useCallback((id: string) => {
+        confirmSighting(id);
+    }, [confirmSighting]);
+
+    const handleCreateRisk = React.useCallback((t: Threat) => {
+        setThreatForRisk(t);
+        setIsRiskModalOpen(true);
+    }, []);
+
+    const viewOptions = React.useMemo(() => [
+        { id: 'overview', label: 'Vue Globale', icon: LayoutDashboard },
+        { id: 'map', label: 'Carte Live', icon: Globe },
+        { id: 'feed', label: 'Flux Menaces', icon: List },
+        { id: 'community', label: 'Communauté', icon: Users },
+    ], []);
+
+    const filterOptions = React.useMemo(() => ['All', 'Ransomware', 'Vulnerability', 'Malware'], []);
 
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-8 pb-20">
@@ -170,10 +206,10 @@ export const ThreatIntelligence: React.FC = () => {
                         <button aria-label="Refresh threat feeds" onClick={handleRefreshLiveFeed} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 p-2 rounded-xl backdrop-blur-md transition-all" title="Refresh threat feeds">
                             <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin' : ''}`} />
                         </button>
-                        <button aria-label="Share new threat" onClick={() => setIsSubmitModalOpen(true)} className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl flex items-center text-sm font-bold shadow-lg shadow-brand-500/20" title="Share new threat">
+                        <button aria-label="Share new threat" onClick={handleSubmitModalOpen} className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl flex items-center text-sm font-bold shadow-lg shadow-brand-500/20" title="Share new threat">
                             <Share2 className="h-4 w-4 mr-2" /> Partager
                         </button>
-                        <button aria-label="Community settings" onClick={() => setIsSettingsOpen(true)} className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl border border-white/10" title="Community settings">
+                        <button aria-label="Community settings" onClick={handleSettingsOpen} className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl border border-white/10" title="Community settings">
                             <Settings className="h-5 w-5" />
                         </button>
                     </div>
@@ -182,15 +218,10 @@ export const ThreatIntelligence: React.FC = () => {
 
             <PremiumPageControl
                 activeView={activeTab}
-                onViewChange={(view) => setActiveTab(view as 'overview' | 'map' | 'feed' | 'community')}
-                viewOptions={[
-                    { id: 'overview', label: 'Vue Globale', icon: LayoutDashboard },
-                    { id: 'map', label: 'Carte Live', icon: Globe },
-                    { id: 'feed', label: 'Flux Menaces', icon: List },
-                    { id: 'community', label: 'Communauté', icon: Users },
-                ]}
+                onViewChange={handleViewChange}
+                viewOptions={viewOptions}
                 searchQuery={searchTerm}
-                onSearchChange={setSearchTerm}
+                onSearchChange={handleSearchChange}
                 searchPlaceholder="Rechercher une menace..."
                 actions={
                     activeTab === 'feed' && (
@@ -202,10 +233,10 @@ export const ThreatIntelligence: React.FC = () => {
                             <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" />
                             <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                 <div className="p-1">
-                                    {['All', 'Ransomware', 'Vulnerability', 'Malware'].map(f => (
+                                    {filterOptions.map(f => (
                                         <Menu.Item key={f}>
                                             {({ active }) => (
-                                                <button aria-label={`Filter by ${f}`} onClick={() => setActiveTypeFilter(f)} className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors`} title={`Filter by ${f}`}>
+                                                <button aria-label={`Filter by ${f}`} onClick={() => handleTypeFilterChange(f)} className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors`} title={`Filter by ${f}`}>
                                                     {f}
                                                 </button>
                                             )}
@@ -218,10 +249,10 @@ export const ThreatIntelligence: React.FC = () => {
                 }
             />
 
-            <CommunitySettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} partners={myPartners} onTrustAction={handleTrustAction} />
-            <ThreatDiscussion threatId={selectedThreatId || ''} threatTitle={selectedThreatTitle} isOpen={!!selectedThreatId} onClose={() => setSelectedThreatId(null)} />
-            <SubmitThreatModal isOpen={isSubmitModalOpen} onClose={() => setIsSubmitModalOpen(false)} onSuccess={() => addToast("Menace signalée !", "success")} />
-            <ThreatToRiskModal isOpen={isRiskModalOpen} threat={threatForRisk} onClose={() => setIsRiskModalOpen(false)} />
+            <CommunitySettingsModal isOpen={isSettingsOpen} onClose={handleCommunitySettingsClose} partners={myPartners} onTrustAction={handleTrustAction} />
+            <ThreatDiscussion threatId={selectedThreatId || ''} threatTitle={selectedThreatTitle} isOpen={!!selectedThreatId} onClose={handleDiscussionClose} />
+            <SubmitThreatModal isOpen={isSubmitModalOpen} onClose={handleSubmitModalClose} onSuccess={handleSubmitSuccess} />
+            <ThreatToRiskModal isOpen={isRiskModalOpen} threat={threatForRisk} onClose={handleRiskModalClose} />
 
             {activeTab === 'overview' && (
                 <motion.div variants={slideUpVariants} className="space-y-6">
@@ -233,7 +264,7 @@ export const ThreatIntelligence: React.FC = () => {
             {activeTab === 'map' && (
                 <motion.div variants={slideUpVariants} className="relative h-[70vh] min-h-[500px] w-full bg-slate-900 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden">
                     <div className="absolute top-6 right-6 z-10 flex gap-2">
-                        <button aria-label="Toggle 2D/3D view" onClick={() => setViewMode(viewMode === '2d' ? '3d' : '2d')} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold backdrop-blur-md flex items-center border border-white/10 transition-all" title="Toggle 2D/3D view">
+                        <button aria-label="Toggle 2D/3D view" onClick={handleToggleViewMode} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold backdrop-blur-md flex items-center border border-white/10 transition-all" title="Toggle 2D/3D view">
                             {viewMode === '2d' ? <Box className="h-4 w-4 mr-2" /> : <Globe className="h-4 w-4 mr-2" />}
                             {viewMode === '2d' ? 'Vue 3D' : 'Vue 2D'}
                         </button>
@@ -273,51 +304,14 @@ export const ThreatIntelligence: React.FC = () => {
                             />
                         ) : (
                             filteredThreats.map((threat) => (
-                                <motion.div
+                                <ThreatCard
                                     key={threat.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    onClick={() => { setSelectedThreatId(threat.id); setSelectedThreatTitle(threat.title); }}
-                                    className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-brand-500/30 transition-all group relative cursor-pointer"
-                                >
-                                    <div className="absolute top-6 right-6 flex items-center gap-3">
-                                        {(threat.id.startsWith('simulated') || threat.id.startsWith('baseline')) && (
-                                            <Badge status="neutral" variant="outline" className="opacity-70">Simulation</Badge>
-                                        )}
-                                        <span className="text-xs text-slate-400 font-mono">{threat.date}</span>
-                                        <Badge status={threat.severity === 'Critical' ? 'error' : threat.severity === 'High' ? 'warning' : 'info'} variant="soft">{threat.severity}</Badge>
-                                    </div>
-
-                                    <div className="flex gap-5">
-                                        <div className={`p-3 rounded-2xl h-fit ${threat.type === 'Ransomware' ? 'bg-red-50 text-red-500 dark:bg-red-900/20' : 'bg-blue-50 text-blue-500 dark:bg-blue-900/20'}`}>
-                                            <AlertOctagon className="h-6 w-6" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-brand-500 transition-colors">{threat.title}</h3>
-                                            <div className="flex items-center text-sm text-slate-500 gap-4 mb-4">
-                                                <span className="flex items-center"><Globe className="h-3 w-3 mr-1" /> {threat.country}</span>
-                                                <span className="flex items-center"><Users className="h-3 w-3 mr-1" /> {threat.author}</span>
-                                            </div>
-
-                                            <div className="flex items-center gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                                                <button aria-label="Confirm sighting" onClick={(e) => { e.stopPropagation(); confirmSighting(threat.id); }} className="flex items-center text-xs font-bold text-slate-500 hover:text-brand-500 transition-colors" title="Confirm sighting">
-                                                    <ThumbsUp className="h-4 w-4 mr-1.5" /> {threat.votes} Confirmations
-                                                </button>
-                                                <button aria-label="View discussions" className="flex items-center text-xs font-bold text-slate-500 hover:text-blue-500 transition-colors" title="View discussions">
-                                                    <MessageSquare className="h-4 w-4 mr-1.5" /> {threat.comments || 0} Discussions
-                                                </button>
-                                                <div className="ml-auto flex gap-2">
-                                                    <button aria-label="Download SIGMA rule" onClick={(e) => handleDownloadRule(e, threat)} className="text-xs font-bold text-emerald-600 hover:text-emerald-500 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/10 rounded-lg transition-colors" title="Download SIGMA rule">
-                                                        SIGMA Rule
-                                                    </button>
-                                                    <button aria-label="Create risk from threat" onClick={(e) => { e.stopPropagation(); setThreatForRisk(threat); setIsRiskModalOpen(true); }} className="text-xs font-bold text-orange-600 hover:text-orange-500 px-3 py-1 bg-orange-50 dark:bg-orange-900/10 rounded-lg transition-colors" title="Create risk from threat">
-                                                        Créer Risque
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </motion.div>
+                                    threat={threat}
+                                    onSelect={handleThreatSelect}
+                                    onConfirmSighting={handleConfirmSighting}
+                                    onDownloadRule={handleDownloadRule}
+                                    onCreateRisk={handleCreateRisk}
+                                />
                             ))
                         )}
                     </div>
@@ -390,3 +384,64 @@ export const ThreatIntelligence: React.FC = () => {
         </motion.div>
     );
 };
+
+const ThreatCard = React.memo(({
+    threat,
+    onSelect,
+    onConfirmSighting,
+    onDownloadRule,
+    onCreateRisk
+}: {
+    threat: Threat,
+    onSelect: (t: Threat) => void,
+    onConfirmSighting: (id: string) => void,
+    onDownloadRule: (e: React.MouseEvent, t: Threat) => void,
+    onCreateRisk: (t: Threat) => void
+}) => {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => onSelect(threat)}
+            className="bg-white dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-brand-500/30 transition-all group relative cursor-pointer"
+        >
+            <div className="absolute top-6 right-6 flex items-center gap-3">
+                {(threat.id.startsWith('simulated') || threat.id.startsWith('baseline')) && (
+                    <Badge status="neutral" variant="outline" className="opacity-70">Simulation</Badge>
+                )}
+                <span className="text-xs text-slate-400 font-mono">{threat.date}</span>
+                <Badge status={threat.severity === 'Critical' ? 'error' : threat.severity === 'High' ? 'warning' : 'info'} variant="soft">{threat.severity}</Badge>
+            </div>
+
+            <div className="flex gap-5">
+                <div className={`p-3 rounded-2xl h-fit ${threat.type === 'Ransomware' ? 'bg-red-50 text-red-500 dark:bg-red-900/20' : 'bg-blue-50 text-blue-500 dark:bg-blue-900/20'}`}>
+                    <AlertOctagon className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-brand-500 transition-colors">{threat.title}</h3>
+                    <div className="flex items-center text-sm text-slate-500 gap-4 mb-4">
+                        <span className="flex items-center"><Globe className="h-3 w-3 mr-1" /> {threat.country}</span>
+                        <span className="flex items-center"><Users className="h-3 w-3 mr-1" /> {threat.author}</span>
+                    </div>
+
+                    <div className="flex items-center gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                        <button aria-label="Confirm sighting" onClick={(e) => { e.stopPropagation(); onConfirmSighting(threat.id); }} className="flex items-center text-xs font-bold text-slate-500 hover:text-brand-500 transition-colors" title="Confirm sighting">
+                            <ThumbsUp className="h-4 w-4 mr-1.5" /> {threat.votes} Confirmations
+                        </button>
+                        <button aria-label="View discussions" className="flex items-center text-xs font-bold text-slate-500 hover:text-blue-500 transition-colors" title="View discussions">
+                            <MessageSquare className="h-4 w-4 mr-1.5" /> {threat.comments || 0} Discussions
+                        </button>
+                        <div className="ml-auto flex gap-2">
+                            <button aria-label="Download SIGMA rule" onClick={(e) => onDownloadRule(e, threat)} className="text-xs font-bold text-emerald-600 hover:text-emerald-500 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/10 rounded-lg transition-colors" title="Download SIGMA rule">
+                                SIGMA Rule
+                            </button>
+                            <button aria-label="Create risk from threat" onClick={(e) => { e.stopPropagation(); onCreateRisk(threat); }} className="text-xs font-bold text-orange-600 hover:text-orange-500 px-3 py-1 bg-orange-50 dark:bg-orange-900/10 rounded-lg transition-colors" title="Create risk from threat">
+                                Créer Risque
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+    );
+});

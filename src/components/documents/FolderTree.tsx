@@ -29,7 +29,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, id: string, loading?: boolean }>({ isOpen: false, id: '' });
     const [isCreatingFolder, setIsCreatingFolder] = useState(false);
 
-    const toggleExpand = React.useCallback((folderId: string, e: React.MouseEvent) => {
+    const toggleExpand = React.useCallback((folderId: string, e: React.MouseEvent | React.KeyboardEvent) => {
         e.stopPropagation();
         setExpandedFolders(prev =>
             prev.includes(folderId) ? prev.filter(id => id !== folderId) : [...prev, folderId]
@@ -98,9 +98,13 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                     onClick={() => onSelectFolder(folder.id)}
                     tabIndex={0}
                     onKeyDown={(e) => {
-                        if (e.key === 'Enter') onSelectFolder(folder.id);
-                        if (e.key === 'ArrowRight') !isExpanded && toggleExpand(folder.id, e as any);
-                        if (e.key === 'ArrowLeft') isExpanded && toggleExpand(folder.id, e as any);
+                        if (e.key === 'Enter') {
+                            onSelectFolder(folder.id);
+                        } else if (e.key === 'ArrowRight' && !isExpanded) {
+                            toggleExpand(folder.id, e);
+                        } else if (e.key === 'ArrowLeft' && isExpanded) {
+                            toggleExpand(folder.id, e);
+                        }
                     }}
                     onContextMenu={(e) => {
                         e.preventDefault();

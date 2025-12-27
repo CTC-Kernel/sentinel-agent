@@ -1,4 +1,4 @@
-import React, { useDeferredValue, useEffect, useMemo, useState, useRef } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
@@ -50,6 +50,8 @@ const getScoreColor = (score: number) => {
     if (score >= 50) return 'bg-amber-500';
     return 'bg-red-500';
 };
+
+type DashboardFilter = { type: string; value: string };
 
 export const Suppliers: React.FC = () => {
     const [filter, setFilter] = useState('');
@@ -142,7 +144,7 @@ export const Suppliers: React.FC = () => {
 
 
     // Derived State
-    const suppliers = React.useMemo(() => {
+    const suppliers = useMemo(() => {
         const resolved = suppliersRaw.map(s => {
             if (!s.ownerId && s.owner) {
                 const ownerUser = usersRaw.find(u => u.displayName === s.owner);
@@ -176,7 +178,7 @@ export const Suppliers: React.FC = () => {
     }
 
     // Hook Definitions
-    const handleDelete = React.useCallback(async (id: string, name: string) => {
+    const handleDelete = useCallback(async (id: string, name: string) => {
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await deleteSupplier(id, name);
@@ -189,7 +191,7 @@ export const Suppliers: React.FC = () => {
         }
     }, [deleteSupplier, selectedSupplier]);
 
-    const initiateDelete = React.useCallback(async (id: string, name: string) => {
+    const initiateDelete = useCallback(async (id: string, name: string) => {
         if (!canEdit) return;
 
         // Check dependencies
@@ -213,7 +215,7 @@ export const Suppliers: React.FC = () => {
     }, [canEdit, handleDelete, t, checkDependencies]);
 
     // Logic to start assessment (Moved up)
-    const startAssessment = React.useCallback(async (supplier: Supplier, templateId: string) => {
+    const startAssessment = useCallback(async (supplier: Supplier, templateId: string) => {
         if (!templateId || !user?.organizationId) return;
         try {
             const tpl = templates.find(t => t.id === templateId);
@@ -227,52 +229,52 @@ export const Suppliers: React.FC = () => {
     }, [user, templates, setAssessmentMode, addToast]);
 
     // Callbacks
-    const handleSearchChange = React.useCallback((q: string) => {
+    const handleSearchChange = useCallback((q: string) => {
         setFilter(q);
     }, []);
 
-    const handleViewModeChange = React.useCallback((mode: string) => {
+    const handleViewModeChange = useCallback((mode: string) => {
         setViewMode(mode as 'grid' | 'list' | 'matrix' | 'kanban');
     }, [setViewMode]);
 
-    const handleImportClick = React.useCallback(() => {
+    const handleImportClick = useCallback(() => {
         fileInputRef.current?.click();
     }, []);
 
-    const handleCreationDrawerOpen = React.useCallback(() => {
+    const handleCreationDrawerOpen = useCallback(() => {
         setCreationMode(true);
         setSelectedSupplier(null);
     }, []);
 
-    const handleCreationDrawerClose = React.useCallback(() => {
+    const handleCreationDrawerClose = useCallback(() => {
         setCreationMode(false);
     }, []);
 
-    const handleTemplateModeOpen = React.useCallback(() => {
+    const handleTemplateModeOpen = useCallback(() => {
         setTemplateMode(true);
     }, []);
 
-    const handleTemplateModeClose = React.useCallback(() => {
+    const handleTemplateModeClose = useCallback(() => {
         setTemplateMode(false);
     }, []);
 
-    const handleAssessmentClose = React.useCallback(() => {
+    const handleAssessmentClose = useCallback(() => {
         setAssessmentMode(null);
     }, []);
 
-    const handleInspectorClose = React.useCallback(() => {
+    const handleInspectorClose = useCallback(() => {
         setSelectedSupplier(null);
     }, []);
 
-    const handleTabChange = React.useCallback((id: string) => {
+    const handleTabChange = useCallback((id: string) => {
         setInspectorTab(id as 'profile' | 'assessment' | 'incidents' | 'history' | 'comments' | 'intelligence');
     }, []);
 
-    const handleCommentsClick = React.useCallback(() => {
+    const handleCommentsClick = useCallback(() => {
         setInspectorTab('comments');
     }, []);
 
-    const handleStartAssessmentClick = React.useCallback(() => {
+    const handleStartAssessmentClick = useCallback(() => {
         if (selectedSupplier && templates.length > 0) {
             startAssessment(selectedSupplier, templates[0].id);
         } else if (templates.length === 0) {
@@ -280,23 +282,23 @@ export const Suppliers: React.FC = () => {
         }
     }, [selectedSupplier, templates, startAssessment, addToast]);
 
-    const handleDashboardFilterChange = React.useCallback((filter: any) => {
+    const handleDashboardFilterChange = useCallback((filter: DashboardFilter | null) => {
         if (filter?.type === 'criticality') {
             // Implement filter logic if needed
         }
     }, []);
 
-    const handleMenuClick = React.useCallback((e: React.MouseEvent) => {
+    const handleMenuClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
     }, []);
 
-    const handleStartNewAssessment = React.useCallback(() => {
+    const handleStartNewAssessment = useCallback(() => {
         if (selectedSupplier && templates.length > 0) {
             startAssessment(selectedSupplier, templates[0].id);
         }
     }, [selectedSupplier, templates, startAssessment]);
 
-    const openInspector = React.useCallback(async (supplier: Supplier) => {
+    const openInspector = useCallback(async (supplier: Supplier) => {
         setSelectedSupplier(supplier);
         setInspectorTab('profile');
         editForm.reset({
@@ -328,7 +330,7 @@ export const Suppliers: React.FC = () => {
         return suppliers.filter(s => s.name.toLowerCase().includes(needle));
     }, [suppliers, deferredFilter]);
 
-    const columns = React.useMemo<ColumnDef<Supplier>[]>(() => [
+    const columns = useMemo<ColumnDef<Supplier>[]>(() => [
         {
             accessorKey: 'name',
             header: t('common.name'),
@@ -427,7 +429,7 @@ export const Suppliers: React.FC = () => {
                 </div>
             )
         }
-    ], [canEdit, initiateDelete, t]);
+    ], [canEdit, initiateDelete, t, handleMenuClick]);
 
     // Import
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -448,30 +450,6 @@ export const Suppliers: React.FC = () => {
             setInspectorTab('profile');
         }
     }, [location.state, loadingSuppliers, loadingData, suppliers]);
-
-
-
-    // Render Assessment View Overlay
-    if (assessmentMode) {
-        return (
-            <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 animate-slide-up">
-                <AssessmentView responseId={assessmentMode} onClose={handleAssessmentClose} />
-            </div>
-        );
-    }
-
-    // Render Builder
-    if (templateMode) {
-        return (
-            <div className="p-8 max-w-5xl mx-auto animate-fade-in">
-                <div className="mb-6 flex items-center">
-                    <button aria-label="Retour au tableau de bord" onClick={handleTemplateModeClose} className="text-slate-500 hover:text-slate-700 mr-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-2" title="Retour au tableau de bord">Retour</button>
-                    <h1 className="text-2xl font-bold dark:text-white">Éditeur de Modèle de Questionnaire</h1>
-                </div>
-                <QuestionnaireBuilder onCancel={handleTemplateModeClose} onSave={handleTemplateModeClose} />
-            </div>
-        )
-    }
 
 
 
@@ -516,7 +494,7 @@ export const Suppliers: React.FC = () => {
 
 
 
-    const handleExportCSV = React.useCallback(async () => {
+    const handleExportCSV = useCallback(async () => {
         if (isExportingCSV) return;
         setIsExportingCSV(true);
         try {
@@ -536,7 +514,7 @@ export const Suppliers: React.FC = () => {
         }
     }, [isExportingCSV, filteredSuppliers]);
 
-    const handleExportDORARegister = React.useCallback(async () => {
+    const handleExportDORARegister = useCallback(async () => {
         if (isExportingDORA) return;
         setIsExportingDORA(true);
         try {
@@ -556,7 +534,7 @@ export const Suppliers: React.FC = () => {
         }
     }, [isExportingDORA, filteredSuppliers]);
 
-    const handleFileUpload = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         if (!canEdit || !user?.organizationId) return;
         const file = event.target.files?.[0];
         if (!file) return;
@@ -578,6 +556,30 @@ export const Suppliers: React.FC = () => {
         reader.readAsText(file);
     }, [canEdit, user, importSuppliers]);
 
+    const handleConfirmClose = useCallback(() => {
+        setConfirmData(prev => ({ ...prev, isOpen: false }));
+    }, []);
+
+    if (assessmentMode) {
+        return (
+            <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 animate-slide-up">
+                <AssessmentView responseId={assessmentMode} onClose={handleAssessmentClose} />
+            </div>
+        );
+    }
+
+    if (templateMode) {
+        return (
+            <div className="p-8 max-w-5xl mx-auto animate-fade-in">
+                <div className="mb-6 flex items-center">
+                    <button aria-label="Retour au tableau de bord" onClick={handleTemplateModeClose} className="text-slate-500 hover:text-slate-700 mr-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-2" title="Retour au tableau de bord">Retour</button>
+                    <h1 className="text-2xl font-bold dark:text-white">Éditeur de Modèle de Questionnaire</h1>
+                </div>
+                <QuestionnaireBuilder onCancel={handleTemplateModeClose} onSave={handleTemplateModeClose} />
+            </div>
+        );
+    }
+
     return (
         <motion.div
             variants={staggerContainerVariants}
@@ -593,7 +595,7 @@ export const Suppliers: React.FC = () => {
             />
             <ConfirmModal
                 isOpen={confirmData.isOpen}
-                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+                onClose={handleConfirmClose}
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}

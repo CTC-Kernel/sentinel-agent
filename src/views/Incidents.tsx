@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { useStore } from '../store';
 import { Incident, UserProfile, Criticality } from '../types';
@@ -91,7 +91,7 @@ export const Incidents: React.FC = () => {
 
     const loading = loadingData;
 
-    const handleImportFromEvents = async (events: SecurityEvent[]) => {
+    const handleImportFromEvents = useCallback(async (events: SecurityEvent[]) => {
         setIsSubmitting(true);
         try {
             await importIncidentsFromEvents(events);
@@ -100,9 +100,9 @@ export const Incidents: React.FC = () => {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [importIncidentsFromEvents]);
 
-    const handleSimulateAttack = async () => {
+    const handleSimulateAttack = useCallback(async () => {
         setIsSubmitting(true);
         try {
             const result = await simulateAttack();
@@ -116,9 +116,9 @@ export const Incidents: React.FC = () => {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [simulateAttack]);
 
-
+    // ... useEffect restored ...
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
         if (!state.fromVoxel || !state.voxelSelectedId) return;
@@ -129,9 +129,8 @@ export const Incidents: React.FC = () => {
         }
     }, [location.state, loading, incidents]);
 
-
-    const handleCreate = async (data: IncidentFormData) => {
-        if (!user?.organizationId || (!canEdit && !hasPermission(user, 'Incident', 'create'))) return;
+    const handleCreate = useCallback(async (data: IncidentFormData) => {
+        if (!user?.organizationId || (!canEditResource(user, 'Incident') && !hasPermission(user, 'Incident', 'create'))) return;
         setIsSubmitting(true);
         try {
             await addIncident(data);
@@ -141,10 +140,10 @@ export const Incidents: React.FC = () => {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [user, addIncident]); // removed canEdit since we use canEditResource directly inside
 
-    const handleUpdate = async (data: IncidentFormData) => {
-        if (!user?.organizationId || !selectedIncident || !canEdit) return;
+    const handleUpdate = useCallback(async (data: IncidentFormData) => {
+        if (!user?.organizationId || !selectedIncident || !canEditResource(user, 'Incident')) return;
         setIsSubmitting(true);
         try {
             const updated = await updateIncident(selectedIncident.id, data, selectedIncident);
@@ -156,20 +155,9 @@ export const Incidents: React.FC = () => {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [user, selectedIncident, updateIncident]);
 
-    const initiateDelete = (id: string) => {
-        if (!canDeleteResource(user, 'Incident')) return;
-        setConfirmData({
-            isOpen: true,
-            title: t('incidents.deleteTitle'),
-            message: t('incidents.deleteMessage'),
-            onConfirm: () => handleDelete(id),
-            closeOnConfirm: false
-        });
-    };
-
-    const handleDelete = async (id: string) => {
+    const handleDelete = useCallback(async (id: string) => {
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await deleteIncident(id);
@@ -180,9 +168,20 @@ export const Incidents: React.FC = () => {
         } finally {
             setConfirmData(prev => ({ ...prev, loading: false }));
         }
-    };
+    }, [deleteIncident, selectedIncident]);
 
-    const handleBulkDelete = async (ids: string[]) => {
+    const initiateDelete = useCallback((id: string) => {
+        if (!canDeleteResource(user, 'Incident')) return;
+        setConfirmData({
+            isOpen: true,
+            title: t('incidents.deleteTitle'),
+            message: t('incidents.deleteMessage'),
+            onConfirm: () => handleDelete(id),
+            closeOnConfirm: false
+        });
+    }, [user, t, handleDelete]);
+
+    const handleBulkDelete = useCallback(async (ids: string[]) => {
         if (!canDeleteResource(user, 'Incident')) return;
 
         setConfirmData({
@@ -193,8 +192,7 @@ export const Incidents: React.FC = () => {
                 setConfirmData(prev => ({ ...prev, loading: true }));
                 try {
                     await deleteIncidentsBulk(ids);
-                    const selectedId = selectedIncident?.id;
-                    if (selectedId && ids.includes(selectedId)) setSelectedIncident(null);
+                    if (selectedIncident?.id && ids.includes(selectedIncident.id)) setSelectedIncident(null);
                     setConfirmData(prev => ({ ...prev, isOpen: false }));
                 } catch (error) {
                     ErrorLogger.warn('Bulk delete handled in hook', 'Incidents.handleBulkDelete', { metadata: { error } });
@@ -203,7 +201,7 @@ export const Incidents: React.FC = () => {
                 }
             }
         });
-    };
+    }, [user, t, deleteIncidentsBulk, selectedIncident]);
 
     const canEdit = canEditResource(user, 'Incident');
 
@@ -240,7 +238,7 @@ export const Incidents: React.FC = () => {
         };
     }, [incidents]);
 
-    const getBreadcrumbs = () => {
+    const breadcrumbs = useMemo(() => {
         const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Incidents', onClick: () => { setSelectedIncident(null); setCreationMode(false); } }];
 
         if (creationMode) {
@@ -256,7 +254,20 @@ export const Incidents: React.FC = () => {
         }
 
         return crumbs;
-    };
+    }, [creationMode, selectedIncident]);
+
+    // UI Handlers
+    const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as any), [setViewMode]);
+    const handleConfirmClose = useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
+    const handleImportModalClose = useCallback(() => setImportModalOpen(false), []);
+    const handleStatusFilterChange = useCallback((val: string | string[]) => setStatusFilter(val as string), []);
+    const handleSeverityFilterChange = useCallback((val: string | string[]) => setSeverityFilter(val as string), []);
+    const handleOpenImport = useCallback(() => setImportModalOpen(true), []);
+    const handleOpenCreate = useCallback(() => setCreationMode(true), []);
+    const handleSelectIncident = useCallback((inc: Incident) => setSelectedIncident(inc), []);
+    const handleInspectorClose = useCallback(() => setSelectedIncident(null), []);
+    const handleCloseCreateDrawer = useCallback(() => setCreationMode(false), []);
+    const handleCancelCreate = useCallback(() => setCreationMode(false), []);
 
     return (
         <motion.div
@@ -271,7 +282,7 @@ export const Incidents: React.FC = () => {
                 description="Détection, analyse et réponse aux incidents de sécurité (SOC/CSIRT)."
                 keywords="Incidents, SOC, CSIRT, Cyberattaque, Réponse, Analyse, Playbooks, SIEM"
             />
-            <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} loading={confirmData.loading || loadingAction} closeOnConfirm={confirmData.closeOnConfirm} />
+            <ConfirmModal isOpen={confirmData.isOpen} onClose={handleConfirmClose} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} loading={confirmData.loading || loadingAction} closeOnConfirm={confirmData.closeOnConfirm} />
 
             <motion.div variants={slideUpVariants}>
                 <PageHeader
@@ -285,7 +296,7 @@ export const Incidents: React.FC = () => {
 
             <IncidentImportModal
                 isOpen={importModalOpen}
-                onClose={() => setImportModalOpen(false)}
+                onClose={handleImportModalClose}
                 onImport={handleImportFromEvents}
             />
 
@@ -369,14 +380,14 @@ export const Incidents: React.FC = () => {
                 onSearchChange={setFilter}
                 searchPlaceholder={t('risks.searchPlaceholder')}
                 viewMode={viewMode}
-                onViewModeChange={(mode) => setViewMode(mode as 'list' | 'grid' | 'kanban')}
+                onViewModeChange={handleViewModeChange}
                 actions={
                     canEdit && (
                         <>
                             <div className="hidden md:block w-40 mr-2">
                                 <CustomSelect
                                     value={statusFilter}
-                                    onChange={(val) => setStatusFilter(val as string)}
+                                    onChange={handleStatusFilterChange}
                                     options={[
                                         { value: '', label: t('incidents.allStatuses') },
                                         { value: 'Nouveau', label: 'Nouveau' },
@@ -391,7 +402,7 @@ export const Incidents: React.FC = () => {
                             <div className="hidden md:block w-40 mr-4">
                                 <CustomSelect
                                     value={severityFilter}
-                                    onChange={(val) => setSeverityFilter(val as string)}
+                                    onChange={handleSeverityFilterChange}
                                     options={[
                                         { value: '', label: t('incidents.allSeverities') },
                                         { value: Criticality.CRITICAL, label: 'Critique' },
@@ -426,7 +437,7 @@ export const Incidents: React.FC = () => {
                                                 {({ active }) => (
                                                     <button
                                                         aria-label={t('incidents.importSiem')}
-                                                        onClick={() => setImportModalOpen(true)}
+                                                        onClick={handleOpenImport}
                                                         className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
                                                             } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                     >
@@ -456,7 +467,7 @@ export const Incidents: React.FC = () => {
                             <CustomTooltip content={t('incidents.declare')}>
                                 <button
                                     aria-label={t('incidents.declare')}
-                                    onClick={() => setCreationMode(true)}
+                                    onClick={handleOpenCreate}
                                     className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-600/20"
                                 >
                                     <Plus className="h-5 w-5 mr-2" />
@@ -472,15 +483,15 @@ export const Incidents: React.FC = () => {
                 {viewMode === 'kanban' ? (
                     <IncidentKanban
                         incidents={incidents.filter(i => i.title.toLowerCase().includes(filter.toLowerCase()))}
-                        onSelect={(inc: Incident) => { setSelectedIncident(inc); }}
+                        onSelect={handleSelectIncident}
                     />
                 ) : (
                     <IncidentDashboard
                         incidents={incidents}
                         filter={filter}
                         viewMode={viewMode}
-                        onCreate={() => setCreationMode(true)}
-                        onSelect={(inc: Incident) => { setSelectedIncident(inc); }}
+                        onCreate={handleOpenCreate}
+                        onSelect={handleSelectIncident}
                         loading={loading}
                         onDelete={initiateDelete}
                         onBulkDelete={handleBulkDelete}
@@ -492,7 +503,7 @@ export const Incidents: React.FC = () => {
             {/* Inspector */}
             <IncidentInspector
                 isOpen={!!selectedIncident}
-                onClose={() => { setSelectedIncident(null); }}
+                onClose={handleInspectorClose}
                 incident={selectedIncident}
 
                 users={effectiveUsers}
@@ -507,16 +518,16 @@ export const Incidents: React.FC = () => {
             {/* Create Drawer */}
             <Drawer
                 isOpen={creationMode}
-                onClose={() => setCreationMode(false)}
+                onClose={handleCloseCreateDrawer}
                 title={t('incidents.declare')}
                 subtitle={t('incidents.newIncident')}
                 width="max-w-4xl"
-                breadcrumbs={getBreadcrumbs()}
+                breadcrumbs={breadcrumbs}
             >
                 <div className="p-6">
                     <IncidentForm
                         onSubmit={handleCreate}
-                        onCancel={() => setCreationMode(false)}
+                        onCancel={handleCancelCreate}
                         users={effectiveUsers}
                         processes={rawProcesses}
                         assets={assets}

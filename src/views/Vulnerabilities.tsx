@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { useStore } from '../store';
 import { Vulnerability } from '../types';
@@ -75,7 +75,7 @@ export const Vulnerabilities: React.FC = () => {
         }
     }, [location.state, loading, vulnerabilities]);
 
-    const handleCreate = async (data: Partial<Vulnerability>) => {
+    const handleCreate = useCallback(async (data: Partial<Vulnerability>) => {
         if (!user?.organizationId) return;
         try {
             await addVulnerability(data);
@@ -83,9 +83,9 @@ export const Vulnerabilities: React.FC = () => {
         } catch {
             ErrorLogger.warn('Creation handled in hook');
         }
-    };
+    }, [user, addVulnerability]);
 
-    const handleUpdate = async (data: Partial<Vulnerability>) => {
+    const handleUpdate = useCallback(async (data: Partial<Vulnerability>) => {
         if (!selectedVulnerability || !selectedVulnerability.id) return;
         try {
             await updateVulnerability(selectedVulnerability.id, data || {});
@@ -93,9 +93,9 @@ export const Vulnerabilities: React.FC = () => {
         } catch {
             ErrorLogger.warn('Update handled in hook');
         }
-    };
+    }, [selectedVulnerability, updateVulnerability]);
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = useCallback(async (id: string) => {
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await deleteVulnerability(id);
@@ -106,9 +106,9 @@ export const Vulnerabilities: React.FC = () => {
         } finally {
             setConfirmData(prev => ({ ...prev, loading: false }));
         }
-    };
+    }, [deleteVulnerability, selectedVulnerability]);
 
-    const initiateDelete = (id: string) => {
+    const initiateDelete = useCallback((id: string) => {
         if (!canDeleteResource(user, 'Vulnerability')) return;
         setConfirmData({
             isOpen: true,
@@ -117,7 +117,21 @@ export const Vulnerabilities: React.FC = () => {
             onConfirm: () => handleDelete(id),
             closeOnConfirm: false
         });
-    };
+    }, [user, t, handleDelete]);
+
+    // UI Handlers
+    const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as 'list' | 'grid' | 'kanban'), [setViewMode]);
+    const handleImportClick = useCallback(() => setImportModalOpen(true), []);
+    const handleCreateClick = useCallback(() => setCreationMode(true), []);
+    const handleCloseCreateDrawer = useCallback(() => setCreationMode(false), []);
+    const handleCloseEditDrawer = useCallback(() => setSelectedVulnerability(null), []);
+    const handleCancelCreate = useCallback(() => setCreationMode(false), []);
+    const handleCancelEdit = useCallback(() => setSelectedVulnerability(null), []);
+    const handleImportModalClose = useCallback(() => setImportModalOpen(false), []);
+    const handleConfirmClose = useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
+    const handleImportMock = useCallback(async () => {
+        // Logic for file handling usually in component or hook
+    }, []);
 
     const canEdit = canEditResource(user, 'Vulnerability');
 
@@ -134,15 +148,12 @@ export const Vulnerabilities: React.FC = () => {
                 description="Gestion des vulnérabilités, veille CVE et remédiation."
                 keywords="CVE, CVSS, Vulnérabilités, Patch Management"
             />
-            <ConfirmModal isOpen={confirmData.isOpen} onClose={() => setConfirmData({ ...confirmData, isOpen: false })} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} loading={confirmData.loading || loadingAction} closeOnConfirm={confirmData.closeOnConfirm} />
+            <ConfirmModal isOpen={confirmData.isOpen} onClose={handleConfirmClose} onConfirm={confirmData.onConfirm} title={confirmData.title} message={confirmData.message} loading={confirmData.loading || loadingAction} closeOnConfirm={confirmData.closeOnConfirm} />
 
             <VulnerabilityImportModal
                 isOpen={importModalOpen}
-                onClose={() => setImportModalOpen(false)}
-                onImport={async () => {
-                    // Logic for file handling usually in component or hook
-                    // Here passing empty implementation as Placeholder for future CSV logic if needed
-                }}
+                onClose={handleImportModalClose}
+                onImport={handleImportMock}
             />
 
             <motion.div variants={slideUpVariants}>
@@ -164,7 +175,7 @@ export const Vulnerabilities: React.FC = () => {
                 onSearchChange={setFilter}
                 searchPlaceholder={t('vulnerabilities.searchPlaceholder')}
                 viewMode={viewMode}
-                onViewModeChange={(mode) => setViewMode(mode as 'list' | 'grid' | 'kanban')}
+                onViewModeChange={handleViewModeChange}
                 actions={
                     canEdit && (
                         <>
@@ -188,7 +199,7 @@ export const Vulnerabilities: React.FC = () => {
                                                     {({ active }) => (
                                                         <button
                                                             aria-label="Import Scan"
-                                                            onClick={() => setImportModalOpen(true)}
+                                                            onClick={handleImportClick}
                                                             className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
                                                                 } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                         >
@@ -204,7 +215,7 @@ export const Vulnerabilities: React.FC = () => {
 
                                 <CustomTooltip content="Create new vulnerability">
                                     <button
-                                        onClick={() => setCreationMode(true)}
+                                        onClick={handleCreateClick}
                                         className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-brand-600/20"
                                         aria-label="Create new vulnerability"
                                     >
@@ -235,10 +246,9 @@ export const Vulnerabilities: React.FC = () => {
                 )}
             </motion.div>
 
-            {/* Create Drawer */}
             <Drawer
                 isOpen={creationMode}
-                onClose={() => setCreationMode(false)}
+                onClose={handleCloseCreateDrawer}
                 title={t('vulnerabilities.declare')}
                 subtitle="Nouvealle vulnérabilité"
                 width="max-w-4xl"
@@ -246,7 +256,7 @@ export const Vulnerabilities: React.FC = () => {
                 <div className="p-6">
                     <VulnerabilityForm
                         onSubmit={handleCreate}
-                        onCancel={() => setCreationMode(false)}
+                        onCancel={handleCancelCreate}
                         assets={assets}
                         projects={projects}
                         users={users} // Pass users if needed for assignment
@@ -258,7 +268,7 @@ export const Vulnerabilities: React.FC = () => {
             {/* Edit/Inspect Drawer */}
             <Drawer
                 isOpen={!!selectedVulnerability}
-                onClose={() => setSelectedVulnerability(null)}
+                onClose={handleCloseEditDrawer}
                 title={selectedVulnerability?.title || ''}
                 subtitle="Détails de la vulnérabilité"
                 width="max-w-4xl"
@@ -268,7 +278,7 @@ export const Vulnerabilities: React.FC = () => {
                         <VulnerabilityForm
                             initialData={selectedVulnerability}
                             onSubmit={handleUpdate}
-                            onCancel={() => setSelectedVulnerability(null)}
+                            onCancel={handleCancelEdit}
                             assets={assets}
                             projects={projects}
                             users={users}
