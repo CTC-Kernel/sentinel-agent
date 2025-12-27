@@ -236,7 +236,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                     stroke="none"
                                 >
                                     {distributionData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
+                                        <Cell key={`cell-${index}`} fill={entry.color} className="drop-shadow-sm" />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<ChartTooltip />} cursor={false} />
@@ -312,7 +312,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                                     stroke="none"
                                 >
                                     {scopeChartData.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={SCOPE_COLORS[index % SCOPE_COLORS.length]} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
+                                        <Cell key={`cell-${index}`} fill={SCOPE_COLORS[index % SCOPE_COLORS.length]} className="drop-shadow-sm" />
                                     ))}
                                 </Pie>
                                 <Tooltip content={<ChartTooltip />} cursor={false} />

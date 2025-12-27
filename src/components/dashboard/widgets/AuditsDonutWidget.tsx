@@ -90,7 +90,7 @@ export const AuditsDonutWidget: React.FC<AuditsDonutWidgetProps> = ({ navigate, 
                             onClick={() => navigate && navigate('/audits')}
                         >
                             {data.map((_entry, index) => (
-                                <Cell key={`cell-${index}`} fill={`url(#auditPieGradient-${index})`} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.1))' }} />
+                                <Cell key={`cell-${index}`} fill={`url(#auditPieGradient-${index})`} className="drop-shadow-sm" />
                             ))}
                         </Pie>
                         <Tooltip content={<ChartTooltip />} />

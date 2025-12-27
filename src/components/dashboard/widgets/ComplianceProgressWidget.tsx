@@ -87,7 +87,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                             r="42"
                             cx="48"
                             cy="48"
-                            style={{ filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.1))' }}
+                            className="drop-shadow-sm"
                         />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">

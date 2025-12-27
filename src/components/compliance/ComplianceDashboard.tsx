@@ -266,7 +266,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         stroke="none"
                                     >
                                         {statusData.map((_, index) => (
-                                            <Cell key={`cell-${index}`} fill={`url(#pieStatusGradient-${index})`} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
+                                            <Cell key={`cell-${index}`} fill={`url(#pieStatusGradient-${index})`} className="drop-shadow-sm" />
                                         ))}
                                     </Pie>
                                     <Tooltip content={<ChartTooltip />} cursor={false} />
