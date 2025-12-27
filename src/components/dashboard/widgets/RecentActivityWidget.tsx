@@ -71,9 +71,18 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ rece
                     ))}
                     {!isExpanded && allFilteredActivity.length > 5 && (
                         <div className="mt-3 text-center pl-8">
-                            <span className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer" onClick={() => setIsExpanded(true)}>
+                            <button
+                                onClick={() => setIsExpanded(true)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        setIsExpanded(true);
+                                    }
+                                }}
+                                className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-2 py-1"
+                            >
                                 +{allFilteredActivity.length - 5} {t('common.more').toLowerCase()}
-                            </span>
+                            </button>
                         </div>
                     )}
                 </div>
