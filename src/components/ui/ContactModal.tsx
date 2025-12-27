@@ -97,8 +97,9 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                         </label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                            <input value={formData.name}
+                                            <input
                                                 id="contact-name"
+                                                value={formData.name}
                                                 name="name"
                                                 type="text"
                                                 required
@@ -115,8 +116,9 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                         </label>
                                         <div className="relative">
                                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                            <input value={formData.email}
+                                            <input
                                                 id="contact-email"
+                                                value={formData.email}
                                                 name="email"
                                                 type="email"
                                                 required
@@ -133,8 +135,9 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                         </label>
                                         <div className="relative">
                                             <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                            <input value={formData.subject}
+                                            <input
                                                 id="contact-subject"
+                                                value={formData.subject}
                                                 name="subject"
                                                 type="text"
                                                 required

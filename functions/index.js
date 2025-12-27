@@ -9,6 +9,7 @@ const sgMail = require('@sendgrid/mail');
 
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { beforeUserSignedIn } = require("firebase-functions/v2/identity");
 const { defineString, defineSecret } = require("firebase-functions/params");
 const nodemailer = require("nodemailer");
 const { getMessaging } = require('firebase-admin/messaging');
@@ -18,6 +19,137 @@ const { validate, z } = require('./utils/validation'); // Added validation impor
 // Hardcoded secrets for Zero Config deployment (User requested)
 
 const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-threat-consulting.com" });
+
+const ssoProviderEnum = z.enum(['password', 'google', 'apple', 'microsoft', 'okta', 'saml']);
+const enforcementModeEnum = z.enum(['monitor', 'strict']);
+const SUPPORTED_SSO_PROVIDERS = ssoProviderEnum.options;
+const DEFAULT_ALLOWED_SSO_PROVIDERS = ['password', 'google', 'apple'];
+
+const PROVIDER_NORMALIZATION_MAP = {
+    password: 'password',
+    'google.com': 'google',
+    google: 'google',
+    'apple.com': 'apple',
+    apple: 'apple',
+    'microsoft.com': 'microsoft',
+    microsoft: 'microsoft',
+    'login.microsoftonline.com': 'microsoft',
+    okta: 'okta',
+    'okta.com': 'okta',
+    saml: 'saml',
+    'saml.com': 'saml'
+};
+
+const normalizeProvider = (providerId = '') => {
+    const key = providerId.toLowerCase();
+    return PROVIDER_NORMALIZATION_MAP[key] || key.replace('.com', '');
+};
+
+const getDefaultSsoSettings = (organizationId) => ({
+    organizationId,
+    allowedProviders: DEFAULT_ALLOWED_SSO_PROVIDERS,
+    defaultProvider: 'password',
+    enforcementMode: 'monitor',
+    notes: null,
+    updatedAt: null,
+    updatedBy: null
+});
+
+const getSsoSettingsDocRef = (orgId) => admin.firestore().collection('organization_settings').doc(orgId);
+
+const fetchOrganizationSsoSettings = async (organizationId) => {
+    const doc = await getSsoSettingsDocRef(organizationId).get();
+    if (!doc.exists) {
+        return getDefaultSsoSettings(organizationId);
+    }
+
+    const data = doc.data() || {};
+    const sanitizedAllowedProviders = (data.allowedProviders || DEFAULT_ALLOWED_SSO_PROVIDERS)
+        .map(normalizeProvider)
+        .filter((provider) => SUPPORTED_SSO_PROVIDERS.includes(provider));
+
+    return {
+        ...getDefaultSsoSettings(organizationId),
+        ...data,
+        allowedProviders: Array.from(new Set(sanitizedAllowedProviders)),
+        defaultProvider: data.defaultProvider ? normalizeProvider(data.defaultProvider) : 'password'
+    };
+};
+
+const persistAuthAuditLog = async ({
+    provider,
+    status,
+    email,
+    errorCode,
+    metadata,
+    organizationId,
+    ip,
+    source
+}) => {
+    try {
+        await admin.firestore().collection('auth_audit_logs').add({
+            provider: normalizeProvider(provider),
+            status,
+            email: (email || '').toLowerCase(),
+            errorCode: errorCode || null,
+            metadata: metadata || null,
+            organizationId: organizationId || null,
+            timestamp: new Date().toISOString(),
+            source: source || 'client_pre_auth',
+            ip: ip || null
+        });
+    } catch (error) {
+        logger.error('Error persisting auth audit log', error);
+    }
+};
+
+const resolveOrganizationContext = async ({ userId, email }) => {
+    const db = admin.firestore();
+    const context = { organizationId: null, userRecord: null };
+    const normalizedEmail = email ? email.toLowerCase() : null;
+
+    if (userId) {
+        const userSnap = await db.collection('users').doc(userId).get();
+        if (userSnap.exists) {
+            context.userRecord = { id: userSnap.id, ...userSnap.data() };
+            context.organizationId = userSnap.data().organizationId || null;
+        }
+    }
+
+    if (!context.organizationId && normalizedEmail) {
+        const userQuery = await db.collection('users').where('email', '==', normalizedEmail).limit(1).get();
+        if (!userQuery.empty) {
+            const doc = userQuery.docs[0];
+            context.userRecord = { id: doc.id, ...doc.data() };
+            context.organizationId = doc.data().organizationId || null;
+        }
+    }
+
+    if (!context.organizationId && normalizedEmail && normalizedEmail.includes('@')) {
+        const domain = normalizedEmail.split('@')[1];
+        if (domain) {
+            const orgQuery = await db.collection('organizations').where('domain', '==', domain).limit(1).get();
+            if (!orgQuery.empty) {
+                context.organizationId = orgQuery.docs[0].id;
+            }
+        }
+    }
+
+    return context;
+};
+
+const ssoSettingsSchema = z.object({
+    allowedProviders: z.array(ssoProviderEnum).min(1),
+    defaultProvider: ssoProviderEnum.optional(),
+    enforcementMode: enforcementModeEnum.default('monitor'),
+    notes: z.string().max(2000).nullable().optional()
+});
+
+const canManageSsoSettings = (token = {}) =>
+    token.superAdmin === true || token.role === 'admin' || token.role === 'rssi';
+
+const canViewSsoSettings = (token = {}) =>
+    canManageSsoSettings(token) || token.role === 'auditor';
 
 /**
  * Public Callable Function to log authentication attempts (pre-login)
@@ -30,21 +162,174 @@ exports.logAuthAttempt = onCall(async (request) => {
     }
 
     try {
-        await admin.firestore().collection('auth_audit_logs').add({
+        const orgContext = await resolveOrganizationContext({
+            userId: metadata?.userId,
+            email
+        });
+
+        await persistAuthAuditLog({
             provider,
             status,
-            email: (email || '').toLowerCase(),
-            errorCode: errorCode || null,
-            metadata: metadata || null,
-            timestamp: new Date().toISOString(),
-            source: 'client_pre_auth',
-            ip: request.rawRequest.ip || null
+            email,
+            errorCode,
+            metadata,
+            ip: request.rawRequest?.ip || null,
+            organizationId: orgContext.organizationId,
+            source: 'client_pre_auth'
         });
 
         return { success: true };
     } catch (error) {
         logger.error('Error in logAuthAttempt callable:', error);
         throw new HttpsError('internal', 'Failed to log auth attempt.');
+    }
+});
+
+exports.beforeUserSignedIn = beforeUserSignedIn(async (event) => {
+    const providerId = event.credential?.providerId || event.data?.providerId || 'password';
+    const normalizedProvider = normalizeProvider(providerId);
+
+    const { organizationId, userRecord } = await resolveOrganizationContext({
+        userId: event.user?.uid,
+        email: event.user?.email
+    });
+
+    if (!organizationId) {
+        // Allow first login but log for follow-up
+        await persistAuthAuditLog({
+            provider: normalizedProvider,
+            status: 'failure',
+            email: event.user?.email,
+            errorCode: 'missing_organization',
+            metadata: { reason: 'No organization context resolved before sign-in' },
+            source: 'before_sign_in',
+            ip: event.rawRequest?.ip || null
+        });
+
+        return;
+    }
+
+    const settings = await fetchOrganizationSsoSettings(organizationId);
+    const isAllowed = settings.allowedProviders.includes(normalizedProvider);
+
+    if (!isAllowed && settings.enforcementMode === 'strict') {
+        await persistAuthAuditLog({
+            provider: normalizedProvider,
+            status: 'failure',
+            email: event.user?.email,
+            errorCode: 'provider_not_allowed',
+            metadata: {
+                enforcementMode: settings.enforcementMode,
+                allowedProviders: settings.allowedProviders,
+                requestedProvider: normalizedProvider
+            },
+            organizationId,
+            source: 'before_sign_in',
+            ip: event.rawRequest?.ip || null
+        });
+
+        throw new HttpsError('permission-denied', 'SSO provider is not allowed for this organization.');
+    }
+
+    await persistAuthAuditLog({
+        provider: normalizedProvider,
+        status: isAllowed ? 'success' : 'attempt',
+        email: event.user?.email,
+        metadata: {
+            enforcementMode: settings.enforcementMode,
+            allowedProviders: settings.allowedProviders,
+            requestedProvider: normalizedProvider
+        },
+        organizationId,
+        source: 'before_sign_in',
+        ip: event.rawRequest?.ip || null
+    });
+
+    event.data.sessionClaims = {
+        ...(event.data.sessionClaims || {}),
+        organizationId,
+        role: userRecord?.role || 'user',
+        allowedSsoProviders: settings.allowedProviders,
+        ssoEnforcementMode: settings.enforcementMode
+    };
+});
+
+exports.getSsoSettings = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in to access SSO settings.');
+    }
+
+    const token = request.auth.token;
+    const organizationId = request.auth.token.organizationId || request.data?.organizationId;
+
+    if (!organizationId) {
+        throw new HttpsError('invalid-argument', 'Organization ID is required.');
+    }
+
+    if (!canViewSsoSettings(token) && token.organizationId !== organizationId) {
+        throw new HttpsError('permission-denied', 'Insufficient permissions to view organization SSO settings.');
+    }
+
+    try {
+        const settings = await fetchOrganizationSsoSettings(organizationId);
+        return { data: settings, supportedProviders: SUPPORTED_SSO_PROVIDERS };
+    } catch (error) {
+        logger.error('Error fetching SSO settings', error);
+        throw new HttpsError('internal', 'Failed to fetch settings.');
+    }
+});
+
+exports.updateSsoSettings = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in to update SSO settings.');
+    }
+
+    const token = request.auth.token;
+    const organizationId = request.auth.token.organizationId || request.data?.organizationId;
+
+    if (!organizationId) {
+        throw new HttpsError('invalid-argument', 'Organization ID is required.');
+    }
+
+    if (!canManageSsoSettings(token) || token.organizationId !== organizationId) {
+        throw new HttpsError('permission-denied', 'Insufficient permissions to update organization SSO settings.');
+    }
+
+    const payload = validate(ssoSettingsSchema, request.data || {});
+    const normalizedAllowedProviders = Array.from(new Set(payload.allowedProviders.map(normalizeProvider)));
+
+    try {
+        const docRef = getSsoSettingsDocRef(organizationId);
+        const nextSettings = {
+            allowedProviders: normalizedAllowedProviders,
+            defaultProvider: payload.defaultProvider ? normalizeProvider(payload.defaultProvider) : normalizedAllowedProviders[0],
+            enforcementMode: payload.enforcementMode || 'monitor',
+            notes: payload.notes || null,
+            updatedAt: new Date().toISOString(),
+            updatedBy: request.auth.uid
+        };
+
+        await docRef.set(nextSettings, { merge: true });
+        await persistAuthAuditLog({
+            provider: 'sso',
+            status: 'success',
+            email: token.email,
+            metadata: {
+                action: 'update_sso_settings',
+                organizationId,
+                allowedProviders: nextSettings.allowedProviders,
+                defaultProvider: nextSettings.defaultProvider,
+                enforcementMode: nextSettings.enforcementMode
+            },
+            organizationId,
+            ip: request.rawRequest?.ip || null,
+            source: 'backend'
+        });
+
+        return { success: true, data: nextSettings };
+    } catch (error) {
+        logger.error('Error updating SSO settings', error);
+        throw new HttpsError('internal', 'Failed to update settings: ' + error.message);
     }
 });
 

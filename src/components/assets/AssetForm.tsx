@@ -622,19 +622,21 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                 : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
                                 }`}
                         >
-                            <input checked={(watch('scope') || []).includes(scope)} onChange={(e) => {
-                                const current = watch('scope') || [];
-                                if (e.target.checked) {
-                                    setValue('scope', [...current, scope], { shouldDirty: true });
-                                } else {
-                                    setValue('scope', current.filter((s: string) => s !== scope), { shouldDirty: true });
-                                }
-                            }}
-                                type="checkbox"
+                            <input
                                 id={`scope-${scope}`}
+                                type="checkbox"
                                 name="scope"
-                                className="sr-only peer"
                                 value={scope}
+                                className="sr-only peer"
+                                checked={(watch('scope') || []).includes(scope)}
+                                onChange={(e) => {
+                                    const current = watch('scope') || [];
+                                    if (e.target.checked) {
+                                        setValue('scope', [...current, scope], { shouldDirty: true });
+                                    } else {
+                                        setValue('scope', current.filter((s: string) => s !== scope), { shouldDirty: true });
+                                    }
+                                }}
                             />
                             {scope.replace('_', ' ')}
                         </label>
