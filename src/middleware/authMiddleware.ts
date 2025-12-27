@@ -48,6 +48,7 @@ export const authenticate = (requiredRole?: string) => {
       } catch (error: unknown) {
         // Gestion des erreurs spécifiques
         if (error instanceof Error && error.message === 'Invalid or expired token') {
+          logger.warn({ err: error }, 'Invalid or expired token');
           return res.status(401).json({
             error: 'Unauthorized',
             message: 'Invalid or expired token'

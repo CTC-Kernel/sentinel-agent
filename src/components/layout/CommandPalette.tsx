@@ -81,7 +81,7 @@ export const CommandPalette: React.FC = () => {
                     const item = filteredItems[selectedIndex];
                     if (item.action) {
                         item.action();
-                    } else if (item.path) {
+                    } else if (item.path && item.path.startsWith('/')) {
                         navigate(item.path);
                     }
                     setIsOpen(false);
@@ -239,7 +239,7 @@ export const CommandPalette: React.FC = () => {
     const handleSelect = (item: CommandItem) => {
         if (item.action) {
             item.action();
-        } else if (item.path) {
+        } else if (item.path && item.path.startsWith('/')) {
             navigate(item.path);
         }
         setIsOpen(false);

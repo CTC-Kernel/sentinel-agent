@@ -54,13 +54,19 @@ export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = ({ healthIssu
                         {displayIssues.map(issue => (
                             <CustomTooltip key={issue.id} content={t('dashboard.clickToResolve')} position="top" className="w-full">
                                 <div
-                                    onClick={() => navigate(issue.link)}
+                                    onClick={() => {
+                                        if (issue.link.startsWith('/')) {
+                                            navigate(issue.link);
+                                        }
+                                    }}
                                     role="button"
                                     tabIndex={0}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
                                             e.preventDefault();
-                                            navigate(issue.link);
+                                            if (issue.link.startsWith('/')) {
+                                                navigate(issue.link);
+                                            }
                                         }
                                     }}
                                     className={`flex items-start p-4 rounded-2xl border cursor-pointer hover:scale-[1.02] transition-all w-full ${issue.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 hover:shadow-md hover:shadow-red-500/5' : 'bg-orange-50/80 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30 hover:shadow-md hover:shadow-orange-500/5'}`}

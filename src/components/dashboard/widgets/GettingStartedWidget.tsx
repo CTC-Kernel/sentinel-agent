@@ -99,6 +99,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
             } catch (error) {
                 const code = (error as { code?: string })?.code;
                 if (code === 'permission-denied') {
+                    ErrorLogger.warn('Permission denied for getting started status', 'GettingStartedWidget', { metadata: { error } });
                     sessionStorage.setItem(blockedKey, '1');
                     return;
                 }

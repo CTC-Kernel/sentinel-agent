@@ -137,9 +137,11 @@ describe('Reports View', () => {
 
     it('renders generation tab by default', () => {
         render(
-            <MemoryRouter>
-                <Reports />
-            </MemoryRouter>
+            <HelmetProvider>
+                <MemoryRouter>
+                    <Reports />
+                </MemoryRouter>
+            </HelmetProvider>
         );
 
         expect(screen.getByText('reports.title')).toBeInTheDocument();

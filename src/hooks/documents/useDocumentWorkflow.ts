@@ -184,12 +184,12 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
                 const pdfBytes = await pdfDoc.save();
                 const blob = new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
-                window.open(url, '_blank');
+                if (url.startsWith('blob:')) window.open(url, '_blank');
             } else {
                 // Non-PDF
                 const blob = new Blob([arrayBuffer], { type: mimeType });
                 const url = URL.createObjectURL(blob);
-                window.open(url, '_blank');
+                if (url.startsWith('blob:')) window.open(url, '_blank');
             }
 
             if (user) await logAction(user, 'VIEW', 'Document', `Consultation sécurisée: ${docItem.title}`);

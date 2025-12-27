@@ -43,8 +43,8 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionIt
                         {displayItems.map(item => (
                             <div
                                 key={item.id}
-                                onClick={() => navigate(item.link)}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(item.link); } }}
+                                onClick={() => { if (item.link.startsWith('/')) navigate(item.link); }}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (item.link.startsWith('/')) navigate(item.link); } }}
                                 role="button"
                                 tabIndex={0}
                                 aria-label={`Ouvrir ${item.title}`}
