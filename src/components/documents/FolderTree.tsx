@@ -82,78 +82,46 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         }
     }, [confirmDelete.id, onDeleteFolder]);
 
-    const rootFolders = folders.filter(f => !f.parentId).sort((a, b) => a.name.localeCompare(b.name));
 
-    const renderFolder = (folder: DocumentFolder, depth: number = 0) => {
-        const children = folders.filter(f => f.parentId === folder.id).sort((a, b) => a.name.localeCompare(b.name));
-        const isExpanded = expandedFolders.includes(folder.id);
-        const isSelected = selectedFolderId === folder.id;
-        const isEditing = editingFolderId === folder.id;
+    const handleCreateRoot = React.useCallback(() => {
+        setCreateParentId(undefined);
+        setShowCreateModal(true);
+    }, []);
 
-        return (
-            <div key={folder.id} className="select-none">
-                <div
-                    className={`flex items-center py-2 px-3 rounded-lg cursor-pointer transition-colors group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isSelected ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300' : 'hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'}`}
-                    style={{ paddingLeft: `${depth * 16 + 12}px` }}
-                    onClick={() => onSelectFolder(folder.id)}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            onSelectFolder(folder.id);
-                        } else if (e.key === 'ArrowRight' && !isExpanded) {
-                            toggleExpand(folder.id, e);
-                        } else if (e.key === 'ArrowLeft' && isExpanded) {
-                            toggleExpand(folder.id, e);
-                        }
-                    }}
-                    onContextMenu={(e) => {
-                        e.preventDefault();
-                        setContextMenu({ id: folder.id, x: e.clientX, y: e.clientY });
-                    }}
-                >
-                    <button
-                        aria-label={isExpanded ? "Replier le dossier" : "Déplier le dossier"}
-                        onClick={(e) => toggleExpand(folder.id, e)}
-                        className={`p-1 rounded hover:bg-slate-200 dark:hover:bg-white/10 mr-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${children.length === 0 ? 'invisible' : ''}`}
-                    >
-                        {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                    </button>
+    const handleSelectAll = React.useCallback(() => onSelectFolder(null), [onSelectFolder]);
+    const handleSelectAllKeyDown = React.useCallback((e: React.KeyboardEvent) => e.key === 'Enter' && onSelectFolder(null), [onSelectFolder]);
 
-                    {isEditing ? (
-                        <input
-                            aria-label="Renommer le dossier"
-                            type="text"
-                            value={newFolderName}
-                            onChange={(e) => setNewFolderName(e.target.value)}
-                            onBlur={() => handleUpdateSubmit(folder.id)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleUpdateSubmit(folder.id)}
-                            autoFocus
-                            className="flex-1 bg-white dark:bg-slate-800 border border-brand-500 rounded px-2 py-0.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                            onClick={(e) => e.stopPropagation()}
-                        />
-                    ) : (
-                        <div className="flex items-center flex-1 overflow-hidden">
-                            {isExpanded ? <FolderOpen className="h-4 w-4 mr-2 text-brand-500" /> : <Folder className="h-4 w-4 mr-2 text-brand-500" />}
-                            <span className="truncate text-sm font-medium">{folder.name}</span>
-                        </div>
-                    )}
+    const handleContextMenuOpen = React.useCallback((e: React.MouseEvent, id: string) => {
+        e.preventDefault();
+        setContextMenu({ id, x: e.clientX, y: e.clientY });
+    }, []);
 
-                    <button
-                        aria-label="Options du dossier"
-                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-200 dark:hover:bg-white/10 rounded transition-opacity focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setContextMenu({ id: folder.id, x: e.clientX, y: e.clientY });
-                        }}
-                    >
-                        <MoreVertical className="h-3 w-3" />
-                    </button>
-                </div>
+    const handleContextMenuCreateSub = React.useCallback(() => {
+        if (!contextMenu) return;
+        setCreateParentId(contextMenu.id);
+        setShowCreateModal(true);
+        setContextMenu(null);
+    }, [contextMenu]);
 
-                {isExpanded && children.map(child => renderFolder(child, depth + 1))}
-            </div>
-        );
-    };
+    const handleContextMenuRename = React.useCallback(() => {
+        if (!contextMenu) return;
+        setEditingFolderId(contextMenu.id);
+        const folder = folders.find(f => f.id === contextMenu.id);
+        if (folder) setNewFolderName(folder.name);
+        setContextMenu(null);
+    }, [contextMenu, folders]);
+
+    const handleContextMenuDelete = React.useCallback(() => {
+        if (!contextMenu) return;
+        setConfirmDelete({ isOpen: true, id: contextMenu.id });
+        setContextMenu(null);
+    }, [contextMenu]);
+
+    const handleCreateModalClose = React.useCallback(() => setShowCreateModal(false), []);
+    const handleNewFolderNameChange = React.useCallback((val: string) => setNewFolderName(val), []);
+    const handleNameInputChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => setNewFolderName(e.target.value), []);
+
+    const rootFolders = React.useMemo(() => folders.filter(f => !f.parentId).sort((a, b) => a.name.localeCompare(b.name)), [folders]);
 
     return (
         <div className="h-full flex flex-col">
@@ -161,10 +129,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-600">Dossiers</h3>
                 <button
                     aria-label="Créer un nouveau dossier racine"
-                    onClick={() => {
-                        setCreateParentId(undefined);
-                        setShowCreateModal(true);
-                    }}
+                    onClick={handleCreateRoot}
                     className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg text-slate-600 hover:text-brand-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     title="Nouveau dossier racine"
                 >
@@ -175,15 +140,31 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
             <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
                 <div
                     className={`flex items-center py-2 px-3 rounded-lg cursor-pointer mb-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${selectedFolderId === null ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300' : 'hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'}`}
-                    onClick={() => onSelectFolder(null)}
+                    onClick={handleSelectAll}
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && onSelectFolder(null)}
+                    onKeyDown={handleSelectAllKeyDown}
                 >
                     <div className="w-5 mr-1" /> {/* Spacer for alignment */}
                     <Folder className="h-4 w-4 mr-2 text-slate-500" />
                     <span className="text-sm font-medium">Tous les documents</span>
                 </div>
-                {rootFolders.map(f => renderFolder(f))}
+                {rootFolders.map(f => (
+                    <FolderNode
+                        key={f.id}
+                        folder={f}
+                        folders={folders}
+                        depth={0}
+                        expandedFolders={expandedFolders}
+                        selectedFolderId={selectedFolderId}
+                        editingFolderId={editingFolderId}
+                        newFolderName={newFolderName}
+                        onSelect={onSelectFolder}
+                        onExpand={toggleExpand}
+                        onContextMenu={handleContextMenuOpen}
+                        onNameChange={handleNewFolderNameChange}
+                        onUpdateSubmit={handleUpdateSubmit}
+                    />
+                ))}
             </div>
 
             {/* Create Modal */}
@@ -203,13 +184,13 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                 aria-label="Nom du nouveau dossier"
                                 type="text"
                                 value={newFolderName}
-                                onChange={e => setNewFolderName(e.target.value)}
+                                onChange={handleNameInputChange}
                                 placeholder="Nom du dossier"
                                 className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 mb-4 focus:ring-2 focus:ring-brand-500 outline-none"
                                 autoFocus
                             />
                             <div className="flex justify-end gap-2 relative z-10">
-                                <button aria-label="Annuler la création" type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" disabled={isCreatingFolder}>Annuler</button>
+                                <button aria-label="Annuler la création" type="button" onClick={handleCreateModalClose} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" disabled={isCreatingFolder}>Annuler</button>
                                 <button aria-label="Confirmer la création" type="submit" className="px-4 py-2 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-500/20 disabled:opacity-50 flex items-center transition-all hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" disabled={isCreatingFolder}>
                                     {isCreatingFolder && <span className="animate-spin mr-2">⏳</span>} Créer
                                 </button>
@@ -235,23 +216,14 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                     >
                         <button
                             aria-label="Nouveau sous-dossier"
-                            onClick={() => {
-                                setCreateParentId(contextMenu.id);
-                                setShowCreateModal(true);
-                                setContextMenu(null);
-                            }}
+                            onClick={handleContextMenuCreateSub}
                             className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center focus:outline-none focus:bg-slate-50 dark:focus:bg-white/5 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset"
                         >
                             <Plus className="h-4 w-4 mr-2" /> Nouveau sous-dossier
                         </button>
                         <button
                             aria-label="Renommer le dossier"
-                            onClick={() => {
-                                setEditingFolderId(contextMenu.id);
-                                const folder = folders.find(f => f.id === contextMenu.id);
-                                if (folder) setNewFolderName(folder.name);
-                                setContextMenu(null);
-                            }}
+                            onClick={handleContextMenuRename}
                             className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center focus:outline-none focus:bg-slate-50 dark:focus:bg-white/5 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset"
                         >
                             <Edit2 className="h-4 w-4 mr-2" /> Renommer
@@ -259,10 +231,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                         <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />
                         <button
                             aria-label="Supprimer le dossier"
-                            onClick={() => {
-                                setConfirmDelete({ isOpen: true, id: contextMenu.id });
-                                setContextMenu(null);
-                            }}
+                            onClick={handleContextMenuDelete}
                             className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center focus:outline-none focus:bg-red-50 dark:focus:bg-red-900/20 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset"
                         >
                             <Trash2 className="h-4 w-4 mr-2" /> Supprimer
@@ -283,3 +252,129 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         </div>
     );
 };
+
+interface FolderNodeProps {
+    folder: DocumentFolder;
+    folders: DocumentFolder[];
+    depth: number;
+    expandedFolders: string[];
+    selectedFolderId: string | null;
+    editingFolderId: string | null;
+    newFolderName: string;
+    onSelect: (id: string | null) => void;
+    onExpand: (id: string, e: React.MouseEvent | React.KeyboardEvent) => void;
+    onContextMenu: (e: React.MouseEvent, id: string) => void;
+    onNameChange: (name: string) => void;
+    onUpdateSubmit: (id: string) => void;
+}
+
+const FolderNode = React.memo(({
+    folder,
+    folders,
+    depth,
+    expandedFolders,
+    selectedFolderId,
+    editingFolderId,
+    newFolderName,
+    onSelect,
+    onExpand,
+    onContextMenu,
+    onNameChange,
+    onUpdateSubmit
+}: FolderNodeProps) => {
+    const children = React.useMemo(() => folders.filter(f => f.parentId === folder.id).sort((a, b) => a.name.localeCompare(b.name)), [folders, folder.id]);
+    const isExpanded = expandedFolders.includes(folder.id);
+    const isSelected = selectedFolderId === folder.id;
+    const isEditing = editingFolderId === folder.id;
+
+    const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            onSelect(folder.id);
+        } else if (e.key === 'ArrowRight' && !isExpanded) {
+            onExpand(folder.id, e);
+        } else if (e.key === 'ArrowLeft' && isExpanded) {
+            onExpand(folder.id, e);
+        }
+    }, [folder.id, isExpanded, onSelect, onExpand]);
+
+    const handleContextMenuFn = React.useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        onContextMenu(e, folder.id);
+    }, [folder.id, onContextMenu]);
+
+    const handleExpandClick = React.useCallback((e: React.MouseEvent) => onExpand(folder.id, e), [folder.id, onExpand]);
+    const handleSelectClick = React.useCallback(() => onSelect(folder.id), [folder.id, onSelect]);
+    const handleUpdateBlur = React.useCallback(() => onUpdateSubmit(folder.id), [folder.id, onUpdateSubmit]);
+    const handleUpdateKeyDown = React.useCallback((e: React.KeyboardEvent) => e.key === 'Enter' && onUpdateSubmit(folder.id), [folder.id, onUpdateSubmit]);
+    const handleInputChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => onNameChange(e.target.value), [onNameChange]);
+    const handleMoreClick = React.useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        onContextMenu(e, folder.id);
+    }, [folder.id, onContextMenu]);
+
+    return (
+        <div className="select-none">
+            <div
+                className={`flex items-center py-2 px-3 rounded-lg cursor-pointer transition-colors group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isSelected ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300' : 'hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300'}`}
+                style={{ paddingLeft: `${depth * 16 + 12}px` }}
+                onClick={handleSelectClick}
+                tabIndex={0}
+                onKeyDown={handleKeyDown}
+                onContextMenu={handleContextMenuFn}
+            >
+                <button
+                    aria-label={isExpanded ? "Replier le dossier" : "Déplier le dossier"}
+                    onClick={handleExpandClick}
+                    className={`p-1 rounded hover:bg-slate-200 dark:hover:bg-white/10 mr-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${children.length === 0 ? 'invisible' : ''}`}
+                >
+                    {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                </button>
+
+                {isEditing ? (
+                    <input
+                        aria-label="Renommer le dossier"
+                        type="text"
+                        value={newFolderName}
+                        onChange={handleInputChange}
+                        onBlur={handleUpdateBlur}
+                        onKeyDown={handleUpdateKeyDown}
+                        autoFocus
+                        className="flex-1 bg-white dark:bg-slate-800 border border-brand-500 rounded px-2 py-0.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                ) : (
+                    <div className="flex items-center flex-1 overflow-hidden">
+                        {isExpanded ? <FolderOpen className="h-4 w-4 mr-2 text-brand-500" /> : <Folder className="h-4 w-4 mr-2 text-brand-500" />}
+                        <span className="truncate text-sm font-medium">{folder.name}</span>
+                    </div>
+                )}
+
+                <button
+                    aria-label="Options du dossier"
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-200 dark:hover:bg-white/10 rounded transition-opacity focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                    onClick={handleMoreClick}
+                >
+                    <MoreVertical className="h-3 w-3" />
+                </button>
+            </div>
+
+            {isExpanded && children.map(child => (
+                <FolderNode
+                    key={child.id}
+                    folder={child}
+                    folders={folders}
+                    depth={depth + 1}
+                    expandedFolders={expandedFolders}
+                    selectedFolderId={selectedFolderId}
+                    editingFolderId={editingFolderId}
+                    newFolderName={newFolderName}
+                    onSelect={onSelect}
+                    onExpand={onExpand}
+                    onContextMenu={onContextMenu}
+                    onNameChange={onNameChange}
+                    onUpdateSubmit={onUpdateSubmit}
+                />
+            ))}
+        </div>
+    );
+});

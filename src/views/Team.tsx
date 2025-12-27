@@ -63,17 +63,17 @@ const Team: React.FC = () => {
         resolver: zodResolver(userSchema)
     });
 
-    const handleOpenInviteModal = () => {
+    const handleOpenInviteModal = React.useCallback(() => {
         inviteForm.reset();
         setShowInviteModal(true);
-    };
+    }, [inviteForm]);
 
-    const handleAddUser: SubmitHandler<UserFormData> = async (data) => {
+    const handleAddUser: SubmitHandler<UserFormData> = React.useCallback(async (data) => {
         const success = await inviteUser(data);
         if (success) setShowInviteModal(false);
-    };
+    }, [inviteUser]);
 
-    const openEditModal = (u: UserProfile) => {
+    const openEditModal = React.useCallback((u: UserProfile) => {
         setSelectedUser(u);
         editForm.reset({
             displayName: u.displayName,
@@ -82,15 +82,15 @@ const Team: React.FC = () => {
             department: u.department
         });
         setShowEditModal(true);
-    };
+    }, [editForm]);
 
-    const handleUpdateUser: SubmitHandler<UserFormData> = async (data) => {
+    const handleUpdateUser: SubmitHandler<UserFormData> = React.useCallback(async (data) => {
         if (!selectedUser) return;
         const success = await updateUser(selectedUser.uid, data, !!selectedUser.isPending);
         if (success) setShowEditModal(false);
-    };
+    }, [selectedUser, updateUser]);
 
-    const initiateDelete = async (u: UserProfile) => {
+    const initiateDelete = React.useCallback(async (u: UserProfile) => {
         if (!u.isPending) {
             const dependencies = await checkDependencies(u.uid);
             if (dependencies.length > 0) {
@@ -113,27 +113,27 @@ const Team: React.FC = () => {
                 setConfirmData(prev => ({ ...prev, isOpen: false }));
             }
         });
-    };
+    }, [checkDependencies, t, deleteUser]);
 
-    const handleApproveRequest = async (req: JoinRequest) => {
+    const handleApproveRequest = React.useCallback(async (req: JoinRequest) => {
         await approveRequest(req);
-    };
+    }, [approveRequest]);
 
-    const handleRejectRequest = async (req: JoinRequest) => {
+    const handleRejectRequest = React.useCallback(async (req: JoinRequest) => {
         await rejectRequest(req);
-    };
+    }, [rejectRequest]);
 
-    const filteredUsers = users.filter(u =>
+    const filteredUsers = React.useMemo(() => users.filter(u =>
         u.displayName?.toLowerCase().includes(filter.toLowerCase()) ||
         u.email?.toLowerCase().includes(filter.toLowerCase()) ||
         u.department?.toLowerCase().includes(filter.toLowerCase())
-    );
+    ), [users, filter]);
 
-    const pendingInvites = users.filter(u => u.isPending).length;
-    const activeUsersCount = users.filter(u => !u.isPending).length;
+    const pendingInvites = React.useMemo(() => users.filter(u => u.isPending).length, [users]);
+    const activeUsersCount = React.useMemo(() => users.filter(u => !u.isPending).length, [users]);
     const joinRequestsCount = joinRequests.length;
 
-    const exportCSV = () => {
+    const exportCSV = React.useCallback(() => {
         const headers = ["Nom", "Email", "Rôle", "Département", "Statut", "Dernière Connexion"];
         const rows = users.map(u => [
             u.displayName || '',
@@ -151,15 +151,21 @@ const Team: React.FC = () => {
         link.download = `team_export_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
         URL.revokeObjectURL(url);
-    };
+    }, [users]);
+
 
     // Calculate activity rate for the visual ring (mock logic for now or based on login)
-    const activeUsersLast30Days = users.filter(u => {
+    const activeUsersLast30Days = React.useMemo(() => users.filter(u => {
         if (!u.lastLogin) return false;
         const diff = new Date().getTime() - new Date(u.lastLogin).getTime();
         return diff < 30 * 24 * 60 * 60 * 1000;
-    }).length;
+    }).length, [users]);
     const activityRate = users.length > 0 ? (activeUsersLast30Days / users.length) * 100 : 0;
+
+    const handleMembersTab = React.useCallback(() => setActiveTab('members'), []);
+    const handleRolesTab = React.useCallback(() => setActiveTab('roles'), []);
+    const handleGroupsTab = React.useCallback(() => setActiveTab('groups'), []);
+
 
 
     return (
@@ -287,7 +293,7 @@ const Team: React.FC = () => {
             <motion.div variants={slideUpVariants} className="flex space-x-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl w-fit">
                 <button
                     aria-label={t('team.tabs.members')}
-                    onClick={() => setActiveTab('members')}
+                    onClick={handleMembersTab}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'members'
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
                         : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
@@ -297,7 +303,7 @@ const Team: React.FC = () => {
                 </button>
                 <button
                     aria-label={t('team.tabs.roles')}
-                    onClick={() => setActiveTab('roles')}
+                    onClick={handleRolesTab}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'roles'
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
                         : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
@@ -307,7 +313,7 @@ const Team: React.FC = () => {
                 </button>
                 <button
                     aria-label={t('team.tabs.groups')}
-                    onClick={() => setActiveTab('groups')}
+                    onClick={handleGroupsTab}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'groups'
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
                         : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
@@ -343,40 +349,7 @@ const Team: React.FC = () => {
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {joinRequests.map(req => (
-                                        <div key={req.id} className="glass-panel p-5 rounded-2xl border border-blue-200/50 dark:border-blue-900/30 shadow-sm flex flex-col relative overflow-hidden group">
-                                            <div className="absolute inset-0 bg-blue-50/30 dark:bg-blue-900/10 pointer-events-none" />
-                                            <div className="relative z-10">
-                                                <div className="flex items-center gap-3 mb-3">
-                                                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold shadow-sm">
-                                                        {req.displayName.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-bold text-slate-900 dark:text-white">{req.displayName}</p>
-                                                        <p className="text-xs text-slate-600 dark:text-slate-400">{req.userEmail}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="mt-auto flex gap-2 pt-3">
-                                                    <CustomTooltip content={t('team.actions.reject')}>
-                                                        <button
-                                                            aria-label={t('team.actions.reject')}
-                                                            onClick={() => handleRejectRequest(req)}
-                                                            className="flex-1 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all flex items-center justify-center gap-1"
-                                                        >
-                                                            <XCircle className="h-3.5 w-3.5" /> {t('team.actions.reject')}
-                                                        </button>
-                                                    </CustomTooltip>
-                                                    <CustomTooltip content={t('team.actions.approve')}>
-                                                        <button
-                                                            aria-label={t('team.actions.approve')}
-                                                            onClick={() => handleApproveRequest(req)}
-                                                            className="flex-1 py-2 bg-blue-600 text-white border border-blue-500 rounded-xl text-xs font-bold hover:bg-blue-700 hover:shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-1"
-                                                        >
-                                                            <Check className="h-3.5 w-3.5" /> {t('team.actions.approve')}
-                                                        </button>
-                                                    </CustomTooltip>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <JoinRequestCard key={req.id} req={req} onApprove={handleApproveRequest} onReject={handleRejectRequest} />
                                     ))}
                                 </div>
                                 <div className="h-px bg-slate-200 dark:bg-white/10 my-6" />
@@ -397,72 +370,7 @@ const Team: React.FC = () => {
                             </div>
                         ) : (
                             filteredUsers.map((u) => (
-                                <div key={u.uid} className={`glass-panel rounded-[2.5rem] p-6 flex flex-col items-center text-center card-hover group relative border border-white/50 dark:border-white/5 ${u.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
-                                    {canAdmin && (
-                                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {!u.isPending && (
-                                                <CustomTooltip content={t('team.actions.edit')}>
-                                                    <button
-                                                        onClick={() => openEditModal(u)}
-                                                        className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all"
-                                                        aria-label={t('team.actions.edit')}
-                                                    >
-                                                        <Edit className="h-4 w-4" />
-                                                    </button>
-                                                </CustomTooltip>
-                                            )}
-                                            <CustomTooltip content={u.isPending ? t('team.delete.titleInvite').replace('?', '') : t('team.actions.delete')}>
-                                                <button
-                                                    onClick={() => initiateDelete(u)}
-                                                    className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-red-500 shadow-sm hover:scale-105 transition-all"
-                                                    aria-label={t('team.actions.delete')}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            </CustomTooltip>
-                                        </div>
-                                    )}
-
-                                    <div className="relative mb-4 mt-2">
-                                        {u.photoURL ? (
-                                            <img src={u.photoURL} alt={u.displayName} className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50 grayscale' : ''}`} />
-                                        ) : (
-                                            <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-3xl font-bold text-slate-600 dark:text-slate-300 shadow-xl ring-4 ring-white dark:ring-slate-800 ${u.isPending ? 'opacity-50' : ''}`}>
-                                                {u.displayName ? u.displayName.charAt(0).toUpperCase() : 'U'}
-                                            </div>
-                                        )}
-                                        <div className="absolute bottom-0 right-0 transform translate-x-2 translate-y-1">
-                                            <RoleBadge role={u.role} />
-                                        </div>
-                                    </div>
-
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{u.displayName}</h3>
-                                    <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full">
-                                        <Mail className="h-3 w-3 mr-1.5 opacity-70" /> {u.email}
-                                    </div>
-
-                                    {u.isPending ? (
-                                        <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-center items-center text-xs mt-auto">
-                                            <div className="flex items-center text-amber-500 font-bold bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg">
-                                                <Timer className="h-3.5 w-3.5 mr-1.5" />
-                                                {t('team.invite.success').split(' ')[0]} {t('team.stats.pending')}
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center text-xs mt-auto">
-                                            <div className="flex items-center text-slate-600 dark:text-slate-300 font-medium">
-                                                <Building className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
-                                                {u.department || 'Général'}
-                                            </div>
-                                            {u.lastLogin && (
-                                                <div className="flex items-center text-slate-500 font-medium" title={t('team.columns.lastLogin')}>
-                                                    <Clock className="h-3.5 w-3.5 mr-1.5" />
-                                                    {new Date(u.lastLogin).toLocaleDateString()}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
+                                <UserCard key={u.uid} user={u} canAdmin={canAdmin} onEdit={openEditModal} onDelete={initiateDelete} />
                             ))
                         )}
                     </div>
@@ -598,3 +506,121 @@ const Team: React.FC = () => {
 };
 
 export default Team;
+
+const JoinRequestCard = React.memo(({ req, onApprove, onReject }: { req: JoinRequest, onApprove: (req: JoinRequest) => void, onReject: (req: JoinRequest) => void }) => {
+    const { t } = useTranslation();
+    const handleReject = React.useCallback(() => onReject(req), [onReject, req]);
+    const handleApprove = React.useCallback(() => onApprove(req), [onApprove, req]);
+
+    return (
+        <div className="glass-panel p-5 rounded-2xl border border-blue-200/50 dark:border-blue-900/30 shadow-sm flex flex-col relative overflow-hidden group">
+            <div className="absolute inset-0 bg-blue-50/30 dark:bg-blue-900/10 pointer-events-none" />
+            <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold shadow-sm">
+                        {req.displayName.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <p className="font-bold text-slate-900 dark:text-white">{req.displayName}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400">{req.userEmail}</p>
+                    </div>
+                </div>
+                <div className="mt-auto flex gap-2 pt-3">
+                    <CustomTooltip content={t('team.actions.reject')}>
+                        <button
+                            aria-label={t('team.actions.reject')}
+                            onClick={handleReject}
+                            className="flex-1 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all flex items-center justify-center gap-1"
+                        >
+                            <XCircle className="h-3.5 w-3.5" /> {t('team.actions.reject')}
+                        </button>
+                    </CustomTooltip>
+                    <CustomTooltip content={t('team.actions.approve')}>
+                        <button
+                            aria-label={t('team.actions.approve')}
+                            onClick={handleApprove}
+                            className="flex-1 py-2 bg-blue-600 text-white border border-blue-500 rounded-xl text-xs font-bold hover:bg-blue-700 hover:shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-1"
+                        >
+                            <Check className="h-3.5 w-3.5" /> {t('team.actions.approve')}
+                        </button>
+                    </CustomTooltip>
+                </div>
+            </div>
+        </div>
+    );
+});
+
+const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: { user: UserProfile, canAdmin: boolean, onEdit: (u: UserProfile) => void, onDelete: (u: UserProfile) => void }) => {
+    const { t } = useTranslation();
+    const handleEdit = React.useCallback(() => onEdit(user), [onEdit, user]);
+    const handleDelete = React.useCallback(() => onDelete(user), [onDelete, user]);
+
+    return (
+        <div className={`glass-panel rounded-[2.5rem] p-6 flex flex-col items-center text-center card-hover group relative border border-white/50 dark:border-white/5 ${user.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
+            {canAdmin && (
+                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {!user.isPending && (
+                        <CustomTooltip content={t('team.actions.edit')}>
+                            <button
+                                onClick={handleEdit}
+                                className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all"
+                                aria-label={t('team.actions.edit')}
+                            >
+                                <Edit className="h-4 w-4" />
+                            </button>
+                        </CustomTooltip>
+                    )}
+                    <CustomTooltip content={user.isPending ? t('team.delete.titleInvite').replace('?', '') : t('team.actions.delete')}>
+                        <button
+                            onClick={handleDelete}
+                            className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-red-500 shadow-sm hover:scale-105 transition-all"
+                            aria-label={t('team.actions.delete')}
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </button>
+                    </CustomTooltip>
+                </div>
+            )}
+
+            <div className="relative mb-4 mt-2">
+                {user.photoURL ? (
+                    <img src={user.photoURL} alt={user.displayName} className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-50 grayscale' : ''}`} />
+                ) : (
+                    <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-3xl font-bold text-slate-600 dark:text-slate-300 shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-50' : ''}`}>
+                        {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                )}
+                <div className="absolute bottom-0 right-0 transform translate-x-2 translate-y-1">
+                    <RoleBadge role={user.role} />
+                </div>
+            </div>
+
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{user.displayName}</h3>
+            <div className="flex items-center text-xs font-medium text-slate-600 dark:text-slate-400 mb-4 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full">
+                <Mail className="h-3 w-3 mr-1.5 opacity-70" /> {user.email}
+            </div>
+
+            {user.isPending ? (
+                <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-center items-center text-xs mt-auto">
+                    <div className="flex items-center text-amber-500 font-bold bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg">
+                        <Timer className="h-3.5 w-3.5 mr-1.5" />
+                        {t('team.invite.success').split(' ')[0]} {t('team.stats.pending')}
+                    </div>
+                </div>
+            ) : (
+                <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-white/10 flex justify-between items-center text-xs mt-auto">
+                    <div className="flex items-center text-slate-600 dark:text-slate-300 font-medium">
+                        <Building className="h-3.5 w-3.5 mr-1.5 text-slate-500" />
+                        {user.department || 'Général'}
+                    </div>
+                    {user.lastLogin && (
+                        <div className="flex items-center text-slate-500 font-medium" title={t('team.columns.lastLogin')}>
+                            <Clock className="h-3.5 w-3.5 mr-1.5" />
+                            {new Date(user.lastLogin).toLocaleDateString()}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+});
