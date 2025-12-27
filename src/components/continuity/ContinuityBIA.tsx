@@ -134,7 +134,15 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                 const isOverdue = lastTest ? (new Date().getTime() - lastTest.getTime() > 31536000000) : true; // 1 year
 
                 return (
-                    <div key={proc.id} onClick={() => onOpenInspector(proc)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group flex flex-col cursor-pointer border border-white/50 dark:border-white/5">
+                    <div
+                        key={proc.id}
+                        onClick={() => onOpenInspector(proc)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenInspector(proc); } }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Ouvrir le processus ${proc.name}`}
+                        className="glass-panel rounded-[2.5rem] p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group flex flex-col cursor-pointer border border-white/50 dark:border-white/5"
+                    >
                         <div className="flex justify-between items-start mb-5">
                             <div className="p-3 bg-rose-50 dark:bg-slate-800 rounded-2xl text-rose-600 shadow-inner">
                                 <HeartPulse className="h-6 w-6" />
