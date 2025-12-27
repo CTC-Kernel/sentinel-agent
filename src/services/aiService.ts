@@ -1,5 +1,5 @@
 
-import { doc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, Timestamp, FieldValue } from 'firebase/firestore';
 import { db } from '../firebase';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight } from "../types";
@@ -49,7 +49,7 @@ export const aiService = {
                     id: 'welcome',
                     role: 'assistant',
                     content: "Bonjour je suis **Sentinel AI**. \n\nComment puis-je vous aider à sécuriser votre organisation aujourd'hui ?",
-                    timestamp: serverTimestamp() as any
+                    timestamp: serverTimestamp() as FieldValue
                 }],
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()

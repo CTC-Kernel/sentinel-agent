@@ -187,7 +187,7 @@ export const Risks: React.FC = () => {
 
 
     // Callbacks
-    const handleFilterChange = React.useCallback((filter: any) => {
+    const handleFilterChange = React.useCallback((filter: { type: string; value: string } | null) => {
         if (!filter) {
             setActiveFilters(prev => ({ ...prev, query: '' }));
             setFrameworkFilter('');
@@ -210,7 +210,7 @@ export const Risks: React.FC = () => {
         OnboardingService.startRisksTour();
     }, []);
 
-    const handleAdvancedSearch = React.useCallback((filters: any) => {
+    const handleAdvancedSearch = React.useCallback((filters: { query: string }) => {
         setActiveFilters(prev => ({ ...prev, query: filters.query }));
         setShowAdvancedSearch(false);
     }, [setActiveFilters, setShowAdvancedSearch]);
@@ -218,7 +218,7 @@ export const Risks: React.FC = () => {
     const handleDeleteRiskItem = React.useCallback((id: string) => {
         const r = risks.find(x => x.id === id);
         handleDelete({ id, name: r?.threat || t('common.unknown') });
-    }, [risks, t]); // handleDelete depends on local state (confirmData).
+    }, [risks, t, handleDelete]);
 
     const handleDuplicateRisk = React.useCallback((r: Risk) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -237,7 +237,7 @@ export const Risks: React.FC = () => {
         createRisk(newRisk as Risk);
     }, [t, createRisk]);
 
-    const handleFormSubmit = React.useCallback(async (data: any) => {
+    const handleFormSubmit = React.useCallback(async (data: Partial<Risk>) => {
         if (editingRisk) {
             await updateRisk(editingRisk.id, {
                 ...data,
@@ -254,8 +254,8 @@ export const Risks: React.FC = () => {
         setEditingRisk(null);
     }, [editingRisk, updateRisk, createRisk]);
 
-    const handleTemplateSelect = React.useCallback(async (template: any, ownerId: string) => {
-        const promises = template.risks.map((risk: any) => createRisk({
+    const handleTemplateSelect = React.useCallback(async (template: { risks: Partial<Risk>[] }, ownerId: string) => {
+        const promises = template.risks.map((risk: Partial<Risk>) => createRisk({
             threat: risk.threat,
             vulnerability: risk.vulnerability,
             probability: risk.probability,

@@ -14,7 +14,8 @@ import {
     serverTimestamp,
     enableNetwork,
     disableNetwork,
-    updateDoc
+    updateDoc,
+    FieldValue
 } from 'firebase/firestore';
 import { auth, db, isAppCheckFailed } from '../firebase';
 import { useStore } from '../store';
@@ -316,7 +317,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             displayName: u.displayName || u.email?.split('@')[0] || 'Utilisateur',
                             photoURL: u.photoURL,
                             onboardingCompleted: false,
-                            createdAt: serverTimestamp() as any, // Audit compliant cast
+                            createdAt: serverTimestamp() as FieldValue,
                             emailVerified: u.emailVerified
                         };
                         try {

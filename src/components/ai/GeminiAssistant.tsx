@@ -168,7 +168,7 @@ export const GeminiAssistant: React.FC = () => {
         });
 
         return () => unsubscribe();
-    }, [conversationRef, user?.uid]);
+    }, [conversationRef, user]);
 
     useEffect(() => {
         scrollToBottom();

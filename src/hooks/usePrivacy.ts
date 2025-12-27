@@ -129,7 +129,7 @@ export function usePrivacy() {
             addToast("Traitement ajouté avec succès", "success");
             setShowCreateModal(false);
             fetchData();
-        } catch (error) {
+        } catch {
             // Already handled by service typically, but double check
         }
     };
@@ -150,7 +150,7 @@ export function usePrivacy() {
             setSelectedActivity(updatedDoc);
             setIsEditing(false);
             addToast("Traitement mis à jour", "success");
-        } catch (error) {
+        } catch {
             // Handled by service
         }
     };
@@ -169,7 +169,7 @@ export function usePrivacy() {
                 setSelectedActivity(null);
             }
             addToast("Traitement supprimé", "success");
-        } catch (error) {
+        } catch {
             // Handled by service
         }
     };
@@ -219,7 +219,7 @@ export function usePrivacy() {
                     const count = await PrivacyService.importActivities(activitiesToImport, user);
                     addToast(`${count} traitements importés`, "success");
                     fetchData();
-                } catch (error) {
+                } catch {
                     addToast("Erreur import CSV", "error");
                 }
             }
@@ -237,7 +237,7 @@ export function usePrivacy() {
             if (selectedActivity?.id === activity.id) {
                 setSelectedActivity(prev => prev ? { ...prev, hasDPIA: true } : null);
             }
-        } catch (error) {
+        } catch {
             // Handled
         }
     };
