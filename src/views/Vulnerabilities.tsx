@@ -198,6 +198,7 @@ export const Vulnerabilities: React.FC = () => {
                                                 <Menu.Item>
                                                     {({ active }) => (
                                                         <button
+                                                            type="button"
                                                             aria-label="Import Scan"
                                                             onClick={handleImportClick}
                                                             className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
@@ -215,6 +216,7 @@ export const Vulnerabilities: React.FC = () => {
 
                                 <CustomTooltip content="Create new vulnerability">
                                     <button
+                                        type="button"
                                         onClick={handleCreateClick}
                                         className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-brand-600/20"
                                         aria-label="Create new vulnerability"

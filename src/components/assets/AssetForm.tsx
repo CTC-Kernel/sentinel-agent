@@ -228,7 +228,13 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8 p-4 sm:p-6">
+        <form
+            onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit(onSubmit, onInvalid)(e);
+            }}
+            className="space-y-8 p-4 sm:p-6"
+        >
             {!isEditing && (
                 <AIAssistantHeader
                     templates={ASSET_TEMPLATES}
@@ -549,7 +555,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             )}
                         />
                         <div className="flex flex-col gap-4 justify-center md:col-span-2">
-                            <label className="flex items-center space-x-3 cursor-pointer group">
+                            <label htmlFor="isEncrypted" className="flex items-center space-x-3 cursor-pointer group">
                                 <input {...control.register('dataDetails.isEncrypted')}
                                     type="checkbox"
                                     id="isEncrypted"
@@ -557,7 +563,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                 />
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
                             </label>
-                            <label className="flex items-center space-x-3 cursor-pointer group">
+                            <label htmlFor="hasWorm" className="flex items-center space-x-3 cursor-pointer group">
                                 <input {...control.register('dataDetails.hasWorm')}
                                     type="checkbox"
                                     id="hasWorm"
@@ -616,19 +622,21 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                 : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
                                 }`}
                         >
-                            <input checked={(watch('scope') || []).includes(scope)} onChange={(e) => {
-                                const current = watch('scope') || [];
-                                if (e.target.checked) {
-                                    setValue('scope', [...current, scope], { shouldDirty: true });
-                                } else {
-                                    setValue('scope', current.filter((s: string) => s !== scope), { shouldDirty: true });
-                                }
-                            }}
-                                type="checkbox"
+                            <input
                                 id={`scope-${scope}`}
+                                type="checkbox"
                                 name="scope"
-                                className="sr-only peer"
                                 value={scope}
+                                className="sr-only peer"
+                                checked={(watch('scope') || []).includes(scope)}
+                                onChange={(e) => {
+                                    const current = watch('scope') || [];
+                                    if (e.target.checked) {
+                                        setValue('scope', [...current, scope], { shouldDirty: true });
+                                    } else {
+                                        setValue('scope', current.filter((s: string) => s !== scope), { shouldDirty: true });
+                                    }
+                                }}
                             />
                             {scope.replace('_', ' ')}
                         </label>

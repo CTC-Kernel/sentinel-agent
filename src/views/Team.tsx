@@ -195,6 +195,7 @@ const Team: React.FC = () => {
                     <>
                         <CustomTooltip content={t('team.actions.exportCsv')}>
                             <Button
+                                type="button"
                                 variant="outline"
                                 onClick={exportCSV}
                                 className="gap-2"
@@ -205,6 +206,7 @@ const Team: React.FC = () => {
                         </CustomTooltip>
                         <CustomTooltip content={t('team.actions.invite')}>
                             <Button
+                                type="button"
                                 onClick={handleOpenInviteModal}
                                 className="gap-2 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
                                 aria-label={t('team.actions.invite')}
@@ -292,6 +294,7 @@ const Team: React.FC = () => {
 
             <motion.div variants={slideUpVariants} className="flex space-x-1 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl w-fit">
                 <button
+                    type="button"
                     aria-label={t('team.tabs.members')}
                     onClick={handleMembersTab}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'members'
@@ -302,6 +305,7 @@ const Team: React.FC = () => {
                     {t('team.tabs.members')}
                 </button>
                 <button
+                    type="button"
                     aria-label={t('team.tabs.roles')}
                     onClick={handleRolesTab}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'roles'
@@ -312,6 +316,7 @@ const Team: React.FC = () => {
                     {t('team.tabs.roles')}
                 </button>
                 <button
+                    type="button"
                     aria-label={t('team.tabs.groups')}
                     onClick={handleGroupsTab}
                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'groups'
@@ -386,7 +391,7 @@ const Team: React.FC = () => {
                 width="max-w-4xl"
             // Headless UI handles FocusTrap and keyboard navigation for accessibility
             >
-                <form onSubmit={inviteForm.handleSubmit(handleAddUser)} className="p-4 sm:p-8 space-y-6">
+                <form onSubmit={(e) => { e.preventDefault(); inviteForm.handleSubmit(handleAddUser)(e); }} className="p-4 sm:p-8 space-y-6">
                     <div className="flex justify-center mb-6">
                         <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white shadow-inner">
                             <User className="h-10 w-10" />
@@ -439,7 +444,7 @@ const Team: React.FC = () => {
                     </div>
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                         <Button type="button" variant="ghost" onClick={() => setShowInviteModal(false)}>{t('team.actions.cancel')}</Button>
-                        <Button type="submit" className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-transform" isLoading={loading}>{t('team.invite.send')}</Button>
+                        <Button type="submit" className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-transform" isLoading={loading || inviteForm.formState.isSubmitting}>{t('team.invite.send')}</Button>
                     </div>
                 </form>
             </Drawer>
@@ -453,7 +458,7 @@ const Team: React.FC = () => {
                 width="max-w-4xl"
             >
                 {selectedUser && (
-                    <form onSubmit={editForm.handleSubmit(handleUpdateUser)} className="p-4 sm:p-8 space-y-6">
+                    <form onSubmit={(e) => { e.preventDefault(); editForm.handleSubmit(handleUpdateUser)(e); }} className="p-4 sm:p-8 space-y-6">
                         <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl mb-4">
                             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{t('team.edit.account')}</p>
                             <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedUser.email}</p>
@@ -497,7 +502,7 @@ const Team: React.FC = () => {
 
                         <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                             <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>{t('team.actions.cancel')}</Button>
-                            <Button type="submit" className="bg-brand-600 text-white hover:scale-105 transition-transform">{t('team.edit.save')}</Button>
+                            <Button type="submit" className="bg-brand-600 text-white hover:scale-105 transition-transform" isLoading={loading || editForm.formState.isSubmitting}>{t('team.edit.save')}</Button>
                         </div>
                     </form>
                 )}
@@ -529,6 +534,7 @@ const JoinRequestCard = React.memo(({ req, onApprove, onReject }: { req: JoinReq
                 <div className="mt-auto flex gap-2 pt-3">
                     <CustomTooltip content={t('team.actions.reject')}>
                         <button
+                            type="button"
                             aria-label={t('team.actions.reject')}
                             onClick={handleReject}
                             className="flex-1 py-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all flex items-center justify-center gap-1"
@@ -538,6 +544,7 @@ const JoinRequestCard = React.memo(({ req, onApprove, onReject }: { req: JoinReq
                     </CustomTooltip>
                     <CustomTooltip content={t('team.actions.approve')}>
                         <button
+                            type="button"
                             aria-label={t('team.actions.approve')}
                             onClick={handleApprove}
                             className="flex-1 py-2 bg-blue-600 text-white border border-blue-500 rounded-xl text-xs font-bold hover:bg-blue-700 hover:shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-1"
@@ -563,6 +570,7 @@ const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: { user: UserP
                     {!user.isPending && (
                         <CustomTooltip content={t('team.actions.edit')}>
                             <button
+                                type="button"
                                 onClick={handleEdit}
                                 className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white shadow-sm hover:scale-105 transition-all"
                                 aria-label={t('team.actions.edit')}
@@ -573,6 +581,7 @@ const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: { user: UserP
                     )}
                     <CustomTooltip content={user.isPending ? t('team.delete.titleInvite').replace('?', '') : t('team.actions.delete')}>
                         <button
+                            type="button"
                             onClick={handleDelete}
                             className="p-2 bg-white dark:bg-slate-800 rounded-xl text-slate-500 hover:text-red-500 shadow-sm hover:scale-105 transition-all"
                             aria-label={t('team.actions.delete')}

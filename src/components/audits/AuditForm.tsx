@@ -167,7 +167,13 @@ export const AuditForm: React.FC<AuditFormProps> = ({
     const isEditing = !!existingAudit;
 
     return (
-        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6 p-4 sm:p-6">
+        <form
+            onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit(onSubmit, onInvalid)(e);
+            }}
+            className="space-y-6 p-4 sm:p-6"
+        >
             {!isEditing && (
                 <AIAssistantHeader
                     templates={AUDIT_TEMPLATES}

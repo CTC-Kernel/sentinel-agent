@@ -183,11 +183,14 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                             <div className="space-y-2">
                                                 {q.options?.map((opt, optIndex) => (
                                                     <div key={optIndex} className="flex gap-2">
-                                                        <input value={opt} onChange={(e) => {
-                                                            const newOptions = [...(q.options || [])];
-                                                            newOptions[optIndex] = e.target.value;
-                                                            updateQuestion(q.id, { options: newOptions });
-                                                        }}
+                                                        <input
+                                                            value={opt}
+                                                            aria-label={`Option ${optIndex + 1}`}
+                                                            onChange={(e) => {
+                                                                const newOptions = [...(q.options || [])];
+                                                                newOptions[optIndex] = e.target.value;
+                                                                updateQuestion(q.id, { options: newOptions });
+                                                            }}
                                                             type="text"
                                                             className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/10 rounded-lg text-sm transition-colors focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
                                                             placeholder={`Option ${optIndex + 1}`}

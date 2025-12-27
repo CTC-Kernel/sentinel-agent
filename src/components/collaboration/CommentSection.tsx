@@ -104,6 +104,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                     </div>
                     {!isReply && (
                         <button
+                            type="button"
                             onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
                             className="mt-1 text-xs text-slate-500 hover:text-brand-600 font-medium flex items-center gap-1 transition-colors px-2"
                         >
@@ -140,12 +141,12 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                         <span className="text-slate-600 dark:text-slate-400">
                             Réponse à un commentaire
                         </span>
-                        <button onClick={() => setReplyTo(null)} className="text-slate-500 hover:text-red-500">
+                        <button type="button" onClick={() => setReplyTo(null)} className="text-slate-500 hover:text-red-500">
                             Fermer
                         </button>
                     </div>
                 )}
-                <form onSubmit={handleSubmit} className="relative">
+                <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }} className="relative">
                     <input
                         type="text"
                         value={newComment}

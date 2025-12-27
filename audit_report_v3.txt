@@ -3,7 +3,7 @@
 [1m  🛡️  SENTINEL GRC V2 - AUDIT ULTIME PRODUCTION-READY[0m
 [36m══════════════════════════════════════════════════════════════════════[0m
 
-[90m📁 Analyse de 494 fichiers...[0m
+[90m📁 Analyse de 495 fichiers...[0m
 
 🔵 [34m[INFO][0m [36msrc/App.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -353,6 +353,10 @@
    [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
    [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
+🟡 [33m[WARNING][0m [36msrc/components/assets/AssetForm.tsx[0m:625
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
+
 🟡 [33m[WARNING][0m [36msrc/components/assets/AssetForm.tsx[0m:1
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
    [90m→[0m Liste sans état vide
@@ -433,17 +437,17 @@
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (14 niveaux) - utiliser early returns
 
-🟠 [31m[ERROR][0m [36msrc/components/audit/AuditTrailViewer.tsx[0m:221
-   [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
-   [90m→[0m Input sans label associé
+🟡 [33m[WARNING][0m [36msrc/components/audit/AuditTrailViewer.tsx[0m:221
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
-🟠 [31m[ERROR][0m [36msrc/components/audit/AuditTrailViewer.tsx[0m:273
-   [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
-   [90m→[0m Input sans label associé
+🟡 [33m[WARNING][0m [36msrc/components/audit/AuditTrailViewer.tsx[0m:274
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
-🟠 [31m[ERROR][0m [36msrc/components/audit/AuditTrailViewer.tsx[0m:281
-   [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
-   [90m→[0m Input sans label associé
+🟡 [33m[WARNING][0m [36msrc/components/audit/AuditTrailViewer.tsx[0m:284
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🔵 [34m[INFO][0m [36msrc/components/audits/AuditAIAssistant.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -629,9 +633,9 @@
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (16 niveaux) - utiliser early returns
 
-🟠 [31m[ERROR][0m [36msrc/components/audits/QuestionnaireBuilder.tsx[0m:186
-   [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
-   [90m→[0m Input sans label associé
+🟡 [33m[WARNING][0m [36msrc/components/audits/QuestionnaireBuilder.tsx[0m:186
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🔵 [34m[INFO][0m [36msrc/components/audits/QuestionnaireBuilder.tsx[0m:1
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
@@ -969,21 +973,21 @@
    [35mLogique[0m | Éviter les magic numbers - utiliser des constantes.
    [90m→[0m Magic number détecté - extraire en constante
 
-🟡 [33m[WARNING][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:190
+🟡 [33m[WARNING][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:206
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟠 [31m[ERROR][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:96
-   [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
-   [90m→[0m Input sans label associé
+🟡 [33m[WARNING][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:96
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
-🟠 [31m[ERROR][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:114
-   [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
-   [90m→[0m Input sans label associé
+🟡 [33m[WARNING][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:118
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
-🟠 [31m[ERROR][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:118
-   [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
-   [90m→[0m Input sans label associé
+🟡 [33m[WARNING][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:128
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🔵 [34m[INFO][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:1
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
@@ -2689,11 +2693,7 @@
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟠 [31m[ERROR][0m [36msrc/components/threat-intel/CommunitySettingsModal.tsx[0m:238
-   [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
-   [90m→[0m Input sans label associé
-
-🟡 [33m[WARNING][0m [36msrc/components/threat-intel/CommunitySettingsModal.tsx[0m:238
+🟡 [33m[WARNING][0m [36msrc/components/threat-intel/CommunitySettingsModal.tsx[0m:239
    [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
    [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
@@ -2845,13 +2845,25 @@
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
 
-🟠 [31m[ERROR][0m [36msrc/components/ui/ContactModal.tsx[0m:118
+🟠 [31m[ERROR][0m [36msrc/components/ui/ContactModal.tsx[0m:119
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
 
-🟠 [31m[ERROR][0m [36msrc/components/ui/ContactModal.tsx[0m:136
+🟠 [31m[ERROR][0m [36msrc/components/ui/ContactModal.tsx[0m:138
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
+
+🟡 [33m[WARNING][0m [36msrc/components/ui/ContactModal.tsx[0m:100
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
+
+🟡 [33m[WARNING][0m [36msrc/components/ui/ContactModal.tsx[0m:119
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
+
+🟡 [33m[WARNING][0m [36msrc/components/ui/ContactModal.tsx[0m:138
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🔵 [34m[INFO][0m [36msrc/components/ui/ContentBlockerError.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -2889,7 +2901,7 @@
    [35mBoutons[0m | Les éléments cliquables non-bouton doivent être accessibles au clavier.
    [90m→[0m Élément cliquable non-bouton sans role="button" et tabIndex
 
-🟠 [31m[ERROR][0m [36msrc/components/ui/DataTable.tsx[0m:68
+🟠 [31m[ERROR][0m [36msrc/components/ui/DataTable.tsx[0m:70
    [35mBoutons[0m | Les éléments cliquables non-bouton doivent être accessibles au clavier.
    [90m→[0m Élément cliquable non-bouton sans role="button" et tabIndex
 
@@ -2897,23 +2909,23 @@
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (13 niveaux) - utiliser early returns
 
-🟠 [31m[ERROR][0m [36msrc/components/ui/DataTable.tsx[0m:58
-   [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
-   [90m→[0m Input sans label associé
+🟡 [33m[WARNING][0m [36msrc/components/ui/DataTable.tsx[0m:58
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
-🟠 [31m[ERROR][0m [36msrc/components/ui/DataTable.tsx[0m:69
-   [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
-   [90m→[0m Input sans label associé
+🟡 [33m[WARNING][0m [36msrc/components/ui/DataTable.tsx[0m:71
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
-🟠 [31m[ERROR][0m [36msrc/components/ui/DataTable.tsx[0m:140
-   [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
-   [90m→[0m Input sans label associé
+🟡 [33m[WARNING][0m [36msrc/components/ui/DataTable.tsx[0m:144
+   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
+   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🟡 [33m[WARNING][0m [36msrc/components/ui/DataTable.tsx[0m:57
    [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
    [90m→[0m Élément cliquable sans rôle sémantique
 
-🟡 [33m[WARNING][0m [36msrc/components/ui/DataTable.tsx[0m:68
+🟡 [33m[WARNING][0m [36msrc/components/ui/DataTable.tsx[0m:70
    [35mAccessibilité[0m | Les éléments interactifs non-sémantiques doivent avoir un rôle.
    [90m→[0m Élément cliquable sans rôle sémantique
 
@@ -5086,11 +5098,11 @@
 [1m  📊 RÉSUMÉ DE L'AUDIT[0m
 [36m══════════════════════════════════════════════════════════════════════[0m
 
-⏱️  Durée: 0.89s
-📁 Fichiers analysés: 494
+⏱️  Durée: 0.83s
+📁 Fichiers analysés: 495
 📋 Règles vérifiées: 89
 
-🎯 Total des violations: [31m1269[0m
+🎯 Total des violations: [31m1272[0m
 
 [1mPar catégorie:[0m
   [36mArchitecture[0m: [31m0[0m critical, [31m34[0m error, [33m7[0m warning, [34m0[0m info
@@ -5103,7 +5115,7 @@
   [36mPerformance[0m: [31m0[0m critical, [31m0[0m error, [33m205[0m warning, [34m0[0m info
   [36mTypeScript[0m: [31m0[0m critical, [31m0[0m error, [33m4[0m warning, [34m9[0m info
   [36mReact[0m: [31m0[0m critical, [31m0[0m error, [33m2[0m warning, [34m0[0m info
-  [36mFormulaires[0m: [31m0[0m critical, [31m91[0m error, [33m22[0m warning, [34m0[0m info
+  [36mFormulaires[0m: [31m0[0m critical, [31m80[0m error, [33m36[0m warning, [34m0[0m info
   [36mÉtats[0m: [31m0[0m critical, [31m1[0m error, [33m63[0m warning, [34m52[0m info
   [36mAccessibilité[0m: [31m0[0m critical, [31m3[0m error, [33m13[0m warning, [34m0[0m info
   [36mInternationalisation[0m: [31m0[0m critical, [31m0[0m error, [33m44[0m warning, [34m0[0m info
@@ -5120,10 +5132,10 @@
   4. [36msrc/components/VoxelStudio.tsx[0m: 13 violations
   5. [36msrc/hooks/documents/useDocumentActions.ts[0m: 13 violations
   6. [36msrc/views/Risks.tsx[0m: 13 violations
-  7. [36msrc/components/threat-intel/CommunitySettingsModal.tsx[0m: 12 violations
-  8. [36msrc/components/assets/AssetDashboard.tsx[0m: 11 violations
-  9. [36msrc/components/audits/EvidenceRequestList.tsx[0m: 11 violations
-  10. [36msrc/components/team/RoleManager.tsx[0m: 11 violations
+  7. [36msrc/components/assets/AssetDashboard.tsx[0m: 11 violations
+  8. [36msrc/components/audits/EvidenceRequestList.tsx[0m: 11 violations
+  9. [36msrc/components/team/RoleManager.tsx[0m: 11 violations
+  10. [36msrc/components/threat-intel/CommunitySettingsModal.tsx[0m: 11 violations
 
 [1mTop 10 règles les plus violées:[0m
   1. [35mlogic-early-return[0m: 250 (info)
@@ -5134,7 +5146,7 @@
   6. [35mlogic-magic-numbers[0m: 58 (warning)
   7. [35mstate-optimistic-update[0m: 52 (info)
   8. [35mi18n-date-format[0m: 44 (warning)
-  9. [35mform-input-labels[0m: 43 (error)
+  9. [35mform-controlled-inputs[0m: 36 (warning)
   10. [35march-no-direct-firebase-components[0m: 34 (error)
 
 [36m══════════════════════════════════════════════════════════════════════[0m

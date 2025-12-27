@@ -5,20 +5,17 @@ import { useStore } from '../store';
 import { UserProfile } from '../types';
 import {
     hasPermission,
-    getRoleName,
-    getRoleDescription,
     Role
 } from '../utils/permissions';
 import {
     ShieldCheck,
-    X,
-    Edit,
-    Save,
     AlertTriangle,
     Info
 } from './ui/Icons';
 import { ErrorLogger } from '../services/errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { RoleCard } from './roles/RoleCard';
+import { UserRow } from './roles/UserRow';
 
 export const RoleManagement: React.FC = () => {
     const { user } = useStore();
@@ -111,22 +108,11 @@ export const RoleManagement: React.FC = () => {
             {/* Role Descriptions */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(['admin', 'rssi', 'auditor', 'project_manager', 'direction', 'user'] as Role[]).map((role) => (
-                    <div
+                    <RoleCard
                         key={role}
-                        className="glass-panel p-4 rounded-2xl border border-white/40 dark:border-white/10"
-                    >
-                        <div className="flex items-start justify-between mb-2">
-                            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                                {getRoleName(role)}
-                            </h3>
-                            <span className="px-2 py-0.5 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-full text-[10px] font-bold">
-                                {users.filter((u) => u.role === role).length}
-                            </span>
-                        </div>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                            {getRoleDescription(role)}
-                        </p>
-                    </div>
+                        role={role}
+                        count={users.filter((u) => u.role === role).length}
+                    />
                 ))}
             </div>
 
@@ -138,126 +124,47 @@ export const RoleManagement: React.FC = () => {
                         <p className="text-slate-600 dark:text-slate-400">Aucun utilisateur trouvé dans votre organisation.</p>
                     </div>
                 ) : (
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-white/10">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                                    Utilisateur
-                                </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                                    Email
-                                </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                                    Rôle Actuel
-                                </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                                    Dernière Connexion
-                                </th>
-                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-white/10">
-                            {users.map((u) => (
-                                <tr
-                                    key={u.uid}
-                                    className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-                                >
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center gap-3">
-                                            {u.photoURL ? (
-                                                <img alt={u.displayName || 'User'}
-                                                    src={u.photoURL}
-                                                    className="h-10 w-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800"
-                                                />
-                                            ) : (
-                                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-brand-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                                                    {u.displayName?.charAt(0).toUpperCase()}
-                                                </div>
-                                            )}
-                                            <div>
-                                                <div className="text-sm font-bold text-slate-900 dark:text-white">
-                                                    {u.displayName}
-                                                </div>
-                                                {u.department && (
-                                                    <div className="text-xs text-slate-600 dark:text-slate-400">
-                                                        {u.department}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">
-                                        {u.email}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {editingUser === u.uid ? (
-                                            <select
-                                                value={selectedRole}
-                                                onChange={(e) => setSelectedRole(e.target.value as Role)}
-                                                className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
-                                            >
-                                                <option value="admin">Administrateur</option>
-                                                <option value="rssi">RSSI</option>
-                                                <option value="auditor">Auditeur</option>
-                                                <option value="project_manager">Chef de Projet</option>
-                                                <option value="direction">Direction</option>
-                                                <option value="user">Utilisateur</option>
-                                            </select>
-                                        ) : (
-                                            <span className="px-3 py-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-lg text-xs font-bold">
-                                                {getRoleName(u.role)}
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">
-                                        {u.lastLogin
-                                            ? new Date(u.lastLogin).toLocaleDateString('fr-FR', {
-                                                day: 'numeric',
-                                                month: 'short',
-                                                year: 'numeric',
-                                            })
-                                            : 'Jamais'}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        {editingUser === u.uid ? (
-                                            <div className="flex items-center justify-end gap-2">
-                                                <button
-                                                    onClick={() => handleUpdateRole(u.uid, selectedRole)}
-                                                    className="p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
-                                                    title="Enregistrer"
-                                                >
-                                                    <Save className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setEditingUser(null)}
-                                                    className="p-2 text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
-                                                    title="Annuler"
-                                                >
-                                                    <X className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <button
-                                                onClick={() => {
-                                                    setEditingUser(u.uid);
-                                                    setSelectedRole(u.role);
-                                                }}
-                                                disabled={u.uid === user?.uid}
-                                                className="p-2 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                title="Modifier le rôle"
-                                            >
-                                                <Edit className="h-4 w-4" />
-                                            </button>
-                                        )}
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-white/10">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                        Utilisateur
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                        Email
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                        Rôle Actuel
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                        Dernière Connexion
+                                    </th>
+                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                        Actions
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200 dark:divide-white/10">
+                                {users.map((u) => (
+                                    <UserRow
+                                        key={u.uid}
+                                        user={u}
+                                        currentUser={user}
+                                        isEditing={editingUser === u.uid}
+                                        selectedRole={selectedRole}
+                                        onEditStart={(uid, role) => {
+                                            setEditingUser(uid);
+                                            setSelectedRole(role);
+                                        }}
+                                        onEditCancel={() => setEditingUser(null)}
+                                        onRoleChange={setSelectedRole}
+                                        onSave={handleUpdateRole}
+                                    />
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </div>
 

@@ -125,7 +125,7 @@ describe('Team View', () => {
             checkDependencies: vi.fn(),
             approveRequest: vi.fn(),
             rejectRequest: vi.fn(),
-        } as any);
+        } as unknown as ReturnType<typeof useTeamManagement>);
 
         render(
             <MemoryRouter>
@@ -150,7 +150,7 @@ describe('Team View', () => {
             checkDependencies: vi.fn(),
             approveRequest: vi.fn(),
             rejectRequest: vi.fn(),
-        } as any);
+        } as unknown as ReturnType<typeof useTeamManagement>);
         vi.mocked(usePersistedState).mockReturnValue(['roles', vi.fn()]);
 
         render(

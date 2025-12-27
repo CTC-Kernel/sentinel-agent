@@ -23,17 +23,17 @@ vi.mock('@headlessui/react', () => {
         open ? <div data-testid="dialog" onClick={onClose}>{children}</div> : null
     );
     // Attach sub-components to the functional component
-    (MockDialog as any).Panel = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
-    (MockDialog as any).Title = ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>;
-    (MockDialog as any).Description = ({ children }: { children: React.ReactNode }) => <p>{children}</p>;
+    (MockDialog as unknown as { Panel: React.FC<{ children: React.ReactNode }> }).Panel = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+    (MockDialog as unknown as { Title: React.FC<{ children: React.ReactNode }> }).Title = ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>;
+    (MockDialog as unknown as { Description: React.FC<{ children: React.ReactNode }> }).Description = ({ children }: { children: React.ReactNode }) => <p>{children}</p>;
 
     return {
         Transition: ({ children, show }: { children: React.ReactNode; show?: boolean }) => show ? <div>{children}</div> : null,
         Dialog: MockDialog,
         Listbox: {
-            Button: ({ children }: any) => <button>{children}</button>,
-            Options: ({ children }: any) => <ul>{children}</ul>,
-            Option: ({ children }: any) => <li>{children}</li>,
+            Button: ({ children }: { children: React.ReactNode }) => <button>{children}</button>,
+            Options: ({ children }: { children: React.ReactNode }) => <ul>{children}</ul>,
+            Option: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,
         }
     };
 });
@@ -130,14 +130,14 @@ vi.mock('framer-motion', () => ({
 }));
 
 vi.mock('@headlessui/react', () => {
-    const MockTransition = ({ show, children }: any) => show ? <>{children}</> : null;
-    MockTransition.Root = MockTransition;
-    MockTransition.Child = ({ children }: any) => <>{children}</>;
+    const MockTransition = ({ show, children }: { show?: boolean; children: React.ReactNode }) => show ? <>{children}</> : null;
+    (MockTransition as unknown as { Root: React.FC<{ children: React.ReactNode }> }).Root = MockTransition;
+    (MockTransition as unknown as { Child: React.FC<{ children: React.ReactNode }> }).Child = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
-    const MockDialog = ({ open, children }: any) => open ? <div>{children}</div> : null;
-    MockDialog.Panel = ({ children }: any) => <div>{children}</div>;
-    MockDialog.Title = ({ children }: any) => <div>{children}</div>;
-    MockDialog.Description = ({ children }: any) => <div>{children}</div>;
+    const MockDialog = ({ open, children }: { open?: boolean; children: React.ReactNode }) => open ? <div>{children}</div> : null;
+    (MockDialog as unknown as { Panel: React.FC<{ children: React.ReactNode }> }).Panel = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+    (MockDialog as unknown as { Title: React.FC<{ children: React.ReactNode }> }).Title = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+    (MockDialog as unknown as { Description: React.FC<{ children: React.ReactNode }> }).Description = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
 
     return {
         Transition: MockTransition,
