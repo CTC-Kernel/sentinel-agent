@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore';
-import { db } from '../../firebase';
+import React, { useState, useMemo } from 'react';
 import { useStore } from '../../store';
-import { ErrorLogger } from '../../services/errorLogger';
+import { useTimelineData } from '../../hooks/timeline/useTimelineData';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -40,56 +38,30 @@ interface TimelineViewProps {
 
 export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, className }) => {
     const { user } = useStore();
-    const [logs, setLogs] = useState<AuditLog[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { systemLogs, loading } = useTimelineData();
     const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-    useEffect(() => {
-        if (!user?.organizationId || !resourceId) return;
+    // Filter and transform logs for this specific resource
+    const logs = useMemo(() => {
+        if (!resourceId) return [];
 
-        const fetchLogs = async () => {
-            setLoading(true);
-            try {
-                // Query system_logs for this specific entity
-                const logsRef = collection(db, 'system_logs');
-                const q = query(
-                    logsRef,
-                    where('organizationId', '==', user.organizationId),
-                    where('entityId', '==', resourceId),
-                    orderBy('timestamp', 'desc'),
-                    limit(100)
-                );
-
-                const snapshot = await getDocs(q);
-                const fetchedLogs: AuditLog[] = [];
-
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    fetchedLogs.push({
-                        id: doc.id,
-                        action: data.action,
-                        entityType: data.entityType,
-                        entityId: data.entityId,
-                        userId: data.userId,
-                        userName: data.userName || 'Utilisateur inconnu',
-                        timestamp: data.timestamp?.toDate() || new Date(),
-                        before: data.before,
-                        after: data.after,
-                        changes: data.changes,
-                        details: data.details
-                    });
-                });
-
-                setLogs(fetchedLogs);
-            } catch (error) {
-                ErrorLogger.error(error, 'TimelineView.fetchLogs');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchLogs();
-    }, [user?.organizationId, resourceId]);
+        return systemLogs
+            .filter(log => log.entityId === resourceId)
+            .map(log => ({
+                id: log.id,
+                action: log.action as 'create' | 'update' | 'delete',
+                entityType: log.resource || '',
+                entityId: log.entityId || '',
+                userId: log.userId || '',
+                userName: log.userName || 'Utilisateur inconnu',
+                timestamp: log.timestamp?.toDate?.() || new Date(log.timestamp),
+                before: log.before,
+                after: log.after,
+                changes: log.changes,
+                details: log.details
+            }))
+            .slice(0, 100); // Limit to 100
+    }, [systemLogs, resourceId]);
 
     const getActionIcon = (action: string) => {
         switch (action) {
