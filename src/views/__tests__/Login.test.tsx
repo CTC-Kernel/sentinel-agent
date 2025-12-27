@@ -23,23 +23,26 @@ vi.mock('firebase/auth', () => ({
     browserSessionPersistence: 'session'
 }));
 
+// Mock Firebase Functions
 vi.mock('firebase/functions', () => ({
     getFunctions: vi.fn(),
-    httpsCallable: vi.fn().mockReturnValue(vi.fn().mockResolvedValue({})),
+    httpsCallable: vi.fn(() => vi.fn().mockResolvedValue({ data: {} })),
 }));
 
-vi.mock('../../firebase', async (importOriginal) => {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-    const actual = await importOriginal<typeof import('../../firebase')>();
-    return {
-        ...actual,
-        __esModule: true,
-        auth: {},
+// Mock Local Firebase Module
+vi.mock('../../firebase', () => ({
+    auth: { currentUser: null },
+    functions: {},
+    analytics: { app: {} }, // Explicitly defined
+    db: {},
+    storage: {},
+    isAppCheckFailed: false,
+    default: {
+        auth: { currentUser: null },
         functions: {},
-        analytics: {},
-        default: { ...actual, analytics: {} }
-    };
-});
+        analytics: { app: {} },
+    }
+}));
 
 // Mock Store
 vi.mock('../../store', () => ({
