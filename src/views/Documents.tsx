@@ -354,11 +354,9 @@ export const Documents: React.FC = () => {
                         >
                             <div className="flex items-center gap-2">
                                 <label className="flex items-center gap-2 cursor-pointer bg-slate-100 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-transparent hover:border-brand-200 transition-all">
-                                    <input
+                                    <input checked={isDigitalSafeMode} onChange={handleDigitalSafeToggle}
                                         aria-label={t('documents.digitalSafe')}
                                         type="checkbox"
-                                        checked={isDigitalSafeMode}
-                                        onChange={handleDigitalSafeToggle}
                                         className="rounded text-brand-600 focus:ring-brand-500"
                                     />
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('documents.digitalSafe')}</span>

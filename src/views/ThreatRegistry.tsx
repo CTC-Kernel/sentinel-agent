@@ -162,12 +162,11 @@ export const ThreatRegistry: React.FC = () => {
             <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-white/5 p-6 backdrop-blur-xl">
                 <div className="flex items-center space-x-4 mb-6 relative">
                     <Search className="h-5 w-5 text-slate-500 absolute left-4" />
-                    <input
+                    <input value={searchTerm}
                         aria-label="Rechercher une menace"
                         type="text"
                         placeholder="Rechercher une menace, un scénario..."
                         className="w-full bg-slate-50 dark:bg-slate-900/50 pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-500"
-                        value={searchTerm}
                         onChange={handleSearchChange}
                     />
                 </div>

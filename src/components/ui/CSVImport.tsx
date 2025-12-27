@@ -178,8 +178,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                             <div
                                 className="border-2 border-dashed border-slate-300 dark:border-white/10 rounded-2xl p-8 text-center hover:border-brand-500 dark:hover:border-brand-500 transition-colors focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-900"
                             >
-                                <input
-                                    type="file"
+                                <input type="file"
                                     accept=".csv"
                                     onChange={handleFileUpload}
                                     className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"

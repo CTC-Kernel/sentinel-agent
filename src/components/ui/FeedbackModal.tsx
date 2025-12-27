@@ -126,11 +126,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                             <div className="flex gap-4 p-1 glass-panel rounded-xl border border-white/10 w-fit">
                                 {(['low', 'medium', 'high'] as const).map((p) => (
                                     <label key={p} className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-lg transition-all ${priority === p ? 'bg-brand-500 text-white shadow-md' : 'hover:bg-white/10'}`}>
-                                        <input
+                                        <input checked={priority === p}
                                             type="radio"
                                             name="priority"
                                             value={p}
-                                            checked={priority === p}
                                             onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}
                                             className="hidden"
                                         />
@@ -149,10 +148,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                             Sujet
                         </label>
                         <div className="relative group">
-                            <input
+                            <input value={title} onChange={(e) => setTitle(e.target.value)}
                                 type="text"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
                                 placeholder="Ex: Ajout d'un filtre par date..."
                                 className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all shadow-sm group-hover:bg-white/70 dark:group-hover:bg-black/30 placeholder:text-slate-400"
                                 required

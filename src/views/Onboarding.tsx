@@ -427,12 +427,11 @@ export const Onboarding: React.FC = () => {
                                 <>
                                     <form onSubmit={handleSearchOrg} className="relative">
                                         <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                        <input
+                                        <input value={searchQuery}
                                             aria-label={t('onboarding.actions.search')}
                                             type="text"
                                             className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500"
                                             placeholder={t('onboarding.actions.search') + "..."}
-                                            value={searchQuery}
                                             onChange={e => setSearchQuery(e.target.value)}
                                         />
                                         <button

@@ -189,12 +189,10 @@ export const Help: React.FC = () => {
                     <div className="p-6 h-full flex flex-col gap-6">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                            <input
+                            <input value={search} onChange={(e) => setSearch(e.target.value)}
                                 aria-label="Rechercher dans l'aide"
                                 type="text"
                                 placeholder="Rechercher..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
                                 className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400"
                             />
                         </div>

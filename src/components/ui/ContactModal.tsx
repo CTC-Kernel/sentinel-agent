@@ -97,12 +97,11 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                         </label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                            <input
+                                            <input value={formData.name}
                                                 id="contact-name"
                                                 name="name"
                                                 type="text"
                                                 required
-                                                value={formData.name}
                                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm"
                                                 placeholder="Votre nom"
@@ -116,12 +115,11 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                         </label>
                                         <div className="relative">
                                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                            <input
+                                            <input value={formData.email}
                                                 id="contact-email"
                                                 name="email"
                                                 type="email"
                                                 required
-                                                value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm"
                                                 placeholder="votre@email.com"
@@ -135,12 +133,11 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                         </label>
                                         <div className="relative">
                                             <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                            <input
+                                            <input value={formData.subject}
                                                 id="contact-subject"
                                                 name="subject"
                                                 type="text"
                                                 required
-                                                value={formData.subject}
                                                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                                                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm"
                                                 placeholder="Sujet de votre message"

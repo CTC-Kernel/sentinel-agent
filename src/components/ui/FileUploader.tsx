@@ -139,9 +139,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             {/* File Input */}
             {!selectedFile && (
                 <div className="relative">
-                    <input
+                    <input type="file"
                         ref={fileInputRef}
-                        type="file"
                         onChange={handleFileSelect}
                         multiple={multiple}
                         accept={allowedTypes.join(',')}
