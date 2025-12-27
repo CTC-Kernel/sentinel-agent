@@ -24,25 +24,45 @@ vi.mock('firebase/auth', () => ({
 }));
 
 // Mock Firebase Functions
-vi.mock('firebase/functions', () => ({
-    getFunctions: vi.fn(),
-    httpsCallable: vi.fn(() => vi.fn().mockResolvedValue({ data: {} })),
-}));
+vi.mock('firebase/functions', () => {
+    const mockHttpsCallable = vi.fn(() => vi.fn().mockResolvedValue({ data: {} }));
+    return {
+        getFunctions: vi.fn(),
+        httpsCallable: mockHttpsCallable,
+    };
+});
 
 // Mock Local Firebase Module
-vi.mock('../../firebase', () => ({
-    auth: { currentUser: null },
-    functions: {},
-    analytics: { app: {} }, // Explicitly defined
-    db: {},
-    storage: {},
-    isAppCheckFailed: false,
-    default: {
-        auth: { currentUser: null },
-        functions: {},
-        analytics: { app: {} },
-    }
-}));
+vi.mock('../../firebase', () => {
+    const mockAuth = {
+        currentUser: null,
+        signOut: vi.fn(),
+        onAuthStateChanged: vi.fn((cb) => {
+            cb(null);
+            return vi.fn(); // Unsubscribe
+        })
+    };
+    const mockFunctions = {};
+    const mockAnalytics = { app: {} };
+
+    return {
+        __esModule: true,
+        auth: mockAuth,
+        functions: mockFunctions,
+        analytics: mockAnalytics,
+        db: {},
+        storage: {},
+        messages: {},
+        isAppCheckFailed: false,
+        debugGetAppCheckTokenSnippet: vi.fn(),
+        // Default export often needed for interop
+        default: {
+            auth: mockAuth,
+            functions: mockFunctions,
+            analytics: mockAnalytics,
+        }
+    };
+});
 
 // Mock Store
 vi.mock('../../store', () => ({
