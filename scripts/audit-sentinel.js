@@ -1380,7 +1380,8 @@ const RULES = [
                 if (line.includes('<input') && !line.includes('type="submit"') &&
                     !line.includes('type="file"') && !line.includes('type="hidden"')) {
                     if (!line.includes('value=') && !line.includes('defaultValue=') &&
-                        !line.includes('{...register') && !line.includes('{...field')) {
+                        !line.includes('{...register') && !line.includes('{...field') &&
+                        !line.includes('checked=')) {
                         errors.push({ line: i, match: 'Input non-contrôlé - ajouter value={} et onChange={}' });
                     }
                 }
