@@ -28,13 +28,18 @@ vi.mock('firebase/functions', () => ({
     httpsCallable: vi.fn().mockReturnValue(vi.fn().mockResolvedValue({})),
 }));
 
-vi.mock('../../firebase', () => ({
-    __esModule: true,
-    auth: {},
-    functions: {},
-    analytics: {},
-    default: { auth: {}, functions: {}, analytics: {} }
-}));
+vi.mock('../../firebase', async (importOriginal) => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+    const actual = await importOriginal<typeof import('../../firebase')>();
+    return {
+        ...actual,
+        __esModule: true,
+        auth: {},
+        functions: {},
+        analytics: {},
+        default: { ...actual, analytics: {} }
+    };
+});
 
 // Mock Store
 vi.mock('../../store', () => ({

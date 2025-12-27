@@ -187,6 +187,8 @@ class ErrorLoggerService {
           } catch (e) { // silent
             if (this.isDevelopment) console.warn('Analytics failed:', e);
           }
+        }).catch(() => {
+          // Ignore import errors in tests/offline
         });
       } catch (e) { // silent
         // Fail silently if analytics fails (e.g. ad blocker)
