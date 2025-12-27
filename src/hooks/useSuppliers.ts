@@ -23,7 +23,7 @@ import { CsvParser } from '../utils/csvUtils';
 export const useSuppliers = () => {
     const { user, t, addToast } = useStore();
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     const { data: suppliers, loading, error } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId)],

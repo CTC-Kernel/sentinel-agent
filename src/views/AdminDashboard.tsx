@@ -162,12 +162,10 @@ export const AdminDashboard: React.FC = () => {
                 <div className="flex flex-col md:flex-row gap-4 p-1.5 bg-white/60 dark:bg-slate-950/60 rounded-2xl border border-white/20 dark:border-white/5 shadow-xl backdrop-blur-xl">
                     <div className="relative flex-1 min-w-0 group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
-                        <input
+                        <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
                             aria-label={t('admin.orgs.searchPlaceholder')}
                             type="text"
                             placeholder={t('admin.orgs.searchPlaceholder')}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-11 pr-4 py-2.5 bg-transparent rounded-xl border-none focus:ring-0 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 transition-all"
                         />
                     </div>

@@ -183,14 +183,12 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                                             <div className="space-y-2">
                                                 {q.options?.map((opt, optIndex) => (
                                                     <div key={optIndex} className="flex gap-2">
-                                                        <input
+                                                        <input value={opt} onChange={(e) => {
+                                                            const newOptions = [...(q.options || [])];
+                                                            newOptions[optIndex] = e.target.value;
+                                                            updateQuestion(q.id, { options: newOptions });
+                                                        }}
                                                             type="text"
-                                                            value={opt}
-                                                            onChange={(e) => {
-                                                                const newOptions = [...(q.options || [])];
-                                                                newOptions[optIndex] = e.target.value;
-                                                                updateQuestion(q.id, { options: newOptions });
-                                                            }}
                                                             className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/10 rounded-lg text-sm transition-colors focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none"
                                                             placeholder={`Option ${optIndex + 1}`}
                                                         />
@@ -220,10 +218,8 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
 
                                     <div className="md:col-span-12 flex items-center gap-4 mt-2">
                                         <label className="flex items-center gap-2 cursor-pointer group">
-                                            <input
+                                            <input checked={q.required} onChange={(e) => updateQuestion(q.id, { required: e.target.checked })}
                                                 type="checkbox"
-                                                checked={q.required}
-                                                onChange={(e) => updateQuestion(q.id, { required: e.target.checked })}
                                                 className="rounded border-gray-300 text-brand-600 focus:ring-brand-500 transition-colors"
                                             />
                                             <span className="text-sm text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Obligatoire</span>
@@ -258,3 +254,5 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
         </Modal>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

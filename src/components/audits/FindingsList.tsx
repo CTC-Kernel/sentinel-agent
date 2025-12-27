@@ -80,7 +80,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit 
                             <button
                                 key={type}
                                 onClick={() => setTypeFilter(typeFilter === type ? null : type)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${typeFilter === type
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${typeFilter === type
                                     ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/20 dark:border-brand-800 dark:text-brand-300'
                                     : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-white/5 dark:border-white/10 dark:text-slate-400 dark:hover:bg-white/10'
                                     }`}
@@ -141,9 +141,18 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit 
                                         <td className="py-4 px-6">
                                             <div className="flex flex-col">
                                                 <span
-                                                    className={`text-sm font-medium ${onOpenAudit ? 'text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer' : 'text-slate-700 dark:text-slate-300'}`}
+                                                    className={`text-sm font-medium rounded ${onOpenAudit ? 'text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500' : 'text-slate-700 dark:text-slate-300'}`}
                                                     onClick={() => {
                                                         if (onOpenAudit) {
+                                                            const audit = audits.find(a => a.id === finding.auditId);
+                                                            if (audit) onOpenAudit(audit);
+                                                        }
+                                                    }}
+                                                    role={onOpenAudit ? "button" : undefined}
+                                                    tabIndex={onOpenAudit ? 0 : undefined}
+                                                    onKeyDown={(e) => {
+                                                        if (onOpenAudit && (e.key === 'Enter' || e.key === ' ')) {
+                                                            e.preventDefault();
                                                             const audit = audits.find(a => a.id === finding.auditId);
                                                             if (audit) onOpenAudit(audit);
                                                         }

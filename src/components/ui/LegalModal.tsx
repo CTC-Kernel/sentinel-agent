@@ -37,7 +37,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                     <button
                         aria-label="Fermer la fenêtre"
                         onClick={onClose}
-                        className="p-2.5 text-slate-500 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-all"
+                        className="p-2.5 text-slate-500 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         <X className="h-6 w-6" />
                     </button>
@@ -52,7 +52,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                             aria-selected={activeTab === tab.id}
                             role="tab"
                             onClick={() => setActiveTab(tab.id)}
-                            className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap ${activeTab === tab.id
+                            className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${activeTab === tab.id
                                 ? 'border-brand-500 text-brand-600 dark:text-brand-400'
                                 : 'border-transparent text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                                 }`}
@@ -75,8 +75,8 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                         <p className="text-sm text-slate-600 mt-1">EURL au capital de 10 000 €</p>
                                         <p className="text-sm text-slate-600">SIRET 919 340 794 00024 - TVA FR54 919 340 794</p>
                                         <p className="text-sm text-slate-600">Siège social : Avenue Rosa Parks, 69009 Lyon</p>
-                                        <p className="text-sm text-slate-600 mt-2">Contact : <a href="mailto:contact@cyber-threat-consulting.com" className="text-brand-600 hover:underline">contact@cyber-threat-consulting.com</a></p>
-                                        <p className="text-sm text-slate-600">Site web : <a href="https://cyber-threat-consulting.com" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">cyber-threat-consulting.com</a></p>
+                                        <p className="text-sm text-slate-600 mt-2">Contact : <a href="mailto:contact@cyber-threat-consulting.com" className="text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">contact@cyber-threat-consulting.com</a></p>
+                                        <p className="text-sm text-slate-600">Site web : <a href="https://cyber-threat-consulting.com" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">cyber-threat-consulting.com</a></p>
                                     </div>
                                 </section>
 
@@ -128,7 +128,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                                 <section>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">3. Vos Droits</h3>
                                     <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
-                                        Vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Pour exercer ce droit, contactez notre DPO à <a href="mailto:contact@cyber-threat-consulting.com" className="text-brand-600 hover:underline">contact@cyber-threat-consulting.com</a>.
+                                        Vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Pour exercer ce droit, contactez notre DPO à <a href="mailto:contact@cyber-threat-consulting.com" className="text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">contact@cyber-threat-consulting.com</a>.
                                     </p>
                                 </section>
                             </div>
@@ -231,7 +231,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
                     <button
                         aria-label="Fermer la fenêtre"
                         onClick={onClose}
-                        className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl hover:scale-105 transition-transform shadow-lg text-sm"
+                        className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl hover:scale-105 transition-transform shadow-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                     >
                         Fermer
                     </button>
@@ -241,3 +241,5 @@ export const LegalModal: React.FC<LegalModalProps> = ({ isOpen, onClose, initial
         document.body
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

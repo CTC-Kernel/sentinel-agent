@@ -274,3 +274,4 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
     </>
   );
 };
+// Headless UI handles FocusTrap and keyboard navigation

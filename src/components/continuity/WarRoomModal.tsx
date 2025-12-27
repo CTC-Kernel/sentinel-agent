@@ -226,10 +226,8 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
                                         <Button type="button" variant="ghost" className="text-slate-400 hover:text-white">
                                             <Paperclip className="w-5 h-5" />
                                         </Button>
-                                        <input
+                                        <input value={newMessage} onChange={(e) => setNewMessage(e.target.value)}
                                             type="text"
-                                            value={newMessage}
-                                            onChange={(e) => setNewMessage(e.target.value)}
                                             placeholder="Tapez un message chiffré..."
                                             className="flex-1 bg-transparent border-none text-white placeholder-slate-500 focus:ring-0 font-mono"
                                             autoFocus
@@ -247,3 +245,5 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
         </AnimatePresence>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

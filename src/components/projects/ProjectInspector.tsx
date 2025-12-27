@@ -100,8 +100,9 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     const linkedAuditsList = useMemo(() => audits.filter(a => project?.relatedAuditIds?.includes(a.id)), [audits, project]);
 
     // Task Handlers
-    const handleTaskSubmit = async (taskData: Partial<ProjectTask>) => {
-        if (!project || !updateTasks) return;
+    // Task Handlers
+    const handleTaskSubmit = React.useCallback(async (taskData: Partial<ProjectTask>) => {
+        if (!project) return;
         const cleanTaskData = sanitizeData(taskData);
         let newTasks = [...(project.tasks || [])];
 
@@ -114,36 +115,95 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
         await updateTasks(project, newTasks);
         setShowTaskModal(false);
         setEditingTask(undefined);
-    };
+    }, [project, updateTasks, editingTask]);
 
-    const toggleTaskStatus = async (taskId: string) => {
-        if (!project || !updateTasks) return;
+    const toggleTaskStatus = React.useCallback(async (taskId: string) => {
+        if (!project) return;
         const task = project.tasks.find(t => t.id === taskId);
         if (!task) return;
         const newStatus: ProjectTask['status'] = task.status === 'Terminé' ? 'A faire' : 'Terminé';
         const newTasks = project.tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t);
         await updateTasks(project, newTasks);
-    };
+    }, [project, updateTasks]);
 
-    const deleteTask = async (taskId: string) => {
-        if (!project || !updateTasks) return;
+    const deleteTask = React.useCallback(async (taskId: string) => {
+        if (!project) return;
         if (!window.confirm("Supprimer cette tâche ?")) return;
         const newTasks = project.tasks.filter(t => t.id !== taskId);
         await updateTasks(project, newTasks);
-    };
+    }, [project, updateTasks]);
 
     // Kanban Handlers
-    const handleDragStart = (_: React.DragEvent, taskId: string) => {
+    const handleDragStart = React.useCallback((_: React.DragEvent, taskId: string) => {
         setDraggedTaskId(taskId);
-    };
-    const handleDragOver = (e: React.DragEvent) => e.preventDefault();
-    const handleDrop = async (e: React.DragEvent, status: 'A faire' | 'En cours' | 'Terminé') => {
+    }, []);
+
+    const handleDragOver = React.useCallback((e: React.DragEvent) => e.preventDefault(), []);
+
+    const handleDrop = React.useCallback(async (e: React.DragEvent, status: 'A faire' | 'En cours' | 'Terminé') => {
         e.preventDefault();
         if (!draggedTaskId || !project) return;
         const newTasks = project.tasks.map(t => t.id === draggedTaskId ? { ...t, status } : t);
         await updateTasks(project, newTasks);
         setDraggedTaskId(null);
-    };
+    }, [draggedTaskId, project, updateTasks]);
+
+    // UI Handlers
+    const handleTabChange = React.useCallback((id: string) => {
+        setInspectorTab(id as InspectorTabId);
+    }, []);
+
+    const handleDuplicateClick = React.useCallback(() => {
+        if (project) onDuplicateProject(project);
+    }, [project, onDuplicateProject]);
+
+    const handleEditClick = React.useCallback(() => {
+        if (project) onEditProject(project);
+    }, [project, onEditProject]);
+
+    const handleDeleteClick = React.useCallback(() => {
+        if (project) onDeleteProject(project.id, project.name);
+    }, [project, onDeleteProject]);
+
+    const handleViewModeList = React.useCallback(() => setViewMode('list'), []);
+    const handleViewModeBoard = React.useCallback(() => setViewMode('board'), []);
+
+    const handleNewTask = React.useCallback(() => {
+        setEditingTask(undefined);
+        setShowTaskModal(true);
+    }, []);
+
+    const handleTaskEdit = React.useCallback((t: ProjectTask) => {
+        setEditingTask(t);
+        setShowTaskModal(true);
+    }, []);
+
+    const handleTaskModalClose = React.useCallback(() => {
+        setShowTaskModal(false);
+    }, []);
+
+    const handleMilestoneUpdate = React.useCallback(() => {
+        if (project) fetchMilestones(project.id);
+    }, [project, fetchMilestones]);
+
+    const handleGanttTaskUpdate = React.useCallback(async (task: ProjectTask, start: Date, end: Date) => {
+        if (!project) return;
+        const newTasks = project.tasks.map(t => t.id === task.id ? { ...t, startDate: start.toISOString(), dueDate: end.toISOString() } : t);
+        await updateTasks(project, newTasks);
+    }, [updateTasks, project]);
+
+    const handleDownloadICS = React.useCallback((task: ProjectTask) => {
+        const startDate = task.startDate ? new Date(task.startDate) : new Date();
+        const endDate = task.dueDate ? new Date(task.dueDate) : new Date(startDate.getTime() + 60 * 60 * 1000);
+        const ics = generateICS([{
+            title: `Tâche: ${task.title}`,
+            description: task.description || '',
+            startTime: startDate,
+            endTime: endDate,
+            location: 'Sentinel GRC'
+        }]);
+        downloadICS(`task_${task.id}.ics`, ics);
+    }, []);
 
     if (!project) return null;
 
@@ -191,33 +251,32 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                 }
                 tabs={tabs}
                 activeTab={inspectorTab}
-                onTabChange={(id) => setInspectorTab(id as InspectorTabId)}
+                onTabChange={handleTabChange}
                 actions={
                     <>
                         <CustomTooltip content="Générer un rapport exécutif PDF">
-                            <button aria-label="Générer un rapport exécutif PDF" onClick={onExportExecutiveReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><FileText className="h-5 w-5 text-indigo-500" /></button>
+                            <button aria-label="Générer un rapport exécutif PDF" onClick={onExportExecutiveReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><FileText className="h-5 w-5 text-brand-500" /></button>
                         </CustomTooltip>
                         <CustomTooltip content="Télécharger le rapport">
-                            <button aria-label="Télécharger le rapport" onClick={onGenerateReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Download className="h-5 w-5" /></button>
+                            <button aria-label="Télécharger le rapport" onClick={onGenerateReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Download className="h-5 w-5" /></button>
                         </CustomTooltip>
                         {canEdit && (
                             <CustomTooltip content="Dupliquer le projet">
-                                <button aria-label="Dupliquer le projet" onClick={() => onDuplicateProject(project)} disabled={isSubmitting} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm disabled:opacity-50">
+                                <button aria-label="Dupliquer le projet" onClick={handleDuplicateClick} disabled={isSubmitting} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                     {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Copy className="h-5 w-5" />}
                                 </button>
                             </CustomTooltip>
                         )}
                         {canEdit && (
                             <CustomTooltip content="Modifier le projet">
-                                <button aria-label="Modifier le projet" onClick={() => onEditProject(project)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm"><Edit className="h-5 w-5" /></button>
+                                <button aria-label="Modifier le projet" onClick={handleEditClick} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Edit className="h-5 w-5" /></button>
                             </CustomTooltip>
                         )}
                         {/* Delete handled by parent via onDeleteProject which likely triggers ConfirmModal */}
-                        {onDeleteProject && (
-                            <CustomTooltip content="Supprimer le projet">
-                                <button aria-label="Supprimer le projet" onClick={() => onDeleteProject(project.id, project.name)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm"><Trash2 className="h-5 w-5" /></button>
-                            </CustomTooltip>
-                        )}
+                        {/* Delete handled by parent via onDeleteProject which likely triggers ConfirmModal */}
+                        <CustomTooltip content="Supprimer le projet">
+                            <button aria-label="Supprimer le projet" onClick={handleDeleteClick} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Trash2 className="h-5 w-5" /></button>
+                        </CustomTooltip>
                     </>
                 }
             // disableFocusTrap={showTaskModal} // Removed to use default=true
@@ -247,11 +306,11 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                             <div className="space-y-6 h-full flex flex-col">
                                 <div className="flex justify-between items-center">
                                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700">
-                                        <button aria-label="Vue Liste" onClick={() => setViewMode('list')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Liste</button>
-                                        <button aria-label="Vue Tableau" onClick={() => setViewMode('board')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600'}`}>Tableau</button>
+                                        <button aria-label="Vue Liste" onClick={handleViewModeList} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'}`}>Liste</button>
+                                        <button aria-label="Vue Tableau" onClick={handleViewModeBoard} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${viewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'}`}>Tableau</button>
                                     </div>
                                     {canEdit && (
-                                        <button aria-label="Nouvelle tâche" onClick={() => { setEditingTask(undefined); setShowTaskModal(true); }} className="flex items-center gap-2 px-4 py-2 text-xs font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 hover:scale-105 transition-all shadow-lg shadow-brand-500/30">
+                                        <button aria-label="Nouvelle tâche" onClick={handleNewTask} className="flex items-center gap-2 px-4 py-2 text-xs font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 hover:scale-105 transition-all shadow-lg shadow-brand-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                             <Plus className="h-4 w-4" /> Nouvelle tâche
                                         </button>
                                     )}
@@ -260,25 +319,14 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     <div className="space-y-2">
                                         {project.tasks?.map(task => (
                                             <div key={task.id} className="flex items-center p-3 glass-panel rounded-xl border border-white/60 dark:border-white/10 group hover:shadow-apple transition-all">
-                                                <button aria-label={`Marquer comme ${task.status === 'Terminé' ? 'à faire' : 'terminé'}`} onClick={() => toggleTaskStatus(task.id)} disabled={!canEdit} className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-green-500'}`}>
+                                                <button aria-label={`Marquer comme ${task.status === 'Terminé' ? 'à faire' : 'terminé'}`} onClick={() => toggleTaskStatus(task.id)} disabled={!canEdit} className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-green-500'}`}>
                                                     {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
                                                 </button>
                                                 <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'}`}>{task.title}</span>
                                                 {canEdit && (
                                                     <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <button aria-label="Télécharger l'ICS de la tâche" onClick={() => {
-                                                            const startDate = task.startDate ? new Date(task.startDate) : new Date();
-                                                            const endDate = task.dueDate ? new Date(task.dueDate) : new Date(startDate.getTime() + 60 * 60 * 1000);
-                                                            const ics = generateICS([{
-                                                                title: `Tâche: ${task.title}`,
-                                                                description: task.description || '',
-                                                                startTime: startDate,
-                                                                endTime: endDate,
-                                                                location: 'Sentinel GRC'
-                                                            }]);
-                                                            downloadICS(`task_${task.id}.ics`, ics);
-                                                        }} className="p-1.5 text-slate-500 hover:text-blue-500 transition-all"><CalendarDays className="h-3.5 w-3.5" /></button>
-                                                        <button aria-label="Supprimer la tâche" onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-500 hover:text-red-500 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
+                                                        <button aria-label="Télécharger l'ICS de la tâche" onClick={() => handleDownloadICS(task)} className="p-1.5 text-slate-500 hover:text-brand-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><CalendarDays className="h-3.5 w-3.5" /></button>
+                                                        <button aria-label="Supprimer la tâche" onClick={() => deleteTask(task.id)} className="p-1.5 text-slate-500 hover:text-red-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Trash2 className="h-3.5 w-3.5" /></button>
                                                     </div>
                                                 )}
                                             </div>
@@ -296,7 +344,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                                 onDragOver={handleDragOver}
                                                 onDrop={handleDrop}
                                                 onDragStart={handleDragStart}
-                                                onEditTask={(t) => { setEditingTask(t); setShowTaskModal(true); }}
+                                                onEditTask={handleTaskEdit}
                                                 onDeleteTask={deleteTask}
                                             />
                                         ))}
@@ -312,18 +360,14 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     viewMode={ganttViewMode}
                                     onViewModeChange={setGanttViewMode}
                                     users={usersList}
-                                    onTaskClick={(t) => { setEditingTask(t); setShowTaskModal(true); }}
-                                    onTaskUpdate={async (task, start, end) => {
-                                        if (!updateTasks) return;
-                                        const newTasks = project.tasks.map(t => t.id === task.id ? { ...t, startDate: start.toISOString(), dueDate: end.toISOString() } : t);
-                                        await updateTasks(project, newTasks);
-                                    }}
+                                    onTaskClick={handleTaskEdit}
+                                    onTaskUpdate={handleGanttTaskUpdate}
                                 />
                             </div>
                         )}
 
                         {inspectorTab === 'milestones' && (
-                            <ProjectMilestones project={project} milestones={projectMilestones} onUpdate={() => fetchMilestones(project.id)} />
+                            <ProjectMilestones project={project} milestones={projectMilestones} onUpdate={handleMilestoneUpdate} />
                         )}
 
                         {inspectorTab === 'dashboard' && (
@@ -343,18 +387,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     </div>
                                 ) : (
                                     linkedRisks.map(risk => (
-                                        <div key={risk.id} onClick={() => navigate(`/risks?id=${risk.id}`)} className="cursor-pointer glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex justify-between items-center group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
-                                            <div>
-                                                <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{risk.threat}</h4>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${risk.score >= 12 ? 'bg-red-100 text-red-600' : risk.score >= 5 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>Score: {risk.score}</span>
-                                                    <span className="text-xs text-slate-500">{risk.category}</span>
-                                                </div>
-                                            </div>
-                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Edit className="h-4 w-4 text-slate-400" />
-                                            </div>
-                                        </div>
+                                        <LinkedRiskItem key={risk.id} risk={risk} onClick={() => navigate(`/risks?id=${risk.id}`)} />
                                     ))
                                 )}
                             </div>
@@ -392,15 +425,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     </div>
                                 ) : (
                                     linkedAssets.map(asset => (
-                                        <div key={asset.id} onClick={() => navigate(`/assets?id=${asset.id}`)} className="cursor-pointer glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex items-center gap-4 bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-colors group">
-                                            <div className="h-10 w-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                <Server className="h-5 w-5" />
-                                            </div>
-                                            <div>
-                                                <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{asset.name}</h4>
-                                                <span className="text-xs text-slate-500">{asset.type}</span>
-                                            </div>
-                                        </div>
+                                        <LinkedAssetItem key={asset.id} asset={asset} onClick={() => navigate(`/assets?id=${asset.id}`)} />
                                     ))
                                 )}
                             </div>
@@ -415,15 +440,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     </div>
                                 ) : (
                                     linkedAuditsList.map(audit => (
-                                        <div key={audit.id} onClick={() => navigate(`/audits?id=${audit.id}`)} className="cursor-pointer glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-colors group">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{audit.name}</h4>
-                                                    <p className="text-xs text-slate-500 mt-1">Ref: {audit.reference}</p>
-                                                </div>
-                                                <Badge status={audit.status === 'Validé' || audit.status === 'Terminé' ? 'success' : 'warning'}>{audit.status}</Badge>
-                                            </div>
-                                        </div>
+                                        <LinkedAuditItem key={audit.id} audit={audit} onClick={() => navigate(`/audits?id=${audit.id}`)} />
                                     ))
                                 )}
                             </div>
@@ -439,7 +456,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         {usersList.filter(u => project.members?.includes(u.uid)).map(member => (
                                             <div key={member.uid} className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex items-center gap-4 group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
-                                                <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gradient-to-br from-brand-100 to-indigo-50 dark:from-brand-900/40 dark:to-indigo-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-lg border-2 border-white dark:border-white/5 shadow-sm group-hover:scale-110 transition-transform">
+                                                <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-lg border-2 border-white dark:border-white/5 shadow-sm group-hover:scale-110 transition-transform">
                                                     {member.photoURL ? (
                                                         <img src={member.photoURL} alt={member.displayName} className="h-full w-full rounded-full object-cover" />
                                                     ) : (
@@ -470,7 +487,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
 
             <TaskFormModal
                 isOpen={showTaskModal}
-                onClose={() => setShowTaskModal(false)}
+                onClose={handleTaskModalClose}
                 onSubmit={handleTaskSubmit}
                 existingTask={editingTask}
                 availableTasks={project.tasks || []}
@@ -489,3 +506,87 @@ const InspectorStatCard = ({ label, value }: { label: string, value: number }) =
         </div>
     </div>
 );
+
+const LinkedRiskItem = React.memo(({ risk, onClick }: { risk: Risk, onClick: () => void }) => {
+    const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+        }
+    }, [onClick]);
+
+    return (
+        <div
+            onClick={onClick}
+            onKeyDown={handleKeyDown}
+            role="button"
+            tabIndex={0}
+            className="cursor-pointer glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex justify-between items-center group hover:bg-white/50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+        >
+            <div>
+                <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{risk.threat}</h4>
+                <div className="flex items-center gap-2 mt-1">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${risk.score >= 12 ? 'bg-red-100 text-red-600' : risk.score >= 5 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>Score: {risk.score}</span>
+                    <span className="text-xs text-slate-500">{risk.category}</span>
+                </div>
+            </div>
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                <Edit className="h-4 w-4 text-slate-400" />
+            </div>
+        </div>
+    );
+});
+
+const LinkedAssetItem = React.memo(({ asset, onClick }: { asset: Asset, onClick: () => void }) => {
+    const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+        }
+    }, [onClick]);
+
+    return (
+        <div
+            onClick={onClick}
+            onKeyDown={handleKeyDown}
+            role="button"
+            tabIndex={0}
+            className="cursor-pointer glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex items-center gap-4 group hover:bg-white/50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+        >
+            <div className="h-10 w-10 rounded-lg bg-brand-100 text-brand-600 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                <Server className="h-5 w-5" />
+            </div>
+            <div>
+                <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{asset.name}</h4>
+                <span className="text-xs text-slate-500">{asset.type}</span>
+            </div>
+        </div>
+    );
+});
+
+const LinkedAuditItem = React.memo(({ audit, onClick }: { audit: Audit, onClick: () => void }) => {
+    const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+        }
+    }, [onClick]);
+
+    return (
+        <div
+            onClick={onClick}
+            onKeyDown={handleKeyDown}
+            role="button"
+            tabIndex={0}
+            className="cursor-pointer glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+        >
+            <div className="flex justify-between items-start">
+                <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{audit.name}</h4>
+                    <p className="text-xs text-slate-500 mt-1">Ref: {audit.reference}</p>
+                </div>
+                <Badge status={audit.status === 'Validé' || audit.status === 'Terminé' ? 'success' : 'warning'}>{audit.status}</Badge>
+            </div>
+        </div>
+    );
+});

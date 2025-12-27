@@ -120,7 +120,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                             <select
                                 value={selectedPlaybookId}
                                 onChange={(e) => setSelectedPlaybookId(e.target.value)}
-                                className="w-full rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-3"
+                                className="w-full rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-3 focus:outline-none focus:ring-2 focus:ring-brand-500"
                             >
                                 {availablePlaybooks.map(pb => (
                                     <option key={pb.id} value={pb.id}>{pb.title} ({pb.severity})</option>
@@ -144,7 +144,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                         <button
                             onClick={handleStartResponse}
                             disabled={isStarting}
-                            className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                         >
                             {isStarting ? <span className="animate-spin">⏳</span> : <MonitorPlay className="h-5 w-5" />}
                             Démarrer la réponse
@@ -155,7 +155,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                         <p className="text-slate-600">Aucun playbook disponible pour la catégorie "{incident.category}".</p>
                         <button
                             onClick={() => user?.organizationId && IncidentPlaybookService.initializeDefaultPlaybooks(user.organizationId).then(loadData)}
-                            className="mt-2 text-brand-600 hover:underline text-sm"
+                            className="mt-2 text-brand-600 hover:underline text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
                         >
                             Générer les playbooks par défaut
                         </button>
@@ -214,7 +214,15 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                             <div
                                 key={step.id}
                                 onClick={() => isNext && !readOnly && handleStepToggle(step)}
-                                className={`relative flex items-start p-4 rounded-xl border transition-all ${isCompleted
+                                onKeyDown={(e) => {
+                                    if (isNext && !readOnly && (e.key === 'Enter' || e.key === ' ')) {
+                                        e.preventDefault();
+                                        handleStepToggle(step);
+                                    }
+                                }}
+                                role="button"
+                                tabIndex={isNext && !readOnly ? 0 : -1}
+                                className={`relative flex items-start p-4 rounded-xl border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isCompleted
                                     ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30'
                                     : isNext
                                         ? 'bg-white dark:bg-white/5 border-brand-200 dark:border-brand-500/30 ring-1 ring-brand-100 dark:ring-brand-900/20 cursor-pointer hover:shadow-md'

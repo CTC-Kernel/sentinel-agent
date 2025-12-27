@@ -209,6 +209,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                 value={field.value || []}
                                 onChange={field.onChange}
                                 multiple
+                                error={errors.reviewers?.message}
                             />
                         )}
                     />
@@ -222,6 +223,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                 value={field.value || []}
                                 onChange={field.onChange}
                                 multiple
+                                error={errors.approvers?.message}
                             />
                         )}
                     />
@@ -253,6 +255,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                 value={field.value || []}
                                 onChange={field.onChange}
                                 multiple
+                                error={errors.relatedControlIds?.message}
                             />
                         )}
                     />
@@ -266,6 +269,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                 value={field.value || []}
                                 onChange={field.onChange}
                                 multiple
+                                error={errors.relatedAssetIds?.message}
                             />
                         )}
                     />
@@ -279,6 +283,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                 value={field.value || []}
                                 onChange={field.onChange}
                                 multiple
+                                error={errors.relatedAuditIds?.message}
                             />
                         )}
                     />
@@ -292,6 +297,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                 value={field.value || []}
                                 onChange={field.onChange}
                                 multiple
+                                error={errors.relatedRiskIds?.message}
                             />
                         )}
                     />
@@ -315,6 +321,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                     setValue('storageProvider', val);
                                 }
                             }}
+                            error={errors.storageProvider?.message}
                         />
                     </div>
 
@@ -333,10 +340,8 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                     <span className="text-xs text-green-700 dark:text-green-400 font-medium truncate flex-1">{uploadedFileUrl.split('/').pop()}</span>
                                     <div className="flex items-center gap-2">
                                         <label className="flex items-center gap-1 cursor-pointer">
-                                            <input
+                                            <input checked={uploadedFileSecure} onChange={e => setUploadedFileSecure(e.target.checked)}
                                                 type="checkbox"
-                                                checked={uploadedFileSecure}
-                                                onChange={e => setUploadedFileSecure(e.target.checked)}
                                                 className="rounded text-blue-600 focus:ring-blue-500"
                                             />
                                             <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">Sécurisé</span>
@@ -354,6 +359,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                     {...register('externalUrl')}
                                     placeholder={storageProvider === 'google_drive' ? "Lien Google Drive..." : "Lien SharePoint/OneDrive..."}
                                     className="flex-1"
+                                    error={errors.externalUrl?.message}
                                 />
                                 <Button
                                     type="button"

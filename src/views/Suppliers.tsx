@@ -1,4 +1,4 @@
-import React, { useDeferredValue, useEffect, useMemo, useState, useRef } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
@@ -50,6 +50,8 @@ const getScoreColor = (score: number) => {
     if (score >= 50) return 'bg-amber-500';
     return 'bg-red-500';
 };
+
+type DashboardFilter = { type: string; value: string };
 
 export const Suppliers: React.FC = () => {
     const [filter, setFilter] = useState('');
@@ -142,7 +144,7 @@ export const Suppliers: React.FC = () => {
 
 
     // Derived State
-    const suppliers = React.useMemo(() => {
+    const suppliers = useMemo(() => {
         const resolved = suppliersRaw.map(s => {
             if (!s.ownerId && s.owner) {
                 const ownerUser = usersRaw.find(u => u.displayName === s.owner);
@@ -176,7 +178,7 @@ export const Suppliers: React.FC = () => {
     }
 
     // Hook Definitions
-    const handleDelete = React.useCallback(async (id: string, name: string) => {
+    const handleDelete = useCallback(async (id: string, name: string) => {
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
             await deleteSupplier(id, name);
@@ -189,7 +191,7 @@ export const Suppliers: React.FC = () => {
         }
     }, [deleteSupplier, selectedSupplier]);
 
-    const initiateDelete = React.useCallback(async (id: string, name: string) => {
+    const initiateDelete = useCallback(async (id: string, name: string) => {
         if (!canEdit) return;
 
         // Check dependencies
@@ -210,7 +212,116 @@ export const Suppliers: React.FC = () => {
             onConfirm: () => handleDelete(id, name),
             closeOnConfirm: false
         });
-    }, [canEdit, handleDelete, user?.organizationId, t]);
+    }, [canEdit, handleDelete, t, checkDependencies]);
+
+    // Logic to start assessment (Moved up)
+    const startAssessment = useCallback(async (supplier: Supplier, templateId: string) => {
+        if (!templateId || !user?.organizationId) return;
+        try {
+            const tpl = templates.find(t => t.id === templateId);
+            if (!tpl) return;
+            const resId = await SupplierService.createAssessment(user.organizationId, supplier.id, supplier.name, tpl);
+            setAssessmentMode(resId);
+            addToast('Évaluation démarrée', 'success');
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Suppliers.startAssessment');
+        }
+    }, [user, templates, setAssessmentMode, addToast]);
+
+    // Callbacks
+    const handleSearchChange = useCallback((q: string) => {
+        setFilter(q);
+    }, []);
+
+    const handleViewModeChange = useCallback((mode: string) => {
+        setViewMode(mode as 'grid' | 'list' | 'matrix' | 'kanban');
+    }, [setViewMode]);
+
+    const handleImportClick = useCallback(() => {
+        fileInputRef.current?.click();
+    }, []);
+
+    const handleCreationDrawerOpen = useCallback(() => {
+        setCreationMode(true);
+        setSelectedSupplier(null);
+    }, []);
+
+    const handleCreationDrawerClose = useCallback(() => {
+        setCreationMode(false);
+    }, []);
+
+    const handleTemplateModeOpen = useCallback(() => {
+        setTemplateMode(true);
+    }, []);
+
+    const handleTemplateModeClose = useCallback(() => {
+        setTemplateMode(false);
+    }, []);
+
+    const handleAssessmentClose = useCallback(() => {
+        setAssessmentMode(null);
+    }, []);
+
+    const handleInspectorClose = useCallback(() => {
+        setSelectedSupplier(null);
+    }, []);
+
+    const handleTabChange = useCallback((id: string) => {
+        setInspectorTab(id as 'profile' | 'assessment' | 'incidents' | 'history' | 'comments' | 'intelligence');
+    }, []);
+
+    const handleCommentsClick = useCallback(() => {
+        setInspectorTab('comments');
+    }, []);
+
+    const handleStartAssessmentClick = useCallback(() => {
+        if (selectedSupplier && templates.length > 0) {
+            startAssessment(selectedSupplier, templates[0].id);
+        } else if (templates.length === 0) {
+            addToast('Aucun modèle disponible', 'error');
+        }
+    }, [selectedSupplier, templates, startAssessment, addToast]);
+
+    const handleDashboardFilterChange = useCallback((filter: DashboardFilter | null) => {
+        if (filter?.type === 'criticality') {
+            // Implement filter logic if needed
+        }
+    }, []);
+
+    const handleMenuClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+    }, []);
+
+    const handleStartNewAssessment = useCallback(() => {
+        if (selectedSupplier && templates.length > 0) {
+            startAssessment(selectedSupplier, templates[0].id);
+        }
+    }, [selectedSupplier, templates, startAssessment]);
+
+    const openInspector = useCallback(async (supplier: Supplier) => {
+        setSelectedSupplier(supplier);
+        setInspectorTab('profile');
+        editForm.reset({
+            name: supplier.name,
+            category: supplier.category,
+            criticality: supplier.criticality,
+            contactName: supplier.contactName,
+            contactEmail: supplier.contactEmail,
+            status: supplier.status,
+            owner: supplier.owner,
+            ownerId: supplier.ownerId,
+            description: supplier.description,
+            contractDocumentId: supplier.contractDocumentId,
+            contractEnd: supplier.contractEnd,
+            securityScore: supplier.securityScore,
+            assessment: supplier.assessment,
+            isICTProvider: supplier.isICTProvider,
+            supportsCriticalFunction: supplier.supportsCriticalFunction,
+            doraCriticality: supplier.doraCriticality,
+            serviceType: supplier.serviceType,
+            supportedProcessIds: supplier.supportedProcessIds || []
+        });
+    }, [editForm]);
 
     const deferredFilter = useDeferredValue(filter);
     const filteredSuppliers = useMemo(() => {
@@ -219,7 +330,7 @@ export const Suppliers: React.FC = () => {
         return suppliers.filter(s => s.name.toLowerCase().includes(needle));
     }, [suppliers, deferredFilter]);
 
-    const columns = React.useMemo<ColumnDef<Supplier>[]>(() => [
+    const columns = useMemo<ColumnDef<Supplier>[]>(() => [
         {
             accessorKey: 'name',
             header: t('common.name'),
@@ -300,7 +411,11 @@ export const Suppliers: React.FC = () => {
         {
             id: 'actions',
             cell: ({ row }) => (
-                <div className="text-right flex justify-end items-center space-x-1 hover:cursor-default" onClick={e => e.stopPropagation()}>
+                <div
+                    className="text-right flex justify-end items-center space-x-1 hover:cursor-default"
+                    onClick={handleMenuClick}
+                    role="presentation"
+                >
                     {canEdit && (
                         <CustomTooltip content="Supprimer le fournisseur">
                             <button
@@ -308,7 +423,7 @@ export const Suppliers: React.FC = () => {
                                     e.stopPropagation();
                                     initiateDelete(row.original.id, row.original.name);
                                 }}
-                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:opacity-100"
                                 aria-label={`Delete supplier ${row.original.name}`}
                             >
                                 <Trash2 className="h-4 w-4" />
@@ -318,7 +433,7 @@ export const Suppliers: React.FC = () => {
                 </div>
             )
         }
-    ], [canEdit, initiateDelete, t]);
+    ], [canEdit, initiateDelete, t, handleMenuClick]);
 
     // Import
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -340,74 +455,10 @@ export const Suppliers: React.FC = () => {
         }
     }, [location.state, loadingSuppliers, loadingData, suppliers]);
 
-    // Logic to start assessment
-    const startAssessment = async (supplier: Supplier, templateId: string) => {
-        if (!templateId || !user?.organizationId) return;
-        try {
-            const tpl = templates.find(t => t.id === templateId);
-            if (!tpl) return;
-            const resId = await SupplierService.createAssessment(user.organizationId, supplier.id, supplier.name, tpl);
-            setAssessmentMode(resId);
-            addToast('Évaluation démarrée', 'success');
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Suppliers.startAssessment');
-        }
-    };
-
-    // Render Assessment View Overlay
-    if (assessmentMode) {
-        return (
-            <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 animate-slide-up">
-                <AssessmentView responseId={assessmentMode} onClose={() => setAssessmentMode(null)} />
-            </div>
-        );
-    }
-
-    // Render Builder
-    if (templateMode) {
-        return (
-            <div className="p-8 max-w-5xl mx-auto animate-fade-in">
-                <div className="mb-6 flex items-center">
-                    <button aria-label="Retour au tableau de bord" onClick={() => setTemplateMode(false)} className="text-slate-500 hover:text-slate-700 mr-4 transition-colors" title="Retour au tableau de bord">Retour</button>
-                    <h1 className="text-2xl font-bold dark:text-white">Éditeur de Modèle de Questionnaire</h1>
-                </div>
-                <QuestionnaireBuilder onCancel={() => setTemplateMode(false)} onSave={() => setTemplateMode(false)} />
-            </div>
-        )
-    }
-
-    const openInspector = async (supplier: Supplier) => {
-        setSelectedSupplier(supplier);
-        setInspectorTab('profile');
-        editForm.reset({
-            name: supplier.name,
-            category: supplier.category,
-            criticality: supplier.criticality,
-            contactName: supplier.contactName,
-            contactEmail: supplier.contactEmail,
-            status: supplier.status,
-            owner: supplier.owner,
-            ownerId: supplier.ownerId,
-            description: supplier.description,
-            contractDocumentId: supplier.contractDocumentId,
-            contractEnd: supplier.contractEnd,
-            securityScore: supplier.securityScore,
-            assessment: supplier.assessment,
-            isICTProvider: supplier.isICTProvider,
-            supportsCriticalFunction: supplier.supportsCriticalFunction,
-            doraCriticality: supplier.doraCriticality,
-            serviceType: supplier.serviceType,
-            supportedProcessIds: supplier.supportedProcessIds || []
-        });
-    };
-
-    const openCreationDrawer = () => {
-        setCreationMode(true);
-        setSelectedSupplier(null);
-    };
 
 
-    const handleCreate: SubmitHandler<SupplierFormData> = async (data) => {
+
+    const handleCreate: SubmitHandler<SupplierFormData> = useCallback(async (data) => {
         if (!canEdit || !user?.organizationId) return;
         setIsSubmitting(true);
         try {
@@ -418,9 +469,9 @@ export const Suppliers: React.FC = () => {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [canEdit, user, addSupplier]);
 
-    const handleUpdate: SubmitHandler<SupplierFormData> = async (data) => {
+    const handleUpdate: SubmitHandler<SupplierFormData> = useCallback(async (data) => {
         if (!canEdit || !selectedSupplier) return;
         setIsSubmitting(true);
         try {
@@ -431,9 +482,9 @@ export const Suppliers: React.FC = () => {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [canEdit, selectedSupplier, updateSupplier]);
 
-    const handleBulkDelete = async (selectedIds: string[]) => {
+    const handleBulkDelete = useCallback(async (selectedIds: string[]) => {
         if (!canEdit) return;
         if (!window.confirm(t('suppliers.deleteBulk', { count: selectedIds.length }))) return;
 
@@ -443,11 +494,11 @@ export const Suppliers: React.FC = () => {
         } catch (error) {
             ErrorLogger.warn('Bulk delete handled in hook', 'Suppliers.handleBulkDelete', { metadata: { error } });
         }
-    };
+    }, [canEdit, t, deleteSupplier]);
 
 
 
-    const handleExportCSV = async () => {
+    const handleExportCSV = useCallback(async () => {
         if (isExportingCSV) return;
         setIsExportingCSV(true);
         try {
@@ -465,9 +516,9 @@ export const Suppliers: React.FC = () => {
         } finally {
             setTimeout(() => setIsExportingCSV(false), 0);
         }
-    };
+    }, [isExportingCSV, filteredSuppliers]);
 
-    const handleExportDORARegister = async () => {
+    const handleExportDORARegister = useCallback(async () => {
         if (isExportingDORA) return;
         setIsExportingDORA(true);
         try {
@@ -485,9 +536,9 @@ export const Suppliers: React.FC = () => {
         } finally {
             setTimeout(() => setIsExportingDORA(false), 0);
         }
-    };
+    }, [isExportingDORA, filteredSuppliers]);
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         if (!canEdit || !user?.organizationId) return;
         const file = event.target.files?.[0];
         if (!file) return;
@@ -507,7 +558,31 @@ export const Suppliers: React.FC = () => {
             }
         };
         reader.readAsText(file);
-    };
+    }, [canEdit, user, importSuppliers]);
+
+    const handleConfirmClose = useCallback(() => {
+        setConfirmData(prev => ({ ...prev, isOpen: false }));
+    }, []);
+
+    if (assessmentMode) {
+        return (
+            <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 animate-slide-up">
+                <AssessmentView responseId={assessmentMode} onClose={handleAssessmentClose} />
+            </div>
+        );
+    }
+
+    if (templateMode) {
+        return (
+            <div className="p-8 max-w-5xl mx-auto animate-fade-in">
+                <div className="mb-6 flex items-center">
+                    <button aria-label="Retour au tableau de bord" onClick={handleTemplateModeClose} className="text-slate-500 hover:text-slate-700 mr-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-2" title="Retour au tableau de bord">Retour</button>
+                    <h1 className="text-2xl font-bold dark:text-white">Éditeur de Modèle de Questionnaire</h1>
+                </div>
+                <QuestionnaireBuilder onCancel={handleTemplateModeClose} onSave={handleTemplateModeClose} />
+            </div>
+        );
+    }
 
     return (
         <motion.div
@@ -524,7 +599,7 @@ export const Suppliers: React.FC = () => {
             />
             <ConfirmModal
                 isOpen={confirmData.isOpen}
-                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+                onClose={handleConfirmClose}
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}
@@ -544,7 +619,7 @@ export const Suppliers: React.FC = () => {
                         <>
                             <input aria-label={t('common.import')} type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                             <Menu as="div" className="relative inline-block text-left">
-                                <Menu.Button aria-label={t('common.more')} className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                <Menu.Button aria-label={t('common.more')} className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                     <MoreVertical className="h-5 w-5" />
                                 </Menu.Button>
                                 <Transition
@@ -564,10 +639,10 @@ export const Suppliers: React.FC = () => {
                                             <Menu.Item>
                                                 {({ active }) => (
                                                     <button
-                                                        onClick={() => fileInputRef.current?.click()}
+                                                        onClick={handleImportClick}
                                                         disabled={isImporting}
                                                         className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
-                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 transition-colors`}
+                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
                                                         aria-label="Import Suppliers CSV"
                                                     >
                                                         {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
@@ -587,7 +662,7 @@ export const Suppliers: React.FC = () => {
                                                         onClick={handleExportCSV}
                                                         disabled={isExportingCSV}
                                                         className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
+                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
                                                     >
                                                         {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
                                                         {t('suppliers.exportCsv')}
@@ -601,7 +676,7 @@ export const Suppliers: React.FC = () => {
                                                         onClick={handleExportDORARegister}
                                                         disabled={isExportingDORA}
                                                         className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50`}
+                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
                                                     >
                                                         {isExportingDORA ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldAlert className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
                                                         Export DORA
@@ -616,8 +691,8 @@ export const Suppliers: React.FC = () => {
                             <CustomTooltip content="Gérer les modèles d'évaluation">
                                 <button
                                     aria-label="Gérer les modèles d'évaluation"
-                                    onClick={() => setTemplateMode(true)}
-                                    className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm"
+                                    onClick={handleTemplateModeOpen}
+                                    className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 >
                                     <ClipboardList className="h-5 w-5" />
                                 </button>
@@ -626,8 +701,8 @@ export const Suppliers: React.FC = () => {
                             <CustomTooltip content="Ajouter un nouveau fournisseur">
                                 <button
                                     aria-label={t('suppliers.newSupplier')}
-                                    onClick={() => openCreationDrawer()}
-                                    className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                    onClick={handleCreationDrawerOpen}
+                                    className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500"
                                 >
                                     <Plus className="h-4 w-4 mr-2" />
                                     <span className="hidden sm:inline">{t('suppliers.newSupplier')}</span>
@@ -644,21 +719,17 @@ export const Suppliers: React.FC = () => {
                 <SupplierDashboard
                     suppliers={filteredSuppliers}
 
-                    onFilterChange={(filter) => {
-                        if (filter?.type === 'criticality') {
-                            // Implement filter logic if needed, currently just visual
-                        }
-                    }}
+                    onFilterChange={handleDashboardFilterChange}
                 />
             </motion.div>
 
             <motion.div variants={slideUpVariants} className="mb-6">
                 <PremiumPageControl
                     searchQuery={filter}
-                    onSearchChange={setFilter}
+                    onSearchChange={handleSearchChange}
                     searchPlaceholder={t('suppliers.searchPlaceholder')}
                     viewMode={viewMode}
-                    onViewModeChange={setViewMode}
+                    onViewModeChange={handleViewModeChange}
                 />
             </motion.div>
 
@@ -685,7 +756,7 @@ export const Suppliers: React.FC = () => {
                                 title={t('suppliers.emptyTitle')}
                                 description={filter ? "Aucun fournisseur trouvé." : t('suppliers.emptyDesc')}
                                 actionLabel={filter || !canEdit ? undefined : t('suppliers.newSupplier')}
-                                onAction={filter || !canEdit ? undefined : openCreationDrawer}
+                                onAction={filter || !canEdit ? undefined : handleCreationDrawerOpen}
                             />
                         </div>
                     ) : (
@@ -693,7 +764,19 @@ export const Suppliers: React.FC = () => {
                             const isExpired = supplier.contractEnd && new Date(supplier.contractEnd) < new Date();
 
                             return (
-                                <div key={supplier.id} onClick={() => openInspector(supplier)} className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden h-full hover:border-brand-500 dark:hover:border-brand-400 transition-colors">
+                                <div
+                                    key={supplier.id}
+                                    onClick={() => openInspector(supplier)}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            openInspector(supplier);
+                                        }
+                                    }}
+                                    className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden h-full hover:border-brand-500 dark:hover:border-brand-400 transition-colors"
+                                >
                                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                                     <div className="relative z-10 flex flex-col h-full">
 
@@ -747,7 +830,7 @@ export const Suppliers: React.FC = () => {
             {/* Creation Drawer */}
             <Drawer
                 isOpen={creationMode}
-                onClose={() => setCreationMode(false)}
+                onClose={handleCreationDrawerClose}
                 title={t('suppliers.newSupplier')}
                 subtitle="Ajouter un nouveau tiers"
                 width="max-w-4xl"
@@ -755,7 +838,7 @@ export const Suppliers: React.FC = () => {
                 <div className="p-6">
                     <SupplierForm
                         onSubmit={handleCreate}
-                        onCancel={() => setCreationMode(false)}
+                        onCancel={handleCreationDrawerClose}
                         isLoading={isSubmitting}
                         users={effectiveUsers}
                         processes={processesRaw}
@@ -769,7 +852,7 @@ export const Suppliers: React.FC = () => {
             {/* Edit Drawer */}
             <Drawer
                 isOpen={!!selectedSupplier}
-                onClose={() => setSelectedSupplier(null)}
+                onClose={handleInspectorClose}
                 title={selectedSupplier?.name || ''}
                 subtitle="Détails du fournisseur"
                 width="max-w-4xl"
@@ -779,13 +862,8 @@ export const Suppliers: React.FC = () => {
                             <CustomTooltip content="Démarrer une évaluation">
                                 <button
                                     aria-label="Démarrer une évaluation"
-                                    onClick={() => {
-                                        // Auto-select first template or open selector? 
-                                        // For now just demo one
-                                        if (templates.length > 0) startAssessment(selectedSupplier, templates[0].id);
-                                        else addToast('Aucun modèle disponible', 'error');
-                                    }}
-                                    className="p-2 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
+                                    onClick={handleStartAssessmentClick}
+                                    className="p-2 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 >
                                     <ClipboardList className="h-5 w-5" />
                                 </button>
@@ -793,8 +871,8 @@ export const Suppliers: React.FC = () => {
                         )}
                         <button
                             aria-label="Discussion"
-                            onClick={() => setInspectorTab('comments')}
-                            className={`p-2 rounded-lg transition-colors ${inspectorTab === 'comments' ? 'bg-brand-50 text-brand-600' : 'text-slate-500 hover:bg-slate-100'}`}
+                            onClick={handleCommentsClick}
+                            className={`p-2 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${inspectorTab === 'comments' ? 'bg-brand-50 text-brand-600' : 'text-slate-500 hover:bg-slate-100'}`}
                         >
                             <MessageSquare className="h-5 w-5" />
                         </button>
@@ -813,7 +891,7 @@ export const Suppliers: React.FC = () => {
                                 <button
                                     key={tab.id}
                                     aria-label={tab.label}
-                                    onClick={() => setInspectorTab(tab.id as any)}
+                                    onClick={() => handleTabChange(tab.id)}
                                     className={`flex items-center px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${inspectorTab === tab.id
                                         ? 'border-brand-500 text-brand-600'
                                         : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
@@ -830,7 +908,7 @@ export const Suppliers: React.FC = () => {
                                 <SupplierForm
                                     initialData={selectedSupplier}
                                     onSubmit={handleUpdate}
-                                    onCancel={() => setSelectedSupplier(null)}
+                                    onCancel={handleInspectorClose}
                                     isLoading={isSubmitting}
                                     users={effectiveUsers}
                                     processes={processesRaw}
@@ -846,7 +924,7 @@ export const Suppliers: React.FC = () => {
                                         <h3 className="font-bold text-lg">Évaluations</h3>
                                         <button
                                             aria-label="Nouvelle Évaluation"
-                                            onClick={() => templates.length > 0 && startAssessment(selectedSupplier, templates[0].id)}
+                                            onClick={handleStartNewAssessment}
                                             className="px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-lg hover:bg-brand-700"
                                         >
                                             Nouvelle Évaluation

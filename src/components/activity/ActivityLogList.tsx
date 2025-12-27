@@ -118,7 +118,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                     <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
                         <Shield className="h-4 w-4" />
                         {linkPath ? (
-                            <Link to={linkPath} className="hover:text-brand-600 hover:underline transition-colors font-medium">
+                            <Link to={linkPath} className="hover:text-brand-600 hover:underline transition-colors font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-sm">
                                 {resource}
                             </Link>
                         ) : (
@@ -138,7 +138,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                         {details && <div className="text-slate-500 truncate max-w-xs" title={details}>{details}</div>}
                         {changes && changes.length > 0 && (
                             <details className="mt-1 group">
-                                <summary className="cursor-pointer text-xs text-brand-600 hover:text-brand-700 hover:underline flex items-center gap-1 font-medium select-none">
+                                <summary className="cursor-pointer text-xs text-brand-600 hover:text-brand-700 hover:underline flex items-center gap-1 font-medium select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-sm px-1 -ml-1">
                                     Voir {changes.length} modifications
                                 </summary>
                                 <div className="mt-2 text-xs bg-slate-50 dark:bg-white/5 p-2 rounded-lg border border-slate-100 dark:border-white/5 space-y-1 max-w-sm overflow-x-auto">
@@ -184,7 +184,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, loading,
                     <button
                         onClick={onLoadMore}
                         disabled={loading}
-                        className="px-6 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                        className="px-6 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         {loading ? 'Chargement...' : 'Charger plus d\'activités'}
                     </button>

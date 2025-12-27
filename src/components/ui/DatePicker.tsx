@@ -65,8 +65,16 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         <div className={`relative ${className}`} ref={containerRef}>
             <div
                 onClick={() => setIsOpen(!isOpen)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setIsOpen(!isOpen);
+                    }
+                }}
+                role="button"
+                tabIndex={0}
                 className={`
-                    relative flex items-center w-full rounded-2xl border transition-all duration-200 cursor-pointer
+                    relative flex items-center w-full rounded-2xl border transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
                     ${error
                         ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10'
                         : isOpen
@@ -108,7 +116,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                         <div className="p-2 border-t border-gray-100 dark:border-white/5 mt-2">
                             <button
                                 onClick={(e) => { e.stopPropagation(); onChange(undefined); setIsOpen(false); }}
-                                className="w-full py-2 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                                className="w-full py-2 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                             >
                                 Effacer la date
                             </button>

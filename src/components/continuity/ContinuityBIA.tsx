@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { HeartPulse, LayoutDashboard, Server, ClipboardCheck, Edit, Trash2 } from '../ui/Icons';
 import { slideUpVariants } from '../ui/animationVariants';
@@ -16,6 +16,21 @@ interface ContinuityBIAProps {
 }
 
 export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading, viewMode, onOpenInspector, onNewProcess, onDelete }) => {
+    const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+
+    const handleDelete = async (id: string) => {
+        if (!onDelete || deletingIds.has(id)) return;
+        setDeletingIds(prev => new Set(prev).add(id));
+        try {
+            await onDelete(id);
+        } finally {
+            setDeletingIds(prev => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+        }
+    };
 
     const getPriorityColor = (p: string) => {
         switch (p) {
@@ -66,7 +81,15 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                                     <tr
                                         key={proc.id}
                                         onClick={() => onOpenInspector(proc)}
-                                        className="hover:bg-white/60 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                                        className="hover:bg-white/60 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500"
+                                        tabIndex={0}
+                                        role="button"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                onOpenInspector(proc);
+                                            }
+                                        }}
                                     >
                                         <td className="px-8 py-5 text-slate-900 dark:text-white font-bold">
                                             {proc.name}
@@ -88,16 +111,17 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onOpenInspector(proc); }}
-                                                    className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                    className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                                                     title="Modifier"
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </button>
                                                 {onDelete && (
                                                     <button
-                                                        onClick={(e) => { e.stopPropagation(); onDelete(proc.id); }}
-                                                        className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                                        title="Supprimer"
+                                                        onClick={(e) => { e.stopPropagation(); handleDelete(proc.id); }}
+                                                        disabled={deletingIds.has(proc.id)}
+                                                        className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        title={deletingIds.has(proc.id) ? "Suppression..." : "Supprimer"}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
@@ -126,7 +150,15 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                 const isOverdue = lastTest ? (new Date().getTime() - lastTest.getTime() > 31536000000) : true; // 1 year
 
                 return (
-                    <div key={proc.id} onClick={() => onOpenInspector(proc)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group flex flex-col cursor-pointer border border-white/50 dark:border-white/5">
+                    <div
+                        key={proc.id}
+                        onClick={() => onOpenInspector(proc)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenInspector(proc); } }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Ouvrir le processus ${proc.name}`}
+                        className="glass-panel rounded-[2.5rem] p-7 shadow-sm hover:shadow-apple transition-all duration-300 hover:-translate-y-1 relative group flex flex-col cursor-pointer border border-white/50 dark:border-white/5"
+                    >
                         <div className="flex justify-between items-start mb-5">
                             <div className="p-3 bg-rose-50 dark:bg-slate-800 rounded-2xl text-rose-600 shadow-inner">
                                 <HeartPulse className="h-6 w-6" />

@@ -54,7 +54,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                 </h3>
                 <button
                     onClick={() => navigate && navigate('/compliance')}
-                    className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5"
+                    className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 >
                     Voir tout
                 </button>
@@ -62,12 +62,18 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
 
             <div className="flex items-center gap-4 flex-1 relative z-10">
                 {/* Score Circle */}
-                <div className="relative flex-shrink-0 group/chart cursor-pointer transform hover:scale-105 transition-transform duration-300" onClick={() => navigate && navigate('/compliance')}>
+                <div
+                    className="relative flex-shrink-0 group/chart cursor-pointer transform hover:scale-105 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-full"
+                    onClick={() => navigate && navigate('/compliance')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && navigate && navigate('/compliance')}
+                >
                     <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
                         <defs>
                             <linearGradient id="complianceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor={stats.complianceRate >= 80 ? '#10b981' : stats.complianceRate >= 50 ? '#3b82f6' : '#f59e0b'} />
-                                <stop offset="100%" stopColor={stats.complianceRate >= 80 ? '#34d399' : stats.complianceRate >= 50 ? '#60a5fa' : '#fbbf24'} />
+                                <stop offset="0%" stopColor={stats.complianceRate >= 80 ? 'hsl(var(--success))' : stats.complianceRate >= 50 ? 'hsl(var(--primary))' : 'hsl(var(--warning))'} />
+                                <stop offset="100%" stopColor={stats.complianceRate >= 80 ? 'hsl(var(--emerald-400))' : stats.complianceRate >= 50 ? 'hsl(var(--blue-400))' : 'hsl(var(--amber-400))'} />
                             </linearGradient>
                         </defs>
                         <circle className="text-slate-100 dark:text-slate-800" strokeWidth="6" stroke="currentColor" fill="transparent" r="42" cx="48" cy="48" />
@@ -81,7 +87,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                             r="42"
                             cx="48"
                             cy="48"
-                            style={{ filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.1))' }}
+                            className="drop-shadow-sm"
                         />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">

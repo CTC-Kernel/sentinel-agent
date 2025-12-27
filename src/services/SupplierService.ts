@@ -1,7 +1,8 @@
 import { db } from '../firebase';
-import { doc, updateDoc, collection, addDoc } from 'firebase/firestore';
-import { SupplierQuestionnaireResponse, QuestionnaireTemplate, Supplier } from '../types/business';
+import { Supplier, SupplierQuestionnaireResponse, QuestionnaireTemplate } from '../types';
+import { doc, updateDoc, addDoc, collection } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';
+import { ErrorLogger } from './errorLogger';
 
 export class SupplierService {
 
@@ -67,25 +68,30 @@ export class SupplierService {
      * Updates the supplier's risk level based on the assessment score.
      */
     static async updateSupplierRiskFromAssessment(supplierId: string, assessmentScore: number): Promise<void> {
-        const supplierRef = doc(db, 'suppliers', supplierId);
+        try {
+            const supplierRef = doc(db, 'suppliers', supplierId);
 
-        let riskLevel: Supplier['riskLevel'] = 'Low';
-        if (assessmentScore < 50) riskLevel = 'Critical';
-        else if (assessmentScore < 70) riskLevel = 'High';
-        else if (assessmentScore < 85) riskLevel = 'Medium';
+            let riskLevel: Supplier['riskLevel'] = 'Low';
+            if (assessmentScore < 50) riskLevel = 'Critical';
+            else if (assessmentScore < 70) riskLevel = 'High';
+            else if (assessmentScore < 85) riskLevel = 'Medium';
 
-        // Also map to criticalities for the main status
+            // Also map to criticalities for the main status
 
 
 
-        await updateDoc(supplierRef, sanitizeData({
-            securityScore: assessmentScore,
-            riskLevel: riskLevel,
-            // We might not want to overwrite criticality automatically if manually set, 
-            // but for dynamic VRM it makes sense to suggest it.
-            // keeping criticality sync optional or secondary.
-            updatedAt: new Date().toISOString()
-        }));
+            await updateDoc(supplierRef, sanitizeData({
+                securityScore: assessmentScore,
+                riskLevel: riskLevel,
+                // We might not want to overwrite criticality automatically if manually set, 
+                // but for dynamic VRM it makes sense to suggest it.
+                // keeping criticality sync optional or secondary.
+                updatedAt: new Date().toISOString()
+            }));
+        } catch (error) {
+            ErrorLogger.error(error, 'SupplierService.updateSupplierRiskFromAssessment');
+            throw error;
+        }
     }
 
     /**
@@ -97,18 +103,23 @@ export class SupplierService {
         supplierName: string,
         template: QuestionnaireTemplate
     ): Promise<string> {
-        const newResponse: Partial<SupplierQuestionnaireResponse> = {
-            organizationId,
-            supplierId,
-            supplierName,
-            templateId: template.id,
-            status: 'Draft',
-            answers: {},
-            overallScore: 0,
-            sentDate: new Date().toISOString()
-        };
+        try {
+            const newResponse: Partial<SupplierQuestionnaireResponse> = {
+                organizationId,
+                supplierId,
+                supplierName,
+                templateId: template.id,
+                status: 'Draft',
+                answers: {},
+                overallScore: 0,
+                sentDate: new Date().toISOString()
+            };
 
-        const res = await addDoc(collection(db, 'questionnaire_responses'), sanitizeData(newResponse));
-        return res.id;
+            const res = await addDoc(collection(db, 'questionnaire_responses'), sanitizeData(newResponse));
+            return res.id;
+        } catch (error) {
+            ErrorLogger.error(error, 'SupplierService.createAssessment');
+            throw error;
+        }
     }
 }

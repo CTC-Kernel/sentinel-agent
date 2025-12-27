@@ -53,7 +53,7 @@ export const CookieConsent: React.FC = () => {
                                 Aucune donnée personnelle n'est vendue à des tiers.
                                 <button
                                     onClick={() => setShowLegalModal(true)}
-                                    className="text-brand-600 hover:underline font-bold ml-1"
+                                    className="text-brand-600 hover:underline font-bold ml-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
                                 >
                                     En savoir plus
                                 </button>
@@ -63,13 +63,13 @@ export const CookieConsent: React.FC = () => {
                     <div className="flex items-center gap-3 w-full md:w-auto">
                         <button
                             onClick={handleAccept}
-                            className="flex-1 md:flex-none px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl hover:scale-105 transition-transform shadow-lg whitespace-nowrap"
+                            className="flex-1 md:flex-none px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl hover:scale-105 transition-transform shadow-lg whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                         >
                             Accepter et Fermer
                         </button>
                         <button
                             onClick={() => setIsVisible(false)}
-                            className="p-3 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors"
+                            className="p-3 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                             aria-label="Fermer"
                         >
                             <X className="h-5 w-5" />
@@ -86,3 +86,5 @@ export const CookieConsent: React.FC = () => {
         </>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

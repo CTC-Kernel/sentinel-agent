@@ -53,26 +53,25 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
     const [mitreResults, setMitreResults] = useState<MitreTechnique[]>([]);
 
     // Reset state when risk changes
-    const handleClose = () => {
+    const handleClose = React.useCallback(() => {
         setInspectorTab('details');
         setIsEditing(false);
         setMitreQuery('');
         setMitreResults([]);
         onClose();
-    };
+    }, [onClose]);
 
-    if (!risk) return null;
+    const getAssetName = React.useCallback((id?: string) => assets.find(a => a.id === id)?.name || 'Actif inconnu', [assets]);
 
-    const getAssetName = (id?: string) => assets.find(a => a.id === id)?.name || 'Actif inconnu';
-
-    const handleLocalUpdate = async (updates: Partial<Risk>) => {
+    const handleLocalUpdate = React.useCallback(async (updates: Partial<Risk>) => {
+        if (!risk) return;
         setUpdating(true);
         const success = await onUpdate(risk.id, updates);
         setUpdating(false);
         if (success && isEditing) setIsEditing(false);
-    };
+    }, [risk, onUpdate, isEditing]);
 
-    const handleStatusChange = async (newStatus: Risk['status']) => {
+    const handleStatusChange = React.useCallback(async (newStatus: Risk['status']) => {
         if (!canEdit || !risk) return;
 
         const updates: Partial<Risk> = { status: newStatus };
@@ -82,25 +81,41 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         await handleLocalUpdate(updates);
 
         toast.success(`Statut mis à jour : ${newStatus}`);
-    };
+    }, [canEdit, risk, handleLocalUpdate]);
 
-    //    const handleStrategyChange = async (newStrategy: Risk['strategy']) => {
-    //        if (!canEdit || !risk) return;
-    //        await handleLocalUpdate({ strategy: newStrategy });
-    //        addToast(`Stratégie mise à jour : ${newStrategy}`, 'success');
-    //    };
-
-    const handleReview = async () => {
+    const handleReview = React.useCallback(async () => {
         if (!canEdit) return;
 
         await handleLocalUpdate({ lastReviewDate: new Date().toISOString() });
         toast.success("Revue validée pour aujourd'hui");
-    };
+    }, [canEdit, handleLocalUpdate]);
 
-    const linkedProjects = projects.filter(p => p.relatedRiskIds?.includes(risk.id));
-    const linkedAudits = audits.filter(a => a.relatedRiskIds?.includes(risk.id));
+    const linkedProjects = React.useMemo(() => !risk ? [] : projects.filter(p => p.relatedRiskIds?.includes(risk.id)), [projects, risk]);
+    const linkedAudits = React.useMemo(() => !risk ? [] : audits.filter(a => a.relatedRiskIds?.includes(risk.id)), [audits, risk]);
 
-    const tabs = [
+    const handleTabChange = React.useCallback((id: string) => setInspectorTab(id as typeof inspectorTab), []);
+    const handleDuplicate = React.useCallback(() => risk && onDuplicate(risk), [onDuplicate, risk]);
+    const handleEditStart = React.useCallback(() => setIsEditing(true), []);
+    const handleEditCancel = React.useCallback(() => setIsEditing(false), []);
+    const handleDeleteRisk = React.useCallback(() => risk && onDelete(risk.id, risk.threat), [onDelete, risk]);
+
+    // Use imported RiskFormData or define it if import fails
+    const handleRiskFormSubmit = React.useCallback((data: import('../../schemas/riskSchema').RiskFormData) => handleLocalUpdate(data as unknown as Partial<Risk>), [handleLocalUpdate]);
+
+    const handleAIAssistantUpdate = React.useCallback((updates: Partial<Risk>) => risk && handleLocalUpdate({ ...risk, ...updates } as Risk), [handleLocalUpdate, risk]);
+    const handleTreatmentUpdate = React.useCallback((treatment: Partial<Risk['treatment']>) => handleLocalUpdate({ treatment }), [handleLocalUpdate]);
+
+    const handleNavigateToProject = React.useCallback(() => risk && navigate('/projects', { state: { createForRisk: risk.id, riskName: risk.threat } }), [navigate, risk]);
+    const handleNavigateToAudit = React.useCallback(() => risk && navigate('/audits', { state: { createForRisk: risk.id, riskName: risk.threat } }), [navigate, risk]);
+
+    const handleMitreSearch = React.useCallback(() => integrationService.getCommonMitreTechniques(mitreQuery, demoMode).then(setMitreResults), [mitreQuery, demoMode]);
+    const handleMitreAdd = React.useCallback((t: MitreTechnique) => {
+        const current = risk?.mitreTechniques || [];
+        handleLocalUpdate({ mitreTechniques: [...current, t] });
+    }, [risk?.mitreTechniques, handleLocalUpdate]);
+    const handleMitreQueryChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => setMitreQuery(e.target.value), []);
+
+    const tabs = React.useMemo(() => [
         { id: 'details', label: 'Détails', icon: ShieldAlert },
         { id: 'treatment', label: 'Traitement', icon: CheckCircle2 },
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -110,7 +125,9 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         { id: 'comments', label: 'Discussion', icon: MessageSquare },
         { id: 'graph', label: 'Graphe', icon: Network },
         { id: 'threats', label: 'Menaces', icon: ShieldAlert }
-    ];
+    ], []);
+
+    if (!risk) return null;
 
     return (
         <InspectorLayout
@@ -130,22 +147,22 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
             }
             tabs={isEditing ? [] : tabs}
             activeTab={inspectorTab}
-            onTabChange={(id) => setInspectorTab(id as typeof inspectorTab)}
+            onTabChange={handleTabChange}
             actions={
                 !isEditing && canEdit ? (
                     <>
                         <CustomTooltip content="Dupliquer">
-                            <button aria-label="Dupliquer le risque" onClick={() => onDuplicate(risk)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm">
+                            <button aria-label="Dupliquer le risque" onClick={handleDuplicate} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 <Copy className="h-5 w-5" />
                             </button>
                         </CustomTooltip>
                         <CustomTooltip content="Modifier">
-                            <button aria-label="Modifier le risque" onClick={() => setIsEditing(true)} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm">
+                            <button aria-label="Modifier le risque" onClick={handleEditStart} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 <Edit className="h-5 w-5" />
                             </button>
                         </CustomTooltip>
                         <CustomTooltip content="Supprimer">
-                            <button aria-label="Supprimer le risque" onClick={() => onDelete(risk.id, risk.threat)} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm">
+                            <button aria-label="Supprimer le risque" onClick={handleDeleteRisk} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 <Trash2 className="h-5 w-5" />
                             </button>
                         </CustomTooltip>
@@ -157,8 +174,8 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         >
             {isEditing ? (
                 <RiskForm
-                    onSubmit={(data) => handleLocalUpdate(data as Partial<Risk>)}
-                    onCancel={() => setIsEditing(false)}
+                    onSubmit={handleRiskFormSubmit}
+                    onCancel={handleEditCancel}
                     initialData={risk}
                     existingRisk={risk}
                     assets={assets}
@@ -188,7 +205,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
 
                             <RiskAIAssistant
                                 risk={risk}
-                                onUpdate={(updates) => handleLocalUpdate({ ...risk, ...updates } as Risk)}
+                                onUpdate={handleAIAssistantUpdate}
                             />
 
                             <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
@@ -210,7 +227,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                                     key={s}
                                                     onClick={() => handleStatusChange(s as Risk['status'])}
                                                     disabled={updating}
-                                                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'} ${updating ? 'opacity-50 cursor-wait' : ''}`}
+                                                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'} ${updating ? 'opacity-50 cursor-wait' : ''}`}
                                                 >
                                                     {s}
                                                 </button>
@@ -222,14 +239,14 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                             <button
                                                 aria-label="Rejeter la demande"
                                                 onClick={() => handleStatusChange('Ouvert')} // Reject -> Back to Open
-                                                className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100"
+                                                className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                             >
                                                 Rejeter
                                             </button>
                                             <button
                                                 aria-label="Approuver le risque"
                                                 onClick={() => handleStatusChange('En cours')} // Approve -> In Progress
-                                                className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-bold hover:bg-emerald-100"
+                                                className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-bold hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                             >
                                                 Approuver
                                             </button>
@@ -240,7 +257,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                             aria-label="Valider la revue du risque"
                                             onClick={handleReview}
                                             disabled={updating}
-                                            className={`flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors w-full sm:w-auto ${updating ? 'opacity-70 cursor-wait' : ''}`}
+                                            className={`flex items-center justify-center px-4 py-2 text-xs font-bold bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${updating ? 'opacity-70 cursor-wait' : ''}`}
                                         >
                                             {updating ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <CalendarDays className="h-3.5 w-3.5 mr-2" />}
                                             Valider la revue
@@ -255,7 +272,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                     {inspectorTab === 'treatment' && (
                         <RiskTreatmentPlan
                             risk={risk}
-                            onUpdate={(treatment) => handleLocalUpdate({ treatment })}
+                            onUpdate={handleTreatmentUpdate}
                             users={usersList}
                         />
                     )}
@@ -269,8 +286,8 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                 {canEdit && (
                                     <button
                                         aria-label="Créer un nouveau projet lié"
-                                        onClick={() => navigate('/projects', { state: { createForRisk: risk.id, riskName: risk.threat } })}
-                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                        onClick={handleNavigateToProject}
+                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     >
                                         <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouveau Projet
                                     </button>
@@ -291,8 +308,8 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                 {canEdit && (
                                     <button
                                         aria-label="Créer un nouvel audit lié"
-                                        onClick={() => navigate('/audits', { state: { createForRisk: risk.id, riskName: risk.threat } })}
-                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm"
+                                        onClick={handleNavigateToAudit}
+                                        className="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors flex items-center shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     >
                                         <Plus className="h-3.5 w-3.5 mr-1.5" /> Nouvel Audit
                                     </button>
@@ -321,16 +338,15 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                             <div className="space-y-4">
                                 <h3 className="text-lg font-bold">MITRE ATT&CK</h3>
                                 <div className="flex gap-2">
-                                    <input
+                                    <input value={mitreQuery} onChange={handleMitreQueryChange}
                                         className="flex-1 px-4 py-2 border rounded-xl"
                                         placeholder="Rechercher une technique..."
-                                        value={mitreQuery}
-                                        onChange={e => setMitreQuery(e.target.value)}
+                                        aria-label="Rechercher une technique MITRE ATT&CK"
                                     />
                                     <button
                                         aria-label="Rechercher"
-                                        className="px-4 py-2 bg-slate-900 text-white rounded-xl"
-                                        onClick={() => integrationService.getCommonMitreTechniques(mitreQuery, demoMode).then(setMitreResults)}
+                                        className="px-4 py-2 bg-slate-900 text-white rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                        onClick={handleMitreSearch}
                                     >
                                         Chercher
                                     </button>
@@ -339,10 +355,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                     {mitreResults.map(t => (
                                         <div key={t.id} className="flex justify-between p-2 border rounded-lg">
                                             <span>{t.name}</span>
-                                            <button aria-label="Ajouter la technique" onClick={() => {
-                                                const current = risk.mitreTechniques || [];
-                                                handleLocalUpdate({ mitreTechniques: [...current, t] });
-                                            }}>Ajouter</button>
+                                            <button aria-label="Ajouter la technique" onClick={() => handleMitreAdd(t)}>Ajouter</button>
                                         </div>
                                     ))}
                                 </div>

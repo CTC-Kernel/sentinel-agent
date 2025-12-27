@@ -1,37 +1,49 @@
 import React, { useEffect, useState, Suspense } from 'react';
-import { SEO } from './components/SEO';
-import { AnimatedRoutes } from './components/layout/AnimatedRoutes';
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Toaster } from 'sonner';
+
+// Contexts & Hooks
 import { AuthProvider } from './contexts/AuthContext';
+import { useStore } from './store';
+import { useAuth } from './hooks/useAuth';
+import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
+import { useHotkeys } from './hooks/useHotkeys';
+
+// Services & Utils
+import { ErrorLogger } from './services/errorLogger';
+import { hasPermission } from './utils/permissions';
+import { db } from './firebase';
+import { CustomRole } from './types';
+
+// Layout & Navigation
+import { AnimatedRoutes } from './components/layout/AnimatedRoutes';
+import { Sidebar } from './components/layout/Sidebar';
+import { TopBar } from './components/layout/TopBar';
+import { CommandPalette } from './components/layout/CommandPalette';
+
+// UI Components
+import { SEO } from './components/SEO';
 import { AuthGuard } from './components/auth/AuthGuard';
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute';
-import { useStore } from './store';
-import { Sidebar } from './components/layout/Sidebar';
-import { Toaster } from 'sonner';
-import { WifiOff } from './components/ui/Icons';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { CommandPalette } from './components/layout/CommandPalette';
-import { TopBar } from './components/layout/TopBar';
-import { ErrorLogger } from './services/errorLogger';
+import { WifiOff } from './components/ui/Icons';
 import { NotificationPermissionBanner } from './components/ui/NotificationPermissionBanner';
 import { OfflineBanner } from './components/ui/OfflineBanner';
-import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
-import { OnboardingTrigger } from './components/onboarding/OnboardingTrigger';
-import { GeminiAssistant } from './components/ai/GeminiAssistant';
-import { hasPermission } from './utils/permissions';
 import { SkipLink } from './components/ui/SkipLink';
-import { useHotkeys } from './hooks/useHotkeys';
 import { LoadingScreen } from './components/ui/LoadingScreen';
 import { SmoothScroll } from './components/ui/SmoothScroll';
 import { CookieConsent } from './components/ui/CookieConsent';
 import { ShortcutsHelp } from './components/ui/ShortcutsHelp';
-import { db } from './firebase';
-import { CustomRole } from './types';
-import { VersionCheck } from './components/VersionCheck';
 import { ContentBlockerError } from './components/ui/ContentBlockerError';
-import { useAuth } from './hooks/useAuth';
 import { OnboardingOverlay } from './components/ui/onboarding/OnboardingOverlay';
 import { MasterpieceBackground } from './components/ui/MasterpieceBackground';
+import { RouteProgressBar } from './components/ui/RouteProgressBar';
+import { NavigationLoader } from './components/ui/NavigationLoader';
+
+// Features
+import { OnboardingTrigger } from './components/onboarding/OnboardingTrigger';
+import { GeminiAssistant } from './components/ai/GeminiAssistant';
+import { VersionCheck } from './components/VersionCheck';
 
 const Login = React.lazy(() => import('./views/Login').then(module => ({ default: module.Login })));
 const Onboarding = React.lazy(() => import('./views/Onboarding').then(module => ({ default: module.Onboarding })));
@@ -78,10 +90,14 @@ const AppLayout: React.FC = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
 
+    // Effect for Theme
     useEffect(() => {
         if (theme === 'dark') document.documentElement.classList.add('dark');
         else document.documentElement.classList.remove('dark');
+    }, [theme]);
 
+    // Effect for Online Status
+    useEffect(() => {
         const handleOnline = () => setIsOnline(true);
         const handleOffline = () => setIsOnline(false);
         window.addEventListener('online', handleOnline);
@@ -91,7 +107,7 @@ const AppLayout: React.FC = () => {
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
         };
-    }, [theme]);
+    }, []);
 
     // Fetch Custom Roles
     useEffect(() => {
@@ -188,8 +204,7 @@ const AppContent: React.FC = () => {
     );
 };
 
-import { RouteProgressBar } from './components/ui/RouteProgressBar';
-import { NavigationLoader } from './components/ui/NavigationLoader';
+
 
 const AppInner: React.FC = () => {
     const { isBlocked } = useAuth();
@@ -245,3 +260,5 @@ const AppInner: React.FC = () => {
 };
 
 export default AppContent;
+
+// Headless UI handles FocusTrap and keyboard navigation

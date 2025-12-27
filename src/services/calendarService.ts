@@ -43,8 +43,8 @@ export const CalendarService = {
 
         const events: CalendarEvent[] = [];
 
+        // 1. Audits
         try {
-            // 1. Audits
             const auditsQuery = query(collection(db, 'audits'), where('organizationId', '==', organizationId));
             const auditsSnap = await getDocs(auditsQuery);
             auditsSnap.forEach(doc => {
@@ -64,8 +64,10 @@ export const CalendarService = {
                     });
                 }
             });
+        } catch (e) { ErrorLogger.error(e, 'CalendarService.fetchAllEvents.audits'); }
 
-            // 2. Projects
+        // 2. Projects
+        try {
             const projectsQuery = query(collection(db, 'projects'), where('organizationId', '==', organizationId));
             const projectsSnap = await getDocs(projectsQuery);
             projectsSnap.forEach(doc => {
@@ -86,8 +88,10 @@ export const CalendarService = {
                     });
                 }
             });
+        } catch (e) { ErrorLogger.error(e, 'CalendarService.fetchAllEvents.projects'); }
 
-            // 3. Assets (Maintenance)
+        // 3. Assets (Maintenance)
+        try {
             const assetsQuery = query(collection(db, 'assets'), where('organizationId', '==', organizationId));
             const assetsSnap = await getDocs(assetsQuery);
             assetsSnap.forEach(doc => {
@@ -107,8 +111,10 @@ export const CalendarService = {
                     });
                 }
             });
+        } catch (e) { ErrorLogger.error(e, 'CalendarService.fetchAllEvents.assets'); }
 
-            // 4. BCP Drills
+        // 4. BCP Drills
+        try {
             const drillsQuery = query(collection(db, 'bcp_drills'), where('organizationId', '==', organizationId));
             const drillsSnap = await getDocs(drillsQuery);
             drillsSnap.forEach(doc => {
@@ -128,8 +134,10 @@ export const CalendarService = {
                     });
                 }
             });
+        } catch (e) { ErrorLogger.error(e, 'CalendarService.fetchAllEvents.drills'); }
 
-            // 5. Incidents
+        // 5. Incidents
+        try {
             const incidentsQuery = query(collection(db, 'incidents'), where('organizationId', '==', organizationId));
             const incidentsSnap = await getDocs(incidentsQuery);
             incidentsSnap.forEach(doc => {
@@ -149,10 +157,7 @@ export const CalendarService = {
                     });
                 }
             });
-
-        } catch (error) {
-            ErrorLogger.error(error, 'CalendarService.fetchAllEvents');
-        }
+        } catch (e) { ErrorLogger.error(e, 'CalendarService.fetchAllEvents.incidents'); }
 
         return events;
     },

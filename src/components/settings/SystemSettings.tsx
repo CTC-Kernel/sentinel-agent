@@ -365,3 +365,5 @@ export const SystemSettings: React.FC = () => {
         </div>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

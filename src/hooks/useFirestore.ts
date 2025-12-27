@@ -194,7 +194,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (timeoutId !== null) window.clearTimeout(timeoutId);
             unsubscribe();
         };
-    }, [collectionName, constraintsKey, shouldUseRealtime, isEnabled, logError]);
+    }, [collectionName, constraintsKey, shouldUseRealtime, isEnabled, logError]); // constraintsRef is stable
 
     const add = useCallback(async (newData: WithFieldValue<DocumentData>) => {
         try {
@@ -350,7 +350,7 @@ export const useFirestoreDocument = <T extends { id: string }>(
             );
             return () => unsubscribe();
         }
-    }, [collectionName, docId, realtime, logError]);
+    }, [collectionName, docId, realtime, logError]); // db and ErrorLogger are imports, no need in dep array
 
     if (realtime) {
         return { data: realtimeData, loading: realtimeLoading, error: realtimeError, refresh: async () => { } };

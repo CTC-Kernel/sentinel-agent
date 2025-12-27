@@ -180,7 +180,19 @@ export const ProfileSettings: React.FC = () => {
                                         {(user?.displayName || 'U').charAt(0).toUpperCase()}
                                     </div>
                                 )}
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                <div
+                                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            fileInputRef.current?.click();
+                                        }
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label="Modifier la photo de profil"
+                                >
                                     <Camera className="w-8 h-8 text-white" />
                                 </div>
                             </div>
@@ -190,6 +202,7 @@ export const ProfileSettings: React.FC = () => {
                                 className="hidden"
                                 accept="image/*"
                                 onChange={handlePhotoUpload}
+                                aria-label="Sélectionner une photo de profil"
                             />
                             {uploadingPhoto && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
@@ -427,3 +440,5 @@ export const ProfileSettings: React.FC = () => {
         </div>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

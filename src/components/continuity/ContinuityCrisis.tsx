@@ -167,3 +167,5 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
         </div>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

@@ -85,22 +85,26 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
 
                     // 3. Fetch Linked Controls
                     if (risk.mitigationControlIds && risk.mitigationControlIds.length > 0) {
-                        // Firestore 'in' query supports max 10 items.
-                        const chunks = [];
-                        for (let i = 0; i < risk.mitigationControlIds.length; i += 10) {
-                            chunks.push(risk.mitigationControlIds.slice(i, i + 10));
-                        }
+                        try {
+                            // Firestore 'in' query supports max 10 items.
+                            const chunks = [];
+                            for (let i = 0; i < risk.mitigationControlIds.length; i += 10) {
+                                chunks.push(risk.mitigationControlIds.slice(i, i + 10));
+                            }
 
-                        for (const chunk of chunks) {
-                            const controlsSnap = await getDocs(query(collection(db, 'controls'), where('__name__', 'in', chunk)));
-                            const controls = controlsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Control));
+                            for (const chunk of chunks) {
+                                const controlsSnap = await getDocs(query(collection(db, 'controls'), where('__name__', 'in', chunk)));
+                                const controls = controlsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Control));
 
-                            controls.forEach((control, i) => {
-                                const nx = cx + 200;
-                                const ny = cy + (i - controls.length / 2) * 60;
-                                newNodes.push({ id: control.id, type: 'Control', label: control.code, x: nx, y: ny, data: control });
-                                newLinks.push({ source: risk.id, target: control.id });
-                            });
+                                controls.forEach((control, i) => {
+                                    const nx = cx + 200;
+                                    const ny = cy + (i - controls.length / 2) * 60;
+                                    newNodes.push({ id: control.id, type: 'Control', label: control.code, x: nx, y: ny, data: control });
+                                    newLinks.push({ source: risk.id, target: control.id });
+                                });
+                            }
+                        } catch (error) {
+                            ErrorLogger.error(error, 'RelationshipGraph.fetchLinkedControls');
                         }
                     }
                 }
@@ -115,6 +119,7 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
         };
 
         fetchData();
+
     }, [rootId, rootType, width, height]);
 
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full"></div></div>;
@@ -129,13 +134,13 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
                 </defs>
 
                 {/* Links */}
-                {links.map((link, i) => {
+                {links.map((link) => {
                     const source = nodes.find(n => n.id === link.source);
                     const target = nodes.find(n => n.id === link.target);
                     if (!source || !target) return null;
                     return (
                         <line
-                            key={i}
+                            key={`${link.source}-${link.target}`}
                             x1={source.x}
                             y1={source.y}
                             x2={target.x}

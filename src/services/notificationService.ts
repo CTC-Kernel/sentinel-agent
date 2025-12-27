@@ -34,45 +34,50 @@ export class NotificationService {
         expiresInDays?: number,
         category: keyof NotificationPreferences = 'system'
     ): Promise<void> {
-        if (!user.organizationId) return;
+        try {
+            if (!user.organizationId) return;
 
-        let preferences = (user as UserProfile).notificationPreferences;
+            let preferences = (user as UserProfile).notificationPreferences;
 
-        if (!preferences) {
-            // Fetch target user to check preferences if not provided
-            try {
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data() as UserProfile;
-                    preferences = userData.notificationPreferences;
+            if (!preferences) {
+                // Fetch target user to check preferences if not provided
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data() as UserProfile;
+                        preferences = userData.notificationPreferences;
+                    }
+                } catch (e) {
+                    // Ignore fetch errors for preferences, proceed with defaults or just log check failure
+                    ErrorLogger.warn('Failed to fetch preferences', 'NotificationService.create.fetchPreferences', { metadata: { error: e } });
                 }
-            } catch {
-                // Ignore fetch errors
             }
-        }
 
-        if (preferences) {
-            // Check In-App preference
-            if (preferences[category] && !preferences[category].inApp) {
-                return; // Skip if disabled
+            if (preferences) {
+                // Check In-App preference
+                if (preferences[category] && !preferences[category].inApp) {
+                    return; // Skip if disabled
+                }
             }
+
+            const expiresAt = expiresInDays
+                ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
+                : undefined;
+
+            await addDoc(collection(db, 'notifications'), sanitizeData({
+                organizationId: user.organizationId,
+                userId: user.uid,
+                type,
+                title,
+                message,
+                link,
+                read: false,
+                createdAt: new Date().toISOString(),
+                expiresAt,
+            }));
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.create');
         }
-
-        const expiresAt = expiresInDays
-            ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
-            : undefined;
-
-        await addDoc(collection(db, 'notifications'), sanitizeData({
-            organizationId: user.organizationId,
-            userId: user.uid,
-            type,
-            title,
-            message,
-            link,
-            read: false,
-            createdAt: new Date().toISOString(),
-            expiresAt,
-        }));
     }
 
     /**
@@ -94,183 +99,215 @@ export class NotificationService {
         link?: string,
         category: keyof NotificationPreferences = 'system'
     ): Promise<void> {
-        const usersSnap = await getDocs(
-            query(collection(db, 'users'), where('organizationId', '==', organizationId))
-        );
-
-        const promises = usersSnap.docs
-            .map(doc => ({ uid: doc.id, ...doc.data() } as unknown as UserProfile))
-            .filter(user => this.shouldNotify(user, category, 'inApp'))
-            .map((user) =>
-                addDoc(collection(db, 'notifications'), sanitizeData({
-                    organizationId,
-                    userId: user.uid,
-                    type,
-                    title,
-                    message,
-                    link,
-                    read: false,
-                    createdAt: new Date().toISOString(),
-                }))
+        try {
+            const usersSnap = await getDocs(
+                query(collection(db, 'users'), where('organizationId', '==', organizationId))
             );
 
-        await Promise.all(promises);
+            const promises = usersSnap.docs
+                .map(doc => ({ uid: doc.id, ...doc.data() } as unknown as UserProfile))
+                .filter(user => this.shouldNotify(user, category, 'inApp'))
+                .map((user) =>
+                    addDoc(collection(db, 'notifications'), sanitizeData({
+                        organizationId,
+                        userId: user.uid,
+                        type,
+                        title,
+                        message,
+                        link,
+                        read: false,
+                        createdAt: new Date().toISOString(),
+                    })).catch(e => ErrorLogger.error(e, 'NotificationService.createForOrganization.addDoc'))
+                );
+
+            await Promise.all(promises);
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.createForOrganization');
+        }
     }
 
     /**
      * Get unread notifications for a user
      */
     static async getUnread(userId: string): Promise<Notification[]> {
-        const q = query(
-            collection(db, 'notifications'),
-            where('userId', '==', userId),
-            where('read', '==', false),
-            orderBy('createdAt', 'desc'),
-            limit(50)
-        );
+        try {
+            const q = query(
+                collection(db, 'notifications'),
+                where('userId', '==', userId),
+                where('read', '==', false),
+                orderBy('createdAt', 'desc'),
+                limit(50)
+            );
 
-        const snap = await getDocs(q);
-        return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Notification));
+            const snap = await getDocs(q);
+            return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Notification));
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.getUnread');
+            return [];
+        }
     }
 
     /**
      * Get all notifications for a user
      */
     static async getAll(userId: string, limitCount: number = 50): Promise<Notification[]> {
-        const q = query(
-            collection(db, 'notifications'),
-            where('userId', '==', userId),
-            orderBy('createdAt', 'desc'),
-            limit(limitCount)
-        );
+        try {
+            const q = query(
+                collection(db, 'notifications'),
+                where('userId', '==', userId),
+                orderBy('createdAt', 'desc'),
+                limit(limitCount)
+            );
 
-        const snap = await getDocs(q);
-        return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Notification));
+            const snap = await getDocs(q);
+            return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Notification));
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.getAll');
+            return [];
+        }
     }
 
     /**
      * Mark notification as read
      */
     static async markAsRead(notificationId: string): Promise<void> {
-        await updateDoc(doc(db, 'notifications', notificationId), {
-            read: true,
-        });
+        try {
+            await updateDoc(doc(db, 'notifications', notificationId), {
+                read: true,
+            });
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.markAsRead');
+        }
     }
 
     /**
      * Mark all notifications as read for a user
      */
     static async markAllAsRead(userId: string): Promise<void> {
-        const q = query(
-            collection(db, 'notifications'),
-            where('userId', '==', userId),
-            where('read', '==', false)
-        );
+        try {
+            const q = query(
+                collection(db, 'notifications'),
+                where('userId', '==', userId),
+                where('read', '==', false)
+            );
 
-        const snap = await getDocs(q);
-        const promises = snap.docs.map((doc) =>
-            updateDoc(doc.ref, { read: true })
-        );
+            const snap = await getDocs(q);
+            // Process individually to avoid total failure
+            const promises = snap.docs.map((doc) =>
+                updateDoc(doc.ref, { read: true }).catch(err => ErrorLogger.error(err, `NotificationService.markAllAsRead.${doc.id}`))
+            );
 
-        await Promise.all(promises);
+            await Promise.all(promises);
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.markAllAsRead');
+        }
     }
 
     /**
      * Subscribe to notifications for a user (Real-time)
      */
     static subscribeToNotifications(userId: string, callback: (notifications: Notification[]) => void): () => void {
-        const q = query(
-            collection(db, 'notifications'),
-            where('userId', '==', userId),
-            orderBy('createdAt', 'desc'),
-            limit(100)
-        );
+        try {
+            const q = query(
+                collection(db, 'notifications'),
+                where('userId', '==', userId),
+                orderBy('createdAt', 'desc'),
+                limit(100)
+            );
 
-        return onSnapshot(q, (snapshot) => {
-            const notifications = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data()
-            } as Notification));
-            callback(notifications);
-        }, (error) => {
+            return onSnapshot(q, (snapshot) => {
+                const notifications = snapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data()
+                } as Notification));
+                callback(notifications);
+            }, (error) => {
+                ErrorLogger.error(error, 'NotificationService.subscribeToNotifications.onSnapshot');
+            });
+        } catch (error) {
             ErrorLogger.error(error, 'NotificationService.subscribeToNotifications');
-        });
+            return () => { };
+        }
     }
 
     /**
      * Check for upcoming audits and create notifications
      */
     static async checkUpcomingAudits(organizationId: string): Promise<void> {
-        const sevenDaysFromNow = new Date();
-        sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+        try {
+            const sevenDaysFromNow = new Date();
+            sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
 
-        const q = query(
-            collection(db, 'audits'),
-            where('organizationId', '==', organizationId),
-            where('status', 'in', ['Planifié', 'En cours'])
-        );
+            const q = query(
+                collection(db, 'audits'),
+                where('organizationId', '==', organizationId),
+                where('status', 'in', ['Planifié', 'En cours'])
+            );
 
-        const snap = await getDocs(q);
-        const audits = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Audit));
+            const snap = await getDocs(q);
+            const audits = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Audit));
 
-        for (const audit of audits) {
-            const auditDate = new Date(audit.dateScheduled);
-            if (auditDate <= sevenDaysFromNow && auditDate > new Date()) {
-                const daysUntil = Math.ceil((auditDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+            for (const audit of audits) {
+                const auditDate = new Date(audit.dateScheduled);
+                if (auditDate <= sevenDaysFromNow && auditDate > new Date()) {
+                    const daysUntil = Math.ceil((auditDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
-                // Find the auditor user
-                const auditorSnap = await getDocs(
-                    query(
-                        collection(db, 'users'),
-                        where('organizationId', '==', organizationId),
-                        where('displayName', '==', audit.auditor)
-                    )
-                );
+                    // Find the auditor user
+                    const auditorSnap = await getDocs(
+                        query(
+                            collection(db, 'users'),
+                            where('organizationId', '==', organizationId),
+                            where('displayName', '==', audit.auditor)
+                        )
+                    );
 
-                if (!auditorSnap.empty) {
-                    const auditorId = auditorSnap.docs[0].id;
+                    if (!auditorSnap.empty) {
+                        const auditorId = auditorSnap.docs[0].id;
 
-                    // Idempotency check: Check if a similar notification was sent in the last 24h
-                    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-                    const existingNotifs = await getDocs(query(
-                        collection(db, 'notifications'),
-                        where('userId', '==', auditorId),
-                        where('link', '==', '/audits'),
-                        where('createdAt', '>=', yesterday)
-                    ));
+                        // Idempotency check: Check if a similar notification was sent in the last 24h
+                        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                        const existingNotifs = await getDocs(query(
+                            collection(db, 'notifications'),
+                            where('userId', '==', auditorId),
+                            where('link', '==', '/audits'),
+                            where('createdAt', '>=', yesterday)
+                        ));
 
-                    const alreadyNotified = existingNotifs.docs.some(d => d.data().message.includes(audit.name));
+                        const alreadyNotified = existingNotifs.docs.some(d => d.data().message.includes(audit.name));
 
-                    if (!alreadyNotified) {
-                        await addDoc(collection(db, 'notifications'), sanitizeData({
-                            organizationId,
-                            userId: auditorId,
-                            type: daysUntil <= 3 ? 'danger' : 'warning',
-                            title: `Audit à venir : ${audit.name}`,
-                            message: `L'audit est prévu dans ${daysUntil} jour(s) - ${new Date(audit.dateScheduled).toLocaleDateString()}`,
-                            link: '/audits',
-                            read: false,
-                            createdAt: new Date().toISOString(),
-                        }));
+                        if (!alreadyNotified) {
+                            await addDoc(collection(db, 'notifications'), sanitizeData({
+                                organizationId,
+                                userId: auditorId,
+                                type: daysUntil <= 3 ? 'danger' : 'warning',
+                                title: `Audit à venir : ${audit.name}`,
+                                message: `L'audit est prévu dans ${daysUntil} jour(s) - ${new Date(audit.dateScheduled).toLocaleDateString()}`,
+                                link: '/audits',
+                                read: false,
+                                createdAt: new Date().toISOString(),
+                            }));
 
-                        // Send Email
-                        const auditorData = auditorSnap.docs[0].data() as UserProfile;
-                        if (auditorData.email && this.shouldNotify(auditorData, 'audits', 'email')) {
-                            await sendEmail(null, {
-                                to: auditorData.email,
-                                subject: `Rappel Audit : ${audit.name}`,
-                                html: getAuditReminderTemplate(
-                                    audit.name,
-                                    auditorData.displayName || 'Auditeur',
-                                    audit.dateScheduled,
-                                    buildAppUrl('/audits')
-                                ),
-                                type: 'AUDIT_REMINDER'
-                            });
+                            // Send Email
+                            const auditorData = auditorSnap.docs[0].data() as UserProfile;
+                            if (auditorData.email && this.shouldNotify(auditorData, 'audits', 'email')) {
+                                await sendEmail(null, {
+                                    to: auditorData.email,
+                                    subject: `Rappel Audit : ${audit.name}`,
+                                    html: getAuditReminderTemplate(
+                                        audit.name,
+                                        auditorData.displayName || 'Auditeur',
+                                        audit.dateScheduled,
+                                        buildAppUrl('/audits')
+                                    ),
+                                    type: 'AUDIT_REMINDER'
+                                });
+                            }
                         }
                     }
                 }
             }
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.checkUpcomingAudits');
         }
     }
 
@@ -278,100 +315,24 @@ export class NotificationService {
      * Check for overdue document reviews
      */
     static async checkOverdueDocuments(organizationId: string): Promise<void> {
-        const q = query(
-            collection(db, 'documents'),
-            where('organizationId', '==', organizationId),
-            where('status', '==', 'Publié')
-        );
+        try {
+            const q = query(
+                collection(db, 'documents'),
+                where('organizationId', '==', organizationId),
+                where('status', '==', 'Publié')
+            );
 
-        const snap = await getDocs(q);
-        const documents = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as GRCDocument));
+            const snap = await getDocs(q);
+            const documents = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as GRCDocument));
 
-        for (const doc of documents) {
-            if (doc.nextReviewDate && new Date(doc.nextReviewDate) < new Date()) {
-                // Find the owner
-                const ownerSnap = await getDocs(
-                    query(
-                        collection(db, 'users'),
-                        where('organizationId', '==', organizationId),
-                        where('email', '==', doc.owner)
-                    )
-                );
-
-                if (!ownerSnap.empty) {
-                    const ownerId = ownerSnap.docs[0].id;
-
-                    // Idempotency check
-                    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-                    const existingNotifs = await getDocs(query(
-                        collection(db, 'notifications'),
-                        where('userId', '==', ownerId),
-                        where('link', '==', '/documents'),
-                        where('createdAt', '>=', yesterday)
-                    ));
-
-                    const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(doc.title));
-
-                    if (!alreadyNotified) {
-                        await addDoc(collection(db, 'notifications'), sanitizeData({
-                            organizationId,
-                            userId: ownerId,
-                            type: 'warning',
-                            title: `Document à réviser : ${doc.title}`,
-                            message: `La date de révision est dépassée depuis le ${new Date(doc.nextReviewDate).toLocaleDateString()}`,
-                            link: '/documents',
-                            read: false,
-                            createdAt: new Date().toISOString(),
-                        }));
-
-                        // Send Email
-                        const ownerData = ownerSnap.docs[0].data() as UserProfile;
-                        if (ownerData.email && this.shouldNotify(ownerData, 'tasks', 'email')) {
-                            await sendEmail(null, {
-                                to: ownerData.email,
-                                subject: `Révision requise : ${doc.title}`,
-                                html: getDocumentReviewTemplate(
-                                    doc.title,
-                                    ownerData.displayName || 'Propriétaire',
-                                    doc.nextReviewDate,
-                                    buildAppUrl('/documents')
-                                ),
-                                type: 'DOCUMENT_REVIEW'
-                            });
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Check for upcoming maintenance
-     */
-    static async checkUpcomingMaintenance(organizationId: string): Promise<void> {
-        const thirtyDaysFromNow = new Date();
-        thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-
-        const q = query(
-            collection(db, 'assets'),
-            where('organizationId', '==', organizationId)
-        );
-
-        const snap = await getDocs(q);
-        const assets = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Asset));
-
-        for (const asset of assets) {
-            if (asset.nextMaintenance) {
-                const maintenanceDate = new Date(asset.nextMaintenance);
-                if (maintenanceDate <= thirtyDaysFromNow && maintenanceDate > new Date()) {
-                    const daysUntil = Math.ceil((maintenanceDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-
+            for (const doc of documents) {
+                if (doc.nextReviewDate && new Date(doc.nextReviewDate) < new Date()) {
                     // Find the owner
                     const ownerSnap = await getDocs(
                         query(
                             collection(db, 'users'),
                             where('organizationId', '==', organizationId),
-                            where('displayName', '==', asset.owner)
+                            where('email', '==', doc.owner)
                         )
                     );
 
@@ -383,43 +344,127 @@ export class NotificationService {
                         const existingNotifs = await getDocs(query(
                             collection(db, 'notifications'),
                             where('userId', '==', ownerId),
-                            where('link', '==', '/assets'),
+                            where('link', '==', '/documents'),
                             where('createdAt', '>=', yesterday)
                         ));
 
-                        const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(asset.name));
+                        const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(doc.title));
 
                         if (!alreadyNotified) {
                             await addDoc(collection(db, 'notifications'), sanitizeData({
                                 organizationId,
                                 userId: ownerId,
-                                type: daysUntil <= 7 ? 'warning' : 'info',
-                                title: `Maintenance à prévoir : ${asset.name}`,
-                                message: `Maintenance prévue dans ${daysUntil} jour(s)`,
-                                link: '/assets',
+                                type: 'warning',
+                                title: `Document à réviser : ${doc.title}`,
+                                message: `La date de révision est dépassée depuis le ${new Date(doc.nextReviewDate).toLocaleDateString()}`,
+                                link: '/documents',
                                 read: false,
                                 createdAt: new Date().toISOString(),
                             }));
 
                             // Send Email
                             const ownerData = ownerSnap.docs[0].data() as UserProfile;
-                            if (ownerData.email && this.shouldNotify(ownerData, 'system', 'email')) {
+                            if (ownerData.email && this.shouldNotify(ownerData, 'tasks', 'email')) {
                                 await sendEmail(null, {
                                     to: ownerData.email,
-                                    subject: `Maintenance : ${asset.name}`,
-                                    html: getMaintenanceTemplate(
-                                        asset.name,
-                                        asset.nextMaintenance,
+                                    subject: `Révision requise : ${doc.title}`,
+                                    html: getDocumentReviewTemplate(
+                                        doc.title,
                                         ownerData.displayName || 'Propriétaire',
-                                        buildAppUrl('/assets')
+                                        doc.nextReviewDate,
+                                        buildAppUrl('/documents')
                                     ),
-                                    type: 'MAINTENANCE_ALERT'
+                                    type: 'DOCUMENT_REVIEW'
                                 });
                             }
                         }
                     }
                 }
             }
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.checkOverdueDocuments');
+        }
+    }
+
+    /**
+     * Check for upcoming maintenance
+     */
+    static async checkUpcomingMaintenance(organizationId: string): Promise<void> {
+        try {
+            const thirtyDaysFromNow = new Date();
+            thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+            const q = query(
+                collection(db, 'assets'),
+                where('organizationId', '==', organizationId)
+            );
+
+            const snap = await getDocs(q);
+            const assets = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Asset));
+
+            for (const asset of assets) {
+                if (asset.nextMaintenance) {
+                    const maintenanceDate = new Date(asset.nextMaintenance);
+                    if (maintenanceDate <= thirtyDaysFromNow && maintenanceDate > new Date()) {
+                        const daysUntil = Math.ceil((maintenanceDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+                        // Find the owner
+                        const ownerSnap = await getDocs(
+                            query(
+                                collection(db, 'users'),
+                                where('organizationId', '==', organizationId),
+                                where('displayName', '==', asset.owner)
+                            )
+                        );
+
+                        if (!ownerSnap.empty) {
+                            const ownerId = ownerSnap.docs[0].id;
+
+                            // Idempotency check
+                            const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                            const existingNotifs = await getDocs(query(
+                                collection(db, 'notifications'),
+                                where('userId', '==', ownerId),
+                                where('link', '==', '/assets'),
+                                where('createdAt', '>=', yesterday)
+                            ));
+
+                            const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(asset.name));
+
+                            if (!alreadyNotified) {
+                                await addDoc(collection(db, 'notifications'), sanitizeData({
+                                    organizationId,
+                                    userId: ownerId,
+                                    type: daysUntil <= 7 ? 'warning' : 'info',
+                                    title: `Maintenance à prévoir : ${asset.name}`,
+                                    message: `Maintenance prévue dans ${daysUntil} jour(s)`,
+                                    link: '/assets',
+                                    read: false,
+                                    createdAt: new Date().toISOString(),
+                                }));
+
+                                // Send Email
+                                const ownerData = ownerSnap.docs[0].data() as UserProfile;
+                                if (ownerData.email && this.shouldNotify(ownerData, 'system', 'email')) {
+                                    await sendEmail(null, {
+                                        to: ownerData.email,
+                                        subject: `Maintenance : ${asset.name}`,
+                                        html: getMaintenanceTemplate(
+                                            asset.name,
+                                            asset.nextMaintenance,
+                                            ownerData.displayName || 'Propriétaire',
+                                            buildAppUrl('/assets')
+                                        ),
+                                        type: 'MAINTENANCE_ALERT'
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.checkUpcomingMaintenance');
         }
     }
 
@@ -427,69 +472,73 @@ export class NotificationService {
      * Check for critical risks without mitigation
      */
     static async checkCriticalRisks(organizationId: string): Promise<void> {
-        const q = query(
-            collection(db, 'risks'),
-            where('organizationId', '==', organizationId)
-        );
-
-        const snap = await getDocs(q);
-        const risks = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Risk));
-
-        const criticalRisksWithoutMitigation = risks.filter(
-            (risk) => risk.score >= 15 && (!risk.mitigationControlIds || risk.mitigationControlIds.length === 0)
-        );
-
-        if (criticalRisksWithoutMitigation.length > 0) {
-            // Notify all admins
-            const adminsSnap = await getDocs(
-                query(
-                    collection(db, 'users'),
-                    where('organizationId', '==', organizationId),
-                    where('role', '==', 'admin')
-                )
+        try {
+            const q = query(
+                collection(db, 'risks'),
+                where('organizationId', '==', organizationId)
             );
 
-            for (const adminDoc of adminsSnap.docs) {
-                // Idempotency check
-                const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-                const existingNotifs = await getDocs(query(
-                    collection(db, 'notifications'),
-                    where('userId', '==', adminDoc.id),
-                    where('link', '==', '/risks'),
-                    where('createdAt', '>=', yesterday)
-                ));
+            const snap = await getDocs(q);
+            const risks = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Risk));
 
-                const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes('risque(s) critique(s)'));
+            const criticalRisksWithoutMitigation = risks.filter(
+                (risk) => risk.score >= 15 && (!risk.mitigationControlIds || risk.mitigationControlIds.length === 0)
+            );
 
-                if (!alreadyNotified) {
-                    const adminData = adminDoc.data() as UserProfile;
+            if (criticalRisksWithoutMitigation.length > 0) {
+                // Notify all admins
+                const adminsSnap = await getDocs(
+                    query(
+                        collection(db, 'users'),
+                        where('organizationId', '==', organizationId),
+                        where('role', '==', 'admin')
+                    )
+                );
 
-                    await this.create(
-                        adminData,
-                        'danger',
-                        `${criticalRisksWithoutMitigation.length} risque(s) critique(s) sans atténuation`,
-                        `Des risques critiques n'ont pas de contrôles d'atténuation associés`,
-                        '/risks',
-                        undefined,
-                        'risks'
-                    );
+                for (const adminDoc of adminsSnap.docs) {
+                    // Idempotency check
+                    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                    const existingNotifs = await getDocs(query(
+                        collection(db, 'notifications'),
+                        where('userId', '==', adminDoc.id),
+                        where('link', '==', '/risks'),
+                        where('createdAt', '>=', yesterday)
+                    ));
 
-                    // Send Email
-                    if (adminData.email && this.shouldNotify(adminData, 'risks', 'email')) {
-                        await sendEmail(null, {
-                            to: adminData.email,
-                            subject: `Action requise : ${criticalRisksWithoutMitigation.length} Risques Critiques`,
-                            html: getRiskTreatmentDueTemplate(
-                                'Risques Critiques non traités',
-                                new Date().toISOString(),
-                                adminData.displayName || 'Admin',
-                                buildAppUrl('/risks')
-                            ),
-                            type: 'RISK_TREATMENT_DUE'
-                        });
+                    const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes('risque(s) critique(s)'));
+
+                    if (!alreadyNotified) {
+                        const adminData = adminDoc.data() as UserProfile;
+
+                        await this.create(
+                            adminData,
+                            'danger',
+                            `${criticalRisksWithoutMitigation.length} risque(s) critique(s) sans atténuation`,
+                            `Des risques critiques n'ont pas de contrôles d'atténuation associés`,
+                            '/risks',
+                            undefined,
+                            'risks'
+                        );
+
+                        // Send Email
+                        if (adminData.email && this.shouldNotify(adminData, 'risks', 'email')) {
+                            await sendEmail(null, {
+                                to: adminData.email,
+                                subject: `Action requise : ${criticalRisksWithoutMitigation.length} Risques Critiques`,
+                                html: getRiskTreatmentDueTemplate(
+                                    'Risques Critiques non traités',
+                                    new Date().toISOString(),
+                                    adminData.displayName || 'Admin',
+                                    buildAppUrl('/risks')
+                                ),
+                                type: 'RISK_TREATMENT_DUE'
+                            });
+                        }
                     }
                 }
             }
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.checkCriticalRisks');
         }
     }
 
@@ -620,85 +669,89 @@ export class NotificationService {
      * Check for upcoming risk treatment deadlines and notify owners
      */
     static async checkRiskTreatmentSLA(organizationId: string): Promise<void> {
-        // Fetch open risks
-        const q = query(
-            collection(db, 'risks'),
-            where('organizationId', '==', organizationId),
-            where('status', 'in', ['Ouvert', 'En cours'])
-        );
+        try {
+            // Fetch open risks
+            const q = query(
+                collection(db, 'risks'),
+                where('organizationId', '==', organizationId),
+                where('status', 'in', ['Ouvert', 'En cours'])
+            );
 
-        const snap = await getDocs(q);
-        const risks = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Risk));
+            const snap = await getDocs(q);
+            const risks = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Risk));
 
-        for (const risk of risks) {
-            // Only if treatment data exists and not Accepted (Accepted risks have no treatment deadline usually)
-            if (!risk.treatmentDeadline || risk.strategy === 'Accepter') continue;
+            for (const risk of risks) {
+                // Only if treatment data exists and not Accepted (Accepted risks have no treatment deadline usually)
+                if (!risk.treatmentDeadline || risk.strategy === 'Accepter') continue;
 
-            const deadline = new Date(risk.treatmentDeadline);
-            const now = new Date();
-            const diffTime = deadline.getTime() - now.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const deadline = new Date(risk.treatmentDeadline);
+                const now = new Date();
+                const diffTime = deadline.getTime() - now.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-            // Alert logic:
-            // 1. Overdue (diffDays < 0)
-            // 2. Due soon (diffDays <= 7)
-            if (diffDays <= 7) {
-                // Determine Owner (Prefer treatment owner, fallback to risk owner)
-                const ownerId = risk.treatmentOwnerId || risk.ownerId; // Note: ownerId might be empty if not assigned
-                if (!ownerId) continue;
+                // Alert logic:
+                // 1. Overdue (diffDays < 0)
+                // 2. Due soon (diffDays <= 7)
+                if (diffDays <= 7) {
+                    // Determine Owner (Prefer treatment owner, fallback to risk owner)
+                    const ownerId = risk.treatmentOwnerId || risk.ownerId; // Note: ownerId might be empty if not assigned
+                    if (!ownerId) continue;
 
-                // Idempotency: Check if notified in last 24h
-                const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-                // Construct a unique-ish link or rely on title parsing
-                const notifLink = `/risks?id=${risk.id}`; // Assuming we can deep link
+                    // Idempotency: Check if notified in last 24h
+                    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                    // Construct a unique-ish link or rely on title parsing
+                    const notifLink = `/risks?id=${risk.id}`; // Assuming we can deep link
 
-                const existingNotifs = await getDocs(query(
-                    collection(db, 'notifications'),
-                    where('userId', '==', ownerId),
-                    where('link', '==', notifLink),
-                    where('createdAt', '>=', yesterday)
-                ));
+                    const existingNotifs = await getDocs(query(
+                        collection(db, 'notifications'),
+                        where('userId', '==', ownerId),
+                        where('link', '==', notifLink),
+                        where('createdAt', '>=', yesterday)
+                    ));
 
-                const msgTag = diffDays < 0 ? 'Retard traitement' : 'Échéance traitement';
-                const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(msgTag));
+                    const msgTag = diffDays < 0 ? 'Retard traitement' : 'Échéance traitement';
+                    const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(msgTag));
 
-                if (!alreadyNotified) {
-                    const isOverdue = diffDays < 0;
-                    await addDoc(collection(db, 'notifications'), sanitizeData({
-                        organizationId,
-                        userId: ownerId,
-                        type: isOverdue ? 'danger' : 'warning',
-                        title: `${msgTag} : ${risk.threat}`,
-                        message: isOverdue
-                            ? `Le traitement est en retard de ${Math.abs(diffDays)} jours`
-                            : `Le traitement arrive à échéance dans ${diffDays} jours`,
-                        link: notifLink,
-                        read: false,
-                        createdAt: new Date().toISOString()
-                    }));
+                    if (!alreadyNotified) {
+                        const isOverdue = diffDays < 0;
+                        await addDoc(collection(db, 'notifications'), sanitizeData({
+                            organizationId,
+                            userId: ownerId,
+                            type: isOverdue ? 'danger' : 'warning',
+                            title: `${msgTag} : ${risk.threat}`,
+                            message: isOverdue
+                                ? `Le traitement est en retard de ${Math.abs(diffDays)} jours`
+                                : `Le traitement arrive à échéance dans ${diffDays} jours`,
+                            link: notifLink,
+                            read: false,
+                            createdAt: new Date().toISOString()
+                        }));
 
-                    // Send Email
-                    try {
-                        const userSnap = await getDoc(doc(db, 'users', ownerId));
-                        if (userSnap.exists()) {
-                            const userData = userSnap.data() as UserProfile;
-                            if (userData.email && this.shouldNotify(userData, 'risks', 'email')) {
-                                await sendEmail(null, {
-                                    to: userData.email,
-                                    subject: `${msgTag} : ${risk.threat}`,
-                                    html: getRiskTreatmentDueTemplate(
-                                        risk.threat,
-                                        risk.treatmentDeadline,
-                                        userData.displayName || 'Propriétaire',
-                                        buildAppUrl('/risks')
-                                    ),
-                                    type: 'RISK_TREATMENT_DUE'
-                                });
+                        // Send Email
+                        try {
+                            const userSnap = await getDoc(doc(db, 'users', ownerId));
+                            if (userSnap.exists()) {
+                                const userData = userSnap.data() as UserProfile;
+                                if (userData.email && this.shouldNotify(userData, 'risks', 'email')) {
+                                    await sendEmail(null, {
+                                        to: userData.email,
+                                        subject: `${msgTag} : ${risk.threat}`,
+                                        html: getRiskTreatmentDueTemplate(
+                                            risk.threat,
+                                            risk.treatmentDeadline,
+                                            userData.displayName || 'Propriétaire',
+                                            buildAppUrl('/risks')
+                                        ),
+                                        type: 'RISK_TREATMENT_DUE'
+                                    });
+                                }
                             }
-                        }
-                    } catch (e) { ErrorLogger.error(e, 'NotificationService.checkRiskTreatmentSLA.sendEmail'); }
+                        } catch (e) { ErrorLogger.error(e, 'NotificationService.checkRiskTreatmentSLA.sendEmail'); }
+                    }
                 }
             }
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.checkRiskTreatmentSLA');
         }
     }
 
@@ -734,73 +787,77 @@ export class NotificationService {
      * Check for expiring supplier contracts
      */
     static async checkExpiringContracts(organizationId: string): Promise<void> {
-        const thirtyDaysFromNow = new Date();
-        thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+        try {
+            const thirtyDaysFromNow = new Date();
+            thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-        const q = query(
-            collection(db, 'suppliers'),
-            where('organizationId', '==', organizationId),
-            where('status', '==', 'Actif')
-        );
+            const q = query(
+                collection(db, 'suppliers'),
+                where('organizationId', '==', organizationId),
+                where('status', '==', 'Actif')
+            );
 
-        const snap = await getDocs(q);
-        const suppliers = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Supplier));
+            const snap = await getDocs(q);
+            const suppliers = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Supplier));
 
-        for (const supplier of suppliers) {
-            if (supplier.contractEnd) {
-                const endDate = new Date(supplier.contractEnd);
-                if (endDate <= thirtyDaysFromNow && endDate > new Date()) {
-                    const daysUntil = Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+            for (const supplier of suppliers) {
+                if (supplier.contractEnd) {
+                    const endDate = new Date(supplier.contractEnd);
+                    if (endDate <= thirtyDaysFromNow && endDate > new Date()) {
+                        const daysUntil = Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
-                    // Notify Owner
-                    if (supplier.ownerId) {
-                        // Idempotency check
-                        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-                        const existingNotifs = await getDocs(query(
-                            collection(db, 'notifications'),
-                            where('userId', '==', supplier.ownerId),
-                            where('link', '==', '/suppliers'),
-                            where('createdAt', '>=', yesterday)
-                        ));
+                        // Notify Owner
+                        if (supplier.ownerId) {
+                            // Idempotency check
+                            const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                            const existingNotifs = await getDocs(query(
+                                collection(db, 'notifications'),
+                                where('userId', '==', supplier.ownerId),
+                                where('link', '==', '/suppliers'),
+                                where('createdAt', '>=', yesterday)
+                            ));
 
-                        const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(supplier.name));
+                            const alreadyNotified = existingNotifs.docs.some(d => d.data().title.includes(supplier.name));
 
-                        if (!alreadyNotified) {
-                            await addDoc(collection(db, 'notifications'), sanitizeData({
-                                organizationId,
-                                userId: supplier.ownerId,
-                                type: 'warning',
-                                title: `Fin de contrat : ${supplier.name}`,
-                                message: `Le contrat expire dans ${daysUntil} jour(s)`,
-                                link: '/suppliers',
-                                read: false,
-                                createdAt: new Date().toISOString(),
-                            }));
+                            if (!alreadyNotified) {
+                                await addDoc(collection(db, 'notifications'), sanitizeData({
+                                    organizationId,
+                                    userId: supplier.ownerId,
+                                    type: 'warning',
+                                    title: `Fin de contrat : ${supplier.name}`,
+                                    message: `Le contrat expire dans ${daysUntil} jour(s)`,
+                                    link: '/suppliers',
+                                    read: false,
+                                    createdAt: new Date().toISOString(),
+                                }));
 
-                            // Send Email
-                            try {
-                                const userSnap = await getDoc(doc(db, 'users', supplier.ownerId));
-                                if (userSnap.exists()) {
-                                    const userData = userSnap.data() as UserProfile;
-                                    if (userData.email && this.shouldNotify(userData, 'system', 'email')) {
-                                        await sendEmail(null, {
-                                            to: userData.email,
-                                            subject: `Expiration Contrat : ${supplier.name}`,
-                                            html: getSupplierReviewTemplate(
-                                                supplier.name,
-                                                supplier.criticality || 'Moyenne',
-                                                supplier.contractEnd,
-                                                buildAppUrl('/suppliers')
-                                            ),
-                                            type: 'SUPPLIER_REVIEW'
-                                        });
+                                // Send Email
+                                try {
+                                    const userSnap = await getDoc(doc(db, 'users', supplier.ownerId));
+                                    if (userSnap.exists()) {
+                                        const userData = userSnap.data() as UserProfile;
+                                        if (userData.email && this.shouldNotify(userData, 'system', 'email')) {
+                                            await sendEmail(null, {
+                                                to: userData.email,
+                                                subject: `Expiration Contrat : ${supplier.name}`,
+                                                html: getSupplierReviewTemplate(
+                                                    supplier.name,
+                                                    supplier.criticality || 'Moyenne',
+                                                    supplier.contractEnd,
+                                                    buildAppUrl('/suppliers')
+                                                ),
+                                                type: 'SUPPLIER_REVIEW'
+                                            });
+                                        }
                                     }
-                                }
-                            } catch (e) { ErrorLogger.error(e, 'NotificationService.checkExpiringContracts.sendEmail'); }
+                                } catch (e) { ErrorLogger.error(e, 'NotificationService.checkExpiringContracts.sendEmail'); }
+                            }
                         }
                     }
                 }
             }
+        } catch (error) {
+            ErrorLogger.error(error, 'NotificationService.checkExpiringContracts');
         }
     }
 

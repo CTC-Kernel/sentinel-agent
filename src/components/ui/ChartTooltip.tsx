@@ -28,7 +28,7 @@ export const ChartTooltip: React.FC<ChartTooltipProps> = ({ active, payload, lab
                 )}
                 <div className="space-y-1">
                     {payload.map((entry, index) => (
-                        <div key={index} className="flex items-center gap-2 text-sm font-medium">
+                        <div key={entry.name || index} className="flex items-center gap-2 text-sm font-medium">
                             <div
                                 className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.3)]"
                                 style={{ backgroundColor: entry.color, boxShadow: `0 0 10px ${entry.color}` }}

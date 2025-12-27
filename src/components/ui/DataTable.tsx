@@ -54,27 +54,23 @@ export function DataTable<TData extends { id: string }, TValue>({
         const selectionColumn: ColumnDef<TData, unknown> = {
             id: 'select',
             header: ({ table }) => (
-                <div className="px-1" onClick={(e) => e.stopPropagation()}>
-                    <input
+                <div className="px-1 hover:bg-transparent" onClick={(e) => e.stopPropagation()}>
+                    <input checked={table.getIsAllPageRowsSelected()} onChange={table.getToggleAllPageRowsSelectedHandler()}
                         id="select-all-rows"
                         name="select-all-rows"
                         type="checkbox"
-                        checked={table.getIsAllPageRowsSelected()}
-                        onChange={table.getToggleAllPageRowsSelectedHandler()}
                         aria-label="Sélectionner toutes les lignes"
                         className="rounded border-slate-300/50 dark:border-white/20 text-brand-600 focus:ring-brand-500/20 w-4 h-4 cursor-pointer bg-white/50 dark:bg-white/5 transition-colors"
                     />
                 </div>
             ),
             cell: ({ row }) => (
-                <div className="px-1" onClick={(e) => e.stopPropagation()}>
-                    <input
+                <div className="px-1 hover:bg-transparent" onClick={(e) => e.stopPropagation()}>
+                    <input checked={row.getIsSelected()} onChange={row.getToggleSelectedHandler()}
                         id={`select-row-${row.id}`}
                         name={`select-row-${row.id}`}
                         type="checkbox"
-                        checked={row.getIsSelected()}
                         disabled={!row.getCanSelect()}
-                        onChange={row.getToggleSelectedHandler()}
                         aria-label={`Sélectionner la ligne ${row.index + 1}`}
                         className="rounded border-slate-300/50 dark:border-white/20 text-brand-600 focus:ring-brand-500/20 w-4 h-4 cursor-pointer bg-white/50 dark:bg-white/5 transition-colors"
                     />
@@ -141,11 +137,9 @@ export function DataTable<TData extends { id: string }, TValue>({
                 {searchable && (
                     <div className="relative flex-1 w-full max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                        <input
+                        <input value={globalFilter ?? ''} onChange={(e) => setGlobalFilter(e.target.value)}
                             type="text"
                             placeholder="Rechercher..."
-                            value={globalFilter ?? ''}
-                            onChange={(e) => setGlobalFilter(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 bg-white/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none backdrop-blur-sm transition-all"
                         />
                     </div>

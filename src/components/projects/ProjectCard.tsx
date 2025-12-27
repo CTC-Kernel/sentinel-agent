@@ -29,6 +29,18 @@ const ProjectCardTooltip = ({ content, children }: { content: string, children: 
 export const ProjectCard: React.FC<ProjectCardProps> = ({
     project, canEdit, user, usersList = [], onEdit, onDelete, onClick, onDuplicate, compact
 }) => {
+    const [isDeleting, setIsDeleting] = React.useState(false);
+
+    const handleDelete = async () => {
+        if (isDeleting) return;
+        setIsDeleting(true);
+        try {
+            await onDelete(project.id, project.name);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     // Calculate members
     const memberIds = project.members || [];
     const members = usersList.filter(u => memberIds.includes(u.uid));
@@ -36,7 +48,18 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     const remaining = members.length - 3;
 
     return (
-        <div onClick={() => onClick(project)} className={`glass-panel rounded-[2.5rem] ${compact ? 'p-4 rounded-2xl' : 'p-6'} card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5`}>
+        <div
+            onClick={() => onClick(project)}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onClick(project);
+                }
+            }}
+            role="button"
+            tabIndex={0}
+            className={`glass-panel rounded-[2.5rem] ${compact ? 'p-4 rounded-2xl' : 'p-6'} card-hover flex flex-col cursor-pointer group border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+        >
             <div className="flex justify-between items-start mb-4">
                 <Badge
                     status={project.status === 'En cours' ? 'info' : project.status === 'Terminé' ? 'success' : project.status === 'Suspendu' ? 'error' : 'neutral'}
@@ -49,18 +72,18 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                         {canEdit && (
                             <>
                                 <ProjectCardTooltip content="Dupliquer">
-                                    <button onClick={(e) => { e.stopPropagation(); onDuplicate(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-brand-500 shadow-sm backdrop-blur-sm transition-colors border border-slate-200 dark:border-white/10">
+                                    <button onClick={(e) => { e.stopPropagation(); onDuplicate(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-brand-500 shadow-sm backdrop-blur-sm transition-colors border border-slate-200 dark:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={`Dupliquer le projet ${project.name}`}>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
                                     </button>
                                 </ProjectCardTooltip>
                                 <ProjectCardTooltip content="Modifier">
-                                    <button onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors border border-slate-200 dark:border-white/10">
+                                    <button onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-indigo-500 shadow-sm backdrop-blur-sm transition-colors border border-slate-200 dark:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                         <Edit className="h-3.5 w-3.5" />
                                     </button>
                                 </ProjectCardTooltip>
                                 {canDeleteResource(user, 'Project') && (
-                                    <ProjectCardTooltip content="Supprimer">
-                                        <button onClick={(e) => { e.stopPropagation(); onDelete(project.id, project.name); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors border border-slate-200 dark:border-white/10">
+                                    <ProjectCardTooltip content={isDeleting ? "Suppression..." : "Supprimer"}>
+                                        <button onClick={(e) => { e.stopPropagation(); handleDelete(); }} disabled={isDeleting} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors border border-slate-200 dark:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Supprimer le projet ${project.name}`}>
                                             <Trash2 className="h-3.5 w-3.5" />
                                         </button>
                                     </ProjectCardTooltip>

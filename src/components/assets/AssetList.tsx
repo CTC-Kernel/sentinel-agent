@@ -78,7 +78,7 @@ export const AssetList = React.memo<AssetListProps>(({
                     <CustomTooltip content={t('assets.printLabel')}>
                         <button
                             onClick={(e) => { e.stopPropagation(); onGenerateLabel(row.original); }}
-                            className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                            className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             disabled={isGeneratingLabels}
                         >
                             <Tag className="h-4 w-4" />
@@ -88,7 +88,7 @@ export const AssetList = React.memo<AssetListProps>(({
                         <CustomTooltip content={t('assets.editAsset')}>
                             <button
                                 onClick={(e) => { e.stopPropagation(); onEdit(row.original); }}
-                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
                                 <Edit className="h-4 w-4" />
                             </button>
@@ -98,7 +98,7 @@ export const AssetList = React.memo<AssetListProps>(({
                         <CustomTooltip content={t('assets.deleteAssetTooltip')}>
                             <button
                                 onClick={(e) => { e.stopPropagation(); onDelete(row.original.id, row.original.name); }}
-                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
                                 <Trash2 className="h-4 w-4" />
                             </button>
@@ -157,14 +157,21 @@ export const AssetList = React.memo<AssetListProps>(({
                 assets.map((asset) => {
                     const warrantyExpired = asset.warrantyEnd && new Date(asset.warrantyEnd) < new Date();
                     return (
-                        <div key={asset.id} onClick={() => onEdit(asset)} className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 hover:border-brand-500/30 transition-all relative overflow-hidden">
+                        <div
+                            key={asset.id}
+                            onClick={() => onEdit(asset)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onEdit(asset); }}
+                            role="button"
+                            tabIndex={0}
+                            className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 hover:border-brand-500/30 transition-all relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        >
                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                             <div className="relative z-10 flex flex-col h-full">
                                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                                     <CustomTooltip content={t('assets.printLabel')}>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); onGenerateLabel(asset); }}
-                                            className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-indigo-600 shadow-sm backdrop-blur-sm"
+                                            className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-indigo-600 shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                             disabled={isGeneratingLabels}
                                         >
                                             <Tag className="h-4 w-4" />

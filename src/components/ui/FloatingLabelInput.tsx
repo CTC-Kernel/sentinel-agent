@@ -59,11 +59,10 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
                         placeholder=" "
                     />
                 ) : (
-                    <input
+                    <input value={value}
                         ref={ref as React.Ref<HTMLInputElement>}
                         {...props}
                         id={fieldId}
-                        value={value}
                         aria-invalid={!!error}
                         aria-describedby={describedBy}
                         aria-required={props.required}

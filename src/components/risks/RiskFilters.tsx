@@ -23,12 +23,11 @@ export const RiskFilters: React.FC<RiskFiltersProps> = ({
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-white/5 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-white/10 mb-8 backdrop-blur-xl">
             <div className="relative flex-1 w-full md:max-w-md group">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 group-hover:text-brand-500 transition-colors h-5 w-5" />
-                <input
+                <input value={query} onChange={(e) => onQueryChange(e.target.value)}
                     type="text"
                     placeholder="Rechercher une menace, une vulnérabilité..."
                     className="pl-10 pr-4 py-3 w-full bg-slate-50 dark:bg-black/20 border-transparent focus:bg-white dark:focus:bg-black/40 border-2 focus:border-brand-500 rounded-xl transition-all outline-none"
-                    value={query}
-                    onChange={(e) => onQueryChange(e.target.value)}
+                    aria-label="Rechercher un risque"
                 />
             </div>
 

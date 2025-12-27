@@ -143,7 +143,18 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
         <div className="space-y-6">
             {/* Top Summary Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div onClick={() => onFilterChange?.({ type: 'level', value: 'Critique' })} className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/5 flex flex-col items-center justify-center cursor-pointer hover:shadow-apple transition-all group bg-gradient-to-br from-red-50 to-white dark:from-red-900/10 dark:to-transparent relative overflow-hidden">
+                <div
+                    onClick={() => onFilterChange?.({ type: 'level', value: 'Critique' })}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onFilterChange?.({ type: 'level', value: 'Critique' });
+                        }
+                    }}
+                    className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/5 flex flex-col items-center justify-center cursor-pointer hover:shadow-apple transition-all group bg-gradient-to-br from-red-50 to-white dark:from-red-900/10 dark:to-transparent relative overflow-hidden"
+                >
                     <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/10 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none transition-opacity opacity-0 group-hover:opacity-100"></div>
                     <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 ring-1 ring-red-500/20 dark:ring-red-500/30">
                         <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />

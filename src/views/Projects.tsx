@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useStore } from '../store';
 import { Project, ProjectTemplate, UserProfile } from '../types';
 import { useProjectLogic } from '../hooks/projects/useProjectLogic';
@@ -36,13 +36,14 @@ export const Projects: React.FC = () => {
     // Tabs
     const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'board' | 'gantt'>('projects_active_tab', 'overview');
     const [ganttViewMode, setGanttViewMode] = useState<'Day' | 'Week' | 'Month'>('Month');
+    const handleGanttViewModeChange = useCallback((mode: 'Day' | 'Week' | 'Month') => setGanttViewMode(mode), []);
 
-    const tabs = [
+    const tabs = useMemo(() => [
         { id: 'overview', label: t('projects.overview'), icon: LayoutDashboard },
         { id: 'list', label: t('projects.list'), icon: List },
         { id: 'board', label: t('projects.board'), icon: FolderKanban },
         { id: 'gantt', label: t('projects.planning'), icon: CalendarDays },
-    ];
+    ], [t]);
     const {
         projects, risks, controls, assets, audits, usersList, loading,
         handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks,
@@ -66,18 +67,19 @@ export const Projects: React.FC = () => {
     }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
     // Filter Logic
-    const filteredProjects = projects.filter(p =>
+    // Filter Logic
+    const filteredProjects = useMemo(() => projects.filter(p =>
         p.name.toLowerCase().includes(filter.toLowerCase()) ||
         p.description?.toLowerCase().includes(filter.toLowerCase())
-    );
+    ), [projects, filter]);
 
     // Handlers
-    const onEditProject = (project: Project) => {
+    // Handlers
+    const onEditProject = useCallback((project: Project) => {
         setEditingProject(project);
-        // creationMode implicitly handled by Drawer 'isOpen' logic check
-    };
+    }, []);
 
-    const onDeleteRequest = async (id: string, name: string) => {
+    const onDeleteRequest = useCallback(async (id: string, name: string) => {
         // Dependencies check
         const { hasDependencies, dependencies } = await checkDependencies(id);
 
@@ -95,17 +97,17 @@ export const Projects: React.FC = () => {
             message: message,
             onConfirm: async () => {
                 await deleteProject(id, name);
-                setConfirmData({ ...confirmData, isOpen: false });
+                setConfirmData(prev => ({ ...prev, isOpen: false }));
                 if (selectedProject?.id === id) setSelectedProject(null);
             }
         });
-    };
+    }, [checkDependencies, t, deleteProject, selectedProject]);
 
-    const handleDuplicateWrapper = async (project: Project) => {
+    const handleDuplicateWrapper = useCallback(async (project: Project) => {
         await handleDuplicate(project);
-    };
+    }, [handleDuplicate]);
 
-    const handleCreateFromTemplate = async (template: ProjectTemplate, customName: string, startDate: Date, managerId: string) => {
+    const handleCreateFromTemplate = useCallback(async (template: ProjectTemplate, customName: string, startDate: Date, managerId: string) => {
         try {
             const managerUser = usersList.find((u: UserProfile) => u.uid === managerId);
             const managerPayload = {
@@ -119,18 +121,18 @@ export const Projects: React.FC = () => {
             console.error(error);
             addToast(t('projects.toastError'), "error");
         }
-    };
+    }, [usersList, user, addToast, t]);
 
     // Exports
-    const handleExportCSV = () => {
+    const handleExportCSV = useCallback(() => {
         CsvParser.exportToCsv(
             projects as unknown as Record<string, unknown>[],
             t('projects.filename', { date: new Date().toISOString().split('T')[0] }),
             ["name", "status", "progress", "manager", "managerId", "dueDate", "createdAt"]
         );
-    };
+    }, [projects, t]);
 
-    const generateReport = () => {
+    const generateReport = useCallback(() => {
         if (!selectedProject) return;
         try {
             PdfService.generateProjectExecutiveReport(selectedProject, {
@@ -143,12 +145,24 @@ export const Projects: React.FC = () => {
             console.error(error);
             addToast(t('projects.toastReportError'), "error");
         }
-    };
+    }, [selectedProject, user, addToast, t]);
 
-    const handleExportExecutiveReport = async () => {
+    const handleExportExecutiveReport = useCallback(async () => {
         if (!selectedProject) return;
         generateReport();
-    };
+    }, [selectedProject, generateReport]);
+
+    // UI Checks
+    const handleTabChange = useCallback((id: string) => setActiveTab(id as 'overview' | 'list' | 'board' | 'gantt'), [setActiveTab]);
+    const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as 'list' | 'grid' | 'matrix' | 'kanban'), []);
+    const handleNewProjectClick = useCallback(() => { setCreationMode(true); setEditingProject(null); }, []);
+    const handleOpenTemplateModal = useCallback(() => setShowTemplateModal(true), []);
+    const handleCloseTemplateModal = useCallback(() => setShowTemplateModal(false), []);
+    const handleCloseDrawer = useCallback(() => { setCreationMode(false); setEditingProject(null); }, []);
+    const handleCloseInspector = useCallback(() => setSelectedProject(null), []);
+    const handleConfirmClose = useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
+    const handleDrawerSubmit = useCallback((data: import('../schemas/projectSchema').ProjectFormData) => handleProjectFormSubmit(data as unknown as import('../types').Project, editingProject), [handleProjectFormSubmit, editingProject]);
+    const handleInspectorUpdateTasks = useCallback(async (p: Project, t: import('../types').ProjectTask[]) => { await updateProjectTasks(p, t); }, [updateProjectTasks]);
 
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-8 pb-20">
@@ -166,7 +180,7 @@ export const Projects: React.FC = () => {
             <ScrollableTabs
                 tabs={tabs}
                 activeTab={activeTab}
-                onTabChange={(id) => setActiveTab(id as 'overview' | 'list' | 'board' | 'gantt')}
+                onTabChange={handleTabChange}
             />
 
             {/* OVERVIEW TAB */}
@@ -183,14 +197,14 @@ export const Projects: React.FC = () => {
                     onSearchChange={setFilter}
                     searchPlaceholder={t('projects.searchPlaceholder')}
                     viewMode={activeTab === 'list' ? viewMode : undefined}
-                    onViewModeChange={activeTab === 'list' ? setViewMode : undefined}
+                    onViewModeChange={activeTab === 'list' ? handleViewModeChange : undefined}
                     actions={canEdit && (
                         <>
                             {/* Primary Action */}
                             <CustomTooltip content={t('projects.newProject')}>
                                 <button
                                     aria-label={t('projects.newProject')}
-                                    onClick={() => { setCreationMode(true); setEditingProject(null); }}
+                                    onClick={handleNewProjectClick}
                                     className="flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                                 >
                                     <Plus className="h-4 w-4 mr-2" />
@@ -211,7 +225,7 @@ export const Projects: React.FC = () => {
                                             <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('common.actions')}</div>
                                             <Menu.Item>
                                                 {({ active }) => (
-                                                    <button aria-label={t('projects.createFromTemplate')} onClick={() => setShowTemplateModal(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                    <button aria-label={t('projects.createFromTemplate')} onClick={handleOpenTemplateModal} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                         <Zap className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-amber-500'}`} /> {t('projects.createFromTemplate')}
                                                     </button>
                                                 )}
@@ -253,7 +267,7 @@ export const Projects: React.FC = () => {
                                 <div className="col-span-full text-center py-8">{t('projects.loading')}</div>
                             ) : filteredProjects.length === 0 ? (
                                 <div className="col-span-full">
-                                    <EmptyState icon={FolderKanban} title={t('projects.emptyTitle')} description={t('projects.emptyDesc')} actionLabel={canEdit ? t('projects.createAction') : undefined} onAction={() => setCreationMode(true)} />
+                                    <EmptyState icon={FolderKanban} title={t('projects.emptyTitle')} description={t('projects.emptyDesc')} actionLabel={canEdit ? t('projects.createAction') : undefined} onAction={handleNewProjectClick} />
                                 </div>
                             ) : (
                                 filteredProjects.map(p => (
@@ -281,7 +295,7 @@ export const Projects: React.FC = () => {
                     <GanttChart
                         tasks={filteredProjects.flatMap(p => p.tasks || [])}
                         viewMode={ganttViewMode}
-                        onViewModeChange={setGanttViewMode}
+                        onViewModeChange={handleGanttViewModeChange}
                     />
                 </motion.div>
             )}
@@ -336,7 +350,7 @@ export const Projects: React.FC = () => {
             <ProjectInspector
                 isOpen={!!selectedProject}
                 project={selectedProject}
-                onClose={() => setSelectedProject(null)}
+                onClose={handleCloseInspector}
                 user={user}
                 canEdit={canEdit}
                 usersList={usersList}
@@ -344,7 +358,7 @@ export const Projects: React.FC = () => {
                 controls={controls}
                 assets={assets}
                 audits={audits}
-                updateTasks={async (p, t) => { await updateProjectTasks(p, t); }}
+                updateTasks={handleInspectorUpdateTasks}
                 onDeleteProject={onDeleteRequest}
                 onDuplicateProject={handleDuplicateWrapper}
                 onEditProject={onEditProject}
@@ -356,15 +370,15 @@ export const Projects: React.FC = () => {
             {/* Create/Edit Drawer */}
             <Drawer
                 isOpen={creationMode || !!editingProject}
-                onClose={() => { setCreationMode(false); setEditingProject(null); }}
+                onClose={handleCloseDrawer}
                 title={editingProject ? t('projects.editProject') : t('projects.newProject')}
                 subtitle={editingProject ? editingProject.name : t('common.create')}
                 width="max-w-4xl"
                 disableScroll={true}
             >
                 <ProjectForm
-                    onCancel={() => { setCreationMode(false); setEditingProject(null); }}
-                    onSubmit={(data) => handleProjectFormSubmit(data, editingProject)}
+                    onCancel={handleCloseDrawer}
+                    onSubmit={handleDrawerSubmit}
                     existingProject={editingProject || undefined}
                     usersList={usersList}
                     availableRisks={risks}
@@ -376,14 +390,14 @@ export const Projects: React.FC = () => {
 
             <TemplateModal
                 isOpen={showTemplateModal}
-                onClose={() => setShowTemplateModal(false)}
+                onClose={handleCloseTemplateModal}
                 onSelectTemplate={handleCreateFromTemplate}
                 managers={usersList}
             />
 
             <ConfirmModal
                 isOpen={confirmData.isOpen}
-                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+                onClose={handleConfirmClose}
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}
@@ -391,3 +405,5 @@ export const Projects: React.FC = () => {
         </motion.div>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

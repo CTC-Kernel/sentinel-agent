@@ -79,6 +79,7 @@ const cspNonceMiddleware = (_req: Request, res: Response, next: NextFunction) =>
     res.locals.cspNonce = randomBytes(16).toString('base64');
     next();
   } catch (error) {
+    console.error('CSP Nonce generation error:', error);
     logger.error({ err: error }, 'Erreur lors de la génération du nonce CSP');
     next(error);
   }
@@ -123,17 +124,17 @@ export const configureSecurity = (app: Express) => {
     const nonce = res.locals.cspNonce as string | undefined;
     return configureHelmet(nonce)(req, res, next);
   });
-  
+
   // Désactiver l'en-tête X-Powered-By
   app.disable('x-powered-by');
-  
+
   // Middleware pour ajouter des en-têtes de sécurité supplémentaires
   app.use((req: Request, res: Response, next: NextFunction) => {
     // Headers de sécurité supplémentaires
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
-    
+
     // Prévention de la mise en cache pour les API
     if (req.path.startsWith('/api/') || req.path.startsWith('/auth/')) {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -141,10 +142,10 @@ export const configureSecurity = (app: Express) => {
       res.setHeader('Expires', '0');
       res.setHeader('Surrogate-Control', 'no-store');
     }
-    
+
     next();
   });
-  
+
   // Protéger contre les attaques par pollution de paramètres
   app.use((req: Request, _res: Response, next: NextFunction) => {
     if (req.query && typeof req.query === 'object') {
@@ -157,11 +158,11 @@ export const configureSecurity = (app: Express) => {
     }
     next();
   });
-  
+
   // Journalisation des accès
   app.use((req: Request, res: Response, next: NextFunction) => {
     const start = Date.now();
-    
+
     res.on('finish', () => {
       const duration = Date.now() - start;
       logger.info({
@@ -171,7 +172,7 @@ export const configureSecurity = (app: Express) => {
         duration
       }, 'HTTP request completed');
     });
-    
+
     next();
   });
 
@@ -188,7 +189,7 @@ export const configureSecurity = (app: Express) => {
  * Configuration CORS sécurisée
  */
 export const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
+  origin: process.env.NODE_ENV === 'production'
     ? [/yourdomain\.com$/, /your-app\.vercel\.app$/]
     : ['http://localhost:3000', 'http://localhost:3001'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

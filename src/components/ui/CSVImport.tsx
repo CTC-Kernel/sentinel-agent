@@ -159,7 +159,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
             <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl w-full max-w-4xl border border-white/20 overflow-hidden animate-scale-in max-h-[90vh] flex flex-col">
                 <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-brand-50/30 dark:bg-brand-900/10 flex justify-between items-center">
                     <h2 className="text-2xl font-bold text-brand-900 dark:text-brand-100 tracking-tight">{title}</h2>
-                    <button aria-label="Fermer la fenêtre" onClick={onClose} className="p-2 hover:bg-white/50 dark:hover:bg-white/10 rounded-xl transition-colors">
+                    <button aria-label="Fermer la fenêtre" onClick={onClose} className="p-2 hover:bg-white/50 dark:hover:bg-white/10 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                         <X className="h-5 w-5" />
                     </button>
                 </div>
@@ -175,15 +175,17 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                 <p className="text-sm text-slate-600 dark:text-slate-400">Uploadez votre fichier CSV pour importer en masse</p>
                             </div>
 
-                            <div className="border-2 border-dashed border-slate-300 dark:border-white/10 rounded-2xl p-8 text-center hover:border-brand-500 dark:hover:border-brand-500 transition-colors">
-                                <input
-                                    type="file"
+                            <div
+                                className="border-2 border-dashed border-slate-300 dark:border-white/10 rounded-2xl p-8 text-center hover:border-brand-500 dark:hover:border-brand-500 transition-colors focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-900"
+                            >
+                                <input type="file"
                                     accept=".csv"
                                     onChange={handleFileUpload}
-                                    className="hidden"
+                                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
                                     id="csv-upload"
+                                    aria-label="Importer un fichier CSV"
                                 />
-                                <label htmlFor="csv-upload" className="cursor-pointer">
+                                <div className="relative z-0">
                                     <Upload className="h-12 w-12 text-slate-500 mx-auto mb-3" />
                                     <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Cliquez pour sélectionner un fichier CSV</p>
                                     <p className="text-xs text-slate-600 mt-1">ou glissez-déposez ici</p>
@@ -192,12 +194,12 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                             Fichier sélectionné : {file.name}
                                         </p>
                                     )}
-                                </label>
+                                </div>
                             </div>
 
                             <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                                 <p className="text-sm text-slate-600 dark:text-slate-400">Besoin d'un modèle ?</p>
-                                <button aria-label="Télécharger le modèle CSV" onClick={downloadTemplate} className="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline">
+                                <button aria-label="Télécharger le modèle CSV" onClick={downloadTemplate} className="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1">
                                     Télécharger le modèle CSV
                                 </button>
                             </div>
@@ -216,14 +218,14 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                                     )}
                                 </div>
                                 <div className="flex gap-2">
-                                    <button aria-label="Annuler l'importation" onClick={() => setStep('upload')} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors">
+                                    <button aria-label="Annuler l'importation" onClick={() => setStep('upload')} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">
                                         Annuler
                                     </button>
                                     <button
                                         aria-label={`Importer ${parsedData.length} éléments`}
                                         onClick={handleImport}
                                         disabled={errors.length > 0}
-                                        className="px-4 py-2 text-sm font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="px-4 py-2 text-sm font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                                     >
                                         Importer {parsedData.length} élément{parsedData.length > 1 ? 's' : ''}
                                     </button>
@@ -298,7 +300,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({ title, fields, onImport, o
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Importation réussie !</h3>
                             <p className="text-sm text-slate-600 dark:test-slate-400">{importedCount} élément{importedCount > 1 ? 's' : ''} importé{importedCount > 1 ? 's' : ''} avec succès</p>
-                            <button aria-label="Terminer l'importation" onClick={onClose} className="mt-6 px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors">
+                            <button aria-label="Terminer l'importation" onClick={onClose} className="mt-6 px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
                                 Terminer
                             </button>
                         </div>

@@ -128,7 +128,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
     return (
         <div
             ref={triggerRef}
-            className={`relative inline-flex ${className}`}
+            className={`relative inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg ${className}`}
             onMouseEnter={showTooltip}
             onMouseLeave={hideTooltip}
             onFocus={showTooltip}

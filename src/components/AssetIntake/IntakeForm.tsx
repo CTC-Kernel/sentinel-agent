@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
 import { HardwareInfo } from '../../utils/hardwareDetection';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db, functions } from '../../firebase';
-import { httpsCallable } from 'firebase/functions';
 import { Laptop, Save, AlertTriangle, User, Server, Database } from '../ui/Icons';
 import { Project, UserProfile } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -10,6 +7,7 @@ import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
+import { IntakeService } from '../../services/intakeService';
 
 interface IntakeFormProps {
     hardwareInfo: HardwareInfo;
@@ -47,13 +45,13 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
         const fetchOptions = async () => {
             if (!orgId) return;
             try {
-                const [projSnap, userSnap] = await Promise.all([
-                    getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId))),
-                    getDocs(query(collection(db, 'users'), where('organizationId', '==', orgId)))
-                ]);
-                setProjects(projSnap.docs.map(d => ({ id: d.id, ...d.data() } as Project)));
-                setUsers(userSnap.docs.map(d => ({ uid: d.id, ...d.data() } as UserProfile)));
-            } catch (e) { ErrorLogger.error(e, 'IntakeForm.fetchOptions'); }
+                const options = await IntakeService.fetchOptions(orgId);
+                setProjects(options.projects);
+                setUsers(options.users);
+            } catch (e) {
+                // Handled in service, but we might want to show UI error
+                ErrorLogger.error(e, 'IntakeForm.fetchOptions');
+            }
         };
         fetchOptions();
 
@@ -79,10 +77,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
         }
 
         try {
-
-
-            const submitKioskAsset = httpsCallable(functions, 'submitKioskAsset');
-            await submitKioskAsset({
+            await IntakeService.submitAsset({
                 ...formData,
                 orgId: orgId,
                 hardware: hardwareInfo,
@@ -90,8 +85,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                 projectId: formData.projectId
             });
             onSuccess();
-        } catch (err) {
-            ErrorLogger.error(err, 'IntakeForm.handleSubmit');
+        } catch {
             setError("Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.");
         } finally {
             setLoading(false);
@@ -238,6 +232,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                 <Button
                     type="submit"
                     isLoading={loading}
+                    disabled={loading}
                     className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-lg shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
                     <Save className="h-5 w-5 mr-2" />
@@ -247,3 +242,4 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
         </div >
     );
 };
+

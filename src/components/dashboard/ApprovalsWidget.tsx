@@ -39,7 +39,7 @@ export const ApprovalsWidget: React.FC<ApprovalsWidgetProps> = ({ documents }) =
                 </div>
                 <button
                     onClick={() => navigate('/documents')}
-                    className="p-2 hover:bg-white/50 dark:hover:bg-black/10 rounded-xl transition-colors text-amber-900 dark:text-amber-100"
+                    className="p-2 hover:bg-white/50 dark:hover:bg-black/10 rounded-xl transition-colors text-amber-900 dark:text-amber-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                 >
                     <ArrowRight className="h-5 w-5" />
                 </button>
@@ -50,7 +50,15 @@ export const ApprovalsWidget: React.FC<ApprovalsWidgetProps> = ({ documents }) =
                     <div
                         key={doc.id}
                         onClick={() => navigate('/documents', { state: { voxelSelectedId: doc.id, voxelSelectedType: 'document' } })}
-                        className="bg-white/80 dark:bg-slate-900/50 p-3 rounded-xl border border-amber-200/50 dark:border-amber-900/20 cursor-pointer hover:shadow-sm transition-all"
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                navigate('/documents', { state: { voxelSelectedId: doc.id, voxelSelectedType: 'document' } });
+                            }
+                        }}
+                        className="bg-white/80 dark:bg-slate-900/50 p-3 rounded-xl border border-amber-200/50 dark:border-amber-900/20 cursor-pointer hover:shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                     >
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3 min-w-0">

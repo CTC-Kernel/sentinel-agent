@@ -1,7 +1,23 @@
 
+import { doc, setDoc, serverTimestamp, Timestamp, FieldValue } from 'firebase/firestore';
+import { db } from '../firebase';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight } from "../types";
 import { ErrorLogger } from "./errorLogger";
+
+export interface ChatMessage {
+    id: string;
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    timestamp: Date;
+    isError?: boolean;
+}
+
+export interface Conversation {
+    messages: ChatMessage[];
+    createdAt: Date;
+    updatedAt: Date;
+}
 
 
 
@@ -22,6 +38,47 @@ interface GraphData {
 }
 
 export const aiService = {
+    /**
+     * Initialize or update conversation history
+     */
+    async initConversation(userId: string): Promise<void> {
+        try {
+            const conversationRef = doc(db, 'conversations_ai', userId);
+            await setDoc(conversationRef, {
+                messages: [{
+                    id: 'welcome',
+                    role: 'assistant',
+                    content: "Bonjour je suis **Sentinel AI**. \n\nComment puis-je vous aider à sécuriser votre organisation aujourd'hui ?",
+                    timestamp: serverTimestamp() as FieldValue
+                }],
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            }, { merge: Boolean(true) });
+        } catch (error) {
+            ErrorLogger.error(error, 'aiService.initConversation');
+            throw error;
+        }
+    },
+
+    /**
+     * Save conversation messages
+     */
+    async saveMessages(userId: string, messages: ChatMessage[]): Promise<void> {
+        try {
+            const conversationRef = doc(db, 'conversations_ai', userId);
+            await setDoc(conversationRef, {
+                messages: messages.map(m => ({
+                    ...m,
+                    timestamp: m.timestamp instanceof Date ? Timestamp.fromDate(m.timestamp) : m.timestamp
+                })),
+                updatedAt: serverTimestamp()
+            }, { merge: Boolean(true) });
+        } catch (error) {
+            ErrorLogger.error(error, 'aiService.saveMessages');
+            throw error;
+        }
+    },
+
     /**
      * Analyzes the graph data to find hidden relationships and generate insights.
      */

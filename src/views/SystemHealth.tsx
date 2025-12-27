@@ -41,9 +41,9 @@ export const SystemHealth: React.FC = () => {
                     { label: 'Charge Système', value: `${Math.round(metrics.systemLoad)}%`, icon: Cpu, color: 'text-violet-500', sub: 'Usage vCPU' },
                     { label: 'Mémoire', value: `${Math.round(metrics.memoryUsage)}%`, icon: Server, color: 'text-emerald-500', sub: 'RAM Allouée' },
                     { label: 'Latence', value: `${Math.round(metrics.networkLatency)}ms`, icon: Activity, color: 'text-amber-500', sub: 'Ping Global' },
-                ].map((metric, idx) => (
+                ].map((metric) => (
                     <motion.div
-                        key={idx}
+                        key={metric.label}
                         variants={slideUpVariants}
                         className="glass-panel p-6 rounded-2xl relative overflow-hidden group"
                     >
@@ -76,8 +76,8 @@ export const SystemHealth: React.FC = () => {
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {services.map((service, idx) => (
-                        <div key={idx} className="p-4 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl flex items-center gap-4 hover:shadow-md transition-all group">
+                    {services.map((service) => (
+                        <div key={service.name} className="p-4 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-xl flex items-center gap-4 hover:shadow-md transition-all group">
                             <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                                 <service.icon className="h-6 w-6 text-slate-600 dark:text-slate-300" />
                             </div>

@@ -41,7 +41,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
                         </p>
                         <button
                             onClick={() => window.location.reload()}
-                            className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition-colors shadow-lg hover:shadow-brand-500/20"
+                            className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition-colors shadow-lg hover:shadow-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                         >
                             Recharger la page
                         </button>

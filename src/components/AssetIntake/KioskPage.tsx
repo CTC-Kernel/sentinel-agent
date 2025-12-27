@@ -42,7 +42,7 @@ export const KioskPage: React.FC = () => {
                     </p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="px-8 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
+                        className="px-8 py-3 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         Enregistrer un autre appareil
                     </button>

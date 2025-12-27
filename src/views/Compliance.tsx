@@ -161,14 +161,14 @@ export const Compliance: React.FC = () => {
                                 <div className="flex gap-2">
                                     <button
                                         aria-label={t('compliance.newRisk')}
-                                        className="btn-secondary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                        className="btn-secondary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                         onClick={() => handleCreateClick('risk')}
                                     >
                                         <ShieldCheck className="h-4 w-4 mr-2" /> + {t('compliance.newRisk')}
                                     </button>
                                     <button
                                         aria-label={t('compliance.export')}
-                                        className="btn-secondary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                        className="btn-secondary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                         onClick={() => toast.info(t('compliance.exportInfo'))}
                                     >
                                         <Download className="h-4 w-4 mr-2" /> {t('compliance.export')}

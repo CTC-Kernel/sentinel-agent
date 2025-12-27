@@ -65,58 +65,73 @@ export class OnboardingService {
     static async searchOrganizations(searchQuery: string): Promise<SearchResult[]> {
         if (!searchQuery.trim()) return [];
 
-        const capitalizedQuery = searchQuery.charAt(0).toUpperCase() + searchQuery.slice(1);
+        try {
+            const capitalizedQuery = searchQuery.charAt(0).toUpperCase() + searchQuery.slice(1);
 
-        const q1 = query(
-            collection(db, 'organizations'),
-            where('name', '>=', searchQuery),
-            where('name', '<=', searchQuery + '\uf8ff')
-        );
-
-        const promises = [getDocs(q1)];
-        if (searchQuery !== capitalizedQuery) {
-            promises.push(
-                getDocs(query(
-                    collection(db, 'organizations'),
-                    where('name', '>=', capitalizedQuery),
-                    where('name', '<=', capitalizedQuery + '\uf8ff')
-                ))
+            const q1 = query(
+                collection(db, 'organizations'),
+                where('name', '>=', searchQuery),
+                where('name', '<=', searchQuery + '\uf8ff')
             );
+
+            const promises = [getDocs(q1)];
+            if (searchQuery !== capitalizedQuery) {
+                promises.push(
+                    getDocs(query(
+                        collection(db, 'organizations'),
+                        where('name', '>=', capitalizedQuery),
+                        where('name', '<=', capitalizedQuery + '\uf8ff')
+                    ))
+                );
+            }
+
+            const snapshots = await Promise.all(promises);
+            const allDocs = snapshots.flatMap(snap => snap.docs);
+
+            // Deduplicate by ID
+            const uniqueDocs = Array.from(new Map(allDocs.map(item => [item.id, item])).values());
+
+            return uniqueDocs.map(d => ({ id: d.id, ...d.data() } as SearchResult));
+        } catch (error) {
+            ErrorLogger.error(error, 'OnboardingService.searchOrganizations');
+            return [];
         }
-
-        const snapshots = await Promise.all(promises);
-        const allDocs = snapshots.flatMap(snap => snap.docs);
-
-        // Deduplicate by ID
-        const uniqueDocs = Array.from(new Map(allDocs.map(item => [item.id, item])).values());
-
-        return uniqueDocs.map(d => ({ id: d.id, ...d.data() } as SearchResult));
     }
 
     /**
      * Envoie une demande pour rejoindre une organisation
      */
     static async sendJoinRequest(user: UserProfile, orgId: string, orgName: string, displayName?: string): Promise<void> {
-        await addDoc(collection(db, 'join_requests'), sanitizeData({
-            userId: user.uid,
-            userEmail: user.email,
-            displayName: displayName || user.displayName || user.email,
-            organizationId: orgId,
-            organizationName: orgName,
-            status: 'pending',
-            createdAt: new Date().toISOString()
-        }));
+        try {
+            await addDoc(collection(db, 'join_requests'), sanitizeData({
+                userId: user.uid,
+                userEmail: user.email,
+                displayName: displayName || user.displayName || user.email,
+                organizationId: orgId,
+                organizationName: orgName,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            }));
+        } catch (error) {
+            ErrorLogger.error(error, 'OnboardingService.sendJoinRequest');
+            throw error;
+        }
     }
 
     /**
      * Met à jour les étapes de configuration de l'organisation (Step 3)
      */
     static async updateOrganizationConfiguration(orgId: string, standards: string[], scope: string): Promise<void> {
-        await updateDoc(doc(db, 'organizations', orgId), sanitizeData({
-            standards,
-            scope,
-            onboardingStep: 3
-        }));
+        try {
+            await updateDoc(doc(db, 'organizations', orgId), sanitizeData({
+                standards,
+                scope,
+                onboardingStep: 3
+            }));
+        } catch (error) {
+            ErrorLogger.error(error, 'OnboardingService.updateOrganizationConfiguration');
+            throw error;
+        }
     }
 
     /**
@@ -125,53 +140,58 @@ export class OnboardingService {
     static async sendInvites(user: UserProfile, invites: { email: string; role: string }[]): Promise<void> {
         if (!user.organizationId || invites.length === 0) return;
 
-        const batch = writeBatch(db);
-        const invitePromises: Promise<void>[] = [];
+        try {
+            const batch = writeBatch(db);
+            const invitePromises: Promise<void>[] = [];
 
-        for (const invite of invites) {
-            const invitationRef = doc(collection(db, 'invitations'));
-            batch.set(invitationRef, sanitizeData({
-                email: invite.email,
-                organizationId: user.organizationId,
-                organizationName: user.organizationName || '',
-                role: invite.role,
-                invitedBy: user.uid,
-                createdAt: new Date().toISOString(),
-                status: 'pending'
-            }));
+            for (const invite of invites) {
+                const invitationRef = doc(collection(db, 'invitations'));
+                batch.set(invitationRef, sanitizeData({
+                    email: invite.email,
+                    organizationId: user.organizationId,
+                    organizationName: user.organizationName || '',
+                    role: invite.role,
+                    invitedBy: user.uid,
+                    createdAt: new Date().toISOString(),
+                    status: 'pending'
+                }));
 
-            // Email sending logic detached from batch to not block Firestore write
-            const sendInviteEmail = async () => {
-                try {
-                    const inviteLink = `${window.location.origin}/login?email=${encodeURIComponent(invite.email)}`;
-                    const htmlContent = getInvitationTemplate(
-                        user.displayName || user.email || 'Un administrateur',
-                        getRoleName(invite.role as Role) || 'Collaborateur',
-                        inviteLink
-                    );
+                // Email sending logic detached from batch to not block Firestore write
+                const sendInviteEmail = async () => {
+                    try {
+                        const inviteLink = `${window.location.origin}/login?email=${encodeURIComponent(invite.email)}`;
+                        const htmlContent = getInvitationTemplate(
+                            user.displayName || user.email || 'Un administrateur',
+                            getRoleName(invite.role as Role) || 'Collaborateur',
+                            inviteLink
+                        );
 
-                    const invitedUserContext = {
-                        uid: invitationRef.id,
-                        email: invite.email,
-                        displayName: 'Invité',
-                        organizationId: user.organizationId
-                    } as UserProfile;
+                        const invitedUserContext = {
+                            uid: invitationRef.id,
+                            email: invite.email,
+                            displayName: 'Invité',
+                            organizationId: user.organizationId
+                        } as UserProfile;
 
-                    await sendEmail(invitedUserContext, {
-                        to: invite.email,
-                        subject: `Invitation à rejoindre ${user.organizationName || 'Sentinel GRC'}`,
-                        html: htmlContent,
-                        type: 'INVITATION'
-                    }, false);
-                } catch (error) {
-                    ErrorLogger.error(error, 'OnboardingService.sendInvites', { metadata: { email: invite.email } });
-                }
-            };
-            invitePromises.push(sendInviteEmail());
+                        await sendEmail(invitedUserContext, {
+                            to: invite.email,
+                            subject: `Invitation à rejoindre ${user.organizationName || 'Sentinel GRC'}`,
+                            html: htmlContent,
+                            type: 'INVITATION'
+                        }, false);
+                    } catch (error) {
+                        ErrorLogger.error(error, 'OnboardingService.sendInvites', { metadata: { email: invite.email } });
+                    }
+                };
+                invitePromises.push(sendInviteEmail());
+            }
+
+            await batch.commit();
+            await Promise.all(invitePromises);
+        } catch (error) {
+            ErrorLogger.error(error, 'OnboardingService.sendInvitesBatch');
+            throw error;
         }
-
-        await batch.commit();
-        await Promise.all(invitePromises);
     }
 
     /**
@@ -180,22 +200,27 @@ export class OnboardingService {
     static async createInitialAssets(user: UserProfile, assets: { name: string, type: string }[]): Promise<void> {
         if (!user.organizationId || assets.length === 0) return;
 
-        const batch = writeBatch(db);
-        assets.forEach(asset => {
-            const ref = doc(collection(db, 'assets'));
-            batch.set(ref, sanitizeData({
-                name: asset.name,
-                type: asset.type,
-                organizationId: user.organizationId,
-                createdAt: new Date().toISOString(),
-                lifecycleStatus: 'En service',
-                confidentiality: 'Medium',
-                integrity: 'Medium',
-                availability: 'Medium',
-                owner: user.displayName || 'Admin'
-            }));
-        });
-        await batch.commit();
+        try {
+            const batch = writeBatch(db);
+            assets.forEach(asset => {
+                const ref = doc(collection(db, 'assets'));
+                batch.set(ref, sanitizeData({
+                    name: asset.name,
+                    type: asset.type,
+                    organizationId: user.organizationId,
+                    createdAt: new Date().toISOString(),
+                    lifecycleStatus: 'En service',
+                    confidentiality: 'Medium',
+                    integrity: 'Medium',
+                    availability: 'Medium',
+                    owner: user.displayName || 'Admin'
+                }));
+            });
+            await batch.commit();
+        } catch (error) {
+            ErrorLogger.error(error, 'OnboardingService.createInitialAssets');
+            throw error;
+        }
     }
 
     /**
@@ -204,18 +229,23 @@ export class OnboardingService {
     static async finalizeOnboarding(user: UserProfile, plan: PlanType): Promise<void> {
         if (!user.organizationId) throw new Error("Organization ID missing");
 
-        // 1. Mark user as onboarded
-        await updateDoc(doc(db, 'users', user.uid), { onboardingCompleted: true });
+        try {
+            // 1. Mark user as onboarded
+            await updateDoc(doc(db, 'users', user.uid), { onboardingCompleted: true });
 
-        // 2. Track event
-        analyticsService.logEvent('complete_onboarding', {
-            plan: plan,
-            organization_id: user.organizationId
-        });
+            // 2. Track event
+            analyticsService.logEvent('complete_onboarding', {
+                plan: plan,
+                organization_id: user.organizationId
+            });
 
-        // 3. Handle Subscription if not free
-        if (plan !== 'discovery') {
-            await SubscriptionService.startSubscription(user.organizationId, plan, 'month');
+            // 3. Handle Subscription if not free
+            if (plan !== 'discovery') {
+                await SubscriptionService.startSubscription(user.organizationId, plan, 'month');
+            }
+        } catch (error) {
+            ErrorLogger.error(error, 'OnboardingService.finalizeOnboarding');
+            throw error;
         }
     }
 

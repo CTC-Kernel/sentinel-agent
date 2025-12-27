@@ -42,92 +42,100 @@ export const useGlobalSearch = () => {
 
             // 1. Assets
             if (activeTypeFilter === 'all' || activeTypeFilter === 'asset' || filters.type === 'asset' || filters.type === 'all') {
-                const assetsSnap = await getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId)));
-                assetsSnap.forEach(doc => {
-                    const data = doc.data();
-                    if (matches(data.name) || matches(data.type)) {
-                        // Apply advanced filters
-                        if (filters.status && data.status !== filters.status) return;
-                        if (filters.owner && !data.owner?.toLowerCase().includes(filters.owner.toLowerCase())) return;
-                        if (filters.criticality && data.criticality !== filters.criticality) return;
-                        if (!matchesDateRange(data.updatedAt)) return;
+                try {
+                    const assetsSnap = await getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId)));
+                    assetsSnap.forEach(doc => {
+                        const data = doc.data();
+                        if (matches(data.name) || matches(data.type)) {
+                            // Apply advanced filters
+                            if (filters.status && data.status !== filters.status) return;
+                            if (filters.owner && !data.owner?.toLowerCase().includes(filters.owner.toLowerCase())) return;
+                            if (filters.criticality && data.criticality !== filters.criticality) return;
+                            if (!matchesDateRange(data.updatedAt)) return;
 
-                        searchResults.push({
-                            id: doc.id,
-                            type: 'asset',
-                            title: data.name,
-                            subtitle: `${data.type} • ${data.criticality}`,
-                            status: data.status,
-                            date: data.updatedAt
-                        });
-                    }
-                });
+                            searchResults.push({
+                                id: doc.id,
+                                type: 'asset',
+                                title: data.name,
+                                subtitle: `${data.type} • ${data.criticality}`,
+                                status: data.status,
+                                date: data.updatedAt
+                            });
+                        }
+                    });
+                } catch (e) { ErrorLogger.error(e, 'useGlobalSearch.fetchAssets'); }
             }
 
             // 2. Risks
             if (activeTypeFilter === 'all' || activeTypeFilter === 'risk' || filters.type === 'risk' || filters.type === 'all') {
-                const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId)));
-                risksSnap.forEach(doc => {
-                    const data = doc.data();
-                    if (matches(data.threat) || matches(data.scenario)) {
-                        if (filters.status && data.status !== filters.status) return;
-                        if (filters.owner && !data.owner?.toLowerCase().includes(filters.owner.toLowerCase())) return;
-                        if (!matchesDateRange(data.updatedAt)) return;
+                try {
+                    const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId)));
+                    risksSnap.forEach(doc => {
+                        const data = doc.data();
+                        if (matches(data.threat) || matches(data.scenario)) {
+                            if (filters.status && data.status !== filters.status) return;
+                            if (filters.owner && !data.owner?.toLowerCase().includes(filters.owner.toLowerCase())) return;
+                            if (!matchesDateRange(data.updatedAt)) return;
 
-                        searchResults.push({
-                            id: doc.id,
-                            type: 'risk',
-                            title: data.threat,
-                            subtitle: `Impact: ${data.impact} • Probabilité: ${data.probability}`,
-                            score: data.score,
-                            date: data.updatedAt
-                        });
-                    }
-                });
+                            searchResults.push({
+                                id: doc.id,
+                                type: 'risk',
+                                title: data.threat,
+                                subtitle: `Impact: ${data.impact} • Probabilité: ${data.probability}`,
+                                score: data.score,
+                                date: data.updatedAt
+                            });
+                        }
+                    });
+                } catch (e) { ErrorLogger.error(e, 'useGlobalSearch.fetchRisks'); }
             }
 
             // 3. Documents
             if (activeTypeFilter === 'all' || activeTypeFilter === 'document' || filters.type === 'document' || filters.type === 'all') {
-                const docsSnap = await getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId)));
-                docsSnap.forEach(doc => {
-                    const data = doc.data();
-                    if (matches(data.title) || matches(data.reference)) {
-                        if (filters.status && data.status !== filters.status) return;
-                        if (filters.owner && !data.owner?.toLowerCase().includes(filters.owner.toLowerCase())) return;
-                        if (!matchesDateRange(data.updatedAt)) return;
+                try {
+                    const docsSnap = await getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId)));
+                    docsSnap.forEach(doc => {
+                        const data = doc.data();
+                        if (matches(data.title) || matches(data.reference)) {
+                            if (filters.status && data.status !== filters.status) return;
+                            if (filters.owner && !data.owner?.toLowerCase().includes(filters.owner.toLowerCase())) return;
+                            if (!matchesDateRange(data.updatedAt)) return;
 
-                        searchResults.push({
-                            id: doc.id,
-                            type: 'document',
-                            title: data.title,
-                            subtitle: `Ref: ${data.reference} • v${data.version}`,
-                            status: data.status,
-                            date: data.updatedAt
-                        });
-                    }
-                });
+                            searchResults.push({
+                                id: doc.id,
+                                type: 'document',
+                                title: data.title,
+                                subtitle: `Ref: ${data.reference} • v${data.version}`,
+                                status: data.status,
+                                date: data.updatedAt
+                            });
+                        }
+                    });
+                } catch (e) { ErrorLogger.error(e, 'useGlobalSearch.fetchDocuments'); }
             }
 
             // 4. Projects
             if (activeTypeFilter === 'all' || activeTypeFilter === 'project' || filters.type === 'project' || filters.type === 'all') {
-                const projSnap = await getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId)));
-                projSnap.forEach(doc => {
-                    const data = doc.data();
-                    if (matches(data.name) || matches(data.description)) {
-                        if (filters.status && data.status !== filters.status) return;
-                        if (filters.owner && !data.manager?.toLowerCase().includes(filters.owner.toLowerCase())) return;
-                        if (!matchesDateRange(data.dueDate)) return;
+                try {
+                    const projSnap = await getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId)));
+                    projSnap.forEach(doc => {
+                        const data = doc.data();
+                        if (matches(data.name) || matches(data.description)) {
+                            if (filters.status && data.status !== filters.status) return;
+                            if (filters.owner && !data.manager?.toLowerCase().includes(filters.owner.toLowerCase())) return;
+                            if (!matchesDateRange(data.dueDate)) return;
 
-                        searchResults.push({
-                            id: doc.id,
-                            type: 'project',
-                            title: data.name,
-                            subtitle: `Manager: ${data.manager || 'N/A'}`,
-                            status: data.status,
-                            date: data.dueDate
-                        });
-                    }
-                });
+                            searchResults.push({
+                                id: doc.id,
+                                type: 'project',
+                                title: data.name,
+                                subtitle: `Manager: ${data.manager || 'N/A'}`,
+                                status: data.status,
+                                date: data.dueDate
+                            });
+                        }
+                    });
+                } catch (e) { ErrorLogger.error(e, 'useGlobalSearch.fetchProjects'); }
             }
 
             setResults(searchResults);

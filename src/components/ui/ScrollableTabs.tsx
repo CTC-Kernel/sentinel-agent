@@ -51,7 +51,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
             {showLeftArrow && (
                 <button
                     onClick={() => scroll('left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-200 dark:border-white/10 text-slate-600 hover:text-slate-900 dark:hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-200 dark:border-white/10 text-slate-600 hover:text-slate-900 dark:hover:text-white transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 >
                     <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -66,7 +66,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
                     <button
                         key={tab.id}
                         onClick={() => onTabChange(tab.id)}
-                        className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap flex-shrink-0 ${activeTab === tab.id
+                        className={`py-4 text-sm font-bold flex items-center border-b-2 transition-all whitespace-nowrap flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${activeTab === tab.id
                             ? 'border-slate-900 dark:border-white text-slate-900 dark:text-white'
                             : 'border-transparent text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                             }`}
@@ -93,7 +93,7 @@ export const ScrollableTabs: React.FC<ScrollableTabsProps> = ({ tabs, activeTab,
             {showRightArrow && (
                 <button
                     onClick={() => scroll('right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-200 dark:border-white/10 text-slate-600 hover:text-slate-900 dark:hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1.5 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-200 dark:border-white/10 text-slate-600 hover:text-slate-900 dark:hover:text-white transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 >
                     <ChevronRight className="h-4 w-4" />
                 </button>

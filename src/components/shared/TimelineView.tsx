@@ -141,8 +141,16 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                     {logs.map((log) => (
                         <div
                             key={log.id}
-                            className={`relative pl-6 cursor-pointer group transition-all`}
+                            role="button"
+                            tabIndex={0}
+                            className={`relative pl-6 cursor-pointer group transition-all focus:outline-none`}
                             onClick={() => setSelectedLog(log)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    setSelectedLog(log);
+                                }
+                            }}
                         >
                             {/* Dot */}
                             <div className={`absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 shadow-sm transition-all
@@ -156,8 +164,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                             <div className={`p-4 rounded-xl border transition-all
                                 ${selectedLog?.id === log.id
                                     ? 'bg-brand-50 dark:bg-brand-900/10 border-brand-200 dark:border-brand-800 shadow-md ring-1 ring-brand-500/20'
-                                    : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-sm'
-                                }`}>
+                                    : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-sm'}
+                                group-focus:ring-2 group-focus:ring-brand-500 group-focus:ring-offset-2 dark:group-focus:ring-offset-slate-900 rounded-xl
+                                `}>
 
                                 <div className="flex items-center justify-between mb-2">
                                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border flex items-center gap-1.5 ${getActionColor(log.action)}`}>
@@ -181,7 +190,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                 {log.changes && log.changes.length > 0 && (
                                     <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-white/5">
                                         {log.changes.slice(0, 3).map((change, idx) => (
-                                            <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                                            <div key={`${idx}-${change}`} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
                                                 <div className="w-1 h-1 rounded-full bg-slate-400"></div>
                                                 <span className="truncate">{change}</span>
                                             </div>
@@ -218,7 +227,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                                     </h3>
                                     <button
                                         onClick={() => setSelectedLog(null)}
-                                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg p-1"
                                     >
                                         Fermer
                                     </button>

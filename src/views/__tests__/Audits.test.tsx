@@ -68,7 +68,7 @@ describe('Audits View', () => {
             refreshAudits: vi.fn(),
             handleDeleteAudit: vi.fn(),
             checkDependencies: vi.fn().mockResolvedValue({ hasDependencies: false }),
-        } as any);
+        } as unknown as ReturnType<typeof useAudits>);
 
         vi.mocked(usePersistedState).mockImplementation((_key: string, defaultVal: unknown) => React.useState(defaultVal));
     });

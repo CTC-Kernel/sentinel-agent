@@ -126,10 +126,10 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
                 {groups.map(group => (
                     <div key={group.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative group">
                         <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => handleOpenDrawer(group)} className="p-2 text-slate-500 hover:text-brand-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors">
+                            <button onClick={() => handleOpenDrawer(group)} className="p-2 text-slate-500 hover:text-brand-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={`Modifier le groupe ${group.name}`}>
                                 <Edit className="h-4 w-4" />
                             </button>
-                            <button onClick={() => setConfirmDelete({ isOpen: true, groupId: group.id })} className="p-2 text-slate-500 hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors">
+                            <button onClick={() => setConfirmDelete({ isOpen: true, groupId: group.id })} className="p-2 text-slate-500 hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500" aria-label={`Supprimer le groupe ${group.name}`}>
                                 <Trash2 className="h-4 w-4" />
                             </button>
                         </div>
@@ -201,15 +201,23 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
                                 return (
                                     <div
                                         key={u.uid}
+                                        role="button"
+                                        tabIndex={0}
                                         onClick={() => toggleMember(u.uid)}
-                                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isSelected
-                                                ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800'
-                                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/5 hover:border-brand-300'
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                toggleMember(u.uid);
+                                            }
+                                        }}
+                                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isSelected
+                                            ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800'
+                                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/5 hover:border-brand-300'
                                             }`}
                                     >
                                         <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${isSelected
-                                                ? 'bg-brand-600 border-brand-600 text-white'
-                                                : 'border-slate-300 dark:border-slate-600'
+                                            ? 'bg-brand-600 border-brand-600 text-white'
+                                            : 'border-slate-300 dark:border-slate-600'
                                             }`}>
                                             {isSelected && <Check className="h-3 w-3" />}
                                         </div>

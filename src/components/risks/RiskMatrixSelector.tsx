@@ -66,7 +66,7 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
                                         type="button"
                                         onClick={() => onChange(p, i)}
                                         className={`
-                                            w-full h-full rounded-lg transition-all duration-300 relative
+                                            w-full h-full rounded-lg transition-all duration-300 relative focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 dark:focus-visible:ring-slate-500
                                             ${getCellColor(p, i)}
                                             ${isSelected
                                                 ? 'ring-4 ring-offset-2 ring-slate-900/10 dark:ring-white/20 scale-110 z-10 shadow-xl'

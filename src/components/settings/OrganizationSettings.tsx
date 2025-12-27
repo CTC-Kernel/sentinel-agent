@@ -333,6 +333,7 @@ export const OrganizationSettings: React.FC = () => {
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-9 pr-4 py-2 bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500/20 w-48 transition-all focus:w-64"
+                                aria-label="Rechercher des membres"
                             />
                         </div>
                     </div>
@@ -342,7 +343,7 @@ export const OrganizationSettings: React.FC = () => {
                             <div key={u.uid} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/60 dark:hover:bg-white/10 transition-colors backdrop-blur-[2px]">
                                 <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700/50 flex-shrink-0 flex items-center justify-center text-slate-500 font-bold border border-white/40 dark:border-white/10 shadow-sm">
-                                        {u.photoURL ? <img src={u.photoURL} className="w-full h-full rounded-full object-cover" /> : (u.displayName?.charAt(0) || 'U')}
+                                        {u.photoURL ? <img src={u.photoURL} alt={u.displayName || 'Avatar utilisateur'} className="w-full h-full rounded-full object-cover" /> : (u.displayName?.charAt(0) || 'U')}
                                     </div>
                                     <div className="min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
@@ -416,3 +417,5 @@ export const OrganizationSettings: React.FC = () => {
         </div>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

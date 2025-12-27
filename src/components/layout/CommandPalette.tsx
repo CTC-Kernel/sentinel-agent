@@ -81,7 +81,7 @@ export const CommandPalette: React.FC = () => {
                     const item = filteredItems[selectedIndex];
                     if (item.action) {
                         item.action();
-                    } else if (item.path) {
+                    } else if (item.path && item.path.startsWith('/')) {
                         navigate(item.path);
                     }
                     setIsOpen(false);
@@ -108,70 +108,82 @@ export const CommandPalette: React.FC = () => {
                     const items: CommandItem[] = [];
 
                     // Fetch Assets
-                    const assetsSnap = await getDocs(query(collection(db, 'assets'), where('organizationId', '==', orgId), limit(10)));
-                    assetsSnap.forEach(doc => items.push({
-                        id: `asset-${doc.id}`,
-                        title: doc.data().name,
-                        subtitle: `${t('sidebar.assets')} • ${doc.data().type}`,
-                        icon: Server,
-                        path: '/assets',
-                        category: t('commandPalette.categories.recent')
-                    }));
+                    try {
+                        const assetsSnap = await getDocs(query(collection(db, 'assets'), where('organizationId', '==', orgId), limit(10)));
+                        assetsSnap.forEach(doc => items.push({
+                            id: `asset-${doc.id}`,
+                            title: doc.data().name,
+                            subtitle: `${t('sidebar.assets')} • ${doc.data().type}`,
+                            icon: Server,
+                            path: '/assets',
+                            category: t('commandPalette.categories.recent')
+                        }));
+                    } catch (e) { ErrorLogger.error(e, 'CommandPalette.fetchAssets'); }
 
                     // Fetch Risks
-                    const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId), limit(10)));
-                    risksSnap.forEach(doc => items.push({
-                        id: `risk-${doc.id}`,
-                        title: doc.data().threat,
-                        subtitle: `${t('sidebar.dashboard')} • Score: ${doc.data().score}`,
-                        icon: ShieldAlert,
-                        path: '/risks',
-                        category: t('commandPalette.categories.recent')
-                    }));
+                    try {
+                        const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId), limit(10)));
+                        risksSnap.forEach(doc => items.push({
+                            id: `risk-${doc.id}`,
+                            title: doc.data().threat,
+                            subtitle: `${t('sidebar.dashboard')} • Score: ${doc.data().score}`,
+                            icon: ShieldAlert,
+                            path: '/risks',
+                            category: t('commandPalette.categories.recent')
+                        }));
+                    } catch (e) { ErrorLogger.error(e, 'CommandPalette.fetchRisks'); }
 
                     // Fetch Controls (ISO)
-                    const ctrlSnap = await getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId), limit(20)));
-                    ctrlSnap.forEach(doc => items.push({
-                        id: `ctrl-${doc.id}`,
-                        title: `${doc.data().code} - ${doc.data().name}`,
-                        subtitle: `${t('commandPalette.nav.compliance')} • ${doc.data().status}`,
-                        icon: FileText,
-                        path: '/compliance',
-                        category: t('commandPalette.categories.compliance')
-                    }));
+                    try {
+                        const ctrlSnap = await getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId), limit(20)));
+                        ctrlSnap.forEach(doc => items.push({
+                            id: `ctrl-${doc.id}`,
+                            title: `${doc.data().code} - ${doc.data().name}`,
+                            subtitle: `${t('commandPalette.nav.compliance')} • ${doc.data().status}`,
+                            icon: FileText,
+                            path: '/compliance',
+                            category: t('commandPalette.categories.compliance')
+                        }));
+                    } catch (e) { ErrorLogger.error(e, 'CommandPalette.fetchControls'); }
 
                     // Fetch Documents
-                    const docsSnap = await getDocs(query(collection(db, 'documents'), where('organizationId', '==', orgId), limit(10)));
-                    docsSnap.forEach(doc => items.push({
-                        id: `doc-${doc.id}`,
-                        title: doc.data().title,
-                        subtitle: `${t('sidebar.documents')} • ${doc.data().version}`,
-                        icon: Briefcase,
-                        path: '/documents',
-                        category: t('commandPalette.categories.recent')
-                    }));
+                    try {
+                        const docsSnap = await getDocs(query(collection(db, 'documents'), where('organizationId', '==', orgId), limit(10)));
+                        docsSnap.forEach(doc => items.push({
+                            id: `doc-${doc.id}`,
+                            title: doc.data().title,
+                            subtitle: `${t('sidebar.documents')} • ${doc.data().version}`,
+                            icon: Briefcase,
+                            path: '/documents',
+                            category: t('commandPalette.categories.recent')
+                        }));
+                    } catch (e) { ErrorLogger.error(e, 'CommandPalette.fetchDocuments'); }
 
                     // Fetch Projects
-                    const projsSnap = await getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId), limit(5)));
-                    projsSnap.forEach(doc => items.push({
-                        id: `proj-${doc.id}`,
-                        title: doc.data().name,
-                        subtitle: `${t('sidebar.projects')} • ${doc.data().status}`,
-                        icon: FolderKanban,
-                        path: '/projects',
-                        category: t('commandPalette.categories.management')
-                    }));
+                    try {
+                        const projsSnap = await getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId), limit(5)));
+                        projsSnap.forEach(doc => items.push({
+                            id: `proj-${doc.id}`,
+                            title: doc.data().name,
+                            subtitle: `${t('sidebar.projects')} • ${doc.data().status}`,
+                            icon: FolderKanban,
+                            path: '/projects',
+                            category: t('commandPalette.categories.management')
+                        }));
+                    } catch (e) { ErrorLogger.error(e, 'CommandPalette.fetchProjects'); }
 
                     // Fetch Incidents
-                    const incSnap = await getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId), limit(5)));
-                    incSnap.forEach(doc => items.push({
-                        id: `inc-${doc.id}`,
-                        title: doc.data().title,
-                        subtitle: `${t('sidebar.incidents')} • ${doc.data().severity}`,
-                        icon: Siren,
-                        path: '/incidents',
-                        category: t('commandPalette.categories.alerts')
-                    }));
+                    try {
+                        const incSnap = await getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId), limit(5)));
+                        incSnap.forEach(doc => items.push({
+                            id: `inc-${doc.id}`,
+                            title: doc.data().title,
+                            subtitle: `${t('sidebar.incidents')} • ${doc.data().severity}`,
+                            icon: Siren,
+                            path: '/incidents',
+                            category: t('commandPalette.categories.alerts')
+                        }));
+                    } catch (e) { ErrorLogger.error(e, 'CommandPalette.fetchIncidents'); }
 
                     setDbItems(items);
                 } catch (error) {
@@ -227,7 +239,7 @@ export const CommandPalette: React.FC = () => {
     const handleSelect = (item: CommandItem) => {
         if (item.action) {
             item.action();
-        } else if (item.path) {
+        } else if (item.path && item.path.startsWith('/')) {
             navigate(item.path);
         }
         setIsOpen(false);
@@ -247,13 +259,12 @@ export const CommandPalette: React.FC = () => {
                 <div className="flex items-center px-6 py-5 border-b border-white/10 relative z-10">
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent pointer-events-none" />
                     <Search className="h-5 w-5 text-brand-500 mr-4 font-bold" />
-                    <input
+                    <input value={queryStr} onChange={e => setQueryStr(e.target.value)}
                         type="text"
                         placeholder={t('commandPalette.placeholder')}
                         className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-slate-900 dark:text-white placeholder-slate-400 outline-none font-medium h-auto py-0"
-                        value={queryStr}
-                        onChange={e => setQueryStr(e.target.value)}
                         autoFocus
+                        aria-label="Rechercher une commande"
                     />
                     <div className="hidden sm:flex items-center gap-2">
                         {loading && <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>}

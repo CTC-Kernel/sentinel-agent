@@ -73,7 +73,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
 
             {!response && !loading && (
                 <div className="grid grid-cols-1 gap-3 relative z-10">
-                    <button onClick={() => handleAction('status')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10 group">
+                    <button onClick={() => handleAction('status')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
                         <div className="p-2 bg-blue-100 dark:bg-slate-900/30 text-blue-600 dark:text-blue-400 rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <FileText className="w-5 h-5" />
                         </div>
@@ -83,7 +83,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                         </div>
                     </button>
 
-                    <button onClick={() => handleAction('risks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10 group">
+                    <button onClick={() => handleAction('risks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
                         <div className="p-2 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <AlertTriangle className="w-5 h-5" />
                         </div>
@@ -93,7 +93,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                         </div>
                     </button>
 
-                    <button onClick={() => handleAction('tasks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10 group">
+                    <button onClick={() => handleAction('tasks')} className="flex items-center p-4 bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-white/10 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 transition-all text-left border border-transparent hover:border-indigo-100 dark:hover:border-white/10 group focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
                         <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg mr-4 group-hover:scale-110 transition-transform">
                             <Target className="w-5 h-5" />
                         </div>
@@ -121,7 +121,7 @@ export const ProjectAIAssistant: React.FC<ProjectAIAssistantProps> = ({ project,
                             </ReactMarkdown>
                         </div>
                     </div>
-                    <button onClick={() => setResponse(null)} className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    <button onClick={() => setResponse(null)} className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
                         Retour aux options
                     </button>
                 </div>

@@ -99,10 +99,10 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
             } catch (error) {
                 const code = (error as { code?: string })?.code;
                 if (code === 'permission-denied') {
+                    ErrorLogger.warn('Permission denied for getting started status', 'GettingStartedWidget', { metadata: { error } });
                     sessionStorage.setItem(blockedKey, '1');
                     return;
                 }
-                // Log other errors specifically
                 ErrorLogger.warn('Failed to check getting started status', 'GettingStartedWidget', { metadata: { error } });
             }
             finally {
@@ -173,7 +173,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
 
             <button
                 onClick={onClose}
-                className="absolute top-6 right-6 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all duration-200 z-10"
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all duration-200 z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 aria-label="Close"
             >
                 <X className="h-5 w-5" />
@@ -192,10 +192,20 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                         {steps.map((step) => (
                             <div
                                 key={step.id}
-                                onClick={() => !step.isCompleted && navigate(step.path)}
+                                onClick={() => {
+                                    if (!step.isCompleted && step.path.startsWith('/')) navigate(step.path); // validateUrl check
+                                }}
+                                role={step.isCompleted ? undefined : "button"}
+                                tabIndex={step.isCompleted ? undefined : 0}
+                                onKeyDown={(e) => {
+                                    if (!step.isCompleted && (e.key === 'Enter' || e.key === ' ')) {
+                                        e.preventDefault();
+                                        if (step.path.startsWith('/')) navigate(step.path);
+                                    }
+                                }}
                                 className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 border border-transparent ${step.isCompleted
                                     ? 'opacity-60 bg-transparent'
-                                    : 'bg-white/40 dark:bg-black/20 hover:bg-white/60 dark:hover:bg-black/30 cursor-pointer shadow-sm hover:translate-x-1 hover:border-white/20'
+                                    : 'bg-white/40 dark:bg-black/20 hover:bg-white/60 dark:hover:bg-black/30 cursor-pointer shadow-sm hover:translate-x-1 hover:border-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500'
                                     }`}
                             >
                                 {step.isCompleted ? (

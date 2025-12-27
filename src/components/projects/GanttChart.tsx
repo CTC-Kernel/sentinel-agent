@@ -119,6 +119,13 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
         }, 100);
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent, task: Task) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleTaskClick(task);
+        }
+    };
+
     const getUserAvatar = (assigneeName?: string) => {
         if (!assigneeName) return null;
         const user = users.find(u => u.displayName === assigneeName || u.email === assigneeName);
@@ -219,8 +226,11 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                         <div
                             key={t.id}
                             style={{ height: rowHeight }}
-                            className="flex items-center px-4 border-b border-slate-100 dark:border-slate-800/50 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all cursor-pointer group"
+                            className="flex items-center px-4 border-b border-slate-100 dark:border-slate-800/50 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
                             onClick={() => handleTaskClick(t)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => handleKeyDown(e, t)}
                         >
                             <div className="flex items-center gap-3 w-full overflow-hidden">
                                 <div className="flex-shrink-0">
@@ -266,7 +276,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                 <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
                     <button
                         onClick={() => setShowList(!showList)}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all border ${showList
+                        className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all border focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${showList
                             ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-slate-200 dark:border-slate-700'
                             : 'bg-transparent text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/50'
                             }`}
@@ -278,7 +288,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
 
                     <button
                         onClick={scrollToToday}
-                        className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                        className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors flex items-center gap-1.5 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     >
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
                         Aujourd'hui
@@ -291,7 +301,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
                             <button
                                 key={mode}
                                 onClick={() => onViewModeChange(mode)}
-                                className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wide rounded-lg transition-all ${viewMode === mode
+                                className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wide rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${viewMode === mode
                                     ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-105'
                                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                                     }`}

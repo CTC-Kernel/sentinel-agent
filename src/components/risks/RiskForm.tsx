@@ -135,9 +135,13 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     useEffect(() => {
         if (showLibraryModal && libraryThreats.length === 0) {
             const fetchThreats = async () => {
-                const snap = await getDocs(collection(db, 'threat_library'));
-                const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as ThreatTemplate));
-                setLibraryThreats(list);
+                try {
+                    const snap = await getDocs(collection(db, 'threat_library'));
+                    const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as ThreatTemplate));
+                    setLibraryThreats(list);
+                } catch (error) {
+                    ErrorLogger.error(error, 'RiskForm.fetchThreats');
+                }
             };
             fetchThreats();
         }
@@ -218,6 +222,23 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             });
         }
     }, [existingRisk, reset, usersList]);
+
+    // Accessibility: Handle Escape key to close modal
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && !isLoading) {
+                // If the library modal is open, close it first
+                if (showLibraryModal) {
+                    setShowLibraryModal(false);
+                } else {
+                    // Otherwise close the main form
+                    onCancel();
+                }
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [isLoading, onCancel, showLibraryModal]);
 
     useEffect(() => {
         if (!assetId) return;
@@ -558,11 +579,9 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                             const isSuggested = suggestedControlIds.includes(ctrl.id);
                                             return (
                                                 <label key={ctrl.id} className={`flex items-start space-x-3 p-2 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 shadow-sm' : ''} ${isSuggested ? 'bg-purple-50/50 dark:bg-purple-900/10' : ' '}`}>
-                                                    <input
+                                                    <input checked={mitigationControlIds?.includes(ctrl.id) || false} onChange={() => toggleControlSelection(ctrl.id)}
                                                         type="checkbox"
                                                         className="mt-1 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                                                        checked={mitigationControlIds?.includes(ctrl.id) || false}
-                                                        onChange={() => toggleControlSelection(ctrl.id)}
                                                     />
                                                     <div className="flex-1">
                                                         <div className="flex items-center justify-between">

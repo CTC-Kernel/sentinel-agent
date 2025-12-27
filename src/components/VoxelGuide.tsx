@@ -11,7 +11,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[11000] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -37,10 +37,10 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                             <div className="flex items-start justify-between relative z-10">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
-                                        <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                                        <div className="p-2 rounded-xl bg-brand-500/20 text-brand-400 border border-brand-500/30">
                                             <Activity className="w-6 h-6" />
                                         </div>
-                                        <span className="text-xs font-bold tracking-[0.2em] text-indigo-400 uppercase">CTC Engine</span>
+                                        <span className="text-xs font-bold tracking-[0.2em] text-brand-400 uppercase">CTC Engine</span>
                                     </div>
                                     <h2 className="text-2xl font-bold text-white mb-2">Votre Centre de Commandement</h2>
                                     <p className="text-slate-500 text-sm max-w-md">
@@ -49,7 +49,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                                 </div>
                                 <button
                                     onClick={onClose}
-                                    className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+                                    className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -99,7 +99,7 @@ export const VoxelGuide: React.FC<VoxelGuideProps> = ({ isOpen, onClose }) => {
                             </span>
                             <button
                                 onClick={onClose}
-                                className="flex items-center gap-2 px-6 py-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-all hover:shadow-[0_0_20px_rgba(79,70,229,0.3)]"
+                                className="flex items-center gap-2 px-6 py-2 rounded-full bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-all hover:shadow-[0_0_20px_rgba(79,70,229,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
                                 Explorer la matrice <ArrowRight className="w-4 h-4" />
                             </button>

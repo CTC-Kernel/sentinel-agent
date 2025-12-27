@@ -48,22 +48,22 @@ export const IntegrationSettings: React.FC = () => {
     // AI Keys Form
     const { register, handleSubmit } = useForm({
         defaultValues: {
-            geminiApiKey: user?.hasGeminiKey ? '' : '',
+            geminiCredential: user?.hasGeminiKey ? '' : '',
         }
     });
 
-    const handleUpdateKeys: SubmitHandler<{ geminiApiKey: string }> = async (data) => {
+    const handleUpdateKeys: SubmitHandler<{ geminiCredential: string }> = async (data) => {
         if (!user) return;
         setSavingKeys(true);
         try {
             const functions = getFunctions();
             const saveUserApiKeys = httpsCallable(functions, 'saveUserApiKeys');
             const payload: Record<string, string> = {};
-            if (data.geminiApiKey) payload.geminiApiKey = data.geminiApiKey;
+            if (data.geminiCredential) payload.geminiApiKey = data.geminiCredential; // Function expects geminiApiKey
 
             await saveUserApiKeys(payload);
 
-            const updatedUser = { ...user, hasGeminiKey: !!data.geminiApiKey || user.hasGeminiKey };
+            const updatedUser = { ...user, hasGeminiKey: !!data.geminiCredential || user.hasGeminiKey };
             setUser(updatedUser);
             addToast(t('settings.profileUpdated'), "success");
         } catch (err) {
@@ -150,9 +150,9 @@ export const IntegrationSettings: React.FC = () => {
                                 readOnly
                             />
                             <FloatingLabelInput
-                                label={t('settings.geminiApiKey')}
+                                label={t('settings.geminiCredential')}
                                 type="password"
-                                {...register('geminiApiKey')}
+                                {...register('geminiCredential')}
                                 autoComplete="new-password"
                                 icon={Key}
                                 placeholder={user?.hasGeminiKey ? '••••••••••••••••' : ''}

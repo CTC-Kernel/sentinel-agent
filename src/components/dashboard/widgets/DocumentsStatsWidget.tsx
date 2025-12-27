@@ -57,7 +57,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
                 </h3>
                 <button
                     onClick={() => navigate('/documents')}
-                    className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5"
+                    className="text-xs font-bold px-2 py-1 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors border border-white/50 dark:border-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 >
                     Voir tout
                 </button>
@@ -65,12 +65,18 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
 
             <div className="flex items-center gap-6 flex-1 justify-center relative z-10 py-2">
                 {/* Score Circle */}
-                <div className="relative group/chart cursor-pointer transform hover:scale-105 transition-transform duration-300" onClick={() => navigate('/documents')}>
+                <div
+                    className="relative group/chart cursor-pointer transform hover:scale-105 transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-full"
+                    onClick={() => navigate('/documents')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && navigate('/documents')}
+                >
                     <svg className="w-24 h-24 transform -rotate-90 overflow-visible">
                         <defs>
                             <linearGradient id="docGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor={stats.validationRate >= 80 ? '#10b981' : stats.validationRate >= 50 ? '#3b82f6' : '#f59e0b'} />
-                                <stop offset="100%" stopColor={stats.validationRate >= 80 ? '#34d399' : stats.validationRate >= 50 ? '#60a5fa' : '#fbbf24'} />
+                                <stop offset="0%" stopColor={stats.validationRate >= 80 ? 'hsl(var(--success))' : stats.validationRate >= 50 ? 'hsl(var(--primary))' : 'hsl(var(--warning))'} />
+                                <stop offset="100%" stopColor={stats.validationRate >= 80 ? 'hsl(var(--emerald-400))' : stats.validationRate >= 50 ? 'hsl(var(--blue-400))' : 'hsl(var(--amber-400))'} />
                             </linearGradient>
                         </defs>
                         <circle
@@ -92,7 +98,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
                             r="42"
                             cx="48"
                             cy="48"
-                            style={{ filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.1))' }}
+                            className="drop-shadow-sm"
                         />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -111,7 +117,7 @@ export const DocumentsStatsWidget: React.FC<DocumentsStatsWidgetProps> = ({ navi
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px] shadow-emerald-500/40" />
                             <span className="text-xs text-muted-foreground font-bold">Publiés</span>
                         </div>
                         <span className="text-xs font-black text-foreground">{stats.publishedDocs}</span>

@@ -41,7 +41,15 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionIt
                 ) : (
                     <div className="divide-y divide-border">
                         {displayItems.map(item => (
-                            <div key={item.id} onClick={() => navigate(item.link)} className="p-4 hover:bg-accent cursor-pointer group/item transition-all flex items-center gap-4">
+                            <div
+                                key={item.id}
+                                onClick={() => { if (item.link.startsWith('/')) navigate(item.link); }}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (item.link.startsWith('/')) navigate(item.link); } }}
+                                role="button"
+                                tabIndex={0}
+                                aria-label={`Ouvrir ${item.title}`}
+                                className="p-4 hover:bg-accent cursor-pointer group/item transition-all flex items-center gap-4"
+                            >
                                 <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${item.type === 'audit' ? 'bg-blue-500' :
                                     item.type === 'policy' ? 'bg-red-500' :
                                         item.type === 'incident' ? 'bg-rose-600' :

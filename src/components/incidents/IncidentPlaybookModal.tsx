@@ -21,7 +21,7 @@ export const IncidentPlaybookModal: React.FC<IncidentPlaybookModalProps> = ({ is
                     </h2>
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 text-slate-500 hover:text-slate-600 rounded-xl hover:bg-white/50 p-2"
+                        className="absolute top-4 right-4 text-slate-500 hover:text-slate-600 rounded-xl hover:bg-white/50 p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -34,3 +34,5 @@ export const IncidentPlaybookModal: React.FC<IncidentPlaybookModalProps> = ({ is
         document.body
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

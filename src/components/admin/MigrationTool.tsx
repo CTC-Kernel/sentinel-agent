@@ -175,7 +175,7 @@ export const MigrationTool: React.FC = () => {
                 {logs.length === 0 ? (
                     <span className="text-slate-500 italic">Prêt à démarrer...</span>
                 ) : (
-                    logs.map((l, i) => <div key={i} className="mb-1 text-slate-600 dark:text-slate-300">{l}</div>)
+                    logs.map((l, i) => <div key={`${i}-${l}`} className="mb-1 text-slate-600 dark:text-slate-300">{l}</div>)
                 )}
             </div>
 
@@ -193,7 +193,7 @@ export const MigrationTool: React.FC = () => {
             <button
                 onClick={runMigration}
                 disabled={loading}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Zap className="h-5 w-5" />}
                 {loading ? 'Migration en cours...' : 'Lancer la Migration'}

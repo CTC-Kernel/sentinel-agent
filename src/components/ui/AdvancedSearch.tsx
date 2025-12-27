@@ -60,10 +60,9 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                     {/* Main Search Input */}
                     <div className="relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
-                        <input
+                        <input value={filters.query}
                             aria-label="Champ de recherche principal"
                             type="text"
-                            value={filters.query}
                             onChange={(e) => updateFilter('query', e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                             placeholder="Rechercher dans tous les modules..."
@@ -114,10 +113,9 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                 Statut
                             </label>
-                            <input
+                            <input value={filters.status || ''}
                                 aria-label="Filtrer par statut"
                                 type="text"
-                                value={filters.status || ''}
                                 onChange={(e) => updateFilter('status', e.target.value)}
                                 placeholder="Ex: Actif, En cours, Fermé..."
                                 className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -130,10 +128,9 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                 <UserIcon className="h-4 w-4" />
                                 Propriétaire
                             </label>
-                            <input
+                            <input value={filters.owner || ''}
                                 aria-label="Filtrer par propriétaire"
                                 type="text"
-                                value={filters.owner || ''}
                                 onChange={(e) => updateFilter('owner', e.target.value)}
                                 placeholder="Nom du propriétaire..."
                                 className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -147,10 +144,9 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                     <Calendar className="h-4 w-4" />
                                     Date de début
                                 </label>
-                                <input
+                                <input value={filters.dateFrom || ''}
                                     aria-label="Date de début"
                                     type="date"
-                                    value={filters.dateFrom || ''}
                                     onChange={(e) => updateFilter('dateFrom', e.target.value)}
                                     className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                                 />
@@ -159,10 +155,9 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                     Date de fin
                                 </label>
-                                <input
+                                <input value={filters.dateTo || ''}
                                     aria-label="Date de fin"
                                     type="date"
-                                    value={filters.dateTo || ''}
                                     onChange={(e) => updateFilter('dateTo', e.target.value)}
                                     className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                                 />

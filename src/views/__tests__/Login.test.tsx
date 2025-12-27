@@ -147,7 +147,7 @@ describe('Login View', () => {
             </MemoryRouter>
         );
 
-        fireEvent.click(screen.getByText('auth.forgot'));
+        fireEvent.click(screen.getByText('auth.forgotPassword'));
         expect(screen.getByText('auth.reset.title')).toBeInTheDocument();
     });
 });

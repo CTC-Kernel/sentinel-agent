@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Reports } from '../Reports';
 import { MemoryRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 
 // ---------------------------------------------------------------------
 // Mocks
@@ -96,6 +97,9 @@ vi.mock('../../utils/permissions', () => ({
 vi.mock('../../components/ui/MasterpieceBackground', () => ({
     MasterpieceBackground: () => null
 }));
+vi.mock('../../components/SEO', () => ({
+    SEO: () => <div data-testid="seo-mock" />
+}));
 vi.mock('../../components/ui/PageHeader', () => ({
     PageHeader: ({ title }: { title: string }) => <h1>{title}</h1>
 }));
@@ -134,14 +138,16 @@ describe('Reports View', () => {
 
     it('renders generation tab by default', () => {
         render(
-            <MemoryRouter>
-                <Reports />
-            </MemoryRouter>
+            <HelmetProvider>
+                <MemoryRouter>
+                    <Reports />
+                </MemoryRouter>
+            </HelmetProvider>
         );
 
         expect(screen.getByText('reports.title')).toBeInTheDocument();
-        expect(screen.getByText('reports.risksTitle')).toBeInTheDocument();
-        expect(screen.getByText('reports.auditsTitle')).toBeInTheDocument();
+        expect(screen.getByText('Pack ISO 27001')).toBeInTheDocument();
+        expect(screen.getByText('Pack RGPD')).toBeInTheDocument();
     });
 
     it('renders history tab', () => {

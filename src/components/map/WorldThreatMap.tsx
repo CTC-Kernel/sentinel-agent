@@ -21,7 +21,7 @@ interface MapProps {
 
 const colorScale = scaleLinear<string>()
     .domain([0, 10])
-    .range(["#EAEAEC", "#ef4444"]); // Light grey to Red
+    .range(["hsl(var(--border))", "hsl(var(--destructive))"]); // Light grey to Red
 
 export const WorldThreatMap: React.FC<MapProps> = memo(({ data, setTooltipContent }) => {
     return (
@@ -41,13 +41,13 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data, setTooltipConten
                                     <Geography
                                         key={geo.rsmKey}
                                         geography={geo}
-                                        fill={intensity > 0 ? colorScale(intensity) : "#D6D6DA"}
-                                        stroke="#FFF"
+                                        fill={intensity > 0 ? colorScale(intensity) : "hsl(var(--muted) / 0.5)"}
+                                        stroke="hsl(var(--card))"
                                         strokeWidth={0.5}
                                         style={{
                                             default: { outline: "none" },
-                                            hover: { fill: "#F53", outline: "none", cursor: 'pointer' },
-                                            pressed: { fill: "#E42", outline: "none" },
+                                            hover: { fill: "hsl(var(--destructive))", outline: "none", cursor: 'pointer' },
+                                            pressed: { fill: "hsl(var(--destructive) / 0.8)", outline: "none" },
                                         }}
                                         onMouseEnter={() => {
                                             setTooltipContent(`${countryName} - Threat Level: ${intensity}`);
@@ -62,13 +62,13 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data, setTooltipConten
                     </Geographies>
 
                     {/* Markers for specific threats/events */}
-                    {data.flatMap(d => d.markers).map((marker, i) => (
-                        <Marker key={i} coordinates={marker.coordinates}>
-                            <circle r={3} fill="#F00" stroke="#fff" strokeWidth={1} style={{ animation: 'pulse 2s infinite' }} className="animate-pulse" />
+                    {data.flatMap(d => d.markers).map((marker) => (
+                        <Marker key={marker.name} coordinates={marker.coordinates}>
+                            <circle r={3} fill="hsl(var(--destructive))" stroke="hsl(var(--background))" strokeWidth={1} style={{ animation: 'pulse 2s infinite' }} className="animate-pulse" />
                             <text
                                 textAnchor="middle"
                                 y={-10}
-                                style={{ fontFamily: "system-ui", fill: "#5D5A6D", fontSize: "8px", fontWeight: "bold" }}
+                                style={{ fontFamily: "system-ui", fill: "hsl(var(--muted-foreground))", fontSize: "8px", fontWeight: "bold" }}
                             >
                                 {marker.name}
                             </text>

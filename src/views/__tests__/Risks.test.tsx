@@ -93,6 +93,7 @@ vi.mock('../../components/ui/Icons', () => ({
     Layers: () => <span data-testid="icon-layers" />,
     Target: () => <span data-testid="icon-target" />,
     PieChart: () => <span data-testid="icon-pie-chart" />,
+    X: () => <span data-testid="icon-x" />,
 }));
 // Mock other components to simplify test
 vi.mock('../../components/ui/PageHeader', () => ({

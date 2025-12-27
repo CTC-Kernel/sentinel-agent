@@ -165,44 +165,48 @@ export class ThreatFeedService {
         let threatsAdded = 0;
         let vulnsAdded = 0;
 
-        // Process Vulnerabilities
-        for (const v of liveVulns) {
-            const q = query(collection(db, 'vulnerabilities'),
-                where('cveId', '==', v.cveId),
-                where('organizationId', '==', organizationId)
-            );
-            const snap = await getDocs(q);
+        try {
+            // Process Vulnerabilities
+            for (const v of liveVulns) {
+                const q = query(collection(db, 'vulnerabilities'),
+                    where('cveId', '==', v.cveId),
+                    where('organizationId', '==', organizationId)
+                );
+                const snap = await getDocs(q);
 
-            if (snap.empty) {
-                await addDoc(collection(db, 'vulnerabilities'), {
-                    ...v,
-                    organizationId,
-                    createdAt: new Date().toISOString()
-                });
-                vulnsAdded++;
+                if (snap.empty) {
+                    await addDoc(collection(db, 'vulnerabilities'), {
+                        ...v,
+                        organizationId,
+                        createdAt: new Date().toISOString()
+                    });
+                    vulnsAdded++;
+                }
             }
-        }
 
-        // Process Threats
-        for (const t of liveThreats) {
-            // Check based on unique ID from source
-            // Ensure we check within the organization scope now that threats are tenanted
-            const q = query(collection(db, 'threats'),
-                where('id', '==', t.id),
-                where('organizationId', '==', organizationId)
-            );
-            const snap = await getDocs(q);
+            // Process Threats
+            for (const t of liveThreats) {
+                // Check based on unique ID from source
+                // Ensure we check within the organization scope now that threats are tenanted
+                const q = query(collection(db, 'threats'),
+                    where('id', '==', t.id),
+                    where('organizationId', '==', organizationId)
+                );
+                const snap = await getDocs(q);
 
-            if (snap.empty) {
-                await addDoc(collection(db, 'threats'), {
-                    ...t,
-                    organizationId, // INJECT ORGANIZATION ID
-                    votes: 0,
-                    comments: 0,
-                    createdAt: new Date().toISOString()
-                });
-                threatsAdded++;
+                if (snap.empty) {
+                    await addDoc(collection(db, 'threats'), {
+                        ...t,
+                        organizationId, // INJECT ORGANIZATION ID
+                        votes: 0,
+                        comments: 0,
+                        createdAt: new Date().toISOString()
+                    });
+                    threatsAdded++;
+                }
             }
+        } catch (error) {
+            ErrorLogger.error(error, 'ThreatFeedService.processLiveFeeds');
         }
 
         return { threats: threatsAdded, vulns: vulnsAdded };
@@ -222,12 +226,16 @@ export class ThreatFeedService {
 
         let threatsAdded = 0;
 
-        for (const t of mockThreats) {
-            await addDoc(collection(db, 'threats'), {
-                ...t,
-                createdAt: new Date().toISOString()
-            });
-            threatsAdded++;
+        try {
+            for (const t of mockThreats) {
+                await addDoc(collection(db, 'threats'), {
+                    ...t,
+                    createdAt: new Date().toISOString()
+                });
+                threatsAdded++;
+            }
+        } catch (error) {
+            ErrorLogger.error(error, 'ThreatFeedService.seedSimulatedData');
         }
 
         return { threats: threatsAdded };

@@ -1,8 +1,8 @@
+
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Loader2, Save, X, Box } from 'lucide-react';
 import { useStore } from '../../store';
 import { db } from '../../firebase';
@@ -11,6 +11,7 @@ import { Button } from '../ui/button';
 import { Threat, Asset } from '../../types';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { ErrorLogger } from '../../services/errorLogger';
+import { Dialog, Transition } from '@headlessui/react';
 
 const schema = z.object({
     assetId: z.string().min(1, "L'actif est requis"),
@@ -89,107 +90,120 @@ export const ThreatToRiskModal: React.FC<ThreatToRiskModalProps> = ({ isOpen, on
     };
 
     return (
-        <AnimatePresence>
-            {isOpen && threat && (
-                <>
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={onClose}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-modal"
-                    />
-                    <div className="fixed inset-0 flex items-center justify-center z-modal p-4 pointer-events-none">
-                        <motion.div
-                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl border border-white/20 pointer-events-auto overflow-hidden"
+        <Transition.Root show={isOpen} as={React.Fragment}>
+            <Dialog as="div" className="relative z-modal" onClose={onClose}>
+                <Transition.Child
+                    as={React.Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                >
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" />
+                </Transition.Child>
+
+                <div className="fixed inset-0 z-10 overflow-y-auto">
+                    <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                        <Transition.Child
+                            as={React.Fragment}
+                            enter="ease-out duration-300"
+                            enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                            enterTo="opacity-100 translate-y-0 sm:scale-100"
+                            leave="ease-in duration-200"
+                            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                            leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
-                            <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-                                <div>
-                                    <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                        <AlertTriangle className="h-5 w-5 text-orange-500" />
-                                        Mettre en Risque
-                                    </h2>
-                                    <p className="text-sm text-slate-500">Transformer <span className="font-bold">{threat.title}</span> en risque formel.</p>
+                            <Dialog.Panel className="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-white/20 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                                <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                                    <div>
+                                        <Dialog.Title as="h2" className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                            <AlertTriangle className="h-5 w-5 text-orange-500" />
+                                            Mettre en Risque
+                                        </Dialog.Title>
+                                        <p className="text-sm text-slate-500">Transformer <span className="font-bold">{threat ? threat.title : 'cette menace'}</span> en risque formel.</p>
+                                    </div>
+                                    <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                        <X className="h-5 w-5 text-slate-400" />
+                                    </button>
                                 </div>
-                                <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-colors">
-                                    <X className="h-5 w-5 text-slate-400" />
-                                </button>
-                            </div>
 
-                            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Actif concerné
-                                    </label>
-                                    <div className="relative">
-                                        <Box className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
-                                        <input
-                                            list="asset-list"
-                                            placeholder="Rechercher un actif..."
-                                            className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white pl-10 pr-4 py-2.5 outline-none border focus:ring-2 focus:ring-brand-500"
-                                            {...register('assetId')}
+                                <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                            Actif concerné
+                                        </label>
+                                        <div className="relative">
+                                            <Box className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                                            <input
+                                                list="asset-list"
+                                                placeholder="Rechercher un actif..."
+                                                className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white pl-10 pr-4 py-2.5 outline-none border focus:ring-2 focus:ring-brand-500"
+                                                aria-label="Actif concerné"
+                                                {...register('assetId')}
+                                            />
+                                            <datalist id="asset-list">
+                                                {assets.map(asset => (
+                                                    <option key={asset.id} value={asset.id}>{asset.name} ({asset.type})</option>
+                                                ))}
+                                            </datalist>
+                                        </div>
+                                        {errors.assetId && <p className="text-red-500 text-xs mt-1">Veuillez sélectionner un actif valide.</p>}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Scénario de Risque</label>
+                                        <textarea
+                                            {...register('scenario')}
+                                            rows={4}
+                                            className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white px-4 py-2.5 outline-none border focus:ring-2 focus:ring-brand-500 resize-none"
                                         />
-                                        <datalist id="asset-list">
-                                            {assets.map(asset => (
-                                                <option key={asset.id} value={asset.id}>{asset.name} ({asset.type})</option>
-                                            ))}
-                                        </datalist>
+                                        {errors.scenario && <p className="text-red-500 text-xs mt-1">{errors.scenario.message}</p>}
                                     </div>
-                                    {errors.assetId && <p className="text-red-500 text-xs mt-1">Veuillez sélectionner un actif valide.</p>}
-                                </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Scénario de Risque</label>
-                                    <textarea
-                                        {...register('scenario')}
-                                        rows={4}
-                                        className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white px-4 py-2.5 outline-none border focus:ring-2 focus:ring-brand-500 resize-none"
-                                    />
-                                    {errors.scenario && <p className="text-red-500 text-xs mt-1">{errors.scenario.message}</p>}
-                                </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Probabilité (1-5)</label>
+                                            <select {...register('probability')} className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2 text-slate-900 dark:text-white">
+                                                {[1, 2, 3, 4, 5].map(v => <option key={v} value={v}>{v}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Impact (1-5)</label>
+                                            <select {...register('impact')} className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2 text-slate-900 dark:text-white">
+                                                {[1, 2, 3, 4, 5].map(v => <option key={v} value={v}>{v}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
 
-                                <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Probabilité (1-5)</label>
-                                        <select {...register('probability')} className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2 text-slate-900 dark:text-white">
-                                            {[1, 2, 3, 4, 5].map(v => <option key={v} value={v}>{v}</option>)}
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Stratégie</label>
+                                        <select {...register('strategy')} className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2 text-slate-900 dark:text-white">
+                                            <option value="Atténuer">Atténuer</option>
+                                            <option value="Accepter">Accepter</option>
+                                            <option value="Transférer">Transférer</option>
+                                            <option value="Éviter">Éviter</option>
                                         </select>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Impact (1-5)</label>
-                                        <select {...register('impact')} className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2 text-slate-900 dark:text-white">
-                                            {[1, 2, 3, 4, 5].map(v => <option key={v} value={v}>{v}</option>)}
-                                        </select>
+
+                                    <div className="pt-4 flex justify-end gap-3">
+                                        <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+                                            Annuler
+                                        </Button>
+                                        <Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-white min-w-[120px]" disabled={isSubmitting}>
+                                            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                                            Créer Risque
+                                        </Button>
                                     </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Stratégie</label>
-                                    <select {...register('strategy')} className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2 text-slate-900 dark:text-white">
-                                        <option value="Atténuer">Atténuer</option>
-                                        <option value="Accepter">Accepter</option>
-                                        <option value="Transférer">Transférer</option>
-                                        <option value="Éviter">Éviter</option>
-                                    </select>
-                                </div>
-
-                                <div className="pt-4 flex justify-end gap-3">
-                                    <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-                                        Annuler
-                                    </Button>
-                                    <Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-white min-w-[120px]" disabled={isSubmitting}>
-                                        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                                        Créer Risque
-                                    </Button>
-                                </div>
-                            </form>
-                        </motion.div>
+                                </form>
+                            </Dialog.Panel>
+                        </Transition.Child>
                     </div>
-                </>
-            )}
-        </AnimatePresence>
+                </div>
+            </Dialog>
+        </Transition.Root>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

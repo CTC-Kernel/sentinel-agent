@@ -99,7 +99,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                                 const height = (val / maxVal) * 100;
                                 return (
                                     <div
-                                        key={idx}
+                                        key={`spark-${idx}`}
                                         className={`flex-1 rounded-t ${colorClass} opacity-30 transition-all hover:opacity-60`}
                                         style={{ height: `${height}%` }}
                                     />

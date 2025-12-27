@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc, setDoc } from 'firebase/firestore';
 import { deleteUser, User } from 'firebase/auth';
 import { db, storage } from '../firebase';
 import { ref, deleteObject } from 'firebase/storage';
@@ -77,6 +77,20 @@ export class AccountService {
       await deleteOrgFn({ organizationId });
     } catch (error) {
       ErrorLogger.error(error, 'AccountService.deleteOrganization');
+      throw error;
+    }
+  }
+
+  /**
+   * Updates the user profile.
+   */
+  static async updateProfile(userId: string, data: Partial<UserProfile>): Promise<void> {
+    try {
+      const userRef = doc(db, 'users', userId);
+      // We use setDoc with merge: true which is equivalent to update but safer if doc doesn't exist
+      await setDoc(userRef, { ...data, updatedAt: new Date().toISOString() }, { merge: true });
+    } catch (error) {
+      ErrorLogger.error(error, 'AccountService.updateProfile');
       throw error;
     }
   }

@@ -260,6 +260,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                             label="Référentiel Associé (Optionnel)"
                             {...register('framework')}
                             options={FRAMEWORK_OPTIONS}
+                            error={errors.framework?.message}
                         />
                     </div>
                 </div>
@@ -294,6 +295,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                                     value={field.value || 'Planifié'}
                                     onChange={field.onChange}
                                     options={PROJECT_STATUSES.map(s => ({ value: s, label: s }))}
+                                    error={errors.status?.message}
                                 />
                             )}
                         />
@@ -314,6 +316,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                                 }))}
                                 multiple
                                 placeholder="Sélectionner des membres..."
+                                error={errors.members?.message}
                             />
                         )}
                     />
@@ -357,6 +360,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                                     onChange={field.onChange}
                                     options={availableRisks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
                                     multiple
+                                    error={errors.relatedRiskIds?.message}
                                 />
                             )}
                         />
@@ -371,6 +375,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                                     onChange={field.onChange}
                                     options={availableControls.map(c => ({ value: c.id, label: c.code, subLabel: c.name }))}
                                     multiple
+                                    error={errors.relatedControlIds?.message}
                                 />
                             )}
                         />
@@ -385,6 +390,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                                     onChange={field.onChange}
                                     options={availableAssets.map(a => ({ value: a.id, label: a.name }))}
                                     multiple
+                                    error={errors.relatedAssetIds?.message}
                                 />
                             )}
                         />

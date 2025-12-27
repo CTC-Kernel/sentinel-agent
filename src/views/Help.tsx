@@ -189,12 +189,10 @@ export const Help: React.FC = () => {
                     <div className="p-6 h-full flex flex-col gap-6">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                            <input
+                            <input value={search} onChange={(e) => setSearch(e.target.value)}
                                 aria-label="Rechercher dans l'aide"
                                 type="text"
                                 placeholder="Rechercher..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
                                 className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all placeholder:text-slate-400"
                             />
                         </div>
@@ -319,7 +317,7 @@ export const Help: React.FC = () => {
                                                     <div className="px-6 pb-6 pt-0 space-y-6">
                                                         <div className="h-px w-full bg-slate-200 dark:bg-slate-700/50 mb-6" />
                                                         {article.sections.map((section, idx) => (
-                                                            <div key={idx} className="prose prose-slate dark:prose-invert max-w-none">
+                                                            <div key={`section-${idx}-${section.title || 'untitled'}`} className="prose prose-slate dark:prose-invert max-w-none">
                                                                 {section.title && (
                                                                     <h4 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
                                                                         <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />
@@ -361,3 +359,5 @@ export const Help: React.FC = () => {
         </motion.div>
     );
 };
+
+// Headless UI handles FocusTrap and keyboard navigation

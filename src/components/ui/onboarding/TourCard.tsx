@@ -87,7 +87,7 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
                         </div>
                         <button
                             onClick={onSkip}
-                            className="text-white/40 hover:text-white transition-colors p-1"
+                            className="text-white/40 hover:text-white transition-colors p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded"
                             title="Quitter le tour"
                         >
                             <X className="w-5 h-5" />
@@ -104,7 +104,7 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
                         {currentStepIndex > 0 ? (
                             <button
                                 onClick={onPrev}
-                                className="flex items-center gap-1 text-sm font-medium text-white/60 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
+                                className="flex items-center gap-1 text-sm font-medium text-white/60 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                             >
                                 <ChevronLeft className="w-4 h-4" />
                                 Retour
@@ -115,7 +115,7 @@ export const OnboardingCard: React.FC<OnboardingCardProps> = ({
 
                         <button
                             onClick={onNext}
-                            className="flex items-center gap-2 px-4 py-2 bg-white text-slate-900 rounded-xl text-sm font-bold shadow-lg shadow-white/10 hover:scale-105 active:scale-95 transition-all"
+                            className="flex items-center gap-2 px-4 py-2 bg-white text-slate-900 rounded-xl text-sm font-bold shadow-lg shadow-white/10 hover:scale-105 active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                         >
                             {currentStepIndex === totalSteps - 1 ? 'Terminer' : 'Suivant'}
                             <ChevronRight className="w-4 h-4" />

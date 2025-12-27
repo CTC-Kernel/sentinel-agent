@@ -25,6 +25,22 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     onEditTask,
     onDeleteTask
 }) => {
+    const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set());
+
+    const handleDelete = React.useCallback(async (taskId: string) => {
+        if (deletingIds.has(taskId)) return;
+        setDeletingIds(prev => new Set(prev).add(taskId));
+        try {
+            await onDeleteTask(taskId);
+        } finally {
+            setDeletingIds(prev => {
+                const next = new Set(prev);
+                next.delete(taskId);
+                return next;
+            });
+        }
+    }, [deletingIds, onDeleteTask]);
+
     return (
         <div
             className={`flex-1 glass-panel rounded-[1.5rem] p-4 border border-white/20 flex flex-col min-h-[400px] transition-colors ${draggedTaskId ? 'border-dashed border-brand-300 dark:border-brand-700 bg-brand-50/20' : 'bg-slate-50/30 dark:bg-slate-900/20'}`}
@@ -51,8 +67,8 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-sm font-bold text-slate-900 dark:text-white line-clamp-2">{task.title}</span>
                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={() => onEditTask(task)} className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded text-slate-500 hover:text-brand-500"><Edit className="h-3.5 w-3.5" /></button>
-                                    <button onClick={() => onDeleteTask(task.id)} className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-slate-500 hover:text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => onEditTask(task)} className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded text-slate-500 hover:text-brand-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Edit className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => handleDelete(task.id)} disabled={deletingIds.has(task.id)} className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-slate-500 hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"><Trash2 className="h-3.5 w-3.5" /></button>
                                 </div>
                             </div>
                             <div className="flex items-center justify-between mt-2">

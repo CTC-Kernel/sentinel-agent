@@ -61,12 +61,12 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
             expandable={true}
             className="lg:col-span-2 min-h-[400px]"
             headerAction={
-                <div className="flex bg-slate-100 dark:bg-white/5 rounded-lg p-1 gap-1 cursor-default hover:bg-slate-200 dark:hover:bg-white/10 transition-colors" onClick={(e) => e.stopPropagation()}>
+                <div className="flex bg-slate-100 dark:bg-white/5 rounded-lg p-1 gap-1 cursor-default hover:bg-slate-200 dark:hover:bg-white/10 transition-colors" onClick={(e) => e.stopPropagation()} role="group" aria-label="Sélection de la période">
                     {(['30d', '90d', '1y', 'all'] as const).map(range => (
                         <button
                             key={range}
                             onClick={(e) => { e.stopPropagation(); setTimeRange(range); }}
-                            className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${timeRange === range
+                            className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${timeRange === range
                                 ? 'bg-white dark:bg-slate-700 shadow-sm text-foreground'
                                 : 'text-muted-foreground hover:text-foreground'
                                 }`}

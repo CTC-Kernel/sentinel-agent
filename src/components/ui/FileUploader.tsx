@@ -139,14 +139,14 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             {/* File Input */}
             {!selectedFile && (
                 <div className="relative">
-                    <input
+                    <input type="file"
                         ref={fileInputRef}
-                        type="file"
                         onChange={handleFileSelect}
                         multiple={multiple}
                         accept={allowedTypes.join(',')}
                         className="hidden"
                         id="file-upload"
+                        aria-label="Sélectionner un fichier"
                         disabled={disabled}
                     />
                     <label

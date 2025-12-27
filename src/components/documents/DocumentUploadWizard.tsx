@@ -176,7 +176,18 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
 
     return (
         <div className="fixed inset-0 z-modal flex items-center justify-center p-4 sm:p-6">
-            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
+            <div
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+                onClick={onClose}
+                role="button"
+                tabIndex={0}
+                aria-label="Fermer"
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        onClose();
+                    }
+                }}
+            />
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -224,20 +235,22 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4 mb-6">
-                                    <div
-                                        className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${storageProvider === 'firebase' ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'border-slate-200 dark:border-white/10 hover:border-brand-200'}`}
+                                    <button
+                                        type="button"
+                                        className={`cursor-pointer p-4 rounded-xl border-2 transition-all w-full text-left ${storageProvider === 'firebase' ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'border-slate-200 dark:border-white/10 hover:border-brand-200'}`}
                                         onClick={() => setValue('storageProvider', 'firebase')}
                                     >
                                         <UploadCloud className={`w-6 h-6 mb-2 ${storageProvider === 'firebase' ? 'text-brand-600' : 'text-slate-400'}`} />
                                         <div className="font-bold text-sm">Upload Direct</div>
-                                    </div>
-                                    <div
-                                        className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${storageProvider !== 'firebase' ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'border-slate-200 dark:border-white/10 hover:border-brand-200'}`}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`cursor-pointer p-4 rounded-xl border-2 transition-all w-full text-left ${storageProvider !== 'firebase' ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'border-slate-200 dark:border-white/10 hover:border-brand-200'}`}
                                         onClick={() => setValue('storageProvider', 'google_drive')} // Defaulting to one external
                                     >
                                         <Link className={`w-6 h-6 mb-2 ${storageProvider !== 'firebase' ? 'text-brand-600' : 'text-slate-400'}`} />
                                         <div className="font-bold text-sm">Lien Externe</div>
-                                    </div>
+                                    </button>
                                 </div>
 
                                 {storageProvider === 'firebase' ? (
@@ -263,10 +276,8 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                                 </div>
                                                 <div className="flex items-center gap-4">
                                                     <label className="flex items-center gap-2 cursor-pointer select-none">
-                                                        <input
+                                                        <input checked={uploadedFileSecure} onChange={e => setUploadedFileSecure(e.target.checked)}
                                                             type="checkbox"
-                                                            checked={uploadedFileSecure}
-                                                            onChange={e => setUploadedFileSecure(e.target.checked)}
                                                             className="rounded text-brand-600 focus:ring-brand-500"
                                                         />
                                                         <span className="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">

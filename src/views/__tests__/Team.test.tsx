@@ -1,10 +1,8 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import Team from '../Team';
 import { MemoryRouter } from 'react-router-dom';
 import { usePersistedState } from '../../hooks/usePersistedState';
-import { getDocs } from 'firebase/firestore';
 
 // ---------------------------------------------------------------------
 // Mocks
@@ -26,21 +24,6 @@ vi.mock('../../hooks/usePersistedState', () => ({
 vi.mock('../../firebase', () => ({
     db: {},
     functions: {}
-}));
-
-vi.mock('firebase/firestore', () => ({
-    getDocs: vi.fn(),
-    query: vi.fn(),
-    collection: vi.fn(),
-    where: vi.fn(),
-    addDoc: vi.fn(),
-    updateDoc: vi.fn(),
-    deleteDoc: vi.fn(),
-    doc: vi.fn(),
-}));
-
-vi.mock('firebase/functions', () => ({
-    httpsCallable: vi.fn()
 }));
 
 // Mock i18next
@@ -74,6 +57,11 @@ vi.mock('../../services/errorLogger', () => ({
 vi.mock('../../utils/permissions', () => ({
     hasPermission: vi.fn().mockReturnValue(true)
 }));
+
+vi.mock('../../hooks/useTeamManagement', () => ({
+    useTeamManagement: vi.fn()
+}));
+import { useTeamManagement } from '../../hooks/useTeamManagement';
 
 // Mock Child Components
 vi.mock('../../components/team/RoleManager', () => ({
@@ -121,24 +109,23 @@ describe('Team View', () => {
 
     it('renders the team dashboard and fetches users', async () => {
         const mockUsers = [
-            { id: 'u1', displayName: 'User One', email: 'user1@test.com', role: 'admin' },
-            { id: 'u2', displayName: 'User Two', email: 'user2@test.com', role: 'user' }
+            { id: 'u1', uid: 'u1', displayName: 'User One', email: 'user1@test.com', role: 'admin', isPending: false },
+            { id: 'u2', uid: 'u2', displayName: 'User Two', email: 'user2@test.com', role: 'user', isPending: false }
         ];
 
-        // Mock getDocs sequence for users, invitations, and join requests
-        vi.mocked(getDocs)
-            .mockResolvedValueOnce({
-                docs: mockUsers.map(u => ({ id: u.id, data: () => u })) as any,
-                empty: false,
-                size: mockUsers.length,
-                query: {} as any,
-                metadata: {} as any,
-                forEach: (cb: (doc: unknown) => void) => mockUsers.map(u => ({ id: u.id, data: () => u })).forEach(cb),
-                docChanges: () => [],
-                toJSON: () => ({})
-            } as any)
-            .mockResolvedValueOnce({ docs: [], empty: true, size: 0, query: {} as any, metadata: {} as any, forEach: () => { }, docChanges: () => [], toJSON: () => ({}) } as any)
-            .mockResolvedValueOnce({ docs: [], empty: true, size: 0, query: {} as any, metadata: {} as any, forEach: () => { }, docChanges: () => [], toJSON: () => ({}) } as any);
+        vi.mocked(useTeamManagement).mockReturnValue({
+            users: mockUsers,
+            joinRequests: [],
+            loading: false,
+            customRoles: [],
+            fetchRoles: vi.fn(),
+            inviteUser: vi.fn(),
+            updateUser: vi.fn(),
+            deleteUser: vi.fn(),
+            checkDependencies: vi.fn(),
+            approveRequest: vi.fn(),
+            rejectRequest: vi.fn(),
+        } as any);
 
         render(
             <MemoryRouter>
@@ -146,15 +133,24 @@ describe('Team View', () => {
             </MemoryRouter>
         );
 
-        // Expect loading state first if possible, but we might wait for result
-        await waitFor(() => {
-            expect(screen.getByText('User One')).toBeInTheDocument();
-            expect(screen.getByText('User Two')).toBeInTheDocument();
-        });
+        expect(screen.getByText('User One')).toBeInTheDocument();
+        expect(screen.getByText('User Two')).toBeInTheDocument();
     });
 
     it('handles tab switching', async () => {
-        vi.mocked(getDocs).mockResolvedValue({ docs: [], empty: true, size: 0, query: {} as any, metadata: {} as any, forEach: () => { }, docChanges: () => [], toJSON: () => ({}) } as any);
+        vi.mocked(useTeamManagement).mockReturnValue({
+            users: [],
+            joinRequests: [],
+            loading: false,
+            customRoles: [],
+            fetchRoles: vi.fn(),
+            inviteUser: vi.fn(),
+            updateUser: vi.fn(),
+            deleteUser: vi.fn(),
+            checkDependencies: vi.fn(),
+            approveRequest: vi.fn(),
+            rejectRequest: vi.fn(),
+        } as any);
         vi.mocked(usePersistedState).mockReturnValue(['roles', vi.fn()]);
 
         render(

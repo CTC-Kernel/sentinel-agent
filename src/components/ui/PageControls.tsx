@@ -47,12 +47,10 @@ export const PageControls: React.FC<PageControlsProps> = ({
                 <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 pl-4 rounded-2xl flex items-center space-x-4 shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500/30 transition-all duration-300">
                     <Search className="h-5 w-5 text-slate-500 group-focus-within:text-brand-500 transition-colors" />
 
-                    <input
+                    <input value={searchQuery} onChange={e => onSearchChange(e.target.value)}
                         type="text"
                         placeholder={searchPlaceholder}
                         className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-700 dark:text-white py-2.5 font-medium placeholder-slate-400"
-                        value={searchQuery}
-                        onChange={e => onSearchChange(e.target.value)}
                     />
 
                     {searchQuery && (

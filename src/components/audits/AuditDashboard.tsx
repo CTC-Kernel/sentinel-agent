@@ -74,7 +74,7 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
                                 fill="transparent"
                                 strokeDasharray={251.2}
                                 strokeDashoffset={251.2 - (251.2 * complianceRate) / 100}
-                                className="text-emerald-500 transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                                className="text-emerald-500 transition-all duration-1000 ease-out drop-shadow-emerald-md"
                             />
                         </svg>
                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
@@ -91,13 +91,20 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
 
                 {/* Key Metrics Breakdown */}
                 <div className="flex-1 grid grid-cols-3 gap-4 border-l border-r border-slate-200 dark:border-white/5 px-6 mx-2 relative z-10">
-                    <div onClick={() => onFilterChange?.(null)} className="cursor-pointer group/item text-center hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors p-2 -my-2">
+                    <div
+                        onClick={() => onFilterChange?.(null)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onFilterChange?.(null); } }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Afficher tous les audits"
+                        className="cursor-pointer group/item text-center hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors p-2 -my-2"
+                    >
                         <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-500 mb-2 tracking-widest group-hover/item:text-brand-500 transition-colors">Total Audits</div>
                         <div className="text-3xl font-black text-slate-900 dark:text-white font-mono">{totalAudits}</div>
                     </div>
                     <div className="text-center">
                         <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-500 mb-2 tracking-widest">Actions Requises</div>
-                        <div className={`text-3xl font-black font-mono ${openFindings > 0 ? 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'text-slate-900 dark:text-white'}`}>
+                        <div className={`text-3xl font-black font-mono ${openFindings > 0 ? 'text-red-500 drop-shadow-red-md' : 'text-slate-900 dark:text-white'}`}>
                             {openFindings}
                         </div>
                     </div>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Dialog, Transition } from '@headlessui/react';
 import { X } from 'lucide-react';
 import { CommentSection } from '../collaboration/CommentSection';
 
@@ -13,51 +13,74 @@ interface ThreatDiscussionProps {
 
 export const ThreatDiscussion: React.FC<ThreatDiscussionProps> = ({ threatId, threatTitle, isOpen, onClose }) => {
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <>
-                    {/* Backdrop */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={onClose}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-                    />
+        <Transition.Root show={isOpen} as={React.Fragment}>
+            <Dialog as="div" className="relative z-50" onClose={onClose}>
+                <Transition.Child
+                    as={React.Fragment}
+                    enter="ease-in-out duration-500"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in-out duration-500"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                >
+                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity" />
+                </Transition.Child>
 
-                    {/* Side Panel */}
-                    <motion.div
-                        initial={{ x: '100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '100%' }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col"
-                    >
-                        {/* Header */}
-                        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50">
-                            <div>
-                                <h3 className="font-bold text-slate-900 dark:text-white">Discussion</h3>
-                                <p className="text-xs text-slate-500 truncate max-w-[280px]">{threatTitle}</p>
-                            </div>
-                            <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                                <X className="h-5 w-5 text-slate-500" />
-                            </button>
+                <div className="fixed inset-0 overflow-hidden">
+                    <div className="absolute inset-0 overflow-hidden">
+                        <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+                            <Transition.Child
+                                as={React.Fragment}
+                                enter="transform transition ease-in-out duration-500 sm:duration-700"
+                                enterFrom="translate-x-full"
+                                enterTo="translate-x-0"
+                                leave="transform transition ease-in-out duration-500 sm:duration-700"
+                                leaveFrom="translate-x-0"
+                                leaveTo="translate-x-full"
+                            >
+                                <Dialog.Panel className="pointer-events-auto w-screen max-w-md">
+                                    <div className="flex h-full flex-col overflow-y-scroll bg-white dark:bg-slate-900 shadow-xl border-l border-slate-200 dark:border-slate-800">
+                                        <div className="px-4 py-4 sm:px-6 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
+                                            <div className="flex items-start justify-between">
+                                                <div>
+                                                    <Dialog.Title className="text-base font-bold text-slate-900 dark:text-white">
+                                                        Discussion
+                                                    </Dialog.Title>
+                                                    <p className="text-xs text-slate-500 truncate max-w-[280px] mt-1">{threatTitle}</p>
+                                                </div>
+                                                <div className="ml-3 flex h-7 items-center">
+                                                    <button
+                                                        type="button"
+                                                        className="relative rounded-md text-slate-400 hover:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                                                        onClick={onClose}
+                                                    >
+                                                        <span className="absolute -inset-2.5" />
+                                                        <span className="sr-only">Fermer panel</span>
+                                                        <X className="h-6 w-6" aria-hidden="true" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="relative flex-1 px-4 py-6 sm:px-6">
+                                            <CommentSection
+                                                collectionName="threats"
+                                                documentId={threatId}
+                                                className="h-full"
+                                            />
+                                        </div>
+                                    </div>
+                                </Dialog.Panel>
+                            </Transition.Child>
                         </div>
-
-                        {/* Content */}
-                        <div className="flex-1 overflow-hidden p-4">
-                            <CommentSection
-                                collectionName="threats"
-                                documentId={threatId}
-                                className="h-full"
-                            />
-                        </div>
-                    </motion.div>
-                </>
-            )}
-        </AnimatePresence>
+                    </div>
+                </div>
+            </Dialog>
+        </Transition.Root>
     );
 };
 
 // Typed helper since generic useState was used in prompt
 
+
+// Headless UI handles FocusTrap and keyboard navigation

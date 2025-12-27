@@ -59,7 +59,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                         <button
                             aria-label="Soumettre le document pour revue"
                             onClick={() => setActionView(actionView === 'submit' ? 'none' : 'submit')}
-                            className="flex items-center px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 transition"
+                            className="flex items-center px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                         >
                             <Send className="h-3.5 w-3.5 mr-1.5" />
                             Soumettre pour revue
@@ -73,7 +73,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                                 aria-label="Approuver le document"
                                 onClick={() => approveDocument(document)}
                                 disabled={loading}
-                                className="flex items-center px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition"
+                                className="flex items-center px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                             >
                                 <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
                                 Approuver
@@ -81,7 +81,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                             <button
                                 aria-label="Rejeter le document"
                                 onClick={() => setActionView(actionView === 'reject' ? 'none' : 'reject')}
-                                className="flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition"
+                                className="flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                             >
                                 <XCircle className="h-3.5 w-3.5 mr-1.5" />
                                 Rejeter
@@ -95,7 +95,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                             aria-label="Publier officiellement le document"
                             onClick={() => onPublish ? onPublish() : publishDocument(document)}
                             disabled={loading}
-                            className="flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition"
+                            className="flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                         >
                             <Send className="h-3.5 w-3.5 mr-1.5" />
                             Publier Officiellement
@@ -111,7 +111,7 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                             <select
                                 aria-label="Sélectionner les réviseurs"
                                 multiple
-                                className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2 min-h-[80px]"
+                                className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2 min-h-[80px] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 onChange={(e) => setSelectedReviewers(Array.from(e.target.selectedOptions, option => option.value))}
                             >
                                 {users.filter(u => u.uid !== user?.uid).map(u => (
@@ -120,17 +120,15 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                             </select>
                             <p className="text-[10px] text-slate-500 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs.</p>
                         </div>
-                        <input
+                        <input value={comment} onChange={(e) => setComment(e.target.value)}
                             aria-label="Message pour les réviseurs"
                             type="text"
                             placeholder="Message pour les réviseurs..."
-                            className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2"
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
+                            className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         />
                         <div className="flex justify-end gap-2">
-                            <button aria-label="Annuler la soumission" onClick={() => setActionView('none')} className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1">Annuler</button>
-                            <button aria-label="Confirmer la soumission" onClick={handleSubmit} disabled={loading || selectedReviewers.length === 0} className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 disabled:opacity-50">Confirmer</button>
+                            <button aria-label="Annuler la soumission" onClick={() => setActionView('none')} className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded">Annuler</button>
+                            <button aria-label="Confirmer la soumission" onClick={handleSubmit} disabled={loading || selectedReviewers.length === 0} className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">Confirmer</button>
                         </div>
                     </motion.div>
                 )}
@@ -140,13 +138,13 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                         <textarea
                             aria-label="Raison du rejet"
                             placeholder="Raison du rejet (obligatoire)..."
-                            className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2"
+                            className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                         />
                         <div className="flex justify-end gap-2">
-                            <button aria-label="Annuler le rejet" onClick={() => setActionView('none')} className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1">Annuler</button>
-                            <button aria-label="Confirmer le rejet" onClick={handleReject} disabled={loading || !comment} className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:opacity-50">Confirmer le Rejet</button>
+                            <button aria-label="Annuler le rejet" onClick={() => setActionView('none')} className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded">Annuler</button>
+                            <button aria-label="Confirmer le rejet" onClick={handleReject} disabled={loading || !comment} className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">Confirmer le Rejet</button>
                         </div>
                     </motion.div>
                 )}

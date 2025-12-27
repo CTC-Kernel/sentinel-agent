@@ -100,7 +100,19 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                 relatedProjectIds: initialData?.relatedProjectIds || []
             });
         }
+
     }, [existingAudit, initialData, reset]);
+
+    // Accessibility: Handle Escape key to close modal
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && !isLoading) {
+                onCancel();
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [isLoading, onCancel]);
 
     const [isGenerating, setIsGenerating] = React.useState(false);
 
@@ -182,6 +194,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                         className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400"
                         placeholder="Objectifs et contexte de l'audit..."
                     />
+                    {errors.description && <span className="text-red-500 text-sm">{errors.description.message}</span>}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -194,6 +207,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                                 value={field.value}
                                 onChange={field.onChange}
                                 options={AUDIT_TYPES.map(t => ({ value: t, label: t }))}
+                                error={errors.type?.message}
                             />
                         )}
                     />
@@ -258,6 +272,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                             onChange={field.onChange}
                             options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
                             placeholder="Sélectionner un auditeur..."
+                            error={errors.auditor?.message}
                         />
                     )}
                 />
@@ -287,6 +302,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                                 onChange={field.onChange}
                                 options={assets.map(a => ({ value: a.id, label: a.name }))}
                                 multiple
+                                error={errors.relatedAssetIds?.message}
                             />
                         )}
                     />
@@ -300,6 +316,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                                 onChange={field.onChange}
                                 options={controls.map(c => ({ value: c.id, label: c.code, subLabel: c.name }))}
                                 multiple
+                                error={errors.relatedControlIds?.message}
                             />
                         )}
                     />
@@ -313,6 +330,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                                 onChange={field.onChange}
                                 options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score} ` }))}
                                 multiple
+                                error={errors.relatedRiskIds?.message}
                             />
                         )}
                     />
@@ -326,6 +344,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                                 onChange={field.onChange}
                                 options={projects.map(p => ({ value: p.id, label: p.name }))}
                                 multiple
+                                error={errors.relatedProjectIds?.message}
                             />
                         )}
                     />

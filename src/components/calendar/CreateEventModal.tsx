@@ -63,6 +63,19 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
         }
     }, [isOpen, initialDate, setValue]);
 
+    // Accessibility: Handle Escape key to close modal
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isOpen && !isSubmitting) {
+                onClose();
+            }
+        };
+        if (isOpen) {
+            document.addEventListener('keydown', handleEscape);
+            return () => document.removeEventListener('keydown', handleEscape);
+        }
+    }, [isOpen, isSubmitting, onClose]);
+
     // Fetch Assets and Risks for linking
     useEffect(() => {
         const fetchData = async () => {

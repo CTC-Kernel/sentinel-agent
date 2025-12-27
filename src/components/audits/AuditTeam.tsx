@@ -111,7 +111,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                         <Shield className="h-3.5 w-3.5 mr-2" /> Équipe Interne
                     </h3>
                     {canEdit && !isAddingInternal && (
-                        <button onClick={() => setIsAddingInternal(true)} aria-label="Ajouter un membre interne" className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center">
+                        <button onClick={() => setIsAddingInternal(true)} aria-label="Ajouter un membre interne" className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
                             <Plus className="h-3 w-3 mr-1" /> Ajouter
                         </button>
                     )}
@@ -127,8 +127,8 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                                 placeholder="Sélectionner un membre..."
                             />
                         </div>
-                        <button onClick={handleAddInternal} aria-label="Confirmer l'ajout" className="px-3 bg-brand-600 text-white rounded-xl font-bold text-xs hover:bg-brand-700">OK</button>
-                        <button onClick={() => setIsAddingInternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-200">X</button>
+                        <button onClick={handleAddInternal} aria-label="Confirmer l'ajout" className="px-3 bg-brand-600 text-white rounded-xl font-bold text-xs hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">OK</button>
+                        <button onClick={() => setIsAddingInternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
                     </div>
                 )}
 
@@ -148,7 +148,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                                         </div>
                                     </div>
                                     {canEdit && (
-                                        <button onClick={() => handleRemoveInternal(userId)} aria-label={`Retirer ${userObj?.displayName || 'l\'utilisateur'}`} className="p-1.5 text-slate-500 hover:text-red-500 transition-colors">
+                                        <button onClick={() => handleRemoveInternal(userId)} aria-label={`Retirer ${userObj?.displayName || 'l\'utilisateur'}`} className="p-1.5 text-slate-500 hover:text-red-500 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg">
                                             <Trash2 className="h-4 w-4" />
                                         </button>
                                     )}
@@ -168,7 +168,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                         <ExternalLink className="h-3.5 w-3.5 mr-2" /> Auditeurs Externes
                     </h3>
                     {canEdit && !isAddingExternal && (
-                        <button onClick={() => setIsAddingExternal(true)} aria-label="Inviter un auditeur externe" className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center">
+                        <button onClick={() => setIsAddingExternal(true)} aria-label="Inviter un auditeur externe" className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
                             <Plus className="h-3 w-3 mr-1" /> Inviter
                         </button>
                     )}
@@ -184,8 +184,8 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                                 type="email"
                             />
                         </div>
-                        <button onClick={handleAddExternal} aria-label="Envoyer l'invitation" className="px-3 bg-brand-600 text-white rounded-xl font-bold text-xs hover:bg-brand-700">Inviter</button>
-                        <button onClick={() => setIsAddingExternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-200">X</button>
+                        <button onClick={handleAddExternal} aria-label="Envoyer l'invitation" className="px-3 bg-brand-600 text-white rounded-xl font-bold text-xs hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Inviter</button>
+                        <button onClick={() => setIsAddingExternal(false)} aria-label="Annuler" className="px-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">X</button>
                     </div>
                 )}
 
@@ -203,7 +203,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                                     </div>
                                 </div>
                                 {canEdit && (
-                                    <button onClick={() => handleRemoveExternal(email)} aria-label={`Retirer l'auditeur ${email}`} className="p-1.5 text-slate-500 hover:text-red-500 transition-colors">
+                                    <button onClick={() => handleRemoveExternal(email)} aria-label={`Retirer l'auditeur ${email}`} className="p-1.5 text-slate-500 hover:text-red-500 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg">
                                         <Trash2 className="h-4 w-4" />
                                     </button>
                                 )}

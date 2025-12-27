@@ -46,7 +46,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({ isOpen, onClose,
                                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('dashboard.addWidget')}</h2>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Personnalisez votre tableau de bord</p>
                             </div>
-                            <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white">
+                            <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
@@ -56,7 +56,16 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({ isOpen, onClose,
                                 availableWidgets.map(([id, config]) => (
                                     <div
                                         key={id}
-                                        className="p-4 rounded-xl border border-slate-200 dark:border-white/5 hover:border-brand-500 dark:hover:border-brand-500 bg-slate-50/50 dark:bg-white/5 hover:bg-brand-50/10 dark:hover:bg-brand-500/5 transition-all cursor-pointer group flex items-start gap-4 relative overflow-hidden"
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                onAdd(id as WidgetId);
+                                                onClose();
+                                            }
+                                        }}
+                                        className="p-4 rounded-xl border border-slate-200 dark:border-white/5 hover:border-brand-500 dark:hover:border-brand-500 bg-slate-50/50 dark:bg-white/5 hover:bg-brand-50/10 dark:hover:bg-brand-500/5 transition-all cursor-pointer group flex items-start gap-4 relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                         onClick={() => {
                                             onAdd(id as WidgetId);
                                             onClose();

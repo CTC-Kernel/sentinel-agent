@@ -427,12 +427,11 @@ export const Onboarding: React.FC = () => {
                                 <>
                                     <form onSubmit={handleSearchOrg} className="relative">
                                         <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
-                                        <input
+                                        <input value={searchQuery}
                                             aria-label={t('onboarding.actions.search')}
                                             type="text"
                                             className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-brand-500 dark:text-white transition-all outline-none font-medium placeholder:text-slate-500"
                                             placeholder={t('onboarding.actions.search') + "..."}
-                                            value={searchQuery}
                                             onChange={e => setSearchQuery(e.target.value)}
                                         />
                                         <button
@@ -603,6 +602,14 @@ export const Onboarding: React.FC = () => {
                                                 <div
                                                     key={planId}
                                                     onClick={() => setSelectedPlan(planId)}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' || e.key === ' ') {
+                                                            e.preventDefault();
+                                                            setSelectedPlan(planId);
+                                                        }
+                                                    }}
                                                     className={`relative p-6 rounded-3xl border transition-all duration-300 cursor-pointer group ${isSelected
                                                         ? 'bg-brand-50/50 dark:bg-slate-900/10 border-brand-500 ring-1 ring-brand-500 shadow-lg shadow-brand-500/10'
                                                         : 'bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md'
@@ -834,7 +841,7 @@ export const Onboarding: React.FC = () => {
                                                                 placeholder="Type"
                                                             />
                                                         </div>
-                                                        <button onClick={handleAddAsset} aria-label="Ajouter l'actif" className="p-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold h-[56px] w-[56px] flex items-center justify-center">
+                                                        <button onClick={handleAddAsset} aria-label="Ajouter l'actif" className="p-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold h-[56px] w-[56px] flex items-center justify-center hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 duration-200">
                                                             <Plus className="h-5 w-5" />
                                                         </button>
                                                     </div>

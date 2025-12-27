@@ -99,12 +99,11 @@ export const Search: React.FC = () => {
                 <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl">
                     <SearchIcon className="h-6 w-6 text-slate-500" />
                 </div>
-                <input
+                <input value={queryText}
                     aria-label="Rechercher"
                     type="text"
                     placeholder="Rechercher quelque chose..."
                     className="flex-1 bg-transparent border-none focus:ring-0 text-lg dark:text-white py-3 font-medium placeholder-gray-400"
-                    value={queryText}
                     onChange={e => setQueryText(e.target.value)}
                     autoFocus
                 />

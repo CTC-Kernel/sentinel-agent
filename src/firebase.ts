@@ -73,10 +73,9 @@ if (typeof window !== 'undefined') {
         (async () => {
           try {
             const tokenResult = await getToken(appCheckInstance, false);
-            ErrorLogger.warn('App Check token acquired', 'firebase.appCheck', {
+            ErrorLogger.warn('App Check session acquired', 'firebase.appCheck', {
               metadata: {
-                tokenSnippet: tokenResult.token ? `${tokenResult.token.slice(0, 12)}...` : null,
-                // AppCheckTokenResult typing does not expose expiry; snippet is enough for diagnostics.
+                // Token snippet removed for security
                 hasToken: Boolean(tokenResult.token)
               }
             });

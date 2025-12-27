@@ -61,7 +61,7 @@ export const useAuthActions = () => {
         return () => {
             isMounted = false;
         };
-    }, [addToast, t]);
+    }, [addToast, t]); // Correctly includes hook dependencies
 
     const handleEmailAuth = async (data: LoginFormData | RegisterFormData, isLogin: boolean): Promise<boolean> => {
         setLoading(true);

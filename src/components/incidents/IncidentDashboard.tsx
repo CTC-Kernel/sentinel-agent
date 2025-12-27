@@ -108,7 +108,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
         {
             id: 'actions',
             cell: ({ row }) => (
-                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()}>
+                <div className="text-right flex justify-end items-center space-x-1" onClick={e => e.stopPropagation()} role="presentation">
                     {canDelete && onDelete && (
                         <CustomTooltip content="Supprimer l'incident">
                             <button
@@ -116,7 +116,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                     e.stopPropagation();
                                     onDelete(row.original.id);
                                 }}
-                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100"
+                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 transform scale-90 hover:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:opacity-100"
                             >
                                 <Trash2 className="h-4 w-4" />
                             </button>
@@ -261,7 +261,15 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                             <div
                                 key={inc.id}
                                 onClick={() => onSelect(inc)}
-                                className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/60 dark:border-white/10 hover:shadow-lg transition-all duration-300"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        onSelect(inc);
+                                    }
+                                }}
+                                role="button"
+                                tabIndex={0}
+                                className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/60 dark:border-white/10 hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
                             >
                                 {inc.severity === Criticality.CRITICAL && (
                                     <div className="absolute top-6 right-6">
@@ -287,7 +295,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                                     e.stopPropagation();
                                                     onDelete(inc.id);
                                                 }}
-                                                className="p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                className="p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
@@ -312,7 +320,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                                     e.stopPropagation();
                                                     onSelect(inc);
                                                 }}
-                                                className="text-xs px-2 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-lg hover:scale-105 transition-transform font-bold"
+                                                className="text-xs px-2 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-lg hover:scale-105 transition-transform font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                             >
                                                 Playbook
                                             </button>

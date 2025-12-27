@@ -187,7 +187,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                         <div className="mb-3 space-y-1">
                             {fileIds.length > 0 ? (
                                 fileIds.map((fid, idx) => (
-                                    <div key={idx} className="flex items-center text-xs text-slate-600 dark:text-slate-400">
+                                    <div key={fid} className="flex items-center text-xs text-slate-600 dark:text-slate-400">
                                         <FileText className="h-3 w-3 mr-2" />
                                         Preuve #{idx + 1} (ID: {fid.substring(0, 8)}...)
                                     </div>
@@ -229,12 +229,9 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                     <div className="flex gap-4">
                         {['Oui', 'Non'].map((opt) => (
                             <label key={opt} className={`flex - 1 cursor - pointer p - 4 rounded - xl border transition - all ${value === opt ? 'bg-brand-50 border-brand-500 text-brand-700' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-white/10 hover:border-brand-300'} `}>
-                                <input
+                                <input value={opt} checked={value === opt} onChange={() => handleAnswerChange(question.id, opt)}
                                     type="radio"
                                     name={question.id}
-                                    value={opt}
-                                    checked={value === opt}
-                                    onChange={() => handleAnswerChange(question.id, opt)}
                                     className="sr-only"
                                     disabled={readOnly || status === 'Submitted'}
                                 />
@@ -248,12 +245,9 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                     <div className="space-y-2">
                         {question.options?.map((opt) => (
                             <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer">
-                                <input
+                                <input value={opt} checked={value === opt} onChange={() => handleAnswerChange(question.id, opt)}
                                     type="radio"
                                     name={question.id}
-                                    value={opt}
-                                    checked={value === opt}
-                                    onChange={() => handleAnswerChange(question.id, opt)}
                                     className="text-brand-600 focus:ring-brand-500"
                                     disabled={readOnly || status === 'Submitted'}
                                 />
@@ -270,15 +264,13 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                             const isChecked = currentValues.includes(opt);
                             return (
                                 <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer">
-                                    <input
+                                    <input checked={isChecked} onChange={(e) => {
+                                        const newValues = e.target.checked
+                                            ? [...currentValues, opt]
+                                            : currentValues.filter(v => v !== opt);
+                                        handleAnswerChange(question.id, newValues);
+                                    }}
                                         type="checkbox"
-                                        checked={isChecked}
-                                        onChange={(e) => {
-                                            const newValues = e.target.checked
-                                                ? [...currentValues, opt]
-                                                : currentValues.filter(v => v !== opt);
-                                            handleAnswerChange(question.id, newValues);
-                                        }}
                                         className="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                                         disabled={readOnly || status === 'Submitted'}
                                     />

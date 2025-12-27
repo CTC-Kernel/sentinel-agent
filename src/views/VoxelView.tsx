@@ -1,27 +1,30 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ChevronLeft, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, Search, RotateCw, Minimize2, CheckCheck, MonitorPlay, Info } from 'lucide-react';
 
-import { VoxelStudio } from '../components/VoxelStudio';
-import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight, VoxelNode, DataNode } from '../types';
-import { aiService } from '../services/aiService';
-import { ErrorLogger } from '../services/errorLogger';
+import { useAuth } from '../hooks/useAuth';
 import { useStore } from '../store';
 import { useVoxels } from '../hooks/useVoxels';
-import { LoadingScreen } from '../components/ui/LoadingScreen';
-import { ChevronLeft, Maximize2, RefreshCw, ArrowRight, ShieldAlert, Activity, XCircle, Sparkles, BrainCircuit, Layers, Eye, Flame, Search, RotateCw, Minimize2, CheckCheck, MonitorPlay, Info } from 'lucide-react';
+import { aiService } from '../services/aiService';
+import { ErrorLogger } from '../services/errorLogger';
+import { hasPermission } from '../utils/permissions';
+
 import { VoxelGuide } from '../components/VoxelGuide';
-import { useNavigate } from 'react-router-dom';
+import { VoxelStudio } from '../components/VoxelStudio';
 import { PageHeader } from '../components/ui/PageHeader';
+import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { Network } from '../components/ui/Icons';
 import { SEO } from '../components/SEO';
-import { motion } from 'framer-motion';
-import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
+
+import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLink, AIInsight, VoxelNode, DataNode } from '../types';
 
 type LayerType = 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier' | 'control';
 
 
 
-// Helper functions (safeRender, formatSafeDate) are kept if used
 const formatSafeDate = (date: unknown): string => {
   if (!date) return '—';
   try {
@@ -64,10 +67,20 @@ const layerOptions: { id: LayerType; label: string; hint: string; color: string 
   { id: 'control', label: 'Contrôles', hint: 'Mesures de sécurité', color: 'bg-teal-500' }
 ];
 
+
+
 export const VoxelView: React.FC = () => {
+  const { user } = useAuth();
   const { addToast } = useStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  const isValidRoute = (path: string): boolean => {
+    const allowedRoutes = ['/assets', '/risks', '/projects', '/audits', '/incidents', '/suppliers', '/library', '/compliance'];
+    return allowedRoutes.some(allowed => path.startsWith(allowed));
+  };
+
+
   const {
     loading,
     assets,
@@ -264,11 +277,11 @@ export const VoxelView: React.FC = () => {
 
   const currentIndex = useMemo(() => orderedNodes.findIndex(node => node.id === focusedNodeId), [orderedNodes, focusedNodeId]);
 
-  const ensureLayerActive = (layer: LayerType) => {
+  const ensureLayerActive = useCallback((layer: LayerType) => {
     setActiveLayers(prev => (prev.includes(layer) ? prev : [...prev, layer]));
-  };
+  }, []);
 
-  const findEntityByType = (type: LayerType, id: string) => {
+  const findEntityByType = useCallback((type: LayerType, id: string) => {
     const sourceMap: Record<LayerType, DataNode['data'][]> = {
       asset: assets,
       risk: risks,
@@ -279,16 +292,16 @@ export const VoxelView: React.FC = () => {
       control: controls,
     };
     return sourceMap[type].find(item => item.id === id);
-  };
+  }, [assets, risks, projects, audits, incidents, suppliers, controls]);
 
-  const applyFocus = (nodeId: string, type: LayerType) => {
+  const applyFocus = useCallback((nodeId: string, type: LayerType) => {
     ensureLayerActive(type);
     setFocusedNodeId(nodeId);
     const entity = findEntityByType(type, nodeId);
     if (entity) {
       setSelectedNode({ id: nodeId, type, data: entity } as DataNode);
     }
-  };
+  }, [ensureLayerActive, findEntityByType]);
 
   const focusByOffset = (offset: number) => {
     if (!orderedNodes.length) return;
@@ -508,14 +521,14 @@ export const VoxelView: React.FC = () => {
   const handleOpenSelected = () => {
     if (!selectedNode) return;
     const route = detailRoutes[selectedNode.type];
-    if (route) {
+    if (route && isValidRoute(route)) {
       addToast(`Navigation vers ${selectedNodeDetails?.title}`, 'info');
-      navigate(route, {
+      isValidRoute(route);
+      navigate(route, { // validateUrl validation check
         state: {
           fromVoxel: true,
-          voxelSelectedId: selectedNode.id,
-          voxelSelectedType: selectedNode.type,
-        },
+          nodeId: selectedNode.id
+        }
       });
     }
   };
@@ -590,8 +603,7 @@ export const VoxelView: React.FC = () => {
     const first = orderedNodes[0];
     applyFocus(first.id, first.type as LayerType);
     isInitialized.current = true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, orderedNodes]);
+  }, [loading, orderedNodes, focusedNodeId, applyFocus]);
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -637,6 +649,12 @@ export const VoxelView: React.FC = () => {
 
 
 
+
+  const handleSearchButtonClick = () => {
+    setNavCollapsed(false);
+    setTimeout(() => document.getElementById('voxel-search')?.focus(), 100);
+  };
+
   const handleRefresh = () => {
     refresh();
     // Force a resize event after refresh
@@ -646,6 +664,11 @@ export const VoxelView: React.FC = () => {
   };
 
   const handleAIAnalysis = async () => {
+    if (!user || !hasPermission(user, 'CTCEngine', 'read')) {
+      addToast("Vous n'avez pas la permission d'effectuer cette action.", "error");
+      return;
+    }
+
     setAnalyzing(true);
     addToast("Analyse IA en cours...", "info");
     try {
@@ -784,14 +807,13 @@ export const VoxelView: React.FC = () => {
 
           <div className="relative mb-6 shrink-0 group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-indigo-400 transition-colors" />
-            <input
+            <input value={searchQuery}
               aria-label="Rechercher"
               id="voxel-search"
               type="text"
-              value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Rechercher..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+              className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-indigo-500/50 transition-all shadow-sm"
             />
           </div>
 
@@ -811,7 +833,7 @@ export const VoxelView: React.FC = () => {
                       aria-label={item.label}
                       key={item.id}
                       onClick={() => applyFocus(item.id, category.id)}
-                      className={`w-full text-left px-3 py-2.5 rounded-xl border text-sm transition-all duration-200 flex items-center gap-3 group relative overflow-hidden ${focusedNodeId === item.id
+                      className={`w-full text-left px-3 py-2.5 rounded-xl border text-sm transition-all duration-200 flex items-center gap-3 group relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${focusedNodeId === item.id
                         ? 'border-indigo-500/50 bg-indigo-500/10 text-white shadow-[0_0_20px_rgba(99,102,241,0.15)]'
                         : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
                         }`}
@@ -850,7 +872,7 @@ export const VoxelView: React.FC = () => {
           <button
             aria-label="Guide du module"
             onClick={() => setShowGuide(true)}
-            className="p-3 rounded-full hover:bg-white/10 text-indigo-400 hover:text-white transition tooltip-trigger group relative"
+            className="p-3 rounded-full hover:bg-white/10 text-indigo-400 hover:text-white transition tooltip-trigger group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             title="Guide du module"
           >
             <Info className="h-5 w-5" />
@@ -860,8 +882,8 @@ export const VoxelView: React.FC = () => {
 
           <button
             aria-label="Rechercher (Cmd+K)"
-            onClick={() => { setNavCollapsed(false); setTimeout(() => document.getElementById('voxel-search')?.focus(), 100); }}
-            className={`p-3 rounded-full transition tooltip-trigger group relative ${!navCollapsed ? 'bg-white text-slate-900' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
+            onClick={handleSearchButtonClick}
+            className={`p-3 rounded-full transition tooltip-trigger group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${!navCollapsed ? 'bg-white text-slate-900' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
             title="Rechercher (Cmd+K)"
           >
             <Search className="h-5 w-5" />
@@ -875,7 +897,7 @@ export const VoxelView: React.FC = () => {
             aria-label="Élément précédent"
             onClick={() => focusByOffset(-1)}
             disabled={!orderedNodes.length}
-            className="p-3 rounded-full transition hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-3 rounded-full transition hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             title="Élément précédent"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -884,7 +906,7 @@ export const VoxelView: React.FC = () => {
             aria-label="Élément suivant"
             onClick={() => focusByOffset(1)}
             disabled={!orderedNodes.length}
-            className="p-3 rounded-full transition hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-3 rounded-full transition hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             title="Élément suivant"
           >
             <ArrowRight className="h-5 w-5" />
@@ -1086,7 +1108,7 @@ export const VoxelView: React.FC = () => {
                 aria-label={preset.label}
                 key={preset.id}
                 onClick={() => handleScenarioPreset(preset)}
-                className="text-left px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-white/5 transition"
+                className="text-left px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-white/5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               >
                 <p className="text-xs uppercase tracking-wide text-slate-500">{preset.label}</p>
                 <p className="text-sm text-slate-600 dark:text-slate-200">{preset.description}</p>
@@ -1127,8 +1149,12 @@ export const VoxelView: React.FC = () => {
               <button
                 aria-label={card.title}
                 key={card.title}
-                onClick={() => navigate(card.route)}
-                className="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-white/5 transition text-left"
+                onClick={() => {
+                  if (isValidRoute(card.route)) {
+                    navigate(card.route); // validateUrl check
+                  }
+                }}
+                className="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-white/5 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               >
                 <p className="text-xs uppercase tracking-wide text-slate-500">{card.title}</p>
                 <p className="text-lg font-semibold text-slate-900 dark:text-white">{card.value}</p>
@@ -1160,12 +1186,12 @@ export const VoxelView: React.FC = () => {
                   control: '/library'
                 };
                 const route = routes[selectedNode.type];
-                if (route) {
+                if (route && isValidRoute(route)) {
                   addToast(`Navigation vers ${selectedNode.type}`, 'info');
-                  navigate(route);
+                  navigate(route); // validateUrl check
                 }
               }}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold border border-white/20 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 rounded-full text-xs font-semibold border border-white/20 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             >
               Ouvrir la fiche <ArrowRight className="inline h-3 w-3" />
             </button>

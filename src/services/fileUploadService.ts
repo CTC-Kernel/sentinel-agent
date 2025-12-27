@@ -63,7 +63,7 @@ export const uploadFile = async (
                 try {
                     const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                     resolve(downloadURL);
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
                 } catch (error) {
                     ErrorLogger.error(error, 'FileUploadService.uploadFile.getDownloadURL');
                     reject(new Error('Failed to get download URL.'));

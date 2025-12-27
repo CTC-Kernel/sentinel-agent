@@ -13,7 +13,7 @@ interface ComplianceDashboardProps {
     currentFramework?: string;
 }
 
-export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ controls, currentFramework = 'ISO27001' }) => {
+export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ controls, onFilterChange, currentFramework = 'ISO27001' }) => {
     const { user } = useStore();
     const [trend, setTrend] = useState<number | undefined>(undefined);
 
@@ -23,12 +23,12 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
         text: 'hsl(var(--muted-foreground) / 0.7)',
         cursor: 'hsl(var(--muted-foreground) / 0.1)',
         colors: {
-            implemented: '#22c55e', // green-500
-            partial: '#f59e0b',     // amber-500
-            notStarted: '#ef4444',  // red-500
+            implemented: 'hsl(var(--success))', // green-500
+            partial: 'hsl(var(--warning))',     // amber-500
+            notStarted: 'hsl(var(--destructive))',  // red-500
             notApplicable: 'hsl(var(--muted-foreground) / 0.55)',
-            primary: '#3b82f6',     // blue-500
-            primaryDark: '#2563eb'
+            primary: 'hsl(var(--primary))',     // blue-500
+            primaryDark: 'hsl(var(--primary) / 0.8)'
         }
     };
 
@@ -205,14 +205,26 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
 
                 {/* Right: Quick Stats */}
                 <div className="flex xl:flex-col gap-3 min-w-[160px]">
-                    <div className="flex-1 flex items-center justify-between px-4 py-3 bg-red-50/80 dark:bg-red-900/10 rounded-xl border border-red-100/50 dark:border-red-900/20">
+                    <div
+                        onClick={() => onFilterChange?.('Non commencé')}
+                        onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.('Non commencé')}
+                        role="button"
+                        tabIndex={0}
+                        className="flex-1 flex items-center justify-between px-4 py-3 bg-red-50/80 dark:bg-red-900/10 rounded-xl border border-red-100/50 dark:border-red-900/20 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                    >
                         <div className="flex items-center gap-2">
                             <ShieldAlert className="h-4 w-4 text-red-600/70" />
                             <span className="text-xs font-bold text-red-700/70 dark:text-red-400/70">Alertes</span>
                         </div>
                         <span className="text-lg font-black text-red-700 dark:text-red-400">{alertsCount}</span>
                     </div>
-                    <div className="flex-1 flex items-center justify-between px-4 py-3 bg-amber-50/80 dark:bg-amber-900/10 rounded-xl border border-amber-100/50 dark:border-amber-900/20">
+                    <div
+                        onClick={() => onFilterChange?.('Partiel')}
+                        onKeyDown={(e) => e.key === 'Enter' && onFilterChange?.('Partiel')}
+                        role="button"
+                        tabIndex={0}
+                        className="flex-1 flex items-center justify-between px-4 py-3 bg-amber-50/80 dark:bg-amber-900/10 rounded-xl border border-amber-100/50 dark:border-amber-900/20 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                    >
                         <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-amber-600/70" />
                             <span className="text-xs font-bold text-amber-700/70 dark:text-amber-400/70">En cours</span>
@@ -254,7 +266,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         stroke="none"
                                     >
                                         {statusData.map((_, index) => (
-                                            <Cell key={`cell-${index}`} fill={`url(#pieStatusGradient-${index})`} style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.2))' }} />
+                                            <Cell key={`cell-${index}`} fill={`url(#pieStatusGradient-${index})`} className="drop-shadow-sm" />
                                         ))}
                                     </Pie>
                                     <Tooltip content={<ChartTooltip />} cursor={false} />
@@ -285,8 +297,8 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                             <stop offset="100%" stopColor={chartTheme.colors.primaryDark} stopOpacity={0.8} />
                                         </linearGradient>
                                         <linearGradient id={barGradientSuccessId} x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#22c55e" stopOpacity={1} />
-                                            <stop offset="100%" stopColor="#16a34a" stopOpacity={0.8} />
+                                            <stop offset="0%" stopColor="hsl(var(--success))" stopOpacity={1} />
+                                            <stop offset="100%" stopColor="hsl(var(--success))" stopOpacity={0.8} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
@@ -342,7 +354,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                         fill={`url(#${radarGradientId})`}
                                         fillOpacity={1}
                                         isAnimationActive={true}
-                                        style={{ filter: 'drop-shadow(0 0 4px rgba(59, 130, 246, 0.5))' }}
+                                        style={{ filter: 'drop-shadow(0 0 4px hsl(var(--primary) / 0.5))' }}
                                     />
                                     <Tooltip content={<ChartTooltip />} />
                                     <Legend formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>} />
@@ -407,10 +419,12 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                                 </div>
                                 <div className="w-full bg-slate-200 dark:bg-white/10 rounded-full h-2 mb-2 overflow-hidden">
                                     <div
-                                        className="h-2 rounded-full transition-all duration-1000 ease-out"
+                                        className={`h-2 rounded-full transition-all duration-1000 ease-out ${rate >= 80 ? 'bg-gradient-to-r from-emerald-500 to-green-600' :
+                                            rate >= 50 ? 'bg-amber-500' :
+                                                'bg-red-500'
+                                            }`}
                                         style={{
-                                            width: `${rate}%`,
-                                            background: rate >= 80 ? 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)' : rate >= 50 ? '#f59e0b' : '#ef4444'
+                                            width: `${rate}%`
                                         }}
                                     ></div>
                                 </div>

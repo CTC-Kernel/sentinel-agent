@@ -50,9 +50,11 @@ export const AuditTrailViewer: React.FC = () => {
         end: new Date()
     });
 
+    const orgId = user?.organizationId;
+
     // Fetch audit logs
     useEffect(() => {
-        if (!user?.organizationId) return;
+        if (!orgId) return;
 
         const fetchLogs = async () => {
             setLoading(true);
@@ -60,11 +62,11 @@ export const AuditTrailViewer: React.FC = () => {
                 const logsRef = collection(db, 'system_logs');
                 const q = query(
                     logsRef,
-                    where('organizationId', '==', user.organizationId),
+                    where('organizationId', '==', orgId),
                     orderBy('timestamp', 'desc'),
                     limit(500)
                 );
-
+                // ... existing logic ...
                 const snapshot = await getDocs(q);
                 const fetchedLogs: AuditLog[] = [];
 
@@ -93,7 +95,7 @@ export const AuditTrailViewer: React.FC = () => {
         };
 
         fetchLogs();
-    }, [user?.organizationId]);
+    }, [orgId]);
 
     // Filter logs
     const filteredLogs = useMemo(() => {
@@ -215,11 +217,9 @@ export const AuditTrailViewer: React.FC = () => {
                     {/* Search */}
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                        <input
+                        <input value={filters.searchQuery} onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
                             type="text"
                             placeholder="Rechercher..."
-                            value={filters.searchQuery}
-                            onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
                             className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             aria-label="Rechercher dans les logs"
                         />
@@ -269,20 +269,16 @@ export const AuditTrailViewer: React.FC = () => {
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                        <input
+                        <input value={dateRange.start.toISOString().split('T')[0]} onChange={(e) => setDateRange({ ...dateRange, start: new Date(e.target.value) })}
                             type="date"
-                            value={dateRange.start.toISOString().split('T')[0]}
-                            onChange={(e) => setDateRange({ ...dateRange, start: new Date(e.target.value) })}
                             className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             aria-label="Date de début"
                         />
                     </div>
                     <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                        <input
+                        <input value={dateRange.end.toISOString().split('T')[0]} onChange={(e) => setDateRange({ ...dateRange, end: new Date(e.target.value) })}
                             type="date"
-                            value={dateRange.end.toISOString().split('T')[0]}
-                            onChange={(e) => setDateRange({ ...dateRange, end: new Date(e.target.value) })}
                             className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             aria-label="Date de fin"
                         />
@@ -420,7 +416,7 @@ export const AuditTrailViewer: React.FC = () => {
                                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Champs modifiés</h4>
                                     <ul className="space-y-1">
                                         {selectedLog.changes.map((change, idx) => (
-                                            <li key={idx} className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                                            <li key={`${idx}-${change}`} className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
                                                 <span className="w-2 h-2 bg-brand-500 rounded-full"></span>
                                                 {change}
                                             </li>

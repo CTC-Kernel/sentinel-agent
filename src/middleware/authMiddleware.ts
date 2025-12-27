@@ -48,6 +48,7 @@ export const authenticate = (requiredRole?: string) => {
       } catch (error: unknown) {
         // Gestion des erreurs spécifiques
         if (error instanceof Error && error.message === 'Invalid or expired token') {
+          logger.warn({ err: error }, 'Invalid or expired token');
           return res.status(401).json({
             error: 'Unauthorized',
             message: 'Invalid or expired token'
@@ -56,6 +57,7 @@ export const authenticate = (requiredRole?: string) => {
         throw error;
       }
     } catch (error) {
+      console.error('Authentication error:', error);
       logger.error({ err: error }, 'Authentication error');
       return res.status(500).json({
         error: 'Authentication Error',
@@ -88,6 +90,7 @@ export const refreshTokenMiddleware = async (
       expiresIn: 900 // 15 minutes en secondes
     });
   } catch (error) {
+    console.error('Token refresh error:', error);
     logger.error({ err: error }, 'Token refresh error');
     res.status(401).json({
       error: 'Unauthorized',

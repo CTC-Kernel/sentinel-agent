@@ -121,6 +121,17 @@ export const AssetForm: React.FC<AssetFormProps> = ({
         }
     }, [initialData, reset]);
 
+    // Accessibility: Handle Escape key to close modal
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && !isLoading) {
+                onCancel();
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [isLoading, onCancel]);
+
     const [isGenerating, setIsGenerating] = React.useState(false);
 
     const handleSelectTemplate = (templateName: string) => {
@@ -322,6 +333,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     value={field.value || ''}
                                     onChange={field.onChange}
                                     placeholder="Sélectionner un fournisseur..."
+                                    error={errors.supplierId?.message}
                                 />
                             )}
                         />
@@ -364,6 +376,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     id="version"
                                     autoComplete="off"
                                     {...field}
+                                    error={errors.version?.message}
                                 />
                             )}
                         />
@@ -376,6 +389,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                         label="Expiration Licence"
                                         value={field.value}
                                         onChange={field.onChange}
+                                        error={errors.licenseExpiry?.message}
                                     />
                                 )}
                             />
@@ -410,6 +424,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     id="role"
                                     autoComplete="organization-title"
                                     {...field}
+                                    error={errors.role?.message}
                                 />
                             )}
                         />
@@ -422,6 +437,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     id="department"
                                     autoComplete="organization"
                                     {...field}
+                                    error={errors.department?.message}
                                 />
                             )}
                         />
@@ -455,6 +471,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     id="sla"
                                     autoComplete="off"
                                     {...field}
+                                    error={errors.serviceDetails?.sla?.message}
                                 />
                             )}
                         />
@@ -467,6 +484,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     id="supportContact"
                                     autoComplete="tel"
                                     {...field}
+                                    error={errors.serviceDetails?.supportContact?.message}
                                 />
                             )}
                         />
@@ -479,6 +497,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     id="hostingLocation"
                                     autoComplete="off"
                                     {...field}
+                                    error={errors.serviceDetails?.hostingLocation?.message}
                                 />
                             )}
                         />
@@ -499,6 +518,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     options={['Numérique', 'Physique', 'Hybride'].map(f => ({ value: f, label: f }))}
                                     value={field.value || 'Numérique'}
                                     onChange={field.onChange}
+                                    error={errors.dataDetails?.format?.message}
                                 />
                             )}
                         />
@@ -511,6 +531,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     options={['Client', 'Employé', 'Financier', 'Propriété Intellectuelle', 'Autre'].map(c => ({ value: c, label: c }))}
                                     value={field.value || 'Autre'}
                                     onChange={field.onChange}
+                                    error={errors.dataDetails?.dataCategory?.message}
                                 />
                             )}
                         />
@@ -523,25 +544,24 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     id="retentionPeriod"
                                     autoComplete="off"
                                     {...field}
+                                    error={errors.dataDetails?.retentionPeriod?.message}
                                 />
                             )}
                         />
                         <div className="flex flex-col gap-4 justify-center md:col-span-2">
                             <label className="flex items-center space-x-3 cursor-pointer group">
-                                <input
+                                <input {...control.register('dataDetails.isEncrypted')}
                                     type="checkbox"
                                     id="isEncrypted"
                                     className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
-                                    {...control.register('dataDetails.isEncrypted')}
                                 />
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
                             </label>
                             <label className="flex items-center space-x-3 cursor-pointer group">
-                                <input
+                                <input {...control.register('dataDetails.hasWorm')}
                                     type="checkbox"
                                     id="hasWorm"
                                     className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
-                                    {...control.register('dataDetails.hasWorm')}
                                 />
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Stockage Immuable (WORM)</span>
                             </label>
@@ -573,6 +593,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                         options={Object.values(Criticality).map(c => ({ value: c, label: c }))}
                                         value={f.value as string}
                                         onChange={f.onChange}
+                                        error={errors[field as keyof AssetFormData]?.message}
                                     />
                                 )}
                             />
@@ -595,21 +616,19 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                 : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
                                 }`}
                         >
-                            <input
+                            <input checked={(watch('scope') || []).includes(scope)} onChange={(e) => {
+                                const current = watch('scope') || [];
+                                if (e.target.checked) {
+                                    setValue('scope', [...current, scope], { shouldDirty: true });
+                                } else {
+                                    setValue('scope', current.filter((s: string) => s !== scope), { shouldDirty: true });
+                                }
+                            }}
                                 type="checkbox"
                                 id={`scope-${scope}`}
                                 name="scope"
                                 className="sr-only peer"
                                 value={scope}
-                                checked={(watch('scope') || []).includes(scope)}
-                                onChange={(e) => {
-                                    const current = watch('scope') || [];
-                                    if (e.target.checked) {
-                                        setValue('scope', [...current, scope], { shouldDirty: true });
-                                    } else {
-                                        setValue('scope', current.filter((s: string) => s !== scope), { shouldDirty: true });
-                                    }
-                                }}
                             />
                             {scope.replace('_', ' ')}
                         </label>
@@ -630,6 +649,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     options={ASSET_LIFECYCLE_STATUSES.map(s => ({ value: s, label: s }))}
                                     value={field.value || 'Neuf'}
                                     onChange={field.onChange}
+                                    error={errors.lifecycleStatus?.message}
                                 />
                             )}
                         />
@@ -643,6 +663,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     label="Date d'achat"
                                     value={field.value}
                                     onChange={field.onChange}
+                                    error={errors.purchaseDate?.message}
                                 />
                             )}
                         />
@@ -656,6 +677,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                     label="Fin de garantie"
                                     value={field.value}
                                     onChange={field.onChange}
+                                    error={errors.warrantyEnd?.message}
                                 />
                             )}
                         />
@@ -667,6 +689,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                             autoComplete="off"
                             label="Prix d'achat (€)"
                             {...control.register('purchasePrice', { valueAsNumber: true })}
+                            error={errors.purchasePrice?.message}
                         />
                     </div>
                 </div>

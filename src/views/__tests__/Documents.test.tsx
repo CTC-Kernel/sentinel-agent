@@ -17,6 +17,27 @@ vi.mock('../../store', () => ({
     }),
 }));
 
+// Mock Headless UI
+vi.mock('@headlessui/react', () => {
+    const MockDialog = ({ children, open, onClose }: { children: React.ReactNode; open: boolean; onClose: () => void }) => (
+        open ? <div data-testid="dialog" onClick={onClose}>{children}</div> : null
+    );
+    // Attach sub-components to the functional component
+    (MockDialog as any).Panel = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+    (MockDialog as any).Title = ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>;
+    (MockDialog as any).Description = ({ children }: { children: React.ReactNode }) => <p>{children}</p>;
+
+    return {
+        Transition: ({ children, show }: { children: React.ReactNode; show?: boolean }) => show ? <div>{children}</div> : null,
+        Dialog: MockDialog,
+        Listbox: {
+            Button: ({ children }: any) => <button>{children}</button>,
+            Options: ({ children }: any) => <ul>{children}</ul>,
+            Option: ({ children }: any) => <li>{children}</li>,
+        }
+    };
+});
+
 // Mock Hooks
 vi.mock('../../hooks/useFirestore', () => ({
     useFirestoreCollection: vi.fn().mockImplementation((collectionName) => {
@@ -107,6 +128,22 @@ vi.mock('framer-motion', () => ({
     },
     AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
+
+vi.mock('@headlessui/react', () => {
+    const MockTransition = ({ show, children }: any) => show ? <>{children}</> : null;
+    MockTransition.Root = MockTransition;
+    MockTransition.Child = ({ children }: any) => <>{children}</>;
+
+    const MockDialog = ({ open, children }: any) => open ? <div>{children}</div> : null;
+    MockDialog.Panel = ({ children }: any) => <div>{children}</div>;
+    MockDialog.Title = ({ children }: any) => <div>{children}</div>;
+    MockDialog.Description = ({ children }: any) => <div>{children}</div>;
+
+    return {
+        Transition: MockTransition,
+        Dialog: MockDialog,
+    };
+});
 
 // ---------------------------------------------------------------------
 // Tests

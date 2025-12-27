@@ -29,14 +29,14 @@ export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({ r
       {/* Header */}
       <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
         {Array.from({ length: columns }).map((_, i) => (
-          <Skeleton key={`header-${i}`} className="h-10" />
+          <Skeleton key={`header-col-${i}`} className="h-10" />
         ))}
       </div>
       {/* Rows */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
-        <div key={`row-${rowIndex}`} className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+        <div key={`table-row-${rowIndex}`} className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
           {Array.from({ length: columns }).map((_, colIndex) => (
-            <Skeleton key={`cell-${rowIndex}-${colIndex}`} className="h-16" />
+            <Skeleton key={`cell-${rowIndex}-col-${colIndex}`} className="h-16" />
           ))}
         </div>
       ))}
@@ -49,7 +49,7 @@ export const CardSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="glass-panel p-6 rounded-[2rem] space-y-4">
+        <div key={`card-skeleton-${i}`} className="glass-panel p-6 rounded-[2rem] space-y-4">
           <div className="flex justify-between items-start">
             <Skeleton variant="circular" className="w-12 h-12" />
             <Skeleton className="w-16 h-6" />
@@ -67,7 +67,7 @@ export const ListSkeleton: React.FC<{ items?: number }> = ({ items = 5 }) => {
   return (
     <div className="space-y-3">
       {Array.from({ length: items }).map((_, i) => (
-        <div key={i} className="glass-panel p-4 rounded-2xl flex items-center space-x-4">
+        <div key={`list-item-skeleton-${i}`} className="glass-panel p-4 rounded-2xl flex items-center space-x-4">
           <Skeleton variant="circular" className="w-12 h-12 flex-shrink-0" />
           <div className="flex-1 space-y-2">
             <Skeleton variant="text" className="w-3/4" />

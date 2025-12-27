@@ -22,16 +22,16 @@ import { usePlanLimits } from '../hooks/usePlanLimits';
 import { useReportsData } from '../hooks/reports/useReportsData';
 import { SEO } from '../components/SEO';
 
-const TABS = [
-    { id: 'templates', label: 'Modèles', icon: FileText },
-    { id: 'generated', label: 'Rapports Générés', icon: Archive },
-    { id: 'scheduled', label: 'Planifiés', icon: History }
-];
-
 export const Reports: React.FC = () => {
     const { user, t, organization } = useStore();
     const [activeTab, setActiveTab] = useState('templates');
     const [loadingAction, setLoadingAction] = useState(false);
+
+    const TABS = [
+        { id: 'templates', label: t('reports.templates'), icon: FileText },
+        { id: 'generated', label: t('reports.history'), icon: Archive },
+        { id: 'scheduled', label: t('reports.scheduled'), icon: History }
+    ];
 
     // Data Hook
     const {
@@ -92,14 +92,14 @@ export const Reports: React.FC = () => {
         >
             <MasterpieceBackground />
             <SEO
-                title={t('sidebar.reports')}
+                title={t('reports.title')}
                 description="Génération de rapports de conformité et d'audit."
             />
 
             <motion.div variants={slideUpVariants}>
                 <PageHeader
-                    title={t('sidebar.reports')}
-                    subtitle="Centralisation et génération des preuves et rapports d'audit."
+                    title={t('reports.title')}
+                    subtitle={t('reports.subtitle')}
                     icon={<FileText className="h-6 w-6 text-white" strokeWidth={2.5} />}
 
                 />
@@ -113,53 +113,119 @@ export const Reports: React.FC = () => {
                 />
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Template Cards Demo */}
-                <div className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group" onClick={() => generatePDF('iso27001', 'Rapport ISO 27001')}>
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-3 bg-brand-100 dark:bg-brand-900/30 rounded-xl text-brand-600 group-hover:scale-110 transition-transform">
-                            <ShieldCheck className="h-6 w-6" />
+            {activeTab === 'templates' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Template Cards Demo */}
+                    <div
+                        className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group"
+                        onClick={() => generatePDF('iso27001', 'Rapport ISO 27001')}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                generatePDF('iso27001', 'Rapport ISO 27001');
+                            }
+                        }}
+                    >
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="p-3 bg-brand-100 dark:bg-brand-900/30 rounded-xl text-brand-600 group-hover:scale-110 transition-transform">
+                                <ShieldCheck className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-slate-900 dark:text-white">Pack ISO 27001</h3>
+                                <p className="text-xs text-slate-500">SoA, Politiques, Risques</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="font-bold text-slate-900 dark:text-white">Pack ISO 27001</h3>
-                            <p className="text-xs text-slate-500">SoA, Politiques, Risques</p>
-                        </div>
+                        <button aria-label="Générer Rapport ISO 27001" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                            Générer
+                        </button>
                     </div>
-                    <button aria-label="Générer Rapport ISO 27001" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors">
-                        Générer
-                    </button>
-                </div>
 
-                <div className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group" onClick={() => generatePDF('gdpr', 'Rapport RGPD')}>
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600 group-hover:scale-110 transition-transform">
-                            <Lock className="h-6 w-6" />
+                    <div
+                        className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group"
+                        onClick={() => generatePDF('gdpr', 'Rapport RGPD')}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                generatePDF('gdpr', 'Rapport RGPD');
+                            }
+                        }}
+                    >
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600 group-hover:scale-110 transition-transform">
+                                <Lock className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-slate-900 dark:text-white">Pack RGPD</h3>
+                                <p className="text-xs text-slate-500">Registre, DPIA, Violations</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="font-bold text-slate-900 dark:text-white">Pack RGPD</h3>
-                            <p className="text-xs text-slate-500">Registre, DPIA, Violations</p>
-                        </div>
+                        <button aria-label="Générer Rapport RGPD" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                            Générer
+                        </button>
                     </div>
-                    <button aria-label="Générer Rapport RGPD" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors">
-                        Générer
-                    </button>
-                </div>
 
-                <div className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group" onClick={() => generatePDF('custom', 'Rapport Personnalisé')}>
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600 group-hover:scale-110 transition-transform">
-                            <Settings className="h-6 w-6" />
+                    <div
+                        className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group"
+                        onClick={() => generatePDF('custom', 'Rapport Personnalisé')}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                generatePDF('custom', 'Rapport Personnalisé');
+                            }
+                        }}
+                    >
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600 group-hover:scale-110 transition-transform">
+                                <Settings className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-slate-900 dark:text-white">Rapport Personnalisé</h3>
+                                <p className="text-xs text-slate-500">Choisissez vos indicateurs</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="font-bold text-slate-900 dark:text-white">Rapport Personnalisé</h3>
-                            <p className="text-xs text-slate-500">Choisissez vos indicateurs</p>
-                        </div>
+                        <button aria-label="Configurer Rapport Personnalisé" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                            Configurer
+                        </button>
                     </div>
-                    <button aria-label="Configurer Rapport Personnalisé" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors">
-                        Configurer
-                    </button>
                 </div>
-            </div>
+            )}
+
+            {activeTab === 'generated' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {documents.filter(d => d.type === 'Rapport').length > 0 ? (
+                        documents.filter(d => d.type === 'Rapport').map(doc => (
+                            <div key={doc.id} className="glass-panel p-6 rounded-2xl border border-white/10">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600">
+                                        <FileText className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-slate-900 dark:text-white">{doc.title}</h3>
+                                        <p className="text-xs text-slate-500">v{doc.version}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="col-span-full text-center py-12 text-slate-500">
+                            Aucun rapport généré pour le moment.
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {activeTab === 'scheduled' && (
+                <div className="text-center py-12 text-slate-500 font-medium bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10">
+                    <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Aucun rapport planifié.</p>
+                </div>
+            )}
 
         </motion.div>
     );

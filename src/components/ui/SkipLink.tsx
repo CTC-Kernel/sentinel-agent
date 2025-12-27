@@ -51,7 +51,7 @@ export const SkipLinks: React.FC<SkipLinksProps> = ({ links }) => {
     <div className="sr-only focus-within:not-sr-only">
       {skipLinks.map((link, index) => (
         <a
-          key={index}
+          key={link.href}
           href={link.href}
           className="
             fixed top-4 z-max
