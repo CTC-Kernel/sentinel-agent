@@ -291,6 +291,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                                 placeholder="Rechercher une entreprise (Sirene/Pappers)..."
                                 className="w-full px-4 py-2 bg-transparent border-b border-slate-200 dark:border-white/10 text-sm focus:border-indigo-500 outline-none transition-colors"
                                 onChange={(e) => handleCompanySearch(e.target.value)}
+                                aria-label="Rechercher une entreprise"
                             />
                             <div className="absolute right-0 top-2 text-slate-500">
                                 {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}

@@ -127,10 +127,10 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                 {roles.map(role => (
                     <div key={role.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative group">
                         <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => handleOpenDrawer(role)} className="p-2 text-slate-500 hover:text-brand-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                            <button onClick={() => handleOpenDrawer(role)} className="p-2 text-slate-500 hover:text-brand-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={`Modifier le rôle ${role.name}`}>
                                 <Edit className="h-4 w-4" />
                             </button>
-                            <button onClick={() => setConfirmDelete({ isOpen: true, roleId: role.id })} className="p-2 text-slate-500 hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
+                            <button onClick={() => setConfirmDelete({ isOpen: true, roleId: role.id })} className="p-2 text-slate-500 hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500" aria-label={`Supprimer le rôle ${role.name}`}>
                                 <Trash2 className="h-4 w-4" />
                             </button>
                         </div>
