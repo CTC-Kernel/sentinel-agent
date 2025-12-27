@@ -94,7 +94,9 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
-                                if (navigate) navigate('/incidents');
+                                if (navigate) {
+                                    navigate('/incidents');
+                                }
                             }
                         }}
                         className="rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/10 dark:to-emerald-900/20 border border-emerald-100/50 dark:border-emerald-900/40 p-3 flex flex-col justify-between hover:scale-[1.02] transition-transform cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
@@ -120,7 +122,9 @@ export const IncidentsStatsWidget: React.FC<IncidentsStatsWidgetProps> = ({ navi
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
-                                if (navigate) navigate('/incidents');
+                                if (navigate) {
+                                    navigate('/incidents');
+                                }
                             }
                         }}
                         className="rounded-xl bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-900/10 dark:to-orange-900/20 border border-orange-100/50 dark:border-orange-900/40 p-3 flex flex-col justify-between hover:scale-[1.02] transition-transform cursor-pointer group/card focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"

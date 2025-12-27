@@ -458,7 +458,7 @@ export const Suppliers: React.FC = () => {
 
 
 
-    const handleCreate: SubmitHandler<SupplierFormData> = async (data) => {
+    const handleCreate: SubmitHandler<SupplierFormData> = useCallback(async (data) => {
         if (!canEdit || !user?.organizationId) return;
         setIsSubmitting(true);
         try {
@@ -469,9 +469,9 @@ export const Suppliers: React.FC = () => {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [canEdit, user, addSupplier]);
 
-    const handleUpdate: SubmitHandler<SupplierFormData> = async (data) => {
+    const handleUpdate: SubmitHandler<SupplierFormData> = useCallback(async (data) => {
         if (!canEdit || !selectedSupplier) return;
         setIsSubmitting(true);
         try {
@@ -482,9 +482,9 @@ export const Suppliers: React.FC = () => {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [canEdit, selectedSupplier, updateSupplier]);
 
-    const handleBulkDelete = async (selectedIds: string[]) => {
+    const handleBulkDelete = useCallback(async (selectedIds: string[]) => {
         if (!canEdit) return;
         if (!window.confirm(t('suppliers.deleteBulk', { count: selectedIds.length }))) return;
 
@@ -494,7 +494,7 @@ export const Suppliers: React.FC = () => {
         } catch (error) {
             ErrorLogger.warn('Bulk delete handled in hook', 'Suppliers.handleBulkDelete', { metadata: { error } });
         }
-    };
+    }, [canEdit, t, deleteSupplier]);
 
 
 

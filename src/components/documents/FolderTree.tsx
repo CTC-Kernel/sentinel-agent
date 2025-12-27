@@ -89,7 +89,11 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
     }, []);
 
     const handleSelectAll = React.useCallback(() => onSelectFolder(null), [onSelectFolder]);
-    const handleSelectAllKeyDown = React.useCallback((e: React.KeyboardEvent) => e.key === 'Enter' && onSelectFolder(null), [onSelectFolder]);
+    const handleSelectAllKeyDown = React.useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            onSelectFolder(null);
+        }
+    }, [onSelectFolder]);
 
     const handleContextMenuOpen = React.useCallback((e: React.MouseEvent, id: string) => {
         e.preventDefault();
@@ -107,7 +111,9 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         if (!contextMenu) return;
         setEditingFolderId(contextMenu.id);
         const folder = folders.find(f => f.id === contextMenu.id);
-        if (folder) setNewFolderName(folder.name);
+        if (folder) {
+            setNewFolderName(folder.name);
+        }
         setContextMenu(null);
     }, [contextMenu, folders]);
 
