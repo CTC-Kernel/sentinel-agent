@@ -74,6 +74,10 @@ export const exportEvidenceRequestsZip = async ({
     }
 };
 
-function renderCSV(folder: any, content: string) {
+interface ZipFolder {
+    file: (name: string, content: string) => void;
+}
+
+function renderCSV(folder: ZipFolder | null, content: string) {
     folder?.file('rapport_demandes.csv', content);
 }

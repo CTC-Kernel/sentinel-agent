@@ -66,7 +66,6 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
 
     useEffect(() => {
         if (!isOpen || !selectedDocument) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setVersions([]);
             setActiveTab('details');
         }

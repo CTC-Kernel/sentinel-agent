@@ -96,7 +96,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'GroupManager.handleSubmit');
         }
-    }, [user?.organizationId, formData, editingGroup, addToast]);
+    }, [user, formData, editingGroup, addToast]);
 
     const handleDelete = useCallback(async () => {
         if (!confirmDelete.groupId) return;

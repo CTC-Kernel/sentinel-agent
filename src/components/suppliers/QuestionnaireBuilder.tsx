@@ -1,11 +1,12 @@
 import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { QuestionnaireTemplate } from '../../types/business';
-import { Plus, Trash2, Save, GripVertical as Grip } from '../ui/Icons';
+import { Plus, Save } from '../ui/Icons';
 import { db } from '../../firebase';
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
+import { SectionEditor } from './QuestionnaireBuilder/SectionEditor';
 
 interface Props {
     initialData?: QuestionnaireTemplate;
@@ -102,7 +103,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                         control={control}
                         register={register}
                         sIndex={sIndex}
-                        onRemove={() => handleRemoveSection(sIndex)}
+                        onRemove={handleRemoveSection}
                     />
                 ))}
             </div>
@@ -144,136 +145,4 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
     );
 };
 
-import { Control, UseFormRegister } from 'react-hook-form';
 
-const SectionEditor = React.memo(({ control, register, sIndex, onRemove }: { control: Control<QuestionnaireTemplate>, register: UseFormRegister<QuestionnaireTemplate>, sIndex: number, onRemove: () => void }) => {
-    const { fields: questions, append, remove } = useFieldArray({
-        control,
-        name: `sections.${sIndex}.questions`
-    });
-
-    const handleAddQuestion = React.useCallback(() => {
-        append({ id: crypto.randomUUID(), text: '', type: 'yes_no', weight: 1, required: true });
-    }, [append]);
-
-    const handleRemoveQuestion = React.useCallback((index: number) => {
-        remove(index);
-    }, [remove]);
-
-    return (
-        <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
-            <div className="flex justify-between items-start mb-4">
-                <div className="flex-1 grid grid-cols-12 gap-4">
-                    <div className="col-span-8">
-                        <label htmlFor={`section-title-${sIndex}`} className="sr-only">Titre de la section</label>
-                        <input
-                            id={`section-title-${sIndex}`}
-                            aria-label="Titre de la section"
-                            {...register(`sections.${sIndex}.title`, { required: true })}
-                            className="w-full text-lg font-bold bg-transparent border-0 border-b border-dashed border-slate-300 focus:border-brand-500 focus:ring-0 px-0"
-                            placeholder="Titre de la section"
-                        />
-                    </div>
-                    <div className="col-span-4">
-                        <label htmlFor={`section-weight-${sIndex}`} className="sr-only">Poids de la section</label>
-                        <input
-                            id={`section-weight-${sIndex}`}
-                            aria-label="Poids de la section"
-                            type="number"
-                            {...register(`sections.${sIndex}.weight`)}
-                            className="w-full bg-transparent border border-slate-200 rounded-lg text-sm px-2 py-1"
-                            placeholder="Poids (ex: 1)"
-                        />
-                    </div>
-                </div>
-                <button
-                    type="button"
-                    aria-label="Supprimer la section"
-                    onClick={onRemove}
-                    className="ml-4 text-slate-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
-                >
-                    <Trash2 className="w-5 h-5" />
-                </button>
-            </div>
-
-            <div className="space-y-3 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
-                {questions.map((q, qIndex) => (
-                    <QuestionItem
-                        key={q.id}
-                        sIndex={sIndex}
-                        qIndex={qIndex}
-                        register={register}
-                        onRemove={handleRemoveQuestion}
-                    />
-                ))}
-
-                <button
-                    type="button"
-                    aria-label="Ajouter une Question"
-                    onClick={handleAddQuestion}
-                    className="text-sm text-brand-600 font-medium hover:text-brand-700 flex items-center mt-2 px-2 py-1 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/10 transition-colors w-fit"
-                >
-                    <Plus className="w-3 h-3 mr-1" />
-                    Ajouter une Question
-                </button>
-            </div>
-        </div>
-    );
-});
-
-const QuestionItem = React.memo(({ sIndex, qIndex, register, onRemove }: { sIndex: number, qIndex: number, register: UseFormRegister<QuestionnaireTemplate>, onRemove: (index: number) => void }) => {
-    const handleRemove = React.useCallback(() => onRemove(qIndex), [onRemove, qIndex]);
-
-    return (
-        <div className="flex gap-4 items-start bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700/50 group hover:border-brand-200 dark:hover:border-brand-900/30 transition-colors">
-            <div className="mt-2 text-slate-300 group-hover:text-slate-400 transition-colors">
-                <Grip className="w-4 h-4 cursor-grab" />
-            </div>
-            <div className="flex-1 grid grid-cols-1 gap-3">
-                <label htmlFor={`question-text-${sIndex}-${qIndex}`} className="sr-only">Question</label>
-                <input
-                    id={`question-text-${sIndex}-${qIndex}`}
-                    aria-label="Question"
-                    {...register(`sections.${sIndex}.questions.${qIndex}.text`, { required: true })}
-                    className="w-full px-3 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-shadow"
-                    placeholder="Question..."
-                />
-                <div className="flex gap-3">
-                    <div className="flex-1">
-                        <label htmlFor={`question-type-${sIndex}-${qIndex}`} className="sr-only">Type de question</label>
-                        <select
-                            id={`question-type-${sIndex}-${qIndex}`}
-                            aria-label="Type de question"
-                            {...register(`sections.${sIndex}.questions.${qIndex}.type`)}
-                            className="w-full px-3 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg text-slate-600 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-shadow"
-                        >
-                            <option value="yes_no">Oui / Non</option>
-                            <option value="text">Texte Libre</option>
-                            <option value="rating">Score (1-5)</option>
-                            <option value="multiple_choice">Choix Multiples</option>
-                        </select>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <label htmlFor={`question-weight-${sIndex}-${qIndex}`} className="text-xs text-slate-500 whitespace-nowrap">Poids:</label>
-                        <input
-                            id={`question-weight-${sIndex}-${qIndex}`}
-                            aria-label="Poids de la question"
-                            type="number"
-                            {...register(`sections.${sIndex}.questions.${qIndex}.weight`)}
-                            className="w-16 px-2 py-1.5 text-sm bg-transparent border border-slate-200 rounded-lg focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-shadow"
-                            defaultValue={1}
-                        />
-                    </div>
-                </div>
-            </div>
-            <button
-                type="button"
-                aria-label="Supprimer la question"
-                onClick={handleRemove}
-                className="text-slate-300 hover:text-red-500 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-            >
-                <Trash2 className="w-4 h-4" />
-            </button>
-        </div>
-    );
-});
