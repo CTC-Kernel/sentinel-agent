@@ -33,7 +33,10 @@ vi.mock('firebase/functions', () => {
 });
 
 // Mock Local Firebase Module
-vi.mock('../../firebase', () => {
+// Mock Local Firebase Module
+vi.mock('../../firebase', async (importOriginal) => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+    const actual = await importOriginal<typeof import('../../firebase')>();
     const mockAuth = {
         currentUser: null,
         signOut: vi.fn(),
@@ -42,24 +45,20 @@ vi.mock('../../firebase', () => {
             return vi.fn(); // Unsubscribe
         })
     };
-    const mockFunctions = {};
-    const mockAnalytics = { app: {} };
 
     return {
+        ...actual,
         __esModule: true,
         auth: mockAuth,
-        functions: mockFunctions,
-        analytics: mockAnalytics,
-        db: {},
-        storage: {},
-        messages: {},
+        functions: {},
+        analytics: { app: {} },
         isAppCheckFailed: false,
         debugGetAppCheckTokenSnippet: vi.fn(),
-        // Default export often needed for interop
         default: {
+            ...actual,
             auth: mockAuth,
-            functions: mockFunctions,
-            analytics: mockAnalytics,
+            functions: {},
+            analytics: { app: {} },
         }
     };
 });
