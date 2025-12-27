@@ -131,7 +131,7 @@ export const RiskList = React.memo<RiskListProps>(({
                                 </button>
                             </CustomTooltip>
                             <CustomTooltip content="Supprimer le risque">
-                                <button onClick={() => onDelete(row.original.id, row.original.threat)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                                <button onClick={() => onDelete(row.original.id, row.original.threat)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={`Supprimer le risque ${row.original.threat}`}>
                                     <Trash2 className="h-4 w-4" />
                                 </button>
                             </CustomTooltip>

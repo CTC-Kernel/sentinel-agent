@@ -108,6 +108,22 @@ vi.mock('framer-motion', () => ({
     AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
+vi.mock('@headlessui/react', () => {
+    const MockTransition = ({ show, children }: any) => show ? <>{children}</> : null;
+    MockTransition.Root = MockTransition;
+    MockTransition.Child = ({ children }: any) => <>{children}</>;
+
+    const MockDialog = ({ open, children }: any) => open ? <div>{children}</div> : null;
+    MockDialog.Panel = ({ children }: any) => <div>{children}</div>;
+    MockDialog.Title = ({ children }: any) => <div>{children}</div>;
+    MockDialog.Description = ({ children }: any) => <div>{children}</div>;
+
+    return {
+        Transition: MockTransition,
+        Dialog: MockDialog,
+    };
+});
+
 // ---------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------

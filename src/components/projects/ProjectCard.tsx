@@ -60,7 +60,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                         {canEdit && (
                             <>
                                 <ProjectCardTooltip content="Dupliquer">
-                                    <button onClick={(e) => { e.stopPropagation(); onDuplicate(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-brand-500 shadow-sm backdrop-blur-sm transition-colors border border-slate-200 dark:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                                    <button onClick={(e) => { e.stopPropagation(); onDuplicate(project); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-brand-500 shadow-sm backdrop-blur-sm transition-colors border border-slate-200 dark:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={`Dupliquer le projet ${project.name}`}>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
                                     </button>
                                 </ProjectCardTooltip>
@@ -71,7 +71,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                                 </ProjectCardTooltip>
                                 {canDeleteResource(user, 'Project') && (
                                     <ProjectCardTooltip content="Supprimer">
-                                        <button onClick={(e) => { e.stopPropagation(); onDelete(project.id, project.name); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors border border-slate-200 dark:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                                        <button onClick={(e) => { e.stopPropagation(); onDelete(project.id, project.name); }} className="p-1.5 bg-white/80 dark:bg-slate-800/80 rounded-lg text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors border border-slate-200 dark:border-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={`Supprimer le projet ${project.name}`}>
                                             <Trash2 className="h-3.5 w-3.5" />
                                         </button>
                                     </ProjectCardTooltip>

@@ -133,7 +133,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                             </CustomTooltip>
                             {canDeleteResource(user, 'Project') && (
                                 <CustomTooltip content={t('projects.tooltips.delete')}>
-                                    <button onClick={(e) => { e.stopPropagation(); onDelete(row.original.id, row.original.name); }} className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                                    <button onClick={(e) => { e.stopPropagation(); onDelete(row.original.id, row.original.name); }} className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={`Supprimer le projet ${row.original.name}`}>
                                         <Trash2 className="h-4 w-4" />
                                     </button>
                                 </CustomTooltip>
