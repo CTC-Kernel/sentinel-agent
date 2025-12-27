@@ -340,10 +340,8 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                     <span className="text-xs text-green-700 dark:text-green-400 font-medium truncate flex-1">{uploadedFileUrl.split('/').pop()}</span>
                                     <div className="flex items-center gap-2">
                                         <label className="flex items-center gap-1 cursor-pointer">
-                                            <input
+                                            <input checked={uploadedFileSecure} onChange={e => setUploadedFileSecure(e.target.checked)}
                                                 type="checkbox"
-                                                checked={uploadedFileSecure}
-                                                onChange={e => setUploadedFileSecure(e.target.checked)}
                                                 className="rounded text-blue-600 focus:ring-blue-500"
                                             />
                                             <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">Sécurisé</span>

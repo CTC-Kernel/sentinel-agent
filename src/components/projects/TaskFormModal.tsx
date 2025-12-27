@@ -291,11 +291,10 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             <Target className="h-3.5 w-3.5" />
                             Progression ({progress}%)
                         </label>
-                        <input
+                        <input {...register('progress', { valueAsNumber: true })}
                             type="range"
                             min="0"
                             max="100"
-                            {...register('progress', { valueAsNumber: true })}
                             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         />
                         {errors.progress && <p className="text-red-500 text-xs mt-1">{errors.progress.message}</p>}

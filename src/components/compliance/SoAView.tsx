@@ -82,11 +82,9 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, handlers }) =
                                     </td>
                                     <td className="px-4 py-3">
                                         <label className="relative inline-flex items-center cursor-pointer">
-                                            <input
+                                            <input checked={!isNonApplicable} onChange={(e) => handlers.handleApplicabilityChange(control, e.target.checked)}
                                                 type="checkbox"
                                                 className="sr-only peer"
-                                                checked={!isNonApplicable}
-                                                onChange={(e) => handlers.handleApplicabilityChange(control, e.target.checked)}
                                             />
                                             <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                                         </label>
@@ -108,14 +106,8 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, handlers }) =
                                         ) : <span className="text-slate-400">-</span>}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <input
+                                        <input defaultValue={control.justification || ''} onBlur={(e) => { if (e.target.value !== control.justification) handlers.updateJustification(control, e.target.value); }}
                                             type="text"
-                                            defaultValue={control.justification || ''}
-                                            onBlur={(e) => {
-                                                if (e.target.value !== control.justification) {
-                                                    handlers.updateJustification(control, e.target.value);
-                                                }
-                                            }}
                                             className={`bg-transparent text-xs w-full focus:ring-1 focus:ring-brand-500 rounded px-2 py-1 transition-colors ${missingJustification
                                                 ? 'border border-red-500 bg-red-50 dark:bg-red-900/10 placeholder-red-400'
                                                 : 'border-none placeholder-slate-400'

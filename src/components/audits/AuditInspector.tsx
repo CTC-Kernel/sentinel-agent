@@ -205,8 +205,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                                                     <CustomTooltip content="Joindre une preuve">
                                                         <label className={`cursor-pointer p-1 transition-colors focus-within:ring-2 focus-within:ring-brand-500 rounded ${uploadingFindingId === f.id ? 'text-indigo-500 animate-pulse' : 'text-slate-400 hover:text-indigo-500'}`}>
                                                             {uploadingFindingId === f.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                                                            <input
-                                                                type="file"
+                                                            <input type="file"
                                                                 aria-label="Upload de preuve pour le constat"
                                                                 className="hidden"
                                                                 onChange={(e) => handleFileUpload(e, f.id)}

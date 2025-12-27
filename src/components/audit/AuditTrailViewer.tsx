@@ -217,11 +217,9 @@ export const AuditTrailViewer: React.FC = () => {
                     {/* Search */}
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                        <input
+                        <input value={filters.searchQuery} onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
                             type="text"
                             placeholder="Rechercher..."
-                            value={filters.searchQuery}
-                            onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
                             className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             aria-label="Rechercher dans les logs"
                         />
@@ -271,20 +269,16 @@ export const AuditTrailViewer: React.FC = () => {
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                        <input
+                        <input value={dateRange.start.toISOString().split('T')[0]} onChange={(e) => setDateRange({ ...dateRange, start: new Date(e.target.value) })}
                             type="date"
-                            value={dateRange.start.toISOString().split('T')[0]}
-                            onChange={(e) => setDateRange({ ...dateRange, start: new Date(e.target.value) })}
                             className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             aria-label="Date de début"
                         />
                     </div>
                     <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                        <input
+                        <input value={dateRange.end.toISOString().split('T')[0]} onChange={(e) => setDateRange({ ...dateRange, end: new Date(e.target.value) })}
                             type="date"
-                            value={dateRange.end.toISOString().split('T')[0]}
-                            onChange={(e) => setDateRange({ ...dateRange, end: new Date(e.target.value) })}
                             className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             aria-label="Date de fin"
                         />

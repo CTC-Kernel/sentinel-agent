@@ -276,10 +276,8 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
                                                 </div>
                                                 <div className="flex items-center gap-4">
                                                     <label className="flex items-center gap-2 cursor-pointer select-none">
-                                                        <input
+                                                        <input checked={uploadedFileSecure} onChange={e => setUploadedFileSecure(e.target.checked)}
                                                             type="checkbox"
-                                                            checked={uploadedFileSecure}
-                                                            onChange={e => setUploadedFileSecure(e.target.checked)}
                                                             className="rounded text-brand-600 focus:ring-brand-500"
                                                         />
                                                         <span className="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">

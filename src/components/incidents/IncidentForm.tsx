@@ -86,10 +86,9 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                 {/* NIS 2 Section */}
                 <div className="bg-red-50/50 dark:bg-red-900/10 p-6 rounded-3xl border border-red-100 dark:border-red-900/30 space-y-4">
                     <div className="flex items-center space-x-3">
-                        <input
+                        <input {...register('isSignificant')}
                             type="checkbox"
                             className="h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300"
-                            {...register('isSignificant')}
                         />
                         <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center">
                             <ShieldAlert className="h-4 w-4 mr-2 text-red-500" />

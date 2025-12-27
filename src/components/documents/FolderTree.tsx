@@ -180,11 +180,9 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
                         <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white relative z-10">Nouveau Dossier</h3>
                         <form onSubmit={handleCreateSubmit}>
-                            <input
+                            <input value={newFolderName} onChange={handleNameInputChange}
                                 aria-label="Nom du nouveau dossier"
                                 type="text"
-                                value={newFolderName}
-                                onChange={handleNameInputChange}
                                 placeholder="Nom du dossier"
                                 className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 mb-4 focus:ring-2 focus:ring-brand-500 outline-none"
                                 autoFocus
@@ -331,13 +329,9 @@ const FolderNode = React.memo(({
                 </button>
 
                 {isEditing ? (
-                    <input
+                    <input value={newFolderName} onChange={handleInputChange} onBlur={handleUpdateBlur} onKeyDown={handleUpdateKeyDown}
                         aria-label="Renommer le dossier"
                         type="text"
-                        value={newFolderName}
-                        onChange={handleInputChange}
-                        onBlur={handleUpdateBlur}
-                        onKeyDown={handleUpdateKeyDown}
                         autoFocus
                         className="flex-1 bg-white dark:bg-slate-800 border border-brand-500 rounded px-2 py-0.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                         onClick={(e) => e.stopPropagation()}

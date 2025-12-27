@@ -259,12 +259,10 @@ export const CommandPalette: React.FC = () => {
                 <div className="flex items-center px-6 py-5 border-b border-white/10 relative z-10">
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent pointer-events-none" />
                     <Search className="h-5 w-5 text-brand-500 mr-4 font-bold" />
-                    <input
+                    <input value={queryStr} onChange={e => setQueryStr(e.target.value)}
                         type="text"
                         placeholder={t('commandPalette.placeholder')}
                         className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-slate-900 dark:text-white placeholder-slate-400 outline-none font-medium h-auto py-0"
-                        value={queryStr}
-                        onChange={e => setQueryStr(e.target.value)}
                         autoFocus
                     />
                     <div className="hidden sm:flex items-center gap-2">

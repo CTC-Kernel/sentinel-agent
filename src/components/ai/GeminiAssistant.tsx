@@ -485,11 +485,9 @@ export const GeminiAssistant: React.FC = () => {
             <form onSubmit={(e) => handleSend(e)} className="p-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border-t border-slate-100 dark:border-white/5">
                 <div className="relative flex items-center gap-2">
                     <div className="relative flex-1">
-                        <input
+                        <input value={input} onChange={(e) => setInput(e.target.value)}
                             ref={inputRef}
                             type="text"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                     e.preventDefault();

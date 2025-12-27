@@ -147,9 +147,8 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                     Nom du Projet *
                                 </label>
-                                <input
+                                <input {...register('projectName')}
                                     type="text"
-                                    {...register('projectName')}
                                     placeholder="Ex: Certification ISO 27001 2025"
                                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                                 />
@@ -160,9 +159,8 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({ isOpen, onClose, o
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                     Date de Début *
                                 </label>
-                                <input
+                                <input {...register('startDate')}
                                     type="date"
-                                    {...register('startDate')}
                                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                                 />
                                 {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate.message}</p>}

@@ -38,18 +38,16 @@ export const AuditsList: React.FC<AuditsListProps> = ({
             id: 'select',
             header: ({ table }) => (
                 <div className="px-1">
-                    <input
+                    <input checked={table.getIsAllPageRowsSelected()} onChange={(e) => {
+                        const allIds = audits.map(a => a.id);
+                        if (e.target.checked) {
+                            onSelect?.(allIds);
+                        } else {
+                            onSelect?.([]);
+                        }
+                    }} // Simplified logic, ideally DataTable should handle this but we are bypassing for strict control
                         type="checkbox"
                         disabled={!onSelect}
-                        checked={table.getIsAllPageRowsSelected()}
-                        onChange={(e) => {
-                            const allIds = audits.map(a => a.id);
-                            if (e.target.checked) {
-                                onSelect?.(allIds);
-                            } else {
-                                onSelect?.([]);
-                            }
-                        }} // Simplified logic, ideally DataTable should handle this but we are bypassing for strict control
                         className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
                         aria-label="Tout sélectionner"
                     />
@@ -57,17 +55,15 @@ export const AuditsList: React.FC<AuditsListProps> = ({
             ),
             cell: ({ row }) => (
                 <div className="px-1">
-                    <input
+                    <input checked={selectedIds.includes(row.original.id)} onChange={(e) => {
+                        if (e.target.checked) {
+                            onSelect?.([...selectedIds, row.original.id]);
+                        } else {
+                            onSelect?.(selectedIds.filter(id => id !== row.original.id));
+                        }
+                    }}
                         type="checkbox"
-                        checked={selectedIds.includes(row.original.id)}
                         disabled={!onSelect}
-                        onChange={(e) => {
-                            if (e.target.checked) {
-                                onSelect?.([...selectedIds, row.original.id]);
-                            } else {
-                                onSelect?.(selectedIds.filter(id => id !== row.original.id));
-                            }
-                        }}
                         className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
                         aria-label={`Sélectionner l'audit ${row.original.name}`}
                     />

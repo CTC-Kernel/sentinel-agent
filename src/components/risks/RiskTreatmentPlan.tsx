@@ -156,10 +156,8 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Échéance (SLA)</label>
                     <div className="relative group">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
-                        <input
+                        <input value={treatment.dueDate || ''} onChange={(e) => handleChange('dueDate', e.target.value)}
                             type="date"
-                            value={treatment.dueDate || ''}
-                            onChange={(e) => handleChange('dueDate', e.target.value)}
                             className={`w-full pl-10 pr-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none ${treatment.slaStatus === 'Breached' ? 'border-red-500 text-red-600' : ''
                                 }`}
                         />
@@ -177,10 +175,8 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                     <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Coût Estimé (€)</label>
                     <div className="relative group">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold group-focus-within:text-brand-500 transition-colors">€</span>
-                        <input
+                        <input value={treatment.estimatedCost || ''} onChange={(e) => handleChange('estimatedCost', parseFloat(e.target.value))}
                             type="number"
-                            value={treatment.estimatedCost || ''}
-                            onChange={(e) => handleChange('estimatedCost', parseFloat(e.target.value))}
                             className="w-full pl-8 pr-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 text-sm p-3 font-medium transition-all focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none placeholder:text-slate-400"
                             placeholder="0.00"
                             min="0"

@@ -93,11 +93,9 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6 rounded-2xl border border-brand-500/30">
                     <h3 className="font-bold mb-4">Nouvelle Stratégie</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <input
+                        <input value={newStrategy.title || ''} onChange={e => setNewStrategy({ ...newStrategy, title: e.target.value })}
                             placeholder="Titre (ex: Réplication S3 Cross-Region)"
                             className="input-field focus:outline-none focus:ring-2 focus:ring-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500"
-                            value={newStrategy.title || ''}
-                            onChange={e => setNewStrategy({ ...newStrategy, title: e.target.value })}
                         />
                         <select
                             className="input-field focus:outline-none focus:ring-2 focus:ring-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500"
@@ -113,11 +111,11 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                         <div className="flex gap-2">
                             <div className="flex-1 relative">
                                 <Clock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                                <input placeholder="RTO (ex: 4h)" className="input-field pl-10 focus:outline-none focus:ring-2 focus:ring-brand-500" value={newStrategy.rto || ''} onChange={e => setNewStrategy({ ...newStrategy, rto: e.target.value })} />
+                                <input value={newStrategy.rto || ''} onChange={e => setNewStrategy({ ...newStrategy, rto: e.target.value })} placeholder="RTO (ex: 4h)" className="input-field pl-10 focus:outline-none focus:ring-2 focus:ring-brand-500" />
                             </div>
                             <div className="flex-1 relative">
                                 <DatabaseIcon className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                                <input placeholder="RPO (ex: 15min)" className="input-field pl-10 focus:outline-none focus:ring-2 focus:ring-brand-500" value={newStrategy.rpo || ''} onChange={e => setNewStrategy({ ...newStrategy, rpo: e.target.value })} />
+                                <input value={newStrategy.rpo || ''} onChange={e => setNewStrategy({ ...newStrategy, rpo: e.target.value })} placeholder="RPO (ex: 15min)" className="input-field pl-10 focus:outline-none focus:ring-2 focus:ring-brand-500" />
                             </div>
                         </div>
                         <select

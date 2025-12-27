@@ -120,13 +120,11 @@ export const ApprovalFlow: React.FC<ApprovalFlowProps> = ({ document, users, onP
                             </select>
                             <p className="text-[10px] text-slate-500 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs.</p>
                         </div>
-                        <input
+                        <input value={comment} onChange={(e) => setComment(e.target.value)}
                             aria-label="Message pour les réviseurs"
                             type="text"
                             placeholder="Message pour les réviseurs..."
                             className="w-full text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
                         />
                         <div className="flex justify-end gap-2">
                             <button aria-label="Annuler la soumission" onClick={() => setActionView('none')} className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded">Annuler</button>

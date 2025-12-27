@@ -550,20 +550,18 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                         />
                         <div className="flex flex-col gap-4 justify-center md:col-span-2">
                             <label className="flex items-center space-x-3 cursor-pointer group">
-                                <input
+                                <input {...control.register('dataDetails.isEncrypted')}
                                     type="checkbox"
                                     id="isEncrypted"
                                     className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
-                                    {...control.register('dataDetails.isEncrypted')}
                                 />
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
                             </label>
                             <label className="flex items-center space-x-3 cursor-pointer group">
-                                <input
+                                <input {...control.register('dataDetails.hasWorm')}
                                     type="checkbox"
                                     id="hasWorm"
                                     className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
-                                    {...control.register('dataDetails.hasWorm')}
                                 />
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Stockage Immuable (WORM)</span>
                             </label>
@@ -618,21 +616,19 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                 : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
                                 }`}
                         >
-                            <input
+                            <input checked={(watch('scope') || []).includes(scope)} onChange={(e) => {
+                                const current = watch('scope') || [];
+                                if (e.target.checked) {
+                                    setValue('scope', [...current, scope], { shouldDirty: true });
+                                } else {
+                                    setValue('scope', current.filter((s: string) => s !== scope), { shouldDirty: true });
+                                }
+                            }}
                                 type="checkbox"
                                 id={`scope-${scope}`}
                                 name="scope"
                                 className="sr-only peer"
                                 value={scope}
-                                checked={(watch('scope') || []).includes(scope)}
-                                onChange={(e) => {
-                                    const current = watch('scope') || [];
-                                    if (e.target.checked) {
-                                        setValue('scope', [...current, scope], { shouldDirty: true });
-                                    } else {
-                                        setValue('scope', current.filter((s: string) => s !== scope), { shouldDirty: true });
-                                    }
-                                }}
                             />
                             {scope.replace('_', ' ')}
                         </label>

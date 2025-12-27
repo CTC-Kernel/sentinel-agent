@@ -335,11 +335,9 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                             <div className="space-y-4">
                                 <h3 className="text-lg font-bold">MITRE ATT&CK</h3>
                                 <div className="flex gap-2">
-                                    <input
+                                    <input value={mitreQuery} onChange={handleMitreQueryChange}
                                         className="flex-1 px-4 py-2 border rounded-xl"
                                         placeholder="Rechercher une technique..."
-                                        value={mitreQuery}
-                                        onChange={handleMitreQueryChange}
                                     />
                                     <button
                                         aria-label="Rechercher"
