@@ -103,6 +103,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                 onClick={onDelete}
                                 className="p-2 text-slate-500 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                 title="Supprimer"
+                                aria-label="Supprimer le document"
                             >
                                 <Trash2 className="h-5 w-5" />
                             </button>

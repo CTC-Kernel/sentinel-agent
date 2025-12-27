@@ -140,6 +140,7 @@ export const ThreatToRiskModal: React.FC<ThreatToRiskModalProps> = ({ isOpen, on
                                                 list="asset-list"
                                                 placeholder="Rechercher un actif..."
                                                 className="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white pl-10 pr-4 py-2.5 outline-none border focus:ring-2 focus:ring-brand-500"
+                                                aria-label="Actif concerné"
                                                 {...register('assetId')}
                                             />
                                             <datalist id="asset-list">

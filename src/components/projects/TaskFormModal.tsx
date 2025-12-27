@@ -296,6 +296,7 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             min="0"
                             max="100"
                             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            aria-label="Progression de la tâche"
                         />
                         {errors.progress && <p className="text-red-500 text-xs mt-1">{errors.progress.message}</p>}
                     </div>

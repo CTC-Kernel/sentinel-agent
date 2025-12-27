@@ -213,6 +213,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                                             value={answers[q.id]?.comment || ''}
                                             onChange={(e) => setAnswers(prev => ({ ...prev, [q.id]: { ...prev[q.id], comment: e.target.value } }))}
                                             className="w-full text-sm bg-transparent border-none focus:ring-0 px-0 text-slate-500 placeholder-slate-400"
+                                            aria-label="Ajouter un commentaire"
                                         />
                                     </div>
                                 </div>

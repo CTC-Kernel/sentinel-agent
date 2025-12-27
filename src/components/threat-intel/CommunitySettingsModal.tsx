@@ -231,6 +231,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                     type="text"
                                                     placeholder="Rechercher une organisation..."
                                                     className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                                                    aria-label="Rechercher une organisation"
                                                 />
                                             </div>
 
