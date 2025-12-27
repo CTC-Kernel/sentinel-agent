@@ -273,7 +273,7 @@
    [35mLogique[0m | Éviter les magic numbers - utiliser des constantes.
    [90m→[0m Magic number détecté - extraire en constante
 
-🟡 [33m[WARNING][0m [36msrc/components/ai/GeminiAssistant.tsx[0m:493
+🟡 [33m[WARNING][0m [36msrc/components/ai/GeminiAssistant.tsx[0m:491
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
@@ -288,10 +288,6 @@
 🟠 [31m[ERROR][0m [36msrc/components/ai/GeminiAssistant.tsx[0m:488
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
-
-🟡 [33m[WARNING][0m [36msrc/components/ai/GeminiAssistant.tsx[0m:488
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🔵 [34m[INFO][0m [36msrc/components/ai/GeminiAssistant.tsx[0m:1
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
@@ -373,7 +369,7 @@
    [35mFormulaires[0m | Les formulaires doivent empêcher la soumission multiple.
    [90m→[0m Formulaire sans e.preventDefault()
 
-🟠 [31m[ERROR][0m [36msrc/components/assets/AssetForm.tsx[0m:621
+🟠 [31m[ERROR][0m [36msrc/components/assets/AssetForm.tsx[0m:619
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
 
@@ -381,11 +377,7 @@
    [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
    [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
-🟡 [33m[WARNING][0m [36msrc/components/assets/AssetForm.tsx[0m:562
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
-🟡 [33m[WARNING][0m [36msrc/components/assets/AssetForm.tsx[0m:621
+🟡 [33m[WARNING][0m [36msrc/components/assets/AssetForm.tsx[0m:561
    [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
    [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
@@ -473,25 +465,13 @@
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
 
-🟠 [31m[ERROR][0m [36msrc/components/audit/AuditTrailViewer.tsx[0m:274
+🟠 [31m[ERROR][0m [36msrc/components/audit/AuditTrailViewer.tsx[0m:272
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
 
-🟠 [31m[ERROR][0m [36msrc/components/audit/AuditTrailViewer.tsx[0m:284
+🟠 [31m[ERROR][0m [36msrc/components/audit/AuditTrailViewer.tsx[0m:280
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
-
-🟡 [33m[WARNING][0m [36msrc/components/audit/AuditTrailViewer.tsx[0m:220
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
-🟡 [33m[WARNING][0m [36msrc/components/audit/AuditTrailViewer.tsx[0m:274
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
-🟡 [33m[WARNING][0m [36msrc/components/audit/AuditTrailViewer.tsx[0m:284
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🔵 [34m[INFO][0m [36msrc/components/audits/AuditAIAssistant.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -545,10 +525,6 @@
    [35mFormulaires[0m | Les formulaires doivent empêcher la soumission multiple.
    [90m→[0m Formulaire sans e.preventDefault()
 
-🟡 [33m[WARNING][0m [36msrc/components/audits/AuditInspector.tsx[0m:208
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
 🟡 [33m[WARNING][0m [36msrc/components/audits/AuditInspector.tsx[0m:1
    [35mInternationalisation[0m | Utiliser Intl.DateTimeFormat ou date-fns pour les dates.
    [90m→[0m Formatage de date sans locale explicite
@@ -585,17 +561,9 @@
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
 
-🟠 [31m[ERROR][0m [36msrc/components/audits/AuditsList.tsx[0m:60
+🟠 [31m[ERROR][0m [36msrc/components/audits/AuditsList.tsx[0m:58
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
-
-🟡 [33m[WARNING][0m [36msrc/components/audits/AuditsList.tsx[0m:41
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
-🟡 [33m[WARNING][0m [36msrc/components/audits/AuditsList.tsx[0m:60
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🟡 [33m[WARNING][0m [36msrc/components/audits/AuditsList.tsx[0m:1
    [35mInternationalisation[0m | Utiliser Intl.DateTimeFormat ou date-fns pour les dates.
@@ -689,14 +657,6 @@
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
 
-🟡 [33m[WARNING][0m [36msrc/components/audits/QuestionnaireBuilder.tsx[0m:186
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
-🟡 [33m[WARNING][0m [36msrc/components/audits/QuestionnaireBuilder.tsx[0m:223
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
 🔵 [34m[INFO][0m [36msrc/components/audits/QuestionnaireBuilder.tsx[0m:1
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
    [90m→[0m Mutation sans update optimiste - UX peut sembler lente
@@ -755,19 +715,7 @@
 
 🔵 [34m[INFO][0m [36msrc/components/audits/QuestionnaireResponse.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
-   [90m→[0m Imbrication profonde détectée (12 niveaux) - utiliser early returns
-
-🟡 [33m[WARNING][0m [36msrc/components/audits/QuestionnaireResponse.tsx[0m:232
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
-🟡 [33m[WARNING][0m [36msrc/components/audits/QuestionnaireResponse.tsx[0m:251
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
-🟡 [33m[WARNING][0m [36msrc/components/audits/QuestionnaireResponse.tsx[0m:273
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
+   [90m→[0m Imbrication profonde détectée (11 niveaux) - utiliser early returns
 
 🔵 [34m[INFO][0m [36msrc/components/audits/QuestionnaireResponse.tsx[0m:1
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
@@ -961,7 +909,7 @@
    [35mTableaux[0m | Les colonnes de tableaux devraient être triables.
    [90m→[0m Tableau sans fonctionnalité de tri
 
-🔵 [34m[INFO][0m [36msrc/components/compliance/SoAView.tsx[0m:91
+🔵 [34m[INFO][0m [36msrc/components/compliance/SoAView.tsx[0m:89
    [35mUX/UI[0m | Utiliser des espacements cohérents (multiples de 4).
    [90m→[0m Espacement non-multiple de 4 (2px)
 
@@ -969,17 +917,9 @@
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (13 niveaux) - utiliser early returns
 
-🟠 [31m[ERROR][0m [36msrc/components/compliance/SoAView.tsx[0m:111
+🟠 [31m[ERROR][0m [36msrc/components/compliance/SoAView.tsx[0m:109
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
-
-🟡 [33m[WARNING][0m [36msrc/components/compliance/SoAView.tsx[0m:85
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
-🟡 [33m[WARNING][0m [36msrc/components/compliance/SoAView.tsx[0m:111
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🟡 [33m[WARNING][0m [36msrc/components/compliance/SoAView.tsx[0m:1
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
@@ -1081,7 +1021,7 @@
    [35mLogique[0m | Éviter les magic numbers - utiliser des constantes.
    [90m→[0m Magic number détecté - extraire en constante
 
-🟡 [33m[WARNING][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:192
+🟡 [33m[WARNING][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:190
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
@@ -1089,17 +1029,13 @@
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
 
-🟠 [31m[ERROR][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:116
+🟠 [31m[ERROR][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:114
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
 
-🟠 [31m[ERROR][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:120
+🟠 [31m[ERROR][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:118
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
-
-🟡 [33m[WARNING][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:96
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🔵 [34m[INFO][0m [36msrc/components/continuity/ContinuityStrategies.tsx[0m:1
    [35mÉtats[0m | Les mutations devraient utiliser des updates optimistes.
@@ -1164,10 +1100,6 @@
 🟠 [31m[ERROR][0m [36msrc/components/continuity/WarRoomModal.tsx[0m:229
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
-
-🟡 [33m[WARNING][0m [36msrc/components/continuity/WarRoomModal.tsx[0m:229
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🟡 [33m[WARNING][0m [36msrc/components/continuity/WarRoomModal.tsx[0m:1
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
@@ -1581,15 +1513,11 @@
    [35mPerformance[0m | Les calculs coûteux devraient utiliser useMemo.
    [90m→[0m Calculs coûteux (filter/map/reduce/sort) sans useMemo
 
-🟡 [33m[WARNING][0m [36msrc/components/documents/ApprovalFlow.tsx[0m:123
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
 🟡 [33m[WARNING][0m [36msrc/components/documents/ApprovalFlow.tsx[0m:1
    [35mInternationalisation[0m | Utiliser Intl.DateTimeFormat ou date-fns pour les dates.
    [90m→[0m Formatage de date sans locale explicite
 
-🟡 [33m[WARNING][0m [36msrc/components/documents/DocumentForm.tsx[0m:369
+🟡 [33m[WARNING][0m [36msrc/components/documents/DocumentForm.tsx[0m:367
    [35mBoutons[0m | Les boutons avec onClick doivent avoir un handler défini (pas inline complexe).
    [90m→[0m onClick avec logique inline trop complexe - extraire dans une fonction
 
@@ -1604,10 +1532,6 @@
 🟠 [31m[ERROR][0m [36msrc/components/documents/DocumentForm.tsx[0m:1
    [35mFormulaires[0m | Les formulaires doivent empêcher la soumission multiple.
    [90m→[0m Formulaire sans e.preventDefault()
-
-🟡 [33m[WARNING][0m [36msrc/components/documents/DocumentForm.tsx[0m:343
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🟡 [33m[WARNING][0m [36msrc/components/documents/DocumentForm.tsx[0m:1
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
@@ -1657,10 +1581,6 @@
    [35mFormulaires[0m | Les formulaires doivent empêcher la soumission multiple.
    [90m→[0m Formulaire sans e.preventDefault()
 
-🟡 [33m[WARNING][0m [36msrc/components/documents/DocumentUploadWizard.tsx[0m:279
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
 🔵 [34m[INFO][0m [36msrc/components/documents/DocumentUploadZone.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (7 niveaux) - utiliser early returns
@@ -1681,7 +1601,7 @@
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟡 [33m[WARNING][0m [36msrc/components/documents/FolderTree.tsx[0m:209
+🟡 [33m[WARNING][0m [36msrc/components/documents/FolderTree.tsx[0m:207
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
@@ -1692,14 +1612,6 @@
 🟠 [31m[ERROR][0m [36msrc/components/documents/FolderTree.tsx[0m:1
    [35mFormulaires[0m | Les erreurs de formulaire doivent être affichées.
    [90m→[0m Formulaire sans affichage d'erreurs de validation
-
-🟡 [33m[WARNING][0m [36msrc/components/documents/FolderTree.tsx[0m:183
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
-🟡 [33m[WARNING][0m [36msrc/components/documents/FolderTree.tsx[0m:334
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🔵 [34m[INFO][0m [36msrc/components/incidents/IncidentAIAssistant.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -1732,10 +1644,6 @@
 🟠 [31m[ERROR][0m [36msrc/components/incidents/IncidentForm.tsx[0m:89
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
-
-🟡 [33m[WARNING][0m [36msrc/components/incidents/IncidentForm.tsx[0m:89
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🔵 [34m[INFO][0m [36msrc/components/incidents/IncidentImportModal.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -1881,17 +1789,13 @@
    [35mSécurité[0m | Valider les URLs avant redirection.
    [90m→[0m Redirection avec URL potentiellement non validée
 
-🟡 [33m[WARNING][0m [36msrc/components/layout/CommandPalette.tsx[0m:292
+🟡 [33m[WARNING][0m [36msrc/components/layout/CommandPalette.tsx[0m:290
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
 🟠 [31m[ERROR][0m [36msrc/components/layout/CommandPalette.tsx[0m:262
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
-
-🟡 [33m[WARNING][0m [36msrc/components/layout/CommandPalette.tsx[0m:262
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🔵 [34m[INFO][0m [36msrc/components/layout/Sidebar.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
@@ -2177,10 +2081,6 @@
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
 
-🟡 [33m[WARNING][0m [36msrc/components/projects/TaskFormModal.tsx[0m:294
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
 🔵 [34m[INFO][0m [36msrc/components/projects/TemplateModal.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (14 niveaux) - utiliser early returns
@@ -2192,14 +2092,6 @@
 🟠 [31m[ERROR][0m [36msrc/components/projects/TemplateModal.tsx[0m:1
    [35mFormulaires[0m | Les formulaires doivent empêcher la soumission multiple.
    [90m→[0m Formulaire sans e.preventDefault()
-
-🟡 [33m[WARNING][0m [36msrc/components/projects/TemplateModal.tsx[0m:150
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
-🟡 [33m[WARNING][0m [36msrc/components/projects/TemplateModal.tsx[0m:163
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🟡 [33m[WARNING][0m [36msrc/components/projects/TemplateModal.tsx[0m:1
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
@@ -2253,10 +2145,6 @@
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
 
-🟡 [33m[WARNING][0m [36msrc/components/risks/RiskFilters.tsx[0m:26
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
 🟠 [31m[ERROR][0m [36msrc/components/risks/RiskForm.tsx[0m:1
    [35mArchitecture[0m | Les Components ne doivent PAS importer Firebase directement (sauf hooks).
    [90m→[0m Import direct de "db" depuis Firebase dans un composant
@@ -2273,7 +2161,7 @@
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
-🟡 [33m[WARNING][0m [36msrc/components/risks/RiskForm.tsx[0m:667
+🟡 [33m[WARNING][0m [36msrc/components/risks/RiskForm.tsx[0m:665
    [35mPerformance[0m | Les callbacks passés en props devraient utiliser useCallback.
    [90m→[0m Callback inline comme prop - utiliser useCallback
 
@@ -2284,10 +2172,6 @@
 🟠 [31m[ERROR][0m [36msrc/components/risks/RiskForm.tsx[0m:1
    [35mFormulaires[0m | Les formulaires doivent empêcher la soumission multiple.
    [90m→[0m Formulaire sans e.preventDefault()
-
-🟡 [33m[WARNING][0m [36msrc/components/risks/RiskForm.tsx[0m:582
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🔵 [34m[INFO][0m [36msrc/components/risks/RiskForm.tsx[0m:1
    [35mImports[0m | Les imports doivent être organisés (React, libs, local).
@@ -2336,10 +2220,6 @@
 🟠 [31m[ERROR][0m [36msrc/components/risks/RiskInspector.tsx[0m:338
    [35mFormulaires[0m | Les inputs doivent avoir des labels associés.
    [90m→[0m Input sans label associé
-
-🟡 [33m[WARNING][0m [36msrc/components/risks/RiskInspector.tsx[0m:338
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🟡 [33m[WARNING][0m [36msrc/components/risks/RiskInspector.tsx[0m:1
    [35mInternationalisation[0m | Utiliser Intl.DateTimeFormat ou date-fns pour les dates.
@@ -2404,14 +2284,6 @@
 🔵 [34m[INFO][0m [36msrc/components/risks/RiskTreatmentPlan.tsx[0m:1
    [35mLogique[0m | Utiliser les early returns pour réduire l'imbrication.
    [90m→[0m Imbrication profonde détectée (8 niveaux) - utiliser early returns
-
-🟡 [33m[WARNING][0m [36msrc/components/risks/RiskTreatmentPlan.tsx[0m:159
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
-
-🟡 [33m[WARNING][0m [36msrc/components/risks/RiskTreatmentPlan.tsx[0m:180
-   [35mFormulaires[0m | Utiliser des controlled inputs avec value et onChange.
-   [90m→[0m Input non-contrôlé - ajouter value={} et onChange={}
 
 🟡 [33m[WARNING][0m [36msrc/components/risks/RiskTreatmentPlan.tsx[0m:1
    [35mÉtats[0m | Les listes/tableaux doivent avoir un empty state.
@@ -5378,7 +5250,7 @@
 📁 Fichiers analysés: 489
 📋 Règles vérifiées: 89
 
-🎯 Total des violations: [31m1341[0m
+🎯 Total des violations: [31m1309[0m
 
 [1mPar catégorie:[0m
   [36mArchitecture[0m: [31m0[0m critical, [31m34[0m error, [33m7[0m warning, [34m0[0m info
@@ -5391,7 +5263,7 @@
   [36mPerformance[0m: [31m0[0m critical, [31m0[0m error, [33m200[0m warning, [34m0[0m info
   [36mTypeScript[0m: [31m0[0m critical, [31m0[0m error, [33m15[0m warning, [34m8[0m info
   [36mReact[0m: [31m0[0m critical, [31m2[0m error, [33m8[0m warning, [34m0[0m info
-  [36mFormulaires[0m: [31m0[0m critical, [31m96[0m error, [33m53[0m warning, [34m0[0m info
+  [36mFormulaires[0m: [31m0[0m critical, [31m96[0m error, [33m21[0m warning, [34m0[0m info
   [36mÉtats[0m: [31m0[0m critical, [31m1[0m error, [33m64[0m warning, [34m52[0m info
   [36mAccessibilité[0m: [31m0[0m critical, [31m3[0m error, [33m19[0m warning, [34m0[0m info
   [36mInternationalisation[0m: [31m0[0m critical, [31m0[0m error, [33m44[0m warning, [34m0[0m info
@@ -5420,13 +5292,13 @@
   4. [35mstate-empty-state[0m: 64 (warning)
   5. [35mfirebase-query-optimization[0m: 59 (warning)
   6. [35mlogic-magic-numbers[0m: 58 (warning)
-  7. [35mform-controlled-inputs[0m: 53 (warning)
-  8. [35mstate-optimistic-update[0m: 52 (info)
-  9. [35mi18n-date-format[0m: 44 (warning)
-  10. [35mform-input-labels[0m: 43 (error)
+  7. [35mstate-optimistic-update[0m: 52 (info)
+  8. [35mi18n-date-format[0m: 44 (warning)
+  9. [35mform-input-labels[0m: 43 (error)
+  10. [35mform-submit-prevention[0m: 36 (error)
 
 [36m══════════════════════════════════════════════════════════════════════[0m
-  🏆 SCORE DE QUALITÉ: [33m69%[0m
+  🏆 SCORE DE QUALITÉ: [33m70%[0m
 [36m══════════════════════════════════════════════════════════════════════[0m
 
 [1m💡 RECOMMANDATIONS PRIORITAIRES:[0m
