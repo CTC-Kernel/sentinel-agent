@@ -7,13 +7,10 @@ import { useForm, Controller } from 'react-hook-form';
 import { useStore } from '../../store';
 import { CalendarService } from '../../services/calendarService';
 import { GoogleCalendarService } from '../../services/googleCalendarService';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { Asset, Risk } from '../../types';
 import { toast } from 'sonner';
-import { ErrorLogger } from '../../services/errorLogger';
+import { useCalendarData } from '../../hooks/calendar/useCalendarData';
 
 interface CreateEventModalProps {
     isOpen: boolean;
@@ -26,9 +23,8 @@ type EventType = 'audit' | 'project' | 'maintenance' | 'drill';
 
 export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, onEventCreated, initialDate }) => {
     const { user } = useStore();
+    const { assets, risks } = useCalendarData();
     const [eventType, setEventType] = useState<EventType>('audit');
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [risks, setRisks] = useState<Risk[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [syncToGoogle, setSyncToGoogle] = useState(false);
     const [isGoogleConnected, setIsGoogleConnected] = useState(false);
@@ -75,27 +71,6 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
             return () => document.removeEventListener('keydown', handleEscape);
         }
     }, [isOpen, isSubmitting, onClose]);
-
-    // Fetch Assets and Risks for linking
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!user?.organizationId) return;
-
-            try {
-                const assetsQuery = query(collection(db, 'assets'), where('organizationId', '==', user.organizationId));
-                const risksQuery = query(collection(db, 'risks'), where('organizationId', '==', user.organizationId));
-
-                const [assetsSnap, risksSnap] = await Promise.all([getDocs(assetsQuery), getDocs(risksQuery)]);
-
-                setAssets(assetsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Asset)));
-                setRisks(risksSnap.docs.map(d => ({ id: d.id, ...d.data() } as Risk)));
-            } catch (error) {
-                ErrorLogger.error(error, "CreateEventModal.fetchData");
-            }
-        };
-
-        if (isOpen) fetchData();
-    }, [isOpen, user?.organizationId]);
 
     interface CreateEventFormData {
         title: string;
