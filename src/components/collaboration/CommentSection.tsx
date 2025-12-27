@@ -147,7 +147,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                     </div>
                 )}
                 <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }} className="relative">
-                    <input
+                    <input aria-label={replyTo ? "Votre réponse" : "Ajouter un commentaire"}
                         type="text"
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
