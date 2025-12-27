@@ -4,7 +4,7 @@ import { useForm, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { processingActivitySchema, ProcessingActivityFormData } from '../schemas/privacySchema';
 import { ProcessingActivity } from '../types';
-import { Plus, Fingerprint, Trash2, Edit, GlobeLock, Scale, FileSpreadsheet, CheckCircle2, Clock, Upload, Shield, AlertOctagon, X, Save, LayoutDashboard, MessageSquare, AlertTriangle, History } from '../components/ui/Icons';
+import { Plus, Fingerprint, Trash2, Edit, GlobeLock, FileSpreadsheet, CheckCircle2, Upload, Shield, AlertOctagon, X, Save, LayoutDashboard, MessageSquare, AlertTriangle, History } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
@@ -29,6 +29,7 @@ import { usePrivacy } from '../hooks/usePrivacy';
 import { usePersistedState } from '../hooks/usePersistedState';
 
 import { toast } from 'sonner';
+import { ActivityCard } from '../components/privacy/ActivityCard';
 
 export const Privacy: React.FC = () => {
     const { user } = useStore();
@@ -164,8 +165,23 @@ export const Privacy: React.FC = () => {
     };
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-
     const filteredActivities = activities.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()));
+
+    const handleAddActivity = React.useCallback(() => {
+        createActivityForm.reset({
+            name: '',
+            purpose: '',
+            manager: user?.displayName || '',
+            managerId: user?.uid || '',
+            legalBasis: 'Intérêt Légitime',
+            dataCategories: [],
+            dataSubjects: [],
+            retentionPeriod: '5 ans',
+            hasDPIA: false,
+            status: 'Actif'
+        });
+        setShowCreateModal(true);
+    }, [createActivityForm, user, setShowCreateModal]);
 
     return (
         <motion.div
@@ -208,10 +224,7 @@ export const Privacy: React.FC = () => {
                             </button>
                             <button
                                 aria-label="Nouveau Traitement"
-                                onClick={() => {
-                                    createActivityForm.reset({ name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '', legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [], retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif' });
-                                    setShowCreateModal(true);
-                                }}
+                                onClick={handleAddActivity}
                                 className="flex items-center px-5 py-2.5 bg-purple-600 text-white text-sm font-bold rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
                                 <Plus className="h-4 w-4 mr-2" /> Nouveau Traitement
@@ -306,52 +319,13 @@ export const Privacy: React.FC = () => {
                     </div>
                 ) : (
                     filteredActivities.map(activity => (
-                        <motion.div variants={slideUpVariants} key={activity.id} onClick={() => openInspector(activity)} className="glass-panel rounded-[2.5rem] p-7 shadow-sm card-hover flex flex-col relative overflow-hidden cursor-pointer group border border-white/50 dark:border-white/5 hover:border-purple-500/30 transition-all">
-                            <div className="flex justify-between items-start mb-5">
-                                <div className="p-3 bg-purple-50 dark:bg-slate-800 rounded-2xl text-purple-600 shadow-inner">
-                                    <Fingerprint className="h-6 w-6" />
-                                </div>
-                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${activity.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400' : 'bg-gray-50 text-slate-600 border-gray-100 dark:bg-white/5 dark:border-white/10 dark:text-slate-400'}`}>
-                                    {activity.status}
-                                </span>
-                            </div>
-
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">{activity.name}</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 line-clamp-2 flex-1 leading-relaxed">{activity.purpose}</p>
-
-                            <div className="space-y-3 pt-5 border-t border-dashed border-gray-200 dark:border-white/10">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center"><Scale className="h-3 w-3 mr-1.5" />Base Légale</span>
-                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-lg">{activity.legalBasis}</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center"><GlobeLock className="h-3 w-3 mr-1.5" />Catégories</span>
-                                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400 truncate max-w-[150px]">
-                                        {activity.dataCategories.length > 0 ? activity.dataCategories.join(', ') : '-'}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center"><Clock className="h-3 w-3 mr-1.5" />Conservation</span>
-                                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{activity.retentionPeriod}</span>
-                                </div>
-                            </div>
-
-                            {
-                                activity.hasDPIA && (
-                                    <div className="mt-5 flex items-center justify-center bg-purple-50 dark:bg-purple-900/20 py-2 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 border border-purple-100 dark:border-purple-900/30">
-                                        <CheckCircle2 className="h-3 w-3 mr-1.5" /> DPIA Effectué
-                                    </div>
-                                )
-                            }
-
-                            {
-                                canEdit && (
-                                    <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button aria-label="Delete" onClick={(e) => { e.stopPropagation(); initiateDelete(activity.id, activity.name) }} className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-50 shadow-sm backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Trash2 className="h-4 w-4" /></button>
-                                    </div>
-                                )
-                            }
-                        </motion.div>
+                        <ActivityCard
+                            key={activity.id}
+                            activity={activity}
+                            onClick={openInspector}
+                            onDelete={initiateDelete}
+                            canEdit={canEdit}
+                        />
                     ))
                 )}
             </div>

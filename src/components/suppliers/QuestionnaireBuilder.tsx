@@ -15,7 +15,7 @@ interface Props {
 
 export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onCancel }) => {
     const { user, addToast } = useStore();
-    const { register, control, handleSubmit } = useForm<QuestionnaireTemplate>({
+    const { register, control, handleSubmit, formState: { isSubmitting } } = useForm<QuestionnaireTemplate>({
         defaultValues: initialData || {
             title: '',
             description: '',
@@ -58,6 +58,16 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
         }
     };
 
+    const handleAddSection = React.useCallback(() => {
+        appendSection({ id: crypto.randomUUID(), title: 'Nouvelle Section', weight: 1, questions: [] });
+    }, [appendSection]);
+
+    const handleRemoveSection = React.useCallback((index: number) => {
+        if (window.confirm('Êtes-vous sûr de vouloir supprimer cette section ?')) {
+            removeSection(index);
+        }
+    }, [removeSection]);
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
@@ -90,7 +100,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                         control={control}
                         register={register}
                         sIndex={sIndex}
-                        onRemove={() => removeSection(sIndex)}
+                        onRemove={() => handleRemoveSection(sIndex)}
                     />
                 ))}
             </div>
@@ -99,7 +109,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                 <button
                     aria-label="Ajouter une Section"
                     type="button"
-                    onClick={() => appendSection({ id: crypto.randomUUID(), title: 'Nouvelle Section', weight: 1, questions: [] })}
+                    onClick={handleAddSection}
                     className="flex items-center px-4 py-2 text-sm font-medium text-brand-600 bg-brand-50 dark:bg-brand-900/20 rounded-xl hover:bg-brand-100 transition-colors"
                 >
                     <Plus className="w-4 h-4 mr-2" />
@@ -120,10 +130,11 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                     <button
                         aria-label="Enregistrer le Modèle"
                         type="submit"
-                        className="flex items-center px-6 py-2 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700 shadow-lg shadow-brand-500/20 transition-all"
+                        disabled={isSubmitting}
+                        className={`flex items-center px-6 py-2 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700 shadow-lg shadow-brand-500/20 transition-all ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         <Save className="w-4 h-4 mr-2" />
-                        Enregistrer le Modèle
+                        {isSubmitting ? 'Enregistrement...' : 'Enregistrer le Modèle'}
                     </button>
                 </div>
             </div>

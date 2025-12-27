@@ -3,6 +3,7 @@ import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     signInWithRedirect,
+    signInWithPopup,
     signInWithCredential,
     getRedirectResult,
     GoogleAuthProvider,
@@ -18,6 +19,11 @@ import { auth, functions } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { LoginFormData, RegisterFormData, ResetPasswordFormData } from '../schemas/authSchema';
+import { logAuthAuditEvent } from '../services/logger';
+
+const safeLogAuthEvent = (payload: Parameters<typeof logAuthAuditEvent>[0]) => {
+    logAuthAuditEvent(payload).catch(() => undefined);
+};
 
 export const useAuthActions = () => {
     const { addToast, t } = useStore();
@@ -37,6 +43,13 @@ export const useAuthActions = () => {
         } catch {
             return false;
         }
+    };
+
+    const isPopupRecoverableError = (error: unknown): boolean => {
+        const code = (error as { code?: string })?.code;
+        return code === 'auth/popup-blocked' ||
+            code === 'auth/popup-closed-by-user' ||
+            code === 'auth/cancelled-popup-request';
     };
 
     // Handle Google Redirect Result on Mount
@@ -66,13 +79,31 @@ export const useAuthActions = () => {
     const handleEmailAuth = async (data: LoginFormData | RegisterFormData, isLogin: boolean): Promise<boolean> => {
         setLoading(true);
         setErrorMsg(null);
+        safeLogAuthEvent({
+            provider: 'password',
+            status: 'attempt',
+            email: data.email,
+            metadata: { mode: isLogin ? 'login' : 'register' }
+        });
         try {
             if (isLogin) {
                 await signInWithEmailAndPassword(auth, data.email, data.password);
                 addToast(t('auth.success'), "success");
+                safeLogAuthEvent({
+                    provider: 'password',
+                    status: 'success',
+                    email: data.email,
+                    metadata: { mode: 'login' }
+                });
             } else {
                 await createUserWithEmailAndPassword(auth, data.email, data.password);
                 addToast(t('auth.created'), "success");
+                safeLogAuthEvent({
+                    provider: 'password',
+                    status: 'success',
+                    email: data.email,
+                    metadata: { mode: 'register' }
+                });
             }
             return true;
         } catch (error: unknown) {
@@ -91,6 +122,13 @@ export const useAuthActions = () => {
             if (code === 'auth/email-already-in-use') msg = t('auth.errors.emailInUse');
             if (code === 'auth/weak-password') msg = t('auth.errors.weak');
             setErrorMsg(msg);
+            safeLogAuthEvent({
+                provider: 'password',
+                status: 'failure',
+                email: data.email,
+                errorCode: code,
+                metadata: { mode: isLogin ? 'login' : 'register' }
+            });
             return false;
         } finally {
             setLoading(false);
@@ -102,6 +140,11 @@ export const useAuthActions = () => {
         setErrorMsg(null);
         try {
             const isNative = await getIsNativePlatform();
+            safeLogAuthEvent({
+                provider: 'google',
+                status: 'attempt',
+                metadata: { platform: isNative ? 'native' : 'web' }
+            });
 
             if (isNative) {
                 const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
@@ -115,18 +158,53 @@ export const useAuthActions = () => {
 
                     await signInWithCredential(auth, credential);
                     addToast(t('auth.success'), "success");
+                    safeLogAuthEvent({
+                        provider: 'google',
+                        status: 'success',
+                        email: result.user?.email,
+                        metadata: { platform: 'native' }
+                    });
                     window.location.hash = '#/';
                 } else {
                     throw new Error("No ID Token from Google");
                 }
             } else {
                 const provider = new GoogleAuthProvider();
-                addToast(t('auth.redirectingGoogle'), 'info');
-                await signInWithRedirect(auth, provider);
+                try {
+                    await signInWithPopup(auth, provider);
+                    addToast(t('auth.success'), "success");
+                    safeLogAuthEvent({
+                        provider: 'google',
+                        status: 'success',
+                        email: auth.currentUser?.email || undefined,
+                        metadata: { platform: 'web', method: 'popup' }
+                    });
+                    window.location.hash = '#/';
+                } catch (popupError) {
+                    if (isPopupRecoverableError(popupError)) {
+                        addToast(t('auth.redirectingGoogle'), 'info');
+                        safeLogAuthEvent({
+                            provider: 'google',
+                            status: 'attempt',
+                            metadata: { platform: 'web', method: 'redirect-fallback' }
+                        });
+                        await signInWithRedirect(auth, provider);
+                    } else {
+                        throw popupError;
+                    }
+                }
             }
         } catch (error: unknown) {
             ErrorLogger.error(error as Error, 'Login.handleGoogleLogin');
             setErrorMsg(t('auth.errors.generic'));
+            const code = (error as { code?: string })?.code;
+            safeLogAuthEvent({
+                provider: 'google',
+                status: 'failure',
+                email: auth.currentUser?.email || undefined,
+                errorCode: code,
+                metadata: { context: 'handleGoogleLogin' }
+            });
         } finally {
             setLoading(false);
         }
@@ -137,6 +215,11 @@ export const useAuthActions = () => {
         setErrorMsg(null);
         try {
             const isNative = await getIsNativePlatform();
+            safeLogAuthEvent({
+                provider: 'apple',
+                status: 'attempt',
+                metadata: { platform: isNative ? 'native' : 'web' }
+            });
 
             if (isNative) {
                 const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
@@ -150,6 +233,12 @@ export const useAuthActions = () => {
 
                     await signInWithCredential(auth, credential);
                     addToast(t('auth.success'), 'success');
+                    safeLogAuthEvent({
+                        provider: 'apple',
+                        status: 'success',
+                        email: result.user?.email,
+                        metadata: { platform: 'native' }
+                    });
                     window.location.hash = '#/';
                 } else {
                     throw new Error('No ID Token from Apple');
@@ -158,11 +247,41 @@ export const useAuthActions = () => {
                 const provider = new OAuthProvider('apple.com');
                 provider.addScope('email');
                 provider.addScope('name');
-                await signInWithRedirect(auth, provider);
+                try {
+                    await signInWithPopup(auth, provider);
+                    addToast(t('auth.success'), 'success');
+                    safeLogAuthEvent({
+                        provider: 'apple',
+                        status: 'success',
+                        email: auth.currentUser?.email || undefined,
+                        metadata: { platform: 'web', method: 'popup' }
+                    });
+                    window.location.hash = '#/';
+                } catch (popupError) {
+                    if (isPopupRecoverableError(popupError)) {
+                        addToast(t('auth.redirectingApple') ?? t('auth.redirectingGoogle'), 'info');
+                        safeLogAuthEvent({
+                            provider: 'apple',
+                            status: 'attempt',
+                            metadata: { platform: 'web', method: 'redirect-fallback' }
+                        });
+                        await signInWithRedirect(auth, provider);
+                    } else {
+                        throw popupError;
+                    }
+                }
             }
         } catch (error: unknown) {
             ErrorLogger.error(error as Error, 'Login.handleAppleLogin');
             setErrorMsg(t('auth.errors.generic'));
+            const code = (error as { code?: string })?.code;
+            safeLogAuthEvent({
+                provider: 'apple',
+                status: 'failure',
+                email: auth.currentUser?.email || undefined,
+                errorCode: code,
+                metadata: { context: 'handleAppleLogin' }
+            });
         } finally {
             setLoading(false);
         }

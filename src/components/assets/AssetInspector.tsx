@@ -269,7 +269,15 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                             />
                                         </div>
                                     </div>
-                                    <button onClick={handleAddMaintenance} disabled={isAddingMaintenance} aria-label="Ajouter une intervention de maintenance" className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:opacity-50 flex justify-center items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}Ajouter Intervention</button>
+                                    <button
+                                        type="button"
+                                        onClick={handleAddMaintenance}
+                                        disabled={isAddingMaintenance}
+                                        aria-label="Ajouter une intervention de maintenance"
+                                        className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:scale-[1.02] transition-transform disabled:opacity-50 flex justify-center items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                    >
+                                        {isAddingMaintenance ? <span className="animate-spin mr-2">⏳</span> : null}Ajouter Intervention
+                                    </button>
                                 </div>
                             )}
                             <div className="space-y-3">
@@ -293,6 +301,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                         <div className="flex gap-4">
                             <CustomTooltip content="Scanner l'actif avec Shodan.io">
                                 <button
+                                    type="button"
                                     onClick={scanShodan}
                                     disabled={scanning}
                                     aria-label="Lancer un scan Shodan"
@@ -304,6 +313,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                             </CustomTooltip>
                             <CustomTooltip content="Rechercher des CVEs (NVD)">
                                 <button
+                                    type="button"
                                     onClick={checkCVEs}
                                     disabled={scanning}
                                     aria-label="Rechercher des vulnérabilités CVE"
@@ -365,6 +375,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                     <ShieldAlert className="h-4 w-4 mr-2" /> Risques Identifiés ({linkedRisks.length})
                                 </h3>
                                 <button
+                                    type="button"
                                     onClick={() => selectedAsset && navigate('/risks', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } })}
                                     aria-label="Créer un nouveau risque"
                                     className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
@@ -396,6 +407,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                                     <Siren className="h-4 w-4 mr-2" /> Incidents ({linkedIncidents.length})
                                 </h3>
                                 <button
+                                    type="button"
                                     onClick={() => selectedAsset && navigate('/incidents', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } })}
                                     aria-label="Signaler un incident"
                                     className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"

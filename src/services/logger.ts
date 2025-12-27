@@ -4,35 +4,60 @@ import { functions } from '../firebase';
 import { ErrorLogger } from './errorLogger';
 
 export const logAction = async (
-  user: { uid: string; email: string; organizationId?: string; displayName?: string } | null,
-  action: string,
-  resource: string,
-  details?: string,
-  explicitOrgId?: string, // Allow explicit org ID for onboarding logs
-  resourceId?: string, // ID for deep linking
-  metadata?: Record<string, unknown>, // Additional context
-  changes?: Array<{ field: string; oldValue: unknown; newValue: unknown }> // Granular diffs
+    user: { uid: string; email: string; organizationId?: string; displayName?: string } | null,
+    action: string,
+    resource: string,
+    details?: string,
+    explicitOrgId?: string, // Allow explicit org ID for onboarding logs
+    resourceId?: string, // ID for deep linking
+    metadata?: Record<string, unknown>, // Additional context
+    changes?: Array<{ field: string; oldValue: unknown; newValue: unknown }> // Granular diffs
 ) => {
-  // SECURITY: Prefer explicit orgId, then user.organizationId
-  const orgId = explicitOrgId || user?.organizationId;
+    // SECURITY: Prefer explicit orgId, then user.organizationId
+    const orgId = explicitOrgId || user?.organizationId;
 
-  if (!user || !orgId) return;
+    if (!user || !orgId) return;
 
-  try {
-    const logEventFn = httpsCallable(functions, 'logEvent');
-    await logEventFn({
-      organizationId: orgId,
-      action,
-      resource,
-      details: details || '',
-      userDisplayName: user.displayName || user.email, // Fallback to email
-      userEmail: user.email,
-      resourceId: resourceId || null,
-      metadata: metadata || null,
-      changes: changes || null
-    });
-  } catch (error) {
-    // Fallback or silent fail for logs to avoid crashing app
-    ErrorLogger.error(error, 'Logger.logAction');
-  }
+    try {
+        const logEventFn = httpsCallable(functions, 'logEvent');
+        await logEventFn({
+            organizationId: orgId,
+            action,
+            resource,
+            details: details || '',
+            userDisplayName: user.displayName || user.email, // Fallback to email
+            userEmail: user.email,
+            resourceId: resourceId || null,
+            metadata: metadata || null,
+            changes: changes || null
+        });
+    } catch (error) {
+        // Fallback or silent fail for logs to avoid crashing app
+        ErrorLogger.error(error, 'Logger.logAction');
+    }
+};
+
+type AuthAuditPayload = {
+    provider: 'password' | 'google' | 'apple' | 'sso';
+    status: 'attempt' | 'success' | 'failure';
+    email?: string | null;
+    errorCode?: string;
+    metadata?: Record<string, unknown>;
+};
+
+export const logAuthAuditEvent = async (payload: AuthAuditPayload) => {
+    try {
+        const logAuthAttemptFn = httpsCallable(functions, 'logAuthAttempt');
+        await logAuthAttemptFn({
+            provider: payload.provider,
+            status: payload.status,
+            email: payload.email || null,
+            errorCode: payload.errorCode || null,
+            metadata: payload.metadata || null
+        });
+    } catch (error) {
+        ErrorLogger.warn('Failed to log authentication audit event', 'Logger.logAuthAuditEvent', {
+            metadata: { error }
+        });
+    }
 };

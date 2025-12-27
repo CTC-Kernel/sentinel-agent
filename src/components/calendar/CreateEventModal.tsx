@@ -194,7 +194,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                         <Calendar className="h-5 w-5 mr-2 text-brand-500" />
                                         Nouvel Événement
                                     </Dialog.Title>
-                                    <button aria-label="Fermer la fenêtre" onClick={onClose} className="text-slate-500 hover:text-slate-600 transition-colors">
+                                    <button type="button" aria-label="Fermer la fenêtre" onClick={onClose} className="text-slate-500 hover:text-slate-600 transition-colors">
                                         <X className="h-5 w-5" />
                                     </button>
                                 </div>
@@ -202,6 +202,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                 <div className="mb-6 flex space-x-2 bg-slate-100 dark:bg-white/5 p-1 rounded-xl">
                                     {(['audit', 'project', 'maintenance', 'drill'] as EventType[]).map((type) => (
                                         <button
+                                            type="button"
                                             key={type}
                                             aria-label={`Sélectionner le type ${type}`}
                                             aria-pressed={eventType === type}
@@ -216,7 +217,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                     ))}
                                 </div>
 
-                                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                                <form onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-4">
                                     {/* Common Fields */}
                                     <div>
                                         <Controller

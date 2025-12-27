@@ -324,6 +324,20 @@ export const Risks: React.FC = () => {
     ], [t]);
 
 
+    const handleStartAiAnalysis = React.useCallback(async () => {
+        setIsAnalyzing(true);
+        try {
+            const prompt = t('risks.aiPrompt', { count: filteredRisks.length });
+            const analysis = await aiService.chatWithAI(prompt);
+            toast.info(t('risks.analysisComplete'), { description: analysis, duration: 10000 });
+        } catch (e) {
+            console.error(e);
+            toast.error(t('risks.analysisError'));
+        } finally {
+            setIsAnalyzing(false);
+        }
+    }, [filteredRisks.length, t]);
+
     return (
         <motion.div variants={staggerContainerVariants} initial="initial" animate="visible" className="space-y-6">
             <MasterpieceBackground />
@@ -484,19 +498,7 @@ export const Risks: React.FC = () => {
                                     <>
                                         <CustomTooltip content="Lancer l'analyse IA">
                                             <button
-                                                onClick={async () => {
-                                                    setIsAnalyzing(true);
-                                                    try {
-                                                        const prompt = t('risks.aiPrompt', { count: filteredRisks.length });
-                                                        const analysis = await aiService.chatWithAI(prompt);
-                                                        toast.info(t('risks.analysisComplete'), { description: analysis, duration: 10000 });
-                                                    } catch (e) {
-                                                        console.error(e);
-                                                        toast.error(t('risks.analysisError'));
-                                                    } finally {
-                                                        setIsAnalyzing(false);
-                                                    }
-                                                }}
+                                                onClick={handleStartAiAnalysis}
                                                 disabled={isAnalyzing}
                                                 aria-label={isAnalyzing ? t('risks.analyzing') : t('risks.aiAnalysis')}
                                                 className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"

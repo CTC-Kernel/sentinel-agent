@@ -19,6 +19,35 @@ const { validate, z } = require('./utils/validation'); // Added validation impor
 
 const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-threat-consulting.com" });
 
+/**
+ * Public Callable Function to log authentication attempts (pre-login)
+ */
+exports.logAuthAttempt = onCall(async (request) => {
+    const { provider, status, email, errorCode, metadata } = request.data;
+
+    if (!provider || !status) {
+        throw new HttpsError('invalid-argument', 'Missing required auth log fields (provider, status).');
+    }
+
+    try {
+        await admin.firestore().collection('auth_audit_logs').add({
+            provider,
+            status,
+            email: (email || '').toLowerCase(),
+            errorCode: errorCode || null,
+            metadata: metadata || null,
+            timestamp: new Date().toISOString(),
+            source: 'client_pre_auth',
+            ip: request.rawRequest.ip || null
+        });
+
+        return { success: true };
+    } catch (error) {
+        logger.error('Error in logAuthAttempt callable:', error);
+        throw new HttpsError('internal', 'Failed to log auth attempt.');
+    }
+});
+
 const crypto = require("crypto");
 
 const userSecretsKey = defineSecret("USER_SECRETS_ENCRYPTION_KEY");

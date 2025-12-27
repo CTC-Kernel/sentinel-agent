@@ -439,7 +439,7 @@ const Team: React.FC = () => {
                     </div>
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                         <Button type="button" variant="ghost" onClick={() => setShowInviteModal(false)}>{t('team.actions.cancel')}</Button>
-                        <Button type="submit" className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-transform" isLoading={loading}>{t('team.invite.send')}</Button>
+                        <Button type="submit" className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-transform" isLoading={loading || inviteForm.formState.isSubmitting}>{t('team.invite.send')}</Button>
                     </div>
                 </form>
             </Drawer>
@@ -497,7 +497,7 @@ const Team: React.FC = () => {
 
                         <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                             <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>{t('team.actions.cancel')}</Button>
-                            <Button type="submit" className="bg-brand-600 text-white hover:scale-105 transition-transform">{t('team.edit.save')}</Button>
+                            <Button type="submit" className="bg-brand-600 text-white hover:scale-105 transition-transform" isLoading={loading || editForm.formState.isSubmitting}>{t('team.edit.save')}</Button>
                         </div>
                     </form>
                 )}

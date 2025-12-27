@@ -49,6 +49,7 @@ const markdownComponents: Components = {
                 <div className="flex items-center justify-between px-3 py-1 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 text-xs text-slate-600">
                     <span>{match[1]}</span>
                     <button
+                        type="button"
                         onClick={() => {
                             navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
                         }}
@@ -275,6 +276,7 @@ export const GeminiAssistant: React.FC = () => {
     if (!aiEnabled) {
         return (
             <button
+                type="button"
                 onClick={() => navigate('/pricing')}
                 className="fixed bottom-4 right-4 md:bottom-6 md:right-6 p-4 bg-gradient-to-br from-slate-200 to-slate-100 text-slate-700 rounded-full shadow-2xl hover:shadow-slate-400/40 transition-all duration-300 z-50 group border border-white/40"
                 aria-label="Assistant IA réservé"
@@ -294,6 +296,7 @@ export const GeminiAssistant: React.FC = () => {
     if (!isOpen) {
         return (
             <button
+                type="button"
                 onClick={() => setIsOpen(true)}
                 className="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-50 group flex items-center justify-center"
                 aria-label="Ouvrir l'assistant IA"
@@ -354,6 +357,7 @@ export const GeminiAssistant: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-1">
                     <button
+                        type="button"
                         onClick={() => setIsExpanded(!isExpanded)}
                         className="hidden md:block p-2 hover:bg-slate-200/50 dark:hover:bg-white/10 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
                         title={isExpanded ? "Réduire" : "Agrandir"}
@@ -362,6 +366,7 @@ export const GeminiAssistant: React.FC = () => {
                         {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                     </button>
                     <button
+                        type="button"
                         onClick={() => setIsOpen(false)}
                         className="p-2 hover:bg-rose-100/50 dark:hover:bg-rose-900/20 hover:text-rose-600 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
                         title="Fermer"
@@ -414,6 +419,7 @@ export const GeminiAssistant: React.FC = () => {
                                         {!msg.isError && (
                                             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/50 flex gap-2">
                                                 <button
+                                                    type="button"
                                                     onClick={() => copyToClipboard(msg.content, msg.id)}
                                                     className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500 hover:text-indigo-600 transition-colors"
                                                     aria-label="Copier la réponse"
@@ -426,6 +432,7 @@ export const GeminiAssistant: React.FC = () => {
                                         {msg.isError && msg.content.includes('Quota') && (
                                             <div className="mt-4 pt-3 border-t border-red-100 dark:border-red-900/30">
                                                 <button
+                                                    type="button"
                                                     onClick={() => {
                                                         navigate('/settings');
                                                         setIsOpen(false);
@@ -469,6 +476,7 @@ export const GeminiAssistant: React.FC = () => {
                 <div className="px-4 pb-2 flex gap-2 overflow-x-auto no-scrollbar mask-gradient-right">
                     {QUICK_PROMPTS.map((qp) => (
                         <button
+                            type="button"
                             key={qp.label}
                             onClick={(e) => handleSend(e, qp.prompt)}
                             className="whitespace-nowrap flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:text-indigo-600 dark:hover:text-indigo-300 transition-all"
@@ -482,7 +490,7 @@ export const GeminiAssistant: React.FC = () => {
             )}
 
             {/* Input Area */}
-            <form onSubmit={(e) => handleSend(e)} className="p-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border-t border-slate-100 dark:border-white/5">
+            <form onSubmit={(e) => { e.preventDefault(); handleSend(e); }} className="p-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border-t border-slate-100 dark:border-white/5">
                 <div className="relative flex items-center gap-2">
                     <div className="relative flex-1">
                         <input value={input} onChange={(e) => setInput(e.target.value)}

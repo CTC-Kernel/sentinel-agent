@@ -201,6 +201,7 @@ export const AuditTrailViewer: React.FC = () => {
                 ]}
                 actions={
                     <button
+                        type="button"
                         onClick={handleExport}
                         className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-500/20 transition-all active:scale-95"
                         aria-label="Exporter les logs d'audit en CSV"
@@ -303,6 +304,7 @@ export const AuditTrailViewer: React.FC = () => {
                     ) : (
                         filteredLogs.map(log => (
                             <button
+                                type="button"
                                 key={log.id}
                                 onClick={() => setSelectedLog(log)}
                                 className={`w-full text-left p-4 rounded-xl border transition-all ${selectedLog?.id === log.id
