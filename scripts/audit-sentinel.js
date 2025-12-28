@@ -1452,10 +1452,12 @@ const RULES = [
             lines.forEach((line, i) => {
                 if (line.includes('<input') && !line.includes('type="hidden"') &&
                     !line.includes('type="submit"')) {
-                    // Vérifier si un label est associé
-                    const hasId = line.includes('id=');
-                    const context = lines.slice(Math.max(0, i - 3), i + 3).join('\n');
-                    if (!hasId && !context.includes('<label') && !context.includes('aria-label')) {
+                    // Vérifier si un label est associé dans un conteste plus large (multiligne)
+                    const context = lines.slice(Math.max(0, i - 5), i + 6).join('\n');
+                    const hasId = context.includes('id=');
+                    const hasLabel = context.includes('<label') || context.includes('aria-label') || context.includes('FloatingLabelInput');
+
+                    if (!hasId && !hasLabel) {
                         errors.push({ line: i, match: 'Input sans label associé' });
                     }
                 }

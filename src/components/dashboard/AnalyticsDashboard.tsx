@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     AreaChart,
@@ -23,8 +23,6 @@ import {
     HelpCircle
 } from '../ui/Icons';
 import { useStore } from '../../store';
-import { collection, getDocs, query, where, limit } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { Risk, Asset, Incident, Control, Project } from '../../types';
 import { StatCard } from '../ui/StatCard';
 import { ProgressRing } from '../ui/ProgressRing';
@@ -33,6 +31,8 @@ import { Badge } from '../ui/Badge';
 import { ColumnDef } from '@tanstack/react-table';
 import { StatsService } from '../../services/statsService';
 import { OnboardingService } from '../../services/onboardingService';
+import { useLayoutData } from '../../hooks/layout/useLayoutData';
+import { useComplianceData } from '../../hooks/useComplianceData';
 
 interface TrendData {
     date: string;
@@ -51,7 +51,6 @@ interface CategoryData {
 export const AnalyticsDashboard: React.FC = () => {
     const { user } = useStore();
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(true);
     const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
 
     const chartColors = {
@@ -59,49 +58,18 @@ export const AnalyticsDashboard: React.FC = () => {
         text: 'hsl(var(--muted-foreground))'
     };
 
-    // Data states
-    const [risks, setRisks] = useState<Risk[]>([]);
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [incidents, setIncidents] = useState<Incident[]>([]);
-    const [controls, setControls] = useState<Control[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [trends, setTrends] = useState({
+    // Fetch data from hooks
+    const { risks, assets, incidents, projects, loading: layoutLoading } = useLayoutData();
+    const { controls, loading: complianceLoading } = useComplianceData();
+
+    const loading = layoutLoading || complianceLoading;
+
+    const [trends] = useState({
         riskTrend: 0,
         incidentTrend: 0,
         complianceTrend: 0,
         projectTrend: 0
     });
-
-    useEffect(() => {
-        if (!user?.organizationId) return;
-
-        const fetchData = async () => {
-            try {
-                const orgId = user.organizationId;
-
-                const [risksSnap, assetsSnap, incidentsSnap, controlsSnap, projectsSnap] = await Promise.all([
-                    getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId), limit(1000))),
-                    getDocs(query(collection(db, 'assets'), where('organizationId', '==', orgId), limit(1000))),
-                    getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId), limit(1000))),
-                    getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId), limit(1000))),
-                    getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId), limit(1000)))
-                ]);
-
-                setRisks(risksSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Risk)));
-                setAssets(assetsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Asset)));
-                setIncidents(incidentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Incident)));
-                setControls(controlsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Control)));
-                setProjects(projectsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)));
-
-                setLoading(false);
-            } catch {
-                // ErrorLogger.error(error, 'AnalyticsDashboard.fetchData'); // Optional: log error
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [user?.organizationId]);
 
     // Calculate metrics
     const metrics = useMemo(() => {
