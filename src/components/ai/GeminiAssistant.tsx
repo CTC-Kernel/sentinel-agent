@@ -3,23 +3,13 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChatMessage } from './ChatMessage';
 import { ChatMessage as ChatMessageType } from '../../services/aiService';
-import { doc, onSnapshot, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { aiService } from '../../services/aiService';
 import { Sparkles, X, Send, Bot, Loader2, Maximize2, Minimize2, Zap, Lock } from '../ui/Icons';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { cn } from '../../lib/utils';
 import { usePlanLimits } from '../../hooks/usePlanLimits';
-
-type FirestoreTimestampLike = { toDate?: () => Date };
-type FirestoreMessage = {
-    id?: unknown;
-    role?: unknown;
-    content?: unknown;
-    timestamp?: unknown;
-    isError?: unknown;
-};
+import { useAIConversation } from '../../hooks/ai/useAIConversation';
 
 const QUICK_PROMPTS = [
     { label: "Analyser les risques", prompt: "Analyse les risques actuels et propose des mesures de mitigation prioritaires." },
@@ -31,14 +21,6 @@ export const GeminiAssistant: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [input, setInput] = useState('');
-    const [messages, setMessages] = useState<ChatMessageType[]>([
-        {
-            id: 'welcome',
-            role: 'assistant',
-            content: "Bonjour je suis **Sentinel AI**. \n\nComment puis-je vous aider à sécuriser votre organisation aujourd'hui ?",
-            timestamp: new Date()
-        }
-    ]);
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -48,67 +30,12 @@ export const GeminiAssistant: React.FC = () => {
     const { hasFeature } = usePlanLimits();
     const aiEnabled = hasFeature('aiAssistant');
 
-    // Persistence: Firestore Ref
-    const conversationRef = React.useMemo(() => {
-        if (!user?.uid || !aiEnabled) return null;
-        // Use a single 'default' conversation for now, or generate ID based on session
-        // For simplicity and "memory", we stick to one main conversation per user for the assistant.
-        return doc(db, 'users', user.uid, 'conversations', 'default');
-    }, [user?.uid, aiEnabled]);
+    // Use AI conversation hook
+    const { messages, conversationRef, addMessage } = useAIConversation(user?.uid, aiEnabled);
 
     const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, []);
-
-    // Load messages from Firestore
-    useEffect(() => {
-        if (!conversationRef) return;
-
-        const unsubscribe = onSnapshot(conversationRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if (data.messages && Array.isArray(data.messages)) {
-                    // Convert timestamps back to Date objects
-                    const loadedMessages: ChatMessageType[] = data.messages
-                        .map((m: unknown) => {
-                            const fm = m as FirestoreMessage;
-                            const id = typeof fm.id === 'string' ? fm.id : '';
-                            const role: ChatMessageType['role'] = fm.role === 'user' || fm.role === 'assistant' ? fm.role : 'assistant';
-                            const content = typeof fm.content === 'string' ? fm.content : '';
-
-                            const ts = fm.timestamp as FirestoreTimestampLike | string | number | Date | undefined;
-                            const timestamp =
-                                ts && typeof (ts as FirestoreTimestampLike).toDate === 'function'
-                                    ? (ts as FirestoreTimestampLike).toDate!()
-                                    : ts instanceof Date
-                                        ? ts
-                                        : typeof ts === 'string' || typeof ts === 'number'
-                                            ? new Date(ts)
-                                            : new Date();
-
-                            const isError = typeof fm.isError === 'boolean' ? fm.isError : undefined;
-
-                            return { id, role, content, timestamp, isError };
-                        })
-                        .filter((m) => m.id.length > 0 && m.content.length > 0);
-                    setMessages(loadedMessages);
-                }
-            } else {
-                // Initialize if not exists
-                try {
-                    if (user?.uid) {
-                        aiService.initConversation(user.uid).catch(e => ErrorLogger.error(e, 'GeminiAssistant.initConversation'));
-                    }
-                } catch (e) {
-                    ErrorLogger.error(e, 'GeminiAssistant.initConversationSync');
-                }
-            }
-        }, (error) => {
-            console.warn("GeminiAssistant: Local conversation sync error (likely permission or offline)", error);
-        });
-
-        return () => unsubscribe();
-    }, [conversationRef, user]);
 
     useEffect(() => {
         scrollToBottom();
@@ -144,19 +71,12 @@ export const GeminiAssistant: React.FC = () => {
             timestamp: new Date()
         };
 
-        // Optimistic update
-        // We need to use functional update to access latest state if not in dependency array, 
-        // but here we are in useCallback so we depend on messages or use functional update
-        setMessages(prev => [...prev, userMsg]);
         setInput('');
         setIsLoading(true);
 
         try {
             // Save user message to Firestore
-            await updateDoc(conversationRef, {
-                messages: arrayUnion(userMsg),
-                updatedAt: serverTimestamp()
-            });
+            await addMessage(userMsg);
 
             const context = {
                 userRole: user?.role,
@@ -174,10 +94,7 @@ export const GeminiAssistant: React.FC = () => {
             };
 
             // Save AI message to Firestore
-            await updateDoc(conversationRef, {
-                messages: arrayUnion(aiMsg),
-                updatedAt: serverTimestamp()
-            });
+            await addMessage(aiMsg);
 
         } catch (error: unknown) {
             ErrorLogger.error(error, 'GeminiAssistant.handleSend');
@@ -196,16 +113,12 @@ export const GeminiAssistant: React.FC = () => {
                 isError: true
             };
 
-            // Save error message to Firestore so user sees it persistently? 
-            // Maybe yes, maybe no. Let's save it for consistency.
-            await updateDoc(conversationRef, {
-                messages: arrayUnion(errorMsg),
-                updatedAt: serverTimestamp()
-            });
+            // Save error message to Firestore so user sees it persistently
+            await addMessage(errorMsg);
         } finally {
             setIsLoading(false);
         }
-    }, [input, aiEnabled, isLoading, conversationRef, navigate, user?.role, user?.organizationId]);
+    }, [input, aiEnabled, isLoading, conversationRef, navigate, user?.role, user?.organizationId, addMessage]);
 
     const copyToClipboard = useCallback((text: string, id: string) => {
         navigator.clipboard.writeText(text);
