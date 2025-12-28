@@ -20,8 +20,7 @@ import { STANDARD_THREATS } from '../../data/riskConstants';
 import { AIAssistantHeader } from '../ui/AIAssistantHeader';
 import { aiService } from '../../services/aiService';
 import { RISK_TEMPLATES } from '../../data/riskTemplates';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { Modal } from '../ui/Modal';
 import { FRAMEWORK_OPTIONS } from '../../data/frameworks';
 import { RiskRemediationService } from '../../services/RiskRemediationService';
@@ -118,9 +117,15 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
     const [isGenerating, setIsGenerating] = React.useState(false);
     const [showLibraryModal, setShowLibraryModal] = React.useState(false);
-    const [libraryThreats, setLibraryThreats] = React.useState<ThreatTemplate[]>([]);
     const [searchTerm, setSearchTerm] = React.useState('');
     const [suggestedControlIds, setSuggestedControlIds] = React.useState<string[]>([]);
+
+    // Fetch threat library templates
+    const { data: libraryThreats } = useFirestoreCollection<ThreatTemplate>(
+        'threat_library',
+        [],
+        { enabled: showLibraryModal }
+    );
 
     useEffect(() => {
         const threat = getValues('threat');
@@ -131,21 +136,6 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             setSuggestedControlIds(suggestions);
         }
     }, [activeTab, getValues, controls]);
-
-    useEffect(() => {
-        if (showLibraryModal && libraryThreats.length === 0) {
-            const fetchThreats = async () => {
-                try {
-                    const snap = await getDocs(collection(db, 'threat_library'));
-                    const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as ThreatTemplate));
-                    setLibraryThreats(list);
-                } catch (error) {
-                    ErrorLogger.error(error, 'RiskForm.fetchThreats');
-                }
-            };
-            fetchThreats();
-        }
-    }, [showLibraryModal, libraryThreats.length]);
 
     const handleSelectTemplate = (templateName: string) => {
         const t = RISK_TEMPLATES.find(t => t.name === templateName);
@@ -258,7 +248,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         }
     }, [assetId, assets, getValues, isEditing, setValue]);
 
-    const filteredLibraryThreats = libraryThreats.filter(t =>
+    const filteredLibraryThreats = (libraryThreats || []).filter(t =>
         t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.threat.toLowerCase().includes(searchTerm.toLowerCase())
     );
