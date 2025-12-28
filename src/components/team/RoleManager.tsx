@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { CustomRole, ResourceType, ActionType } from '../../types';
 import { useStore } from '../../store';
+import { useTeamData } from '../../hooks/team/useTeamData';
 import { Drawer } from '../ui/Drawer';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -13,6 +12,17 @@ import { sanitizeData } from '../../utils/dataSanitizer';
 import { EmptyState } from '../ui/EmptyState';
 import { RoleCard } from './RoleCard';
 import { PermissionCheck } from './PermissionCheck';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const roleSchema = z.object({
+    name: z.string().min(2, 'Nom requis (min 2 caractères)').max(100, 'Nom trop long'),
+    description: z.string().max(500, 'Description trop longue').optional(),
+    permissions: z.record(z.string(), z.array(z.string())).optional()
+});
+
+type RoleFormData = z.infer<typeof roleSchema>;
 
 interface RoleManagerProps {
     roles: CustomRole[];
@@ -27,89 +37,94 @@ const ACTIONS: ActionType[] = ['read', 'create', 'update', 'delete', 'manage'];
 
 export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) => {
     const { user, addToast } = useStore();
+    const { addRole, updateRole, removeRole } = useTeamData();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [editingRole, setEditingRole] = useState<CustomRole | null>(null);
-    const [formData, setFormData] = useState<{ name: string; description: string; permissions: Record<string, ActionType[]> }>({
-        name: '', description: '', permissions: {}
+
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<RoleFormData>({
+        resolver: zodResolver(roleSchema),
+        defaultValues: {
+            name: '',
+            description: '',
+            permissions: {}
+        }
     });
 
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; roleId: string | null }>({ isOpen: false, roleId: null });
 
+    const formValues = watch();
+
     const handleOpenDrawer = React.useCallback((role?: CustomRole) => {
         if (role) {
             setEditingRole(role);
-            setFormData({
+            reset({
                 name: role.name,
                 description: role.description || '',
                 permissions: role.permissions as Record<string, ActionType[]>
             });
         } else {
             setEditingRole(null);
-            setFormData({ name: '', description: '', permissions: {} });
+            reset({ name: '', description: '', permissions: {} });
         }
         setIsDrawerOpen(true);
-    }, []);
+    }, [reset]);
 
     const togglePermission = React.useCallback((resource: string, action: ActionType) => {
-        setFormData(prev => {
-            const currentActions = prev.permissions[resource] || [];
-            let newActions;
-            if (currentActions.includes(action)) {
-                newActions = currentActions.filter(a => a !== action);
-            } else {
-                newActions = [...currentActions, action];
-            }
-            return {
-                ...prev,
-                permissions: {
-                    ...prev.permissions,
-                    [resource]: newActions
-                }
-            };
+        const currentPermissions = formValues.permissions || {};
+        const currentActions = (currentPermissions[resource] as ActionType[]) || [];
+        let newActions;
+        if (currentActions.includes(action)) {
+            newActions = currentActions.filter(a => a !== action);
+        } else {
+            newActions = [...currentActions, action];
+        }
+        setValue('permissions', {
+            ...currentPermissions,
+            [resource]: newActions
         });
-    }, []);
+    }, [formValues.permissions, setValue]);
 
-    const handleSubmit = React.useCallback(async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = React.useCallback(async (data: RoleFormData) => {
         if (!user?.organizationId) return;
 
         try {
             const roleData = {
                 organizationId: user.organizationId,
-                name: formData.name,
-                description: formData.description,
-                permissions: formData.permissions,
+                name: data.name,
+                description: data.description || '',
+                permissions: data.permissions || {},
                 updatedAt: new Date().toISOString()
             };
 
             if (editingRole) {
-                await updateDoc(doc(db, 'custom_roles', editingRole.id), sanitizeData(roleData));
+                await updateRole(editingRole.id, sanitizeData(roleData));
                 addToast("Rôle mis à jour", "success");
             } else {
-                await addDoc(collection(db, 'custom_roles'), sanitizeData({
+                await addRole(sanitizeData({
                     ...roleData,
                     createdAt: new Date().toISOString()
                 }));
                 addToast("Rôle créé", "success");
             }
             setIsDrawerOpen(false);
+            reset();
             onRefresh();
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'RoleManager.handleSubmit');
+            ErrorLogger.handleErrorWithToast(error, 'RoleManager.onSubmit');
         }
-    }, [user, formData, editingRole, onRefresh, addToast]);
+    }, [user, editingRole, onRefresh, addToast, addRole, updateRole, reset]);
 
     const handleDelete = React.useCallback(async () => {
         if (!confirmDelete.roleId) return;
         try {
-            await deleteDoc(doc(db, 'custom_roles', confirmDelete.roleId));
+            await removeRole(confirmDelete.roleId);
             addToast("Rôle supprimé", "info");
             setConfirmDelete({ isOpen: false, roleId: null });
             onRefresh();
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'RoleManager.handleDelete');
         }
-    }, [confirmDelete.roleId, onRefresh, addToast]);
+    }, [confirmDelete.roleId, onRefresh, addToast, removeRole]);
 
     const handleConfirmDelete = React.useCallback((roleId: string) => {
         setConfirmDelete({ isOpen: true, roleId });
@@ -121,14 +136,6 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
 
     const handleCloseDrawer = React.useCallback(() => {
         setIsDrawerOpen(false);
-    }, []);
-
-    const handleFormNameChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData(prev => ({ ...prev, name: e.target.value }));
-    }, []);
-
-    const handleFormDescChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData(prev => ({ ...prev, description: e.target.value }));
     }, []);
 
     return (
@@ -174,19 +181,19 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                 subtitle="Définissez les permissions d'accès."
                 width="max-w-4xl"
             >
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FloatingLabelInput
                             label="Nom du rôle"
-                            value={formData.name}
-                            onChange={handleFormNameChange}
+                            {...register('name')}
+                            error={errors.name?.message}
                             required
                             placeholder="ex: Stagiaire Marketing"
                         />
                         <FloatingLabelInput
                             label="Description"
-                            value={formData.description}
-                            onChange={handleFormDescChange}
+                            {...register('description')}
+                            error={errors.description?.message}
                             placeholder="Description du rôle..."
                         />
                     </div>
@@ -212,7 +219,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                                                     key={action}
                                                     resource={resource}
                                                     action={action}
-                                                    isChecked={formData.permissions[resource]?.includes(action) || false}
+                                                    isChecked={((formValues.permissions || {})[resource] as ActionType[] || []).includes(action) || false}
                                                     onToggle={togglePermission}
                                                 />
                                             ))}
@@ -225,7 +232,9 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
 
                     <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
                         <Button type="button" variant="ghost" onClick={handleCloseDrawer}>Annuler</Button>
-                        <Button type="submit" className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20">Enregistrer</Button>
+                        <Button type="submit" disabled={isSubmitting} className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20">
+                            {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+                        </Button>
                     </div>
                 </form>
             </Drawer>
