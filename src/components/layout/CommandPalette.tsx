@@ -21,11 +21,10 @@ interface CommandItem {
 export const CommandPalette: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [queryStr, setQueryStr] = useState('');
-    const [filteredItems, setFilteredItems] = useState<CommandItem[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const navigate = useNavigate();
-    const { user, t } = useStore();
-    const { assets, risks, documents, incidents, projects } = useLayoutData();
+    const { t } = useStore();
+    const { assets, risks, documents, incidents, projects, loading } = useLayoutData();
 
     const NAVIGATION_ITEMS: CommandItem[] = React.useMemo(() => [
         { id: 'nav-dash', title: t('commandPalette.nav.dashboard'), icon: LayoutDashboard, path: '/', category: t('commandPalette.categories.navigation') },
@@ -51,49 +50,6 @@ export const CommandPalette: React.FC = () => {
         { id: 'act-user', title: t('commandPalette.actions.inviteUser'), subtitle: t('commandPalette.actions.inviteUserSub'), icon: Users, category: t('commandPalette.categories.actions'), action: () => navigate('/team') },
         { id: 'act-audit', title: t('commandPalette.actions.planAudit'), subtitle: t('commandPalette.actions.planAuditSub'), icon: Activity, category: t('commandPalette.categories.actions'), action: () => navigate('/audits') },
     ], [navigate, t]);
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault();
-                setIsOpen(prev => !prev);
-            }
-            if (e.key === 'Escape') {
-                setIsOpen(false);
-            }
-            if (isOpen) {
-                const count = filteredItems.length;
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    if (count === 0) return;
-                    setSelectedIndex(prev => (prev + 1) % count);
-                }
-                if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    if (count === 0) return;
-                    setSelectedIndex(prev => (prev - 1 + count) % count);
-                }
-                if (e.key === 'Enter' && count > 0) {
-                    e.preventDefault();
-                    const item = filteredItems[selectedIndex];
-                    if (item.action) {
-                        item.action();
-                    } else if (item.path && item.path.startsWith('/')) {
-                        navigate(item.path);
-                    }
-                    setIsOpen(false);
-                    setQueryStr('');
-                }
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, filteredItems, selectedIndex, navigate]);
-
-    useEffect(() => {
-        setSelectedIndex(0);
-    }, [queryStr]);
 
     // Transform hook data into searchable command items
     const dbItems = useMemo(() => {
@@ -152,10 +108,9 @@ export const CommandPalette: React.FC = () => {
         return items;
     }, [assets, risks, documents, projects, incidents, t]);
 
-    useEffect(() => {
+    const filteredItems = useMemo(() => {
         if (!queryStr) {
-            setFilteredItems([...ACTION_ITEMS, ...NAVIGATION_ITEMS].slice(0, 10));
-            return;
+            return [...ACTION_ITEMS, ...NAVIGATION_ITEMS].slice(0, 10);
         }
         const lowerQuery = queryStr.toLowerCase();
 
@@ -175,7 +130,6 @@ export const CommandPalette: React.FC = () => {
         const allResults = [...actionResults, ...navResults, ...dbResults].slice(0, 12);
 
         if (queryStr.trim().length > 0) {
-            // Always add "Search in all Sentinel" as the first or prominent option if not already there
             const searchAllOption: CommandItem = {
                 id: 'search-all-explicit',
                 title: t('commandPalette.searchInSentinel').replace('{query}', queryStr),
@@ -184,13 +138,51 @@ export const CommandPalette: React.FC = () => {
                 category: t('commandPalette.categories.global'),
                 action: () => navigate(`/search?q=${encodeURIComponent(queryStr)}`)
             };
-
-            // Prepend it to ensure visibility
             allResults.unshift(searchAllOption);
         }
 
-        setFilteredItems(allResults);
+        return allResults;
     }, [queryStr, dbItems, navigate, ACTION_ITEMS, NAVIGATION_ITEMS, t]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                setIsOpen(prev => !prev);
+            }
+            if (e.key === 'Escape') {
+                setIsOpen(false);
+            }
+            if (isOpen) {
+                const count = filteredItems.length;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (count === 0) return;
+                    setSelectedIndex(prev => (prev + 1) % count);
+                }
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (count === 0) return;
+                    setSelectedIndex(prev => (prev - 1 + count) % count);
+                }
+                if (e.key === 'Enter' && count > 0) {
+                    e.preventDefault();
+                    const item = filteredItems[selectedIndex];
+                    if (item.action) {
+                        item.action();
+                    } else if (item.path && item.path.startsWith('/')) {
+                        navigate(item.path);
+                    }
+                    setIsOpen(false);
+                    setQueryStr('');
+                    setSelectedIndex(0);
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, filteredItems, selectedIndex, navigate]);
 
     const handleSelect = (item: CommandItem) => {
         if (item.action) {
@@ -200,6 +192,7 @@ export const CommandPalette: React.FC = () => {
         }
         setIsOpen(false);
         setQueryStr('');
+        setSelectedIndex(0);
     };
 
     if (!isOpen) return null;
@@ -215,7 +208,7 @@ export const CommandPalette: React.FC = () => {
                 <div className="flex items-center px-6 py-5 border-b border-white/10 relative z-10">
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent pointer-events-none" />
                     <Search className="h-5 w-5 text-brand-500 mr-4 font-bold" />
-                    <input value={queryStr} onChange={e => setQueryStr(e.target.value)}
+                    <input value={queryStr} onChange={e => { setQueryStr(e.target.value); setSelectedIndex(0); }}
                         type="text"
                         placeholder={t('commandPalette.placeholder')}
                         className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-slate-900 dark:text-white placeholder-slate-400 outline-none font-medium h-auto py-0"

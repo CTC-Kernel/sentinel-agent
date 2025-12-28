@@ -38,7 +38,7 @@ export const UserActivityLog: React.FC = () => {
 
         // Limit results
         return sorted.slice(0, viewMode === 'global' ? 100 : 50);
-    }, [activityLogs, viewMode, user?.uid]);
+    }, [activityLogs, viewMode, user]);
 
     const columns = useMemo<ColumnDef<SystemLog>[]>(() => {
         const cols: ColumnDef<SystemLog>[] = [

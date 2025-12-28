@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useStore } from '../../store';
+
 import { useTimelineData } from '../../hooks/timeline/useTimelineData';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -37,7 +37,15 @@ interface TimelineViewProps {
 }
 
 export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, className }) => {
-    const { user } = useStore();
+
+    // Wait, if I remove 'user', useStore might return other things I'm not using?
+    // The original line was: const { user } = useStore();
+    // If I just remove 'user', it becomes const {} = useStore(); which is useless.
+    // I should check if useStore is used elsewhere.
+    // Line 40: const { user } = useStore();
+    // UseStore is imported in line 2.
+    // UseStore is NOT used anywhere else in the file based on the read in Step 23.
+    // So I can remove the entire line.
     const { systemLogs, loading } = useTimelineData();
     const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
@@ -46,20 +54,62 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
         if (!resourceId) return [];
 
         return systemLogs
-            .filter(log => log.entityId === resourceId)
-            .map(log => ({
-                id: log.id,
-                action: log.action as 'create' | 'update' | 'delete',
-                entityType: log.resource || '',
-                entityId: log.entityId || '',
-                userId: log.userId || '',
-                userName: log.userName || 'Utilisateur inconnu',
-                timestamp: log.timestamp?.toDate?.() || new Date(log.timestamp),
-                before: log.before,
-                after: log.after,
-                changes: log.changes,
-                details: log.details
-            }))
+            .filter(log => log.resourceId === resourceId)
+            .map(log => {
+                // Reconstruct before/after from changes for diff viewer
+                // SystemLog has changes: { field, oldValue, newValue }[]
+                let before: Record<string, unknown> | undefined;
+                let after: Record<string, unknown> | undefined;
+                const changeDescriptions: string[] = [];
+
+                if (log.changes && Array.isArray(log.changes)) {
+                    before = {};
+                    after = {};
+                    log.changes.forEach(change => {
+                        if (before) before[change.field] = change.oldValue;
+                        if (after) after[change.field] = change.newValue;
+
+                        // Create readable description
+                        // Handle simple values for cleaner display
+                        const fmtVal = (val: unknown) => {
+                            if (val === null || val === undefined) return 'vide';
+                            if (typeof val === 'object') return '...';
+                            return String(val);
+                        };
+                        changeDescriptions.push(`${change.field}: ${fmtVal(change.oldValue)} → ${fmtVal(change.newValue)}`);
+                    });
+                } else if (log.metadata) {
+                    // Fallback to metadata if old format or different structure
+                    if ('before' in log.metadata && typeof log.metadata.before === 'object') {
+                        before = log.metadata.before as Record<string, unknown>;
+                    }
+                    if ('after' in log.metadata && typeof log.metadata.after === 'object') {
+                        after = log.metadata.after as Record<string, unknown>;
+                    }
+                }
+
+                // Parse date safely
+                let dateObj = new Date();
+                try {
+                    dateObj = new Date(log.timestamp);
+                } catch {
+                    console.error('Invalid date', log.timestamp);
+                }
+
+                return {
+                    id: log.id,
+                    action: (log.action as 'create' | 'update' | 'delete') || 'update',
+                    entityType: log.resource || '',
+                    entityId: log.resourceId || '',
+                    userId: log.userId || '',
+                    userName: log.userDisplayName || log.userEmail || 'Utilisateur inconnu',
+                    timestamp: dateObj,
+                    before: before,
+                    after: after,
+                    changes: changeDescriptions.length > 0 ? changeDescriptions : undefined,
+                    details: log.details
+                };
+            })
             .slice(0, 100); // Limit to 100
     }, [systemLogs, resourceId]);
 
