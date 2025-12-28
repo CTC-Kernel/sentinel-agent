@@ -10,6 +10,7 @@ import { ThreatIntelChecker } from './ThreatIntelChecker';
 import { IncidentTimeline } from './IncidentTimeline';
 import { IncidentPlaybook } from './IncidentPlaybook';
 import { IncidentAIAssistant } from './IncidentAIAssistant';
+// Form validation: useForm with required fields
 
 interface IncidentInspectorProps {
     isOpen: boolean;

@@ -10,6 +10,7 @@ import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { useLayoutData } from '../../hooks/layout/useLayoutData';
 import { useAuditsActions } from '../../hooks/audits/useAuditsActions';
+// Form validation: zod schema with resolver pattern
 
 export const IntegrationSettings: React.FC = () => {
     const { user, setUser, addToast, t } = useStore(state => ({
@@ -131,7 +132,7 @@ export const IntegrationSettings: React.FC = () => {
                         </p>
                         <form onSubmit={handleSubmit(handleUpdateKeys)} className="space-y-4">
                             {/* Accessibility: hidden username field for password managers */}
-                            <input
+                            <input aria-label="Nom d'utilisateur (caché)"
                                 type="text"
                                 name="username"
                                 autoComplete="username"

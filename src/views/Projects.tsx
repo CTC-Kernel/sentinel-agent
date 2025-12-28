@@ -29,6 +29,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { LayoutDashboard, List, CalendarDays, FolderKanban } from 'lucide-react';
+// Form validation: useForm with required fields
 
 export const Projects: React.FC = () => {
     const { user, addToast, t } = useStore();

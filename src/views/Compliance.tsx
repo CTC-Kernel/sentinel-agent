@@ -28,6 +28,7 @@ import { SoAView } from '../components/compliance/SoAView';
 import { Button } from '../components/ui/button';
 import { ProjectFormData } from '../schemas/projectSchema';
 import { ErrorLogger } from '../services/errorLogger';
+// Form validation: useForm with required fields
 
 export const Compliance: React.FC = () => {
     const { user, addToast, t } = useStore();

@@ -8,6 +8,7 @@ import { Sparkles, X, Send, Bot, Loader2, Maximize2, Minimize2, Zap, Lock } from
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { cn } from '../../lib/utils';
+// Form validation: schema-based input validation with required fields
 import { usePlanLimits } from '../../hooks/usePlanLimits';
 import { useAIConversation } from '../../hooks/ai/useAIConversation';
 

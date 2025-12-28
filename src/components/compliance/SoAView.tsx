@@ -111,7 +111,7 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, handlers }) =
                                         ) : <span className="text-slate-400">-</span>}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <input defaultValue={control.justification || ''} onBlur={(e) => { if (e.target.value !== control.justification) handlers.updateJustification(control, e.target.value); }}
+                                        <input aria-label="Justification du contrôle" defaultValue={control.justification || ''} onBlur={(e) => { if (e.target.value !== control.justification) handlers.updateJustification(control, e.target.value); }}
                                             type="text"
                                             className={`bg-transparent text-xs w-full focus:ring-1 focus:ring-brand-500 rounded px-2 py-1 transition-colors ${missingJustification
                                                 ? 'border border-red-500 bg-red-50 dark:bg-red-900/10 placeholder-red-400'

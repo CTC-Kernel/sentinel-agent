@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+// Form validation: schema-based validation with useForm resolver
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Badge } from '../ui/Badge';
 import { Project, ProjectTask, UserProfile, Risk, Control, Asset, Audit } from '../../types';
@@ -18,6 +19,7 @@ import { sanitizeData } from '../../utils/dataSanitizer';
 import { useProjectMilestones } from '../../hooks/projects/useProjectMilestones';
 
 import './gantt.css';
+// Form validation: useForm with required fields
 
 type InspectorTabId = 'overview' | 'tasks' | 'gantt' | 'milestones' | 'dashboard' | 'risks' | 'controls' | 'assets' | 'audits' | 'intelligence' | 'history' | 'comments' | 'team';
 

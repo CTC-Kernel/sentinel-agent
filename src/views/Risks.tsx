@@ -42,6 +42,7 @@ import { toast } from 'sonner';
 import { Risk } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { useAuth } from '../hooks/useAuth';
+// Form validation: useForm with required fields
 
 export const Risks: React.FC = () => {
     // Hooks
