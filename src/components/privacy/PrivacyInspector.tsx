@@ -9,6 +9,7 @@ import { CustomSelect } from '../ui/CustomSelect';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '../ui/EmptyState';
 import { CommentSection } from '../collaboration/CommentSection';
+// Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface PrivacyInspectorProps {
     selectedActivity: ProcessingActivity | null;

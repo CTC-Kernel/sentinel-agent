@@ -7,6 +7,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 import { useStore } from '../../store';
 import { toast } from 'sonner';
+// Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface CreateActivityFormProps {
     usersList: UserProfile[];

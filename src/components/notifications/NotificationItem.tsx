@@ -5,6 +5,7 @@ import { Bell, AlertTriangle, CheckCircle, Info, XCircle, Clock } from 'lucide-r
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
+// Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface NotificationItemProps {
     notification: Notification;

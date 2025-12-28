@@ -3,6 +3,7 @@ import { User, CheckCircle2, ArrowRight } from '../../ui/Icons';
 import { Skeleton } from '../../ui/Skeleton';
 import { DashboardCard } from '../DashboardCard';
 import { validateUrl } from '../../../utils/urlValidation';
+// Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface ActionItem {
     id: string;
