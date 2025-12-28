@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Save, Trash2, Server, Shield, Clock } from 'lucide-react';
 import { Asset } from '../../types';
-import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { addDoc, collection, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
 import { EmptyState } from '../ui/EmptyState';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useContinuityActions } from '../../hooks/continuity/useContinuityActions';
 
 interface Strategy {
     id: string;
@@ -27,10 +27,9 @@ interface ContinuityStrategiesProps {
 
 export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ assets }) => {
     const { user, addToast } = useStore();
+    const { strategies } = useContinuityActions();
     const [isEditing, setIsEditing] = useState(false);
     const [newStrategy, setNewStrategy] = useState<Partial<Strategy>>({});
-
-    const { data: strategies, refresh } = useFirestoreCollection<Strategy>('bcp_strategies');
 
     const handleSave = async () => {
         // Sanitize and validate inputs
@@ -60,7 +59,6 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
             addToast('Stratégie ajoutée', 'success');
             setIsEditing(false);
             setNewStrategy({});
-            refresh();
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.handleSave', 'CREATE_FAILED');
         }
@@ -70,7 +68,6 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
         if (!confirm('Supprimer cette stratégie ?')) return;
         try {
             await deleteDoc(doc(db, 'bcp_strategies', id));
-            refresh();
             addToast('Stratégie supprimée', 'success');
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.handleDelete', 'DELETE_FAILED');

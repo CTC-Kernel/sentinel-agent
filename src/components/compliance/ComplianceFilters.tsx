@@ -23,14 +23,10 @@ export const ComplianceFilters: React.FC<ComplianceFiltersProps> = ({
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input
-                    type="text"
-                    placeholder="Rechercher un contrôle (code, nom...)"
-                    value={searchQuery}
+                <input type="text" placeholder="Rechercher un contrôle (code, nom...)" value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all text-sm"
-                    aria-label="Rechercher un contrôle"
-                />
+                    aria-label="Rechercher un contrôle" />
             </div>
             <div className="flex gap-3">
                 <div className="w-48">

@@ -7,7 +7,7 @@ export const useContinuityActions = () => {
   const { user } = useAuth();
 
   const { data: strategies, loading: loadingStrategies } = useFirestoreCollection(
-    'continuity_strategies',
+    'bcp_strategies',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
   );

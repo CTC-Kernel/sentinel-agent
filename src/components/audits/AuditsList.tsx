@@ -44,14 +44,9 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                 };
                 return (
                     <div className="px-1">
-                        <input
-                            checked={isAllSelected}
-                            onChange={handleSelectAll}
-                            type="checkbox"
-                            disabled={!onSelect}
-                            className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                            aria-label="Tout sélectionner"
-                        />
+                        <input checked={isAllSelected} onChange={handleSelectAll}
+                            type="checkbox" disabled={!onSelect} aria-label="Tout sélectionner"
+                            className="rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
                     </div>
                 );
             },
@@ -66,14 +61,9 @@ export const AuditsList: React.FC<AuditsListProps> = ({
                 };
                 return (
                     <div className="px-1">
-                        <input
-                            checked={isSelected}
-                            onChange={handleSelectRow}
-                            type="checkbox"
-                            disabled={!onSelect}
-                            className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                            aria-label={`Sélectionner l'audit ${row.original.name}`}
-                        />
+                        <input checked={isSelected} onChange={handleSelectRow}
+                            type="checkbox" disabled={!onSelect} aria-label={`Sélectionner l'audit ${row.original.name}`}
+                            className="rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
                     </div>
                 );
             },
