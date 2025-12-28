@@ -23,7 +23,7 @@ import {
     HelpCircle
 } from '../ui/Icons';
 import { useStore } from '../../store';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Risk, Asset, Incident, Control, Project } from '../../types';
 import { StatCard } from '../ui/StatCard';
@@ -80,11 +80,11 @@ export const AnalyticsDashboard: React.FC = () => {
                 const orgId = user.organizationId;
 
                 const [risksSnap, assetsSnap, incidentsSnap, controlsSnap, projectsSnap] = await Promise.all([
-                    getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId))),
-                    getDocs(query(collection(db, 'assets'), where('organizationId', '==', orgId))),
-                    getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId))),
-                    getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId))),
-                    getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId)))
+                    getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId), limit(1000))),
+                    getDocs(query(collection(db, 'assets'), where('organizationId', '==', orgId), limit(1000))),
+                    getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId), limit(1000))),
+                    getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId), limit(1000))),
+                    getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId), limit(1000)))
                 ]);
 
                 setRisks(risksSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Risk)));

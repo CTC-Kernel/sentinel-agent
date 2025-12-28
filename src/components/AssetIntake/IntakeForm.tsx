@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { HardwareInfo } from '../../utils/hardwareDetection';
 import { Laptop, Save, AlertTriangle, User, Server, Database } from '../ui/Icons';
 import { Project, UserProfile } from '../../types';
@@ -20,15 +23,31 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
     const [error, setError] = useState<string | null>(null);
     const [projects, setProjects] = useState<Project[]>([]);
     const [users, setUsers] = useState<UserProfile[]>([]);
-    const [formData, setFormData] = useState({
-        name: '',
-        serialNumber: '',
-        userId: '', // Changed from user string to userId for linking
-        projectId: '',
 
-        notes: '',
-        hardwareType: hardwareInfo.isMobile ? 'Mobile' : 'Laptop' // Default guess
+    const intakeSchema = z.object({
+        name: z.string().min(1, "Le nom de l'équipement est requis"),
+        serialNumber: z.string().min(1, "Le numéro de série est requis"),
+        userId: z.string().optional(),
+        projectId: z.string().optional(),
+        notes: z.string().optional(),
+        hardwareType: z.string().min(1)
     });
+
+    type IntakeFormData = z.infer<typeof intakeSchema>;
+
+    const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<IntakeFormData>({
+        resolver: zodResolver(intakeSchema),
+        defaultValues: {
+            name: '',
+            serialNumber: '',
+            userId: '',
+            projectId: '',
+            notes: '',
+            hardwareType: hardwareInfo.isMobile ? 'Mobile' : 'Laptop'
+        }
+    });
+
+    const hardwareType = watch('hardwareType');
 
     const assetTypeIcons: Record<string, React.ReactNode> = {
         'Laptop': <Laptop className="h-8 w-8 text-blue-600" />,
@@ -57,16 +76,15 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
 
         // Smart Categorization
         if (hardwareInfo.os.includes('iOS') || hardwareInfo.os.includes('Android')) {
-            setFormData(prev => ({ ...prev, hardwareType: 'Mobile' }));
+            setValue('hardwareType', 'Mobile');
         } else if (hardwareInfo.gpu.includes('NVIDIA') || Number(hardwareInfo.cpuCores) > 8) {
-            setFormData(prev => ({ ...prev, hardwareType: 'Workstation' }));
+            setValue('hardwareType', 'Workstation');
         } else {
-            setFormData(prev => ({ ...prev, hardwareType: 'Laptop' }));
+            setValue('hardwareType', 'Laptop');
         }
-    }, [orgId, hardwareInfo]);
+    }, [orgId, hardwareInfo, setValue]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = async (data: IntakeFormData) => {
         setLoading(true);
         setError(null);
 
@@ -78,11 +96,12 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
 
         try {
             await IntakeService.submitAsset({
-                ...formData,
+                ...data,
                 orgId: orgId,
                 hardware: hardwareInfo,
-                userId: formData.userId,
-                projectId: formData.projectId
+                userId: data.userId || '',
+                projectId: data.projectId || '',
+                notes: data.notes || ''
             });
             onSuccess();
         } catch {
@@ -94,12 +113,12 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
 
     return (
         <div className="w-full max-w-2xl mx-auto">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
                 {/* Hardware Detected Section */}
                 <div className="glass-panel p-6 rounded-2xl border border-white/40 dark:border-white/10 bg-white/50 dark:bg-slate-800/50">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                        {assetTypeIcons[formData.hardwareType]}
+                        {assetTypeIcons[hardwareType]}
                         Matériel Détecté
                     </h3>
 
@@ -153,19 +172,17 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                             <div>
                                 <FloatingLabelInput
                                     label="Nom de l'équipement"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    {...register('name')}
                                     placeholder="ex: MacBook Pro de Thibault"
-                                    required
+                                    error={errors.name?.message}
                                 />
                             </div>
                             <div>
                                 <FloatingLabelInput
                                     label="Numéro de Série"
-                                    value={formData.serialNumber}
-                                    onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
+                                    {...register('serialNumber')}
                                     placeholder="ex: C02..."
-                                    required
+                                    error={errors.serialNumber?.message}
                                 />
                             </div>
                         </div>
@@ -174,8 +191,8 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                             <div>
                                 <CustomSelect
                                     label="Utilisateur Principal"
-                                    value={formData.userId}
-                                    onChange={(val) => setFormData({ ...formData, userId: val as string })}
+                                    value={watch('userId') || ''}
+                                    onChange={(val) => setValue('userId', val as string)}
                                     options={users.map(u => ({ value: u.uid, label: u.displayName }))}
                                     placeholder="-- Sélectionner un utilisateur --"
                                 />
@@ -183,8 +200,8 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                             <div>
                                 <CustomSelect
                                     label="Projet Associé"
-                                    value={formData.projectId}
-                                    onChange={(val) => setFormData({ ...formData, projectId: val as string })}
+                                    value={watch('projectId') || ''}
+                                    onChange={(val) => setValue('projectId', val as string)}
                                     options={projects.map(p => ({ value: p.id, label: p.name }))}
                                     placeholder="-- Aucun projet --"
                                 />
@@ -194,8 +211,8 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                         <div>
                             <CustomSelect
                                 label="Type d'équipement"
-                                value={formData.hardwareType}
-                                onChange={(val) => setFormData({ ...formData, hardwareType: val as string })}
+                                value={watch('hardwareType')}
+                                onChange={(val) => setValue('hardwareType', val as string)}
                                 options={[
                                     { value: 'Laptop', label: 'Ordinateur Portable' },
                                     { value: 'Desktop', label: 'Ordinateur Fixe' },
@@ -211,8 +228,7 @@ export const IntakeForm: React.FC<IntakeFormProps> = ({ hardwareInfo, orgId, onS
                         <div>
                             <FloatingLabelTextarea
                                 label="Notes"
-                                value={formData.notes}
-                                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                {...register('notes')}
                                 placeholder="État physique, accessoires fournis..."
                                 rows={3}
                             />

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, limit } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { UserProfile, Invitation, JoinRequest, CustomRole } from '../types';
@@ -24,9 +24,9 @@ export const useTeamManagement = () => {
         setLoading(true);
         try {
             const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'invitations'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'join_requests'), where('organizationId', '==', user.organizationId), where('status', '==', 'pending')))
+                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId), limit(100))),
+                getDocs(query(collection(db, 'invitations'), where('organizationId', '==', user.organizationId), limit(50))),
+                getDocs(query(collection(db, 'join_requests'), where('organizationId', '==', user.organizationId), where('status', '==', 'pending'), limit(50)))
             ]);
 
             const activeUsers = results[0].status === 'fulfilled'
@@ -134,13 +134,13 @@ export const useTeamManagement = () => {
 
     const checkDependencies = async (uid: string): Promise<string[]> => {
         const dependencies: string[] = [];
-        const assetsSnap = await getDocs(query(collection(db, 'assets'), where('ownerId', '==', uid)));
+        const assetsSnap = await getDocs(query(collection(db, 'assets'), where('ownerId', '==', uid), limit(20)));
         if (!assetsSnap.empty) dependencies.push(`${assetsSnap.size} actif(s)`);
 
-        const risksSnap = await getDocs(query(collection(db, 'risks'), where('ownerId', '==', uid)));
+        const risksSnap = await getDocs(query(collection(db, 'risks'), where('ownerId', '==', uid), limit(20)));
         if (!risksSnap.empty) dependencies.push(`${risksSnap.size} risque(s)`);
 
-        const docsSnap = await getDocs(query(collection(db, 'documents'), where('ownerId', '==', uid)));
+        const docsSnap = await getDocs(query(collection(db, 'documents'), where('ownerId', '==', uid), limit(20)));
         if (!docsSnap.empty) dependencies.push(`${docsSnap.size} document(s)`);
 
         return dependencies;

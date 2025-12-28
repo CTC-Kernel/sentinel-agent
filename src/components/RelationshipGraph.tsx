@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Asset, Risk, Control } from '../types';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from '../services/errorLogger';
 import { ShieldAlert, Server, CheckCircle2 } from './ui/Icons';
@@ -49,7 +49,7 @@ export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, ro
                     newNodes.push({ id: asset.id, type: 'Asset', label: asset.name, x: cx, y: cy, data: asset });
 
                     // 2. Fetch Linked Risks
-                    const risksSnap = await getDocs(query(collection(db, 'risks'), where('assetId', '==', rootId)));
+                    const risksSnap = await getDocs(query(collection(db, 'risks'), where('assetId', '==', rootId), limit(20)));
                     const risks = risksSnap.docs.map(d => ({ id: d.id, ...d.data() } as Risk));
 
                     risks.forEach((risk, i) => {

@@ -39,6 +39,18 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
         { name: 'Observation', value: findings.filter(f => f.type === 'Observation').length },
     ].filter(d => d.value > 0);
 
+    if (totalAudits === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center p-12 text-center bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-300 dark:border-slate-700 min-h-[400px]">
+                <div className="p-4 bg-white dark:bg-slate-800 rounded-full shadow-lg mb-4">
+                    <CheckCircle2 className="h-10 w-10 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucun audit pour le moment</h3>
+                <p className="text-sm text-slate-500 max-w-sm">Commencez par planifier un audit pour voir apparaître des métriques et des analyses détaillées.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             {/* Summary Card */}

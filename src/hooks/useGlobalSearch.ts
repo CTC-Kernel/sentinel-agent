@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
@@ -43,7 +43,7 @@ export const useGlobalSearch = () => {
             // 1. Assets
             if (activeTypeFilter === 'all' || activeTypeFilter === 'asset' || filters.type === 'asset' || filters.type === 'all') {
                 try {
-                    const assetsSnap = await getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId)));
+                    const assetsSnap = await getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId), limit(50)));
                     assetsSnap.forEach(doc => {
                         const data = doc.data();
                         if (matches(data.name) || matches(data.type)) {
@@ -69,7 +69,7 @@ export const useGlobalSearch = () => {
             // 2. Risks
             if (activeTypeFilter === 'all' || activeTypeFilter === 'risk' || filters.type === 'risk' || filters.type === 'all') {
                 try {
-                    const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId)));
+                    const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId), limit(50)));
                     risksSnap.forEach(doc => {
                         const data = doc.data();
                         if (matches(data.threat) || matches(data.scenario)) {
@@ -93,7 +93,7 @@ export const useGlobalSearch = () => {
             // 3. Documents
             if (activeTypeFilter === 'all' || activeTypeFilter === 'document' || filters.type === 'document' || filters.type === 'all') {
                 try {
-                    const docsSnap = await getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId)));
+                    const docsSnap = await getDocs(query(collection(db, 'documents'), where('organizationId', '==', user.organizationId), limit(50)));
                     docsSnap.forEach(doc => {
                         const data = doc.data();
                         if (matches(data.title) || matches(data.reference)) {
@@ -117,7 +117,7 @@ export const useGlobalSearch = () => {
             // 4. Projects
             if (activeTypeFilter === 'all' || activeTypeFilter === 'project' || filters.type === 'project' || filters.type === 'all') {
                 try {
-                    const projSnap = await getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId)));
+                    const projSnap = await getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId), limit(50)));
                     projSnap.forEach(doc => {
                         const data = doc.data();
                         if (matches(data.name) || matches(data.description)) {
