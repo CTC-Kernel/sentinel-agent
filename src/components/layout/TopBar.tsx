@@ -6,8 +6,8 @@ import { NotificationCenter } from '../notifications/NotificationCenter';
 import { Breadcrumbs } from '../ui/Breadcrumbs';
 
 import { signOut } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebase';
+import { auth } from '../../firebase';
+import { useTeamData } from '../../hooks/team/useTeamData';
 import { ErrorLogger } from '../../services/errorLogger';
 import { FeedbackModal } from '../ui/FeedbackModal';
 import { Tooltip } from '../ui/Tooltip';
@@ -19,6 +19,7 @@ interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
     const { theme, toggleTheme, user, t } = useStore();
+    const { updateUser } = useTeamData();
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showFeedback, setShowFeedback] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
@@ -130,7 +131,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                 if (user) {
                                     try {
                                         const newTheme = theme === 'light' ? 'dark' : 'light';
-                                        await updateDoc(doc(db, 'users', user.uid), { theme: newTheme });
+                                        await updateUser(user.uid, { theme: newTheme });
                                     } catch (e) {
                                         ErrorLogger.error(e, 'TopBar.toggleTheme');
                                     }
