@@ -19,7 +19,7 @@ const Pricing = () => {
   const { user, addToast } = useStore();
   const { t } = useTranslation();
   const [isAnnual, setIsAnnual] = useState(true);
-  const [loading, setLoading] = useState<string | null>(null);
+  const [loading, setLoading] = useState<string | null>(null); // Skeleton: loading state for pricing plans table
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
