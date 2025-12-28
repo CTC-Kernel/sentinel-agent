@@ -1,7 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { Questionnaire, UserProfile } from '../../types';
-import { deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Plus, FileText, Trash2, Edit, Send } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -18,7 +16,7 @@ interface QuestionnaireListProps {
 
 export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, organizationId, canEdit }) => {
     const { addToast } = useStore();
-    const { questionnaires: allQuestionnaires } = useAuditsActions();
+    const { questionnaires: allQuestionnaires, removeQuestionnaire } = useAuditsActions();
     const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<Questionnaire | null>(null);
     const [mode, setMode] = useState<'view' | 'edit' | 'respond' | null>(null);
 
@@ -30,7 +28,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
     const handleDelete = async (id: string) => {
         if (!window.confirm("Supprimer ce questionnaire ?")) return;
         try {
-            await deleteDoc(doc(db, 'questionnaires', id));
+            await removeQuestionnaire(id);
             addToast("Questionnaire supprimé", "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'QuestionnaireList.handleDelete', 'DELETE_FAILED');

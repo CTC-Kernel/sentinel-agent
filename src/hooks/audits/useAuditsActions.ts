@@ -12,7 +12,7 @@ export const useAuditsActions = () => {
     { realtime: true, enabled: !!user?.organizationId }
   );
 
-  const { data: questionnaires, loading: loadingQuestionnaires } = useFirestoreCollection<Questionnaire>(
+  const { data: questionnaires, loading: loadingQuestionnaires, add: addQuestionnaire, update: updateQuestionnaire, remove: removeQuestionnaire } = useFirestoreCollection<Questionnaire>(
     'questionnaires',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
@@ -53,5 +53,8 @@ export const useAuditsActions = () => {
     updateAudit,
     addAudit,
     removeAudit,
+    addQuestionnaire,
+    updateQuestionnaire,
+    removeQuestionnaire,
   };
 };
