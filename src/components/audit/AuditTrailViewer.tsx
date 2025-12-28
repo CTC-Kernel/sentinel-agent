@@ -1,8 +1,5 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore';
-import { db } from '../../firebase';
+import React, { useState, useMemo } from 'react';
 import { useStore } from '../../store';
-import { ErrorLogger } from '../../services/errorLogger';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 import { motion } from 'framer-motion';
 import { staggerContainerVariants } from '../ui/animationVariants';
@@ -20,24 +17,11 @@ import {
     ChevronRight,
     AlertCircle
 } from '../ui/Icons';
-
-interface AuditLog {
-    id: string;
-    action: 'create' | 'update' | 'delete';
-    entityType: string;
-    entityId: string;
-    userId: string;
-    userName: string;
-    timestamp: Date;
-    before?: Record<string, unknown>;
-    after?: Record<string, unknown>;
-    changes?: string[];
-}
+import { useAuditLogs, type AuditLog } from '../../hooks/audit/useAuditLogs';
 
 export const AuditTrailViewer: React.FC = () => {
     const { user } = useStore();
-    const [logs, setLogs] = useState<AuditLog[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { logs, loading } = useAuditLogs(user?.organizationId);
     const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
     const [filters, setFilters] = useState({
         action: 'all' as 'all' | 'create' | 'update' | 'delete',
@@ -49,53 +33,6 @@ export const AuditTrailViewer: React.FC = () => {
         start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
         end: new Date()
     });
-
-    const orgId = user?.organizationId;
-
-    // Fetch audit logs
-    useEffect(() => {
-        if (!orgId) return;
-
-        const fetchLogs = async () => {
-            setLoading(true);
-            try {
-                const logsRef = collection(db, 'system_logs');
-                const q = query(
-                    logsRef,
-                    where('organizationId', '==', orgId),
-                    orderBy('timestamp', 'desc'),
-                    limit(500)
-                );
-                // ... existing logic ...
-                const snapshot = await getDocs(q);
-                const fetchedLogs: AuditLog[] = [];
-
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    fetchedLogs.push({
-                        id: doc.id,
-                        action: data.action,
-                        entityType: data.entityType,
-                        entityId: data.entityId,
-                        userId: data.userId,
-                        userName: data.userName || 'Utilisateur inconnu',
-                        timestamp: data.timestamp?.toDate() || new Date(),
-                        before: data.before,
-                        after: data.after,
-                        changes: data.changes
-                    });
-                });
-
-                setLogs(fetchedLogs);
-            } catch (error) {
-                ErrorLogger.error(error, 'AuditTrailViewer.fetchLogs');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchLogs();
-    }, [orgId]);
 
     // Filter logs
     const filteredLogs = useMemo(() => {
