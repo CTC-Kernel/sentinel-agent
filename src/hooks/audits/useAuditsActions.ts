@@ -6,7 +6,7 @@ import { Questionnaire, EvidenceRequest, UserProfile, Document, Audit, Questionn
 export const useAuditsActions = () => {
   const { user } = useAuth();
 
-  const { data: audits, loading: loadingAudits } = useFirestoreCollection<Audit>(
+  const { data: audits, loading: loadingAudits, update: updateAudit, add: addAudit, remove: removeAudit } = useFirestoreCollection<Audit>(
     'audits',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
@@ -50,5 +50,8 @@ export const useAuditsActions = () => {
     documents: documents || [],
     responses: responses || [],
     loading: loadingAudits || loadingQuestionnaires || loadingEvidences || loadingUsers || loadingDocuments || loadingResponses,
+    updateAudit,
+    addAudit,
+    removeAudit,
   };
 };

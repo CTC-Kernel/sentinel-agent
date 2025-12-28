@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Audit, UserProfile } from '../../types';
-import { updateDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { useAuditsActions } from '../../hooks/audits/useAuditsActions';
 import { useStore } from '../../store';
 import { Plus, Trash2, User, Mail, Shield, ExternalLink } from '../ui/Icons';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -19,6 +18,7 @@ interface AuditTeamProps {
 
 export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) => {
     const { user, addToast } = useStore();
+    const { updateAudit } = useAuditsActions();
     const [isAddingInternal, setIsAddingInternal] = useState(false);
     const [isAddingExternal, setIsAddingExternal] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState('');
@@ -33,7 +33,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                 return;
             }
 
-            await updateDoc(doc(db, 'audits', audit.id), sanitizeData({
+            await updateAudit(audit.id, sanitizeData({
                 collaborators: [...currentCollaborators, selectedUserId]
             }));
             addToast("Collaborateur ajouté", "success");
@@ -53,7 +53,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
                 return;
             }
 
-            await updateDoc(doc(db, 'audits', audit.id), sanitizeData({
+            await updateAudit(audit.id, sanitizeData({
                 externalAuditors: [...currentExternal, externalEmail]
             }));
 
@@ -81,7 +81,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
     const handleRemoveInternal = async (userId: string) => {
         try {
             const currentCollaborators = audit.collaborators || [];
-            await updateDoc(doc(db, 'audits', audit.id), sanitizeData({
+            await updateAudit(audit.id, sanitizeData({
                 collaborators: currentCollaborators.filter(id => id !== userId)
             }));
             addToast("Collaborateur retiré", "info");
@@ -93,7 +93,7 @@ export const AuditTeam: React.FC<AuditTeamProps> = ({ audit, users, canEdit }) =
     const handleRemoveExternal = async (email: string) => {
         try {
             const currentExternal = audit.externalAuditors || [];
-            await updateDoc(doc(db, 'audits', audit.id), sanitizeData({
+            await updateAudit(audit.id, sanitizeData({
                 externalAuditors: currentExternal.filter(e => e !== email)
             }));
             addToast("Auditeur externe retiré", "info");
