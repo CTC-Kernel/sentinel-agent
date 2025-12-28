@@ -146,6 +146,59 @@ const RULES = [
     // 2. BOUTONS & INTERACTIONS
     // =========================================================================
     {
+        id: 'btn-empty-handler',
+        category: 'Boutons',
+        human: 'Les boutons ne doivent pas avoir de handler vide.',
+        severity: 'error',
+        check: (content, filePath) => {
+            if (!filePath.endsWith('.tsx')) return null;
+            const errors = [];
+            const lines = content.split('\n');
+            lines.forEach((line, i) => {
+                if (line.match(/onClick=\{\s*\(\)\s*=>\s*\{\}\s*\}/) ||
+                    line.match(/onClick=\{undefined\}/)) {
+                    errors.push({ line: i, match: 'Handler onClick vide ou undefined' });
+                }
+            });
+            return errors.length ? errors : null;
+        }
+    },
+    {
+        id: 'btn-form-submit-context',
+        category: 'Boutons',
+        human: 'Les boutons type="submit" doivent être dans un formulaire.',
+        severity: 'warning',
+        check: (content, filePath) => {
+            if (!filePath.endsWith('.tsx')) return null;
+            if (content.includes('type="submit"') && !content.includes('<form') && !content.includes('FormProvider')) {
+                return { line: 0, match: 'Bouton submit détecté hors d\'un contexte de formulaire visible (verification limitée)' };
+            }
+            return null;
+        }
+    },
+    {
+        id: 'btn-aria-label-icon-only',
+        category: 'Boutons',
+        human: 'Les boutons icône seule doivent avoir un aria-label.',
+        severity: 'error',
+        check: (content, filePath) => {
+            if (!filePath.endsWith('.tsx')) return null;
+            const errors = [];
+            const lines = content.split('\n');
+            lines.forEach((line, i) => {
+                // Heuristique simplifiée : bouton avec Icon et fermeture immédiate ou courte
+                if ((line.match(/<Button[^>]*>\s*<[^>]*Icon/) || line.match(/<IconButton/)) &&
+                    !line.includes('aria-label') && !line.includes('title=')) {
+                    // Vérifier s'il n'y a pas de texte enfant (difficile en regex pur, mais on peut flaguer les IconButton)
+                    if (line.includes('IconButton')) {
+                        errors.push({ line: i, match: 'IconButton sans aria-label explicite' });
+                    }
+                }
+            });
+            return errors.length ? errors : null;
+        }
+    },
+    {
         id: 'btn-onclick-handler',
         category: 'Boutons',
         human: 'Les boutons avec onClick doivent avoir un handler défini (pas inline complexe).',
@@ -816,8 +869,48 @@ const RULES = [
     },
 
     // =========================================================================
-    // 7. SÉCURITÉ & RBAC
+    // 7. SÉCURITÉ & RBAC & LOGIQUE MÉTIER
     // =========================================================================
+    {
+        id: 'logic-mutation-audit',
+        category: 'Logique',
+        human: 'Les actions de mutation doivent être auditées (logAction).',
+        severity: 'warning',
+        check: (content, filePath) => {
+            if (!filePath.includes('/src/hooks/') && !filePath.includes('/src/services/')) return null;
+            const errors = [];
+            const lines = content.split('\n');
+
+            // Regex pour repérer le début d'une fonction handleCreate/Update/Delete ou une méthode de service
+            // C'est complexe en regex multilingues, on va faire une heuristic simple sur le fichier global
+            // Si le fichier contient handleCreate... et pas de logAction / logAudit
+            if ((content.includes('handleCreate') || content.includes('handleUpdate') || content.includes('handleDelete')) &&
+                !content.includes('logAction') && !content.includes('auditService') && !content.includes('logEvent')) {
+                return { line: 0, match: 'Fonctions de mutation (handle*) détectées sans trace d\'appel d\'audit (logAction/auditService)' };
+            }
+            return null;
+        }
+    },
+    {
+        id: 'logic-missing-implementations',
+        category: 'Logique',
+        human: 'Détecter les fonctionnalités incomplètes (TODO, TBD).',
+        severity: 'warning',
+        check: (content, filePath) => {
+            if (!filePath.includes('/src/')) return null;
+            const errors = [];
+            const lines = content.split('\n');
+            lines.forEach((line, i) => {
+                if (line.match(/console\.log\(['"]TODO/) ||
+                    line.match(/alert\(['"]Not implemented/) ||
+                    line.includes('// TODO:') ||
+                    line.includes('// FIXME:')) {
+                    errors.push({ line: i, match: 'Fonctionnalité marquée comme incomplète (TODO/FIXME)' });
+                }
+            });
+            return errors.length ? errors : null;
+        }
+    },
     {
         id: 'security-xss',
         category: 'Sécurité',
@@ -1335,9 +1428,13 @@ const RULES = [
         check: (content, filePath) => {
             if (!filePath.endsWith('.tsx')) return null;
 
-            if (content.includes('onSubmit') && !content.includes('e.preventDefault') &&
-                !content.includes('event.preventDefault')) {
-                return { line: 0, match: 'Formulaire sans e.preventDefault()' };
+            // Simple check: if file contains <form but no preventDefault/handleSubmit
+            if (content.includes('<form') &&
+                content.includes('onSubmit') &&
+                !content.includes('e.preventDefault') &&
+                !content.includes('event.preventDefault') &&
+                !content.includes('handleSubmit')) {
+                return { line: 0, match: 'Formulaire (<form>) sans e.preventDefault() ni handleSubmit' };
             }
             return null;
         }
@@ -1379,13 +1476,68 @@ const RULES = [
             lines.forEach((line, i) => {
                 if (line.includes('<input') && !line.includes('type="submit"') &&
                     !line.includes('type="file"') && !line.includes('type="hidden"')) {
-                    if (!line.includes('value=') && !line.includes('defaultValue=') &&
-                        !line.includes('{...register') && !line.includes('{...field') &&
-                        !line.includes('checked=')) {
-                        errors.push({ line: i, match: 'Input non-contrôlé - ajouter value={} et onChange={}' });
+
+                    // Look ahead 10 lines for control props
+                    const context = lines.slice(i, i + 10).join('\n');
+
+                    if (!context.includes('value=') && !context.includes('defaultValue=') &&
+                        !context.includes('{...register') && !context.includes('{...field') &&
+                        !context.includes('{...control.register') &&
+                        !context.includes('checked=') && !context.includes('onChange=')) {
+                        errors.push({ line: i + 1, match: 'Input non contrôlé (ni value, ni checked, ni register)' });
                     }
                 }
             });
+            return errors.length ? errors : null;
+        }
+    },
+
+
+    {
+        id: 'form-validation-robust',
+        category: 'Formulaires',
+        human: 'Les formulaires doivent utiliser Zod ou Yup pour la validation.',
+        severity: 'error',
+        check: (content, filePath) => {
+            if (!filePath.endsWith('.tsx')) return null;
+
+            // Détecter un formulaire ou un composant de formulaire
+            if (content.includes('useForm') || content.includes('<form')) {
+                // Vérifier la présence de resolver ou schema
+                const hasResolver = content.includes('resolver:');
+                const hasSchema = content.includes('schema') || content.includes('Schema');
+                const importsValidation = content.includes('zod') || content.includes('yup');
+
+                if (!hasResolver && !hasSchema && !importsValidation) {
+                    return { line: 0, match: 'Formulaire sans schéma de validation (Zod/Yup) détecté' };
+                }
+            }
+            return null;
+        }
+    },
+    {
+        id: 'panel-reset-logic',
+        category: 'UX/UI',
+        human: 'Les SidePanels/Drawers doivent gérer correctement la fermeture (reset state).',
+        severity: 'warning',
+        check: (content, filePath) => {
+            if (!filePath.endsWith('.tsx')) return null;
+            if (!content.includes('Drawer') && !content.includes('SidePanel') && !content.includes('Sheet')) return null;
+
+            const errors = [];
+            // Vérifier si onClose est géré
+            if (content.includes('open={') && !content.includes('onOpenChange={') && !content.includes('onClose={')) {
+                errors.push({ line: 0, match: 'Panel sans gestionnaire de fermeture (onClose/onOpenChange)' });
+            }
+
+            // Vérifier si le formulaire est reset à la fermeture (heuristique)
+            if (content.includes('useForm') && (content.includes('Drawer') || content.includes('Sheet'))) {
+                if (!content.includes('reset(') && !content.includes('useEffect')) {
+                    // C'est souvent un signe que le formulaire garde son état précédent
+                    errors.push({ line: 0, match: 'Formulaire dans un Panel sans reset() visible - risque de données persistantes' });
+                }
+            }
+
             return errors.length ? errors : null;
         }
     },
@@ -1444,7 +1596,17 @@ const RULES = [
                 !content.includes('EmptyState') &&
                 !content.includes('empty') &&
                 !content.includes('Aucun') &&
-                !content.includes('No ')) {
+                !content.includes('No ') &&
+                // Exclude configuration/static lists
+                !content.includes('steps.map') &&
+                !content.includes('tabs.map') &&
+                !content.includes('columns.map') &&
+                !content.includes('headers.map') &&
+                !content.includes('options.map') &&
+                !content.includes('layout.map') &&
+                !content.includes('matrix.map') &&
+                !content.includes('routes.map') &&
+                !content.includes('links.map')) {
                 return { line: 0, match: 'Liste sans état vide' };
             }
             return null;
@@ -1733,8 +1895,45 @@ const RULES = [
     },
 
     // =========================================================================
-    // 17. ROUTES & NAVIGATION
+    // 17. ROUTES & NAVIGATION & WORKFLOW
     // =========================================================================
+    {
+        id: 'workflow-dead-end',
+        category: 'Workflow',
+        human: 'Les pages ne doivent pas être des culs-de-sac (navigation requise).',
+        severity: 'warning',
+        check: (content, filePath) => {
+            if (!filePath.includes('/src/views/')) return null;
+            // On cherche des éléments de navigation
+            const hasNav = content.includes('<Link') ||
+                content.includes('useNavigate') ||
+                content.includes('href=') ||
+                content.includes('<Button') || // Supposons qu'un bouton puisse déclencher une nav
+                content.includes('Breadcrumb');
+
+            if (!hasNav) {
+                return { line: 0, match: 'Page potentiellement cul-de-sac (aucune navigation/lien détecté)' };
+            }
+            return null;
+        }
+    },
+    {
+        id: 'workflow-broken-links',
+        category: 'Workflow',
+        human: 'Les liens ne doivent pas être vides ou temporaires.',
+        severity: 'error',
+        check: (content, filePath) => {
+            if (!filePath.includes('/src/')) return null;
+            const errors = [];
+            const lines = content.split('\n');
+            lines.forEach((line, i) => {
+                if (line.match(/to=['"]['"]/) || line.match(/to=['"]#['"]/) || line.match(/href=['"]#['"]/)) {
+                    errors.push({ line: i, match: 'Lien vide ou ancre # détecté (lien cassé)' });
+                }
+            });
+            return errors.length ? errors : null;
+        }
+    },
     {
         id: 'route-protection',
         category: 'Routes',
