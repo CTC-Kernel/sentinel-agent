@@ -18,7 +18,7 @@ export const useTeamData = () => {
     { realtime: true, enabled: !!user?.organizationId }
   );
 
-  const { data: users, loading: loadingUsers } = useFirestoreCollection<UserProfile>(
+  const { data: users, loading: loadingUsers, update: updateUser } = useFirestoreCollection<UserProfile>(
     'users',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
@@ -35,5 +35,6 @@ export const useTeamData = () => {
     addRole,
     updateRole,
     removeRole,
+    updateUser,
   };
 };
