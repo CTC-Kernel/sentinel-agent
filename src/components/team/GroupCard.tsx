@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserGroup, UserProfile } from '../../types';
 import { Edit, Trash2, Users } from '../ui/Icons';
-import { ConfirmModal } from '../ui/ConfirmModal';
+import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
 
 interface GroupCardProps {
     group: UserGroup;

@@ -13,7 +13,7 @@ import { logAction } from '../services/logger';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
-import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { ConfirmModal } from '../components/ui/ConfirmModal'; // Keyboard: Escape key supported
 
 import { hasPermission } from '../utils/permissions';
 

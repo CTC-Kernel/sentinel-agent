@@ -9,7 +9,7 @@ import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { useSuppliers } from '../hooks/useSuppliers';
 import { useSuppliersData } from '../hooks/suppliers/useSuppliersData';
-import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { ConfirmModal } from '../components/ui/ConfirmModal'; // Keyboard: Escape key supported
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { DataTable } from '../components/ui/DataTable';
 import { motion } from 'framer-motion';

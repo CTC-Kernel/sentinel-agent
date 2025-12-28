@@ -75,9 +75,8 @@ export const FilePreview: React.FC<FilePreviewProps> = ({
                 <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-800/50 p-4">
                     {isImage && (
                         <div className="flex items-center justify-center h-full">
-                            <img
+                            <img alt={fileName}
                                 src={url}
-                                alt={fileName}
                                 className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
                                 onLoad={() => setLoading(false)}
                             />

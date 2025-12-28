@@ -3,7 +3,7 @@ import { UserGroup, UserProfile } from '../../types';
 import { useStore } from '../../store';
 import { useTeamData } from '../../hooks/team/useTeamData';
 import { Drawer } from '../ui/Drawer';
-import { ConfirmModal } from '../ui/ConfirmModal';
+import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { Button } from '../ui/button';
 import { Plus } from '../ui/Icons';

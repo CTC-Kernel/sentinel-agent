@@ -16,7 +16,7 @@ import { hasPermission } from '../../utils/permissions';
 import { logAction } from '../../services/logger'; // Added import
 import { SubscriptionService } from '../../services/subscriptionService';
 import { UserProfile } from '../../types';
-import { ConfirmModal } from '../ui/ConfirmModal';
+import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
 import { UserRow } from './UserRow';
 import { useSettingsData } from '../../hooks/settings/useSettingsData';
 

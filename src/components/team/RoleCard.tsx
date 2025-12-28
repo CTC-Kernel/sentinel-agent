@@ -1,7 +1,7 @@
 import { memo, useState } from 'react';
 import { CustomRole } from '../../types';
 import { Edit, Trash2, Shield } from '../ui/Icons';
-import { ConfirmModal } from '../ui/ConfirmModal';
+import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
 
 interface RoleCardProps {
     role: CustomRole;
