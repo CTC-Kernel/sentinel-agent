@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Badge } from '../ui/Badge';
-import { Project, ProjectTask, UserProfile, Risk, Control, Asset, Audit, ProjectMilestone } from '../../types';
+import { Project, ProjectTask, UserProfile, Risk, Control, Asset, Audit } from '../../types';
 import { CalendarDays, LayoutDashboard, CheckSquare, Target, FileSpreadsheet, ShieldAlert, Server, ClipboardCheck, BrainCircuit, History, MessageSquare, FileText, Download, Copy, Edit, Trash2, Plus, Loader2, Users } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { ProjectDashboard } from './ProjectDashboard';
@@ -13,11 +13,9 @@ import { KanbanColumn } from './KanbanColumn';
 import { GanttChart } from './GanttChart';
 import { CommentSection } from '../collaboration/CommentSection';
 import { generateICS, downloadICS } from '../../utils/calendarUtils';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { TaskFormModal } from './TaskFormModal';
 import { sanitizeData } from '../../utils/dataSanitizer';
-import { ErrorLogger } from '../../services/errorLogger';
+import { useProjectMilestones } from '../../hooks/projects/useProjectMilestones';
 
 import './gantt.css';
 
@@ -48,7 +46,7 @@ interface ProjectInspectorProps {
 }
 
 export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
-    isOpen, project, onClose, canEdit, usersList, user,
+    isOpen, project, onClose, canEdit, usersList,
     risks, controls, assets, audits,
     updateTasks, onDeleteProject, onDuplicateProject, onEditProject,
     onExportExecutiveReport, onGenerateReport, isSubmitting
@@ -59,8 +57,8 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     const [viewMode, setViewMode] = useState<'list' | 'board'>('list'); // Task View Mode
     const [ganttViewMode, setGanttViewMode] = useState<'Month' | 'Week' | 'Day'>('Month');
 
-    // Local Data
-    const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>([]);
+    // Local Data - use hook for milestones
+    const { milestones: projectMilestones } = useProjectMilestones(project?.id);
 
     // Kanban State
     const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
@@ -68,30 +66,6 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     // Task Modal State
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
-
-    const fetchMilestones = useCallback(async (projectId: string) => {
-        if (!user?.organizationId) return;
-        try {
-            const q = query(
-                collection(db, 'project_milestones'),
-                where('projectId', '==', projectId),
-                where('organizationId', '==', user.organizationId)
-            );
-            const snap = await getDocs(q);
-            setProjectMilestones(snap.docs.map(d => ({ id: d.id, ...d.data() } as ProjectMilestone)));
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'ProjectInspector.fetchMilestones', 'FETCH_FAILED');
-        }
-    }, [user?.organizationId]);
-
-    // Fetch Details on Open
-    // Fetch Details on Open
-    useEffect(() => {
-        if (project && user?.organizationId) {
-            fetchMilestones(project.id);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [project?.id, user?.organizationId, fetchMilestones]);
 
     // Derived Lists
     const linkedRisks = useMemo(() => risks.filter(r => project?.relatedRiskIds?.includes(r.id)), [risks, project?.relatedRiskIds]);
@@ -182,9 +156,10 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
         setShowTaskModal(false);
     }, []);
 
+    // Milestones are now auto-updated via useProjectMilestones hook
     const handleMilestoneUpdate = React.useCallback(() => {
-        if (project) fetchMilestones(project.id);
-    }, [project, fetchMilestones]);
+        // Hook handles updates automatically
+    }, []);
 
     const handleGanttTaskUpdate = React.useCallback(async (task: ProjectTask, start: Date, end: Date) => {
         if (!project) return;
