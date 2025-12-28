@@ -66,7 +66,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
                             <Button
                                 variant="ghost"
-                                onClick={() => window.location.href = '/'}
+                                onClick={() => window.location.href = '/'} // Intentional: full reload to recover from error state
                                 className="w-full text-base py-6 rounded-xl font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
                             >
                                 <Home className="mr-2 h-5 w-5" />

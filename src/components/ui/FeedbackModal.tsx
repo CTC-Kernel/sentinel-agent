@@ -58,7 +58,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                 status: 'new',
                 createdAt: new Date().toISOString(),
                 userAgent: navigator.userAgent,
-                url: window.location.href
+                url: window.location.href // Intentional: reading current URL for feedback context
             });
 
             addToast('Merci ! Votre retour a bien été envoyé.', 'success');

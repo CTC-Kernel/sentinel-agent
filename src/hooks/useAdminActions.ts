@@ -35,7 +35,7 @@ export const useAdminActions = () => {
             }
 
             toast.success(t('admin.toast.switchSuccess', { name: orgName }));
-            // Redirect to dashboard
+            // Intentional: full page reload after org switch to reinitialize all state
             window.location.href = '/';
         } catch (error) {
             ErrorLogger.error(error as Error, 'useAdminActions.handleManage');

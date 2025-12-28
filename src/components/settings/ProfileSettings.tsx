@@ -144,7 +144,7 @@ export const ProfileSettings: React.FC = () => {
         try {
             await AccountService.deleteAccount(user, auth.currentUser);
             addToast(t('settings.accountDeleted'), "success");
-            // Redirect is handled by AuthState listener or force reload
+            // Intentional: full page reload after account deletion to clear all state
             window.location.href = '/login';
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'ProfileSettings.handleDeleteAccount', 'DELETE_ACCOUNT_FAILED');

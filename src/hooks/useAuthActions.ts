@@ -351,7 +351,7 @@ export const useAuthActions = () => {
         try {
             await auth.signOut();
             addToast(t('auth.logoutSuccess'), 'success');
-            window.location.href = '/login';
+            window.location.href = '/login'; // Intentional: full reload after logout to clear all auth state
         } catch (error) {
             ErrorLogger.error(error as Error, 'useAuthActions.logout');
         }

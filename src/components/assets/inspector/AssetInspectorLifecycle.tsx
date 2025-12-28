@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AreaChart, Area, XAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, YAxis } from 'recharts';
+import { AreaChart, Area, XAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, YAxis } from 'recharts'; // Tooltip aliased as RechartsTooltip
 import { Archive, ClipboardList } from '../../ui/Icons';
 import { DatePicker } from '../../ui/DatePicker';
 import { CustomSelect } from '../../ui/CustomSelect';

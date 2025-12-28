@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Suspense } from 'react';
-import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'; // HashRouter aliased as Router
 import { Toaster } from 'sonner';
 
 // Contexts & Hooks

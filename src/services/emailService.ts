@@ -1,6 +1,3 @@
-
-// import { addDoc, collection } from 'firebase/firestore';
-// import { db } from '../firebase';
 import { logAction } from './logger';
 import { ErrorLogger } from './errorLogger';
 

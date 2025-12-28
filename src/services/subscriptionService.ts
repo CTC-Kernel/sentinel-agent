@@ -77,7 +77,7 @@ export const SubscriptionService = {
       }) as { data: { url: string } };
 
       if (data.url) {
-        window.location.href = data.url;
+        window.location.href = data.url; // Intentional: external redirect to Stripe checkout
       }
     } catch (error) {
       ErrorLogger.error(error, 'SubscriptionService.startSubscription');
@@ -99,7 +99,7 @@ export const SubscriptionService = {
       }) as { data: { url: string } };
 
       if (data.url) {
-        window.location.href = data.url;
+        window.location.href = data.url; // Intentional: external redirect to Stripe portal
       }
     } catch (error) {
       ErrorLogger.error(error, 'SubscriptionService.manageSubscription');

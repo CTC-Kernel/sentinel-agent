@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings as Settings3D, Siren, ShieldAlert, Server, User } from '../../ui/Icons';
+import { Settings as Settings3D, Siren, ShieldAlert, Server, User } from '../../ui/Icons'; // Settings aliased as Settings3D
 
 interface QuickActionsProps {
     navigate: (path: string) => void;
