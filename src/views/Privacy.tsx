@@ -108,7 +108,7 @@ export const Privacy: React.FC = () => {
     const initiateDelete = (id: string, name: string) => {
         if (!canEdit) return;
         setActivityToDelete({ id, name });
-        setDeleteModalOpen(true);
+        setDeleteModalOpen(true); // confirmDialog via ConfirmModal
     };
 
     const confirmDelete = async () => {
