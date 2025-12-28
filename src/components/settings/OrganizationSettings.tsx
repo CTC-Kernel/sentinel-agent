@@ -8,8 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { organizationSchema, OrganizationFormData } from '../../schemas/settingsSchema';
 import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
-import { updateDoc, doc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
-import { db, functions } from '../../firebase';
+import { functions } from '../../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
@@ -26,7 +25,7 @@ const SECONDS_TO_MS = 1000;
 export const OrganizationSettings: React.FC = () => {
     const { user, setUser, addToast, t } = useStore();
     const navigate = useNavigate();
-    const { organization, users: hookUsers } = useSettingsData();
+    const { organization, users: hookUsers, updateOrganization, batchUpdateOrgUsers, updateUser } = useSettingsData();
     const [savingOrg, setSavingOrg] = useState(false);
     const [subLoading, setSubLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -58,38 +57,12 @@ export const OrganizationSettings: React.FC = () => {
         }
     }, [organization, orgForm]);
 
-    const updateOrgUsers = useCallback(async (orgId: string, newName: string) => {
-        try {
-            const q = query(collection(db, 'users'), where('organizationId', '==', orgId));
-            const snap = await getDocs(q);
-
-            const chunks = [];
-            const CHUNK_SIZE = 450; // Safety margin below 500
-
-            for (let i = 0; i < snap.docs.length; i += CHUNK_SIZE) {
-                chunks.push(snap.docs.slice(i, i + CHUNK_SIZE));
-            }
-
-            for (const chunk of chunks) {
-                const batch = writeBatch(db);
-                chunk.forEach(d => {
-                    batch.update(d.ref, sanitizeData({ organizationName: newName }));
-                });
-                await batch.commit();
-            }
-        } catch (error) {
-            ErrorLogger.error(error, 'OrganizationSettings.updateOrgUsers');
-            throw error; // Re-throw to be handled by caller
-        }
-    }, []);
-
     const handleUpdateOrg: SubmitHandler<OrganizationFormData> = useCallback(async (data) => {
         if (!hasPermission(user, 'Settings', 'manage') || !user?.organizationId) return;
 
         setSavingOrg(true);
         try {
-            const orgRef = doc(db, 'organizations', user.organizationId);
-            await updateDoc(orgRef, sanitizeData({
+            await updateOrganization(sanitizeData({
                 name: data.orgName,
                 address: data.address,
                 vatNumber: data.vatNumber,
@@ -97,7 +70,7 @@ export const OrganizationSettings: React.FC = () => {
             }));
 
             if (currentOrg?.name !== data.orgName) {
-                await updateOrgUsers(user.organizationId, data.orgName);
+                await batchUpdateOrgUsers(user.organizationId, data.orgName);
                 setUser({ ...user, organizationName: data.orgName });
             }
 
@@ -108,7 +81,7 @@ export const OrganizationSettings: React.FC = () => {
         } finally {
             setSavingOrg(false);
         }
-    }, [user, currentOrg, updateOrgUsers, setUser, addToast, t]);
+    }, [user, currentOrg, updateOrganization, batchUpdateOrgUsers, setUser, addToast, t]);
 
     const handleManageSubscription = useCallback(async () => {
         if (!user?.organizationId || !hasPermission(user, 'Settings', 'manage')) {
@@ -148,7 +121,7 @@ export const OrganizationSettings: React.FC = () => {
 
         try {
             setUpdatingUserIds(prev => new Set(prev).add(targetUserId));
-            await updateDoc(doc(db, 'users', targetUserId), sanitizeData({ role: newRole }));
+            await updateUser(targetUserId, sanitizeData({ role: newRole }));
             await logAction(user, 'UPDATE', 'User', `Rôle mis à jour pour ${targetUserId}: ${newRole}`);
             addToast(t('settings.success.roleUpdated'), 'success');
         } catch (e) {
@@ -160,7 +133,7 @@ export const OrganizationSettings: React.FC = () => {
                 return next;
             });
         }
-    }, [canManageRestrictedRoles, addToast, t, user]);
+    }, [canManageRestrictedRoles, addToast, t, user, updateUser]);
 
     const handleTransferOwnership = React.useCallback(async (targetId: string) => {
         if (!targetId) return;
@@ -196,7 +169,7 @@ export const OrganizationSettings: React.FC = () => {
         if (!hasPermission(user, 'User', 'manage')) return;
         setConfirmRemoveData(prev => ({ ...prev, loading: true }));
         try {
-            await updateDoc(doc(db, 'users', targetUserId), sanitizeData({ organizationId: '', organizationName: '', role: '' }));
+            await updateUser(targetUserId, sanitizeData({ organizationId: '', organizationName: '', role: '' }));
             await logAction(user, 'DELETE', 'User', `Utilisateur retiré de l'organisation: ${targetUserId}`);
             addToast(t('settings.userRemoved'), 'success');
             setConfirmRemoveData(prev => ({ ...prev, isOpen: false }));
@@ -205,7 +178,7 @@ export const OrganizationSettings: React.FC = () => {
         } finally {
             setConfirmRemoveData(prev => ({ ...prev, loading: false }));
         }
-    }, [user, addToast, t]);
+    }, [user, addToast, t, updateUser]);
 
     const initiateRemoveUser = React.useCallback((targetUserId: string) => {
         setConfirmRemoveData({
