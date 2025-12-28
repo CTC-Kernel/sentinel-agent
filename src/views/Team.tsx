@@ -573,7 +573,11 @@ const JoinRequestCard = React.memo(({ req, onApprove, onReject }: { req: JoinReq
 const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: { user: UserProfile, canAdmin: boolean, onEdit: (u: UserProfile) => void, onDelete: (u: UserProfile) => void }) => {
     const { t } = useTranslation();
     const handleEdit = React.useCallback(() => onEdit(user), [onEdit, user]);
-    const handleDelete = React.useCallback(() => onDelete(user), [onDelete, user]);
+    const handleDelete = React.useCallback(() => {
+        if (window.confirm(`Voulez-vous vraiment supprimer ${user.displayName || user.email} ?`)) {
+            onDelete(user);
+        }
+    }, [onDelete, user]);
 
     return (
         <div className={`glass-panel rounded-[2.5rem] p-6 flex flex-col items-center text-center card-hover group relative border border-white/50 dark:border-white/5 ${user.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>
