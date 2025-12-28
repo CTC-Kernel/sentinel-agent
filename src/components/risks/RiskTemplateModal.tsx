@@ -5,8 +5,17 @@ import { RISK_TEMPLATES, RiskTemplate } from '../../utils/riskTemplates';
 import { X, Zap, AlertTriangle, ShieldAlert } from '../ui/Icons';
 import { Button } from '../ui/button';
 import { CustomSelect } from '../ui/CustomSelect';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 import { UserProfile } from '../../types';
+
+const templateFormSchema = z.object({
+  owner: z.string().min(1, 'Le responsable est requis')
+});
+
+type TemplateFormData = z.infer<typeof templateFormSchema>;
 
 interface RiskTemplateModalProps {
     isOpen: boolean;
@@ -19,16 +28,19 @@ interface RiskTemplateModalProps {
 
 export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, onClose, onSelectTemplate, users, isLoading = false }) => {
     const [selectedTemplate, setSelectedTemplate] = useState<RiskTemplate | null>(null);
-    const [owner, setOwner] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (selectedTemplate && owner) {
-            onSelectTemplate(selectedTemplate, owner);
+    const { control, handleSubmit, reset, formState: { errors } } = useForm<TemplateFormData>({
+        resolver: zodResolver(templateFormSchema),
+        defaultValues: { owner: '' }
+    });
+
+    const onSubmit = (data: TemplateFormData) => {
+        if (selectedTemplate) {
+            onSelectTemplate(selectedTemplate, data.owner);
             onClose();
             // Reset
             setSelectedTemplate(null);
-            setOwner('');
+            reset();
         }
     };
 
@@ -132,7 +144,7 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                         </div>
                                     ) : (
                                         /* Template Configuration */
-                                        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                                        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                                             <div className={`bg-gradient-to-r ${getCategoryColor(selectedTemplate.category)} p-6 rounded-xl text-white`}>
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <span className="text-4xl">{selectedTemplate.icon}</span>
@@ -152,13 +164,20 @@ export const RiskTemplateModal: React.FC<RiskTemplateModalProps> = ({ isOpen, on
                                             </div>
 
                                             <div>
-                                                <CustomSelect
-                                                    label="Responsable par Défaut"
-                                                    value={owner}
-                                                    onChange={(val) => setOwner(val as string)}
-                                                    options={users.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                                                    required
-                                                    placeholder="Sélectionner..."
+                                                <Controller
+                                                    name="owner"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <CustomSelect
+                                                            label="Responsable par Défaut"
+                                                            value={field.value}
+                                                            onChange={(val) => field.onChange(val as string)}
+                                                            options={users.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
+                                                            required
+                                                            placeholder="Sélectionner..."
+                                                            error={errors.owner?.message}
+                                                        />
+                                                    )}
                                                 />
                                             </div>
 
