@@ -50,13 +50,24 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
   const dragStartPos = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Reset position when node changes
-  useEffect(() => {
+  const [prevNodeId, setPrevNodeId] = useState(selectedNodeDetails?.id);
+
+  // Reset position directly during render if node changes
+  if (selectedNodeDetails?.id !== prevNodeId) {
     setPosition({ x: 0, y: 0 });
-    if (onPositionChange) {
+    setPrevNodeId(selectedNodeDetails?.id);
+  }
+
+  // Notify parent of position change as a side effect
+  useEffect(() => {
+    // Only notify if we just reset (position is 0,0) and we have a handler
+    // This effect runs after the render where we reset the position
+    if (position.x === 0 && position.y === 0 && onPositionChange) {
       onPositionChange(0, 0);
     }
-  }, [selectedNodeDetails?.id, onPositionChange]);
+    // We only want this to run when the ID actually changed (handled by the render logic resetting position)
+    // or if purely onPositionChange ref changed (unlikely to matter much)
+  }, [prevNodeId, onPositionChange, position.x, position.y]);
 
   useEffect(() => {
     if (isDragging) {

@@ -1,5 +1,4 @@
-import React from 'react';
-import { useForm, FieldErrors } from 'react-hook-form';
+import { useForm, FieldErrors, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserProfile, Asset, Risk } from '../../types';
 import { processingActivitySchema, ProcessingActivityFormData } from '../../schemas/privacySchema';
@@ -26,7 +25,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
 }) => {
     const { user } = useStore();
 
-    const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProcessingActivityFormData>({
+    const { register, handleSubmit, control, setValue, formState: { errors } } = useForm<ProcessingActivityFormData>({
         resolver: zodResolver(processingActivitySchema),
         defaultValues: {
             name: '',
@@ -44,6 +43,11 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
         }
     });
 
+    const [managerId, legalBasis, status, dataCategories, hasDPIA, relatedAssetIds, relatedRiskIds] = useWatch({
+        control,
+        name: ['managerId', 'legalBasis', 'status', 'dataCategories', 'hasDPIA', 'relatedAssetIds', 'relatedRiskIds']
+    });
+
     const onInvalid = (errors: FieldErrors<ProcessingActivityFormData>) => {
         console.error("Form Validation Errors:", errors);
         const missingFields = Object.keys(errors).join(', ');
@@ -59,7 +63,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                 <div>
                     <label htmlFor="privacy-activity-managerId" className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Responsable</label>
                     <CustomSelect
-                        value={watch('managerId') || ''}
+                        value={managerId || ''}
                         onChange={(val) => {
                             const value = Array.isArray(val) ? val[0] : val;
                             const selectedUser = usersList.find(u => u.uid === value);
@@ -79,7 +83,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                 <div>
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Base Légale</label>
                     <CustomSelect
-                        value={watch('legalBasis')}
+                        value={legalBasis}
                         onChange={(val) => setValue('legalBasis', (Array.isArray(val) ? val[0] : val) as ProcessingActivityFormData['legalBasis'])}
                         options={['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime', 'Sauvegarde Intérêts', 'Mission Publique'].map(c => ({ value: c, label: c }))}
                     />
@@ -88,7 +92,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                 <div>
                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Statut</label>
                     <CustomSelect
-                        value={watch('status')}
+                        value={status}
                         onChange={(val) => setValue('status', (Array.isArray(val) ? val[0] : val) as ProcessingActivityFormData['status'])}
                         options={[
                             { value: 'Actif', label: 'Actif' },
@@ -103,7 +107,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                 <CustomSelect
                     label="Catégories de données"
                     multiple
-                    value={watch('dataCategories')}
+                    value={dataCategories}
                     onChange={(val) => setValue('dataCategories', Array.isArray(val) ? val : [val])}
                     options={['État civil', 'Vie personnelle', 'Bancaire / Financier', 'Connexion / Trace', 'Santé (Sensible)', 'Biométrique', 'Judiciaire'].map(c => ({ value: c, label: c }))}
                 />
@@ -113,7 +117,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                 <div>
                     <CustomSelect
                         label="DPIA Requis ?"
-                        value={watch('hasDPIA') ? 'yes' : 'no'}
+                        value={hasDPIA ? 'yes' : 'no'}
                         onChange={(val) => setValue('hasDPIA', val === 'yes')}
                         options={[
                             { value: 'yes', label: 'Oui - Requis' },
@@ -128,7 +132,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                     <CustomSelect
                         label="Actifs liés"
                         multiple
-                        value={watch('relatedAssetIds') || []}
+                        value={relatedAssetIds || []}
                         onChange={(val) => setValue('relatedAssetIds', Array.isArray(val) ? val : [val])}
                         options={assetsList.map(a => ({ value: a.id, label: a.name }))}
                         placeholder="Associer des actifs..."
@@ -138,7 +142,7 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
                     <CustomSelect
                         label="Risques liés"
                         multiple
-                        value={watch('relatedRiskIds') || []}
+                        value={relatedRiskIds || []}
                         onChange={(val) => setValue('relatedRiskIds', Array.isArray(val) ? val : [val])}
                         options={risksList.map(r => ({ value: r.id, label: r.threat.substring(0, 50) + '...' }))}
                         placeholder="Associer des risques..."

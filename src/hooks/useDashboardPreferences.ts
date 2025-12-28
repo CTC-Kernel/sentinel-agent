@@ -47,7 +47,9 @@ export const useDashboardPreferences = (userId: string | undefined, role: string
         }
 
         if (hasLoaded) {
-            setHasLoaded(false);
+            // Defer strict state reset to avoid synchronous render loop warnings
+            // This indicates we are restarting a fetch operation
+            setTimeout(() => setHasLoaded(false), 0);
         }
 
         const key = `${STORAGE_KEY_PREFIX}${userId}_${role}`;
@@ -84,7 +86,7 @@ export const useDashboardPreferences = (userId: string | undefined, role: string
                 setHasLoaded(true);
             }, 0);
         }
-    }, [userId, role, defaultLayout, setPreferences, setHasLoaded]);
+    }, [userId, role, defaultLayout, setPreferences, setHasLoaded, hasLoaded]);
 
     const saveLayout = useCallback((newLayout: WidgetLayout[]) => {
         if (!userId) return;

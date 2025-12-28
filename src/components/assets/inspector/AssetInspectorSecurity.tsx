@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Search, ShieldAlert, Server, Plus, Flame, Siren } from '../../ui/Icons';
 import { Tooltip as CustomTooltip } from '../../ui/Tooltip';
 import { Asset, Risk, Incident, Vulnerability } from '../../../types';
@@ -35,6 +35,10 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
     createRiskFromVuln,
     navigate
 }) => {
+    const handleCreateRisk = useCallback(() => {
+        navigate('/risks', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } });
+    }, [navigate, selectedAsset.id, selectedAsset.name]);
+
     return (
         <div className="space-y-8">
             <div className="flex gap-4">
@@ -115,7 +119,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                     </h3>
                     <button
                         type="button"
-                        onClick={() => navigate('/risks', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } })}
+                        onClick={handleCreateRisk}
                         aria-label="Créer un nouveau risque"
                         className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
                     >

@@ -12,7 +12,7 @@ import { CustomSelect } from '../ui/CustomSelect';
 import { Badge } from '../ui/Badge';
 import { EmptyState } from '../ui/EmptyState';
 import { useProjectMilestones } from '../../hooks/projects/useProjectMilestones';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
@@ -38,7 +38,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
     const [isEditing, setIsEditing] = useState(false);
     const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
 
-    const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<MilestoneFormData>({
+    const { register, handleSubmit, reset, setValue, control, formState: { errors, isSubmitting } } = useForm<MilestoneFormData>({
         resolver: zodResolver(milestoneSchema),
         defaultValues: {
             title: '',
@@ -49,7 +49,11 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
         }
     });
 
-    const formValues = watch();
+    const [targetDate, status, linkedTaskIds] = useWatch({
+        control,
+        name: ['targetDate', 'status', 'linkedTaskIds']
+    });
+    const formValues = { targetDate, status, linkedTaskIds };
 
     const onSubmit = async (data: MilestoneFormData) => {
         if (!user?.organizationId) return;

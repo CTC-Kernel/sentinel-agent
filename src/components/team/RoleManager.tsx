@@ -12,7 +12,7 @@ import { sanitizeData } from '../../utils/dataSanitizer';
 import { EmptyState } from '../ui/EmptyState';
 import { RoleCard } from './RoleCard';
 import { PermissionCheck } from './PermissionCheck';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
@@ -41,7 +41,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [editingRole, setEditingRole] = useState<CustomRole | null>(null);
 
-    const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<RoleFormData>({
+    const { register, handleSubmit, reset, setValue, control, formState: { errors, isSubmitting } } = useForm<RoleFormData>({
         resolver: zodResolver(roleSchema),
         defaultValues: {
             name: '',
@@ -52,7 +52,8 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
 
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; roleId: string | null }>({ isOpen: false, roleId: null });
 
-    const formValues = watch();
+    const permissions = useWatch({ control, name: 'permissions' });
+    const formValues = { permissions };
 
     const handleOpenDrawer = React.useCallback((role?: CustomRole) => {
         if (role) {

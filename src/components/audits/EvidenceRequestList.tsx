@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { EvidenceRequest, UserProfile, Document, Control } from '../../types';
 import { where, arrayUnion, serverTimestamp } from 'firebase/firestore';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useStore } from '../../store';
@@ -54,7 +54,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
 
     type RequestFormData = z.infer<typeof requestSchema>;
 
-    const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<RequestFormData>({
+    const { register, handleSubmit, reset, setValue, control, formState: { errors, isSubmitting } } = useForm<RequestFormData>({
         resolver: zodResolver(requestSchema),
         defaultValues: {
             title: '',
@@ -160,7 +160,12 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
         setExpandedId(prev => prev === id ? null : id);
     }, []);
 
-    const values = watch();
+    const [assignedTo, relatedControlId] = useWatch({
+        control,
+        name: ['assignedTo', 'relatedControlId']
+    });
+    // Combine into an object if needed for cleaner code below, or just use variables
+    const values = { assignedTo, relatedControlId };
 
     const handleExport = useCallback(() => {
         exportEvidenceRequestsZip({

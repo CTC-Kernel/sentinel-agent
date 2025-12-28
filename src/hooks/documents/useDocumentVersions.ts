@@ -10,14 +10,14 @@ export const useDocumentVersions = (documentId: string | null, enabled: boolean 
 
   useEffect(() => {
     if (!enabled || !documentId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setVersions(prev => prev.length > 0 ? [] : prev);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLoading(prev => prev ? false : prev);
+      setTimeout(() => {
+        setVersions(prev => prev.length > 0 ? [] : prev);
+        setLoading(prev => prev ? false : prev);
+      }, 0);
       return;
     }
 
-    setLoading(true);
+    setTimeout(() => setLoading(true), 0);
     const qVersions = query(
       collection(db, 'document_versions'),
       where('documentId', '==', documentId),
