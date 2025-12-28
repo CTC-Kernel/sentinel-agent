@@ -3,7 +3,9 @@ import { X, Calendar, Link as LinkIcon } from 'lucide-react';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 import { DatePicker } from '../ui/DatePicker';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, Resolver } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useStore } from '../../store';
 import { CalendarService } from '../../services/calendarService';
 import { GoogleCalendarService } from '../../services/googleCalendarService';
@@ -11,6 +13,32 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { toast } from 'sonner';
 import { useCalendarData } from '../../hooks/calendar/useCalendarData';
+import { ErrorLogger } from '../../services/errorLogger';
+
+const createEventSchema = z.object({
+    title: z.string().min(3, "Le titre doit contenir au moins 3 caractères"),
+    description: z.string().optional(),
+    start: z.string(), // ISO Date string
+    startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Format d'heure invalide"),
+    end: z.string(), // ISO Date string
+    endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Format d'heure invalide"),
+    subType: z.string().optional(),
+    manager: z.string().optional(),
+    auditor: z.string().optional(),
+    technician: z.string().optional(),
+    linkedAssetIds: z.array(z.string()).default([]),
+    linkedRiskIds: z.array(z.string()).default([]),
+    allDay: z.boolean().default(false)
+}).refine((data) => {
+    const start = new Date(`${data.start}T${data.startTime}`);
+    const end = new Date(`${data.end}T${data.endTime}`);
+    return end >= start;
+}, {
+    message: "La date de fin doit être postérieure à la date de début",
+    path: ["end"], // Focus error on end date
+});
+
+type CreateEventFormData = z.infer<typeof createEventSchema>;
 
 interface CreateEventModalProps {
     isOpen: boolean;
@@ -25,7 +53,6 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
     const { user } = useStore();
     const { assets, risks } = useCalendarData();
     const [eventType, setEventType] = useState<EventType>('audit');
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [syncToGoogle, setSyncToGoogle] = useState(false);
     const [isGoogleConnected, setIsGoogleConnected] = useState(false);
 
@@ -33,7 +60,15 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
         setIsGoogleConnected(!!sessionStorage.getItem('google_access_token'));
     }, [isOpen]);
 
-    const { register, handleSubmit, control, reset, setValue } = useForm({
+    const {
+        register,
+        handleSubmit,
+        control,
+        reset,
+        setValue,
+        formState: { errors, isSubmitting }
+    } = useForm<CreateEventFormData>({
+        resolver: zodResolver(createEventSchema) as Resolver<CreateEventFormData>,
         defaultValues: {
             title: '',
             description: '',
@@ -45,8 +80,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
             manager: user?.displayName || '',
             auditor: user?.displayName || '',
             technician: user?.displayName || '',
-            linkedAssetIds: [] as string[],
-            linkedRiskIds: [] as string[],
+            linkedAssetIds: [],
+            linkedRiskIds: [],
             allDay: false
         }
     });
@@ -72,25 +107,8 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
         }
     }, [isOpen, isSubmitting, onClose]);
 
-    interface CreateEventFormData {
-        title: string;
-        description: string;
-        start: string;
-        startTime: string;
-        end: string;
-        endTime: string;
-        subType: string;
-        manager: string;
-        auditor: string;
-        technician: string;
-        linkedAssetIds: string[];
-        linkedRiskIds: string[];
-        allDay: boolean;
-    }
-
     const onSubmit = async (data: CreateEventFormData) => {
         if (!user?.organizationId || !user?.uid) return;
-        setIsSubmitting(true);
 
         try {
             // Combine date and time
@@ -100,7 +118,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
             await CalendarService.createEvent({
                 type: eventType,
                 title: data.title,
-                description: data.description,
+                description: data.description || '',
                 start: startDateTime,
                 end: endDateTime,
                 subType: data.subType,
@@ -117,7 +135,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                 if (token) {
                     await GoogleCalendarService.createEvent(token, {
                         title: data.title,
-                        description: data.description,
+                        description: data.description || '',
                         start: startDateTime,
                         end: endDateTime,
                     });
@@ -132,8 +150,6 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
         } catch (error) {
             ErrorLogger.error(error, "CreateEventModal.onSubmit");
             toast.error("Erreur lors de la création de l'événement");
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -192,12 +208,11 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                     ))}
                                 </div>
 
-                                <form onSubmit={(e) => { e.preventDefault(); handleSubmit(onSubmit)(e); }} className="space-y-4">
+                                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                                     {/* Common Fields */}
                                     <div>
                                         <Controller
                                             name="title"
-                                            rules={{ required: "Le titre est requis" }}
                                             control={control}
                                             render={({ field }) => (
                                                 <FloatingLabelInput
@@ -205,6 +220,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                                     value={field.value}
                                                     onChange={field.onChange}
                                                     placeholder="Ex: Audit ISO 27001, Maintenance Serveur..."
+                                                    error={errors.title?.message}
                                                 />
                                             )}
                                         />
@@ -218,7 +234,6 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                                     <Controller
                                                         name="start"
                                                         control={control}
-                                                        rules={{ required: true }}
                                                         render={({ field }) => (
                                                             <DatePicker
                                                                 label=""
@@ -232,13 +247,13 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                                     <Controller
                                                         name="startTime"
                                                         control={control}
-                                                        rules={{ required: true }}
                                                         render={({ field }) => (
                                                             <FloatingLabelInput
                                                                 label=""
                                                                 type="time"
                                                                 value={field.value}
                                                                 onChange={field.onChange}
+                                                                error={errors.startTime?.message}
                                                             />
                                                         )}
                                                     />
@@ -252,7 +267,6 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                                     <Controller
                                                         name="end"
                                                         control={control}
-                                                        rules={{ required: true }}
                                                         render={({ field }) => (
                                                             <DatePicker
                                                                 label=""
@@ -266,18 +280,19 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                                     <Controller
                                                         name="endTime"
                                                         control={control}
-                                                        rules={{ required: true }}
                                                         render={({ field }) => (
                                                             <FloatingLabelInput
                                                                 label=""
                                                                 type="time"
                                                                 value={field.value}
                                                                 onChange={field.onChange}
+                                                                error={errors.endTime?.message}
                                                             />
                                                         )}
                                                     />
                                                 </div>
                                             </div>
+                                            {errors.end && <p className="text-xs text-red-500 mt-1">{errors.end.message}</p>}
                                         </div>
                                     </div>
 
@@ -296,7 +311,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                                                 { value: "Externe", label: "Externe" },
                                                                 { value: "Certification", label: "Certification" }
                                                             ]}
-                                                            value={field.value}
+                                                            value={field.value || ''}
                                                             onChange={field.onChange}
                                                         />
                                                     )}
@@ -309,7 +324,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                                     render={({ field }) => (
                                                         <FloatingLabelInput
                                                             label="Auditeur"
-                                                            value={field.value}
+                                                            value={field.value || ''}
                                                             onChange={field.onChange}
                                                         />
                                                     )}
@@ -332,7 +347,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                                                 { value: "Corrective", label: "Corrective" },
                                                                 { value: "Mise à jour", label: "Mise à jour" }
                                                             ]}
-                                                            value={field.value}
+                                                            value={field.value || ''}
                                                             onChange={field.onChange}
                                                         />
                                                     )}
@@ -345,7 +360,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                                     render={({ field }) => (
                                                         <FloatingLabelInput
                                                             label="Technicien"
-                                                            value={field.value}
+                                                            value={field.value || ''}
                                                             onChange={field.onChange}
                                                         />
                                                     )}
@@ -429,15 +444,15 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
                                     <div>
                                         <Controller
                                             name="description"
-                                            rules={{ required: false }}
                                             control={control}
                                             render={({ field }) => (
                                                 <FloatingLabelInput
                                                     label="Description details"
-                                                    value={field.value}
+                                                    value={field.value || ''}
                                                     onChange={field.onChange}
                                                     textarea
                                                     placeholder="Détails supplémentaires..."
+                                                    error={errors.description?.message}
                                                 />
                                             )}
                                         />

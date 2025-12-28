@@ -49,7 +49,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     isEditing = false,
     isLoading = false
 }) => {
-    const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues } = useForm<AssetFormData>({
+    const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues, register } = useForm<AssetFormData>({
         resolver: zodResolver(assetSchema) as Resolver<AssetFormData>,
         shouldUnregister: true, // IMPORTANT: Remove hidden fields from data to avoid validation errors on invisible fields
         defaultValues: {
@@ -563,8 +563,16 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                                 />
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
                             </label>
+                            <label htmlFor="isEncrypted" className="flex items-center space-x-3 cursor-pointer group">
+                                <input {...register('dataDetails.isEncrypted')}
+                                    type="checkbox"
+                                    id="isEncrypted"
+                                    className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
+                                />
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
+                            </label>
                             <label htmlFor="hasWorm" className="flex items-center space-x-3 cursor-pointer group">
-                                <input {...control.register('dataDetails.hasWorm')}
+                                <input {...register('dataDetails.hasWorm')}
                                     type="checkbox"
                                     id="hasWorm"
                                     className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
@@ -691,13 +699,20 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                         />
                     </div>
                     <div>
-                        <FloatingLabelInput
-                            type="number"
-                            id="purchasePrice"
-                            autoComplete="off"
-                            label="Prix d'achat (€)"
-                            {...control.register('purchasePrice', { valueAsNumber: true })}
-                            error={errors.purchasePrice?.message}
+                        <Controller
+                            control={control}
+                            name="purchasePrice"
+                            render={({ field }) => (
+                                <FloatingLabelInput
+                                    type="number"
+                                    id="purchasePrice"
+                                    autoComplete="off"
+                                    label="Prix d'achat (€)"
+                                    value={field.value}
+                                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                    error={errors.purchasePrice?.message}
+                                />
+                            )}
                         />
                     </div>
                 </div>

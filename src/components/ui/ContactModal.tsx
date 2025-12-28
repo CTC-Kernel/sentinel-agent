@@ -1,11 +1,23 @@
-import React, { useState, Fragment } from 'react';
+import React, { Fragment, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, Send, Mail, User, MessageSquare, Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { sendEmail } from '../../services/emailService';
 import { getContactMessageTemplate } from '../../services/emailTemplates';
 
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
+
+const contactSchema = z.object({
+    name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
+    email: z.string().email('Adresse email invalide'),
+    subject: z.string().min(3, 'Le sujet doit contenir au moins 3 caractères'),
+    message: z.string().min(10, 'Le message doit contenir au moins 10 caractères')
+});
+
+type ContactFormData = z.infer<typeof contactSchema>;
 
 interface ContactModalProps {
     isOpen: boolean;
@@ -15,23 +27,38 @@ interface ContactModalProps {
 
 export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, subject = '' }) => {
     const { user, addToast } = useStore();
-    const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        name: user?.displayName || '',
-        email: user?.email || '',
-        subject: subject,
-        message: ''
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm<ContactFormData>({
+        resolver: zodResolver(contactSchema),
+        defaultValues: {
+            name: user?.displayName || '',
+            email: user?.email || '',
+            subject: subject,
+            message: ''
+        }
     });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
+    useEffect(() => {
+        if (isOpen) {
+            reset({
+                name: user?.displayName || '',
+                email: user?.email || '',
+                subject: subject,
+                message: ''
+            });
+        }
+    }, [isOpen, user, subject, reset]);
 
+    const onSubmit = async (data: ContactFormData) => {
         try {
             await sendEmail(user, {
                 to: 'contact@cyber-threat-consulting.com',
-                subject: `[Contact App] ${formData.subject || 'Nouveau message'}`,
-                html: getContactMessageTemplate(formData.name, formData.email, formData.subject, formData.message),
+                subject: `[Contact App] ${data.subject}`,
+                html: getContactMessageTemplate(data.name, data.email, data.subject, data.message),
                 type: 'GENERIC',
                 metadata: {
                     source: 'contact_form'
@@ -40,12 +67,10 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
 
             addToast('Votre message a été envoyé avec succès.', 'success');
             onClose();
-            setFormData(prev => ({ ...prev, message: '', subject: '' }));
+            reset();
         } catch (error) {
             ErrorLogger.error(error, 'ContactModal.handleSubmit');
             addToast("Erreur lors de l'envoi du message.", 'error');
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -82,6 +107,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                         Nous contacter
                                     </Dialog.Title>
                                     <button
+                                        type="button"
                                         onClick={onClose}
                                         className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600"
                                         aria-label="Fermer"
@@ -90,7 +116,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                     </button>
                                 </div>
 
-                                <form onSubmit={handleSubmit} className="space-y-4">
+                                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                                     <div>
                                         <label htmlFor="contact-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                             Nom complet
@@ -99,15 +125,13 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                             <input
                                                 id="contact-name"
-                                                value={formData.name}
-                                                name="name"
+                                                {...register('name')}
                                                 type="text"
-                                                required
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm"
+                                                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm ${errors.name ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'}`}
                                                 placeholder="Votre nom"
                                             />
                                         </div>
+                                        {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
                                     </div>
 
                                     <div>
@@ -118,15 +142,13 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                             <input
                                                 id="contact-email"
-                                                value={formData.email}
-                                                name="email"
+                                                {...register('email')}
                                                 type="email"
-                                                required
-                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm"
+                                                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm ${errors.email ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'}`}
                                                 placeholder="votre@email.com"
                                             />
                                         </div>
+                                        {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
                                     </div>
 
                                     <div>
@@ -137,15 +159,13 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                             <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                                             <input
                                                 id="contact-subject"
-                                                value={formData.subject}
-                                                name="subject"
+                                                {...register('subject')}
                                                 type="text"
-                                                required
-                                                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm"
+                                                className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm ${errors.subject ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'}`}
                                                 placeholder="Sujet de votre message"
                                             />
                                         </div>
+                                        {errors.subject && <p className="mt-1 text-xs text-red-500">{errors.subject.message}</p>}
                                     </div>
 
                                     <div>
@@ -154,24 +174,22 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, sub
                                         </label>
                                         <textarea
                                             id="contact-message"
-                                            name="message"
-                                            required
+                                            {...register('message')}
                                             rows={4}
-                                            value={formData.message}
-                                            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                            className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm resize-none"
+                                            className={`w-full p-4 bg-slate-50 dark:bg-slate-800 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white text-sm resize-none ${errors.message ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'}`}
                                             placeholder="Comment pouvons-nous vous aider ?"
                                         />
+                                        {errors.message && <p className="mt-1 text-xs text-red-500">{errors.message.message}</p>}
                                     </div>
 
                                     <div className="pt-2">
                                         <button
                                             type="submit"
-                                            disabled={loading}
+                                            disabled={isSubmitting}
                                             className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                             aria-label="Envoyer le message"
                                         >
-                                            {loading ? (
+                                            {isSubmitting ? (
                                                 <Loader2 className="w-5 h-5 animate-spin" />
                                             ) : (
                                                 <>

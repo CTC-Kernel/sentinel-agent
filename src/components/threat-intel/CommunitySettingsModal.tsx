@@ -22,6 +22,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
     const [activeTab, setActiveTab] = useState<'general' | 'network'>('general');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Settings State
     const [settings, setSettings] = useState<SharingPreferences>({
@@ -242,11 +243,15 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                     placeholder="Rechercher une organisation..."
                                                     className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:ring-2 focus:ring-brand-500 outline-none"
                                                     aria-label="Rechercher une organisation"
+                                                    value={searchQuery}
+                                                    onChange={(e) => setSearchQuery(e.target.value)}
                                                 />
                                             </div>
 
                                             <div className="space-y-2">
-                                                {partners.map(partner => (
+                                                {partners.filter(p =>
+                                                    p.targetOrgName.toLowerCase().includes(searchQuery.toLowerCase())
+                                                ).map(partner => (
                                                     <div key={partner.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950">
                                                         <div className="flex items-center gap-3">
                                                             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white

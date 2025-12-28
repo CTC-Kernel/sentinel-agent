@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc, where, increment, query, arrayRemove } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc, where, increment, query, arrayRemove, serverTimestamp, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Document, DocumentFolder, UserProfile, Control } from '../../types';
 import { DocumentFormData } from '../../schemas/documentSchema';
@@ -45,26 +45,22 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
             if (data.ownerId && !ownerProfile) {
                 throw new Error("Propriétaire introuvable dans votre organisation");
             }
-            const sanitizedReviewers = normalizeUserIds(data.reviewers, usersList);
-            const sanitizedApprovers = normalizeUserIds(data.approvers, usersList);
-            const sanitizedReadBy = normalizeUserIds(data.readBy, usersList);
-
+            // Prepare Document Data (extracted logic)
             const docData = {
                 ...data,
                 owner: ownerProfile ? (ownerProfile.displayName || ownerProfile.email || '') : (data.owner || ''),
                 ownerId: ownerProfile?.uid || '',
-                reviewers: sanitizedReviewers,
-                approvers: sanitizedApprovers,
-                readBy: sanitizedReadBy,
+                reviewers: normalizeUserIds(data.reviewers, usersList),
+                approvers: normalizeUserIds(data.approvers, usersList),
+                readBy: normalizeUserIds(data.readBy, usersList),
                 url: data.storageProvider !== 'firebase' ? data.externalUrl : (data.fileUrl || ''),
                 hash: data.fileHash || '',
                 isSecure: data.isSecure || false,
-                // Encrypt description if Secure Mode is on
                 description: (data.isSecure || false) ? EncryptionService.encrypt(data.description || '') : (data.description || ''),
                 watermarkEnabled: data.isSecure || false,
                 organizationId: user.organizationId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
             };
 
             const docRef = await addDoc(collection(db, 'documents'), sanitizeData(docData));
@@ -77,7 +73,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                     url: docData.url,
                     hash: docData.hash,
                     uploadedBy: user.uid,
-                    uploadedAt: new Date().toISOString(),
+                    uploadedAt: serverTimestamp(),
                     changeLog: 'Création initiale'
                 });
             }
@@ -123,7 +119,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                     ? EncryptionService.encrypt(data.description || '')
                     : (data.description || ''),
                 watermarkEnabled: (data.isSecure ?? currentDoc.isSecure) || false,
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             };
 
             await updateDoc(doc(db, 'documents', id), sanitizeData(updates));
@@ -136,7 +132,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                     url: newUrl || '',
                     hash: updates.hash || '',
                     uploadedBy: user?.uid,
-                    uploadedAt: new Date().toISOString(),
+                    uploadedAt: serverTimestamp(),
                     changeLog: 'Mise à jour'
                 });
             }
@@ -153,50 +149,37 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
     };
 
     const initiateDelete = async (docItem: Document, controls: Control[] = []) => {
-        // Check permissions
         if (!user || !canEditResource(user, 'Document', docItem.ownerId || docItem.owner)) return;
 
-        // Check for dependencies (Data Integrity)
         try {
             const id = docItem.id;
-
-            // Check Controls (evidence) - we use passed controls for quick UI feedback
             const linkedControls = controls.filter(c => c.evidenceIds?.includes(id));
 
-            // Check Suppliers (contracts)
-            const suppliersQ = query(collection(db, 'suppliers'), where('organizationId', '==', user?.organizationId), where('contractDocumentId', '==', id));
-
-            // Check Business Processes (DRP)
-            const bcpQ = query(collection(db, 'business_processes'), where('organizationId', '==', user?.organizationId), where('drpDocumentId', '==', id));
-
-            // Check Findings (evidence)
-            const findingsQ = query(collection(db, 'findings'), where('organizationId', '==', user?.organizationId), where('evidenceIds', 'array-contains', id));
-
+            // Check dependencies in parallel
             const [suppliersSnap, bcpSnap, findingsSnap] = await Promise.all([
-                getDocs(suppliersQ),
-                getDocs(bcpQ),
-                getDocs(findingsQ)
+                getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', user?.organizationId), where('contractDocumentId', '==', id), limit(50))),
+                getDocs(query(collection(db, 'business_processes'), where('organizationId', '==', user?.organizationId), where('drpDocumentId', '==', id), limit(50))),
+                getDocs(query(collection(db, 'findings'), where('organizationId', '==', user?.organizationId), where('evidenceIds', 'array-contains', id), limit(50)))
             ]);
 
+            const hasDependencies = linkedControls.length > 0 || !suppliersSnap.empty || !bcpSnap.empty || !findingsSnap.empty;
             let message = "Cette action est définitive.";
 
-            if (linkedControls.length > 0 || !suppliersSnap.empty || !bcpSnap.empty || !findingsSnap.empty) {
-                const controlNames = linkedControls.slice(0, 3).map(c => c.code).join(', ');
-                const supplierNames = suppliersSnap.docs.slice(0, 3).map(d => d.data().name).join(', ');
+            if (hasDependencies) {
+                const deps = [
+                    linkedControls.length > 0 ? `${linkedControls.length} contrôle(s)` : '',
+                    !suppliersSnap.empty ? `${suppliersSnap.size} fournisseur(s)` : '',
+                    !bcpSnap.empty ? `${bcpSnap.size} processus` : '',
+                    !findingsSnap.empty ? `${findingsSnap.size} constat(s)` : ''
+                ].filter(Boolean).join(', ');
 
-                let msg = "Attention : Ce document est utilisé dans les éléments suivants. La suppression le retirera de ces éléments :";
-                if (linkedControls.length > 0) msg += `\n- ${linkedControls.length} contrôle(s) (${controlNames}...)`;
-                if (!suppliersSnap.empty) msg += `\n- ${suppliersSnap.size} fournisseur(s) (${supplierNames}...)`;
-                if (!bcpSnap.empty) msg += `\n- ${bcpSnap.size} processus`;
-                if (!findingsSnap.empty) msg += `\n- ${findingsSnap.size} constat(s)`;
-
-                message = msg;
+                message = `Document utilisé dans : ${deps}. La suppression le retirera de ces éléments.`;
             }
 
             setConfirmData({
                 isOpen: true,
                 title: "Supprimer le document ?",
-                message: message,
+                message,
                 onConfirm: async () => await handleDelete(id, docItem.title),
                 closeOnConfirm: false
             });
@@ -211,10 +194,10 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
         try {
             // Cleanup Dependencies Logic (Re-query to be safe and consistent during atomic delete phase)
             const [controlsSnap, suppliersSnap, bcpSnap, findingsSnap] = await Promise.all([
-                getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId), where('evidenceIds', 'array-contains', id))),
-                getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', user.organizationId), where('contractDocumentId', '==', id))),
-                getDocs(query(collection(db, 'business_processes'), where('organizationId', '==', user.organizationId), where('drpDocumentId', '==', id))),
-                getDocs(query(collection(db, 'findings'), where('organizationId', '==', user.organizationId), where('evidenceIds', 'array-contains', id)))
+                getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId), where('evidenceIds', 'array-contains', id), limit(50))),
+                getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', user.organizationId), where('contractDocumentId', '==', id), limit(50))),
+                getDocs(query(collection(db, 'business_processes'), where('organizationId', '==', user.organizationId), where('drpDocumentId', '==', id), limit(50))),
+                getDocs(query(collection(db, 'findings'), where('organizationId', '==', user.organizationId), where('evidenceIds', 'array-contains', id), limit(50)))
             ]);
 
             const cleanupPromises: Promise<void>[] = [];
@@ -255,14 +238,17 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
 
     const handleCreateFolder = async (name: string, parentId?: string) => {
         if (!user?.organizationId) return;
+        if (!canEditResource(user, 'Document')) return; // RBAC Check
+
         try {
             await addDoc(collection(db, 'document_folders'), {
                 organizationId: user.organizationId,
                 name,
                 parentId: parentId || null,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
             });
+            await logAction(user, 'CREATE', 'DocumentFolder', `Nouveau dossier: ${name}`);
             addToast('Dossier créé', 'success');
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.handleCreateFolder', 'CREATE_FAILED');
@@ -270,11 +256,13 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
     };
 
     const handleUpdateFolder = async (id: string, name: string) => {
+        if (!canEditResource(user, 'Document')) return; // RBAC Check
         try {
             await updateDoc(doc(db, 'document_folders', id), {
                 name,
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             });
+            await logAction(user, 'UPDATE', 'DocumentFolder', `Dossier renommé: ${name}`);
             addToast('Dossier renommé', 'success');
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.handleUpdateFolder', 'UPDATE_FAILED');
@@ -282,6 +270,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
     };
 
     const handleDeleteFolder = async (id: string, rawFolders: DocumentFolder[], documents: Document[], selectedFolderId: string | null, setSelectedFolderId: (id: string | null) => void) => {
+        if (!canEditResource(user, 'Document')) return; // RBAC Check
         try {
             // Delete folder
             await deleteDoc(doc(db, 'document_folders', id));
@@ -298,6 +287,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 await updateDoc(doc(db, 'documents', d.id), { folderId: null });
             }
 
+            await logAction(user, 'DELETE', 'DocumentFolder', `Dossier supprimé: ${id}`);
             if (selectedFolderId === id) setSelectedFolderId(null);
             addToast('Dossier supprimé', 'success');
         } catch (error) {
@@ -308,9 +298,13 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
     const handleUploadSuccess = async (size: number) => {
         if (size && user?.organizationId) {
             const orgRef = doc(db, 'organizations', user.organizationId);
-            updateDoc(orgRef, {
-                storageUsed: increment(size)
-            }).catch(e => ErrorLogger.error(e, "Documents.handleUploadSuccess"));
+            try {
+                await updateDoc(orgRef, {
+                    storageUsed: increment(size)
+                });
+            } catch (e) {
+                ErrorLogger.error(e, "Documents.handleUploadSuccess");
+            }
         }
     };
 

@@ -148,6 +148,7 @@ export const IntegrationSettings: React.FC = () => {
                                 className="hidden"
                                 aria-hidden="true"
                                 readOnly
+                                value={user?.email || ''}
                             />
                             <FloatingLabelInput
                                 label={t('settings.geminiCredential')}

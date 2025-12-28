@@ -14,6 +14,7 @@ import { httpsCallable } from 'firebase/functions';
 import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { hasPermission } from '../../utils/permissions';
+import { logAction } from '../../services/logger'; // Added import
 import { SubscriptionService } from '../../services/subscriptionService';
 import { Organization, UserProfile } from '../../types';
 import { ConfirmModal } from '../ui/ConfirmModal';
@@ -76,8 +77,29 @@ export const OrganizationSettings: React.FC = () => {
         fetchUsers();
     }, [fetchOrgDetails, fetchUsers]);
 
+    const updateOrgUsers = useCallback(async (orgId: string, newName: string) => {
+        const q = query(collection(db, 'users'), where('organizationId', '==', orgId));
+        const snap = await getDocs(q);
+
+        const chunks = [];
+        const CHUNK_SIZE = 450; // Safety margin below 500
+
+        for (let i = 0; i < snap.docs.length; i += CHUNK_SIZE) {
+            chunks.push(snap.docs.slice(i, i + CHUNK_SIZE));
+        }
+
+        for (const chunk of chunks) {
+            const batch = writeBatch(db);
+            chunk.forEach(d => {
+                batch.update(d.ref, sanitizeData({ organizationName: newName }));
+            });
+            await batch.commit();
+        }
+    }, []);
+
     const handleUpdateOrg: SubmitHandler<OrganizationFormData> = async (data) => {
         if (!hasPermission(user, 'Settings', 'manage') || !user?.organizationId) return;
+
         setSavingOrg(true);
         try {
             const orgRef = doc(db, 'organizations', user.organizationId);
@@ -89,17 +111,12 @@ export const OrganizationSettings: React.FC = () => {
             }));
 
             if (currentOrg?.name !== data.orgName) {
-                const q = query(collection(db, 'users'), where('organizationId', '==', user.organizationId));
-                const snap = await getDocs(q);
-                const batch = writeBatch(db);
-                snap.docs.forEach(d => {
-                    batch.update(d.ref, sanitizeData({ organizationName: data.orgName }));
-                });
-                await batch.commit();
+                await updateOrgUsers(user.organizationId, data.orgName);
                 setUser({ ...user, organizationName: data.orgName });
             }
 
             setCurrentOrg(prev => prev ? { ...prev, name: data.orgName, address: data.address, vatNumber: data.vatNumber, contactEmail: data.contactEmail } : null);
+            await logAction(user, 'UPDATE', 'Organization', `Mise à jour organisation: ${data.orgName}`);
             addToast(t('settings.orgUpdated'), "success");
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'OrganizationSettings.handleUpdateOrg', 'UPDATE_FAILED');
@@ -127,21 +144,28 @@ export const OrganizationSettings: React.FC = () => {
         }
     };
 
-    const canManageRestrictedRoles = useCallback((_role: UserProfile['role']) => {
-        // Placeholder validation logic
+    const canManageRestrictedRoles = useCallback((targetRole: UserProfile['role']) => {
+        if (!user) return false;
+        // Only Admins and Owners can assign Admin/Manager roles
+        if (['admin', 'owner', 'manager'].includes(targetRole)) {
+            return hasPermission(user, 'User', 'manage');
+        }
         return true;
-    }, []);
+    }, [user]);
 
     const handleUpdateUserRole = React.useCallback(async (targetUserId: string, newRole: UserProfile['role']) => {
-        if (!process.env.VITE_USE_FIREBASE_EMULATOR && !canManageRestrictedRoles(newRole)) {
-            addToast(t('settings.errors.unauthorizedRole'), 'error');
-            return;
+        if (!process.env.VITE_USE_FIREBASE_EMULATOR) {
+            if (!canManageRestrictedRoles(newRole)) {
+                addToast(t('settings.errors.unauthorizedRole'), 'error');
+                return;
+            }
         }
 
         try {
             setUpdatingUserIds(prev => new Set(prev).add(targetUserId));
             await updateDoc(doc(db, 'users', targetUserId), sanitizeData({ role: newRole }));
             setUsersList(prev => prev.map(u => u.uid === targetUserId ? { ...u, role: newRole } : u));
+            await logAction(user, 'UPDATE', 'User', `Rôle mis à jour pour ${targetUserId}: ${newRole}`);
             addToast(t('settings.success.roleUpdated'), 'success');
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'OrganizationSettings.handleUpdateUserRole', 'UPDATE_FAILED');
@@ -152,7 +176,7 @@ export const OrganizationSettings: React.FC = () => {
                 return next;
             });
         }
-    }, [canManageRestrictedRoles, addToast, t]);
+    }, [canManageRestrictedRoles, addToast, t, user]);
 
     const handleTransferOwnership = React.useCallback(async (targetId: string) => {
         if (!targetId) return;
@@ -165,6 +189,7 @@ export const OrganizationSettings: React.FC = () => {
                 newOwnerId: targetId
             });
 
+            await logAction(user, 'TRANSFER', 'Organization', `Propriété transférée à ${targetId}`);
             addToast(t('settings.transferSuccess'), 'success');
             // Refresh details instead of reloading
             await fetchOrgDetails();
@@ -191,6 +216,7 @@ export const OrganizationSettings: React.FC = () => {
         try {
             await updateDoc(doc(db, 'users', targetUserId), sanitizeData({ organizationId: '', organizationName: '', role: '' }));
             setUsersList(prev => prev.filter(u => u.uid !== targetUserId));
+            await logAction(user, 'DELETE', 'User', `Utilisateur retiré de l'organisation: ${targetUserId}`);
             addToast(t('settings.userRemoved'), 'success');
             setConfirmRemoveData(prev => ({ ...prev, isOpen: false }));
         } catch (e) {
@@ -209,6 +235,14 @@ export const OrganizationSettings: React.FC = () => {
             loading: false
         });
     }, [t, handleRemoveUser]);
+
+    const handleCloseTransferModal = useCallback(() => {
+        setConfirmTransferData(prev => ({ ...prev, isOpen: false }));
+    }, []);
+
+    const handleCloseRemoveModal = useCallback(() => {
+        setConfirmRemoveData(prev => ({ ...prev, isOpen: false }));
+    }, []);
 
     const filteredUsers = React.useMemo(() => usersList.filter(u =>
         u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -230,14 +264,14 @@ export const OrganizationSettings: React.FC = () => {
 
             <ConfirmModal
                 isOpen={confirmTransferData.isOpen}
-                onClose={() => setConfirmTransferData({ ...confirmTransferData, isOpen: false })}
+                onClose={handleCloseTransferModal}
                 onConfirm={confirmTransferData.onConfirm}
                 title={confirmTransferData.title}
                 message={confirmTransferData.message}
             />
             <ConfirmModal
                 isOpen={confirmRemoveData.isOpen}
-                onClose={() => setConfirmRemoveData({ ...confirmRemoveData, isOpen: false })}
+                onClose={handleCloseRemoveModal}
                 onConfirm={confirmRemoveData.onConfirm}
                 title={confirmRemoveData.title}
                 message={confirmRemoveData.message}
@@ -320,7 +354,7 @@ export const OrganizationSettings: React.FC = () => {
                                 />
                             </div>
                             <div className="flex justify-end pt-2">
-                                <Button type="submit" isLoading={savingOrg} className="min-w-[140px] shadow-lg shadow-brand-500/20">
+                                <Button type="submit" isLoading={savingOrg} disabled={savingOrg} className="min-w-[140px] shadow-lg shadow-brand-500/20">
                                     {t('settings.saveChanges')}
                                 </Button>
                             </div>
@@ -345,13 +379,14 @@ export const OrganizationSettings: React.FC = () => {
                         </div>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <label htmlFor="member-search" className="sr-only">{t('settings.searchMembers')}</label>
                             <input
+                                id="member-search"
                                 type="text"
                                 placeholder={t('settings.searchMembers')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-9 pr-4 py-2 bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500/20 w-48 transition-all focus:w-64"
-                                aria-label={t('settings.searchMembers')}
                             />
                         </div>
                     </div>

@@ -6,6 +6,7 @@ import {
     Loader2, Plus, BrainCircuit, ShieldAlert, Copy, HelpCircle, Filter, LayoutDashboard, List, Grid3x3
 } from 'lucide-react';
 import { OnboardingService } from '../services/onboardingService';
+import { ErrorLogger } from '../services/errorLogger';
 import { PageHeader } from '../components/ui/PageHeader';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { AdvancedSearch } from '../components/ui/AdvancedSearch';
@@ -84,13 +85,7 @@ export const Risks: React.FC = () => {
 
     // ... existing code ...
 
-    // Usage in RiskList
-    // onDelete={(id) => { const r = risks.find(x=>x.id===id); handleDelete({ id, name: r?.threat || 'Risque' }); }}
-    // Actually usually RiskList returns id.
-    // Let's modify RiskList usage below in the same file.
 
-    // Usage in RiskInspector
-    // onDelete={(id) => handleDelete({ id, name: selectedRisk?.threat || 'Risque' })}
 
     const {
         activeFilters, setActiveFilters,
@@ -154,7 +149,7 @@ export const Risks: React.FC = () => {
             });
             toast.success(t('risks.reportSuccess'));
         } catch (e) {
-            console.error(e);
+            ErrorLogger.handleErrorWithToast(e, 'Risks.handleExportExecutive', 'REPORT_GENERATION_FAILED');
             toast.error(t('risks.reportError'));
         } finally {
             setIsGeneratingReport(false);
@@ -270,7 +265,7 @@ export const Risks: React.FC = () => {
             await Promise.all(promises);
             toast.success(t('risks.templateSuccess', { count: template.risks.length }));
         } catch (error) {
-            console.error('Template import error', error);
+            ErrorLogger.handleErrorWithToast(error, 'Risks.handleTemplateSelect', 'CREATE_FAILED');
             toast.error(t('risks.templateError'));
         }
         setIsTemplateModalOpen(false);
@@ -331,7 +326,7 @@ export const Risks: React.FC = () => {
             const analysis = await aiService.chatWithAI(prompt);
             toast.info(t('risks.analysisComplete'), { description: analysis, duration: 10000 });
         } catch (e) {
-            console.error(e);
+            ErrorLogger.handleErrorWithToast(e, 'Risks.handleStartAiAnalysis', 'AI_ERROR');
             toast.error(t('risks.analysisError'));
         } finally {
             setIsAnalyzing(false);
@@ -399,6 +394,7 @@ export const Risks: React.FC = () => {
 
                                 <CustomTooltip content={t('risks.startTour')}>
                                     <button
+                                        type="button"
                                         onClick={handleStartTour}
                                         className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                         aria-label={t('risks.startTour')}
@@ -411,6 +407,7 @@ export const Risks: React.FC = () => {
 
                                 <CustomTooltip content={t('assets.advancedFilters')}>
                                     <button
+                                        type="button"
                                         data-tour="risks-filters"
                                         onClick={handleAdvancedSearchToggle}
                                         aria-label={t('assets.advancedFilters')}
@@ -438,28 +435,28 @@ export const Risks: React.FC = () => {
                                                 </div>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button aria-label={t('risks.reports')} onClick={handleExportPDF} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}>
+                                                        <button type="button" aria-label={t('risks.reports')} onClick={handleExportPDF} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}>
                                                             <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} /> {t('risks.reports')} (PDF)
                                                         </button>
                                                     )}
                                                 </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button aria-label={t('risks.executiveReport')} onClick={handleExportExecutive} disabled={isGeneratingReport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        <button type="button" aria-label={t('risks.executiveReport')} onClick={handleExportExecutive} disabled={isGeneratingReport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                             {isGeneratingReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} />} {t('risks.executiveReport')}
                                                         </button>
                                                     )}
                                                 </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button aria-label={t('risks.exportCsv')} onClick={handleCSVExport} disabled={isExportingCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        <button type="button" aria-label={t('risks.exportCsv')} onClick={handleCSVExport} disabled={isExportingCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                             {isExportingCSV ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} {t('risks.exportCsv')}
                                                         </button>
                                                     )}
                                                 </Menu.Item>
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button aria-label={t('risks.obsidian')} onClick={handleObsidianExport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        <button type="button" aria-label={t('risks.obsidian')} onClick={handleObsidianExport} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                             <FileCode className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} /> {t('risks.obsidian')}
                                                         </button>
                                                     )}
@@ -471,6 +468,7 @@ export const Risks: React.FC = () => {
                                                     <Menu.Item>
                                                         {({ active }) => (
                                                             <button
+                                                                type="button"
                                                                 aria-label={t('risks.importCsv')}
                                                                 onClick={handleImportClick}
                                                                 disabled={isImporting}
@@ -482,7 +480,7 @@ export const Risks: React.FC = () => {
                                                     </Menu.Item>
                                                     <Menu.Item>
                                                         {({ active }) => (
-                                                            <button aria-label={t('risks.templates')} onClick={handleTemplateModalOpen} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                            <button type="button" aria-label={t('risks.templates')} onClick={handleTemplateModalOpen} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                                 <Copy className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> {t('risks.templates')}
                                                             </button>
                                                         )}
@@ -498,6 +496,7 @@ export const Risks: React.FC = () => {
                                     <>
                                         <CustomTooltip content="Lancer l'analyse IA">
                                             <button
+                                                type="button"
                                                 onClick={handleStartAiAnalysis}
                                                 disabled={isAnalyzing}
                                                 aria-label={isAnalyzing ? t('risks.analyzing') : t('risks.aiAnalysis')}
@@ -509,6 +508,7 @@ export const Risks: React.FC = () => {
                                         </CustomTooltip>
                                         <CustomTooltip content="Créer un nouveau risque">
                                             <button
+                                                type="button"
                                                 data-tour="risks-create"
                                                 onClick={handleNewRiskClick}
                                                 aria-label={t('risks.newRisk')}
@@ -578,7 +578,7 @@ export const Risks: React.FC = () => {
                                 {t('risks.matrix')} : {t('risks.searchPlaceholder')}
                             </span>
                             {/* Note: searchPlaceholder mismatch for Matrix filter, using "Filtre Matrice" text which wasn't fully translated. Let's fix locally or use a placeholder */}
-                            <button onClick={handleResetMatrixFilter} className="text-xs text-red-500 font-bold hover:underline" aria-label={t('common.reset')}>{t('common.reset')}</button>
+                            <button type="button" onClick={handleResetMatrixFilter} className="text-xs text-red-500 font-bold hover:underline" aria-label={t('common.reset')}>{t('common.reset')}</button>
                         </div>
                     )}
                     <RiskMatrix
