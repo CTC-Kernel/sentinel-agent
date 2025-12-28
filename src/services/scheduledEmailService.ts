@@ -10,6 +10,7 @@ import {
     getSupplierReviewTemplate
 } from './emailTemplates';
 import { buildAppUrl } from '../config/appConfig';
+import { ErrorLogger } from './errorLogger';
 
 /**
  * Service pour gérer les emails planifiés et récurrents.
@@ -69,7 +70,8 @@ export const sendAuditReminders = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch {
+    } catch (error) {
+        ErrorLogger.error(error as Error, 'scheduledEmailService.sendAuditReminders');
         return 0;
     }
 };
@@ -130,7 +132,8 @@ export const sendRiskTreatmentReminders = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch {
+    } catch (error) {
+        ErrorLogger.error(error as Error, 'scheduledEmailService.sendRiskTreatmentReminders');
         return 0;
     }
 };
@@ -188,7 +191,8 @@ export const sendDocumentReviewReminders = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch {
+    } catch (error) {
+        ErrorLogger.error(error as Error, 'scheduledEmailService.sendDocumentReviewReminders');
         return 0;
     }
 };
@@ -245,7 +249,8 @@ export const sendSupplierReviewReminders = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch {
+    } catch (error) {
+        ErrorLogger.error(error as Error, 'scheduledEmailService.sendSupplierReviewReminders');
         return 0;
     }
 };
@@ -311,7 +316,8 @@ export const sendWeeklyDigest = async (organizationId: string) => {
         }
 
         return sentCount;
-    } catch {
+    } catch (error) {
+        ErrorLogger.error(error as Error, 'scheduledEmailService.sendWeeklyDigest');
         return 0;
     }
 };
