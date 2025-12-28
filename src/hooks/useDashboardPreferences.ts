@@ -84,8 +84,7 @@ export const useDashboardPreferences = (userId: string | undefined, role: string
                 setHasLoaded(true);
             }, 0);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [userId, role, defaultLayout]);
+    }, [userId, role, defaultLayout, setPreferences, setHasLoaded]);
 
     const saveLayout = useCallback((newLayout: WidgetLayout[]) => {
         if (!userId) return;

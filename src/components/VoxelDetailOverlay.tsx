@@ -56,8 +56,7 @@ export const VoxelDetailOverlay: React.FC<VoxelDetailOverlayProps> = ({
     if (onPositionChange) {
       onPositionChange(0, 0);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedNodeDetails?.id]);
+  }, [selectedNodeDetails?.id, onPositionChange]);
 
   useEffect(() => {
     if (isDragging) {
