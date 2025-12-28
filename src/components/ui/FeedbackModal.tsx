@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, MessageSquare, Bug, Lightbulb, Star, Send } from 'lucide-react';
 import { useStore } from '../../store';
-import { addDoc, collection } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useFeedbackActions } from '../../hooks/feedback/useFeedbackActions';
 
 interface FeedbackModalProps {
     isOpen: boolean;
@@ -13,14 +15,31 @@ interface FeedbackModalProps {
 
 type FeedbackType = 'bug' | 'feature' | 'improvement' | 'other';
 
+const feedbackSchema = z.object({
+    type: z.enum(['bug', 'feature', 'improvement', 'other']),
+    title: z.string().min(3, 'Le titre doit faire au moins 3 caractères').max(200, 'Titre trop long'),
+    description: z.string().min(10, 'Description trop courte (min 10 caractères)').max(2000, 'Description trop longue'),
+    priority: z.enum(['low', 'medium', 'high'])
+});
+
+type FeedbackFormData = z.infer<typeof feedbackSchema>;
+
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
     const { user, addToast } = useStore();
-    const [type, setType] = useState<FeedbackType>('feature');
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { addFeedback } = useFeedbackActions();
     const [mounted, setMounted] = useState(false);
+
+    const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<FeedbackFormData>({
+        resolver: zodResolver(feedbackSchema),
+        defaultValues: {
+            type: 'feature',
+            title: '',
+            description: '',
+            priority: 'medium'
+        }
+    });
+
+    const formValues = watch();
 
     useEffect(() => {
         setMounted(true);
@@ -29,17 +48,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
     if (!isOpen || !mounted) return null;
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!title.trim() || !description.trim()) return;
-
-        setIsSubmitting(true);
+    const onSubmit = async (data: FeedbackFormData) => {
         try {
-            await addDoc(collection(db, 'feedback'), {
-                type,
-                title,
-                description,
-                priority,
+            await addFeedback({
+                ...data,
                 userId: user?.uid || 'anonymous',
                 userEmail: user?.email || 'anonymous',
                 organizationId: user?.organizationId || 'unknown',
@@ -51,16 +63,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
             addToast('Merci ! Votre retour a bien été envoyé.', 'success');
             onClose();
-            // Reset form
-            setTitle('');
-            setDescription('');
-            setType('feature');
-            setPriority('medium');
+            reset();
         } catch (error) {
-            ErrorLogger.error(error, 'FeedbackModal.handleSubmit');
+            ErrorLogger.error(error, 'FeedbackModal.onSubmit');
             addToast("Une erreur est survenue lors de l'envoi.", 'error');
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -96,7 +102,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent pointer-events-none" />
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto custom-scrollbar space-y-6 relative z-10">
+                <form id="feedback-form" onSubmit={handleSubmit(onSubmit)} className="p-6 overflow-y-auto custom-scrollbar space-y-6 relative z-10">
                     {/* Type Selection */}
                     <div className="grid grid-cols-2 gap-3">
                         {(['feature', 'bug', 'improvement', 'other'] as FeedbackType[]).map((t) => (
@@ -104,9 +110,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                                 key={t}
                                 type="button"
                                 aria-label={`Type de retour : ${getTypeLabel(t)}`}
-                                aria-pressed={type === t}
-                                onClick={() => setType(t)}
-                                className={`flex items-center gap-2 p-3 rounded-xl border text-sm font-medium transition-all ${type === t
+                                aria-pressed={formValues.type === t}
+                                onClick={() => setValue('type', t)}
+                                className={`flex items-center gap-2 p-3 rounded-xl border text-sm font-medium transition-all ${formValues.type === t
                                     ? 'bg-brand-50/50 dark:bg-brand-900/20 border-brand-500 text-brand-700 dark:text-brand-400 ring-1 ring-brand-500 shadow-sm shadow-brand-500/10'
                                     : 'glass-panel border-white/20 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-white/5'
                                     }`}
@@ -116,29 +122,30 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                             </button>
                         ))}
                     </div>
+                    {errors.type && <p className="text-xs text-red-500">{errors.type.message}</p>}
 
                     {/* Priority (only for bugs/features) */}
-                    {(type === 'bug' || type === 'feature') && (
+                    {(formValues.type === 'bug' || formValues.type === 'feature') && (
                         <div className="animate-fade-in">
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 Priorité / Importance
                             </label>
                             <div className="flex gap-4 p-1 glass-panel rounded-xl border border-white/10 w-fit">
                                 {(['low', 'medium', 'high'] as const).map((p) => (
-                                    <label key={p} className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-lg transition-all ${priority === p ? 'bg-brand-500 text-white shadow-md' : 'hover:bg-white/10'}`}>
-                                        <input checked={priority === p}
+                                    <label key={p} className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-lg transition-all ${formValues.priority === p ? 'bg-brand-500 text-white shadow-md' : 'hover:bg-white/10'}`}>
+                                        <input {...register('priority')}
+                                            checked={formValues.priority === p}
                                             type="radio"
-                                            name="priority"
                                             value={p}
-                                            onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}
                                             className="hidden"
                                         />
-                                        <span className={`text-sm capitalize font-medium ${priority === p ? 'text-white' : 'text-slate-600 dark:text-slate-400'}`}>
+                                        <span className={`text-sm capitalize font-medium ${formValues.priority === p ? 'text-white' : 'text-slate-600 dark:text-slate-400'}`}>
                                             {p === 'low' ? 'Faible' : p === 'medium' ? 'Moyenne' : 'Haute'}
                                         </span>
                                     </label>
                                 ))}
                             </div>
+                            {errors.priority && <p className="text-xs text-red-500 mt-1">{errors.priority.message}</p>}
                         </div>
                     )}
 
@@ -148,13 +155,13 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                             Sujet
                         </label>
                         <div className="relative group">
-                            <input value={title} onChange={(e) => setTitle(e.target.value)}
+                            <input {...register('title')}
                                 type="text"
                                 placeholder="Ex: Ajout d'un filtre par date..."
                                 className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all shadow-sm group-hover:bg-white/70 dark:group-hover:bg-black/30 placeholder:text-slate-400"
-                                required
                             />
                         </div>
+                        {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>}
                     </div>
 
                     {/* Description */}
@@ -163,15 +170,13 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                             Description détaillée
                         </label>
                         <div className="relative group">
-                            <textarea
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
+                            <textarea {...register('description')}
                                 placeholder="Dites-nous en plus..."
                                 rows={5}
                                 className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all resize-none shadow-sm group-hover:bg-white/70 dark:group-hover:bg-black/30 placeholder:text-slate-400"
-                                required
                             />
                         </div>
+                        {errors.description && <p className="text-xs text-red-500 mt-1">{errors.description.message}</p>}
                     </div>
                 </form>
 
@@ -186,9 +191,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                         Annuler
                     </button>
                     <button
+                        type="submit"
+                        form="feedback-form"
                         aria-label="Envoyer le retour"
-                        onClick={handleSubmit}
-                        disabled={isSubmitting || !title.trim() || !description.trim()}
+                        disabled={isSubmitting}
                         className="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
                     >
                         {isSubmitting ? (

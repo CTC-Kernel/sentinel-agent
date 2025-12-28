@@ -323,6 +323,17 @@ export const Suppliers: React.FC = () => {
         });
     }, [editForm]);
 
+    const handleCardClick = useCallback((supplier: Supplier) => {
+        openInspector(supplier);
+    }, [openInspector]);
+
+    const handleCardKeyDown = useCallback((e: React.KeyboardEvent, supplier: Supplier) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openInspector(supplier);
+        }
+    }, [openInspector]);
+
     const deferredFilter = useDeferredValue(filter);
     const filteredSuppliers = useMemo(() => {
         const needle = (deferredFilter || '').toLowerCase().trim();
