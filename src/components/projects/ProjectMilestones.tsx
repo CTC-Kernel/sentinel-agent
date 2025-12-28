@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Project, ProjectMilestone } from '../../types';
 import { useStore } from '../../store';
-import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { Plus, Edit, Trash2, Calendar } from '../ui/Icons';
@@ -13,6 +11,20 @@ import { DatePicker } from '../ui/DatePicker';
 import { CustomSelect } from '../ui/CustomSelect';
 import { Badge } from '../ui/Badge';
 import { EmptyState } from '../ui/EmptyState';
+import { useProjectMilestones } from '../../hooks/projects/useProjectMilestones';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const milestoneSchema = z.object({
+    title: z.string().min(3, 'Titre requis (min 3 caractères)').max(200, 'Titre trop long'),
+    description: z.string().max(1000, 'Description trop longue').optional(),
+    targetDate: z.string().min(1, 'Date cible requise'),
+    status: z.enum(['pending', 'achieved', 'missed']).optional(),
+    linkedTaskIds: z.array(z.string()).optional()
+});
+
+type MilestoneFormData = z.infer<typeof milestoneSchema>;
 
 interface ProjectMilestonesProps {
     project: Project;
@@ -22,71 +34,78 @@ interface ProjectMilestonesProps {
 
 export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, milestones, onUpdate }) => {
     const { user, addToast } = useStore();
+    const { addMilestone, updateMilestone, removeMilestone } = useProjectMilestones(project.id);
     const [isEditing, setIsEditing] = useState(false);
-    const [currentMilestone, setCurrentMilestone] = useState<Partial<ProjectMilestone>>({});
-    const [loading, setLoading] = useState(false);
+    const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<MilestoneFormData>({
+        resolver: zodResolver(milestoneSchema),
+        defaultValues: {
+            title: '',
+            description: '',
+            targetDate: '',
+            status: 'pending',
+            linkedTaskIds: []
+        }
+    });
+
+    const formValues = watch();
+
+    const onSubmit = async (data: MilestoneFormData) => {
         if (!user?.organizationId) return;
 
         // Validate dates
-        if (currentMilestone.targetDate) {
-            const milkestoneDate = new Date(currentMilestone.targetDate);
-            const projectStart = project.startDate ? new Date(project.startDate) : null;
-            const projectEnd = project.dueDate ? new Date(project.dueDate) : null;
+        const milestoneDate = new Date(data.targetDate);
+        const projectStart = project.startDate ? new Date(project.startDate) : null;
+        const projectEnd = project.dueDate ? new Date(project.dueDate) : null;
 
-            if (projectStart && milkestoneDate < projectStart) {
-                addToast("La date du jalon ne peut pas être avant le début du projet.", "error");
-                return;
-            }
-            if (projectEnd && milkestoneDate > projectEnd) {
-                addToast("La date du jalon ne peut pas être après la fin du projet.", "error");
-                return;
-            }
+        if (projectStart && milestoneDate < projectStart) {
+            addToast("La date du jalon ne peut pas être avant le début du projet.", "error");
+            return;
+        }
+        if (projectEnd && milestoneDate > projectEnd) {
+            addToast("La date du jalon ne peut pas être après la fin du projet.", "error");
+            return;
         }
 
-        setLoading(true);
-
         try {
-            if (currentMilestone.id) {
+            if (editingMilestoneId) {
                 // Update
-                await updateDoc(doc(db, 'project_milestones', currentMilestone.id), sanitizeData({
-                    title: currentMilestone.title,
-                    description: currentMilestone.description,
-                    targetDate: currentMilestone.targetDate,
-                    status: currentMilestone.status,
-                    linkedTaskIds: currentMilestone.linkedTaskIds || []
+                await updateMilestone(editingMilestoneId, sanitizeData({
+                    title: data.title,
+                    description: data.description || '',
+                    targetDate: data.targetDate,
+                    status: data.status || 'pending',
+                    linkedTaskIds: data.linkedTaskIds || []
                 }));
                 addToast('Jalon mis à jour', 'success');
             } else {
                 // Create
-                await addDoc(collection(db, 'project_milestones'), sanitizeData({
+                await addMilestone(sanitizeData({
                     projectId: project.id,
                     organizationId: user.organizationId,
-                    title: currentMilestone.title,
-                    description: currentMilestone.description || '',
-                    targetDate: currentMilestone.targetDate,
+                    title: data.title,
+                    description: data.description || '',
+                    targetDate: data.targetDate,
                     status: 'pending',
-                    linkedTaskIds: currentMilestone.linkedTaskIds || [],
+                    linkedTaskIds: data.linkedTaskIds || [],
                     createdAt: new Date().toISOString()
                 }));
                 addToast('Jalon créé', 'success');
             }
             setIsEditing(false);
-            setCurrentMilestone({});
+            setEditingMilestoneId(null);
+            reset();
             onUpdate();
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'ProjectMilestones.handleSubmit', 'UPDATE_FAILED');
-        } finally {
-            setLoading(false);
+            ErrorLogger.handleErrorWithToast(error, 'ProjectMilestones.onSubmit', 'UPDATE_FAILED');
         }
     };
 
     const handleDelete = async (id: string) => {
         if (!confirm('Êtes-vous sûr de vouloir supprimer ce jalon ?')) return;
         try {
-            await deleteDoc(doc(db, 'project_milestones', id));
+            await removeMilestone(id);
             addToast('Jalon supprimé', 'info');
             onUpdate();
         } catch (error) {
@@ -94,40 +113,61 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
         }
     };
 
+    const handleEdit = (milestone: ProjectMilestone) => {
+        setEditingMilestoneId(milestone.id);
+        reset({
+            title: milestone.title,
+            description: milestone.description || '',
+            targetDate: milestone.targetDate,
+            status: milestone.status,
+            linkedTaskIds: milestone.linkedTaskIds || []
+        });
+        setIsEditing(true);
+    };
+
+    const handleCancel = () => {
+        setIsEditing(false);
+        setEditingMilestoneId(null);
+        reset();
+    };
+
     return (
         <div className="space-y-6 h-full flex flex-col">
             <div className="flex justify-between items-center">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">Jalons du projet</h3>
-                <Button onClick={() => { setCurrentMilestone({}); setIsEditing(true); }} className="flex items-center gap-2 bg-brand-600 text-white hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
+                <Button onClick={() => { reset(); setIsEditing(true); }} className="flex items-center gap-2 bg-brand-600 text-white hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
                     <Plus className="h-4 w-4" /> Nouveau Jalon
                 </Button>
             </div>
 
             {isEditing && (
                 <div className="glass-panel p-6 rounded-2xl border border-white/20 dark:border-white/5 mb-6 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl shadow-lg">
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <FloatingLabelInput
                             label="Titre du jalon"
-                            value={currentMilestone.title || ''}
-                            onChange={(e) => setCurrentMilestone({ ...currentMilestone, title: e.target.value })}
+                            {...register('title')}
+                            error={errors.title?.message}
                             required
                         />
                         <FloatingLabelTextarea
                             label="Description"
-                            value={currentMilestone.description || ''}
-                            onChange={(e) => setCurrentMilestone({ ...currentMilestone, description: e.target.value })}
+                            {...register('description')}
+                            error={errors.description?.message}
                         />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <DatePicker
-                                label="Date cible"
-                                value={currentMilestone.targetDate || ''}
-                                onChange={(val) => setCurrentMilestone({ ...currentMilestone, targetDate: val })}
-                                required
-                            />
+                            <div>
+                                <DatePicker
+                                    label="Date cible"
+                                    value={formValues.targetDate || ''}
+                                    onChange={(val) => setValue('targetDate', val || '')}
+                                    required
+                                />
+                                {errors.targetDate && <p className="text-xs text-red-500 mt-1">{errors.targetDate.message}</p>}
+                            </div>
                             <CustomSelect
                                 label="Statut"
-                                value={currentMilestone.status || 'pending'}
-                                onChange={(val) => setCurrentMilestone({ ...currentMilestone, status: val as 'pending' | 'achieved' | 'missed' })}
+                                value={formValues.status || 'pending'}
+                                onChange={(val) => setValue('status', val as 'pending' | 'achieved' | 'missed')}
                                 options={[
                                     { value: 'pending', label: 'En attente' },
                                     { value: 'achieved', label: 'Atteint' },
@@ -137,14 +177,16 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                         </div>
                         <CustomSelect
                             label="Tâches liées"
-                            value={currentMilestone.linkedTaskIds || []}
-                            onChange={(val) => setCurrentMilestone({ ...currentMilestone, linkedTaskIds: val as string[] })}
+                            value={formValues.linkedTaskIds || []}
+                            onChange={(val) => setValue('linkedTaskIds', val as string[])}
                             options={project.tasks?.map(t => ({ value: t.id, label: t.title, subLabel: t.status })) || []}
                             multiple
                         />
                         <div className="flex justify-end gap-3 pt-2">
-                            <Button type="button" variant="ghost" onClick={() => setIsEditing(false)} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">Annuler</Button>
-                            <Button type="submit" isLoading={loading} className="bg-brand-600 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">Enregistrer</Button>
+                            <Button type="button" variant="ghost" onClick={handleCancel} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">Annuler</Button>
+                            <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting} className="bg-brand-600 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
+                                {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+                            </Button>
                         </div>
                     </form>
                 </div>
@@ -186,14 +228,16 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                             </div>
                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
-                                    onClick={() => { setCurrentMilestone(milestone); setIsEditing(true); }}
+                                    onClick={() => handleEdit(milestone)}
                                     className="p-2 text-slate-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                    aria-label="Modifier le jalon"
                                 >
                                     <Edit className="h-4 w-4" />
                                 </button>
                                 <button
                                     onClick={() => handleDelete(milestone.id)}
                                     className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                                    aria-label="Supprimer le jalon"
                                 >
                                     <Trash2 className="h-4 w-4" />
                                 </button>

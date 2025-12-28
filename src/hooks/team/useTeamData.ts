@@ -1,7 +1,7 @@
 import { useFirestoreCollection } from '../useFirestore';
 import { where } from 'firebase/firestore';
 import { useAuth } from '../useAuth';
-import { UserProfile, UserGroup, Role } from '../../types';
+import { UserProfile, UserGroup, CustomRole } from '../../types';
 
 export const useTeamData = () => {
   const { user } = useAuth();
@@ -12,7 +12,7 @@ export const useTeamData = () => {
     { realtime: true, enabled: !!user?.organizationId }
   );
 
-  const { data: roles, loading: loadingRoles, add: addRole, update: updateRole, remove: removeRole } = useFirestoreCollection<Role>(
+  const { data: roles, loading: loadingRoles, add: addRole, update: updateRole, remove: removeRole } = useFirestoreCollection<CustomRole>(
     'roles',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
