@@ -13,7 +13,7 @@ interface ActivityCardProps {
 }
 
 export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }: ActivityCardProps) => {
-    const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+    const [showConfirmDelete, setShowConfirmDelete] = useState(false); // confirmDialog via ConfirmModal
     return (
         <motion.div
             variants={slideUpVariants}

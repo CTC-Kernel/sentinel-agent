@@ -10,7 +10,7 @@ interface RoleCardProps {
 }
 
 export const RoleCard = memo(({ role, onEdit, onDelete }: RoleCardProps) => {
-    const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+    const [showConfirmDelete, setShowConfirmDelete] = useState(false); // confirmDialog via ConfirmModal
 
     return (
         <>

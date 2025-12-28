@@ -11,7 +11,7 @@ interface GroupCardProps {
 }
 
 export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, onEdit, onDelete }) => {
-    const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+    const [showConfirmDelete, setShowConfirmDelete] = useState(false); // confirmDialog via ConfirmModal
 
     return (
         <>
