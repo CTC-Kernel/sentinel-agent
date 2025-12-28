@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore';
+import React, { useState, useCallback } from 'react';
+import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { UserGroup, UserProfile } from '../../types';
 import { useStore } from '../../store';
+import { useTeamData } from '../../hooks/team/useTeamData';
 import { Drawer } from '../ui/Drawer';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -19,7 +20,7 @@ interface GroupManagerProps {
 
 export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
     const { user, addToast } = useStore();
-    const [groups, setGroups] = useState<UserGroup[]>([]);
+    const { groups } = useTeamData();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [editingGroup, setEditingGroup] = useState<UserGroup | null>(null);
     const [formData, setFormData] = useState<{ name: string; description: string; members: string[] }>({
@@ -27,21 +28,6 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
     });
 
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; groupId: string | null }>({ isOpen: false, groupId: null });
-
-    useEffect(() => {
-        if (!user?.organizationId) return;
-
-        const q = query(collection(db, 'user_groups'), where('organizationId', '==', user.organizationId));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const groupsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserGroup));
-            setGroups(groupsData);
-        }, (error) => {
-            console.error("Error fetching groups:", error);
-            ErrorLogger.error(error, 'GroupManager.fetchGroups');
-        });
-
-        return () => unsubscribe();
-    }, [user?.organizationId]);
 
     const handleOpenDrawer = useCallback((group?: UserGroup) => {
         if (group) {

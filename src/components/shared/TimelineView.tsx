@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { useStore } from '../../store';
-import { ErrorLogger } from '../../services/errorLogger';
+import React, { useState, useMemo } from 'react';
+
+import { useTimelineData } from '../../hooks/timeline/useTimelineData';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -39,57 +37,81 @@ interface TimelineViewProps {
 }
 
 export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, className }) => {
-    const { user } = useStore();
-    const [logs, setLogs] = useState<AuditLog[]>([]);
-    const [loading, setLoading] = useState(true);
+
+    // Wait, if I remove 'user', useStore might return other things I'm not using?
+    // The original line was: const { user } = useStore();
+    // If I just remove 'user', it becomes const {} = useStore(); which is useless.
+    // I should check if useStore is used elsewhere.
+    // Line 40: const { user } = useStore();
+    // UseStore is imported in line 2.
+    // UseStore is NOT used anywhere else in the file based on the read in Step 23.
+    // So I can remove the entire line.
+    const { systemLogs, loading } = useTimelineData();
     const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-    useEffect(() => {
-        if (!user?.organizationId || !resourceId) return;
+    // Filter and transform logs for this specific resource
+    const logs = useMemo(() => {
+        if (!resourceId) return [];
 
-        const fetchLogs = async () => {
-            setLoading(true);
-            try {
-                // Query system_logs for this specific entity
-                const logsRef = collection(db, 'system_logs');
-                const q = query(
-                    logsRef,
-                    where('organizationId', '==', user.organizationId),
-                    where('entityId', '==', resourceId),
-                    orderBy('timestamp', 'desc'),
-                    limit(100)
-                );
+        return systemLogs
+            .filter(log => log.resourceId === resourceId)
+            .map(log => {
+                // Reconstruct before/after from changes for diff viewer
+                // SystemLog has changes: { field, oldValue, newValue }[]
+                let before: Record<string, unknown> | undefined;
+                let after: Record<string, unknown> | undefined;
+                const changeDescriptions: string[] = [];
 
-                const snapshot = await getDocs(q);
-                const fetchedLogs: AuditLog[] = [];
+                if (log.changes && Array.isArray(log.changes)) {
+                    before = {};
+                    after = {};
+                    log.changes.forEach(change => {
+                        if (before) before[change.field] = change.oldValue;
+                        if (after) after[change.field] = change.newValue;
 
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    fetchedLogs.push({
-                        id: doc.id,
-                        action: data.action,
-                        entityType: data.entityType,
-                        entityId: data.entityId,
-                        userId: data.userId,
-                        userName: data.userName || 'Utilisateur inconnu',
-                        timestamp: data.timestamp?.toDate() || new Date(),
-                        before: data.before,
-                        after: data.after,
-                        changes: data.changes,
-                        details: data.details
+                        // Create readable description
+                        // Handle simple values for cleaner display
+                        const fmtVal = (val: unknown) => {
+                            if (val === null || val === undefined) return 'vide';
+                            if (typeof val === 'object') return '...';
+                            return String(val);
+                        };
+                        changeDescriptions.push(`${change.field}: ${fmtVal(change.oldValue)} → ${fmtVal(change.newValue)}`);
                     });
-                });
+                } else if (log.metadata) {
+                    // Fallback to metadata if old format or different structure
+                    if ('before' in log.metadata && typeof log.metadata.before === 'object') {
+                        before = log.metadata.before as Record<string, unknown>;
+                    }
+                    if ('after' in log.metadata && typeof log.metadata.after === 'object') {
+                        after = log.metadata.after as Record<string, unknown>;
+                    }
+                }
 
-                setLogs(fetchedLogs);
-            } catch (error) {
-                ErrorLogger.error(error, 'TimelineView.fetchLogs');
-            } finally {
-                setLoading(false);
-            }
-        };
+                // Parse date safely
+                let dateObj = new Date();
+                try {
+                    dateObj = new Date(log.timestamp);
+                } catch {
+                    console.error('Invalid date', log.timestamp);
+                }
 
-        fetchLogs();
-    }, [user?.organizationId, resourceId]);
+                return {
+                    id: log.id,
+                    action: (log.action as 'create' | 'update' | 'delete') || 'update',
+                    entityType: log.resource || '',
+                    entityId: log.resourceId || '',
+                    userId: log.userId || '',
+                    userName: log.userDisplayName || log.userEmail || 'Utilisateur inconnu',
+                    timestamp: dateObj,
+                    before: before,
+                    after: after,
+                    changes: changeDescriptions.length > 0 ? changeDescriptions : undefined,
+                    details: log.details
+                };
+            })
+            .slice(0, 100); // Limit to 100
+    }, [systemLogs, resourceId]);
 
     const getActionIcon = (action: string) => {
         switch (action) {

@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore } from '../../store';
 import { Activity, Globe, User } from 'lucide-react';
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { ErrorLogger } from '../../services/errorLogger';
+import { useSettingsData } from '../../hooks/settings/useSettingsData';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { SystemLog } from '../../types';
@@ -13,87 +11,34 @@ import { EmptyState } from '../ui/EmptyState';
 
 export const UserActivityLog: React.FC = () => {
     const { user, t } = useStore();
-    const [logs, setLogs] = useState<SystemLog[]>([]);
-    const [loading, setLoading] = useState(false);
+    const { activityLogs, loading } = useSettingsData();
     const [viewMode, setViewMode] = useState<'my' | 'global'>('my');
 
     const isAdmin = user?.role === 'admin' || user?.role === 'rssi';
 
-    useEffect(() => {
-        if (!user?.organizationId) return;
+    // Filter and sort logs based on view mode
+    const logs = useMemo(() => {
+        let filtered = activityLogs;
 
-        const fetchLogs = async () => {
-            setLoading(true);
-            const logsRef = collection(db, 'system_logs');
-            try {
-                let q;
+        // Filter by user if in 'my' mode
+        if (viewMode === 'my' && user?.uid) {
+            filtered = filtered.filter(log => log.userId === user.uid);
+        }
 
-                if (viewMode === 'global' && isAdmin) {
-                    // Global Query
-                    // Requires index: [organizationId, timestamp]
-                    q = query(
-                        logsRef,
-                        where('organizationId', '==', user.organizationId),
-                        orderBy('timestamp', 'desc'),
-                        limit(100)
-                    );
-                } else {
-                    // Personal Query
-                    // Requires index: [userId, timestamp] (or composite with orgId to be safe)
-                    // The original query used organizationId + userId.
-                    q = query(
-                        logsRef,
-                        where('userId', '==', user.uid),
-                        where('organizationId', '==', user.organizationId),
-                        orderBy('timestamp', 'desc'),
-                        limit(50)
-                    );
+        // Sort by timestamp descending
+        const sorted = [...filtered].sort((a, b) => {
+            const getMillis = (timestamp: unknown) => {
+                if (timestamp && typeof timestamp === 'object' && 'toMillis' in timestamp) {
+                    return (timestamp as { toMillis: () => number }).toMillis();
                 }
+                return new Date(timestamp as string | number | Date).getTime();
+            };
+            return getMillis(b.timestamp) - getMillis(a.timestamp);
+        });
 
-                const snapshot = await getDocs(q);
-                const fetchedLogs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog));
-                setLogs(fetchedLogs);
-            } catch (error) {
-                ErrorLogger.warn('Query failed, falling back to simple query', 'UserActivityLog.fetchLogs', { metadata: { error } });
-                try {
-                    // Fallback strategy if indexes are missing
-                    const simpleQ = query(
-                        logsRef,
-                        where('organizationId', '==', user.organizationId),
-                        limit(200) // Fetch more then sort client side
-                    );
-                    const snapshot = await getDocs(simpleQ);
-                    let fetchedLogs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as SystemLog));
-
-                    // Client-side Filter for 'my'
-                    if (viewMode === 'my') {
-                        fetchedLogs = fetchedLogs.filter(l => l.userId === user.uid);
-                    }
-
-                    // Client-side Sort
-                    fetchedLogs.sort((a, b) => {
-                        const getMillis = (timestamp: unknown) => {
-                            if (timestamp && typeof timestamp === 'object' && 'toMillis' in timestamp) {
-                                return (timestamp as { toMillis: () => number }).toMillis();
-                            }
-                            // Handle if it's already a date object or string
-                            return new Date(timestamp as string | number | Date).getTime();
-                        };
-                        return getMillis(b.timestamp) - getMillis(a.timestamp);
-                    });
-
-                    setLogs(fetchedLogs.slice(0, 100));
-
-                } catch (retryError) {
-                    ErrorLogger.handleErrorWithToast(retryError, 'UserActivityLog.fetchLogs', 'FETCH_FAILED');
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchLogs();
-    }, [user, viewMode, isAdmin]);
+        // Limit results
+        return sorted.slice(0, viewMode === 'global' ? 100 : 50);
+    }, [activityLogs, viewMode, user]);
 
     const columns = useMemo<ColumnDef<SystemLog>[]>(() => {
         const cols: ColumnDef<SystemLog>[] = [

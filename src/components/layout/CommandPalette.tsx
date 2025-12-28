@@ -1,12 +1,10 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Search, Command, LayoutDashboard, Siren, FolderKanban, Server, ShieldAlert, Building, Briefcase, FileText, Activity, Users, Settings, ArrowRight, Fingerprint, HelpCircle, HeartPulse, Plus, Zap } from '../ui/Icons';
-import { collection, getDocs, limit, query, where } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { useStore } from '../../store';
-import { ErrorLogger } from '../../services/errorLogger';
+import { useLayoutData } from '../../hooks/layout/useLayoutData';
 
 type IconComponent = React.ComponentType<{ className?: string }>;
 
@@ -23,12 +21,10 @@ interface CommandItem {
 export const CommandPalette: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [queryStr, setQueryStr] = useState('');
-    const [filteredItems, setFilteredItems] = useState<CommandItem[]>([]);
-    const [dbItems, setDbItems] = useState<CommandItem[]>([]);
-    const [loading, setLoading] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const navigate = useNavigate();
-    const { user, t } = useStore();
+    const { t } = useStore();
+    const { assets, risks, documents, incidents, projects, loading } = useLayoutData();
 
     const NAVIGATION_ITEMS: CommandItem[] = React.useMemo(() => [
         { id: 'nav-dash', title: t('commandPalette.nav.dashboard'), icon: LayoutDashboard, path: '/', category: t('commandPalette.categories.navigation') },
@@ -54,6 +50,99 @@ export const CommandPalette: React.FC = () => {
         { id: 'act-user', title: t('commandPalette.actions.inviteUser'), subtitle: t('commandPalette.actions.inviteUserSub'), icon: Users, category: t('commandPalette.categories.actions'), action: () => navigate('/team') },
         { id: 'act-audit', title: t('commandPalette.actions.planAudit'), subtitle: t('commandPalette.actions.planAuditSub'), icon: Activity, category: t('commandPalette.categories.actions'), action: () => navigate('/audits') },
     ], [navigate, t]);
+
+    // Transform hook data into searchable command items
+    const dbItems = useMemo(() => {
+        const items: CommandItem[] = [];
+
+        // Add Assets (limit 10)
+        assets.slice(0, 10).forEach(asset => items.push({
+            id: `asset-${asset.id}`,
+            title: asset.name,
+            subtitle: `${t('sidebar.assets')} • ${asset.type}`,
+            icon: Server,
+            path: '/assets',
+            category: t('commandPalette.categories.recent')
+        }));
+
+        // Add Risks (limit 10)
+        risks.slice(0, 10).forEach(risk => items.push({
+            id: `risk-${risk.id}`,
+            title: risk.threat,
+            subtitle: `${t('sidebar.dashboard')} • Score: ${risk.score}`,
+            icon: ShieldAlert,
+            path: '/risks',
+            category: t('commandPalette.categories.recent')
+        }));
+
+        // Add Documents (limit 10)
+        documents.slice(0, 10).forEach(doc => items.push({
+            id: `doc-${doc.id}`,
+            title: doc.title,
+            subtitle: `${t('sidebar.documents')} • ${doc.version || 'v1.0'}`,
+            icon: Briefcase,
+            path: '/documents',
+            category: t('commandPalette.categories.recent')
+        }));
+
+        // Add Projects (limit 5)
+        projects.slice(0, 5).forEach(project => items.push({
+            id: `proj-${project.id}`,
+            title: project.name,
+            subtitle: `${t('sidebar.projects')} • ${project.status}`,
+            icon: FolderKanban,
+            path: '/projects',
+            category: t('commandPalette.categories.management')
+        }));
+
+        // Add Incidents (limit 5)
+        incidents.slice(0, 5).forEach(incident => items.push({
+            id: `inc-${incident.id}`,
+            title: incident.title,
+            subtitle: `${t('sidebar.incidents')} • ${incident.severity}`,
+            icon: Siren,
+            path: '/incidents',
+            category: t('commandPalette.categories.alerts')
+        }));
+
+        return items;
+    }, [assets, risks, documents, projects, incidents, t]);
+
+    const filteredItems = useMemo(() => {
+        if (!queryStr) {
+            return [...ACTION_ITEMS, ...NAVIGATION_ITEMS].slice(0, 10);
+        }
+        const lowerQuery = queryStr.toLowerCase();
+
+        const actionResults = ACTION_ITEMS.filter(item =>
+            item.title.toLowerCase().includes(lowerQuery)
+        );
+
+        const navResults = NAVIGATION_ITEMS.filter(item =>
+            item.title.toLowerCase().includes(lowerQuery)
+        );
+
+        const dbResults = dbItems.filter(item =>
+            item.title.toLowerCase().includes(lowerQuery) ||
+            (item.subtitle && item.subtitle.toLowerCase().includes(lowerQuery))
+        );
+
+        const allResults = [...actionResults, ...navResults, ...dbResults].slice(0, 12);
+
+        if (queryStr.trim().length > 0) {
+            const searchAllOption: CommandItem = {
+                id: 'search-all-explicit',
+                title: t('commandPalette.searchInSentinel').replace('{query}', queryStr),
+                subtitle: t('commandPalette.advancedSearch'),
+                icon: Search,
+                category: t('commandPalette.categories.global'),
+                action: () => navigate(`/search?q=${encodeURIComponent(queryStr)}`)
+            };
+            allResults.unshift(searchAllOption);
+        }
+
+        return allResults;
+    }, [queryStr, dbItems, navigate, ACTION_ITEMS, NAVIGATION_ITEMS, t]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -86,6 +175,7 @@ export const CommandPalette: React.FC = () => {
                     }
                     setIsOpen(false);
                     setQueryStr('');
+                    setSelectedIndex(0);
                 }
             }
         };
@@ -93,148 +183,6 @@ export const CommandPalette: React.FC = () => {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, filteredItems, selectedIndex, navigate]);
-
-    useEffect(() => {
-        setSelectedIndex(0);
-    }, [queryStr]);
-
-    // Fetch searchable items securely (scoped to organization)
-    useEffect(() => {
-        if (isOpen && dbItems.length === 0 && user?.organizationId) {
-            const fetchSearchableItems = async () => {
-                setLoading(true);
-                const orgId = user.organizationId;
-                try {
-                    const items: CommandItem[] = [];
-
-                    // Fetch Assets
-                    try {
-                        const assetsSnap = await getDocs(query(collection(db, 'assets'), where('organizationId', '==', orgId), limit(10)));
-                        assetsSnap.forEach(doc => items.push({
-                            id: `asset-${doc.id}`,
-                            title: doc.data().name,
-                            subtitle: `${t('sidebar.assets')} • ${doc.data().type}`,
-                            icon: Server,
-                            path: '/assets',
-                            category: t('commandPalette.categories.recent')
-                        }));
-                    } catch (e) { ErrorLogger.error(e, 'CommandPalette.fetchAssets'); }
-
-                    // Fetch Risks
-                    try {
-                        const risksSnap = await getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId), limit(10)));
-                        risksSnap.forEach(doc => items.push({
-                            id: `risk-${doc.id}`,
-                            title: doc.data().threat,
-                            subtitle: `${t('sidebar.dashboard')} • Score: ${doc.data().score}`,
-                            icon: ShieldAlert,
-                            path: '/risks',
-                            category: t('commandPalette.categories.recent')
-                        }));
-                    } catch (e) { ErrorLogger.error(e, 'CommandPalette.fetchRisks'); }
-
-                    // Fetch Controls (ISO)
-                    try {
-                        const ctrlSnap = await getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId), limit(20)));
-                        ctrlSnap.forEach(doc => items.push({
-                            id: `ctrl-${doc.id}`,
-                            title: `${doc.data().code} - ${doc.data().name}`,
-                            subtitle: `${t('commandPalette.nav.compliance')} • ${doc.data().status}`,
-                            icon: FileText,
-                            path: '/compliance',
-                            category: t('commandPalette.categories.compliance')
-                        }));
-                    } catch (e) { ErrorLogger.error(e, 'CommandPalette.fetchControls'); }
-
-                    // Fetch Documents
-                    try {
-                        const docsSnap = await getDocs(query(collection(db, 'documents'), where('organizationId', '==', orgId), limit(10)));
-                        docsSnap.forEach(doc => items.push({
-                            id: `doc-${doc.id}`,
-                            title: doc.data().title,
-                            subtitle: `${t('sidebar.documents')} • ${doc.data().version}`,
-                            icon: Briefcase,
-                            path: '/documents',
-                            category: t('commandPalette.categories.recent')
-                        }));
-                    } catch (e) { ErrorLogger.error(e, 'CommandPalette.fetchDocuments'); }
-
-                    // Fetch Projects
-                    try {
-                        const projsSnap = await getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId), limit(5)));
-                        projsSnap.forEach(doc => items.push({
-                            id: `proj-${doc.id}`,
-                            title: doc.data().name,
-                            subtitle: `${t('sidebar.projects')} • ${doc.data().status}`,
-                            icon: FolderKanban,
-                            path: '/projects',
-                            category: t('commandPalette.categories.management')
-                        }));
-                    } catch (e) { ErrorLogger.error(e, 'CommandPalette.fetchProjects'); }
-
-                    // Fetch Incidents
-                    try {
-                        const incSnap = await getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId), limit(5)));
-                        incSnap.forEach(doc => items.push({
-                            id: `inc-${doc.id}`,
-                            title: doc.data().title,
-                            subtitle: `${t('sidebar.incidents')} • ${doc.data().severity}`,
-                            icon: Siren,
-                            path: '/incidents',
-                            category: t('commandPalette.categories.alerts')
-                        }));
-                    } catch (e) { ErrorLogger.error(e, 'CommandPalette.fetchIncidents'); }
-
-                    setDbItems(items);
-                } catch (error) {
-                    ErrorLogger.error(error, 'CommandPalette.fetchSearchableItems');
-                } finally {
-                    setLoading(false);
-                }
-            };
-            fetchSearchableItems();
-        }
-    }, [isOpen, user?.organizationId, dbItems.length, t]);
-
-    useEffect(() => {
-        if (!queryStr) {
-            setFilteredItems([...ACTION_ITEMS, ...NAVIGATION_ITEMS].slice(0, 10));
-            return;
-        }
-        const lowerQuery = queryStr.toLowerCase();
-
-        const actionResults = ACTION_ITEMS.filter(item =>
-            item.title.toLowerCase().includes(lowerQuery)
-        );
-
-        const navResults = NAVIGATION_ITEMS.filter(item =>
-            item.title.toLowerCase().includes(lowerQuery)
-        );
-
-        const dbResults = dbItems.filter(item =>
-            item.title.toLowerCase().includes(lowerQuery) ||
-            (item.subtitle && item.subtitle.toLowerCase().includes(lowerQuery))
-        );
-
-        const allResults = [...actionResults, ...navResults, ...dbResults].slice(0, 12);
-
-        if (queryStr.trim().length > 0) {
-            // Always add "Search in all Sentinel" as the first or prominent option if not already there
-            const searchAllOption: CommandItem = {
-                id: 'search-all-explicit',
-                title: t('commandPalette.searchInSentinel').replace('{query}', queryStr),
-                subtitle: t('commandPalette.advancedSearch'),
-                icon: Search,
-                category: t('commandPalette.categories.global'),
-                action: () => navigate(`/search?q=${encodeURIComponent(queryStr)}`)
-            };
-
-            // Prepend it to ensure visibility
-            allResults.unshift(searchAllOption);
-        }
-
-        setFilteredItems(allResults);
-    }, [queryStr, dbItems, navigate, ACTION_ITEMS, NAVIGATION_ITEMS, t]);
 
     const handleSelect = (item: CommandItem) => {
         if (item.action) {
@@ -244,6 +192,7 @@ export const CommandPalette: React.FC = () => {
         }
         setIsOpen(false);
         setQueryStr('');
+        setSelectedIndex(0);
     };
 
     if (!isOpen) return null;
@@ -259,7 +208,7 @@ export const CommandPalette: React.FC = () => {
                 <div className="flex items-center px-6 py-5 border-b border-white/10 relative z-10">
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent pointer-events-none" />
                     <Search className="h-5 w-5 text-brand-500 mr-4 font-bold" />
-                    <input value={queryStr} onChange={e => setQueryStr(e.target.value)}
+                    <input value={queryStr} onChange={e => { setQueryStr(e.target.value); setSelectedIndex(0); }}
                         type="text"
                         placeholder={t('commandPalette.placeholder')}
                         className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-slate-900 dark:text-white placeholder-slate-400 outline-none font-medium h-auto py-0"

@@ -35,7 +35,7 @@ vi.mock('firebase/functions', () => {
 // Mock Local Firebase Module
 // Mock Local Firebase Module
 vi.mock('../../firebase', async (importOriginal) => {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+
     const actual = await importOriginal<typeof import('../../firebase')>();
     const mockAuth = {
         currentUser: null,

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, updateDoc, doc } from 'firebase/firestore';
+import React, { useState } from 'react';
+import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
 import { UserProfile } from '../types';
+import { useTeamData } from '../hooks/team/useTeamData';
 import {
     hasPermission,
     Role
@@ -19,36 +20,15 @@ import { UserRow } from './roles/UserRow';
 
 export const RoleManagement: React.FC = () => {
     const { user } = useStore();
-    const [users, setUsers] = useState<UserProfile[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { users: teamUsers, loading } = useTeamData();
+    const [users, setUsers] = useState<UserProfile[]>(teamUsers);
     const [editingUser, setEditingUser] = useState<string | null>(null);
     const [selectedRole, setSelectedRole] = useState<Role>('user');
 
-    const fetchUsers = React.useCallback(async () => {
-        if (!user?.organizationId) return;
-
-        try {
-            const q = query(
-                collection(db, 'users'),
-                where('organizationId', '==', user.organizationId)
-            );
-            const snapshot = await getDocs(q);
-            const usersData = snapshot.docs.map((doc) => ({
-                ...doc.data(),
-                uid: doc.id,
-            })) as UserProfile[];
-
-            setUsers(usersData);
-        } catch (error) {
-            ErrorLogger.error(error, 'RoleManagement.fetchUsers');
-        } finally {
-            setLoading(false);
-        }
-    }, [user?.organizationId]);
-
-    useEffect(() => {
-        fetchUsers();
-    }, [fetchUsers]);
+    // Sync local state with hook data for optimistic updates
+    React.useEffect(() => {
+        setUsers(teamUsers);
+    }, [teamUsers]);
 
     const handleUpdateRole = async (userId: string, newRole: Role) => {
         try {
