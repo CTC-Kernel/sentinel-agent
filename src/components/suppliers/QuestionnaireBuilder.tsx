@@ -2,11 +2,10 @@ import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { QuestionnaireTemplate } from '../../types/business';
 import { Plus, Save } from '../ui/Icons';
-import { db } from '../../firebase';
-import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { SectionEditor } from './QuestionnaireBuilder/SectionEditor';
+import { useSuppliersData } from '../../hooks/suppliers/useSuppliersData';
 
 interface Props {
     initialData?: QuestionnaireTemplate;
@@ -16,6 +15,7 @@ interface Props {
 
 export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onCancel }) => {
     const { user, addToast } = useStore();
+    const { addTemplate, updateTemplate } = useSuppliersData(user?.organizationId);
     const { register, control, handleSubmit, formState: { isSubmitting } } = useForm<QuestionnaireTemplate>({
         defaultValues: initialData || {
             title: '',
@@ -44,13 +44,13 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
             };
 
             if (initialData?.id) {
-                await updateDoc(doc(db, 'questionnaire_templates', initialData.id), templateData);
+                await updateTemplate(initialData.id, templateData);
                 addToast('Modèle mis à jour', 'success');
             } else {
-                await addDoc(collection(db, 'questionnaire_templates'), {
+                await addTemplate({
                     ...templateData,
                     createdAt: new Date().toISOString()
-                });
+                } as QuestionnaireTemplate);
                 addToast('Nouveau modèle créé', 'success');
             }
             if (onSave) onSave();

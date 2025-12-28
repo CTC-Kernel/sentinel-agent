@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { SupplierQuestionnaireResponse } from '../../types/business';
 import { useStore } from '../../store';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { Save, Check, ChevronRight } from '../ui/Icons';
 import { SupplierService } from '../../services/SupplierService';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -16,7 +14,7 @@ interface Props {
 
 export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context = 'supplier' }) => {
     const { user, addToast } = useStore();
-    const { templates, assessments, loading: hookLoading } = useSuppliersData(user?.organizationId);
+    const { templates, assessments, loading: hookLoading, updateAssessment } = useSuppliersData(user?.organizationId);
     const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<string, { value: string | boolean | number | string[], comment?: string, evidenceUrl?: string }>>({});
 
@@ -88,7 +86,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                 }
             }
 
-            await updateDoc(doc(db, 'questionnaire_responses', responseId), updates);
+            await updateAssessment(responseId, updates);
 
             addToast(submit ? 'Évaluation soumise' : 'Sauvegardé', 'success');
             if (submit) onClose();
