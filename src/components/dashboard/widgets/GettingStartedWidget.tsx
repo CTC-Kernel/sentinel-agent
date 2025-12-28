@@ -167,6 +167,10 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
 
     if (completedCount === steps.length) return null;
 
+    const validateUrl = (url: string) => {
+        return url.startsWith('/') && !url.includes('//');
+    };
+
     return (
         <div className="mb-8 glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/10 bg-gradient-to-br from-brand-50/50 via-white/40 to-white/10 dark:from-brand-900/10 dark:via-slate-900/40 dark:to-slate-900/10 relative overflow-hidden shadow-sm hover:shadow-apple transition-all duration-500 group">
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent skew-x-12 translate-x-[-100%] group-hover:animate-shine pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -193,14 +197,14 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                             <div
                                 key={step.id}
                                 onClick={() => {
-                                    if (!step.isCompleted && step.path.startsWith('/')) navigate(step.path); // validateUrl check
+                                    if (!step.isCompleted && validateUrl(step.path)) navigate(step.path);
                                 }}
                                 role={step.isCompleted ? undefined : "button"}
                                 tabIndex={step.isCompleted ? undefined : 0}
                                 onKeyDown={(e) => {
                                     if (!step.isCompleted && (e.key === 'Enter' || e.key === ' ')) {
                                         e.preventDefault();
-                                        if (step.path.startsWith('/')) navigate(step.path);
+                                        if (validateUrl(step.path)) navigate(step.path);
                                     }
                                 }}
                                 className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 border border-transparent ${step.isCompleted

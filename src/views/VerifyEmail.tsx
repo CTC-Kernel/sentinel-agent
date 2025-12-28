@@ -4,8 +4,11 @@ import { useStore } from '../store';
 import { Mail, RefreshCw, LogOut, CheckCircle2, Loader2 } from '../components/ui/Icons';
 import { useAuthActions } from '../hooks/useAuthActions';
 
+import { useNavigate } from 'react-router-dom';
+
 export const VerifyEmail: React.FC = () => {
     const { user } = useStore();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [emailSent, setEmailSent] = useState(false);
     const { sendVerificationEmail, checkEmailVerification, logout } = useAuthActions();
@@ -13,7 +16,7 @@ export const VerifyEmail: React.FC = () => {
     useEffect(() => {
         // Check if already verified on mount
         if (user?.emailVerified) {
-            window.location.href = '/dashboard';
+            navigate('/dashboard');
         }
     }, [user?.emailVerified]);
 

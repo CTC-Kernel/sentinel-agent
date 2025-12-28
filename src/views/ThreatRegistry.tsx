@@ -17,6 +17,25 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 import { hasPermission } from '../utils/permissions';
 
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const threatSchema = z.object({
+    name: z.string().min(1, 'Le titre est requis'),
+    description: z.string().min(1, 'La description est requise'),
+    framework: z.string().min(1, 'Le cadre est requis'),
+    field: z.string().min(1, 'Le domaine est requis'),
+    threat: z.string().min(1, 'La menace est requise'),
+    vulnerability: z.string().min(1, 'La vulnérabilité est requise'),
+    scenario: z.string().min(1, 'Le scénario est requis'),
+    probability: z.number().min(1).max(5),
+    impact: z.number().min(1).max(5),
+    strategy: z.enum(['Accepter', 'Atténuer', 'Transférer', 'Éviter'] as const)
+});
+
+type ThreatFormData = z.infer<typeof threatSchema>;
+
 export const ThreatRegistry: React.FC = () => {
     const { user } = useStore();
     const canEdit = hasPermission(user, 'Threat', 'manage');
@@ -27,7 +46,15 @@ export const ThreatRegistry: React.FC = () => {
 
     // Modal State
     const [showModal, setShowModal] = useState(false);
-    const [formData, setFormData] = useState<Partial<ThreatTemplate>>({});
+
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<ThreatFormData>({
+        resolver: zodResolver(threatSchema),
+        defaultValues: {
+            probability: 3,
+            impact: 3,
+            strategy: 'Atténuer'
+        }
+    });
 
     // Confirm Modal State
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
@@ -78,31 +105,41 @@ export const ThreatRegistry: React.FC = () => {
 
     const handleEdit = React.useCallback((threat: ThreatTemplate) => {
         setSelectedThreat(threat);
-        setFormData(threat);
+        reset({
+            name: threat.name,
+            description: threat.description,
+            framework: threat.framework,
+            field: threat.field,
+            threat: threat.threat,
+            vulnerability: threat.vulnerability,
+            scenario: threat.scenario,
+            probability: threat.probability,
+            impact: threat.impact,
+            strategy: threat.strategy
+        });
         setIsEditing(true);
         setShowModal(true);
-    }, []);
+    }, [reset]);
 
-    const handleSave = React.useCallback(async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit: SubmitHandler<ThreatFormData> = async (data) => {
         try {
             if (isEditing && selectedThreat?.id) {
-                await updateThreat(selectedThreat.id, formData);
+                await updateThreat(selectedThreat.id, data);
                 await logAction(user!, 'UPDATE', 'ThreatLibrary', `Modification menace ${selectedThreat.name}`);
             } else {
-                await addThreat(formData);
-                await logAction(user!, 'CREATE', 'ThreatLibrary', `Création menace ${formData.name}`);
+                await addThreat(data);
+                await logAction(user!, 'CREATE', 'ThreatLibrary', `Création menace ${data.name}`);
             }
             setShowModal(false);
-            setFormData({});
+            reset();
         } catch {
             // Error already handled in hook
         }
-    }, [isEditing, selectedThreat, formData, updateThreat, addThreat, user]);
+    };
 
     const handleConfirmClose = React.useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
-    const handleModalClose = React.useCallback(() => setShowModal(false), []);
-    const handleNewThreat = React.useCallback(() => { setFormData({}); setShowModal(true); setIsEditing(false); }, []);
+    const handleModalClose = React.useCallback(() => { setShowModal(false); reset(); }, [reset]);
+    const handleNewThreat = React.useCallback(() => { reset(); setShowModal(true); setIsEditing(false); }, [reset]);
     const handleSearchChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value), []);
 
     const filteredThreats = threats.filter(t =>
@@ -205,88 +242,77 @@ export const ThreatRegistry: React.FC = () => {
                 onClose={handleModalClose}
                 title={isEditing ? "Modifier la menace" : "Nouvelle menace"}
                 maxWidth="max-w-3xl"
-            // Headless UI handles FocusTrap and keyboard navigation
             >
-                <form onSubmit={handleSave} className="space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid grid-cols-2 gap-6">
                         <div className="col-span-2">
                             <FloatingLabelInput
                                 label="Titre"
-                                value={formData.name || ''}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                required
+                                {...register('name')}
+                                error={errors.name?.message}
                             />
                         </div>
                         <div className="col-span-2">
                             <FloatingLabelTextarea
                                 label="Description"
-                                value={formData.description || ''}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                required
+                                {...register('description')}
+                                error={errors.description?.message}
                             />
                         </div>
                         <div className="col-span-1">
                             <FloatingLabelSelect
                                 label="Cadre / Framework"
-                                value={formData.framework || ''}
-                                onChange={(e) => setFormData({ ...formData, framework: e.target.value })}
+                                {...register('framework')}
+                                error={errors.framework?.message}
                                 options={['ISO27005', 'EBIOS', 'NIST', 'HDS', 'PCI-DSS', 'SOC2', 'Autre'].map(v => ({ value: v, label: v }))}
-                                required
                             />
                         </div>
                         <div className="col-span-1">
                             <FloatingLabelInput
                                 label="Domaine / Champ"
-                                value={formData.field || ''}
-                                onChange={(e) => setFormData({ ...formData, field: e.target.value })}
-                                required
+                                {...register('field')}
+                                error={errors.field?.message}
                             />
                         </div>
                         <div className="col-span-2">
                             <FloatingLabelInput
                                 label="Menace (Cause)"
-                                value={formData.threat || ''}
-                                onChange={(e) => setFormData({ ...formData, threat: e.target.value })}
-                                required
+                                {...register('threat')}
+                                error={errors.threat?.message}
                             />
                         </div>
                         <div className="col-span-2">
                             <FloatingLabelInput
                                 label="Vulnérabilité"
-                                value={formData.vulnerability || ''}
-                                onChange={(e) => setFormData({ ...formData, vulnerability: e.target.value })}
-                                required
+                                {...register('vulnerability')}
+                                error={errors.vulnerability?.message}
                             />
                         </div>
                         <div className="col-span-2 md:col-span-1">
                             <FloatingLabelTextarea
                                 label="Scénario"
-                                value={formData.scenario || ''}
-                                onChange={(e) => setFormData({ ...formData, scenario: e.target.value })}
-                                required
+                                {...register('scenario')}
+                                error={errors.scenario?.message}
                             />
                         </div>
                         <div className="col-span-2 md:col-span-1 space-y-4">
                             <FloatingLabelSelect
                                 label="Probabilité (Ref)"
-                                value={formData.probability?.toString() || ''}
-                                onChange={(e) => setFormData({ ...formData, probability: parseInt(e.target.value) })}
+                                {...register('probability', { valueAsNumber: true })}
+                                error={errors.probability?.message}
                                 options={['1', '2', '3', '4', '5'].map(v => ({ value: v, label: v }))}
-                                required
                             />
                             <FloatingLabelSelect
                                 label="Impact (Ref)"
-                                value={formData.impact?.toString() || ''}
-                                onChange={(e) => setFormData({ ...formData, impact: parseInt(e.target.value) })}
+                                {...register('impact', { valueAsNumber: true })}
+                                error={errors.impact?.message}
                                 options={['1', '2', '3', '4', '5'].map(v => ({ value: v, label: v }))}
-                                required
                             />
                             <FloatingLabelSelect
                                 label="Stratégie par défaut"
-                                value={formData.strategy || ''}
-                                onChange={(e) => setFormData({ ...formData, strategy: e.target.value as ThreatTemplate['strategy'] })}
+                                {...register('strategy')}
+                                error={errors.strategy?.message}
                                 options={['Accepter', 'Atténuer', 'Transférer', 'Éviter'].map(v => ({ value: v, label: v }))}
-                                required
                             />
                         </div>
                     </div>
@@ -303,10 +329,10 @@ export const ThreatRegistry: React.FC = () => {
                         <button
                             type="submit"
                             aria-label="Sauvegarder"
-                            disabled={loading}
-                            className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-2 rounded-xl flex items-center shadow-lg shadow-brand-500/20"
+                            disabled={isSubmitting}
+                            className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-2 rounded-xl flex items-center shadow-lg shadow-brand-500/20 disabled:opacity-50"
                         >
-                            {loading && <RefreshCw className="h-4 w-4 mr-2 animate-spin" />}
+                            {isSubmitting && <RefreshCw className="h-4 w-4 mr-2 animate-spin" />}
                             {isEditing ? 'Enregistrer les modifications' : 'Créer la menace'}
                         </button>
                     </div>

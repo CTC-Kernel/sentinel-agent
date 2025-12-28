@@ -83,7 +83,7 @@ const Assets: React.FC = () => {
     const { currentPage, paginatedItems, setCurrentPage, setItemsPerPage, totalItems, itemsPerPage } = usePagination(filteredAssets, 20);
 
     // Handlers
-    const handleOpenInspector = (asset?: Asset) => {
+    const handleOpenInspector = React.useCallback((asset?: Asset) => {
         if (!asset && reachedAssetLimit) {
             toast.info(t('assets.limitReached', { count: assets.length, max: limits.maxAssets }).split(':')[0], {
                 description: t('assets.contactSupport')
@@ -92,16 +92,18 @@ const Assets: React.FC = () => {
         }
         setSelectedAsset(asset || null);
         setInspectorOpen(true);
-    };
+    }, [reachedAssetLimit, assets.length, limits.maxAssets, t]);
 
-    const handleCloseInspector = () => {
+    const handleCreateNew = React.useCallback(() => handleOpenInspector(undefined), [handleOpenInspector]);
+
+    const handleCloseInspector = React.useCallback(() => {
         setInspectorOpen(false);
         setSelectedAsset(null);
-    };
+    }, []);
 
     const [dependencies, setDependencies] = useState<{ id: string; name: string; type: string }[]>([]);
 
-    const handleDeleteClick = async (id: string, name: string) => {
+    const handleDeleteClick = React.useCallback(async (id: string, name: string) => {
         const depCheck = await checkDependencies(id);
         if (depCheck.hasDependencies) {
             setDependencies((depCheck.dependencies || []) as { id: string; name: string; type: string }[]);
@@ -110,30 +112,28 @@ const Assets: React.FC = () => {
         }
         setAssetToDelete({ id, name });
         setDeleteModalOpen(true);
-    };
+    }, [checkDependencies]);
 
-    const handleConfirmDelete = async () => {
+    const handleConfirmDelete = React.useCallback(async () => {
         if (assetToDelete) {
             await deleteAsset(assetToDelete.id, assetToDelete.name);
             setDeleteModalOpen(false);
             setAssetToDelete(null);
             setDependencies([]);
         }
-    };
+    }, [assetToDelete, deleteAsset]);
 
-    const handleGenerateKioskLink = () => {
+    const handleCloseDeleteModal = React.useCallback(() => setDeleteModalOpen(false), []);
+
+    const handleGenerateKioskLink = React.useCallback(() => {
         const url = `${window.location.origin}/intake`;
         navigator.clipboard.writeText(url);
         toast.success(t('assets.kioskCopied'), {
             description: t('assets.kioskCopiedDesc')
         });
-    };
+    }, [t]);
 
-    const handleExportCSV = () => {
-        // Use individual keys to ensure correct translation and type safety
-
-
-        // Safer approach: 
+    const handleExportCSV = React.useCallback(() => {
         const csvHeaders = (t('assets.csvHeaders', { returnObjects: true }) as unknown as string[]) || ['Name', 'Type', 'Status', 'Criticality', 'Owner', 'Location', 'Value', 'Warranty End'];
 
         const data = filteredAssets.map(a => ({
@@ -148,9 +148,9 @@ const Assets: React.FC = () => {
         }));
 
         CsvParser.downloadCSV(csvHeaders, data, `${t('assets.filename', { date: new Date().toISOString().split('T')[0] })}.csv`);
-    };
+    }, [filteredAssets, t]);
 
-    const handleAnalyze = async () => {
+    const handleAnalyze = React.useCallback(async () => {
         setIsAnalyzing(true);
         try {
             const prompt = t('assets.aiPrompt', { count: filteredAssets.length });
@@ -162,7 +162,43 @@ const Assets: React.FC = () => {
         } finally {
             setIsAnalyzing(false);
         }
-    };
+    }, [filteredAssets.length, t]);
+
+    const handleGenerateLabel = React.useCallback(async (asset: Asset) => {
+        const { PdfService } = await import('../services/PdfService');
+        try {
+            PdfService.generateAssetLabel(
+                { name: asset.name, id: asset.id, owner: asset.owner, type: asset.type },
+                { organizationName: limits.features.whiteLabelReports ? user?.displayName || 'Sentinel' : 'Sentinel GRC' }
+            );
+            toast.success(t('assets.labelGenerated'));
+        } catch (e) {
+            console.error(e);
+            toast.error(t('assets.labelError'));
+        }
+    }, [limits.features.whiteLabelReports, user, t]);
+
+    // Extra UI Handlers
+    const handleSearch = React.useCallback((filters: SearchFilters) => {
+        setActiveFilters(filters);
+        setShowAdvancedSearch(false);
+    }, []);
+    const handleCloseSearch = React.useCallback(() => setShowAdvancedSearch(false), []);
+    const handleToggleSearch = React.useCallback(() => setShowAdvancedSearch(prev => !prev), []);
+    const handleSearchQueryChange = React.useCallback((q: string) => setActiveFilters(prev => ({ ...prev, query: q })), []);
+    const handleViewModeChange = React.useCallback((mode: string) => setViewMode(mode as 'grid' | 'list' | 'matrix' | 'kanban'), [setViewMode]);
+    const handleStartTour = React.useCallback(() => OnboardingService.startAssetsTour(), []);
+    const handleFilterChange = React.useCallback((filter: any) => {
+        if (filter?.type === 'criticality') {
+            setActiveFilters(prev => ({ ...prev, criticality: filter.value as Criticality }));
+        } else if (filter === null) {
+            setActiveFilters(prev => ({ ...prev, criticality: undefined }));
+        }
+    }, []);
+
+    // CRUD Handlers for Inspector
+    const handleUpdateAsset = React.useCallback(async (id: string, data: Partial<Asset>) => updateAsset(id, data), [updateAsset]);
+    const handleCreateAsset = React.useCallback(async (data: Omit<Asset, 'id'>) => createAsset(data, null), [createAsset]);
 
     return (
         <motion.div

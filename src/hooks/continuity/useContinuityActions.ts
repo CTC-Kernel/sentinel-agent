@@ -6,7 +6,7 @@ import { BusinessProcess } from '../../types';
 export const useContinuityActions = () => {
   const { user } = useAuth();
 
-  const { data: strategies, loading: loadingStrategies } = useFirestoreCollection(
+  const { data: strategies, loading: loadingStrategies, add: addStrategy, remove: removeStrategy } = useFirestoreCollection(
     'bcp_strategies',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
@@ -36,5 +36,7 @@ export const useContinuityActions = () => {
     warRoomSessions: warRoomSessions || [],
     processes: processes || [],
     loading: loadingStrategies || loadingDrills || loadingWarRoom || loadingProcesses,
+    addStrategy,
+    removeStrategy,
   };
 };

@@ -22,7 +22,6 @@ import { useSettingsData } from '../../hooks/settings/useSettingsData';
 
 export const ProfileSettings: React.FC = () => {
     const { user, setUser, addToast, t, language, setLanguage } = useStore();
-    const { users } = useSettingsData();
     const [savingProfile, setSavingProfile] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [breachCheckLoading, setBreachCheckLoading] = useState(false);
@@ -99,21 +98,15 @@ export const ProfileSettings: React.FC = () => {
         if (!user) return;
         setSavingProfile(true);
         try {
-            const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('email', '==', user.email));
-            const querySnapshot = await getDocs(q);
-
             const updatedRole = hasPermission(user, 'User', 'manage') ? data.role : user.role;
 
-            if (!querySnapshot.empty) {
-                const docId = querySnapshot.docs[0].id;
-                await updateDoc(doc(db, 'users', docId), sanitizeData({
-                    displayName: data.displayName,
-                    department: data.department || '',
-                    role: updatedRole,
-                    notificationPreferences: data.notificationPreferences
-                }));
-            }
+            // Use user.uid directly instead of querying by email
+            await updateDoc(doc(db, 'users', user.uid), sanitizeData({
+                displayName: data.displayName,
+                department: data.department || '',
+                role: updatedRole,
+                notificationPreferences: data.notificationPreferences
+            }));
 
             const functions = getFunctions();
             const saveUserApiKeys = httpsCallable(functions, 'saveUserApiKeys');

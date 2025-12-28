@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { SupplierQuestionnaireResponse, QuestionnaireTemplate } from '../../types/business';
+import { SupplierQuestionnaireResponse } from '../../types/business';
 import { useStore } from '../../store';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -40,6 +40,28 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
 
     const handleSave = async (submit = false) => {
         if (!response || !template) return;
+
+        // Validation before submission
+        if (submit) {
+            const missingRequired = [];
+            for (const section of template.sections) {
+                for (const q of section.questions) {
+                    // Check if question is required (default to false if undefined, though usually true by default for new questions)
+                    if (q.required) {
+                        const answer = answers[q.id]?.value;
+                        const isValid = answer !== undefined && answer !== null && answer !== '';
+                        if (!isValid) {
+                            missingRequired.push(q.text);
+                        }
+                    }
+                }
+            }
+
+            if (missingRequired.length > 0) {
+                addToast(`Veuillez répondre aux questions obligatoires (${missingRequired.length} restantes)`, 'error');
+                return;
+            }
+        }
 
         try {
             // Calculate Score (Real-time update)

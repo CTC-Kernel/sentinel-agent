@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Save, Trash2, Server, Shield, Clock } from 'lucide-react';
 import { Asset } from '../../types';
-import { addDoc, collection, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
 import { EmptyState } from '../ui/EmptyState';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useContinuityActions } from '../../hooks/continuity/useContinuityActions';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
-interface Strategy {
+export interface Strategy {
     id: string;
     organizationId: string;
     title: string;
@@ -21,53 +22,60 @@ interface Strategy {
     linkedAssets: string[];
 }
 
+const strategySchema = z.object({
+    title: z.string().min(1, 'Titre requis').max(100, 'Titre trop long'),
+    type: z.enum(['Active-Active', 'Active-Passive', 'Cold Standby', 'Cloud DR']),
+    rto: z.string().min(1, 'RTO requis').max(20, 'RTO trop long'),
+    rpo: z.string().min(1, 'RPO requis').max(20, 'RPO trop long'),
+    description: z.string().optional(),
+    linkedAssets: z.array(z.string()).optional()
+});
+
+type StrategyFormData = z.infer<typeof strategySchema>;
+
 interface ContinuityStrategiesProps {
     assets: Asset[];
 }
 
 export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ assets }) => {
     const { user, addToast } = useStore();
-    const { strategies } = useContinuityActions();
+    const { strategies, addStrategy, removeStrategy } = useContinuityActions();
     const [isEditing, setIsEditing] = useState(false);
-    const [newStrategy, setNewStrategy] = useState<Partial<Strategy>>({});
 
-    const handleSave = async () => {
-        // Sanitize and validate inputs
-        const safeTitle = newStrategy.title?.trim();
-        const safeType = newStrategy.type;
-        const safeRto = newStrategy.rto?.trim();
-        const safeRpo = newStrategy.rpo?.trim();
-
-        if (!safeTitle || !safeType || !safeRto || !safeRpo) {
-            addToast('Veuillez remplir tous les champs obligatoires (Titre, Type, RTO, RPO)', 'error');
-            return;
+    const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<StrategyFormData>({
+        resolver: zodResolver(strategySchema),
+        defaultValues: {
+            title: '',
+            type: undefined,
+            rto: '',
+            rpo: '',
+            description: '',
+            linkedAssets: []
         }
+    });
 
-        // Basic XSS prevention (though React/Firestore handle most)
-        if (safeTitle.length > 100 || safeRto.length > 20 || safeRpo.length > 20) {
-            addToast('Champs trop longs', 'error');
-            return;
-        }
+    const onSubmit = async (data: StrategyFormData) => {
+        if (!user?.organizationId) return;
 
         try {
-            await addDoc(collection(db, 'bcp_strategies'), {
-                ...newStrategy,
-                organizationId: user?.organizationId,
+            await addStrategy({
+                ...data,
+                organizationId: user.organizationId,
                 createdAt: new Date().toISOString(),
-                linkedAssets: newStrategy.linkedAssets || []
+                linkedAssets: data.linkedAssets || []
             });
             addToast('Stratégie ajoutée', 'success');
             setIsEditing(false);
-            setNewStrategy({});
+            reset();
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.handleSave', 'CREATE_FAILED');
+            ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.onSubmit', 'CREATE_FAILED');
         }
     };
 
     const handleDelete = async (id: string) => {
         if (!confirm('Supprimer cette stratégie ?')) return;
         try {
-            await deleteDoc(doc(db, 'bcp_strategies', id));
+            await removeStrategy(id);
             addToast('Stratégie supprimée', 'success');
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'ContinuityStrategies.handleDelete', 'DELETE_FAILED');
@@ -89,63 +97,67 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
             {isEditing && (
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6 rounded-2xl border border-brand-500/30">
                     <h3 className="font-bold mb-4">Nouvelle Stratégie</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <input
-                            aria-label="Titre de la stratégie"
-                            value={newStrategy.title || ''}
-                            onChange={e => setNewStrategy({ ...newStrategy, title: e.target.value })}
-                            placeholder="Titre (ex: Réplication S3 Cross-Region)"
-                            className="input-field focus:outline-none focus:ring-2 focus:ring-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500"
-                        />
-                        <select
-                            aria-label="Type de stratégie"
-                            className="input-field focus:outline-none focus:ring-2 focus:ring-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500"
-                            value={newStrategy.type || ''}
-                            onChange={e => setNewStrategy({ ...newStrategy, type: e.target.value as 'Active-Active' | 'Active-Passive' | 'Cold Standby' | 'Cloud DR' })}
-                        >
-                            <option value="">Sélectionner un type...</option>
-                            <option value="Active-Active">Active-Active (Haute Dispo)</option>
-                            <option value="Active-Passive">Active-Passive (Failover)</option>
-                            <option value="Cold Standby">Cold Standby (Redémarrage manuel)</option>
-                            <option value="Cloud DR">Cloud Disaster Recovery</option>
-                        </select>
-                        <div className="flex gap-2">
-                            <div className="flex-1 relative">
-                                <Clock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                                <input
-                                    aria-label="RTO"
-                                    value={newStrategy.rto || ''}
-                                    onChange={e => setNewStrategy({ ...newStrategy, rto: e.target.value })}
-                                    placeholder="RTO (ex: 4h)"
-                                    className="input-field pl-10 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <input aria-label="Titre de la stratégie"
+                                    {...register('title')}
+                                    placeholder="Titre (ex: Réplication S3 Cross-Region)"
+                                    className="input-field focus:outline-none focus:ring-2 focus:ring-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500"
                                 />
+                                {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>}
                             </div>
-                            <div className="flex-1 relative">
-                                <DatabaseIcon className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                                <input
-                                    aria-label="RPO"
-                                    value={newStrategy.rpo || ''}
-                                    onChange={e => setNewStrategy({ ...newStrategy, rpo: e.target.value })}
-                                    placeholder="RPO (ex: 15min)"
-                                    className="input-field pl-10 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                                />
+                            <div>
+                                <select aria-label="Type de stratégie"
+                                    {...register('type')}
+                                    className="input-field focus:outline-none focus:ring-2 focus:ring-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500"
+                                >
+                                    <option value="">Sélectionner un type...</option>
+                                    <option value="Active-Active">Active-Active (Haute Dispo)</option>
+                                    <option value="Active-Passive">Active-Passive (Failover)</option>
+                                    <option value="Cold Standby">Cold Standby (Redémarrage manuel)</option>
+                                    <option value="Cloud DR">Cloud Disaster Recovery</option>
+                                </select>
+                                {errors.type && <p className="text-xs text-red-500 mt-1">{errors.type.message}</p>}
                             </div>
+                            <div className="flex gap-2">
+                                <div className="flex-1 relative">
+                                    <Clock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                                    <input aria-label="RTO"
+                                        {...register('rto')}
+                                        placeholder="RTO (ex: 4h)"
+                                        className="input-field pl-10 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                    />
+                                    {errors.rto && <p className="text-xs text-red-500 mt-1">{errors.rto.message}</p>}
+                                </div>
+                                <div className="flex-1 relative">
+                                    <DatabaseIcon className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                                    <input aria-label="RPO"
+                                        {...register('rpo')}
+                                        placeholder="RPO (ex: 15min)"
+                                        className="input-field pl-10 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                    />
+                                    {errors.rpo && <p className="text-xs text-red-500 mt-1">{errors.rpo.message}</p>}
+                                </div>
+                            </div>
+                            <select aria-label="Actifs liés"
+                                multiple
+                                className="input-field h-24 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                onChange={e => {
+                                    const selected = Array.from(e.target.selectedOptions, option => option.value);
+                                    setValue('linkedAssets', selected);
+                                }}
+                            >
+                                {assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                            </select>
                         </div>
-                        <select
-                            multiple
-                            className="input-field h-24 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                            onChange={e => {
-                                const selected = Array.from(e.target.selectedOptions, option => option.value);
-                                setNewStrategy({ ...newStrategy, linkedAssets: selected });
-                            }}
-                        >
-                            {assets.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                        </select>
-                    </div>
-                    <div className="flex justify-end gap-2">
-                        <Button variant="ghost" onClick={() => setIsEditing(false)}>Annuler</Button>
-                        <Button onClick={handleSave} className="bg-brand-600 text-white"><Save className="w-4 h-4 mr-2" /> Enregistrer</Button>
-                    </div>
+                        <div className="flex justify-end gap-2">
+                            <Button type="button" variant="ghost" onClick={() => { setIsEditing(false); reset(); }}>Annuler</Button>
+                            <Button type="submit" disabled={isSubmitting} className="bg-brand-600 text-white">
+                                <Save className="w-4 h-4 mr-2" /> {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+                            </Button>
+                        </div>
+                    </form>
                 </motion.div>
             )}
 
@@ -179,7 +191,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                         <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
                             <p className="text-xs font-bold text-slate-500 mb-2 uppercase">Actifs Couverts</p>
                             <div className="flex flex-wrap gap-2">
-                                {strategy.linkedAssets?.map(assetId => {
+                                {strategy.linkedAssets?.map((assetId: string) => {
                                     const asset = assets.find(a => a.id === assetId);
                                     return asset ? (
                                         <span key={assetId} className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md border border-emerald-100">
@@ -199,14 +211,8 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                             icon={Shield}
                             title="Aucune stratégie définie"
                             description="Commencez par définir vos stratégies de continuité pour protéger vos actifs critiques."
-                            actionLabel="Créer une stratégie par défaut"
-                            onAction={() => setNewStrategy({
-                                title: "Stratégie Standard (RTO 4h)",
-                                type: "Active-Passive",
-                                rto: "4h",
-                                rpo: "1h",
-                                linkedAssets: []
-                            })}
+                            actionLabel="Créer une stratégie"
+                            onAction={() => setIsEditing(true)}
                         />
                     </div>
                 )}

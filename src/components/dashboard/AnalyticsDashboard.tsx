@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     AreaChart,
@@ -23,7 +23,7 @@ import {
     HelpCircle
 } from '../ui/Icons';
 import { useStore } from '../../store';
-import { Risk, Asset, Incident, Control, Project } from '../../types';
+import { Risk } from '../../types';
 import { StatCard } from '../ui/StatCard';
 import { ProgressRing } from '../ui/ProgressRing';
 import { DataTable } from '../ui/DataTable';
@@ -64,7 +64,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
     const loading = layoutLoading || complianceLoading;
 
-    const [trends] = useState({
+    const [trends, setTrends] = useState({
         riskTrend: 0,
         incidentTrend: 0,
         complianceTrend: 0,
