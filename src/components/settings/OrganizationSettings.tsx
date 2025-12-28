@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { organizationSchema, OrganizationFormData } from '../../schemas/settingsSchema';
 import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
-import { updateDoc, doc, collection, query, where, getDocs, writeBatch, getDoc } from 'firebase/firestore';
+import { updateDoc, doc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { db, functions } from '../../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -19,16 +19,16 @@ import { SubscriptionService } from '../../services/subscriptionService';
 import { Organization, UserProfile } from '../../types';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { UserRow } from './UserRow';
+import { useSettingsData } from '../../hooks/settings/useSettingsData';
 
 const SECONDS_TO_MS = 1000;
 
 export const OrganizationSettings: React.FC = () => {
     const { user, setUser, addToast, t } = useStore();
     const navigate = useNavigate();
-    const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
+    const { organization, users: hookUsers } = useSettingsData();
     const [savingOrg, setSavingOrg] = useState(false);
     const [subLoading, setSubLoading] = useState(false);
-    const [usersList, setUsersList] = useState<UserProfile[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [updatingUserIds, setUpdatingUserIds] = useState<Set<string>>(new Set());
 
@@ -38,44 +38,25 @@ export const OrganizationSettings: React.FC = () => {
     // Confirm Remove User
     const [confirmRemoveData, setConfirmRemoveData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
+    const usersList = hookUsers;
+    const currentOrg = organization;
 
     const orgForm = useForm<OrganizationFormData>({
         resolver: zodResolver(organizationSchema),
         defaultValues: { orgName: '', address: '', vatNumber: '', contactEmail: '' }
     });
 
-    const fetchOrgDetails = useCallback(async () => {
-        if (!user?.organizationId) return;
-        try {
-            const orgRef = doc(db, 'organizations', user.organizationId);
-            const orgSnap = await getDoc(orgRef);
-            if (orgSnap.exists()) {
-                const orgData = { id: orgSnap.id, ...orgSnap.data() } as Organization;
-                setCurrentOrg(orgData);
-                orgForm.reset({
-                    orgName: orgData.name || '',
-                    address: orgData.address || '',
-                    vatNumber: orgData.vatNumber || '',
-                    contactEmail: orgData.contactEmail || ''
-                });
-            }
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'OrganizationSettings.fetchOrgDetails', 'FETCH_FAILED'); }
-    }, [user?.organizationId, orgForm]);
-
-    const fetchUsers = useCallback(async () => {
-        if (!user?.organizationId) return;
-        try {
-            const q = query(collection(db, 'users'), where('organizationId', '==', user.organizationId));
-            const snap = await getDocs(q);
-            const users = snap.docs.map(d => ({ ...d.data(), uid: d.id } as UserProfile));
-            setUsersList(users);
-        } catch (e) { ErrorLogger.handleErrorWithToast(e, 'OrganizationSettings.fetchUsers', 'FETCH_FAILED'); }
-    }, [user?.organizationId]);
-
+    // Sync form with organization data
     useEffect(() => {
-        fetchOrgDetails();
-        fetchUsers();
-    }, [fetchOrgDetails, fetchUsers]);
+        if (organization) {
+            orgForm.reset({
+                orgName: organization.name || '',
+                address: organization.address || '',
+                vatNumber: organization.vatNumber || '',
+                contactEmail: organization.contactEmail || ''
+            });
+        }
+    }, [organization, orgForm]);
 
     const updateOrgUsers = useCallback(async (orgId: string, newName: string) => {
         const q = query(collection(db, 'users'), where('organizationId', '==', orgId));

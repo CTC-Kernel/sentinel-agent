@@ -1,10 +1,16 @@
 import { useFirestoreCollection } from '../useFirestore';
 import { where } from 'firebase/firestore';
 import { useAuth } from '../useAuth';
-import { Questionnaire, EvidenceRequest, UserProfile, Document } from '../../types';
+import { Questionnaire, EvidenceRequest, UserProfile, Document, Audit } from '../../types';
 
 export const useAuditsActions = () => {
   const { user } = useAuth();
+
+  const { data: audits, loading: loadingAudits } = useFirestoreCollection<Audit>(
+    'audits',
+    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    { realtime: true, enabled: !!user?.organizationId }
+  );
 
   const { data: questionnaires, loading: loadingQuestionnaires } = useFirestoreCollection<Questionnaire>(
     'questionnaires',
@@ -31,10 +37,11 @@ export const useAuditsActions = () => {
   );
 
   return {
+    audits: audits || [],
     questionnaires: questionnaires || [],
     evidences: evidences || [],
     users: users || [],
     documents: documents || [],
-    loading: loadingQuestionnaires || loadingEvidences || loadingUsers || loadingDocuments,
+    loading: loadingAudits || loadingQuestionnaires || loadingEvidences || loadingUsers || loadingDocuments,
   };
 };

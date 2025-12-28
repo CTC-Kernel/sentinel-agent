@@ -2,15 +2,14 @@ import React, { useMemo, useState } from 'react';
 import { useStore } from '../../store';
 import { BrainCircuit, Key, Calendar, CheckCircle2, Download, LogOut, ShieldCheck } from '../ui/Icons';
 import { useForm, SubmitHandler } from 'react-hook-form';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { httpsCallable, getFunctions } from 'firebase/functions';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useGoogleLogin } from '@react-oauth/google';
-import { Project, Audit } from '../../types';
 import { mapAuditsToEvents, mapTasksToEvents, generateICS, downloadICS } from '../../utils/calendarUtils';
 import { Button } from '../ui/button';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { useLayoutData } from '../../hooks/layout/useLayoutData';
+import { useAuditsActions } from '../../hooks/audits/useAuditsActions';
 
 export const IntegrationSettings: React.FC = () => {
     const { user, setUser, addToast, t } = useStore(state => ({
@@ -19,6 +18,9 @@ export const IntegrationSettings: React.FC = () => {
         addToast: state.addToast,
         t: state.t
     }));
+
+    const { projects } = useLayoutData();
+    const { audits } = useAuditsActions();
 
     // Local state for Google Token (removed from global store for security)
     const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(null);
@@ -85,23 +87,11 @@ export const IntegrationSettings: React.FC = () => {
     });
 
     const handleExportCalendar = async () => {
-        if (!user?.organizationId) return;
+        if (!user?.uid) return;
         setExportingCalendar(true);
         try {
-            // Fetch Projects
-            const projectsRef = collection(db, 'projects');
-            const qProj = query(projectsRef, where('organizationId', '==', user.organizationId));
-            const projSnap = await getDocs(qProj);
-            const projects = projSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Project[];
-
             // Extract tasks assigned to user
             const myTasks = projects.flatMap(p => p.tasks || []).filter(task => task.assigneeId === user.uid);
-
-            // Fetch Audits
-            const auditsRef = collection(db, 'audits');
-            const qAudit = query(auditsRef, where('organizationId', '==', user.organizationId));
-            const auditSnap = await getDocs(qAudit);
-            const audits = auditSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Audit[];
 
             // Filter audits
             const myAudits = audits.filter(a => a.auditor === user.displayName || a.auditor === user.email);

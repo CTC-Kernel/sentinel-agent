@@ -9,7 +9,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { Switch } from '../ui/Switch';
 import { Button } from '../ui/button';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { updateDoc, doc, collection, query, where, getDocs } from 'firebase/firestore';
+import { updateDoc, doc } from 'firebase/firestore';
 import { db, storage, auth } from '../../firebase';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { AccountService } from '../../services/accountService';
@@ -18,9 +18,11 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { hasPermission } from '../../utils/permissions';
 import { UserProfile } from '../../types';
+import { useSettingsData } from '../../hooks/settings/useSettingsData';
 
 export const ProfileSettings: React.FC = () => {
     const { user, setUser, addToast, t, language, setLanguage } = useStore();
+    const { users } = useSettingsData();
     const [savingProfile, setSavingProfile] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [breachCheckLoading, setBreachCheckLoading] = useState(false);
@@ -56,16 +58,10 @@ export const ProfileSettings: React.FC = () => {
             const snapshot = await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
 
-            const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('email', '==', user.email));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                const docId = querySnapshot.docs[0].id;
-                await updateDoc(doc(db, 'users', docId), { photoURL: downloadURL });
-                setUser({ ...user, photoURL: downloadURL });
-                addToast(t('settings.photoUpdated'), "success");
-            }
+            // Use user.uid directly instead of querying by email
+            await updateDoc(doc(db, 'users', user.uid), { photoURL: downloadURL });
+            setUser({ ...user, photoURL: downloadURL });
+            addToast(t('settings.photoUpdated'), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'ProfileSettings.handlePhotoUpload', 'FILE_UPLOAD_FAILED');
         } finally {
