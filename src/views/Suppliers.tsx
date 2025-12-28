@@ -4,7 +4,7 @@ import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
 
 import { Supplier, Criticality, UserProfile } from '../types';
-import { Plus, Building, Trash2, Handshake, Truck, ShieldAlert, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, MessageSquare } from '../components/ui/Icons';
+import { Plus, Building, Trash2, Handshake, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, MessageSquare, ShieldAlert } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { useSuppliers } from '../hooks/useSuppliers';
@@ -35,6 +35,7 @@ import { AssessmentView } from '../components/suppliers/AssessmentView';
 import { SupplierService } from '../services/SupplierService';
 import { ResourceHistory } from '../components/shared/ResourceHistory';
 import { CommentSection } from '../components/collaboration/CommentSection';
+import { SupplierCard } from '../components/suppliers/SupplierCard';
 
 const getCriticalityColor = (c: Criticality) => {
     switch (c) {
@@ -72,6 +73,14 @@ export const Suppliers: React.FC = () => {
 
     // Inspector State
     const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'incidents' | 'history' | 'comments' | 'intelligence'>('profile');
+
+    // Import
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Confirm Dialog
+    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({
+        isOpen: false, title: '', message: '', onConfirm: () => { }
+    });
 
     const editForm = useForm<SupplierFormData>({
         resolver: zodResolver(supplierSchema),
@@ -327,13 +336,6 @@ export const Suppliers: React.FC = () => {
         openInspector(supplier);
     }, [openInspector]);
 
-    const handleCardKeyDown = useCallback((e: React.KeyboardEvent, supplier: Supplier) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            openInspector(supplier);
-        }
-    }, [openInspector]);
-
     const deferredFilter = useDeferredValue(filter);
     const filteredSuppliers = useMemo(() => {
         const needle = (deferredFilter || '').toLowerCase().trim();
@@ -446,13 +448,7 @@ export const Suppliers: React.FC = () => {
         }
     ], [canEdit, initiateDelete, t, handleMenuClick]);
 
-    // Import
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Confirm Dialog
-    const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({
-        isOpen: false, title: '', message: '', onConfirm: () => { }
-    });
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
@@ -771,69 +767,13 @@ export const Suppliers: React.FC = () => {
                             />
                         </div>
                     ) : (
-                        filteredSuppliers.map(supplier => {
-                            const isExpired = supplier.contractEnd && new Date(supplier.contractEnd) < new Date();
-
-                            return (
-                                <div
-                                    key={supplier.id}
-                                    onClick={() => openInspector(supplier)}
-                                    role="button"
-                                    tabIndex={0}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            openInspector(supplier);
-                                        }
-                                    }}
-                                    className="glass-panel p-6 rounded-[2.5rem] shadow-sm card-hover cursor-pointer group flex flex-col border border-white/50 dark:border-white/5 relative overflow-hidden h-full hover:border-brand-500 dark:hover:border-brand-400 transition-colors"
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                                    <div className="relative z-10 flex flex-col h-full">
-
-                                        <div className="flex justify-between items-start mb-5">
-                                            <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300 shadow-inner group-hover:bg-brand-50 dark:group-hover:bg-brand-900/10 group-hover:text-brand-600 transition-colors">
-                                                {supplier.category === 'Matériel' ? <Truck className="h-6 w-6" /> : <Building className="h-6 w-6" />}
-                                            </div>
-                                            <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase border shadow-sm ${getCriticalityColor(supplier.criticality || Criticality.MEDIUM)}`}>
-                                                {supplier.criticality}
-                                            </span>
-                                        </div>
-
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{supplier.name}</h3>
-                                        <div className="flex flex-wrap gap-2 mb-6">
-                                            <span className="px-2.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">{supplier.category}</span>
-                                            <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide border ${supplier.status === 'Actif' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20' : 'bg-gray-50 text-slate-600 border-gray-200'}`}>{supplier.status}</span>
-                                            {supplier.isICTProvider && (
-                                                <span className="px-2.5 py-0.5 bg-indigo-100 dark:bg-slate-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold border border-indigo-200 dark:border-indigo-800">DORA ICT</span>
-                                            )}
-                                        </div>
-
-                                        <div className="mb-6 bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
-                                            <div className="flex justify-between text-xs mb-2">
-                                                <span className="text-slate-600 dark:text-slate-400 flex items-center font-bold uppercase tracking-wide"><ShieldAlert className="h-3.5 w-3.5 mr-1.5" /> Sécurité</span>
-                                                <span className={`font-black ${getScoreColor(supplier.securityScore || 0).replace('bg-', 'text-')}`}>{supplier.securityScore || 0}/100</span>
-                                            </div>
-                                            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 mb-4">
-                                                <div className={`h-1.5 rounded-full ${getScoreColor(supplier.securityScore || 0)} transition-all duration-1000`} style={{ width: `${supplier.securityScore || 0}%` }}></div>
-                                            </div>
-                                            <div className="flex justify-between text-xs">
-                                                <span className="text-slate-500 dark:text-slate-400">Contrat</span>
-                                                {supplier.contractEnd ? (
-                                                    <span className={`font-medium ${isExpired ? 'text-red-500' : 'text-slate-700 dark:text-slate-300'}`}>{new Date(supplier.contractEnd).toLocaleDateString()}</span>
-                                                ) : <span className="text-slate-400">-</span>}
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-auto pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                                            <div className="flex items-center">
-                                                {supplier.contactName && <span className="font-medium mr-1">{supplier.contactName}</span>}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })
+                        filteredSuppliers.map(supplier => (
+                            <SupplierCard
+                                key={supplier.id}
+                                supplier={supplier}
+                                onClick={handleCardClick}
+                            />
+                        ))
                     )}
                 </motion.div>
             )}

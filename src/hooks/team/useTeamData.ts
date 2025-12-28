@@ -1,18 +1,18 @@
 import { useFirestoreCollection } from '../useFirestore';
 import { where } from 'firebase/firestore';
 import { useAuth } from '../useAuth';
-import { UserProfile } from '../../types';
+import { UserProfile, UserGroup, Role } from '../../types';
 
 export const useTeamData = () => {
   const { user } = useAuth();
 
-  const { data: groups, loading: loadingGroups } = useFirestoreCollection(
-    'groups',
+  const { data: groups, loading: loadingGroups, add: addGroup, update: updateGroup, remove: removeGroup } = useFirestoreCollection<UserGroup>(
+    'user_groups',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
   );
 
-  const { data: roles, loading: loadingRoles } = useFirestoreCollection(
+  const { data: roles, loading: loadingRoles, add: addRole, update: updateRole, remove: removeRole } = useFirestoreCollection<Role>(
     'roles',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
@@ -29,5 +29,11 @@ export const useTeamData = () => {
     roles: roles || [],
     users: users || [],
     loading: loadingGroups || loadingRoles || loadingUsers,
+    addGroup,
+    updateGroup,
+    removeGroup,
+    addRole,
+    updateRole,
+    removeRole,
   };
 };

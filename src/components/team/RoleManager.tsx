@@ -7,10 +7,12 @@ import { Drawer } from '../ui/Drawer';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { Button } from '../ui/button';
-import { Plus, Edit, Trash2, Shield, Check } from '../ui/Icons';
+import { Plus, Shield } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { EmptyState } from '../ui/EmptyState';
+import { RoleCard } from './RoleCard';
+import { PermissionCheck } from './PermissionCheck';
 
 interface RoleManagerProps {
     roles: CustomRole[];
@@ -109,6 +111,26 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
         }
     }, [confirmDelete.roleId, onRefresh, addToast]);
 
+    const handleConfirmDelete = React.useCallback((roleId: string) => {
+        setConfirmDelete({ isOpen: true, roleId });
+    }, []);
+
+    const handleNewRole = React.useCallback(() => {
+        handleOpenDrawer();
+    }, [handleOpenDrawer]);
+
+    const handleCloseDrawer = React.useCallback(() => {
+        setIsDrawerOpen(false);
+    }, []);
+
+    const handleFormNameChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData(prev => ({ ...prev, name: e.target.value }));
+    }, []);
+
+    const handleFormDescChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData(prev => ({ ...prev, description: e.target.value }));
+    }, []);
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -117,7 +139,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                     <p className="text-sm text-slate-600">Gérez les permissions fines pour votre organisation.</p>
                 </div>
                 <Button
-                    onClick={() => handleOpenDrawer()}
+                    onClick={handleNewRole}
                     className="flex items-center gap-2 bg-brand-600 text-white shadow-lg shadow-brand-500/20 hover:bg-brand-700"
                 >
                     <Plus className="h-4 w-4" /> Nouveau Rôle
@@ -130,38 +152,24 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                     title="Aucun rôle personnalisé"
                     description="Créez des rôles sur mesure pour gérer les accès de vos équipes."
                     actionLabel="Créer un rôle"
-                    onAction={() => handleOpenDrawer()}
+                    onAction={handleNewRole}
                 />
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {roles.map(role => (
-                        <div key={role.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative group">
-                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => handleOpenDrawer(role)} className="p-2 text-slate-500 hover:text-brand-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={`Modifier le rôle ${role.name}`}>
-                                    <Edit className="h-4 w-4" />
-                                </button>
-                                <button onClick={() => setConfirmDelete({ isOpen: true, roleId: role.id })} className="p-2 text-slate-500 hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500" aria-label={`Supprimer le rôle ${role.name}`}>
-                                    <Trash2 className="h-4 w-4" />
-                                </button>
-                            </div>
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-3 bg-brand-50 dark:bg-brand-900/20 rounded-xl text-brand-600 dark:text-brand-400">
-                                    <Shield className="h-6 w-6" />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-slate-900 dark:text-white">{role.name}</h4>
-                                    <p className="text-xs text-slate-600">{Object.keys(role.permissions).length} ressources configurées</p>
-                                </div>
-                            </div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{role.description || "Aucune description"}</p>
-                        </div>
+                        <RoleCard
+                            key={role.id}
+                            role={role}
+                            onEdit={handleOpenDrawer}
+                            onDelete={handleConfirmDelete}
+                        />
                     ))}
                 </div>
             )}
 
             <Drawer
                 isOpen={isDrawerOpen}
-                onClose={() => setIsDrawerOpen(false)}
+                onClose={handleCloseDrawer}
                 title={editingRole ? "Modifier le rôle" : "Nouveau rôle"}
                 subtitle="Définissez les permissions d'accès."
                 width="max-w-4xl"
@@ -171,14 +179,14 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                         <FloatingLabelInput
                             label="Nom du rôle"
                             value={formData.name}
-                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            onChange={handleFormNameChange}
                             required
                             placeholder="ex: Stagiaire Marketing"
                         />
                         <FloatingLabelInput
                             label="Description"
                             value={formData.description}
-                            onChange={e => setFormData({ ...formData, description: e.target.value })}
+                            onChange={handleFormDescChange}
                             placeholder="Description du rôle..."
                         />
                     </div>
@@ -199,23 +207,15 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                                     {RESOURCES.map(resource => (
                                         <tr key={resource} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                             <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{resource}</td>
-                                            {ACTIONS.map(action => {
-                                                const isChecked = formData.permissions[resource]?.includes(action);
-                                                return (
-                                                    <td key={action} className="px-4 py-3 text-center">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => togglePermission(resource, action)}
-                                                            className={`w-5 h-5 rounded border flex items-center justify-center transition-all mx-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${isChecked
-                                                                ? 'bg-brand-600 border-brand-600 text-white'
-                                                                : 'border-slate-300 dark:border-slate-600 hover:border-brand-500'
-                                                                }`}
-                                                        >
-                                                            {isChecked && <Check className="h-3.5 w-3.5" />}
-                                                        </button>
-                                                    </td>
-                                                );
-                                            })}
+                                            {ACTIONS.map(action => (
+                                                <PermissionCheck
+                                                    key={action}
+                                                    resource={resource}
+                                                    action={action}
+                                                    isChecked={formData.permissions[resource]?.includes(action) || false}
+                                                    onToggle={togglePermission}
+                                                />
+                                            ))}
                                         </tr>
                                     ))}
                                 </tbody>
@@ -224,7 +224,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                     </div>
 
                     <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
-                        <Button type="button" variant="ghost" onClick={() => setIsDrawerOpen(false)}>Annuler</Button>
+                        <Button type="button" variant="ghost" onClick={handleCloseDrawer}>Annuler</Button>
                         <Button type="submit" className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20">Enregistrer</Button>
                     </div>
                 </form>
