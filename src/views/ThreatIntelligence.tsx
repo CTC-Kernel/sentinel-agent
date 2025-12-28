@@ -61,6 +61,7 @@ export const ThreatIntelligence: React.FC = () => {
         handleTrustAction,
         confirmSighting
     } = useThreatIntelligence();
+    const loading = threatsLoading; // Audit: loading state tracked
 
     const initialLoadRef = React.useRef(false);
 
