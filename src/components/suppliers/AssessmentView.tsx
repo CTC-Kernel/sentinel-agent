@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { SupplierQuestionnaireResponse } from '../../types/business';
 import { useStore } from '../../store';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -31,10 +31,14 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
         return templates.find(t => t.id === response.templateId) || null;
     }, [templates, response]);
 
+    const prevResponseIdRef = useRef(response?.id);
+
     // Sync answers from response when it loads
     useEffect(() => {
-        if (response) {
+        if (response && response.id !== prevResponseIdRef.current) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setAnswers(response.answers || {});
+            prevResponseIdRef.current = response.id;
         }
     }, [response]);
 

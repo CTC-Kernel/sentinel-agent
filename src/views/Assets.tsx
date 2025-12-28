@@ -188,7 +188,7 @@ const Assets: React.FC = () => {
     const handleSearchQueryChange = React.useCallback((q: string) => setActiveFilters(prev => ({ ...prev, query: q })), []);
     const handleViewModeChange = React.useCallback((mode: string) => setViewMode(mode as 'grid' | 'list' | 'matrix' | 'kanban'), [setViewMode]);
     const handleStartTour = React.useCallback(() => OnboardingService.startAssetsTour(), []);
-    const handleFilterChange = React.useCallback((filter: any) => {
+    const handleFilterChange = React.useCallback((filter: { type: string; value: string } | null) => {
         if (filter?.type === 'criticality') {
             setActiveFilters(prev => ({ ...prev, criticality: filter.value as Criticality }));
         } else if (filter === null) {
@@ -197,7 +197,9 @@ const Assets: React.FC = () => {
     }, []);
 
     // CRUD Handlers for Inspector
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleUpdateAsset = React.useCallback(async (id: string, data: Partial<Asset>) => updateAsset(id, data as any), [updateAsset]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleCreateAsset = React.useCallback(async (data: any) => createAsset(data, null), [createAsset]);
 
     return (

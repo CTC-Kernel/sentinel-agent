@@ -1,12 +1,11 @@
 
 import React, { useState } from 'react';
-import { doc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { Shield, Globe, Lock, Users, X, Save, AlertTriangle, Check, UserMinus } from 'lucide-react';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
 import { SharingPreferences, TrustRelationship } from '../../types';
 import { Dialog, Transition } from '@headlessui/react';
+import { useSettingsActions } from '../../hooks/settings/useSettingsActions';
 
 // Export mock data for parent use
 
@@ -19,6 +18,7 @@ interface CommunitySettingsModalProps {
 
 export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ isOpen, onClose, partners, onTrustAction }) => {
     const { user, addToast } = useStore();
+    const { saveCommunitySettings } = useSettingsActions();
     const [activeTab, setActiveTab] = useState<'general' | 'network'>('general');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,20 +49,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
         if (!user) return;
         setIsSubmitting(true);
         try {
-            // Save to user's profile or a specific settings collection
-            // Assuming a structure like users/{uid}/settings/community
-            // For this specific codebase, we'll save it to a 'user_settings' collection for simplicity/isolation
-            // or update the user document itself if that's the pattern.
-            // Let's use a subcollection for cleanliness.
-
-            const settingsRef = doc(db, 'users', user.uid, 'settings', 'community');
-            const { setDoc } = await import('firebase/firestore'); // Dynamic import to avoid top-level if needed, or just add to imports
-
-            await setDoc(settingsRef, {
-                ...settings,
-                updatedAt: new Date().toISOString()
-            }, { merge: true });
-
+            await saveCommunitySettings(settings);
             addToast("Paramètres de confidentialité mis à jour", "success");
             onClose();
         } catch (error) {

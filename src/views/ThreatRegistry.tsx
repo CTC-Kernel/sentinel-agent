@@ -47,7 +47,7 @@ export const ThreatRegistry: React.FC = () => {
     // Modal State
     const [showModal, setShowModal] = useState(false);
 
-    const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<ThreatFormData>({
+    const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ThreatFormData>({
         resolver: zodResolver(threatSchema),
         defaultValues: {
             probability: 3,

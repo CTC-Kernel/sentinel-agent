@@ -107,8 +107,10 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
     const onSubmit = (data: MessageFormData) => {
         if (!data.content.trim()) return;
 
+        // eslint-disable-next-line react-hooks/purity
+        const messageId = Date.now().toString();
         addMessage({
-            id: Date.now().toString(),
+            id: messageId,
             sender: user?.displayName || 'Moi',
             role: user?.role || 'User',
             content: data.content,

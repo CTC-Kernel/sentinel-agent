@@ -1256,7 +1256,8 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   }), [
     selectedNodeDetails, isDetailMinimized, setIsDetailMinimized,
     handleSelectionClear, relatedElements, applyFocus, handleOpenSelected,
-    impactMode, setImpactMode
+    impactMode, setImpactMode,
+    handleOverlayFocusRequest, handleOverlayPositionChange
   ]);
 
 

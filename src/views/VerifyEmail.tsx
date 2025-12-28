@@ -18,7 +18,7 @@ export const VerifyEmail: React.FC = () => {
         if (user?.emailVerified) {
             navigate('/dashboard');
         }
-    }, [user?.emailVerified]);
+    }, [user?.emailVerified, navigate]);
 
     const handleResendEmail = async () => {
         setLoading(true);

@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
 import { Questionnaire, QuestionnaireResponse } from '../../types';
-import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { Save, CheckCircle2, Link, Bot, FileText, Loader2 } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { FileUploader } from '../ui/FileUploader';
@@ -19,7 +17,7 @@ interface QuestionnaireResponseProps {
 
 export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = ({ questionnaire, onClose, readOnly = false }) => {
     const { user, addToast } = useStore();
-    const { responses } = useAuditsActions();
+    const { responses, addResponse, updateResponse, addDocument } = useAuditsActions();
     const [answers, setAnswers] = useState<Record<string, string | string[] | number>>({});
     const [responseId, setResponseId] = useState<string | null>(null);
     const [status, setStatus] = useState<'In Progress' | 'Submitted'>('In Progress');
@@ -77,9 +75,9 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
             };
 
             if (responseId) {
-                await updateDoc(doc(db, 'questionnaire_responses', responseId), sanitizeData(responseData));
+                await updateResponse(responseId, sanitizeData(responseData));
             } else {
-                const docRef = await addDoc(collection(db, 'questionnaire_responses'), sanitizeData({
+                const newResponseId = await addResponse(sanitizeData({
                     ...responseData,
                     questionnaireId: questionnaire.id,
                     organizationId: questionnaire.organizationId,
@@ -88,7 +86,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                     respondentEmail: user.email,
                     startedAt: new Date().toISOString()
                 }) as QuestionnaireResponse);
-                setResponseId(docRef.id);
+                setResponseId(newResponseId || null);
             }
 
             if (submit) {
@@ -109,7 +107,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
         if (!user) return;
         try {
             // Create Document
-            const docRef = await addDoc(collection(db, 'documents'), sanitizeData({
+            const docId = await addDocument(sanitizeData({
                 title: `Preuve Questionnaire - ${fileName} `,
                 type: 'Preuve',
                 version: '1.0',
@@ -121,12 +119,14 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 relatedAuditIds: [questionnaire.auditId]
-            }));
+            }) as any);
 
-            setEvidence(prev => ({
-                ...prev,
-                [questionId]: [...(prev[questionId] || []), docRef.id]
-            }));
+            if (docId) {
+                setEvidence(prev => ({
+                    ...prev,
+                    [questionId]: [...(prev[questionId] || []), docId]
+                }));
+            }
 
             addToast("Preuve ajoutée", "success");
         } catch (error) {

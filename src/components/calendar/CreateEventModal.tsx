@@ -54,11 +54,17 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onCl
     const { assets, risks } = useCalendarData();
     const [eventType, setEventType] = useState<EventType>('audit');
     const [syncToGoogle, setSyncToGoogle] = useState(false);
-    const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+    const [isGoogleConnected, setIsGoogleConnected] = useState(() => !!sessionStorage.getItem('google_access_token'));
 
     useEffect(() => {
-        setIsGoogleConnected(!!sessionStorage.getItem('google_access_token'));
-    }, [isOpen]);
+        if (isOpen) {
+            const connected = !!sessionStorage.getItem('google_access_token');
+            if (connected !== isGoogleConnected) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                setIsGoogleConnected(connected);
+            }
+        }
+    }, [isOpen, isGoogleConnected]);
 
     const {
         register,
