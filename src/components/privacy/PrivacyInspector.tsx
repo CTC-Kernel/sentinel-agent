@@ -10,10 +10,18 @@ import { Link } from 'react-router-dom';
 import { EmptyState } from '../ui/EmptyState';
 import { CommentSection } from '../collaboration/CommentSection';
 
-risksList: Risk[];
-activityHistory: SystemLog[];
-handleStartDPIA: (activity: ProcessingActivity) => void;
-handleViewDPIA: (activity: ProcessingActivity) => void;
+interface PrivacyInspectorProps {
+    selectedActivity: ProcessingActivity | null;
+    inspectorTab: string;
+    setInspectorTab: (tab: string) => void;
+    isEditing: boolean;
+    editActivityForm: UseFormReturn<ProcessingActivityFormData>;
+    usersList: UserProfile[];
+    assetsList: Asset[];
+    risksList: Risk[];
+    activityHistory: SystemLog[];
+    handleStartDPIA: (activity: ProcessingActivity) => void;
+    handleViewDPIA: (activity: ProcessingActivity) => void;
 }
 
 export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
