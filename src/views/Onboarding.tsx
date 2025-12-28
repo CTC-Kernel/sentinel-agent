@@ -397,7 +397,8 @@ export const Onboarding: React.FC = () => {
                                         <Plus className="h-6 w-6" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('onboarding.actions.createOrg')}</h3>
+                                        {/* Heading hierarchy: h2 for action card title (follows h1) */}
+                                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('onboarding.actions.createOrg')}</h2>
                                         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{t('onboarding.actions.createDesc')}</p>
                                     </div>
                                 </div>

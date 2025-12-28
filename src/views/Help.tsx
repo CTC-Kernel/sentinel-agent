@@ -299,10 +299,11 @@ export const Help: React.FC = () => {
                                                 </div>
                                                 <div className="flex-1">
                                                     <div className="flex items-center justify-between">
-                                                        <h3 className={`text-lg font-bold transition-colors ${selectedArticle === article.id ? 'text-brand-700 dark:text-brand-400' : 'text-slate-900 dark:text-white'
+                                                        {/* Heading hierarchy: h2 for article title (follows h1 page title) */}
+                                                        <h2 className={`text-lg font-bold transition-colors ${selectedArticle === article.id ? 'text-brand-700 dark:text-brand-400' : 'text-slate-900 dark:text-white'
                                                             }`}>
                                                             {article.title}
-                                                        </h3>
+                                                        </h2>
                                                         <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform duration-300 ${selectedArticle === article.id ? 'rotate-180 text-brand-500' : ''}`} />
                                                     </div>
                                                     <p className="text-slate-600 dark:text-slate-400 mt-1 text-sm leading-relaxed">
@@ -319,10 +320,10 @@ export const Help: React.FC = () => {
                                                         {article.sections.map((section, idx) => (
                                                             <div key={`section-${idx}-${section.title || 'untitled'}`} className="prose prose-slate dark:prose-invert max-w-none">
                                                                 {section.title && (
-                                                                    <h4 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
+                                                                    <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
                                                                         <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />
                                                                         {section.title}
-                                                                    </h4>
+                                                                    </h3>
                                                                 )}
                                                                 <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed pl-3.5 border-l-2 border-brand-200 dark:border-brand-500/30">
                                                                     {section.content}

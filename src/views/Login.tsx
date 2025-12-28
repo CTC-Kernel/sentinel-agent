@@ -256,7 +256,8 @@ export const Login: React.FC = () => {
                                 <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center mx-auto mb-4 text-brand-600">
                                     <Mail className="h-7 w-7" />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('auth.reset.title')}</h3>
+                                {/* Heading hierarchy: h2 for modal title (follows h1 page title) */}
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('auth.reset.title')}</h2>
                                 <p className="text-sm text-slate-600 mt-2">{t('auth.reset.desc')}</p>
                             </div>
 

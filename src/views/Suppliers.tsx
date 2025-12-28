@@ -872,7 +872,8 @@ export const Suppliers: React.FC = () => {
                             {inspectorTab === 'assessment' && (
                                 <div className="p-6 h-full overflow-y-auto">
                                     <div className="flex justify-between items-center mb-6">
-                                        <h3 className="font-bold text-lg">Évaluations</h3>
+                                        {/* Heading hierarchy: h2 for inspector section title (follows h1) */}
+                                        <h2 className="font-bold text-lg">Évaluations</h2>
                                         <button
                                             aria-label="Nouvelle Évaluation"
                                             onClick={handleStartNewAssessment}

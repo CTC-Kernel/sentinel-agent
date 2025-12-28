@@ -164,7 +164,8 @@ export const LandingDashboardMockup: React.FC = () => {
                             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
 
                             <div className="flex justify-between items-center mb-6 relative z-10">
-                                <h3 className="font-bold text-white">Évolution de la maturité ISO 27001</h3>
+                                {/* Heading hierarchy: h2 for chart title (follows h1) */}
+                                <h2 className="font-bold text-white">Évolution de la maturité ISO 27001</h2>
                                 <div className="flex gap-4 text-xs">
                                     <span className="flex items-center gap-1.5 text-slate-400"><div className="w-2 h-2 rounded-full bg-slate-600"></div>Cible</span>
                                     <span className="flex items-center gap-1.5 text-slate-400"><div className="w-2 h-2 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>Actuel</span>
