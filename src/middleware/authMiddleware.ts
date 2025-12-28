@@ -112,7 +112,14 @@ export const checkRole = (roles: string | string[]) => {
       });
     }
 
-    const userRole = (req as AuthenticatedRequest).user!.role;
+    const authenticatedReq = req as AuthenticatedRequest;
+    const userRole = authenticatedReq.user?.role;
+    if (!userRole) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'User role not found'
+      });
+    }
     const allowedRoles = Array.isArray(roles) ? roles : [roles];
 
     if (!allowedRoles.includes(userRole)) {

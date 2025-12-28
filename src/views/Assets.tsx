@@ -197,10 +197,8 @@ const Assets: React.FC = () => {
     }, []);
 
     // CRUD Handlers for Inspector
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleUpdateAsset = React.useCallback(async (id: string, data: Partial<Asset>) => updateAsset(id, data as any), [updateAsset]);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleCreateAsset = React.useCallback(async (data: any) => createAsset(data, null), [createAsset]);
+    const handleUpdateAsset = React.useCallback(async (id: string, data: Partial<Asset>) => updateAsset(id, data as Partial<Asset>), [updateAsset]);
+    const handleCreateAsset = React.useCallback(async (data: Omit<Asset, 'id'>) => createAsset(data, null), [createAsset]);
 
     return (
         <motion.div

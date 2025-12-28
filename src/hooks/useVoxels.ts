@@ -6,8 +6,7 @@ import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 
 // Helper to convert Firestore Timestamps to ISO strings
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const convertTimestamps = (obj: unknown): any => {
+const convertTimestamps = (obj: unknown): unknown => {
     if (!obj || typeof obj !== 'object') return obj;
 
     // Handle Firestore Timestamp

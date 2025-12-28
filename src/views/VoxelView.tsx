@@ -484,7 +484,7 @@ export const VoxelView: React.FC = () => {
           gradient: 'from-emerald-500/90 via-lime-500/80 to-yellow-500/70',
           stats: [
             { label: 'Criticité', value: (selectedNode.data as Supplier).criticality },
-            { label: 'Services', value: (selectedNode.data as Supplier).serviceCatalog?.length ? `${(selectedNode.data as Supplier).serviceCatalog!.length} services` : '—' },
+            { label: 'Services', value: (selectedNode.data as Supplier).serviceCatalog?.length ? `${(selectedNode.data as Supplier).serviceCatalog?.length || 0} services` : '—' },
             { label: 'SLA', value: (selectedNode.data as Supplier).sla || 'Non défini' },
           ],
           meta: [
