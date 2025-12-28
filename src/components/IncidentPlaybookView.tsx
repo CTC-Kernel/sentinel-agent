@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
 import { Incident } from '../types';
 import { IncidentPlaybookService, IncidentPlaybook, IncidentResponse } from '../services/incidentPlaybookService';
 import { ErrorLogger } from '../services/errorLogger';
 import { useStore } from '../store';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { useIncidentsActions } from '../hooks/incidents/useIncidentsActions';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -41,6 +40,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
   const [confirmAction, setConfirmAction] = useState<() => void>(() => { });
   const [confirmMessage, setConfirmMessage] = useState('');
   const { user, addToast } = useStore();
+  const { updateIncident } = useIncidentsActions();
 
   const loadPlaybooks = useCallback(async () => {
     if (!user?.organizationId) return;
@@ -146,7 +146,7 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
     setConfirmAction(async () => {
       try {
         await IncidentPlaybookService.completeResponse(response.id, notes);
-        await updateDoc(doc(db, 'incidents', incident.id), sanitizeData({
+        await updateIncident(incident.id, sanitizeData({
           status: 'Résolu',
           dateResolved: new Date().toISOString(),
           lessonsLearned: notes
