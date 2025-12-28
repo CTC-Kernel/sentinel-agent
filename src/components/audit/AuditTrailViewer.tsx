@@ -29,10 +29,10 @@ export const AuditTrailViewer: React.FC = () => {
         userId: 'all',
         searchQuery: ''
     });
-    const [dateRange, setDateRange] = useState({
+    const [dateRange, setDateRange] = useState(() => ({
         start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
         end: new Date()
-    });
+    }));
 
     // Filter logs
     const filteredLogs = useMemo(() => {

@@ -10,8 +10,10 @@ export const useDocumentVersions = (documentId: string | null, enabled: boolean 
 
   useEffect(() => {
     if (!enabled || !documentId) {
-      setVersions([]);
-      setLoading(false);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setVersions(prev => prev.length > 0 ? [] : prev);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLoading(prev => prev ? false : prev);
       return;
     }
 

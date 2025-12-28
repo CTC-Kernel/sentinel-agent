@@ -1230,16 +1230,16 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   // impactedNodeIds is now a computed value derived from useMemo
 
 
-  const handleOverlayPositionChange = (x: number, y: number) => {
+  const handleOverlayPositionChange = useCallback((x: number, y: number) => {
     setOverlayOffset({ x, y });
-  };
+  }, []);
 
-  const handleOverlayFocusRequest = () => {
+  const handleOverlayFocusRequest = useCallback(() => {
     if (selectedNode) {
       focusOnCardRef.current = true;
       shouldSnapToTarget.current = true;
     }
-  };
+  }, [selectedNode]);
 
   const overlayProps = useMemo(() => ({
     selectedNodeDetails: selectedNodeDetails ?? null,

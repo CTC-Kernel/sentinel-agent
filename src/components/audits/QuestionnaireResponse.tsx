@@ -119,6 +119,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 relatedAuditIds: [questionnaire.auditId]
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             }) as any);
 
             if (docId) {
