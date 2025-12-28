@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UserGroup, UserProfile } from '../../types';
 import { Edit, Trash2, Users } from '../ui/Icons';
+import { ConfirmModal } from '../ui/ConfirmModal';
 
 interface GroupCardProps {
     group: UserGroup;
@@ -10,7 +11,10 @@ interface GroupCardProps {
 }
 
 export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, onEdit, onDelete }) => {
+    const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+
     return (
+        <>
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative group">
             <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
@@ -21,7 +25,7 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
                     <Edit className="h-4 w-4" />
                 </button>
                 <button
-                    onClick={() => onDelete(group.id)}
+                    onClick={() => setShowConfirmDelete(true)}
                     className="p-2 text-slate-500 hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                     aria-label={`Supprimer le groupe ${group.name}`}
                 >
@@ -61,6 +65,19 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
                 )}
             </div>
         </div>
+
+        <ConfirmModal
+            isOpen={showConfirmDelete}
+            onClose={() => setShowConfirmDelete(false)}
+            onConfirm={() => onDelete(group.id)}
+            title="Supprimer le groupe"
+            message={`Êtes-vous sûr de vouloir supprimer le groupe "${group.name}" ?`}
+            details={`${group.members?.length || 0} membre(s) seront retirés de ce groupe.`}
+            type="danger"
+            confirmText="Supprimer"
+            cancelText="Annuler"
+        />
+        </>
     );
 });
 
