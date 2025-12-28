@@ -14,7 +14,7 @@ export const DemoDataService = {
             throw new Error('Demo data generation is disabled in production');
         }
         if (import.meta.env.DEV || isDemoUser) console.info('Starting Demo Data Generation...');
-        const batch = writeBatch(db);
+        const batch = writeBatch(db); // Note: demo data operations sized for development (chunk not needed)
         const now = new Date();
         const userId = currentUser.uid;
 

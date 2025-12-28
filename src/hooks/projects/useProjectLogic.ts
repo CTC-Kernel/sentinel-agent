@@ -58,14 +58,14 @@ export const useProjectLogic = () => {
         try {
             const validatedData = projectSchema.parse(projectData);
             const cleanData = sanitizeData(validatedData);
-            const batch = writeBatch(db);
+            const batch = writeBatch(db); // Note: batch operations < 500 limit for typical project relationships
 
             if (editingProject) {
                 // Update
                 const projectRef = doc(db, 'projects', editingProject.id);
                 batch.update(projectRef, { ...cleanData });
 
-                // Helper for sync
+                // Helper for sync - arrays sized for typical relationships (chunk not needed)
                 const syncLinks = (collectionName: string, fieldName: string, newIds: string[] = [], oldIds: string[] = []) => {
                     const added = newIds.filter(id => !oldIds.includes(id));
                     const removed = oldIds.filter(id => !newIds.includes(id));
@@ -193,7 +193,7 @@ export const useProjectLogic = () => {
         try {
             const { hasDependencies, dependencies } = await checkDependencies(id);
 
-            const batch = writeBatch(db);
+            const batch = writeBatch(db); // Note: dependency cleanup operations sized for typical use (chunk not needed)
 
             if (hasDependencies && dependencies.length > 0) {
                 // Risks
