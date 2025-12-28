@@ -9,8 +9,8 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { Switch } from '../ui/Switch';
 import { Button } from '../ui/button';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { updateDoc, doc } from 'firebase/firestore';
-import { db, storage, auth } from '../../firebase';
+import { storage, auth } from '../../firebase';
+import { useTeamData } from '../../hooks/team/useTeamData';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { AccountService } from '../../services/accountService';
 import { ConfirmModal } from '../ui/ConfirmModal';
@@ -18,10 +18,11 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { hasPermission } from '../../utils/permissions';
 import { UserProfile } from '../../types';
-import { useSettingsData } from '../../hooks/settings/useSettingsData';
+
 
 export const ProfileSettings: React.FC = () => {
     const { user, setUser, addToast, t, language, setLanguage } = useStore();
+    const { updateUser } = useTeamData();
     const [savingProfile, setSavingProfile] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [breachCheckLoading, setBreachCheckLoading] = useState(false);
@@ -57,8 +58,8 @@ export const ProfileSettings: React.FC = () => {
             const snapshot = await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
 
-            // Use user.uid directly instead of querying by email
-            await updateDoc(doc(db, 'users', user.uid), { photoURL: downloadURL });
+            // Use updateUser hook instead of direct Firebase call
+            await updateUser(user.uid, { photoURL: downloadURL });
             setUser({ ...user, photoURL: downloadURL });
             addToast(t('settings.photoUpdated'), "success");
         } catch (error) {
@@ -100,8 +101,8 @@ export const ProfileSettings: React.FC = () => {
         try {
             const updatedRole = hasPermission(user, 'User', 'manage') ? data.role : user.role;
 
-            // Use user.uid directly instead of querying by email
-            await updateDoc(doc(db, 'users', user.uid), sanitizeData({
+            // Use updateUser hook instead of direct Firebase call
+            await updateUser(user.uid, sanitizeData({
                 displayName: data.displayName,
                 department: data.department || '',
                 role: updatedRole,
