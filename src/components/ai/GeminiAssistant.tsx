@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChatMessage } from './ChatMessage';
 import { ChatMessage as ChatMessageType } from '../../services/aiService';
@@ -56,9 +56,9 @@ export const GeminiAssistant: React.FC = () => {
         return doc(db, 'users', user.uid, 'conversations', 'default');
     }, [user?.uid, aiEnabled]);
 
-    const scrollToBottom = () => {
+    const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
+    }, []);
 
     // Load messages from Firestore
     useEffect(() => {
@@ -95,7 +95,6 @@ export const GeminiAssistant: React.FC = () => {
                 }
             } else {
                 // Initialize if not exists
-                // Initialize if not exists
                 try {
                     if (user?.uid) {
                         aiService.initConversation(user.uid).catch(e => ErrorLogger.error(e, 'GeminiAssistant.initConversation'));
@@ -116,9 +115,9 @@ export const GeminiAssistant: React.FC = () => {
         if (isOpen && inputRef.current) {
             inputRef.current.focus();
         }
-    }, [messages, isOpen, isExpanded]);
+    }, [messages, isOpen, isExpanded, scrollToBottom]);
 
-    const handleSend = async (e?: React.FormEvent, promptOverride?: string) => {
+    const handleSend = useCallback(async (e?: React.FormEvent, promptOverride?: string) => {
         e?.preventDefault();
         let textToSend = promptOverride || input;
 
@@ -146,8 +145,9 @@ export const GeminiAssistant: React.FC = () => {
         };
 
         // Optimistic update
-        const newMessages = [...messages, userMsg];
-        setMessages(newMessages);
+        // We need to use functional update to access latest state if not in dependency array, 
+        // but here we are in useCallback so we depend on messages or use functional update
+        setMessages(prev => [...prev, userMsg]);
         setInput('');
         setIsLoading(true);
 
@@ -205,13 +205,13 @@ export const GeminiAssistant: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [input, aiEnabled, isLoading, conversationRef, navigate, user?.role, user?.organizationId]);
 
-    const copyToClipboard = (text: string, id: string) => {
+    const copyToClipboard = useCallback((text: string, id: string) => {
         navigator.clipboard.writeText(text);
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
-    };
+    }, []);
 
     if (!aiEnabled) {
         return (

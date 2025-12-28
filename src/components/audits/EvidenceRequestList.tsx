@@ -27,7 +27,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
     const [isCreating, setIsCreating] = useState(false);
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
-    const { data: requests, refresh } = useFirestoreCollection<EvidenceRequest>(
+    const { data: requests, refresh, loading } = useFirestoreCollection<EvidenceRequest>(
         'evidence_requests',
         [where('organizationId', '==', organizationId), where('auditId', '==', auditId)],
         { logError: true, realtime: true }
@@ -163,6 +163,16 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
         setIsCreating(prev => !prev);
     }, []);
 
+    if (loading) {
+        return (
+            <div className="space-y-4">
+                {[1, 2, 3].map(i => (
+                    <div key={`skeleton-${i}`} className="h-24 bg-slate-100 dark:bg-white/5 rounded-2xl animate-pulse" />
+                ))}
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex flex-wrap justify-between items-center gap-3 min-w-0">
@@ -262,6 +272,6 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                     />
                 ))}
             </div>
-        </div >
+        </div>
     );
 };

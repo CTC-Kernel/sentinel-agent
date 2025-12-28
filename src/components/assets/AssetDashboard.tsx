@@ -11,94 +11,117 @@ interface AssetDashboardProps {
 
 export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilterChange }) => {
     // Calculate metrics
-    const totalAssets = assets.length;
-    const criticalAssets = assets.filter(a =>
-        a.confidentiality === Criticality.CRITICAL ||
-        a.integrity === Criticality.CRITICAL ||
-        a.availability === Criticality.CRITICAL
-    ).length;
+    const { totalAssets, criticalAssets, maintenanceDue, currentValue, depreciation } = React.useMemo(() => {
+        const total = assets.length;
+        const critical = assets.filter(a =>
+            a.confidentiality === Criticality.CRITICAL ||
+            a.integrity === Criticality.CRITICAL ||
+            a.availability === Criticality.CRITICAL
+        ).length;
 
-    const nextMonth = new Date();
-    nextMonth.setDate(nextMonth.getDate() + 30);
-    const maintenanceDue = assets.filter(a => a.nextMaintenance && new Date(a.nextMaintenance) < nextMonth).length;
+        const nextMonth = new Date();
+        nextMonth.setDate(nextMonth.getDate() + 30);
+        const maintenance = assets.filter(a => a.nextMaintenance && new Date(a.nextMaintenance) < nextMonth).length;
 
-    const totalValue = assets.reduce((acc, a) => acc + (a.purchasePrice || 0), 0);
-    const currentValue = assets.reduce((acc, a) => acc + (a.currentValue || 0), 0);
-    const depreciation = totalValue > 0 ? ((totalValue - currentValue) / totalValue * 100) : 0;
+        const tValue = assets.reduce((acc, a) => acc + (a.purchasePrice || 0), 0);
+        const cValue = assets.reduce((acc, a) => acc + (a.currentValue || 0), 0);
+        const dep = tValue > 0 ? ((tValue - cValue) / tValue * 100) : 0;
+
+        return {
+            totalAssets: total,
+            criticalAssets: critical,
+            maintenanceDue: maintenance,
+            totalValue: tValue,
+            currentValue: cValue,
+            depreciation: dep
+        };
+    }, [assets]);
 
     // Distribution by Type
-    const typeData = assets.reduce((acc, asset) => {
-        const type = asset.type || 'Autre';
-        acc[type] = (acc[type] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
+    const typeChartData = React.useMemo(() => {
+        const typeData = assets.reduce((acc, asset) => {
+            const type = asset.type || 'Autre';
+            acc[type] = (acc[type] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
 
-    const typeChartData = Object.entries(typeData)
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 8); // Top 8 types
+        return Object.entries(typeData)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 8); // Top 8 types
+    }, [assets]);
 
     // Distribution by Criticality (Max of C, I, A)
-    const getAssetCriticality = (a: Asset) => {
-        if (a.confidentiality === Criticality.CRITICAL || a.integrity === Criticality.CRITICAL || a.availability === Criticality.CRITICAL) return 'Critique';
-        if (a.confidentiality === Criticality.HIGH || a.integrity === Criticality.HIGH || a.availability === Criticality.HIGH) return 'Élevé';
-        if (a.confidentiality === Criticality.MEDIUM || a.integrity === Criticality.MEDIUM || a.availability === Criticality.MEDIUM) return 'Moyen';
-        return 'Faible';
-    };
+    const distributionData = React.useMemo(() => {
+        const getAssetCriticality = (a: Asset) => {
+            if (a.confidentiality === Criticality.CRITICAL || a.integrity === Criticality.CRITICAL || a.availability === Criticality.CRITICAL) return 'Critique';
+            if (a.confidentiality === Criticality.HIGH || a.integrity === Criticality.HIGH || a.availability === Criticality.HIGH) return 'Élevé';
+            if (a.confidentiality === Criticality.MEDIUM || a.integrity === Criticality.MEDIUM || a.availability === Criticality.MEDIUM) return 'Moyen';
+            return 'Faible';
+        };
 
-    const criticalityCounts = {
-        'Critique': 0,
-        'Élevé': 0,
-        'Moyen': 0,
-        'Faible': 0
-    };
+        const criticalityCounts = {
+            'Critique': 0,
+            'Élevé': 0,
+            'Moyen': 0,
+            'Faible': 0
+        };
 
-    assets.forEach(a => {
-        const crit = getAssetCriticality(a);
-        if (crit in criticalityCounts) criticalityCounts[crit as keyof typeof criticalityCounts]++;
-    });
+        assets.forEach(a => {
+            const crit = getAssetCriticality(a);
+            if (crit in criticalityCounts) criticalityCounts[crit as keyof typeof criticalityCounts]++;
+        });
 
-    const distributionData = [
-        { name: 'Critique', value: criticalityCounts['Critique'], color: 'hsl(var(--destructive))' },
-        { name: 'Élevé', value: criticalityCounts['Élevé'], color: 'hsl(var(--orange-500))' },
-        { name: 'Moyen', value: criticalityCounts['Moyen'], color: 'hsl(var(--yellow-500))' },
-        { name: 'Faible', value: criticalityCounts['Faible'], color: 'hsl(var(--success))' }
-    ];
+        return [
+            { name: 'Critique', value: criticalityCounts['Critique'], color: 'hsl(var(--destructive))' },
+            { name: 'Élevé', value: criticalityCounts['Élevé'], color: 'hsl(var(--orange-500))' },
+            { name: 'Moyen', value: criticalityCounts['Moyen'], color: 'hsl(var(--yellow-500))' },
+            { name: 'Faible', value: criticalityCounts['Faible'], color: 'hsl(var(--success))' }
+        ];
+    }, [assets]);
 
     // Distribution by Location
-    const locationData = assets.reduce((acc, asset) => {
-        const loc = asset.location || 'Non défini';
-        acc[loc] = (acc[loc] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
+    const locationChartData = React.useMemo(() => {
+        const locationData = assets.reduce((acc, asset) => {
+            const loc = asset.location || 'Non défini';
+            acc[loc] = (acc[loc] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
 
-    const locationChartData = Object.entries(locationData)
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 8); // Top 8 locations
+        return Object.entries(locationData)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 8); // Top 8 locations
+    }, [assets]);
 
     // Distribution by Scope
-    const scopeData = assets.reduce((acc, asset) => {
-        if (asset.scope && asset.scope.length > 0) {
-            asset.scope.forEach(s => {
-                acc[s] = (acc[s] || 0) + 1;
-            });
-        } else {
-            acc['Aucun'] = (acc['Aucun'] || 0) + 1;
-        }
-        return acc;
-    }, {} as Record<string, number>);
+    const { scopeChartData, SCOPE_COLORS } = React.useMemo(() => {
+        const scopeData = assets.reduce((acc, asset) => {
+            if (asset.scope && asset.scope.length > 0) {
+                asset.scope.forEach(s => {
+                    acc[s] = (acc[s] || 0) + 1;
+                });
+            } else {
+                acc['Aucun'] = (acc['Aucun'] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<string, number>);
 
-    const scopeChartData = Object.entries(scopeData).map(([name, value]) => ({ name, value }));
-    const SCOPE_COLORS = [
-        'hsl(var(--primary))',
-        'hsl(var(--violet-500))',
-        'hsl(var(--pink-500))',
-        'hsl(var(--rose-500))',
-        'hsl(var(--emerald-500))',
-        'hsl(var(--indigo-500))',
-        'hsl(var(--muted-foreground) / 0.55)'
-    ];
+        const colors = [
+            'hsl(var(--primary))',
+            'hsl(var(--violet-500))',
+            'hsl(var(--pink-500))',
+            'hsl(var(--rose-500))',
+            'hsl(var(--emerald-500))',
+            'hsl(var(--indigo-500))',
+            'hsl(var(--muted-foreground) / 0.55)'
+        ];
+
+        return {
+            scopeChartData: Object.entries(scopeData).map(([name, value]) => ({ name, value })),
+            SCOPE_COLORS: colors
+        };
+    }, [assets]);
 
     return (
         <div className="space-y-6">

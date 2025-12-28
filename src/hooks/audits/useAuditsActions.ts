@@ -1,7 +1,7 @@
 import { useFirestoreCollection } from '../useFirestore';
 import { where } from 'firebase/firestore';
 import { useAuth } from '../useAuth';
-import { Questionnaire, EvidenceRequest, UserProfile, Document, Audit } from '../../types';
+import { Questionnaire, EvidenceRequest, UserProfile, Document, Audit, QuestionnaireResponse } from '../../types';
 
 export const useAuditsActions = () => {
   const { user } = useAuth();
@@ -36,12 +36,19 @@ export const useAuditsActions = () => {
     { enabled: !!user?.organizationId }
   );
 
+  const { data: responses, loading: loadingResponses } = useFirestoreCollection<QuestionnaireResponse>(
+    'questionnaire_responses',
+    [where('organizationId', '==', user?.organizationId || 'ignore')],
+    { realtime: true, enabled: !!user?.organizationId }
+  );
+
   return {
     audits: audits || [],
     questionnaires: questionnaires || [],
     evidences: evidences || [],
     users: users || [],
     documents: documents || [],
-    loading: loadingAudits || loadingQuestionnaires || loadingEvidences || loadingUsers || loadingDocuments,
+    responses: responses || [],
+    loading: loadingAudits || loadingQuestionnaires || loadingEvidences || loadingUsers || loadingDocuments || loadingResponses,
   };
 };

@@ -10,6 +10,7 @@ import { Button } from '../ui/button';
 import { Plus, Edit, Trash2, Shield, Check } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
+import { EmptyState } from '../ui/EmptyState';
 
 interface RoleManagerProps {
     roles: CustomRole[];
@@ -32,7 +33,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
 
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; roleId: string | null }>({ isOpen: false, roleId: null });
 
-    const handleOpenDrawer = (role?: CustomRole) => {
+    const handleOpenDrawer = React.useCallback((role?: CustomRole) => {
         if (role) {
             setEditingRole(role);
             setFormData({
@@ -45,9 +46,9 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
             setFormData({ name: '', description: '', permissions: {} });
         }
         setIsDrawerOpen(true);
-    };
+    }, []);
 
-    const togglePermission = (resource: string, action: ActionType) => {
+    const togglePermission = React.useCallback((resource: string, action: ActionType) => {
         setFormData(prev => {
             const currentActions = prev.permissions[resource] || [];
             let newActions;
@@ -64,9 +65,9 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                 }
             };
         });
-    };
+    }, []);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = React.useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user?.organizationId) return;
 
@@ -94,9 +95,9 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'RoleManager.handleSubmit');
         }
-    };
+    }, [user, formData, editingRole, onRefresh, addToast]);
 
-    const handleDelete = async () => {
+    const handleDelete = React.useCallback(async () => {
         if (!confirmDelete.roleId) return;
         try {
             await deleteDoc(doc(db, 'custom_roles', confirmDelete.roleId));
@@ -106,7 +107,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'RoleManager.handleDelete');
         }
-    };
+    }, [confirmDelete.roleId, onRefresh, addToast]);
 
     return (
         <div className="space-y-6">
@@ -123,30 +124,40 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {roles.map(role => (
-                    <div key={role.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative group">
-                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => handleOpenDrawer(role)} className="p-2 text-slate-500 hover:text-brand-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={`Modifier le rôle ${role.name}`}>
-                                <Edit className="h-4 w-4" />
-                            </button>
-                            <button onClick={() => setConfirmDelete({ isOpen: true, roleId: role.id })} className="p-2 text-slate-500 hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500" aria-label={`Supprimer le rôle ${role.name}`}>
-                                <Trash2 className="h-4 w-4" />
-                            </button>
-                        </div>
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-3 bg-brand-50 dark:bg-brand-900/20 rounded-xl text-brand-600 dark:text-brand-400">
-                                <Shield className="h-6 w-6" />
+            {roles.length === 0 ? (
+                <EmptyState
+                    icon={Shield}
+                    title="Aucun rôle personnalisé"
+                    description="Créez des rôles sur mesure pour gérer les accès de vos équipes."
+                    actionLabel="Créer un rôle"
+                    onAction={() => handleOpenDrawer()}
+                />
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {roles.map(role => (
+                        <div key={role.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative group">
+                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => handleOpenDrawer(role)} className="p-2 text-slate-500 hover:text-brand-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={`Modifier le rôle ${role.name}`}>
+                                    <Edit className="h-4 w-4" />
+                                </button>
+                                <button onClick={() => setConfirmDelete({ isOpen: true, roleId: role.id })} className="p-2 text-slate-500 hover:text-red-500 bg-slate-50 dark:bg-slate-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500" aria-label={`Supprimer le rôle ${role.name}`}>
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
                             </div>
-                            <div>
-                                <h4 className="font-bold text-slate-900 dark:text-white">{role.name}</h4>
-                                <p className="text-xs text-slate-600">{Object.keys(role.permissions).length} ressources configurées</p>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-3 bg-brand-50 dark:bg-brand-900/20 rounded-xl text-brand-600 dark:text-brand-400">
+                                    <Shield className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-slate-900 dark:text-white">{role.name}</h4>
+                                    <p className="text-xs text-slate-600">{Object.keys(role.permissions).length} ressources configurées</p>
+                                </div>
                             </div>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{role.description || "Aucune description"}</p>
                         </div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{role.description || "Aucune description"}</p>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             <Drawer
                 isOpen={isDrawerOpen}
