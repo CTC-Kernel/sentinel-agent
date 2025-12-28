@@ -8,10 +8,10 @@ import { useStore } from '../../store';
 import { db } from '../../firebase';
 import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
 import { Button } from '../ui/button';
-import { Threat, Asset } from '../../types';
-import { useFirestoreCollection } from '../../hooks/useFirestore';
+import { Threat } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
 import { Dialog, Transition } from '@headlessui/react';
+import { useLayoutData } from '../../hooks/layout/useLayoutData';
 
 const schema = z.object({
     assetId: z.string().min(1, "L'actif est requis"),
@@ -31,7 +31,7 @@ interface ThreatToRiskModalProps {
 
 export const ThreatToRiskModal: React.FC<ThreatToRiskModalProps> = ({ isOpen, onClose, threat }) => {
     const { user, addToast } = useStore();
-    const { data: assets } = useFirestoreCollection<Asset>('assets', [], { realtime: false });
+    const { assets } = useLayoutData();
 
     const { register, handleSubmit, formState: { errors, isSubmitting }, reset, setValue } = useForm<FormData>({
         resolver: zodResolver(schema),
