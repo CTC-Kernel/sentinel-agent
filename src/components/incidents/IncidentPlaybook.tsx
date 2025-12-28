@@ -85,7 +85,11 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
             await IncidentPlaybookService.updateStepProgress(
                 response.id,
                 step.id,
-                true // completed
+                true, // completed
+                undefined, // evidence
+                undefined, // note
+                user?.uid,
+                user?.displayName
             );
             // Optimistic update or reload
             const updatedResponse = { ...response, completedSteps: [...response.completedSteps, step.id] };
