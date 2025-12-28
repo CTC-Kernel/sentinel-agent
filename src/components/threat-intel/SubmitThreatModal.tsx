@@ -4,8 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AlertTriangle, Globe, Loader2, Save, X } from 'lucide-react';
 import { useStore } from '../../store';
-import { db } from '../../firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { useThreatIntelActions } from '../../hooks/threats/useThreatIntelActions';
 import { Button } from '../ui/button';
 import { ErrorLogger } from '../../services/errorLogger';
 import { Dialog, Transition } from '@headlessui/react';
@@ -30,6 +29,7 @@ interface SubmitThreatModalProps {
 
 export const SubmitThreatModal: React.FC<SubmitThreatModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const { user } = useStore();
+    const { addCommunityThreat } = useThreatIntelActions();
     const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<SubmissionFormData>({
         resolver: zodResolver(submissionSchema),
         defaultValues: {
@@ -42,7 +42,7 @@ export const SubmitThreatModal: React.FC<SubmitThreatModalProps> = ({ isOpen, on
     const onSubmit = async (data: SubmissionFormData) => {
         if (!user) return;
         try {
-            await addDoc(collection(db, 'threats'), {
+            await addCommunityThreat({
                 ...data,
                 author: user.displayName || 'Community User',
                 authorId: user.uid,
