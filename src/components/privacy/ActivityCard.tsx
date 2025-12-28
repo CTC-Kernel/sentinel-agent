@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Fingerprint, Scale, GlobeLock, Clock, CheckCircle2, Trash2 } from '../ui/Icons';
 import { slideUpVariants } from '../ui/animationVariants';
 import { ProcessingActivity } from '../../types';
-import { ConfirmModal } from '../ui/ConfirmModal';
+import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
 
 interface ActivityCardProps {
     activity: ProcessingActivity;
@@ -13,7 +13,7 @@ interface ActivityCardProps {
 }
 
 export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }: ActivityCardProps) => {
-    const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+    const [showConfirmDelete, setShowConfirmDelete] = useState(false); // confirmDialog via ConfirmModal
     return (
         <motion.div
             variants={slideUpVariants}

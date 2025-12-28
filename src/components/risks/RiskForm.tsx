@@ -630,6 +630,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                 <Button
                                     type="submit"
                                     isLoading={isLoading}
+                                    disabled={isLoading}
                                     variant="secondary"
                                     onClick={() => setValue('status', 'En attente de validation')}
                                     className="border-brand-200 text-brand-700 hover:bg-brand-50"
@@ -640,6 +641,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                             <Button
                                 type="submit"
                                 isLoading={isLoading}
+                                disabled={isLoading}
                                 className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
                             >
                                 {isEditing ? 'Sauvegarder' : 'Créer le Risque'}

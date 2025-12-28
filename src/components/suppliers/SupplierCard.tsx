@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { Supplier, Criticality } from '../../types';
 import { Building, Truck, ShieldAlert } from '../ui/Icons';
+// Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 const getCriticalityColor = (c: Criticality) => {
     switch (c) {

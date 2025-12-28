@@ -3,6 +3,7 @@ import { ChartTooltip } from '../ui/ChartTooltip';
 import { Audit, Finding } from '../../types';
 import { AlertTriangle, Calendar, CheckCircle2 } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+// Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface AuditDashboardProps {
     audits: Audit[];

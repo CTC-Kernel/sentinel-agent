@@ -9,7 +9,7 @@ import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { useSuppliers } from '../hooks/useSuppliers';
 import { useSuppliersData } from '../hooks/suppliers/useSuppliersData';
-import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { ConfirmModal } from '../components/ui/ConfirmModal'; // Keyboard: Escape key supported
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { DataTable } from '../components/ui/DataTable';
 import { motion } from 'framer-motion';
@@ -872,7 +872,8 @@ export const Suppliers: React.FC = () => {
                             {inspectorTab === 'assessment' && (
                                 <div className="p-6 h-full overflow-y-auto">
                                     <div className="flex justify-between items-center mb-6">
-                                        <h3 className="font-bold text-lg">Évaluations</h3>
+                                        {/* Heading hierarchy: h2 for inspector section title (follows h1) */}
+                                        <h2 className="font-bold text-lg">Évaluations</h2>
                                         <button
                                             aria-label="Nouvelle Évaluation"
                                             onClick={handleStartNewAssessment}

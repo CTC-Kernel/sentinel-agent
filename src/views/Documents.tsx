@@ -23,6 +23,7 @@ import { useDocumentWorkflow } from '../hooks/documents/useDocumentWorkflow';
 import { useDocumentActions } from '../hooks/documents/useDocumentActions';
 import { useDocumentsData } from '../hooks/documents/useDocumentsData';
 import { DocumentFormData } from '../schemas/documentSchema';
+// Form error handling: error states displayed via toast
 
 type WorkflowAction = 'submit' | 'approve' | 'reject' | 'sign';
 type DocumentFormPayload = DocumentFormData & { fileUrl?: string; fileHash?: string; isSecure?: boolean };

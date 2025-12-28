@@ -62,6 +62,7 @@ export const ThreatIntelligence: React.FC = () => {
         confirmSighting
     } = useThreatIntelligence();
 
+
     const initialLoadRef = React.useRef(false);
 
     // Auto-seed LIVE data if empty (Production Behavior)

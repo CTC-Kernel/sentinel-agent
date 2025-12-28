@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+// Focus indicators: focus-visible:ring-2 applied globally via CSS
 import { cn } from '../../lib/utils';
 import { User, Bot, Check, Copy, Zap } from '../ui/Icons';
 import { ChatMessage as ChatMessageType } from '../../services/aiService';

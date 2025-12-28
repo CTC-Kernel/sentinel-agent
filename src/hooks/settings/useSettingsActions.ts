@@ -6,8 +6,7 @@ import { ErrorLogger } from '../../services/errorLogger';
 export const useSettingsActions = () => {
   const { user } = useAuth();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const saveCommunitySettings = async (settings: any) => {
+  const saveCommunitySettings = async (settings: Record<string, unknown>) => {
     if (!user) throw new Error('User not authenticated');
 
     try {

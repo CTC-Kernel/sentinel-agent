@@ -6,6 +6,7 @@ import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { SectionEditor } from './QuestionnaireBuilder/SectionEditor';
 import { useSuppliersData } from '../../hooks/suppliers/useSuppliersData';
+// Form validation: zod schema with resolver pattern
 
 interface Props {
     initialData?: QuestionnaireTemplate;

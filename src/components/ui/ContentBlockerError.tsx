@@ -22,10 +22,11 @@ export const ContentBlockerError: React.FC = () => {
                     </p>
 
                     <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 mb-8 text-left border border-slate-100 dark:border-slate-700">
-                        <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-2 flex items-center">
+                        {/* Heading hierarchy: h2 for solutions section (follows h1) */}
+                        <h2 className="text-sm font-semibold text-slate-900 dark:text-white mb-2 flex items-center">
                             <span className="w-1.5 h-1.5 rounded-full bg-brand-500 mr-2"></span>
                             Solutions possibles :
-                        </h3>
+                        </h2>
                         <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-2 pl-3.5">
                             <li>• Désactivez votre bloqueur de publicité.</li>
                             <li>• Vérifiez votre connexion internet.</li>

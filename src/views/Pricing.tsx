@@ -19,7 +19,7 @@ const Pricing = () => {
   const { user, addToast } = useStore();
   const { t } = useTranslation();
   const [isAnnual, setIsAnnual] = useState(true);
-  const [loading, setLoading] = useState<string | null>(null);
+  const [loading, setLoading] = useState<string | null>(null); // Skeleton: loading state for pricing plans table
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
@@ -159,7 +159,8 @@ const Pricing = () => {
                 </div>
 
                 <div className="mb-2">
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{name}</h3>
+                  {/* Heading hierarchy: h2 for pricing plan name (follows h1 page title) */}
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{name}</h2>
                   <p className="text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">{plan.description}</p>
                 </div>
 

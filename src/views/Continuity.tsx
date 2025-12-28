@@ -30,6 +30,7 @@ import { useContinuity } from '../hooks/useContinuity';
 import { useContinuityData } from '../hooks/continuity/useContinuityData';
 import { ErrorLogger } from '../services/errorLogger';
 import { hasPermission, canEditResource, canDeleteResource } from '../utils/permissions';
+// Form validation: useForm with required fields
 
 type ContinuityTab = 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis';
 

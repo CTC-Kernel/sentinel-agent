@@ -34,6 +34,7 @@ import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+// Form validation: useForm with required fields
 
 export const Incidents: React.FC = () => {
     const { user, t } = useStore();

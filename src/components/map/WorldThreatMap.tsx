@@ -68,7 +68,7 @@ export const WorldThreatMap: React.FC<MapProps> = memo(({ data, setTooltipConten
                             <text
                                 textAnchor="middle"
                                 y={-10}
-                                style={{ fontFamily: "system-ui", fill: "hsl(var(--muted-foreground))", fontSize: "8px", fontWeight: "bold" }}
+                                className="font-sans fill-muted-foreground text-[8px] font-bold"
                             >
                                 {marker.name}
                             </text>

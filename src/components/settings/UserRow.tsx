@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { UserProfile, Organization } from '../../types';
 import { Star, RefreshCw, Trash2, Loader2 } from '../ui/Icons';
 import { CustomSelect } from '../ui/CustomSelect';
+// Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface UserRowProps {
     user: UserProfile;

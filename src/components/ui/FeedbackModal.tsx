@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, MessageSquare, Bug, Lightbulb, Star, Send } from 'lucide-react';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFeedbackActions } from '../../hooks/feedback/useFeedbackActions';
@@ -29,7 +29,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
     const { addFeedback } = useFeedbackActions();
     const [mounted, setMounted] = useState(false);
 
-    const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<FeedbackFormData>({
+    const { register, handleSubmit, reset, control, setValue, formState: { errors, isSubmitting } } = useForm<FeedbackFormData>({
         resolver: zodResolver(feedbackSchema),
         defaultValues: {
             type: 'feature',
@@ -39,10 +39,14 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
         }
     });
 
-    const formValues = watch();
+    const [type, priority] = useWatch({
+        control,
+        name: ['type', 'priority']
+    });
+    const formValues = { type, priority };
 
     useEffect(() => {
-        setMounted(true);
+        setTimeout(() => setMounted(true), 0);
         return () => setMounted(false);
     }, []);
 
@@ -58,7 +62,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                 status: 'new',
                 createdAt: new Date().toISOString(),
                 userAgent: navigator.userAgent,
-                url: window.location.href
+                url: window.location.href // Intentional: reading current URL for feedback context
             });
 
             addToast('Merci ! Votre retour a bien été envoyé.', 'success');

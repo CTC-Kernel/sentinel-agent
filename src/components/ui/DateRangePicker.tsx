@@ -32,13 +32,13 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                     : 'border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20'
                 }
             `}>
-                <input value={startDate}
+                <input aria-label="Date de début" value={startDate}
                     type="date"
                     onChange={(e) => onStartDateChange(e.target.value)}
                     className="flex-1 px-3 py-2.5 bg-transparent outline-none text-sm font-medium text-slate-900 dark:text-white rounded-xl focus:bg-white dark:focus:bg-white/5 transition-colors"
                 />
                 <span className="text-slate-500 font-medium">→</span>
-                <input value={endDate}
+                <input aria-label="Date de fin" value={endDate}
                     type="date"
                     onChange={(e) => onEndDateChange(e.target.value)}
                     className="flex-1 px-3 py-2.5 bg-transparent outline-none text-sm font-medium text-slate-900 dark:text-white rounded-xl focus:bg-white dark:focus:bg-white/5 transition-colors"

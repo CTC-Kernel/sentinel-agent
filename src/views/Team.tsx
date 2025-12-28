@@ -456,7 +456,7 @@ const Team: React.FC = () => {
                     </div>
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                         <Button type="button" variant="ghost" onClick={handleCloseInvite}>{t('team.actions.cancel')}</Button>
-                        <Button type="submit" className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-transform" isLoading={loading || inviteForm.formState.isSubmitting}>{t('team.invite.send')}</Button>
+                        <Button type="submit" disabled={loading || inviteForm.formState.isSubmitting} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-transform" isLoading={loading || inviteForm.formState.isSubmitting}>{t('team.invite.send')}</Button>
                     </div>
                 </form>
             </Drawer>
@@ -514,7 +514,7 @@ const Team: React.FC = () => {
 
                         <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
                             <Button type="button" variant="ghost" onClick={handleCloseEdit}>{t('team.actions.cancel')}</Button>
-                            <Button type="submit" className="bg-brand-600 text-white hover:scale-105 transition-transform" isLoading={loading || editForm.formState.isSubmitting}>{t('team.edit.save')}</Button>
+                            <Button type="submit" disabled={loading || editForm.formState.isSubmitting} className="bg-brand-600 text-white hover:scale-105 transition-transform" isLoading={loading || editForm.formState.isSubmitting}>{t('team.edit.save')}</Button>
                         </div>
                     </form>
                 )}
@@ -573,7 +573,11 @@ const JoinRequestCard = React.memo(({ req, onApprove, onReject }: { req: JoinReq
 const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: { user: UserProfile, canAdmin: boolean, onEdit: (u: UserProfile) => void, onDelete: (u: UserProfile) => void }) => {
     const { t } = useTranslation();
     const handleEdit = React.useCallback(() => onEdit(user), [onEdit, user]);
-    const handleDelete = React.useCallback(() => onDelete(user), [onDelete, user]);
+    const handleDelete = React.useCallback(() => {
+        if (window.confirm(`Voulez-vous vraiment supprimer ${user.displayName || user.email} ?`)) {
+            onDelete(user);
+        }
+    }, [onDelete, user]);
 
     return (
         <div className={`glass-panel rounded-[2.5rem] p-6 flex flex-col items-center text-center card-hover group relative border border-white/50 dark:border-white/5 ${user.isPending ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20' : ''}`}>

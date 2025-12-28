@@ -16,7 +16,7 @@ import { hasPermission } from '../../utils/permissions';
 import { logAction } from '../../services/logger'; // Added import
 import { SubscriptionService } from '../../services/subscriptionService';
 import { UserProfile } from '../../types';
-import { ConfirmModal } from '../ui/ConfirmModal';
+import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
 import { UserRow } from './UserRow';
 import { useSettingsData } from '../../hooks/settings/useSettingsData';
 
@@ -244,11 +244,12 @@ export const OrganizationSettings: React.FC = () => {
                             </div>
                             <div>
                                 <div className="flex items-center gap-3">
-                                    <h4 className="text-xl font-bold">
+                                    {/* Heading hierarchy: h2 for subscription details (follows h1) */}
+                                    <h2 className="text-xl font-bold">
                                         {currentOrg?.subscription?.planId === 'professional' ? t('settings.plans.professional') :
                                             currentOrg?.subscription?.planId === 'enterprise' ? t('settings.plans.enterprise') :
                                                 t('settings.plans.discovery')}
-                                    </h4>
+                                    </h2>
                                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${currentOrg?.subscription?.status === 'active' ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-white/10 text-white/70 border-white/20'}`}>
                                         {currentOrg?.subscription?.status === 'active' ? t('settings.active') : t('settings.free')}
                                     </span>

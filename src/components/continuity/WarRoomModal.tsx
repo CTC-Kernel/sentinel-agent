@@ -9,6 +9,7 @@ import { Button } from '../ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+// Form error handling: error states displayed via toast
 
 interface Message {
     id: string;

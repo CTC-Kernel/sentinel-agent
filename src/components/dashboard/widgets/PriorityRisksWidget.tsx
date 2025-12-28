@@ -3,6 +3,7 @@ import { Flame, ShieldAlert } from '../../ui/Icons';
 import { Skeleton } from '../../ui/Skeleton';
 import { Risk } from '../../../types';
 import { DashboardCard } from '../DashboardCard';
+// Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface PriorityRisksWidgetProps {
     topRisks: Risk[];

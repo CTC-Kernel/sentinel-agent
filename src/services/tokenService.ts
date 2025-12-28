@@ -1,5 +1,6 @@
 import { sign, verify, decode, JwtPayload } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import { ErrorLogger } from './errorLogger';
 
 interface TokenPayload extends JwtPayload {
   userId: string;
@@ -51,7 +52,8 @@ export class TokenService {
   static verifyToken(token: string): TokenPayload {
     try {
       return verify(token, JWT_SECRET) as TokenPayload;
-    } catch {
+    } catch (error) {
+      ErrorLogger.warn(error instanceof Error ? error.message : String(error), 'TokenService.verifyToken');
       throw new Error('Invalid or expired token');
     }
   }
@@ -62,7 +64,8 @@ export class TokenService {
   static decodeToken(token: string): TokenPayload | null {
     try {
       return decode(token) as TokenPayload;
-    } catch {
+    } catch (error) {
+      ErrorLogger.warn(error instanceof Error ? error.message : String(error), 'TokenService.decodeToken');
       return null;
     }
   }

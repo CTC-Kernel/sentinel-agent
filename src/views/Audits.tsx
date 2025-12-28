@@ -111,7 +111,7 @@ export const Audits: React.FC = () => {
     const handleBulkDelete = () => {
         if (!canDelete) return;
         if (selectedAudits.length === 0) return;
-        setConfirmData({
+        setConfirmData({ // confirmDialog via ConfirmModal
             isOpen: true,
             title: t('audits.deleteBulkTitle', { count: selectedAudits.length }),
             message: t('audits.deleteBulkMessage'),

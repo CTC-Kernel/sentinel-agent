@@ -3,7 +3,7 @@ import { UserGroup, UserProfile } from '../../types';
 import { useStore } from '../../store';
 import { useTeamData } from '../../hooks/team/useTeamData';
 import { Drawer } from '../ui/Drawer';
-import { ConfirmModal } from '../ui/ConfirmModal';
+import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { Button } from '../ui/button';
 import { Plus } from '../ui/Icons';
@@ -11,7 +11,7 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { GroupCard } from './GroupCard';
 import { MemberSelector } from './MemberSelector';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
@@ -33,7 +33,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [editingGroup, setEditingGroup] = useState<UserGroup | null>(null);
 
-    const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<GroupFormData>({
+    const { register, handleSubmit, reset, setValue, control, formState: { errors, isSubmitting } } = useForm<GroupFormData>({
         resolver: zodResolver(groupSchema),
         defaultValues: {
             name: '',
@@ -44,7 +44,8 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
 
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; groupId: string | null }>({ isOpen: false, groupId: null });
 
-    const formValues = watch();
+    const members = useWatch({ control, name: 'members' });
+    const formValues = { members };
 
     const handleOpenDrawer = useCallback((group?: UserGroup) => {
         if (group) {
@@ -64,7 +65,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
     const toggleMember = useCallback((uid: string) => {
         const currentMembers = formValues.members || [];
         if (currentMembers.includes(uid)) {
-            setValue('members', currentMembers.filter(id => id !== uid));
+            setValue('members', currentMembers.filter((id: string) => id !== uid));
         } else {
             setValue('members', [...currentMembers, uid]);
         }

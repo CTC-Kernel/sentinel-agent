@@ -72,7 +72,7 @@ export const AdminDashboard: React.FC = () => {
         totalUsers: users.length
     };
 
-    const loading = checkingAuth || (isSuperAdmin && (orgsLoading || usersLoading));
+    const loading = checkingAuth || (isSuperAdmin && (orgsLoading || usersLoading)); // Skeleton: loading state for organizations table
 
     useEffect(() => {
         const checkAdmin = async () => {

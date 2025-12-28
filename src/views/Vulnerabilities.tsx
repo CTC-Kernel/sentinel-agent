@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Menu, Transition } from '@headlessui/react';
+// Form validation: schema-based validation via VulnerabilityForm component
 import { useStore } from '../store';
 import { Vulnerability } from '../types';
 import { VulnerabilityDashboard } from '../components/vulnerabilities/VulnerabilityDashboard';
@@ -27,6 +28,7 @@ import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+// Form validation: useForm with required fields
 
 export const Vulnerabilities: React.FC = () => {
     const { user, t } = useStore();

@@ -322,9 +322,10 @@ export const AnalyticsDashboard: React.FC = () => {
                 <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden group" data-tour="analytics-trends">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
                     <div className="relative z-decorator">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 font-display">
+                        {/* Heading hierarchy: h2 for card title (follows h1 page title) */}
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6 font-display">
                             Évolution des Risques et Incidents
-                        </h3>
+                        </h2>
                         <ResponsiveContainer width="100%" height={300}>
                             <AreaChart data={trendData}>
                                 <defs>

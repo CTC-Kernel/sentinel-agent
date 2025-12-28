@@ -199,6 +199,7 @@ export const Login: React.FC = () => {
                             <Button
                                 type="submit"
                                 isLoading={loading}
+                                disabled={loading}
                                 className="w-full py-6 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl card-hover shadow-lg shadow-brand-500/20"
                             >
                                 {isLogin ? t('auth.login') : t('auth.signup')}
@@ -255,7 +256,8 @@ export const Login: React.FC = () => {
                                 <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center mx-auto mb-4 text-brand-600">
                                     <Mail className="h-7 w-7" />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t('auth.reset.title')}</h3>
+                                {/* Heading hierarchy: h2 for modal title (follows h1 page title) */}
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('auth.reset.title')}</h2>
                                 <p className="text-sm text-slate-600 mt-2">{t('auth.reset.desc')}</p>
                             </div>
 
@@ -271,7 +273,7 @@ export const Login: React.FC = () => {
                                             placeholder="nom@entreprise.com"
                                         />
                                     </div>
-                                    <Button type="submit" isLoading={loading} className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] shadow-lg">
+                                    <Button type="submit" isLoading={loading} disabled={loading} className="w-full py-6 bg-slate-900 dark:bg-white text-white dark:text-black font-bold rounded-2xl hover:scale-[1.02] shadow-lg">
                                         {loading ? t('auth.reset.sending') : t('auth.reset.submit')}
                                     </Button>
                                 </form>
@@ -334,6 +336,7 @@ export const Login: React.FC = () => {
                                 <Button
                                     type="submit"
                                     isLoading={mfaLoading}
+                                    disabled={mfaLoading}
                                     className="w-full py-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl hover:scale-[1.02] shadow-lg"
                                 >
                                     {mfaLoading ? t('auth.mfa.verifying') : t('auth.mfa.verify')}

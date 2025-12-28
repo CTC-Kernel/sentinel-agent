@@ -74,10 +74,4 @@ export const useHotkeysHelp = () => {
   return shortcuts;
 };
 
-/**
- * Détection du système d'exploitation pour afficher les bonnes touches
- */
-export const getModifierKey = (): 'Ctrl' | 'Cmd' => {
-  if (typeof window === 'undefined') return 'Ctrl';
-  return navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd' : 'Ctrl';
-};
+

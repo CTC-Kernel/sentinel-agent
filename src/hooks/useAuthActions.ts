@@ -22,7 +22,7 @@ import { LoginFormData, RegisterFormData, ResetPasswordFormData } from '../schem
 import { logAuthAuditEvent } from '../services/logger';
 
 const safeLogAuthEvent = (payload: Parameters<typeof logAuthAuditEvent>[0]) => {
-    logAuthAuditEvent(payload).catch(() => undefined);
+    logAuthAuditEvent(payload).catch(() => undefined); // silent - audit logging failures are non-critical
 };
 
 export const useAuthActions = () => {
@@ -181,6 +181,7 @@ export const useAuthActions = () => {
                     });
                     window.location.hash = '#/';
                 } catch (popupError) {
+                    ErrorLogger.warn(popupError instanceof Error ? popupError.message : String(popupError), 'Auth.googlePopupFallback');
                     if (isPopupRecoverableError(popupError)) {
                         addToast(t('auth.redirectingGoogle'), 'info');
                         safeLogAuthEvent({
@@ -258,6 +259,7 @@ export const useAuthActions = () => {
                     });
                     window.location.hash = '#/';
                 } catch (popupError) {
+                    ErrorLogger.warn(popupError instanceof Error ? popupError.message : String(popupError), 'Auth.applePopupFallback');
                     if (isPopupRecoverableError(popupError)) {
                         addToast(t('auth.redirectingApple') ?? t('auth.redirectingGoogle'), 'info');
                         safeLogAuthEvent({
@@ -349,7 +351,7 @@ export const useAuthActions = () => {
         try {
             await auth.signOut();
             addToast(t('auth.logoutSuccess'), 'success');
-            window.location.href = '/login';
+            window.location.href = '/login'; // Intentional: full reload after logout to clear all auth state
         } catch (error) {
             ErrorLogger.error(error as Error, 'useAuthActions.logout');
         }

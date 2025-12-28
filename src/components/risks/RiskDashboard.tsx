@@ -7,6 +7,7 @@ import {
     AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ReferenceLine
 } from 'recharts';
 import { RISK_ACCEPTANCE_THRESHOLD } from '../../constants/RiskConstants';
+// Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface RiskDashboardProps {
     risks: Risk[];

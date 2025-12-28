@@ -223,7 +223,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
 
                                     {/* Comments / Evidence */}
                                     <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-700">
-                                        <input
+                                        <input aria-label="Commentaire ou preuve"
                                             type="text"
                                             placeholder="Ajouter un commentaire ou lien de preuve..."
                                             value={answers[q.id]?.comment || ''}

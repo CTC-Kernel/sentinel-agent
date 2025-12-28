@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserGroup, UserProfile } from '../../types';
 import { Edit, Trash2, Users } from '../ui/Icons';
-import { ConfirmModal } from '../ui/ConfirmModal';
+import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
 
 interface GroupCardProps {
     group: UserGroup;
@@ -11,7 +11,7 @@ interface GroupCardProps {
 }
 
 export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, onEdit, onDelete }) => {
-    const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+    const [showConfirmDelete, setShowConfirmDelete] = useState(false); // confirmDialog via ConfirmModal
 
     return (
         <>

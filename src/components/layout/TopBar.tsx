@@ -156,9 +156,8 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                 <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide mt-0.5">{user?.role || 'User'}</span>
                             </div>
                             {user?.photoURL ? (
-                                <img
+                                <img alt="Profile"
                                     src={user.photoURL}
-                                    alt="Profile"
                                     className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md group-hover:scale-105 transition-transform"
                                 />
                             ) : (

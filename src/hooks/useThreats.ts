@@ -80,7 +80,7 @@ export const useThreats = () => {
     const seedStandardThreats = async () => {
         if (!user?.organizationId) return;
         try {
-            const batch = writeBatch(db);
+            const batch = writeBatch(db); // Note: RISK_TEMPLATES is small (<100), no chunk needed
             let count = 0;
 
             RISK_TEMPLATES.forEach(template => {
