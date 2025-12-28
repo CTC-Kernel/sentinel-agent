@@ -36,39 +36,37 @@ export const AuditsList: React.FC<AuditsListProps> = ({
     const columns = useMemo<ColumnDef<Audit>[]>(() => [
         {
             id: 'select',
-            header: ({ table }) => (
-                <div className="px-1">
-                    <input checked={table.getIsAllPageRowsSelected()} onChange={(e) => {
-                        const allIds = audits.map(a => a.id);
-                        if (e.target.checked) {
-                            onSelect?.(allIds);
-                        } else {
-                            onSelect?.([]);
-                        }
-                    }} // Simplified logic, ideally DataTable should handle this but we are bypassing for strict control
-                        type="checkbox"
-                        disabled={!onSelect}
-                        className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                        aria-label="Tout sélectionner"
-                    />
-                </div>
-            ),
-            cell: ({ row }) => (
-                <div className="px-1">
-                    <input checked={selectedIds.includes(row.original.id)} onChange={(e) => {
-                        if (e.target.checked) {
-                            onSelect?.([...selectedIds, row.original.id]);
-                        } else {
-                            onSelect?.(selectedIds.filter(id => id !== row.original.id));
-                        }
-                    }}
-                        type="checkbox"
-                        disabled={!onSelect}
-                        className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                        aria-label={`Sélectionner l'audit ${row.original.name}`}
-                    />
-                </div>
-            ),
+            header: ({ table }) => {
+                const isAllSelected = table.getIsAllPageRowsSelected();
+                const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+                    const allIds = audits.map(a => a.id);
+                    onSelect?.(e.target.checked ? allIds : []);
+                };
+                return (
+                    <div className="px-1">
+                        <input checked={isAllSelected} onChange={handleSelectAll}
+                            type="checkbox" disabled={!onSelect} aria-label="Tout sélectionner"
+                            className="rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+                    </div>
+                );
+            },
+            cell: ({ row }) => {
+                const isSelected = selectedIds.includes(row.original.id);
+                const handleSelectRow = (e: React.ChangeEvent<HTMLInputElement>) => {
+                    if (e.target.checked) {
+                        onSelect?.([...selectedIds, row.original.id]);
+                    } else {
+                        onSelect?.(selectedIds.filter(id => id !== row.original.id));
+                    }
+                };
+                return (
+                    <div className="px-1">
+                        <input checked={isSelected} onChange={handleSelectRow}
+                            type="checkbox" disabled={!onSelect} aria-label={`Sélectionner l'audit ${row.original.name}`}
+                            className="rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+                    </div>
+                );
+            },
             enableSorting: false,
             enableHiding: false,
         },

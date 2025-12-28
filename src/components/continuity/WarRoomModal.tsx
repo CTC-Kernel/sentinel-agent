@@ -6,6 +6,9 @@ import {
 import { Dialog } from '@headlessui/react';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 interface Message {
     id: string;
@@ -25,7 +28,6 @@ interface WarRoomModalProps {
 export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, scenario }) => {
     const { user } = useStore();
     const [messages, setMessages] = useState<Message[]>([]);
-    const [newMessage, setNewMessage] = useState('');
     const bottomRef = useRef<HTMLDivElement>(null);
     const initializedRef = useRef(false);
 
@@ -89,18 +91,32 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
         setMessages(prev => [...prev, msg]);
     };
 
-    const handleSendMessage = (e?: React.FormEvent) => {
-        e?.preventDefault();
-        if (!newMessage.trim()) return;
+    const messageSchema = z.object({
+        content: z.string().min(1, "Le message ne peut pas être vide")
+    });
 
+    type MessageFormData = z.infer<typeof messageSchema>;
+
+    const { register, handleSubmit, reset } = useForm<MessageFormData>({
+        resolver: zodResolver(messageSchema),
+        defaultValues: {
+            content: ''
+        }
+    });
+
+    const onSubmit = (data: MessageFormData) => {
+        if (!data.content.trim()) return;
+
+        // eslint-disable-next-line react-hooks/purity
+        const messageId = Date.now().toString();
         addMessage({
-            id: Date.now().toString(),
+            id: messageId,
             sender: user?.displayName || 'Moi',
             role: user?.role || 'User',
-            content: newMessage,
+            content: data.content,
             timestamp: new Date()
         });
-        setNewMessage('');
+        reset();
     };
 
     return (
@@ -222,17 +238,18 @@ export const WarRoomModal: React.FC<WarRoomModalProps> = ({ isOpen, onClose, sce
 
                                 {/* Input Area */}
                                 <div className="p-4 border-t border-white/10 bg-black/20">
-                                    <form onSubmit={handleSendMessage} className="flex gap-4">
+                                    <form onSubmit={handleSubmit(onSubmit)} className="flex gap-4">
                                         <Button type="button" variant="ghost" className="text-slate-400 hover:text-white">
                                             <Paperclip className="w-5 h-5" />
                                         </Button>
-                                        <input aria-label="Message de war room" value={newMessage} onChange={(e) => setNewMessage(e.target.value)}
-                                            type="text"
+                                        <input
+                                            aria-label="Message de war room"
                                             placeholder="Tapez un message chiffré..."
                                             className="flex-1 bg-transparent border-none text-white placeholder-slate-500 focus:ring-0 font-mono"
                                             autoFocus
+                                            {...register('content')}
                                         />
-                                        <Button type="submit" disabled={!newMessage.trim()} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+                                        <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
                                             <Send className="w-4 h-4" />
                                         </Button>
                                     </form>

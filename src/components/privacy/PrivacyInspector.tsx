@@ -1,6 +1,6 @@
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { ProcessingActivity, UserProfile, Asset, Risk } from '../../types';
+import { ProcessingActivity, UserProfile, Asset, Risk, SystemLog } from '../../types';
 import { ProcessingActivityFormData } from '../../schemas/privacySchema';
 import { LayoutDashboard, FileSpreadsheet, Shield, History, MessageSquare, AlertOctagon, Link as LinkIcon, CheckCircle2, AlertTriangle } from '../ui/Icons';
 import { ScrollableTabs } from '../ui/ScrollableTabs';
@@ -10,23 +10,16 @@ import { Link } from 'react-router-dom';
 import { EmptyState } from '../ui/EmptyState';
 import { CommentSection } from '../collaboration/CommentSection';
 
-interface ActivityLog {
-    timestamp: string;
-    action: string;
-    details: string;
-    userEmail: string;
-}
-
 interface PrivacyInspectorProps {
     selectedActivity: ProcessingActivity | null;
-    inspectorTab: 'details' | 'data' | 'links' | 'history' | 'comments';
-    setInspectorTab: (tab: 'details' | 'data' | 'links' | 'history' | 'comments') => void;
+    inspectorTab: string;
+    setInspectorTab: (tab: string) => void;
     isEditing: boolean;
     editActivityForm: UseFormReturn<ProcessingActivityFormData>;
     usersList: UserProfile[];
     assetsList: Asset[];
     risksList: Risk[];
-    activityHistory: ActivityLog[];
+    activityHistory: SystemLog[];
     handleStartDPIA: (activity: ProcessingActivity) => void;
     handleViewDPIA: (activity: ProcessingActivity) => void;
 }

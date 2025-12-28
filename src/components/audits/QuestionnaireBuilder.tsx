@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
 import { Questionnaire, QuestionnaireQuestion, QuestionType } from '../../types';
-import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { Plus, Trash2, Save, X, Move } from '../ui/Icons';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -10,6 +8,7 @@ import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { CustomSelect } from '../ui/CustomSelect';
 import { Modal } from '../ui/Modal';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useAuditsActions } from '../../hooks/audits/useAuditsActions';
 
 interface QuestionnaireBuilderProps {
     auditId: string;
@@ -21,6 +20,7 @@ interface QuestionnaireBuilderProps {
 
 export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ auditId, organizationId, onClose, onSave, initialData }) => {
     const { user, addToast } = useStore();
+    const { addQuestionnaire, updateQuestionnaire } = useAuditsActions();
     const [title, setTitle] = useState(initialData?.title || '');
     const [description, setDescription] = useState(initialData?.description || '');
     const [dueDate, setDueDate] = useState(initialData?.dueDate || '');
@@ -67,17 +67,17 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
             };
 
             if (initialData) {
-                await updateDoc(doc(db, 'questionnaires', initialData.id), sanitizeData(questionnaireData));
+                await updateQuestionnaire(initialData.id, sanitizeData(questionnaireData));
                 addToast("Questionnaire mis à jour", "success");
             } else {
-                await addDoc(collection(db, 'questionnaires'), sanitizeData({
+                await addQuestionnaire(sanitizeData({
                     ...questionnaireData,
                     auditId,
                     organizationId,
                     status: 'Draft',
                     createdBy: user?.uid || 'system',
                     createdAt: new Date().toISOString()
-                }));
+                }) as Questionnaire);
                 addToast("Questionnaire créé", "success");
             }
             onSave();

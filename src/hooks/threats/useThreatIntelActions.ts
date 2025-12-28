@@ -12,7 +12,14 @@ export const useThreatIntelActions = () => {
     { realtime: true, enabled: true }
   );
 
-  const { data: risks, loading: loadingRisks } = useFirestoreCollection<Risk>(
+  // Community threats with write operations
+  const { add: addCommunityThreat, update: updateCommunityThreat } = useFirestoreCollection(
+    'threats',
+    [],
+    { enabled: false } // Only used for writing, not reading
+  );
+
+  const { data: risks, loading: loadingRisks, add: addRisk } = useFirestoreCollection<Risk>(
     'risks',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { enabled: !!user?.organizationId }
@@ -29,5 +36,8 @@ export const useThreatIntelActions = () => {
     risks: risks || [],
     assets: assets || [],
     loading: loadingThreats || loadingRisks || loadingAssets,
+    addCommunityThreat,
+    updateCommunityThreat,
+    addRisk,
   };
 };

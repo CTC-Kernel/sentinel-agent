@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { updateDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
 import { useStore } from '../store';
 import { UserProfile } from '../types';
 import { useTeamData } from '../hooks/team/useTeamData';
@@ -20,7 +18,7 @@ import { UserRow } from './roles/UserRow';
 
 export const RoleManagement: React.FC = () => {
     const { user } = useStore();
-    const { users: teamUsers, loading } = useTeamData();
+    const { users: teamUsers, loading, updateUser } = useTeamData();
     const [users, setUsers] = useState<UserProfile[]>(teamUsers);
     const [editingUser, setEditingUser] = useState<string | null>(null);
     const [selectedRole, setSelectedRole] = useState<Role>('user');
@@ -32,7 +30,7 @@ export const RoleManagement: React.FC = () => {
 
     const handleUpdateRole = async (userId: string, newRole: Role) => {
         try {
-            await updateDoc(doc(db, 'users', userId), sanitizeData({
+            await updateUser(userId, sanitizeData({
                 role: newRole,
             }));
 

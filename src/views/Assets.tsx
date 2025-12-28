@@ -83,7 +83,7 @@ const Assets: React.FC = () => {
     const { currentPage, paginatedItems, setCurrentPage, setItemsPerPage, totalItems, itemsPerPage } = usePagination(filteredAssets, 20);
 
     // Handlers
-    const handleOpenInspector = (asset?: Asset) => {
+    const handleOpenInspector = React.useCallback((asset?: Asset) => {
         if (!asset && reachedAssetLimit) {
             toast.info(t('assets.limitReached', { count: assets.length, max: limits.maxAssets }).split(':')[0], {
                 description: t('assets.contactSupport')
@@ -92,16 +92,18 @@ const Assets: React.FC = () => {
         }
         setSelectedAsset(asset || null);
         setInspectorOpen(true);
-    };
+    }, [reachedAssetLimit, assets.length, limits.maxAssets, t]);
 
-    const handleCloseInspector = () => {
+    const handleCreateNew = React.useCallback(() => handleOpenInspector(undefined), [handleOpenInspector]);
+
+    const handleCloseInspector = React.useCallback(() => {
         setInspectorOpen(false);
         setSelectedAsset(null);
-    };
+    }, []);
 
     const [dependencies, setDependencies] = useState<{ id: string; name: string; type: string }[]>([]);
 
-    const handleDeleteClick = async (id: string, name: string) => {
+    const handleDeleteClick = React.useCallback(async (id: string, name: string) => {
         const depCheck = await checkDependencies(id);
         if (depCheck.hasDependencies) {
             setDependencies((depCheck.dependencies || []) as { id: string; name: string; type: string }[]);
@@ -110,30 +112,28 @@ const Assets: React.FC = () => {
         }
         setAssetToDelete({ id, name });
         setDeleteModalOpen(true);
-    };
+    }, [checkDependencies]);
 
-    const handleConfirmDelete = async () => {
+    const handleConfirmDelete = React.useCallback(async () => {
         if (assetToDelete) {
             await deleteAsset(assetToDelete.id, assetToDelete.name);
             setDeleteModalOpen(false);
             setAssetToDelete(null);
             setDependencies([]);
         }
-    };
+    }, [assetToDelete, deleteAsset]);
 
-    const handleGenerateKioskLink = () => {
+    const handleCloseDeleteModal = React.useCallback(() => setDeleteModalOpen(false), []);
+
+    const handleGenerateKioskLink = React.useCallback(() => {
         const url = `${window.location.origin}/intake`;
         navigator.clipboard.writeText(url);
         toast.success(t('assets.kioskCopied'), {
             description: t('assets.kioskCopiedDesc')
         });
-    };
+    }, [t]);
 
-    const handleExportCSV = () => {
-        // Use individual keys to ensure correct translation and type safety
-
-
-        // Safer approach: 
+    const handleExportCSV = React.useCallback(() => {
         const csvHeaders = (t('assets.csvHeaders', { returnObjects: true }) as unknown as string[]) || ['Name', 'Type', 'Status', 'Criticality', 'Owner', 'Location', 'Value', 'Warranty End'];
 
         const data = filteredAssets.map(a => ({
@@ -148,9 +148,9 @@ const Assets: React.FC = () => {
         }));
 
         CsvParser.downloadCSV(csvHeaders, data, `${t('assets.filename', { date: new Date().toISOString().split('T')[0] })}.csv`);
-    };
+    }, [filteredAssets, t]);
 
-    const handleAnalyze = async () => {
+    const handleAnalyze = React.useCallback(async () => {
         setIsAnalyzing(true);
         try {
             const prompt = t('assets.aiPrompt', { count: filteredAssets.length });
@@ -162,7 +162,45 @@ const Assets: React.FC = () => {
         } finally {
             setIsAnalyzing(false);
         }
-    };
+    }, [filteredAssets.length, t]);
+
+    const handleGenerateLabel = React.useCallback(async (asset: Asset) => {
+        const { PdfService } = await import('../services/PdfService');
+        try {
+            PdfService.generateAssetLabel(
+                { name: asset.name, id: asset.id, owner: asset.owner, type: asset.type },
+                { organizationName: limits.features.whiteLabelReports ? user?.displayName || 'Sentinel' : 'Sentinel GRC' }
+            );
+            toast.success(t('assets.labelGenerated'));
+        } catch (e) {
+            console.error(e);
+            toast.error(t('assets.labelError'));
+        }
+    }, [limits.features.whiteLabelReports, user, t]);
+
+    // Extra UI Handlers
+    const handleSearch = React.useCallback((filters: SearchFilters) => {
+        setActiveFilters(filters);
+        setShowAdvancedSearch(false);
+    }, []);
+    const handleCloseSearch = React.useCallback(() => setShowAdvancedSearch(false), []);
+    const handleToggleSearch = React.useCallback(() => setShowAdvancedSearch(prev => !prev), []);
+    const handleSearchQueryChange = React.useCallback((q: string) => setActiveFilters(prev => ({ ...prev, query: q })), []);
+    const handleViewModeChange = React.useCallback((mode: string) => setViewMode(mode as 'grid' | 'list' | 'matrix' | 'kanban'), [setViewMode]);
+    const handleStartTour = React.useCallback(() => OnboardingService.startAssetsTour(), []);
+    const handleFilterChange = React.useCallback((filter: { type: string; value: string } | null) => {
+        if (filter?.type === 'criticality') {
+            setActiveFilters(prev => ({ ...prev, criticality: filter.value as Criticality }));
+        } else if (filter === null) {
+            setActiveFilters(prev => ({ ...prev, criticality: undefined }));
+        }
+    }, []);
+
+    // CRUD Handlers for Inspector
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleUpdateAsset = React.useCallback(async (id: string, data: Partial<Asset>) => updateAsset(id, data as any), [updateAsset]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleCreateAsset = React.useCallback(async (data: any) => createAsset(data, null), [createAsset]);
 
     return (
         <motion.div
@@ -205,13 +243,7 @@ const Assets: React.FC = () => {
                     )}
                     <AssetDashboard
                         assets={filteredAssets}
-                        onFilterChange={(filter) => {
-                            if (filter?.type === 'criticality') {
-                                setActiveFilters(prev => ({ ...prev, criticality: filter.value as Criticality }));
-                            } else if (filter === null) {
-                                setActiveFilters(prev => ({ ...prev, criticality: undefined }));
-                            }
-                        }}
+                        onFilterChange={handleFilterChange}
                     />
                 </motion.div>
 
@@ -219,20 +251,17 @@ const Assets: React.FC = () => {
                 <motion.div variants={slideUpVariants} className="space-y-6">
                     {showAdvancedSearch && (
                         <AdvancedSearch
-                            onSearch={(filters) => {
-                                setActiveFilters(filters);
-                                setShowAdvancedSearch(false);
-                            }}
-                            onClose={() => setShowAdvancedSearch(false)}
+                            onSearch={handleSearch}
+                            onClose={handleCloseSearch}
                         />
                     )}
 
                     <PremiumPageControl
                         searchQuery={activeFilters.query || ''}
-                        onSearchChange={(q) => setActiveFilters(prev => ({ ...prev, query: q }))}
+                        onSearchChange={handleSearchQueryChange}
                         searchPlaceholder={t('assets.searchPlaceholder')}
                         activeView={viewMode}
-                        onViewChange={(mode) => setViewMode(mode as 'grid' | 'list' | 'matrix' | 'kanban')}
+                        onViewChange={handleViewModeChange}
                         viewOptions={[
                             { id: 'list', label: t('assets.viewList'), icon: List },
                             { id: 'grid', label: t('assets.viewGrid'), icon: LayoutGrid }
@@ -240,7 +269,7 @@ const Assets: React.FC = () => {
                         actions={
                             <>
                                 <button
-                                    onClick={() => OnboardingService.startAssetsTour()}
+                                    onClick={handleStartTour}
                                     className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
                                     title={t('assets.startTour')}
                                 >
@@ -248,7 +277,7 @@ const Assets: React.FC = () => {
                                 </button>
                                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
                                 <button
-                                    onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                                    onClick={handleToggleSearch}
                                     className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
                                         ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
                                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
@@ -277,7 +306,7 @@ const Assets: React.FC = () => {
                                             <button
                                                 aria-label={t('assets.newAsset')}
                                                 data-tour="assets-add"
-                                                onClick={() => handleOpenInspector(undefined)}
+                                                onClick={handleCreateNew}
                                                 disabled={reachedAssetLimit}
                                                 className={`flex items-center px-4 py-2 text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-500/20 ${reachedAssetLimit ? 'bg-slate-200 text-slate-500 cursor-not-allowed' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
                                             >
@@ -341,20 +370,8 @@ const Assets: React.FC = () => {
                             user={user}
                             canEdit={canEdit}
                             onEdit={handleOpenInspector}
-                            onDelete={(id, name) => handleDeleteClick(id, name)}
-                            onGenerateLabel={async (asset) => {
-                                const { PdfService } = await import('../services/PdfService');
-                                try {
-                                    PdfService.generateAssetLabel(
-                                        { name: asset.name, id: asset.id, owner: asset.owner, type: asset.type },
-                                        { organizationName: limits.features.whiteLabelReports ? user?.displayName || 'Sentinel' : 'Sentinel GRC' }
-                                    );
-                                    toast.success(t('assets.labelGenerated'));
-                                } catch (e) {
-                                    console.error(e);
-                                    toast.error(t('assets.labelError'));
-                                }
-                            }}
+                            onDelete={handleDeleteClick}
+                            onGenerateLabel={handleGenerateLabel}
                             isGeneratingLabels={false}
                             activeFiltersQuery={activeFilters.query}
                             onBulkDelete={bulkDeleteAssets}
@@ -374,8 +391,8 @@ const Assets: React.FC = () => {
                     isOpen={inspectorOpen}
                     onClose={handleCloseInspector}
                     selectedAsset={selectedAsset}
-                    onUpdate={async (id, data) => updateAsset(id, data)}
-                    onCreate={async (data) => createAsset(data, null)}
+                    onUpdate={handleUpdateAsset}
+                    onCreate={handleCreateAsset}
                     users={usersList}
                     suppliers={suppliers}
                     processes={processes}
@@ -385,7 +402,7 @@ const Assets: React.FC = () => {
                 {/* Delete Confirmation */}
                 <ConfirmModal
                     isOpen={deleteModalOpen}
-                    onClose={() => setDeleteModalOpen(false)}
+                    onClose={handleCloseDeleteModal}
                     onConfirm={handleConfirmDelete}
                     title={t('assets.deleteTitle')}
                     message={

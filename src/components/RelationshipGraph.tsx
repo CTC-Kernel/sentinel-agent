@@ -1,9 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Asset, Risk, Control } from '../types';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../firebase';
-import { ErrorLogger } from '../services/errorLogger';
+import React from 'react';
 import { ShieldAlert, Server, CheckCircle2 } from './ui/Icons';
+import { useRelationshipsData } from '../hooks/relationships/useRelationshipsData';
 
 interface RelationshipGraphProps {
     rootId: string;
@@ -12,115 +9,8 @@ interface RelationshipGraphProps {
     height?: number;
 }
 
-interface Node {
-    id: string;
-    type: 'Asset' | 'Risk' | 'Control';
-    label: string;
-    x: number;
-    y: number;
-    data?: Asset | Risk | Control;
-}
-
-interface Link {
-    source: string;
-    target: string;
-}
-
 export const RelationshipGraph: React.FC<RelationshipGraphProps> = ({ rootId, rootType, width = 800, height = 600 }) => {
-    const [nodes, setNodes] = useState<Node[]>([]);
-    const [links, setLinks] = useState<Link[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            const newNodes: Node[] = [];
-            const newLinks: Link[] = [];
-            const cx = width / 2;
-            const cy = height / 2;
-
-            try {
-                if (rootType === 'Asset') {
-                    // 1. Fetch Root Asset
-                    const assetSnap = await getDocs(query(collection(db, 'assets'), where('__name__', '==', rootId)));
-                    if (assetSnap.empty) return;
-                    const asset = { id: assetSnap.docs[0].id, ...assetSnap.docs[0].data() } as Asset;
-
-                    newNodes.push({ id: asset.id, type: 'Asset', label: asset.name, x: cx, y: cy, data: asset });
-
-                    // 2. Fetch Linked Risks
-                    const risksSnap = await getDocs(query(collection(db, 'risks'), where('assetId', '==', rootId)));
-                    const risks = risksSnap.docs.map(d => ({ id: d.id, ...d.data() } as Risk));
-
-                    risks.forEach((risk, i) => {
-                        const angle = (i / risks.length) * 2 * Math.PI;
-                        const r = 150;
-                        const nx = cx + r * Math.cos(angle);
-                        const ny = cy + r * Math.sin(angle);
-                        newNodes.push({ id: risk.id, type: 'Risk', label: risk.threat, x: nx, y: ny, data: risk });
-                        newLinks.push({ source: asset.id, target: risk.id });
-
-                        // 3. Fetch Linked Controls for each Risk (if any)
-                        // Note: This might be expensive if many risks. Limiting to direct links for now.
-                        // If risk has mitigationControlIds, we can fetch them.
-                    });
-
-                } else if (rootType === 'Risk') {
-                    // 1. Fetch Root Risk
-                    const riskSnap = await getDocs(query(collection(db, 'risks'), where('__name__', '==', rootId)));
-                    if (riskSnap.empty) return;
-                    const risk = { id: riskSnap.docs[0].id, ...riskSnap.docs[0].data() } as Risk;
-
-                    newNodes.push({ id: risk.id, type: 'Risk', label: risk.threat, x: cx, y: cy, data: risk });
-
-                    // 2. Fetch Linked Asset
-                    if (risk.assetId) {
-                        const assetSnap = await getDocs(query(collection(db, 'assets'), where('__name__', '==', risk.assetId)));
-                        if (!assetSnap.empty) {
-                            const asset = assetSnap.docs[0].data() as Asset;
-                            newNodes.push({ id: risk.assetId, type: 'Asset', label: asset.name, x: cx - 200, y: cy, data: asset });
-                            newLinks.push({ source: risk.assetId, target: risk.id });
-                        }
-                    }
-
-                    // 3. Fetch Linked Controls
-                    if (risk.mitigationControlIds && risk.mitigationControlIds.length > 0) {
-                        try {
-                            // Firestore 'in' query supports max 10 items.
-                            const chunks = [];
-                            for (let i = 0; i < risk.mitigationControlIds.length; i += 10) {
-                                chunks.push(risk.mitigationControlIds.slice(i, i + 10));
-                            }
-
-                            for (const chunk of chunks) {
-                                const controlsSnap = await getDocs(query(collection(db, 'controls'), where('__name__', 'in', chunk)));
-                                const controls = controlsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Control));
-
-                                controls.forEach((control, i) => {
-                                    const nx = cx + 200;
-                                    const ny = cy + (i - controls.length / 2) * 60;
-                                    newNodes.push({ id: control.id, type: 'Control', label: control.code, x: nx, y: ny, data: control });
-                                    newLinks.push({ source: risk.id, target: control.id });
-                                });
-                            }
-                        } catch (error) {
-                            ErrorLogger.error(error, 'RelationshipGraph.fetchLinkedControls');
-                        }
-                    }
-                }
-
-                setNodes(newNodes);
-                setLinks(newLinks);
-            } catch (e) {
-                ErrorLogger.error(e, 'RelationshipGraph.fetchData');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-
-    }, [rootId, rootType, width, height]);
+    const { nodes, links, loading } = useRelationshipsData(rootId, rootType, width, height);
 
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full"></div></div>;
 

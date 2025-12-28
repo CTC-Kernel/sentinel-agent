@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { Document, DocumentVersion, Control, UserProfile } from '../../types';
-import { ErrorLogger } from '../../services/errorLogger';
+import { Document, Control, UserProfile } from '../../types';
 import { Drawer } from '../ui/Drawer';
 import { ScrollableTabs } from '../ui/ScrollableTabs';
 import { SafeHTML } from '../ui/SafeHTML';
@@ -12,6 +9,7 @@ import { ApprovalFlow } from './ApprovalFlow';
 import { DocumentVersionHistory } from './DocumentVersionHistory';
 import { CommentSection } from '../collaboration/CommentSection';
 import { TimelineView } from '../shared/TimelineView';
+import { useDocumentVersions } from '../../hooks/documents/useDocumentVersions';
 // FilePreview import removed
 // FilePreview is imported but intentionally not used via the component tag to avoid auto-modal. 
 // However, we should remove the import if we are not using it at all.
@@ -49,10 +47,9 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
     onWorkflowAction,
     onSecureView
 }) => {
-    // user is unused now.
     const [activeTab, setActiveTab] = useState<'details' | 'versions' | 'history' | 'comments'>('details');
-    const [versions, setVersions] = useState<DocumentVersion[]>([]);
     const [isDeleting, setIsDeleting] = useState(false);
+    const { versions } = useDocumentVersions(selectedDocument?.id || null, isOpen);
 
     const handleDelete = async () => {
         if (isDeleting) return;
@@ -66,26 +63,8 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
 
     useEffect(() => {
         if (!isOpen || !selectedDocument) {
-            setVersions([]);
             setActiveTab('details');
         }
-    }, [isOpen, selectedDocument]);
-
-    useEffect(() => {
-        if (!isOpen || !selectedDocument) return;
-
-        const qVersions = query(
-            collection(db, 'document_versions'),
-            where('documentId', '==', selectedDocument.id),
-            orderBy('uploadedAt', 'desc')
-        );
-        const unsubscribeVersions = onSnapshot(qVersions, (snapshot) => {
-            setVersions(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as DocumentVersion)));
-        }, (err) => ErrorLogger.handleErrorWithToast(err, 'Documents.inspector.versions'));
-
-        return () => {
-            unsubscribeVersions();
-        };
     }, [isOpen, selectedDocument]);
 
     if (!selectedDocument) return null;

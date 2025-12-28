@@ -1,7 +1,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { useFirestoreCollection } from '../useFirestore';
-import { where, collection, addDoc, updateDoc, doc, deleteDoc, query, getDocs, arrayUnion, writeBatch, arrayRemove } from 'firebase/firestore';
+import { where, collection, addDoc, updateDoc, doc, deleteDoc, query, getDocs, arrayUnion, writeBatch, arrayRemove, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Audit, Control, Asset, Risk, UserProfile, Document, Project, Finding, AuditChecklist } from '../../types';
@@ -22,19 +22,19 @@ export const useAudits = () => {
 
     // --- Data Fetching ---
     const { data: rawAudits, loading: auditsLoading, refresh: refreshAudits } = useFirestoreCollection<Audit>(
-        'audits', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true }
+        'audits', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true }
     );
     const { data: rawControls, loading: controlsLoading } = useFirestoreCollection<Control>(
-        'controls', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true }
+        'controls', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(1000)], { logError: true, realtime: true }
     );
     const { data: rawAssets, loading: assetsLoading } = useFirestoreCollection<Asset>(
-        'assets', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true }
+        'assets', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true }
     );
     const { data: rawRisks, loading: risksLoading } = useFirestoreCollection<Risk>(
-        'risks', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true }
+        'risks', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true }
     );
     const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
-        'users', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true }
+        'users', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(100)], { logError: true, realtime: true }
     );
 
     // FIX: Ensure usersList is never empty if we are logged in (fallback to self)
@@ -45,13 +45,13 @@ export const useAudits = () => {
     }, [usersList, user]);
 
     const { data: documents, loading: docsLoading } = useFirestoreCollection<Document>(
-        'documents', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true }
+        'documents', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(200)], { logError: true, realtime: true }
     );
     const { data: rawProjects, loading: projectsLoading } = useFirestoreCollection<Project>(
-        'projects', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true }
+        'projects', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(100)], { logError: true, realtime: true }
     );
     const { data: allFindings, loading: findingsLoading } = useFirestoreCollection<Finding>(
-        'findings', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true }
+        'findings', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true }
     );
 
     const loading = auditsLoading || controlsLoading || assetsLoading || risksLoading || usersLoading || docsLoading || projectsLoading || findingsLoading;

@@ -1,54 +1,118 @@
-import { useFirestoreCollection } from '../useFirestore';
-import { where } from 'firebase/firestore';
-import { useAuth } from '../useAuth';
-import { Risk, Asset, Incident, Document, Project, Control } from '../../types';
+import { useState, useEffect } from 'react';
+import { collection, getDocs, query, where, limit } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { Asset, Risk, Control } from '../../types';
+import { ErrorLogger } from '../../services/errorLogger';
 
-export const useRelationshipsData = () => {
-  const { user } = useAuth();
+interface Node {
+  id: string;
+  type: 'Asset' | 'Risk' | 'Control';
+  label: string;
+  x: number;
+  y: number;
+  data?: Asset | Risk | Control;
+}
 
-  const { data: risks, loading: loadingRisks } = useFirestoreCollection<Risk>(
-    'risks',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
-    { enabled: !!user?.organizationId }
-  );
+interface Link {
+  source: string;
+  target: string;
+}
 
-  const { data: assets, loading: loadingAssets } = useFirestoreCollection<Asset>(
-    'assets',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
-    { enabled: !!user?.organizationId }
-  );
+interface RelationshipsData {
+  nodes: Node[];
+  links: Link[];
+  loading: boolean;
+}
 
-  const { data: incidents, loading: loadingIncidents } = useFirestoreCollection<Incident>(
-    'incidents',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
-    { enabled: !!user?.organizationId }
-  );
+export const useRelationshipsData = (
+  rootId: string,
+  rootType: 'Asset' | 'Risk',
+  width: number,
+  height: number
+): RelationshipsData => {
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [links, setLinks] = useState<Link[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const { data: documents, loading: loadingDocuments } = useFirestoreCollection<Document>(
-    'documents',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
-    { enabled: !!user?.organizationId }
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const newNodes: Node[] = [];
+      const newLinks: Link[] = [];
+      const cx = width / 2;
+      const cy = height / 2;
 
-  const { data: projects, loading: loadingProjects } = useFirestoreCollection<Project>(
-    'projects',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
-    { enabled: !!user?.organizationId }
-  );
+      try {
+        if (rootType === 'Asset') {
+          const assetSnap = await getDocs(query(collection(db, 'assets'), where('__name__', '==', rootId)));
+          if (assetSnap.empty) return;
+          const asset = { id: assetSnap.docs[0].id, ...assetSnap.docs[0].data() } as Asset;
 
-  const { data: controls, loading: loadingControls } = useFirestoreCollection<Control>(
-    'compliance_controls',
-    [where('organizationId', '==', user?.organizationId || 'ignore')],
-    { enabled: !!user?.organizationId }
-  );
+          newNodes.push({ id: asset.id, type: 'Asset', label: asset.name, x: cx, y: cy, data: asset });
 
-  return {
-    risks: risks || [],
-    assets: assets || [],
-    incidents: incidents || [],
-    documents: documents || [],
-    projects: projects || [],
-    controls: controls || [],
-    loading: loadingRisks || loadingAssets || loadingIncidents || loadingDocuments || loadingProjects || loadingControls,
-  };
+          const risksSnap = await getDocs(query(collection(db, 'risks'), where('assetId', '==', rootId), limit(20)));
+          const risks = risksSnap.docs.map(d => ({ id: d.id, ...d.data() } as Risk));
+
+          risks.forEach((risk, i) => {
+            const angle = (i / risks.length) * 2 * Math.PI;
+            const r = 150;
+            const nx = cx + r * Math.cos(angle);
+            const ny = cy + r * Math.sin(angle);
+            newNodes.push({ id: risk.id, type: 'Risk', label: risk.threat, x: nx, y: ny, data: risk });
+            newLinks.push({ source: asset.id, target: risk.id });
+          });
+
+        } else if (rootType === 'Risk') {
+          const riskSnap = await getDocs(query(collection(db, 'risks'), where('__name__', '==', rootId)));
+          if (riskSnap.empty) return;
+          const risk = { id: riskSnap.docs[0].id, ...riskSnap.docs[0].data() } as Risk;
+
+          newNodes.push({ id: risk.id, type: 'Risk', label: risk.threat, x: cx, y: cy, data: risk });
+
+          if (risk.assetId) {
+            const assetSnap = await getDocs(query(collection(db, 'assets'), where('__name__', '==', risk.assetId)));
+            if (!assetSnap.empty) {
+              const asset = assetSnap.docs[0].data() as Asset;
+              newNodes.push({ id: risk.assetId, type: 'Asset', label: asset.name, x: cx - 200, y: cy, data: asset });
+              newLinks.push({ source: risk.assetId, target: risk.id });
+            }
+          }
+
+          if (risk.mitigationControlIds && risk.mitigationControlIds.length > 0) {
+            try {
+              const chunks = [];
+              for (let i = 0; i < risk.mitigationControlIds.length; i += 10) {
+                chunks.push(risk.mitigationControlIds.slice(i, i + 10));
+              }
+
+              for (const chunk of chunks) {
+                const controlsSnap = await getDocs(query(collection(db, 'controls'), where('__name__', 'in', chunk)));
+                const controls = controlsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Control));
+
+                controls.forEach((control, i) => {
+                  const nx = cx + 200;
+                  const ny = cy + (i - controls.length / 2) * 60;
+                  newNodes.push({ id: control.id, type: 'Control', label: control.code, x: nx, y: ny, data: control });
+                  newLinks.push({ source: risk.id, target: control.id });
+                });
+              }
+            } catch (error) {
+              ErrorLogger.error(error, 'useRelationshipsData.fetchLinkedControls');
+            }
+          }
+        }
+
+        setNodes(newNodes);
+        setLinks(newLinks);
+      } catch (e) {
+        ErrorLogger.error(e, 'useRelationshipsData.fetchData');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [rootId, rootType, width, height]);
+
+  return { nodes, links, loading };
 };

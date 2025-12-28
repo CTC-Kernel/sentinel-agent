@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Fingerprint, Scale, GlobeLock, Clock, CheckCircle2, Trash2 } from '../ui/Icons';
 import { slideUpVariants } from '../ui/animationVariants';
 import { ProcessingActivity } from '../../types';
+import { ConfirmModal } from '../ui/ConfirmModal';
 
 interface ActivityCardProps {
     activity: ProcessingActivity;
@@ -12,6 +13,7 @@ interface ActivityCardProps {
 }
 
 export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }: ActivityCardProps) => {
+    const [showConfirmDelete, setShowConfirmDelete] = useState(false);
     return (
         <motion.div
             variants={slideUpVariants}
@@ -57,13 +59,24 @@ export const ActivityCard = React.memo(({ activity, onClick, onDelete, canEdit }
                 <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                         aria-label="Delete"
-                        onClick={(e) => { e.stopPropagation(); onDelete(activity.id, activity.name); }}
-                        className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-50 shadow-sm backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                        onClick={(e) => { e.stopPropagation(); setShowConfirmDelete(true); }}
+                        className="p-2 bg-white/80 dark:bg-slate-800/80 rounded-xl text-slate-500 hover:text-red-500 shadow-sm backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                         <Trash2 className="h-4 w-4" />
                     </button>
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={showConfirmDelete}
+                onClose={() => setShowConfirmDelete(false)}
+                onConfirm={() => onDelete(activity.id, activity.name)}
+                title="Supprimer l'activité de traitement"
+                message={`Êtes-vous sûr de vouloir supprimer "${activity.name}" ?`}
+                type="danger"
+                confirmText="Supprimer"
+                cancelText="Annuler"
+            />
         </motion.div>
     );
 });

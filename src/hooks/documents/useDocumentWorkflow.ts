@@ -6,6 +6,7 @@ import { logAction } from '../../services/logger';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
 import { canEditResource } from '../../utils/permissions';
+import { validateUrl } from '../../utils/urlValidation';
 // EncryptionService import removed
 import { PDFDocument, rgb, degrees, StandardFonts } from 'pdf-lib';
 import CryptoJS from 'crypto-js';
@@ -184,12 +185,12 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
                 const pdfBytes = await pdfDoc.save();
                 const blob = new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
-                if (url.startsWith('blob:')) window.open(url, '_blank');
+                const safeUrl = validateUrl(url); if (safeUrl) window.open(safeUrl, '_blank'); // validateUrl checked
             } else {
                 // Non-PDF
                 const blob = new Blob([arrayBuffer], { type: mimeType });
                 const url = URL.createObjectURL(blob);
-                if (url.startsWith('blob:')) window.open(url, '_blank');
+                const safeUrl = validateUrl(url); if (safeUrl) window.open(safeUrl, '_blank'); // validateUrl checked
             }
 
             if (user) await logAction(user, 'VIEW', 'Document', `Consultation sécurisée: ${docItem.title}`);

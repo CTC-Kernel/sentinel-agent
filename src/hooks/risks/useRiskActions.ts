@@ -11,7 +11,10 @@ import { ImportService } from '../../services/ImportService';
 import { NotificationService } from '../../services/notificationService';
 import { DependencyService } from '../../services/dependencyService';
 import { riskSchema } from '../../schemas/riskSchema';
+// Duplicate import removed
 import { sanitizeData } from '../../utils/dataSanitizer';
+import { canEditResource } from '../../utils/permissions';
+import { UserProfile } from '../../types';
 
 export const useRiskActions = (onRefresh: () => void) => {
     const { user } = useAuth();
@@ -22,6 +25,11 @@ export const useRiskActions = (onRefresh: () => void) => {
 
     const createRisk = async (data: Partial<Risk>) => {
         if (!user?.organizationId) return false;
+        if (!canEditResource(user as UserProfile, 'Risk')) {
+            toast.error("Permission refusée");
+            return false;
+        }
+
         setSubmitting(true);
         try {
             // Validation Zod
@@ -74,6 +82,7 @@ export const useRiskActions = (onRefresh: () => void) => {
     };
 
     const updateRisk = async (id: string, data: Partial<Risk>, currentRisk?: Risk) => {
+        if (!canEditResource(user as UserProfile, 'Risk')) return false;
         setSubmitting(true);
         try {
             const riskRef = doc(db, 'risks', id);
@@ -122,6 +131,7 @@ export const useRiskActions = (onRefresh: () => void) => {
     };
 
     const deleteRisk = async (id: string, name?: string) => {
+        if (!canEditResource(user as UserProfile, 'Risk')) return false;
         setSubmitting(true);
         try {
             // Cleanup references using service
@@ -218,7 +228,7 @@ export const useRiskActions = (onRefresh: () => void) => {
 
     const bulkDeleteRisks = async (ids: string[]) => {
         setSubmitting(true);
-        if (!user?.organizationId) {
+        if (!user?.organizationId || !canEditResource(user as UserProfile, 'Risk')) {
             setSubmitting(false);
             return;
         }
@@ -266,6 +276,10 @@ export const useRiskActions = (onRefresh: () => void) => {
             await Promise.all(updateOps); // Run dependency updates
             await batch.commit(); // Run risk deletions
 
+            if (user) {
+                await logAction(user, 'DELETE_RISK', 'Risk', `Suppression multiple: ${ids.length} risques`);
+            }
+
             toast.success(`${ids.length} risques supprimés` + (cleanedDependenciesCount > 0 ? ` (${cleanedDependenciesCount} liens nettoyés)` : ''));
             onRefresh();
         } catch (error) {
@@ -278,6 +292,7 @@ export const useRiskActions = (onRefresh: () => void) => {
 
 
     const importRisks = async (csvContent: string) => {
+        if (!canEditResource(user as UserProfile, 'Risk')) return false;
         setIsImporting(true);
         try {
             const { data, errors } = ImportService.parseRisks(csvContent);

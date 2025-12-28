@@ -1,8 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { EvidenceRequest, UserProfile, Document, Control } from '../../types';
-import { where, addDoc, collection, updateDoc, doc, deleteDoc, arrayUnion } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { where, arrayUnion, serverTimestamp } from 'firebase/firestore';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useStore } from '../../store';
 import { Plus, FileText, X } from '../ui/Icons';
 import { CustomSelect } from '../ui/CustomSelect';
@@ -27,82 +29,73 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
     const [isCreating, setIsCreating] = useState(false);
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
-    const { data: requests, refresh } = useFirestoreCollection<EvidenceRequest>(
+    const { data: requests, refresh, loading, add: addRequest, update: updateRequest, remove: removeRequest } = useFirestoreCollection<EvidenceRequest>(
         'evidence_requests',
         [where('organizationId', '==', organizationId), where('auditId', '==', auditId)],
         { logError: true, realtime: true }
     );
 
-    const { data: documents } = useFirestoreCollection<Document>(
+    const { data: documents, add: addDocument } = useFirestoreCollection<Document>(
         'documents',
         [where('organizationId', '==', organizationId)],
         { logError: true, realtime: true }
     );
 
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        assignedTo: '',
-        dueDate: '',
-        relatedControlId: ''
+    // Hook for updating controls without fetching
+    const { update: updateControl } = useFirestoreCollection('controls', [], { enabled: false });
+
+    const requestSchema = z.object({
+        title: z.string().min(1, 'Le titre est requis').max(100),
+        description: z.string().min(1, 'La description est requise'),
+        assignedTo: z.string().optional(),
+        dueDate: z.string().optional(),
+        relatedControlId: z.string().optional()
     });
 
-    const handleCreate = useCallback(async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!user) return;
+    type RequestFormData = z.infer<typeof requestSchema>;
 
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<RequestFormData>({
+        resolver: zodResolver(requestSchema),
+        defaultValues: {
+            title: '',
+            description: '',
+            assignedTo: '',
+            dueDate: '',
+            relatedControlId: ''
+        }
+    });
+
+    const onSubmit: SubmitHandler<RequestFormData> = async (data) => {
+        if (!user) return;
         try {
-            await addDoc(collection(db, 'evidence_requests'), sanitizeData({
+            await addRequest(sanitizeData({
                 auditId,
                 organizationId,
-                title: formData.title,
-                description: formData.description,
+                title: data.title,
+                description: data.description,
                 status: 'Pending',
                 requestedBy: user.uid,
-                assignedTo: formData.assignedTo || null,
-                dueDate: formData.dueDate || null,
-                relatedControlId: formData.relatedControlId || null,
+                assignedTo: data.assignedTo || null,
+                dueDate: data.dueDate || null,
+                relatedControlId: data.relatedControlId || null,
                 documentIds: [],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
             }));
             addToast("Demande de preuve créée", "success");
             setIsCreating(false);
-            setFormData({ title: '', description: '', assignedTo: '', dueDate: '', relatedControlId: '' });
+            reset();
             refresh();
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleCreate', 'CREATE_FAILED');
         }
-    }, [user, auditId, organizationId, formData, addToast, refresh]);
-
-    const handleStatusChange = useCallback(async (req: EvidenceRequest, status: EvidenceRequest['status']) => {
-        try {
-            await updateDoc(doc(db, 'evidence_requests', req.id), sanitizeData({
-                status,
-                updatedAt: new Date().toISOString()
-            }));
-            refresh();
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleStatusChange', 'UPDATE_FAILED');
-        }
-    }, [refresh]);
-
-    const handleDelete = useCallback(async (id: string) => {
-        if (!window.confirm("Supprimer cette demande ?")) return;
-        try {
-            await deleteDoc(doc(db, 'evidence_requests', id));
-            refresh();
-            addToast("Demande supprimée", "info");
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleDelete', 'DELETE_FAILED');
-        }
-    }, [refresh, addToast]);
+    };
 
     const handleFileUpload = useCallback(async (req: EvidenceRequest, url: string, fileName: string) => {
         if (!user) return;
         try {
             // Create Document
-            const docRef = await addDoc(collection(db, 'documents'), sanitizeData({
+            const docId = await addDocument(sanitizeData({
                 title: `Preuve - ${fileName}`,
                 type: 'Preuve',
                 version: '1.0',
@@ -111,8 +104,8 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                 organizationId,
                 owner: user.displayName || user.email,
                 ownerId: user.uid,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
                 relatedAuditIds: [auditId],
                 relatedControlIds: req.relatedControlId ? [req.relatedControlId] : []
             }));
@@ -120,16 +113,16 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
             // Link to Request
             const currentDocs = req.documentIds || [];
 
-            await updateDoc(doc(db, 'evidence_requests', req.id), sanitizeData({
-                documentIds: [...currentDocs, docRef.id],
+            await updateRequest(req.id, sanitizeData({
+                documentIds: [...currentDocs, docId],
                 status: 'Provided', // Auto-update status
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             }));
 
             // Link to Control (if applicable)
             if (req.relatedControlId) {
-                await updateDoc(doc(db, 'controls', req.relatedControlId), {
-                    evidenceIds: arrayUnion(docRef.id)
+                await updateControl(req.relatedControlId, {
+                    evidenceIds: arrayUnion(docId)
                 });
             }
 
@@ -138,7 +131,36 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleFileUpload', 'FILE_UPLOAD_FAILED');
         }
-    }, [user, organizationId, auditId, refresh, addToast]);
+    }, [user, organizationId, auditId, refresh, addToast, addDocument, updateRequest, updateControl]);
+
+    const handleStatusChange = useCallback(async (req: EvidenceRequest, status: EvidenceRequest['status']) => {
+        try {
+            await updateRequest(req.id, sanitizeData({
+                status,
+                updatedAt: serverTimestamp()
+            }));
+            refresh();
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleStatusChange', 'UPDATE_FAILED');
+        }
+    }, [refresh, updateRequest]);
+
+    const handleDelete = useCallback(async (id: string) => {
+        if (!window.confirm("Supprimer cette demande ?")) return;
+        try {
+            await removeRequest(id);
+            refresh();
+            addToast("Demande supprimée", "info");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleDelete', 'DELETE_FAILED');
+        }
+    }, [refresh, addToast, removeRequest]);
+
+    const handleExpand = useCallback((id: string | null) => {
+        setExpandedId(prev => prev === id ? null : id);
+    }, []);
+
+    const values = watch();
 
     const handleExport = useCallback(() => {
         exportEvidenceRequestsZip({
@@ -155,35 +177,37 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
         });
     }, [auditId, requests, users, controls, documents, addToast]);
 
-    const handleExpand = useCallback((id: string | null) => {
-        setExpandedId(id);
-    }, []);
-
-    const toggleCreation = useCallback(() => {
-        setIsCreating(prev => !prev);
-    }, []);
-
     return (
-        <div className="space-y-6">
-            <div className="flex flex-wrap justify-between items-center gap-3 min-w-0">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Demandes de Preuves</h3>
-                <div className="flex flex-wrap gap-2 max-w-full">
-                    <button
-                        onClick={handleExport}
-                        className="flex items-center px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                        aria-label="Exporter les preuves (ZIP)"
-                    >
-                        <FileText className="w-4 h-4 mr-2" />
-                        Exporter (ZIP)
-                    </button>
+        <div>
+            <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-brand-600" />
+                    Demandes de preuves
+                    <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-400">
+                        {requests.length}
+                    </span>
+                </h3>
+                <div className="flex items-center gap-2">
+                    {requests.length > 0 && (
+                        <button
+                            onClick={handleExport}
+                            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            aria-label="Exporter les preuves (ZIP)"
+                            title="Exporter les preuves (ZIP)"
+                        >
+                            <FileText className="h-5 w-5" />
+                        </button>
+                    )}
                     {canEdit && (
                         <button
-                            onClick={toggleCreation}
-                            className="flex items-center px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                            aria-label={isCreating ? "Annuler la création" : "Nouvelle demande de preuve"}
+                            onClick={() => setIsCreating(!isCreating)}
+                            className={`p-2 rounded-xl transition-colors ${isCreating
+                                ? 'bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400'
+                                : 'bg-brand-50 text-brand-600 hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-400'
+                                }`}
+                            aria-label={isCreating ? "Annuler la création" : "Nouvelle demande"}
                         >
-                            {isCreating ? <X className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-                            {isCreating ? 'Annuler' : 'Nouvelle Demande'}
+                            {isCreating ? <X className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
                         </button>
                     )}
                 </div>
@@ -191,45 +215,47 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
 
             {
                 isCreating && (
-                    <form onSubmit={handleCreate} className="bg-slate-50 dark:bg-white/5 p-6 rounded-2xl border border-slate-100 dark:border-white/10 space-y-4 animate-fade-in">
+                    <form onSubmit={handleSubmit(onSubmit)} className="bg-slate-50 dark:bg-white/5 p-6 rounded-2xl border border-slate-100 dark:border-white/10 space-y-4 animate-fade-in mb-6">
                         <FloatingLabelInput
                             label="Titre de la demande"
-                            value={formData.title}
-                            onChange={e => setFormData({ ...formData, title: e.target.value })}
-                            required
+                            {...register('title')}
+                            error={errors.title?.message}
                         />
                         <FloatingLabelTextarea
                             label="Description détaillée"
-                            value={formData.description}
-                            onChange={e => setFormData({ ...formData, description: e.target.value })}
-                            required
+                            {...register('description')}
+                            error={errors.description?.message}
                             rows={3}
                         />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <CustomSelect
                                 label="Assigné à"
-                                value={formData.assignedTo}
-                                onChange={val => setFormData({ ...formData, assignedTo: val as string })}
+                                value={values.assignedTo || ''}
+                                onChange={val => setValue('assignedTo', val as string)}
                                 options={users.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
                                 placeholder="Sélectionner un responsable..."
                             />
                             <FloatingLabelInput
                                 label="Date d'échéance"
                                 type="date"
-                                value={formData.dueDate}
-                                onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
+                                {...register('dueDate')}
                             />
                         </div>
                         <CustomSelect
                             label="Lier à un contrôle (Optionnel)"
-                            value={formData.relatedControlId}
-                            onChange={val => setFormData({ ...formData, relatedControlId: val as string })}
+                            value={values.relatedControlId || ''}
+                            onChange={val => setValue('relatedControlId', val as string)}
                             options={controls.map(c => ({ value: c.id, label: `${c.code} - ${c.name}` }))}
                             placeholder="Sélectionner un contrôle..."
                         />
                         <div className="flex justify-end pt-2">
-                            <button type="submit" aria-label="Soumettre la demande" className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                                Créer la demande
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                aria-label="Soumettre la demande"
+                                className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isSubmitting ? 'Création...' : 'Créer la demande'}
                             </button>
                         </div>
                     </form>
@@ -237,7 +263,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
             }
 
             <div className="space-y-4">
-                {requests.length === 0 && !isCreating && (
+                {requests.length === 0 && !isCreating && !loading && (
                     <EmptyState
                         icon={FileText}
                         title="Aucune demande de preuve"
@@ -246,22 +272,29 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                         onAction={canEdit ? () => setIsCreating(true) : undefined}
                     />
                 )}
-                {requests.map(req => (
-                    <EvidenceRequestItem
-                        key={req.id}
-                        req={req}
-                        user={user}
-                        users={users}
-                        documents={documents}
-                        isExpanded={expandedId === req.id}
-                        canEdit={canEdit}
-                        onExpand={handleExpand}
-                        onStatusChange={handleStatusChange}
-                        onDelete={handleDelete}
-                        onUpload={handleFileUpload}
-                    />
-                ))}
+                {loading ? (
+                    // Skeletons
+                    [1, 2, 3].map(i => (
+                        <div key={`skeleton-${i}`} className="h-24 bg-slate-100 dark:bg-white/5 rounded-2xl animate-pulse" />
+                    ))
+                ) : (
+                    requests.map(req => (
+                        <EvidenceRequestItem
+                            key={req.id}
+                            req={req}
+                            user={user}
+                            users={users}
+                            documents={documents}
+                            isExpanded={expandedId === req.id}
+                            canEdit={canEdit}
+                            onExpand={handleExpand}
+                            onStatusChange={handleStatusChange}
+                            onDelete={handleDelete}
+                            onUpload={handleFileUpload}
+                        />
+                    ))
+                )}
             </div>
-        </div >
+        </div>
     );
 };

@@ -1,6 +1,4 @@
 import React, { useState, useCallback } from 'react';
-import { collection, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { UserGroup, UserProfile } from '../../types';
 import { useStore } from '../../store';
 import { useTeamData } from '../../hooks/team/useTeamData';
@@ -13,6 +11,17 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { GroupCard } from './GroupCard';
 import { MemberSelector } from './MemberSelector';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const groupSchema = z.object({
+    name: z.string().min(2, 'Nom requis (min 2 caractères)').max(100, 'Nom trop long'),
+    description: z.string().max(500, 'Description trop longue').optional(),
+    members: z.array(z.string()).optional()
+});
+
+type GroupFormData = z.infer<typeof groupSchema>;
 
 interface GroupManagerProps {
     users: UserProfile[];
@@ -20,80 +29,86 @@ interface GroupManagerProps {
 
 export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
     const { user, addToast } = useStore();
-    const { groups } = useTeamData();
+    const { groups, addGroup, updateGroup, removeGroup } = useTeamData();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [editingGroup, setEditingGroup] = useState<UserGroup | null>(null);
-    const [formData, setFormData] = useState<{ name: string; description: string; members: string[] }>({
-        name: '', description: '', members: []
+
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<GroupFormData>({
+        resolver: zodResolver(groupSchema),
+        defaultValues: {
+            name: '',
+            description: '',
+            members: []
+        }
     });
 
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; groupId: string | null }>({ isOpen: false, groupId: null });
 
+    const formValues = watch();
+
     const handleOpenDrawer = useCallback((group?: UserGroup) => {
         if (group) {
             setEditingGroup(group);
-            setFormData({
+            reset({
                 name: group.name,
                 description: group.description || '',
                 members: group.members || []
             });
         } else {
             setEditingGroup(null);
-            setFormData({ name: '', description: '', members: [] });
+            reset({ name: '', description: '', members: [] });
         }
         setIsDrawerOpen(true);
-    }, []);
+    }, [reset]);
 
     const toggleMember = useCallback((uid: string) => {
-        setFormData(prev => {
-            const currentMembers = prev.members || [];
-            if (currentMembers.includes(uid)) {
-                return { ...prev, members: currentMembers.filter(id => id !== uid) };
-            } else {
-                return { ...prev, members: [...currentMembers, uid] };
-            }
-        });
-    }, []);
+        const currentMembers = formValues.members || [];
+        if (currentMembers.includes(uid)) {
+            setValue('members', currentMembers.filter(id => id !== uid));
+        } else {
+            setValue('members', [...currentMembers, uid]);
+        }
+    }, [formValues.members, setValue]);
 
-    const handleSubmit = useCallback(async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = useCallback(async (data: GroupFormData) => {
         if (!user?.organizationId) return;
 
         try {
             const groupData = {
                 organizationId: user.organizationId,
-                name: formData.name,
-                description: formData.description,
-                members: formData.members,
+                name: data.name,
+                description: data.description || '',
+                members: data.members || [],
                 updatedAt: new Date().toISOString()
             };
 
             if (editingGroup) {
-                await updateDoc(doc(db, 'user_groups', editingGroup.id), sanitizeData(groupData));
+                await updateGroup(editingGroup.id, sanitizeData(groupData));
                 addToast("Groupe mis à jour", "success");
             } else {
-                await addDoc(collection(db, 'user_groups'), sanitizeData({
+                await addGroup(sanitizeData({
                     ...groupData,
                     createdAt: new Date().toISOString()
                 }));
                 addToast("Groupe créé", "success");
             }
             setIsDrawerOpen(false);
+            reset();
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'GroupManager.handleSubmit');
+            ErrorLogger.handleErrorWithToast(error, 'GroupManager.onSubmit');
         }
-    }, [user, formData, editingGroup, addToast]);
+    }, [user, editingGroup, addToast, addGroup, updateGroup, reset]);
 
     const handleDelete = useCallback(async () => {
         if (!confirmDelete.groupId) return;
         try {
-            await deleteDoc(doc(db, 'user_groups', confirmDelete.groupId));
+            await removeGroup(confirmDelete.groupId);
             addToast("Groupe supprimé", "info");
             setConfirmDelete({ isOpen: false, groupId: null });
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'GroupManager.handleDelete');
         }
-    }, [confirmDelete.groupId, addToast]);
+    }, [confirmDelete.groupId, addToast, removeGroup]);
 
     const handleConfirmDeleteOpen = useCallback((groupId: string) => {
         setConfirmDelete({ isOpen: true, groupId });
@@ -142,19 +157,19 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
                 subtitle="Gérez les membres de cette équipe."
                 width="max-w-4xl"
             >
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FloatingLabelInput
                             label="Nom du groupe"
-                            value={formData.name}
-                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            {...register('name')}
+                            error={errors.name?.message}
                             required
                             placeholder="ex: Équipe Sécurité"
                         />
                         <FloatingLabelInput
                             label="Description"
-                            value={formData.description}
-                            onChange={e => setFormData({ ...formData, description: e.target.value })}
+                            {...register('description')}
+                            error={errors.description?.message}
                             placeholder="Description du groupe..."
                         />
                     </div>
@@ -163,14 +178,16 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
                         <h4 className="font-bold text-slate-900 dark:text-white mb-4">Membres du groupe</h4>
                         <MemberSelector
                             users={users}
-                            selectedMembers={formData.members}
+                            selectedMembers={formValues.members || []}
                             onToggle={toggleMember}
                         />
                     </div>
 
                     <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
                         <Button type="button" variant="ghost" onClick={handleDrawerClose}>Annuler</Button>
-                        <Button type="submit" className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20">Enregistrer</Button>
+                        <Button type="submit" disabled={isSubmitting} className="bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20">
+                            {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+                        </Button>
                     </div>
                 </form>
             </Drawer>

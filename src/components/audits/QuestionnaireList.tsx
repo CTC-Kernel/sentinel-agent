@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
-import { useFirestoreCollection } from '../../hooks/useFirestore';
+import React, { useState, useMemo } from 'react';
 import { Questionnaire, UserProfile } from '../../types';
-import { where, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Plus, FileText, Trash2, Edit, Send } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { QuestionnaireBuilder } from './QuestionnaireBuilder';
 import { QuestionnaireResponseView } from './QuestionnaireResponse';
+import { useAuditsActions } from '../../hooks/audits/useAuditsActions';
 
 interface QuestionnaireListProps {
     auditId: string;
@@ -18,20 +16,19 @@ interface QuestionnaireListProps {
 
 export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, organizationId, canEdit }) => {
     const { addToast } = useStore();
+    const { questionnaires: allQuestionnaires, removeQuestionnaire } = useAuditsActions();
     const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<Questionnaire | null>(null);
     const [mode, setMode] = useState<'view' | 'edit' | 'respond' | null>(null);
 
-    const { data: questionnaires, refresh } = useFirestoreCollection<Questionnaire>(
-        'questionnaires',
-        [where('organizationId', '==', organizationId), where('auditId', '==', auditId)],
-        { logError: true, realtime: true }
-    );
+    // Filter questionnaires for this audit
+    const questionnaires = useMemo(() => {
+        return allQuestionnaires.filter(q => q.auditId === auditId && q.organizationId === organizationId);
+    }, [allQuestionnaires, auditId, organizationId]);
 
     const handleDelete = async (id: string) => {
         if (!window.confirm("Supprimer ce questionnaire ?")) return;
         try {
-            await deleteDoc(doc(db, 'questionnaires', id));
-            refresh();
+            await removeQuestionnaire(id);
             addToast("Questionnaire supprimé", "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'QuestionnaireList.handleDelete', 'DELETE_FAILED');
@@ -45,7 +42,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                 organizationId={organizationId}
                 initialData={selectedQuestionnaire}
                 onClose={() => { setSelectedQuestionnaire(null); setMode(null); }}
-                onSave={() => { refresh(); setSelectedQuestionnaire(null); setMode(null); }}
+                onSave={() => { setSelectedQuestionnaire(null); setMode(null); }}
             />
         );
     }
@@ -65,7 +62,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                 auditId={auditId}
                 organizationId={organizationId}
                 onClose={() => setMode(null)}
-                onSave={() => { refresh(); setMode(null); }}
+                onSave={() => { setMode(null); }}
             />
         );
     }

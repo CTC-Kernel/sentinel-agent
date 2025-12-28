@@ -9,8 +9,8 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { Switch } from '../ui/Switch';
 import { Button } from '../ui/button';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { updateDoc, doc, collection, query, where, getDocs } from 'firebase/firestore';
-import { db, storage, auth } from '../../firebase';
+import { storage, auth } from '../../firebase';
+import { useTeamData } from '../../hooks/team/useTeamData';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { AccountService } from '../../services/accountService';
 import { ConfirmModal } from '../ui/ConfirmModal';
@@ -19,8 +19,10 @@ import { sanitizeData } from '../../utils/dataSanitizer';
 import { hasPermission } from '../../utils/permissions';
 import { UserProfile } from '../../types';
 
+
 export const ProfileSettings: React.FC = () => {
     const { user, setUser, addToast, t, language, setLanguage } = useStore();
+    const { updateUser } = useTeamData();
     const [savingProfile, setSavingProfile] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [breachCheckLoading, setBreachCheckLoading] = useState(false);
@@ -56,16 +58,10 @@ export const ProfileSettings: React.FC = () => {
             const snapshot = await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
 
-            const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('email', '==', user.email));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                const docId = querySnapshot.docs[0].id;
-                await updateDoc(doc(db, 'users', docId), { photoURL: downloadURL });
-                setUser({ ...user, photoURL: downloadURL });
-                addToast(t('settings.photoUpdated'), "success");
-            }
+            // Use updateUser hook instead of direct Firebase call
+            await updateUser(user.uid, { photoURL: downloadURL });
+            setUser({ ...user, photoURL: downloadURL });
+            addToast(t('settings.photoUpdated'), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'ProfileSettings.handlePhotoUpload', 'FILE_UPLOAD_FAILED');
         } finally {
@@ -103,21 +99,15 @@ export const ProfileSettings: React.FC = () => {
         if (!user) return;
         setSavingProfile(true);
         try {
-            const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('email', '==', user.email));
-            const querySnapshot = await getDocs(q);
-
             const updatedRole = hasPermission(user, 'User', 'manage') ? data.role : user.role;
 
-            if (!querySnapshot.empty) {
-                const docId = querySnapshot.docs[0].id;
-                await updateDoc(doc(db, 'users', docId), sanitizeData({
-                    displayName: data.displayName,
-                    department: data.department || '',
-                    role: updatedRole,
-                    notificationPreferences: data.notificationPreferences
-                }));
-            }
+            // Use updateUser hook instead of direct Firebase call
+            await updateUser(user.uid, sanitizeData({
+                displayName: data.displayName,
+                department: data.department || '',
+                role: updatedRole,
+                notificationPreferences: data.notificationPreferences
+            }));
 
             const functions = getFunctions();
             const saveUserApiKeys = httpsCallable(functions, 'saveUserApiKeys');

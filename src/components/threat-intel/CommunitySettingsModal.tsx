@@ -1,12 +1,11 @@
 
 import React, { useState } from 'react';
-import { doc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { Shield, Globe, Lock, Users, X, Save, AlertTriangle, Check, UserMinus } from 'lucide-react';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
 import { SharingPreferences, TrustRelationship } from '../../types';
 import { Dialog, Transition } from '@headlessui/react';
+import { useSettingsActions } from '../../hooks/settings/useSettingsActions';
 
 // Export mock data for parent use
 
@@ -19,9 +18,11 @@ interface CommunitySettingsModalProps {
 
 export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ isOpen, onClose, partners, onTrustAction }) => {
     const { user, addToast } = useStore();
+    const { saveCommunitySettings } = useSettingsActions();
     const [activeTab, setActiveTab] = useState<'general' | 'network'>('general');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Settings State
     const [settings, setSettings] = useState<SharingPreferences>({
@@ -48,20 +49,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
         if (!user) return;
         setIsSubmitting(true);
         try {
-            // Save to user's profile or a specific settings collection
-            // Assuming a structure like users/{uid}/settings/community
-            // For this specific codebase, we'll save it to a 'user_settings' collection for simplicity/isolation
-            // or update the user document itself if that's the pattern.
-            // Let's use a subcollection for cleanliness.
-
-            const settingsRef = doc(db, 'users', user.uid, 'settings', 'community');
-            const { setDoc } = await import('firebase/firestore'); // Dynamic import to avoid top-level if needed, or just add to imports
-
-            await setDoc(settingsRef, {
-                ...settings,
-                updatedAt: new Date().toISOString()
-            }, { merge: true });
-
+            await saveCommunitySettings(settings);
             addToast("Paramètres de confidentialité mis à jour", "success");
             onClose();
         } catch (error) {
@@ -242,11 +230,15 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                     placeholder="Rechercher une organisation..."
                                                     className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:ring-2 focus:ring-brand-500 outline-none"
                                                     aria-label="Rechercher une organisation"
+                                                    value={searchQuery}
+                                                    onChange={(e) => setSearchQuery(e.target.value)}
                                                 />
                                             </div>
 
                                             <div className="space-y-2">
-                                                {partners.map(partner => (
+                                                {partners.filter(p =>
+                                                    p.targetOrgName.toLowerCase().includes(searchQuery.toLowerCase())
+                                                ).map(partner => (
                                                     <div key={partner.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950">
                                                         <div className="flex items-center gap-3">
                                                             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white

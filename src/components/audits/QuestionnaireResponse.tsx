@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
 import { Questionnaire, QuestionnaireResponse } from '../../types';
-import { addDoc, collection, updateDoc, doc, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { Save, CheckCircle2, Link, Bot, FileText, Loader2 } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
 import { FileUploader } from '../ui/FileUploader';
 import { aiService } from '../../services/aiService';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { SafeHTML } from '../ui/SafeHTML';
+import { useAuditsActions } from '../../hooks/audits/useAuditsActions';
 
 interface QuestionnaireResponseProps {
     questionnaire: Questionnaire;
@@ -18,6 +17,7 @@ interface QuestionnaireResponseProps {
 
 export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = ({ questionnaire, onClose, readOnly = false }) => {
     const { user, addToast } = useStore();
+    const { responses, addResponse, updateResponse, addDocument } = useAuditsActions();
     const [answers, setAnswers] = useState<Record<string, string | string[] | number>>({});
     const [responseId, setResponseId] = useState<string | null>(null);
     const [status, setStatus] = useState<'In Progress' | 'Submitted'>('In Progress');
@@ -27,31 +27,22 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
     const [analyzing, setAnalyzing] = useState(false);
     const [analysis, setAnalysis] = useState<string | null>(null);
 
-    // Load existing response if any
+    // Find existing response if any
+    const existingResponse = useMemo(() => {
+        if (!user) return null;
+        return responses.find(r => r.questionnaireId === questionnaire.id && r.respondentId === user.uid);
+    }, [responses, questionnaire.id, user]);
+
+    // Sync state with existing response
     useEffect(() => {
-        const loadResponse = async () => {
-            if (!user) return;
-            try {
-                const q = query(
-                    collection(db, 'questionnaire_responses'),
-                    where('questionnaireId', '==', questionnaire.id),
-                    where('respondentId', '==', user.uid)
-                );
-                const snapshot = await getDocs(q);
-                if (!snapshot.empty) {
-                    const data = snapshot.docs[0].data() as QuestionnaireResponse;
-                    setAnswers(data.answers);
-                    setEvidence(data.evidence || {});
-                    setAnalysis(data.aiAnalysis || null);
-                    setResponseId(snapshot.docs[0].id);
-                    setStatus(data.status);
-                }
-            } catch (error) {
-                ErrorLogger.error(error, 'QuestionnaireResponseView.loadResponse');
-            }
-        };
-        loadResponse();
-    }, [questionnaire.id, user]);
+        if (existingResponse) {
+            setAnswers(existingResponse.answers);
+            setEvidence(existingResponse.evidence || {});
+            setAnalysis(existingResponse.aiAnalysis || null);
+            setResponseId(existingResponse.id);
+            setStatus(existingResponse.status);
+        }
+    }, [existingResponse]);
 
     const handleAnswerChange = (questionId: string, value: string | string[] | number) => {
         if (readOnly || status === 'Submitted') return;
@@ -84,9 +75,9 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
             };
 
             if (responseId) {
-                await updateDoc(doc(db, 'questionnaire_responses', responseId), sanitizeData(responseData));
+                await updateResponse(responseId, sanitizeData(responseData));
             } else {
-                const docRef = await addDoc(collection(db, 'questionnaire_responses'), sanitizeData({
+                const newResponseId = await addResponse(sanitizeData({
                     ...responseData,
                     questionnaireId: questionnaire.id,
                     organizationId: questionnaire.organizationId,
@@ -95,7 +86,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                     respondentEmail: user.email,
                     startedAt: new Date().toISOString()
                 }) as QuestionnaireResponse);
-                setResponseId(docRef.id);
+                setResponseId(newResponseId || null);
             }
 
             if (submit) {
@@ -116,7 +107,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
         if (!user) return;
         try {
             // Create Document
-            const docRef = await addDoc(collection(db, 'documents'), sanitizeData({
+            const docId = await addDocument(sanitizeData({
                 title: `Preuve Questionnaire - ${fileName} `,
                 type: 'Preuve',
                 version: '1.0',
@@ -128,12 +119,15 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 relatedAuditIds: [questionnaire.auditId]
-            }));
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            }) as any);
 
-            setEvidence(prev => ({
-                ...prev,
-                [questionId]: [...(prev[questionId] || []), docRef.id]
-            }));
+            if (docId) {
+                setEvidence(prev => ({
+                    ...prev,
+                    [questionId]: [...(prev[questionId] || []), docId]
+                }));
+            }
 
             addToast("Preuve ajoutée", "success");
         } catch (error) {

@@ -6,7 +6,7 @@ import { Control, Risk, Finding, Framework, Document, UserProfile, Asset, Suppli
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 
-export const useComplianceData = (currentFramework: Framework) => {
+export const useComplianceData = (currentFramework?: Framework) => {
     const { user } = useStore();
     const [controls, setControls] = useState<Control[]>([]);
     const [risks, setRisks] = useState<Risk[]>([]);
@@ -78,9 +78,9 @@ export const useComplianceData = (currentFramework: Framework) => {
     }, [user?.organizationId]);
 
     // Framework filtering
-    const filteredControls = controls.filter(c => {
-        return c.framework === currentFramework;
-    });
+    const filteredControls = currentFramework
+        ? controls.filter(c => c.framework === currentFramework)
+        : controls;
 
     return {
         controls,

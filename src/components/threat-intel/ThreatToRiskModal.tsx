@@ -5,11 +5,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AlertTriangle, Loader2, Save, X, Box } from 'lucide-react';
 import { useStore } from '../../store';
-import { db } from '../../firebase';
-import { addDoc, collection, updateDoc, doc } from 'firebase/firestore';
+import { useThreatIntelActions } from '../../hooks/threats/useThreatIntelActions';
 import { Button } from '../ui/button';
-import { Threat, Asset } from '../../types';
-import { useFirestoreCollection } from '../../hooks/useFirestore';
+import { Threat } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
 import { Dialog, Transition } from '@headlessui/react';
 
@@ -31,7 +29,7 @@ interface ThreatToRiskModalProps {
 
 export const ThreatToRiskModal: React.FC<ThreatToRiskModalProps> = ({ isOpen, onClose, threat }) => {
     const { user, addToast } = useStore();
-    const { data: assets } = useFirestoreCollection<Asset>('assets', [], { realtime: false });
+    const { assets, addRisk, updateCommunityThreat } = useThreatIntelActions();
 
     const { register, handleSubmit, formState: { errors, isSubmitting }, reset, setValue } = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -55,7 +53,7 @@ export const ThreatToRiskModal: React.FC<ThreatToRiskModalProps> = ({ isOpen, on
             const imp = parseInt(data.impact);
             const score = prob * imp;
 
-            const docRef = await addDoc(collection(db, 'risks'), {
+            const riskId = await addRisk({
                 organizationId: user.organizationId,
                 assetId: data.assetId,
                 threat: threat.title,
@@ -75,11 +73,12 @@ export const ThreatToRiskModal: React.FC<ThreatToRiskModalProps> = ({ isOpen, on
             });
 
             // Bidirectional linking: Mark threat as processed into a risk
-            const threatRef = doc(db, 'threats', threat.id);
-            await updateDoc(threatRef, {
-                relatedRiskId: docRef.id,
-                status: 'Processed'
-            });
+            if (riskId) {
+                await updateCommunityThreat(threat.id, {
+                    relatedRiskId: riskId,
+                    status: 'Processed'
+                });
+            }
 
             addToast("Risque créé avec succès", "success");
             reset();

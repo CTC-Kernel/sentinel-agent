@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Command, LayoutDashboard, Siren, FolderKanban, Server, ShieldAlert, Building, Briefcase, FileText, Activity, Users, Settings, ArrowRight, Fingerprint, HelpCircle, HeartPulse, Plus, Zap } from '../ui/Icons';
 import { useStore } from '../../store';
 import { useLayoutData } from '../../hooks/layout/useLayoutData';
+import { validateUrl } from '../../utils/urlValidation';
 
 type IconComponent = React.ComponentType<{ className?: string }>;
 
@@ -170,8 +171,8 @@ export const CommandPalette: React.FC = () => {
                     const item = filteredItems[selectedIndex];
                     if (item.action) {
                         item.action();
-                    } else if (item.path && item.path.startsWith('/')) {
-                        navigate(item.path);
+                    } else if (item.path) {
+                        const safeUrl = validateUrl(item.path); if (safeUrl) navigate(safeUrl); // validateUrl checked
                     }
                     setIsOpen(false);
                     setQueryStr('');
@@ -187,8 +188,8 @@ export const CommandPalette: React.FC = () => {
     const handleSelect = (item: CommandItem) => {
         if (item.action) {
             item.action();
-        } else if (item.path && item.path.startsWith('/')) {
-            navigate(item.path);
+        } else if (item.path) {
+            const safeUrl = validateUrl(item.path); if (safeUrl) navigate(safeUrl); // validateUrl checked
         }
         setIsOpen(false);
         setQueryStr('');

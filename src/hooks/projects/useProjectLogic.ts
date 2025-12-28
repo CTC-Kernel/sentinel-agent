@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react';
 import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
-import { where, doc, updateDoc, addDoc, collection, arrayUnion, arrayRemove, getDocs, query, writeBatch } from 'firebase/firestore';
+import { where, doc, updateDoc, addDoc, collection, arrayUnion, arrayRemove, getDocs, query, writeBatch, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Project, ProjectTask, Risk, Control, Asset, Audit, UserProfile } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -21,12 +21,12 @@ export const useProjectLogic = () => {
     const { limits } = usePlanLimits();
 
     // Data Fetching
-    const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true });
-    const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>('risks', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true });
-    const { data: rawAudits, loading: loadingAudits } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true });
-    const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>('controls', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true });
-    const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>('assets', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true });
-    const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>('users', [where('organizationId', '==', user?.organizationId)], { logError: true, realtime: true });
+    const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId), limit(500)], { logError: true, realtime: true });
+    const { data: rawRisks, loading: loadingRisks } = useFirestoreCollection<Risk>('risks', [where('organizationId', '==', user?.organizationId), limit(500)], { logError: true, realtime: true });
+    const { data: rawAudits, loading: loadingAudits } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId), limit(500)], { logError: true, realtime: true });
+    const { data: rawControls, loading: loadingControls } = useFirestoreCollection<Control>('controls', [where('organizationId', '==', user?.organizationId), limit(1000)], { logError: true, realtime: true });
+    const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>('assets', [where('organizationId', '==', user?.organizationId), limit(500)], { logError: true, realtime: true });
+    const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>('users', [where('organizationId', '==', user?.organizationId), limit(100)], { logError: true, realtime: true });
 
     // Derived State
     const projects = useMemo(() => [...rawProjects].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()), [rawProjects]);
@@ -172,10 +172,10 @@ export const useProjectLogic = () => {
         if (!user?.organizationId) return { hasDependencies: false, dependencies: [] };
 
         const [rSnap, cSnap, aSnap, auSnap] = await Promise.all([
-            getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId))),
-            getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId))),
-            getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId))),
-            getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId)))
+            getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId), limit(20))),
+            getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId), limit(20))),
+            getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId), limit(20))),
+            getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId), limit(20)))
         ]);
 
         const dependencies = [

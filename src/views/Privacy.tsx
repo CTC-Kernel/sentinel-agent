@@ -61,20 +61,7 @@ export const Privacy: React.FC = () => {
     const [inspectorTab, setInspectorTab] = usePersistedState<'details' | 'data' | 'links' | 'history' | 'comments'>('privacy_inspector_tab', 'details');
 
     // Forms
-    const createActivityForm = useForm<ProcessingActivityFormData>({
-        resolver: zodResolver(processingActivitySchema),
-        shouldUnregister: true,
-        defaultValues: {
-            name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '',
-            status: 'Actif',
-            legalBasis: 'Intérêt Légitime',
-            dataCategories: [],
-            dataSubjects: [],
-            retentionPeriod: '5 ans',
-            hasDPIA: false,
-            relatedAssetIds: [], relatedRiskIds: []
-        }
-    });
+    // const createActivityForm removed (moved to component)
 
     const editActivityForm = useForm<ProcessingActivityFormData>({
         resolver: zodResolver(processingActivitySchema),
@@ -86,6 +73,8 @@ export const Privacy: React.FC = () => {
         const missingFields = Object.keys(errors).join(', ');
         toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
     };
+
+
 
 
 
@@ -159,20 +148,8 @@ export const Privacy: React.FC = () => {
     const filteredActivities = activities.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()));
 
     const handleAddActivity = React.useCallback(() => {
-        createActivityForm.reset({
-            name: '',
-            purpose: '',
-            manager: user?.displayName || '',
-            managerId: user?.uid || '',
-            legalBasis: 'Intérêt Légitime',
-            dataCategories: [],
-            dataSubjects: [],
-            retentionPeriod: '5 ans',
-            hasDPIA: false,
-            status: 'Actif'
-        });
         setShowCreateModal(true);
-    }, [createActivityForm, user, setShowCreateModal]);
+    }, [setShowCreateModal]);
 
     return (
         <motion.div
@@ -303,7 +280,6 @@ export const Privacy: React.FC = () => {
                             description={filter ? "Aucun traitement ne correspond à votre recherche." : "Commencez par ajouter vos activités de traitement au registre."}
                             actionLabel={filter ? undefined : "Nouveau Traitement"}
                             onAction={filter ? undefined : () => {
-                                createActivityForm.reset({ name: '', purpose: '', manager: user?.displayName || '', managerId: user?.uid || '', legalBasis: 'Intérêt Légitime', dataCategories: [], dataSubjects: [], retentionPeriod: '5 ans', hasDPIA: false, status: 'Actif' });
                                 setShowCreateModal(true);
                             }}
                         />
@@ -400,12 +376,10 @@ export const Privacy: React.FC = () => {
                 width="max-w-4xl"
             >
                 <CreateActivityForm
-                    createActivityForm={createActivityForm}
                     usersList={usersList}
                     assetsList={assetsList}
                     risksList={risksList}
-                    handleCreate={handleCreate}
-                    onInvalid={onInvalid}
+                    onSubmit={handleCreate}
                     onCancel={() => setShowCreateModal(false)}
                 />
             </Drawer >

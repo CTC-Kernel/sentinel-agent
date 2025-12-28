@@ -8,6 +8,9 @@ import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '../../utils/cn';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 interface CommentSectionProps {
     collectionName: string;
@@ -16,7 +19,6 @@ interface CommentSectionProps {
 }
 
 export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, documentId, className }) => {
-    const [newComment, setNewComment] = useState('');
     const [replyTo, setReplyTo] = useState<string | null>(null);
     const { user } = useStore();
 
@@ -40,32 +42,39 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
         }));
     }, [comments]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newComment.trim() || !user) return;
+    const commentSchema = z.object({
+        content: z.string().min(1, 'Le commentaire ne peut pas être vide').max(1000)
+    });
+
+    type CommentFormData = z.infer<typeof commentSchema>;
+
+    const { register, handleSubmit, reset, formState: { isValid, isSubmitting, errors } } = useForm<CommentFormData>({
+        resolver: zodResolver(commentSchema),
+        defaultValues: { content: '' }
+    });
+
+    const onSubmit: SubmitHandler<CommentFormData> = async (data) => {
+        if (!user) return;
 
         // Detect mentions (simple regex for @Name)
         const mentionRegex = /@(\w+)/g;
         const mentions: string[] = [];
         let match;
-        while ((match = mentionRegex.exec(newComment)) !== null) {
-            // In a real app, we would map the name to a user ID. 
-            // For now, we just capture the string or look up if we had a user list.
-            // We'll store the text match for now.
+        while ((match = mentionRegex.exec(data.content)) !== null) {
             mentions.push(match[1]);
         }
 
         try {
             await add({
                 userId: user.uid,
-                userName: user.displayName || user.email,
+                userName: user.displayName || user.email || 'Utilisateur',
                 organizationId: user.organizationId,
-                content: newComment.trim(),
-                createdAt: new Date().toISOString(),
+                content: data.content.trim(),
+                createdAt: new Date().toISOString(), // Warning: serverTimestamp prefered but sticking to existing pattern for now (or fix if requested)
                 parentId: replyTo || undefined,
                 mentions
             });
-            setNewComment('');
+            reset();
             setReplyTo(null);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'CommentSection.handleSubmit', 'CREATE_FAILED');
@@ -146,20 +155,20 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                         </button>
                     </div>
                 )}
-                <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }} className="relative">
-                    <input aria-label={replyTo ? "Votre réponse" : "Ajouter un commentaire"}
+                <form onSubmit={handleSubmit(onSubmit)} className="relative">
+                    <input
+                        {...register('content')}
+                        aria-label={replyTo ? "Votre réponse" : "Ajouter un commentaire"}
                         type="text"
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
                         placeholder={replyTo ? "Votre réponse..." : "Ajouter un commentaire..."}
-                        className="w-full pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-sm"
+                        className={cn("w-full pl-4 pr-12 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-sm", errors.content && "border-red-500 focus:border-red-500")}
                     />
                     <button
                         type="submit"
-                        disabled={!newComment.trim()}
+                        disabled={isSubmitting || !isValid}
                         className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:hover:bg-brand-600 transition-colors"
                     >
-                        <Send className="h-4 w-4" />
+                        {isSubmitting ? <span className="animate-spin">⌛</span> : <Send className="h-4 w-4" />}
                     </button>
                 </form>
             </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ProcessingActivity, UserProfile, Asset, Risk, SystemLog } from '../types';
 import { useStore } from '../store';
@@ -35,9 +35,9 @@ export function usePrivacy() {
             // Fetch other dependencies directly for now (could be moved to services)
             // Note: keeping reads here is usually low risk for 'client side security' checks
             const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId)))
+                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId), limit(100))),
+                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId), limit(500))),
+                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId), limit(500)))
             ]);
 
             const usersSnapshot = results[0].status === 'fulfilled' ? results[0].value : { docs: [] };

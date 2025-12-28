@@ -41,13 +41,13 @@ export const useSuppliersData = (organizationId?: string) => {
         { logError: true, realtime: true, enabled: !!organizationId }
     );
 
-    const { data: templates, loading: loadingTemplates } = useFirestoreCollection<QuestionnaireTemplate>(
+    const { data: templates, loading: loadingTemplates, add: addTemplate, update: updateTemplate, remove: removeTemplate } = useFirestoreCollection<QuestionnaireTemplate>(
         'questionnaire_templates',
         [where('organizationId', '==', organizationId)],
         { logError: true, realtime: true, enabled: !!organizationId }
     );
 
-    const { data: assessments, loading: loadingAssessments } = useFirestoreCollection<SupplierQuestionnaireResponse>(
+    const { data: assessments, loading: loadingAssessments, add: addAssessment, update: updateAssessment, remove: removeAssessment } = useFirestoreCollection<SupplierQuestionnaireResponse>(
         'questionnaire_responses',
         [where('organizationId', '==', organizationId)],
         { logError: true, realtime: true, enabled: !!organizationId }
@@ -64,6 +64,12 @@ export const useSuppliersData = (organizationId?: string) => {
         projectsRaw,
         templates,
         assessments,
-        loading
+        loading,
+        addTemplate,
+        updateTemplate,
+        removeTemplate,
+        addAssessment,
+        updateAssessment,
+        removeAssessment,
     };
 };

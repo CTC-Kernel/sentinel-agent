@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { SupplierQuestionnaireResponse, QuestionnaireTemplate } from '../../types/business';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { SupplierQuestionnaireResponse } from '../../types/business';
 import { useStore } from '../../store';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { Save, Check, ChevronRight } from '../ui/Icons';
 import { SupplierService } from '../../services/SupplierService';
 import { ErrorLogger } from '../../services/errorLogger';
+import { useSuppliersData } from '../../hooks/suppliers/useSuppliersData';
 
 interface Props {
     responseId: string;
@@ -14,37 +13,57 @@ interface Props {
 }
 
 export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context = 'supplier' }) => {
-    const { addToast } = useStore();
-    const [response, setResponse] = useState<SupplierQuestionnaireResponse | null>(null);
-    const [template, setTemplate] = useState<QuestionnaireTemplate | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { user, addToast } = useStore();
+    const { templates, assessments, loading: hookLoading, updateAssessment } = useSuppliersData(user?.organizationId);
     const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<string, { value: string | boolean | number | string[], comment?: string, evidenceUrl?: string }>>({});
 
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                const resSnap = await getDoc(doc(db, 'questionnaire_responses', responseId));
-                if (!resSnap.exists()) return;
-                const resData = { id: resSnap.id, ...resSnap.data() } as SupplierQuestionnaireResponse;
-                setResponse(resData);
-                setAnswers(resData.answers || {});
+    // Find the response by ID
+    const response = useMemo(() => {
+        return assessments.find(a => a.id === responseId) || null;
+    }, [assessments, responseId]);
 
-                const tplSnap = await getDoc(doc(db, 'questionnaire_templates', resData.templateId));
-                if (tplSnap.exists()) {
-                    setTemplate({ id: tplSnap.id, ...tplSnap.data() } as QuestionnaireTemplate);
-                }
-            } catch (error) {
-                ErrorLogger.handleErrorWithToast(error, 'AssessmentView.loadData', 'FETCH_FAILED');
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadData();
-    }, [responseId, addToast]);
+    // Find the template for this response
+    const template = useMemo(() => {
+        if (!response) return null;
+        return templates.find(t => t.id === response.templateId) || null;
+    }, [templates, response]);
+
+    const prevResponseIdRef = useRef(response?.id);
+
+    // Sync answers from response when it loads
+    useEffect(() => {
+        if (response && response.id !== prevResponseIdRef.current) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setAnswers(response.answers || {});
+            prevResponseIdRef.current = response.id;
+        }
+    }, [response]);
 
     const handleSave = async (submit = false) => {
         if (!response || !template) return;
+
+        // Validation before submission
+        if (submit) {
+            const missingRequired = [];
+            for (const section of template.sections) {
+                for (const q of section.questions) {
+                    // Check if question is required (default to false if undefined, though usually true by default for new questions)
+                    if (q.required) {
+                        const answer = answers[q.id]?.value;
+                        const isValid = answer !== undefined && answer !== null && answer !== '';
+                        if (!isValid) {
+                            missingRequired.push(q.text);
+                        }
+                    }
+                }
+            }
+
+            if (missingRequired.length > 0) {
+                addToast(`Veuillez répondre aux questions obligatoires (${missingRequired.length} restantes)`, 'error');
+                return;
+            }
+        }
 
         try {
             // Calculate Score (Real-time update)
@@ -67,10 +86,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                 }
             }
 
-            await updateDoc(doc(db, 'questionnaire_responses', responseId), updates);
-
-            // Update local state to reflect changes immediately in UI
-            setResponse(prev => prev ? ({ ...prev, ...updates } as SupplierQuestionnaireResponse) : null);
+            await updateAssessment(responseId, updates);
 
             addToast(submit ? 'Évaluation soumise' : 'Sauvegardé', 'success');
             if (submit) onClose();
@@ -79,7 +95,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
         }
     };
 
-    if (loading || !template || !response) return <div className="p-8 text-center"><span className="loading loading-spinner"></span> Chargement...</div>;
+    if (hookLoading || !template || !response) return <div className="p-8 text-center"><span className="loading loading-spinner"></span> Chargement...</div>;
 
     const currentSection = template.sections[currentSectionIndex];
 

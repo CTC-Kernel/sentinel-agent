@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { PdfService } from '../../services/PdfService';
 import { aiService } from '../../services/aiService';
@@ -27,8 +27,8 @@ export const useDashboardReports = () => {
         if (!user?.organizationId) return;
         try {
             const [auditsSnap, projectsSnap] = await Promise.all([
-                getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId))),
-                getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId)))
+                getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId), limit(1000))),
+                getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId), limit(1000)))
             ]);
             let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Sentinel GRC//FR\n";
             auditsSnap.forEach(doc => { const d = doc.data(); const date = d.dateScheduled ? d.dateScheduled.replace(/-/g, '') : ''; if (date) icsContent += `BEGIN:VEVENT\nSUMMARY:${t('dashboard.icsAudit')}: ${d.name}\nDTSTART;VALUE=DATE:${date}\nDTEND;VALUE=DATE:${date}\nDESCRIPTION:${t('dashboard.icsAuditor')}: ${d.auditor}\nEND:VEVENT\n`; });

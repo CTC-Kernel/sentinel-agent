@@ -19,13 +19,13 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
         { id: '8', name: 'Technologique', color: 'bg-orange-500' }
     ];
 
-    const stats = domains.map(domain => {
+    const stats = controls.length > 0 ? domains.map(domain => {
         const domainControls = controls.filter(c => c.code.startsWith(domain.id) || c.code.startsWith(`A.${domain.id}`));
         const implemented = domainControls.filter(c => c.status === 'Implémenté').length;
         const total = domainControls.length;
         const score = total > 0 ? Math.round((implemented / total) * 100) : 0;
         return { ...domain, score, total, implemented };
-    });
+    }) : [];
 
     const totalScore = Math.round(
         (controls.filter(c => c.status === 'Implémenté').length / (controls.length || 1)) * 100
@@ -51,20 +51,27 @@ export const ComplianceScorecard: React.FC<ComplianceScorecardProps> = ({ contro
             </div>
 
             <div className="space-y-5">
-                {stats.map(stat => (
-                    <div key={stat.id}>
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-bold text-foreground">{stat.name}</span>
-                            <span className="text-xs font-bold text-muted-foreground">{stat.score}% ({stat.implemented}/{stat.total})</span>
-                        </div>
-                        <div className="w-full bg-accent rounded-full h-2.5 overflow-hidden">
-                            <div
-                                className={`h-full rounded-full ${stat.color} transition-all duration-1000 ease-out`}
-                                style={{ width: `${stat.score}%` }}
-                            ></div>
-                        </div>
+                {controls.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-center opacity-70">
+                        <p className="text-sm font-bold text-foreground">Aucune donnée</p>
+                        <p className="text-xs text-muted-foreground">Importez des contrôles pour voir le score.</p>
                     </div>
-                ))}
+                ) : (
+                    stats.map(stat => (
+                        <div key={stat.id}>
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm font-bold text-foreground">{stat.name}</span>
+                                <span className="text-xs font-bold text-muted-foreground">{stat.score}% ({stat.implemented}/{stat.total})</span>
+                            </div>
+                            <div className="w-full bg-accent rounded-full h-2.5 overflow-hidden">
+                                <div
+                                    className={`h-full rounded-full ${stat.color} transition-all duration-1000 ease-out`}
+                                    style={{ width: `${stat.score}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
 
             <div className="mt-6 pt-6 border-t border-border/60 flex gap-4 overflow-x-auto no-scrollbar">

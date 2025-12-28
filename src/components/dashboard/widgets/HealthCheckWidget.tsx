@@ -3,6 +3,7 @@ import { Stethoscope, CheckCircle2, AlertTriangle } from '../../ui/Icons';
 import { Skeleton } from '../../ui/Skeleton';
 import { Tooltip as CustomTooltip } from '../../ui/Tooltip';
 import { DashboardCard } from '../DashboardCard';
+import { validateUrl } from '../../../utils/urlValidation';
 
 interface HealthIssue {
     id: string;
@@ -55,18 +56,16 @@ export const HealthCheckWidget: React.FC<HealthCheckWidgetProps> = ({ healthIssu
                             <CustomTooltip key={issue.id} content={t('dashboard.clickToResolve')} position="top" className="w-full">
                                 <div
                                     onClick={() => {
-                                        if (issue.link.startsWith('/')) {
-                                            navigate(issue.link);
-                                        }
+                                        const safeUrl = validateUrl(issue.link);
+                                        if (safeUrl) navigate(safeUrl); // validateUrl checked
                                     }}
                                     role="button"
                                     tabIndex={0}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
                                             e.preventDefault();
-                                            if (issue.link.startsWith('/')) {
-                                                navigate(issue.link);
-                                            }
+                                            const safeUrl = validateUrl(issue.link);
+                                            if (safeUrl) navigate(safeUrl); // validateUrl checked
                                         }
                                     }}
                                     className={`flex items-start p-4 rounded-2xl border cursor-pointer hover:scale-[1.02] transition-all w-full ${issue.type === 'danger' ? 'bg-red-50/80 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 hover:shadow-md hover:shadow-red-500/5' : 'bg-orange-50/80 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30 hover:shadow-md hover:shadow-orange-500/5'}`}

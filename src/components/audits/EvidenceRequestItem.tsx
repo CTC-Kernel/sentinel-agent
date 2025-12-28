@@ -29,6 +29,24 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
     onDelete,
     onUpload
 }) => {
+    const [processingAction, setProcessingAction] = React.useState<string | null>(null);
+
+    const handleAction = async (actionName: string, actionFn: () => void | Promise<void>) => {
+        if (processingAction) return;
+        setProcessingAction(actionName);
+        try {
+            await actionFn();
+        } finally {
+            if (actionName !== 'delete') { // If delete, component might unmount, but harmless to set
+                setProcessingAction(null);
+            }
+        }
+    };
+
+    const handleUpload = async (url: string, name: string) => {
+        await handleAction('upload', async () => onUpload(req, url, name));
+    };
+
     return (
         <div key={req.id} className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-white/5 rounded-xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:border-brand-200 dark:hover:border-brand-800/30 group">
             <div
@@ -113,8 +131,9 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                         <div className="flex-1">
                             <h5 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Ajouter une preuve</h5>
                             <FileUploader
-                                onUploadComplete={(url, name) => onUpload(req, url, name)}
+                                onUploadComplete={handleUpload}
                                 category="evidence"
+                                disabled={!!processingAction}
                             />
                         </div>
 
@@ -122,19 +141,37 @@ export const EvidenceRequestItem: React.FC<EvidenceRequestItemProps> = React.mem
                             <div className="flex flex-col gap-2 min-w-[150px]">
                                 <h5 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Actions</h5>
                                 {req.status !== 'Accepted' && (
-                                    <button type="button" onClick={() => onStatusChange(req, 'Accepted')} aria-label="Accepter la demande" className="w-full px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
-                                        <ShieldCheck className="w-4 h-4 mr-2" />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleAction('accept', () => onStatusChange(req, 'Accepted'))}
+                                        disabled={!!processingAction}
+                                        aria-label="Accepter la demande"
+                                        className="w-full px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {processingAction === 'accept' ? <span className="animate-spin mr-2">⌛</span> : <ShieldCheck className="w-4 h-4 mr-2" />}
                                         Accepter
                                     </button>
                                 )}
                                 {req.status !== 'Rejected' && (
-                                    <button type="button" onClick={() => onStatusChange(req, 'Rejected')} aria-label="Rejeter la demande" className="w-full px-3 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-bold hover:bg-red-200 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
-                                        <X className="w-4 h-4 mr-2" />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleAction('reject', () => onStatusChange(req, 'Rejected'))}
+                                        disabled={!!processingAction}
+                                        aria-label="Rejeter la demande"
+                                        className="w-full px-3 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-bold hover:bg-red-200 transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {processingAction === 'reject' ? <span className="animate-spin mr-2">⌛</span> : <X className="w-4 h-4 mr-2" />}
                                         Rejeter
                                     </button>
                                 )}
-                                <button type="button" onClick={() => onDelete(req.id)} aria-label="Supprimer la demande" className="w-full px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors flex items-center justify-center mt-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
-                                    <Trash2 className="w-4 h-4 mr-2" />
+                                <button
+                                    type="button"
+                                    onClick={() => handleAction('delete', () => onDelete(req.id))}
+                                    disabled={!!processingAction}
+                                    aria-label="Supprimer la demande"
+                                    className="w-full px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 transition-colors flex items-center justify-center mt-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {processingAction === 'delete' ? <span className="animate-spin mr-2">⌛</span> : <Trash2 className="w-4 h-4 mr-2" />}
                                     Supprimer
                                 </button>
                             </div>

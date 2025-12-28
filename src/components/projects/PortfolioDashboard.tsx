@@ -43,6 +43,18 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
         return Object.entries(ranges).map(([name, value]) => ({ name, value }));
     }, [projects]);
 
+    if (projects.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center p-12 text-center bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-300 dark:border-slate-700 min-h-[400px]">
+                <div className="p-4 bg-white dark:bg-slate-800 rounded-full shadow-lg mb-4">
+                    <TrendingUp className="h-10 w-10 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucun projet en cours</h3>
+                <p className="text-sm text-slate-500 max-w-sm">Créez votre premier projet pour suivre son avancement et piloter votre portefeuille.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore } from '../../store';
 import { Activity, Trash2, AlertTriangle, Download } from 'lucide-react';
 import { Button } from '../ui/button';
-import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
-import { db, auth } from '../../firebase';
+import { Timestamp } from 'firebase/firestore';
+import { auth } from '../../firebase';
 import { ErrorLogger } from '../../services/errorLogger';
 import { DataExportService } from '../../services/dataExportService';
 import { hasPermission } from '../../utils/permissions';
@@ -15,12 +15,19 @@ import { ColumnDef } from '@tanstack/react-table';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { Modal } from '../ui/Modal';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { useAuditLogs } from '../../hooks/audit/useAuditLogs';
 
 export const SystemSettings: React.FC = () => {
     const { user, addToast, t } = useStore();
-    const [auditLogs, setAuditLogs] = useState<SystemLog[]>([]);
-    const [loadingLogs, setLoadingLogs] = useState(false);
+    const { logs: auditLogsRaw, loading: loadingLogs } = useAuditLogs(
+        hasPermission(user, 'Settings', 'read') ? user?.organizationId : undefined
+    );
     const [exporting, setExporting] = useState(false);
+
+    // Convert AuditLog to SystemLog format and take top 50
+    const auditLogs = useMemo(() => {
+        return (auditLogsRaw as unknown as SystemLog[]).slice(0, 50);
+    }, [auditLogsRaw]);
 
     const handleExportData = async () => {
         if (!user?.organizationId) return;
@@ -34,44 +41,6 @@ export const SystemSettings: React.FC = () => {
             setExporting(false);
         }
     };
-
-
-    useEffect(() => {
-        if (!hasPermission(user, 'Settings', 'read')) return;
-
-        const fetchLogs = async () => {
-            setLoadingLogs(true);
-            try {
-                // Fetch last 50 logs for the user's org
-                const logsRef = collection(db, 'system_logs');
-                const q = query(
-                    logsRef,
-                    where('organizationId', '==', user?.organizationId)
-                );
-                const snapshot = await getDocs(q);
-                // Sort on client side to avoid index issues
-                const logs = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as SystemLog[];
-                logs.sort((a, b) => {
-                    const getMillis = (val: string | number | Timestamp | Date | undefined) => {
-                        if (!val) return 0;
-                        if (typeof val === 'object' && 'toMillis' in val && typeof val.toMillis === 'function') {
-                            return val.toMillis();
-                        }
-                        if (val instanceof Date) return val.getTime();
-                        return new Date(val as string | number).getTime();
-                    };
-                    return getMillis(b.timestamp) - getMillis(a.timestamp);
-                });
-                setAuditLogs(logs.slice(0, 50));
-            } catch (error) {
-                ErrorLogger.handleErrorWithToast(error, 'SystemSettings.fetchLogs', 'FETCH_FAILED');
-            } finally {
-                setLoadingLogs(false);
-            }
-        };
-
-        fetchLogs();
-    }, [user]);
 
     // const handleDeleteAccount = () => {
     //     setIsDeleting(true);

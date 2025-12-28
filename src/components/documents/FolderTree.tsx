@@ -2,6 +2,15 @@ import React, { useState } from 'react';
 import { DocumentFolder } from '../../types';
 import { Folder, ChevronRight, ChevronDown, Plus, MoreVertical, Edit2, Trash2, FolderOpen } from '../ui/Icons';
 import { ConfirmModal } from '../ui/ConfirmModal';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const folderSchema = z.object({
+  name: z.string().min(1, 'Le nom est requis').max(100, 'Le nom est trop long')
+});
+
+type FolderFormData = z.infer<typeof folderSchema>;
 
 interface FolderTreeProps {
     folders: DocumentFolder[];
@@ -29,6 +38,12 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, id: string, loading?: boolean }>({ isOpen: false, id: '' });
     const [isCreatingFolder, setIsCreatingFolder] = useState(false);
 
+    // Form validation for folder creation
+    const { register, handleSubmit, formState: { errors }, reset } = useForm<FolderFormData>({
+        resolver: zodResolver(folderSchema),
+        defaultValues: { name: '' }
+    });
+
     const toggleExpand = React.useCallback((folderId: string, e: React.MouseEvent | React.KeyboardEvent) => {
         e.stopPropagation();
         setExpandedFolders(prev =>
@@ -36,19 +51,16 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         );
     }, []);
 
-    const handleCreateSubmit = React.useCallback(async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (newFolderName.trim()) {
-            setIsCreatingFolder(true);
-            try {
-                await onCreateFolder(newFolderName.trim(), createParentId);
-                setNewFolderName('');
-                setShowCreateModal(false);
-            } finally {
-                setIsCreatingFolder(false);
-            }
+    const onSubmitFolder = React.useCallback(async (data: FolderFormData) => {
+        setIsCreatingFolder(true);
+        try {
+            await onCreateFolder(data.name, createParentId);
+            reset();
+            setShowCreateModal(false);
+        } finally {
+            setIsCreatingFolder(false);
         }
-    }, [newFolderName, createParentId, onCreateFolder]);
+    }, [createParentId, onCreateFolder, reset]);
 
     const handleUpdateSubmit = React.useCallback((id: string) => {
         if (newFolderName.trim()) {
@@ -123,9 +135,11 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         setContextMenu(null);
     }, [contextMenu]);
 
-    const handleCreateModalClose = React.useCallback(() => setShowCreateModal(false), []);
+    const handleCreateModalClose = React.useCallback(() => {
+        setShowCreateModal(false);
+        reset();
+    }, [reset]);
     const handleNewFolderNameChange = React.useCallback((val: string) => setNewFolderName(val), []);
-    const handleNameInputChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => setNewFolderName(e.target.value), []);
 
     const rootFolders = React.useMemo(() => folders.filter(f => !f.parentId).sort((a, b) => a.name.localeCompare(b.name)), [folders]);
 
@@ -185,14 +199,22 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                     <div className="glass-panel p-6 rounded-[2rem] shadow-2xl w-80 border border-white/20 relative overflow-hidden" onClick={e => e.stopPropagation()} role="presentation">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
                         <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white relative z-10">Nouveau Dossier</h3>
-                        <form onSubmit={handleCreateSubmit}>
-                            <input value={newFolderName} onChange={handleNameInputChange}
-                                aria-label="Nom du nouveau dossier"
-                                type="text"
-                                placeholder="Nom du dossier"
-                                className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 mb-4 focus:ring-2 focus:ring-brand-500 outline-none"
-                                autoFocus
-                            />
+                        <form onSubmit={handleSubmit(onSubmitFolder)}>
+                            <div>
+                                <input
+                                    {...register('name')}
+                                    aria-label="Nom du nouveau dossier"
+                                    type="text"
+                                    placeholder="Nom du dossier"
+                                    className={`w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border ${
+                                        errors.name ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
+                                    } mb-1 focus:ring-2 focus:ring-brand-500 outline-none`}
+                                    autoFocus
+                                />
+                                {errors.name && (
+                                    <p className="text-red-500 text-xs mb-3">{errors.name.message}</p>
+                                )}
+                            </div>
                             <div className="flex justify-end gap-2 relative z-10">
                                 <button aria-label="Annuler la création" type="button" onClick={handleCreateModalClose} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" disabled={isCreatingFolder}>Annuler</button>
                                 <button aria-label="Confirmer la création" type="submit" className="px-4 py-2 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-500/20 disabled:opacity-50 flex items-center transition-all hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" disabled={isCreatingFolder}>

@@ -168,6 +168,18 @@ const Team: React.FC = () => {
 
 
 
+    const handleCloseConfirm = React.useCallback(() => {
+        setConfirmData(prev => ({ ...prev, isOpen: false }));
+    }, []);
+
+    const handleCloseInvite = React.useCallback(() => {
+        setShowInviteModal(false);
+    }, []);
+
+    const handleCloseEdit = React.useCallback(() => {
+        setShowEditModal(false);
+    }, []);
+
     return (
         <motion.div
             variants={staggerContainerVariants}
@@ -178,7 +190,7 @@ const Team: React.FC = () => {
             <MasterpieceBackground />
             <ConfirmModal
                 isOpen={confirmData.isOpen}
-                onClose={() => setConfirmData({ ...confirmData, isOpen: false })}
+                onClose={handleCloseConfirm}
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}
@@ -385,7 +397,7 @@ const Team: React.FC = () => {
             {/* INVITE DRAWER */}
             <Drawer
                 isOpen={showInviteModal}
-                onClose={() => setShowInviteModal(false)}
+                onClose={handleCloseInvite}
                 title={t('team.invite.title')}
                 subtitle={t('team.invite.subtitle', { org: user?.organizationName || t('common.settings.organization') })}
                 width="max-w-4xl"
@@ -443,7 +455,7 @@ const Team: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                        <Button type="button" variant="ghost" onClick={() => setShowInviteModal(false)}>{t('team.actions.cancel')}</Button>
+                        <Button type="button" variant="ghost" onClick={handleCloseInvite}>{t('team.actions.cancel')}</Button>
                         <Button type="submit" className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-transform" isLoading={loading || inviteForm.formState.isSubmitting}>{t('team.invite.send')}</Button>
                     </div>
                 </form>
@@ -452,7 +464,7 @@ const Team: React.FC = () => {
             {/* EDIT DRAWER */}
             <Drawer
                 isOpen={showEditModal && !!selectedUser && !selectedUser.isPending}
-                onClose={() => setShowEditModal(false)}
+                onClose={handleCloseEdit}
                 title={t('team.edit.title')}
                 subtitle={t('team.edit.subtitle')}
                 width="max-w-4xl"
@@ -501,7 +513,7 @@ const Team: React.FC = () => {
                         </div>
 
                         <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-gray-100 dark:border-white/5">
-                            <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>{t('team.actions.cancel')}</Button>
+                            <Button type="button" variant="ghost" onClick={handleCloseEdit}>{t('team.actions.cancel')}</Button>
                             <Button type="submit" className="bg-brand-600 text-white hover:scale-105 transition-transform" isLoading={loading || editForm.formState.isSubmitting}>{t('team.edit.save')}</Button>
                         </div>
                     </form>
@@ -594,7 +606,7 @@ const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: { user: UserP
 
             <div className="relative mb-4 mt-2">
                 {user.photoURL ? (
-                    <img src={user.photoURL} alt={user.displayName} className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-50 grayscale' : ''}`} />
+                    <img src={user.photoURL} alt={user.displayName} loading="lazy" className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-50 grayscale' : ''}`} />
                 ) : (
                     <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-3xl font-bold text-slate-600 dark:text-slate-300 shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-50' : ''}`}>
                         {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
