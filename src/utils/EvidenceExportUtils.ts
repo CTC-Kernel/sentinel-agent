@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { EvidenceRequest, UserProfile, Document, Control } from '../types';
+import { ErrorLogger } from '../services/errorLogger';
 
 interface ExportEvidenceOptions {
     auditId: string;
@@ -70,6 +71,7 @@ export const exportEvidenceRequestsZip = async ({
 
         onSuccess("Export ZIP téléchargé");
     } catch (error) {
+        ErrorLogger.error(error as Error, 'EvidenceExportUtils.exportToZip');
         onError(error);
     }
 };

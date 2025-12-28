@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { TokenService } from '../services/tokenService';
 import { logger } from '../utils/logger';
+import { ErrorLogger } from '../services/errorLogger';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -47,6 +48,7 @@ export const authenticate = (requiredRole?: string) => {
         next();
       } catch (error: unknown) {
         // Gestion des erreurs spécifiques
+        ErrorLogger.warn(error instanceof Error ? error.message : String(error), 'authMiddleware.validateToken');
         if (error instanceof Error && error.message === 'Invalid or expired token') {
           logger.warn({ err: error }, 'Invalid or expired token');
           return res.status(401).json({
