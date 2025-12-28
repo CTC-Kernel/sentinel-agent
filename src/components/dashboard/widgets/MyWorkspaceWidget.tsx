@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { User, CheckCircle2, ArrowRight } from '../../ui/Icons';
 import { Skeleton } from '../../ui/Skeleton';
 import { DashboardCard } from '../DashboardCard';
+import { validateUrl } from '../../../utils/urlValidation';
 
 interface ActionItem {
     id: string;
@@ -43,8 +44,8 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionIt
                         {displayItems.map(item => (
                             <div
                                 key={item.id}
-                                onClick={() => { if (item.link.startsWith('/')) navigate(item.link); }}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (item.link.startsWith('/')) navigate(item.link); } }}
+                                onClick={() => { const safeUrl = validateUrl(item.link); if (safeUrl) navigate(safeUrl); }}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const safeUrl = validateUrl(item.link); if (safeUrl) navigate(safeUrl); } }}
                                 role="button"
                                 tabIndex={0}
                                 aria-label={`Ouvrir ${item.title}`}
