@@ -37,6 +37,51 @@ app.use(validateFirebaseIdToken);
 
 // --- Routes ---
 
+// Proxy for External Threat Feeds (CISA, UrlHaus) to bypass CORS
+app.get("/v1/proxy/threat-feed", async (req, res) => {
+    try {
+        const { url } = req.query;
+        const uid = req.user?.uid; // User is authenticated via middleware
+
+        if (!url) {
+            res.status(400).json({ success: false, error: "Missing 'url' query parameter" });
+            return;
+        }
+
+        // Security Whitelist - Prevent Open Proxy Abuse
+        const ALLOWED_DOMAINS = [
+            'https://www.cisa.gov',
+            'https://urlhaus-api.abuse.ch'
+        ];
+
+        const targetUrl = decodeURIComponent(url);
+        const isAllowed = ALLOWED_DOMAINS.some(domain => targetUrl.startsWith(domain));
+
+        if (!isAllowed) {
+            logger.warn(`Blocked proxy attempt to unauthorized URL: ${targetUrl} by user ${uid}`);
+            res.status(403).json({ success: false, error: "URL not allowed" });
+            return;
+        }
+
+        // Fetch the data server-side
+        const response = await fetch(targetUrl);
+
+        if (!response.ok) {
+            throw new Error(`Upstream server responded with ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Cache control (1 hour) to reduce load on upstream
+        res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+        res.json(data);
+
+    } catch (error) {
+        logger.error("Error in threat feed proxy:", error);
+        res.status(500).json({ success: false, error: "Failed to fetch threat feed" });
+    }
+});
+
 // Consent Logging
 app.post("/v1/consent/log", async (req, res) => {
     try {

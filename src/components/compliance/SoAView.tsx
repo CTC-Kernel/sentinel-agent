@@ -14,9 +14,10 @@ interface SoAViewProps {
         handleApplicabilityChange: (control: Control, isApplicable: boolean) => Promise<void>;
         updateJustification: (control: Control, text: string) => Promise<void>;
     };
+    onSeed?: () => Promise<void>;
 }
 
-export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, handlers }) => {
+export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, handlers, onSeed }) => {
     const { addToast } = useStore();
 
     const exportPDF = () => {
@@ -53,8 +54,13 @@ export const SoAView: React.FC<SoAViewProps> = ({ controls, risks, handlers }) =
 
             <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-white/10">
                 {controls.length === 0 ? (
-                    <div className="text-center py-12">
+                    <div className="text-center py-12 space-y-4">
                         <p className="text-slate-600 dark:text-slate-400">Aucun contrôle disponible dans ce référentiel.</p>
+                        {onSeed && (
+                            <Button onClick={onSeed} variant="default">
+                                Charger les contrôles par défaut
+                            </Button>
+                        )}
                     </div>
                 ) : (
                     <table className="w-full text-sm text-left">
