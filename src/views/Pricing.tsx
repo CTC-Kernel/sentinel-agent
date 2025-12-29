@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom'; // Navigation: available for future enhancements
 import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
 import { useStore } from '../store';

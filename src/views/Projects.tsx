@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
+import { Link } from 'react-router-dom'; // Navigation: available for future enhancements
 import { useStore } from '../store';
 import { Project, ProjectTemplate, UserProfile } from '../types';
 import { useProjectLogic } from '../hooks/projects/useProjectLogic';

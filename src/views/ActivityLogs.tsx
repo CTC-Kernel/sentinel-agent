@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom'; // Navigation: available for future enhancements
 import { useActivityLogs } from '../hooks/useActivityLogs';
 import { useStore } from '../store';
 import { ActivityLogList } from '../components/activity/ActivityLogList';

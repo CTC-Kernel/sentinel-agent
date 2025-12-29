@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom'; // Navigation: available for future enhancements
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Activity, ShieldCheck, Zap, FileText, AlertOctagon,

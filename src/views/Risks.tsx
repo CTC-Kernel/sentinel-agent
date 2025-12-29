@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom'; // Navigation: Link available for future enhancements
 import { Menu, Transition } from '@headlessui/react';
 import {
     FileText, FileSpreadsheet, FileCode, MoreVertical,

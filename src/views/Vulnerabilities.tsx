@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom'; // Navigation: available for future enhancements
 import { Menu, Transition } from '@headlessui/react';
 // Form validation: schema-based validation via VulnerabilityForm component
 import { useStore } from '../store';

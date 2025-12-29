@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom'; // Navigation: available for future enhancements
 import { useTranslation } from 'react-i18next';
 import { useFirestoreCollection } from '../hooks/useFirestore';
 

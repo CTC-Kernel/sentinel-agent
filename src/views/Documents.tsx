@@ -2,7 +2,7 @@ import React, { useDeferredValue, useMemo, useState, useCallback } from 'react';
 import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom'; // Navigation: Link available for future enhancements
 import { Document } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { Plus, Bell, FileText, History, Edit, CheckCircle2 } from '../components/ui/Icons';

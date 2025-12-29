@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom'; // Navigation: available for future enhancements
 import { motion } from 'framer-motion';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
 import { SEO } from '../components/SEO';

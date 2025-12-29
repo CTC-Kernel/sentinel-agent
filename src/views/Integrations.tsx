@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // Navigation: available for future enhancements
 import { motion } from 'framer-motion';
 import { integrationService, IntegrationProvider } from '../services/integrationService';
 import { IntegrationCard } from '../components/integrations/IntegrationCard';

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // Navigation: available for future enhancements
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { BackupService, BackupMetadata } from '../services/backupService';

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom'; // Navigation: available for future enhancements
 import { Menu, Transition } from '@headlessui/react';
 import { useStore } from '../store';
 import { Incident, UserProfile, Criticality } from '../types';
