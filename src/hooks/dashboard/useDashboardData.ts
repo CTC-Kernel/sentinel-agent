@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
-import { db } from '../../firebase';
-import { collection, query, where, getCountFromServer, orderBy, limit, getDoc, doc } from 'firebase/firestore';
+import { where, orderBy, limit } from 'firebase/firestore';
 import { Risk, Control, Audit, Project, StatsHistoryEntry, Document, Asset, SystemLog, Supplier, Incident } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
+import { DashboardService } from '../../services/dashboardService';
 
 export interface DashboardData {
     controls: Control[];
@@ -81,7 +81,7 @@ export const useDashboardData = (): DashboardData => {
 
         setManualLoading(true);
         try {
-            const orgId = user.organizationId!;
+            const orgId = user.organizationId;
 
             // Check cache
             const now = Date.now();
@@ -92,48 +92,46 @@ export const useDashboardData = (): DashboardData => {
                 setError(null);
                 setManualLoading(false);
 
-                // Fetch org details if needed (and not cached effectively here, but kept simple)
+                // Fetch org details if needed
                 if (!organizationName) {
                     try {
-                        const orgSnap = await getDoc(doc(db, 'organizations', orgId));
-                        if (orgSnap.exists()) {
-                            const data = orgSnap.data();
-                            setOrganizationName(data.name || '');
-                            setOrganizationLogo(data.logoUrl);
-                        } else if (user.organizationName) setOrganizationName(user.organizationName);
-                    } catch { if (user.organizationName) setOrganizationName(user.organizationName); }
+                        const orgDetails = await DashboardService.getOrganizationDetails(orgId);
+                        if (orgDetails) {
+                            setOrganizationName(orgDetails.name);
+                            setOrganizationLogo(orgDetails.logoUrl);
+                        } else if (user.organizationName) {
+                            setOrganizationName(user.organizationName);
+                        }
+                    } catch {
+                        if (user.organizationName) setOrganizationName(user.organizationName);
+                    }
                 }
 
                 return;
             }
 
-            // Organization Name
+            // Use DashboardService to fetch organization details and counts
             try {
-                const orgSnap = await getDoc(doc(db, 'organizations', orgId));
-                if (orgSnap.exists()) {
-                    const data = orgSnap.data();
-                    setOrganizationName(data.name || '');
-                    setOrganizationLogo(data.logoUrl);
+                const orgDetails = await DashboardService.getOrganizationDetails(orgId);
+                if (orgDetails) {
+                    setOrganizationName(orgDetails.name);
+                    setOrganizationLogo(orgDetails.logoUrl);
+                } else if (user.organizationName) {
+                    setOrganizationName(user.organizationName);
                 }
-                else if (user.organizationName) setOrganizationName(user.organizationName);
-            } catch { if (user.organizationName) setOrganizationName(user.organizationName); }
+            } catch {
+                if (user.organizationName) setOrganizationName(user.organizationName);
+            }
 
-            // Counts
-            const [incCount, auditCount] = await Promise.all([
-                getCountFromServer(query(collection(db, 'incidents'), where('organizationId', '==', orgId), where('status', '!=', 'Fermé'))),
-                getCountFromServer(query(collection(db, 'audits'), where('organizationId', '==', orgId), where('status', 'in', ['Planifié', 'En cours'])))
-            ]);
+            // Fetch counts using DashboardService
+            const counts = await DashboardService.getDashboardCounts(orgId);
 
-            const next = {
-                activeIncidentsCount: incCount.data().count,
-                openAuditsCount: auditCount.data().count
-            };
-            lastCountsValue = next;
+            lastCountsValue = counts;
             lastCountsOrgId = orgId;
             lastCountsFetchAt = now;
 
-            setActiveIncidentsCount(next.activeIncidentsCount);
-            setOpenAuditsCount(next.openAuditsCount);
+            setActiveIncidentsCount(counts.activeIncidentsCount);
+            setOpenAuditsCount(counts.openAuditsCount);
             setError(null);
         } catch (err) {
             const code = (err as { code?: string })?.code;
