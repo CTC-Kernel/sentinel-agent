@@ -98,7 +98,7 @@ export class ThreatFeedService {
      */
     static async fetchCisaKev(): Promise<Vulnerability[]> {
         try {
-            const data = await this.fetchWithFailover('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json');
+            const data = await this.fetchViaProxy('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json');
             const vulnerabilities: CisaVulnerability[] = data.vulnerabilities || [];
 
             return vulnerabilities.slice(0, 50).map(v => ({
@@ -124,7 +124,7 @@ export class ThreatFeedService {
      */
     static async fetchUrlHaus(): Promise<Threat[]> {
         try {
-            const data = await this.fetchWithFailover('https://urlhaus-api.abuse.ch/v1/urls/recent/');
+            const data = await this.fetchViaProxy('https://urlhaus-api.abuse.ch/v1/urls/recent/');
             const urls: UrlHausEntry[] = data.urls || [];
 
             return urls.slice(0, 50).map(u => ({

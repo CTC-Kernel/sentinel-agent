@@ -58,7 +58,7 @@ export const Compliance: React.FC = () => {
     // Data Hooks
     const { filteredControls: frameworkControls, risks, findings, documents, usersList, assets, suppliers, projects, loading } = useComplianceData(currentFramework);
     const complianceActions = useComplianceActions(user);
-    const { seedIsoControls } = useComplianceDataSeeder();
+    const { seedControls } = useComplianceDataSeeder();
     const { handleProjectFormSubmit, isSubmitting: isProjectSubmitting } = useProjectLogic();
 
     // Effects
@@ -210,7 +210,7 @@ export const Compliance: React.FC = () => {
                             <ComplianceDashboard
                                 controls={filteredControls}
                                 currentFramework={currentFramework}
-                                onSeedData={seedIsoControls}
+                                onSeedData={() => seedControls(currentFramework)}
                             />
                         </div>
                     )}
@@ -245,6 +245,7 @@ export const Compliance: React.FC = () => {
                                 controls={filteredControls}
                                 risks={risks}
                                 handlers={complianceActions}
+                                onSeed={() => seedControls(currentFramework)}
                             />
                         </div>
                     )}
