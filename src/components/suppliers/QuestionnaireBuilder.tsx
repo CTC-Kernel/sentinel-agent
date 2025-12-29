@@ -40,7 +40,6 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
             const templateData = {
                 ...data,
                 organizationId: user?.organizationId,
-                updatedAt: new Date().toISOString(),
                 createdBy: user?.uid
             };
 
@@ -48,10 +47,7 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                 await updateTemplate(initialData.id, templateData);
                 addToast('Modèle mis à jour', 'success');
             } else {
-                await addTemplate({
-                    ...templateData,
-                    createdAt: new Date().toISOString()
-                } as QuestionnaireTemplate);
+                await addTemplate(templateData as QuestionnaireTemplate);
                 addToast('Nouveau modèle créé', 'success');
             }
             if (onSave) onSave();

@@ -5,6 +5,7 @@ import { Save, Check, ChevronRight } from '../ui/Icons';
 import { SupplierService } from '../../services/SupplierService';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useSuppliersData } from '../../hooks/suppliers/useSuppliersData';
+import { serverTimestamp } from 'firebase/firestore';
 
 interface Props {
     responseId: string;
@@ -74,12 +75,11 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                 answers,
                 overallScore,
                 sectionScores,
-                status: submit ? 'Submitted' : 'In Progress',
-                updatedAt: new Date().toISOString() // Assuming field exists or we add it
+                status: submit ? 'Submitted' : 'In Progress'
             };
 
             if (submit) {
-                updates.submittedDate = new Date().toISOString();
+                updates.submittedDate = serverTimestamp();
                 // Update Supplier Risk Level ONLY if in supplier context
                 if (context === 'supplier') {
                     await SupplierService.updateSupplierRiskFromAssessment(response.supplierId, overallScore);
