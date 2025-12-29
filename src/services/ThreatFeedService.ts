@@ -58,8 +58,8 @@ export class ThreatFeedService {
     private static async fetchWithFailover(targetUrl: string): Promise<any> {
         const proxies = [
             (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-            (url: string) => `https://thingproxy.freeboard.io/fetch/${url}`
+            (url: string) => `https://thingproxy.freeboard.io/fetch/${url}`,
+            (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`
         ];
 
         // Try direct first (some might support CORS)
