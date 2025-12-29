@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Control } from '../../types';
-import { Clock, AlertTriangle, TrendingUp, ShieldAlert, PieChart as PieChartIcon, BarChart3 as BarChartIcon, Target } from '../ui/Icons';
+import { Clock, AlertTriangle, TrendingUp, ShieldAlert, PieChart as PieChartIcon, BarChart3 as BarChartIcon, Target, RefreshCw } from '../ui/Icons';
+import { Button } from '../ui/button';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import { StatsService } from '../../services/statsService';
 import { useStore } from '../../store';
@@ -12,9 +13,10 @@ interface ComplianceDashboardProps {
     controls: Control[];
     onFilterChange?: (status: string | null) => void;
     currentFramework?: string;
+    onSeedData?: () => void;
 }
 
-export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ controls, onFilterChange, currentFramework = 'ISO27001' }) => {
+export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ controls, onFilterChange, currentFramework = 'ISO27001', onSeedData }) => {
     const { user } = useStore();
     const [trend, setTrend] = useState<number | undefined>(undefined);
 
@@ -365,12 +367,22 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
                 </div>
             ) : (
-                <EmptyChartState
-                    variant="bar"
-                    message="Aucune donnée de conformité"
-                    description="Commencez par importer ou créer des contrôles pour visualiser les graphiques de conformité."
-                    className="glass-panel border-dashed p-12"
-                />
+                <div className="flex flex-col items-center justify-center space-y-4">
+                    <EmptyChartState
+                        variant="bar"
+                        message="Aucune donnée de conformité"
+                        description="Commencez par importer les contrôles standards pour visualiser les graphiques."
+                        className="glass-panel border-dashed p-12 w-full"
+                    />
+                    {onSeedData && (
+                        <div className="flex gap-4">
+                            <Button onClick={onSeedData} variant="default" className="gap-2">
+                                <RefreshCw className="w-4 h-4" />
+                                Initialiser ISO 27001 (Standard)
+                            </Button>
+                        </div>
+                    )}
+                </div>
             )}
 
             {/* Critical Controls Not Implemented */}

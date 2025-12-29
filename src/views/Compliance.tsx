@@ -14,6 +14,7 @@ import { ComplianceFilters } from '../components/compliance/ComplianceFilters';
 import { ComplianceInspector } from '../components/compliance/ComplianceInspector';
 import { useComplianceData } from '../hooks/useComplianceData';
 import { useComplianceActions } from '../hooks/useComplianceActions';
+import { useComplianceDataSeeder } from '../hooks/useComplianceDataSeeder';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { canEditResource } from '../utils/permissions';
 import { FRAMEWORKS } from '../data/frameworks';
@@ -57,6 +58,7 @@ export const Compliance: React.FC = () => {
     // Data Hooks
     const { filteredControls: frameworkControls, risks, findings, documents, usersList, assets, suppliers, projects, loading } = useComplianceData(currentFramework);
     const complianceActions = useComplianceActions(user);
+    const { seedIsoControls } = useComplianceDataSeeder();
     const { handleProjectFormSubmit, isSubmitting: isProjectSubmitting } = useProjectLogic();
 
     // Effects
@@ -205,7 +207,11 @@ export const Compliance: React.FC = () => {
                     {/* Tab Content */}
                     {activeTab === 'overview' && (
                         <div className="animate-fade-in space-y-6">
-                            <ComplianceDashboard controls={filteredControls} currentFramework={currentFramework} />
+                            <ComplianceDashboard
+                                controls={filteredControls}
+                                currentFramework={currentFramework}
+                                onSeedData={seedIsoControls}
+                            />
                         </div>
                     )}
 

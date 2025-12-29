@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Suspense } from 'react';
-import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'; // HashRouter aliased as Router
+import { HashRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom'; // HashRouter aliased as Router
 import { Toaster } from 'sonner';
 
 // Contexts & Hooks
@@ -48,7 +48,7 @@ import { VersionCheck } from './components/VersionCheck';
 const Login = React.lazy(() => import('./views/Login').then(module => ({ default: module.Login })));
 const Onboarding = React.lazy(() => import('./views/Onboarding').then(module => ({ default: module.Onboarding })));
 const VerifyEmail = React.lazy(() => import('./views/VerifyEmail').then(module => ({ default: module.VerifyEmail })));
-const LandingPage = React.lazy(() => import('./views/LandingPage').then(module => ({ default: module.LandingPage })));
+
 
 
 // Route wrapper that decides whether to show Landing Page or App logic
@@ -62,7 +62,7 @@ const LandingOrAppRoute: React.FC<{ children: React.ReactNode }> = ({ children }
             </AuthGuard>
         );
     }
-    return <LandingPage />; // Authenticated users see dashboard (via AppLayout), visitors see Landing
+    return <Navigate to="/login" replace />; // Redirect to login instead of LandingPage
 };
 
 // Wrapper to activate global shortcuts inside Router context

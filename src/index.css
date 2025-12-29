@@ -654,18 +654,19 @@ body.voxel-fullscreen header {
 }
 
 /* Refined Glassmorphism for Command Center */
-.glass-panel-command {
-  background: rgba(15, 23, 42, 0.7);
-  /* Darker base */
-  backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-}
 
-.light .glass-panel-command {
+.glass-panel-command {
   background: rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.4);
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+.dark .glass-panel-command {
+  background: rgba(15, 23, 42, 0.7);
+  /* Darker base */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* Active Monitoring Dot */

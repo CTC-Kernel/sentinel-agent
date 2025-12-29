@@ -3,6 +3,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store';
 import { usePersistedState } from '../hooks/usePersistedState';
+import { hasPermission } from '../utils/permissions';
 import { SettingsLayout } from '../components/settings/SettingsLayout';
 import { ProfileSettings } from '../components/settings/ProfileSettings';
 import { UserActivityLog } from '../components/settings/UserActivityLog';
@@ -16,7 +17,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
 
 const Settings: React.FC = () => {
-    const { t } = useStore();
+    const { t, user } = useStore();
     const [activeTab, setActiveTab] = usePersistedState('settings_active_tab', 'profile');
 
     const renderContent = () => {
@@ -24,9 +25,15 @@ const Settings: React.FC = () => {
             case 'profile': return <ProfileSettings />;
             case 'activity': return <UserActivityLog />;
             case 'security': return <SecuritySettings />;
-            case 'organization': return <OrganizationSettings />;
+            case 'organization':
+                return hasPermission(user, 'Settings', 'manage')
+                    ? <OrganizationSettings />
+                    : <ProfileSettings />;
             case 'integrations': return <IntegrationSettings />;
-            case 'system': return <SystemSettings />;
+            case 'system':
+                return hasPermission(user, 'Settings', 'read')
+                    ? <SystemSettings />
+                    : <ProfileSettings />;
             default: return <ProfileSettings />;
         }
     };
