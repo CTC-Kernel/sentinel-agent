@@ -61,7 +61,6 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
             await addStrategy({
                 ...data,
                 organizationId: user.organizationId,
-                createdAt: new Date().toISOString(),
                 linkedAssets: data.linkedAssets || []
             });
             addToast('Stratégie ajoutée', 'success');
