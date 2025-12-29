@@ -44,6 +44,11 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         }
     }, [deletingIds, onDelete]);
 
+    const createDeleteHandler = React.useCallback((id: string, name: string) => (e: React.MouseEvent) => {
+        e.stopPropagation();
+        void handleDelete(id, name);
+    }, [handleDelete]);
+
     const columns = useMemo<ColumnDef<Project>[]>(() => [
         {
             accessorKey: 'name',
@@ -148,7 +153,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                             </CustomTooltip>
                             {canDeleteResource(user, 'Project') && (
                                 <CustomTooltip content={deletingIds.has(row.original.id) ? "Suppression..." : t('projects.tooltips.delete')}>
-                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(row.original.id, row.original.name); }} disabled={deletingIds.has(row.original.id)} className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Supprimer le projet ${row.original.name}`}>
+                                    <button onClick={createDeleteHandler(row.original.id, row.original.name)} disabled={deletingIds.has(row.original.id)} className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Supprimer le projet ${row.original.name}`}>
                                         <Trash2 className="h-4 w-4" />
                                     </button>
                                 </CustomTooltip>

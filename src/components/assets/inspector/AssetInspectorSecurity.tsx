@@ -39,6 +39,10 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
         navigate('/risks', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } });
     }, [navigate, selectedAsset.id, selectedAsset.name]);
 
+    const handleCreateIncident = useCallback(() => {
+        navigate('/incidents', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } });
+    }, [navigate, selectedAsset.id, selectedAsset.name]);
+
     return (
         <div className="space-y-8">
             <div className="flex gap-4">
