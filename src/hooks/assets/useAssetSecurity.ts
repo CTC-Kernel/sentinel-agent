@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Asset, Vulnerability, Risk } from '../../types';
@@ -82,7 +82,7 @@ export function useAssetSecurity(asset: Asset | null) {
                 strategy: 'Atténuer',
                 owner: user.email,
                 // tags: ['CVE', 'Auto-generated'], // Removed as not in Risk interface
-                createdAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
                 updatedAt: new Date().toISOString()
             };
 

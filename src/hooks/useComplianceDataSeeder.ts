@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { collection, writeBatch, doc } from 'firebase/firestore';
+import { collection, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ISO_SEED_CONTROLS } from '../data/complianceData';
 import { useStore } from '../store';
@@ -34,8 +34,8 @@ export const useComplianceDataSeeder = () => {
                     status: 'Non commencé',
                     applicability: 'Applicable',
                     organizationId: user.organizationId,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
                     riskLevel: 'Faible',
                     maturity: 0
                 });

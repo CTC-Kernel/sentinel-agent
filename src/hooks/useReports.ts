@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { collection, addDoc, deleteDoc, doc, getDocs, query, where, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, getDocs, query, where, QueryDocumentSnapshot, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
 import { useStore } from '../store';
@@ -31,7 +31,7 @@ export const useReports = () => {
                 ownerId: user.uid,
                 owner: user.displayName || user.email || 'Système',
                 organizationId: user.organizationId,
-                createdAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
                 updatedAt: new Date().toISOString(),
                 version: '1.0',
                 size: blob.size,
