@@ -30,7 +30,7 @@ export const useIncidents = () => {
             const docRef = await addDoc(collection(db, 'incidents'), {
                 ...incidentData,
                 organizationId: user.organizationId,
-                dateReported: new Date().toISOString()
+                dateReported: serverTimestamp()
             });
 
             await logAction(user, 'CREATE', 'Incident', `Nouvel Incident: ${incidentData.title} `);
@@ -156,7 +156,7 @@ export const useIncidents = () => {
                 title: event.title,
                 description: event.description + `\n\n**Source**: ${event.source}\n**Raw Data**: ${JSON.stringify(event.rawData)}`,
                 severity: mapSeverity(event.severity),
-                dateReported: new Date().toISOString(),
+                dateReported: serverTimestamp(),
                 status: 'Analyse',
                 type: 'SecurityAlert',
                 reporter: 'Connecteur ' + event.source,
@@ -189,9 +189,9 @@ export const useIncidents = () => {
                 status: 'Contenu',
                 category: 'Ransomware',
                 reporter: 'Sentinel AI (Automated)',
-                dateReported: new Date().toISOString(),
-                dateAnalysis: new Date().toISOString(),
-                dateContained: new Date().toISOString(),
+                dateReported: serverTimestamp(),
+                dateAnalysis: serverTimestamp(),
+                dateContained: serverTimestamp(),
                 financialImpact: 0,
                 history: [
                     { date: new Date().toISOString(), user: 'Sentinel AI', action: 'DETECTION', details: 'Signature match: LockBit 3.0 behavior detected.' },
