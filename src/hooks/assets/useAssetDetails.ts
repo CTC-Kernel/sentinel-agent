@@ -1,10 +1,11 @@
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, limit, getDocs, onSnapshot, addDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Asset, SystemLog, MaintenanceRecord, Risk, Incident, Project, Audit, Document as GRCDocument, Control } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
+import { AssetService } from '../../services/assetService';
 
 export function useAssetDetails(asset: Asset | null) {
     const { user } = useStore();
@@ -34,45 +35,23 @@ export function useAssetDetails(asset: Asset | null) {
         setLoadingDetails(true);
         let unsubMaint: () => void = () => { };
 
+        // Capture organizationId to satisfy TypeScript (already checked above)
+        const organizationId = user.organizationId;
+
         const fetchDetails = async () => {
             try {
-                // History
-                const logsQ = query(collection(db, 'system_logs'), where('organizationId', '==', user.organizationId), orderBy('timestamp', 'desc'), limit(50));
-                const snapLogs = await getDocs(logsQ);
-                const logs = snapLogs.docs.map(d => d.data() as SystemLog);
-                const filteredLogs = logs.filter(l => l.details?.includes(asset.name));
-                filteredLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-                setHistory(filteredLogs);
+                // Fetch history using AssetService
+                const historyData = await AssetService.getAssetHistory(asset.name, organizationId);
+                setHistory(historyData.logs);
 
-                // Risks
-                const risksQ = query(collection(db, 'risks'), where('organizationId', '==', user.organizationId), where('assetId', '==', asset.id));
-                const snapRisks = await getDocs(risksQ);
-                setLinkedRisks(snapRisks.docs.map(d => ({ id: d.id, ...d.data() } as Risk)));
-
-                // Incidents
-                const incQ = query(collection(db, 'incidents'), where('organizationId', '==', user.organizationId), where('affectedAssetId', '==', asset.id));
-                const snapInc = await getDocs(incQ);
-                setLinkedIncidents(snapInc.docs.map(d => ({ id: d.id, ...d.data() } as Incident)));
-
-                // Projects
-                const projQ = query(collection(db, 'projects'), where('organizationId', '==', user.organizationId), where('relatedAssetIds', 'array-contains', asset.id));
-                const snapProj = await getDocs(projQ);
-                setLinkedProjects(snapProj.docs.map(d => ({ id: d.id, ...d.data() } as Project)));
-
-                // Audits
-                const auditQ = query(collection(db, 'audits'), where('organizationId', '==', user.organizationId), where('relatedAssetIds', 'array-contains', asset.id));
-                const snapAudit = await getDocs(auditQ);
-                setLinkedAudits(snapAudit.docs.map(d => ({ id: d.id, ...d.data() } as Audit)));
-
-                // Documents
-                const docQ = query(collection(db, 'documents'), where('organizationId', '==', user.organizationId), where('relatedAssetIds', 'array-contains', asset.id));
-                const snapDoc = await getDocs(docQ);
-                setLinkedDocuments(snapDoc.docs.map(d => ({ id: d.id, ...d.data() } as GRCDocument)));
-
-                // Controls
-                const ctrlQ = query(collection(db, 'controls'), where('organizationId', '==', user.organizationId), where('relatedAssetIds', 'array-contains', asset.id));
-                const snapCtrl = await getDocs(ctrlQ);
-                setLinkedControls(snapCtrl.docs.map(d => ({ id: d.id, ...d.data() } as Control)));
+                // Fetch all relationships using AssetService (parallel execution)
+                const relationships = await AssetService.getAssetRelationships(asset.id, organizationId);
+                setLinkedRisks(relationships.risks);
+                setLinkedIncidents(relationships.incidents);
+                setLinkedProjects(relationships.projects);
+                setLinkedAudits(relationships.audits);
+                setLinkedDocuments(relationships.documents);
+                setLinkedControls(relationships.controls);
 
             } catch (e) {
                 ErrorLogger.handleErrorWithToast(e, 'useAssetDetails', 'FETCH_FAILED');
