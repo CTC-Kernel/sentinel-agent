@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit, getDoc, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, updateDoc, doc, orderBy, limit, getDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { UserProfile, Audit, Document as GRCDocument, Asset, Risk, ProjectTask, Incident, Control, Supplier, NotificationPreferences, NotificationChannelPreferences } from '../types';
 import { sendEmail } from './emailService';
 import {
@@ -72,7 +72,7 @@ export class NotificationService {
                 message,
                 link,
                 read: false,
-                createdAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
                 expiresAt,
             }));
         } catch (error) {
@@ -116,7 +116,7 @@ export class NotificationService {
                         message,
                         link,
                         read: false,
-                        createdAt: new Date().toISOString(),
+                        createdAt: serverTimestamp(),
                     })).catch(e => ErrorLogger.error(e, 'NotificationService.createForOrganization.addDoc'))
                 );
 
@@ -314,7 +314,7 @@ export class NotificationService {
                                 message: `L'audit est prévu dans ${daysUntil} jour(s) - ${new Date(audit.dateScheduled).toLocaleDateString()}`,
                                 link: '/audits',
                                 read: false,
-                                createdAt: new Date().toISOString(),
+                                createdAt: serverTimestamp(),
                             }));
 
                             // Send Email
@@ -389,7 +389,7 @@ export class NotificationService {
                                 message: `La date de révision est dépassée depuis le ${new Date(doc.nextReviewDate).toLocaleDateString()}`,
                                 link: '/documents',
                                 read: false,
-                                createdAt: new Date().toISOString(),
+                                createdAt: serverTimestamp(),
                             }));
 
                             // Send Email
@@ -470,7 +470,7 @@ export class NotificationService {
                                     message: `Maintenance prévue dans ${daysUntil} jour(s)`,
                                     link: '/assets',
                                     read: false,
-                                    createdAt: new Date().toISOString(),
+                                    createdAt: serverTimestamp(),
                                 }));
 
                                 // Send Email
@@ -858,7 +858,7 @@ export class NotificationService {
                                     message: `Le contrat expire dans ${daysUntil} jour(s)`,
                                     link: '/suppliers',
                                     read: false,
-                                    createdAt: new Date().toISOString(),
+                                    createdAt: serverTimestamp(),
                                 }));
 
                                 // Send Email
