@@ -120,6 +120,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                             suppliers={suppliers}
                             isEditing={!!selectedAsset}
                             onCancel={onClose}
+                            readOnly={!canEdit}
                         />
 
 

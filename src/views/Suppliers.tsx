@@ -5,7 +5,7 @@ import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
 
 import { Supplier, Criticality, UserProfile } from '../types';
-import { Plus, Building, Trash2, Handshake, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, MessageSquare, ShieldAlert } from '../components/ui/Icons';
+import { Plus, Building, Trash2, Handshake, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, ShieldAlert } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { useSuppliers } from '../hooks/useSuppliers';
@@ -20,9 +20,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorLogger } from '../services/errorLogger';
 import { useLocation } from 'react-router-dom';
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { supplierSchema, SupplierFormData } from '../schemas/supplierSchema';
+import { SupplierFormData } from '../schemas/supplierSchema';
 import { Drawer } from '../components/ui/Drawer';
 import { SupplierForm } from '../components/suppliers/SupplierForm';
 import { usePersistedState } from '../hooks/usePersistedState';
@@ -34,9 +32,8 @@ import { QuestionnaireBuilder } from '../components/suppliers/QuestionnaireBuild
 import { AssessmentView } from '../components/suppliers/AssessmentView';
 
 import { SupplierService } from '../services/SupplierService';
-import { ResourceHistory } from '../components/shared/ResourceHistory';
-import { CommentSection } from '../components/collaboration/CommentSection';
 import { SupplierCard } from '../components/suppliers/SupplierCard';
+import { SupplierInspector } from '../components/suppliers/SupplierInspector';
 
 const getCriticalityColor = (c: Criticality) => {
     switch (c) {
@@ -72,8 +69,7 @@ export const Suppliers: React.FC = () => {
     const [isExportingCSV, setIsExportingCSV] = useState(false);
     const [isExportingDORA, setIsExportingDORA] = useState(false);
 
-    // Inspector State
-    const [inspectorTab, setInspectorTab] = useState<'profile' | 'assessment' | 'incidents' | 'history' | 'comments' | 'intelligence'>('profile');
+
 
     // Import
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,43 +79,7 @@ export const Suppliers: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    const editForm = useForm<SupplierFormData>({
-        resolver: zodResolver(supplierSchema),
-        defaultValues: {
-            name: '', category: 'SaaS', criticality: Criticality.MEDIUM, status: 'Actif',
-            owner: '', ownerId: '',
-            assessment: { hasIso27001: false, hasGdprPolicy: false, hasEncryption: false, hasBcp: false, hasIncidentProcess: false },
-            relatedAssetIds: [], relatedRiskIds: [], relatedProjectIds: []
-        }
-    });
 
-    useEffect(() => {
-        if (selectedSupplier) {
-            editForm.reset({
-                name: selectedSupplier.name,
-                category: selectedSupplier.category,
-                criticality: selectedSupplier.criticality,
-                status: selectedSupplier.status,
-                contactName: selectedSupplier.contactName,
-                contactEmail: selectedSupplier.contactEmail || '',
-                owner: selectedSupplier.owner,
-                ownerId: selectedSupplier.ownerId,
-                description: selectedSupplier.description,
-                contractDocumentId: selectedSupplier.contractDocumentId,
-                contractEnd: selectedSupplier.contractEnd,
-                securityScore: selectedSupplier.securityScore,
-                assessment: selectedSupplier.assessment,
-                isICTProvider: selectedSupplier.isICTProvider,
-                supportsCriticalFunction: selectedSupplier.supportsCriticalFunction,
-                doraCriticality: selectedSupplier.doraCriticality,
-                serviceType: selectedSupplier.serviceType,
-                supportedProcessIds: selectedSupplier.supportedProcessIds,
-                relatedAssetIds: selectedSupplier.relatedAssetIds || [],
-                relatedRiskIds: selectedSupplier.relatedRiskIds || [],
-                relatedProjectIds: selectedSupplier.relatedProjectIds || []
-            });
-        }
-    }, [selectedSupplier, editForm]);
 
     // Data Hooks
     const { suppliers: suppliersRaw, loading: loadingSuppliers, addSupplier, updateSupplier, deleteSupplier, importSuppliers, checkDependencies } = useSuppliers();
@@ -143,14 +103,7 @@ export const Suppliers: React.FC = () => {
     }, [usersRaw, user]);
 
 
-    const selectedOwnerId = editForm.watch('ownerId');
 
-    useEffect(() => {
-        if (selectedOwnerId) {
-            const selectedUser = usersRaw.find(u => u.displayName === selectedOwnerId || u.uid === selectedOwnerId); // Enhanced check
-            if (selectedUser) editForm.setValue('owner', selectedUser.displayName || '');
-        }
-    }, [selectedOwnerId, usersRaw, editForm]);
 
 
     // Derived State
@@ -276,13 +229,7 @@ export const Suppliers: React.FC = () => {
         setSelectedSupplier(null);
     }, []);
 
-    const handleTabChange = useCallback((id: string) => {
-        setInspectorTab(id as 'profile' | 'assessment' | 'incidents' | 'history' | 'comments' | 'intelligence');
-    }, []);
 
-    const handleCommentsClick = useCallback(() => {
-        setInspectorTab('comments');
-    }, []);
 
     const handleStartAssessmentClick = useCallback(() => {
         if (selectedSupplier && templates.length > 0) {
@@ -302,40 +249,9 @@ export const Suppliers: React.FC = () => {
         e.stopPropagation();
     }, []);
 
-    const handleStartNewAssessment = useCallback(() => {
-        if (selectedSupplier && templates.length > 0) {
-            startAssessment(selectedSupplier, templates[0].id);
-        }
-    }, [selectedSupplier, templates, startAssessment]);
-
-    const openInspector = useCallback(async (supplier: Supplier) => {
-        setSelectedSupplier(supplier);
-        setInspectorTab('profile');
-        editForm.reset({
-            name: supplier.name,
-            category: supplier.category,
-            criticality: supplier.criticality,
-            contactName: supplier.contactName,
-            contactEmail: supplier.contactEmail,
-            status: supplier.status,
-            owner: supplier.owner,
-            ownerId: supplier.ownerId,
-            description: supplier.description,
-            contractDocumentId: supplier.contractDocumentId,
-            contractEnd: supplier.contractEnd,
-            securityScore: supplier.securityScore,
-            assessment: supplier.assessment,
-            isICTProvider: supplier.isICTProvider,
-            supportsCriticalFunction: supplier.supportsCriticalFunction,
-            doraCriticality: supplier.doraCriticality,
-            serviceType: supplier.serviceType,
-            supportedProcessIds: supplier.supportedProcessIds || []
-        });
-    }, [editForm]);
-
     const handleCardClick = useCallback((supplier: Supplier) => {
-        openInspector(supplier);
-    }, [openInspector]);
+        setSelectedSupplier(supplier);
+    }, []);
 
     const deferredFilter = useDeferredValue(filter);
     const filteredSuppliers = useMemo(() => {
@@ -459,14 +375,13 @@ export const Suppliers: React.FC = () => {
         const supplier = suppliers.find(s => s.id === state.voxelSelectedId);
         if (supplier) {
             setSelectedSupplier(supplier);
-            setInspectorTab('profile');
         }
     }, [location.state, loadingSuppliers, loadingData, suppliers]);
 
 
 
 
-    const handleCreate: SubmitHandler<SupplierFormData> = useCallback(async (data) => {
+    const handleCreate = useCallback(async (data: SupplierFormData) => {
         if (!canEdit || !user?.organizationId) return;
         setIsSubmitting(true);
         try {
@@ -479,7 +394,7 @@ export const Suppliers: React.FC = () => {
         }
     }, [canEdit, user, addSupplier]);
 
-    const handleUpdate: SubmitHandler<SupplierFormData> = useCallback(async (data) => {
+    const handleUpdate = useCallback(async (data: SupplierFormData) => {
         if (!canEdit || !selectedSupplier) return;
         setIsSubmitting(true);
         try {
@@ -748,7 +663,7 @@ export const Suppliers: React.FC = () => {
                         data={filteredSuppliers}
                         selectable={true}
                         onBulkDelete={handleBulkDelete}
-                        onRowClick={openInspector}
+                        onRowClick={setSelectedSupplier}
                         searchable={false}
                         loading={loadingSuppliers}
                     />
@@ -802,111 +717,21 @@ export const Suppliers: React.FC = () => {
             </Drawer>
 
             {/* Edit Drawer */}
-            <Drawer
-                isOpen={!!selectedSupplier}
-                onClose={handleInspectorClose}
-                title={selectedSupplier?.name || ''}
-                subtitle="Détails du fournisseur"
-                width="max-w-4xl"
-                actions={
-                    <div className="flex items-center gap-2">
-                        {selectedSupplier && (
-                            <CustomTooltip content="Démarrer une évaluation">
-                                <button
-                                    aria-label="Démarrer une évaluation"
-                                    onClick={handleStartAssessmentClick}
-                                    className="p-2 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                                >
-                                    <ClipboardList className="h-5 w-5" />
-                                </button>
-                            </CustomTooltip>
-                        )}
-                        <button
-                            aria-label="Discussion"
-                            onClick={handleCommentsClick}
-                            className={`p-2 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${inspectorTab === 'comments' ? 'bg-brand-50 text-brand-600' : 'text-slate-500 hover:bg-slate-100'}`}
-                        >
-                            <MessageSquare className="h-5 w-5" />
-                        </button>
-                    </div>
-                }
-            >
-                {selectedSupplier && (
-                    <div className="h-full flex flex-col">
-                        {/* Tabs */}
-                        <div className="flex items-center space-x-1 px-6 border-b border-slate-100 dark:border-white/5 overflow-x-auto custom-scrollbar">
-                            {[
-                                { id: 'profile', label: 'Profil', icon: Building },
-                                { id: 'history', label: 'Historique', icon: FileSpreadsheet }, // Using FileSpreadsheet as generic history/log icon for now or Clock if avail
-                                { id: 'comments', label: 'Commentaires', icon: MessageSquare }
-                            ].map(tab => (
-                                <button
-                                    key={tab.id}
-                                    aria-label={tab.label}
-                                    onClick={() => handleTabChange(tab.id)}
-                                    className={`flex items-center px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${inspectorTab === tab.id
-                                        ? 'border-brand-500 text-brand-600'
-                                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                                        }`}
-                                >
-                                    <tab.icon className="h-4 w-4 mr-2" />
-                                    {tab.label}
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className="flex-1 overflow-hidden relative">
-                            {inspectorTab === 'profile' && (
-                                <SupplierForm
-                                    initialData={selectedSupplier}
-                                    onSubmit={handleUpdate}
-                                    onCancel={handleInspectorClose}
-                                    isLoading={isSubmitting}
-                                    users={effectiveUsers}
-                                    processes={processesRaw}
-                                    assets={assetsRaw}
-                                    risks={risksRaw}
-                                    documents={documentsRaw}
-                                    isEditing={true} // It is editing mode here
-                                />
-                            )}
-                            {inspectorTab === 'assessment' && (
-                                <div className="p-6 h-full overflow-y-auto">
-                                    <div className="flex justify-between items-center mb-6">
-                                        {/* Heading hierarchy: h2 for inspector section title (follows h1) */}
-                                        <h2 className="font-bold text-lg">Évaluations</h2>
-                                        <button
-                                            aria-label="Nouvelle Évaluation"
-                                            onClick={handleStartNewAssessment}
-                                            className="px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-lg hover:bg-brand-700"
-                                        >
-                                            Nouvelle Évaluation
-                                        </button>
-                                    </div>
-                                    <div className="space-y-4">
-                                        {/* List assessments for this supplier */}
-                                        <EmptyState
-                                            icon={ClipboardList}
-                                            title="Aucune évaluation"
-                                            description="Lancez une évaluation pour ce fournisseur."
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                            {inspectorTab === 'history' && (
-                                <div className="p-6 h-full overflow-y-auto">
-                                    <ResourceHistory resourceId={selectedSupplier.id} resourceType="suppliers" />
-                                </div>
-                            )}
-                            {inspectorTab === 'comments' && (
-                                <div className="p-6 h-full overflow-y-auto">
-                                    <CommentSection collectionName="suppliers" documentId={selectedSupplier.id} />
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </Drawer>
+            {selectedSupplier && (
+                <SupplierInspector
+                    supplier={selectedSupplier}
+                    onClose={handleInspectorClose}
+                    canEdit={canEdit}
+                    onUpdate={handleUpdate}
+                    isLoading={isSubmitting}
+                    users={effectiveUsers}
+                    processes={processesRaw}
+                    assets={assetsRaw}
+                    risks={risksRaw}
+                    documents={documentsRaw}
+                    onStartAssessment={handleStartAssessmentClick}
+                />
+            )}
         </motion.div>
     );
 };

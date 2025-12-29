@@ -35,6 +35,7 @@ interface SupplierFormProps {
     risks: Risk[];
     documents: Document[];
     isLoading?: boolean;
+    readOnly?: boolean;
 }
 
 export const SupplierForm: React.FC<SupplierFormProps> = ({
@@ -47,7 +48,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     assets,
     risks,
     documents,
-    isLoading = false
+    isLoading = false,
+    readOnly = false
 }) => {
     const { addToast, demoMode } = useStore();
     const { register, handleSubmit, control, setValue, formState: { errors }, getValues } = useForm<SupplierFormData>({
@@ -100,15 +102,6 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
         if (!currentDesc.includes(company.siren)) {
             setValue('description', `${currentDesc}\n\n[Auto-Import]\nSIREN: ${company.siren}\nAdresse: ${company.address}\nActivité: ${company.activity}`.trim());
         }
-
-        // Try to fetch logo based on name (approximation of domain)
-        // In a real app, we'd ask for domain or use a search API for domain
-        // const domainGuess = company.name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com'; // Naive guess
-        // Better: just use the name for clearbit if domain unknown, but clearbit needs domain.
-        // Let's try to search for domain or just skip logo if no domain.
-        // Actually, let's just use the name as a placeholder or try a google favicon service
-        // setLogoUrl(integrationService.getLogoUrl(domainGuess));
-
         setSearchResults([]);
     };
 
@@ -220,380 +213,392 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
     return (
         <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="p-4 sm:p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar h-full">
-            {!isEditing && (
-                <AIAssistantHeader
-                    templates={SUPPLIER_TEMPLATES}
-                    onSelectTemplate={handleSelectTemplate}
-                    onAutoGenerate={handleAutoGenerate}
-                    isGenerating={isGenerating}
-                    title="Assistant Fournisseur"
-                    description="Ajoutez un fournisseur type ou laissez l'IA le qualifier."
-                />
-            )}
-            <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
-                    <Building2 className="w-5 h-5 mr-2 text-indigo-500" />
-                    Informations Générales
-                </h3>
+            <fieldset disabled={readOnly} className="space-y-6 group-disabled:opacity-100">
+                {!isEditing && !readOnly && (
+                    <AIAssistantHeader
+                        templates={SUPPLIER_TEMPLATES}
+                        onSelectTemplate={handleSelectTemplate}
+                        onAutoGenerate={handleAutoGenerate}
+                        isGenerating={isGenerating}
+                        title="Assistant Fournisseur"
+                        description="Ajoutez un fournisseur type ou laissez l'IA le qualifier."
+                    />
+                )}
+                <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                        <Building2 className="w-5 h-5 mr-2 text-indigo-500" />
+                        Informations Générales
+                    </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="col-span-1 md:col-span-2 relative">
-                        <Controller
-                            name="name"
-                            control={control}
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    label="Nom de l'entreprise"
-                                    {...field}
-                                    value={field.value || ''}
-                                    error={errors.name?.message}
-                                />
-                            )}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => handleAISuggestion('name')}
-                            className="absolute right-3 top-3.5 text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
-                            title="Suggérer un nom complet"
-                            aria-label="Suggérer un nom complet par IA"
-                        >
-                            <Wand2 className="w-4 h-4" />
-                        </button>
-                    </div>
-
-                    {/* Company Search Results */}
-                    {searchResults.length > 0 && (
-                        <div className="col-span-1 md:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 max-h-60 overflow-y-auto">
-                            {searchResults.map((company) => (
-                                <button
-                                    key={company.siren}
-                                    type="button"
-                                    onClick={() => selectCompany(company)}
-                                    className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 border-b border-slate-100 dark:border-white/5 last:border-0 transition-colors flex justify-between items-center"
-                                    aria-label={`Sélectionner l'entreprise ${company.name}`}
-                                >
-                                    <div>
-                                        <div className="font-bold text-slate-900 dark:text-white text-sm">{company.name}</div>
-                                        <div className="text-xs text-slate-600">{company.address}</div>
-                                    </div>
-                                    <div className="text-xs font-mono bg-slate-100 dark:bg-black/30 px-2 py-1 rounded text-slate-600">
-                                        {company.siren}
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-
-                    <div className="col-span-1 md:col-span-2">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="Rechercher une entreprise (Sirene/Pappers)..."
-                                className="w-full px-4 py-2 bg-transparent border-b border-slate-200 dark:border-white/10 text-sm focus:border-indigo-500 outline-none transition-colors"
-                                onChange={(e) => handleCompanySearch(e.target.value)}
-                                aria-label="Rechercher une entreprise"
-                            />
-                            <div className="absolute right-0 top-2 text-slate-500">
-                                {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="col-span-1 md:col-span-2">
-                        <div className="relative">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="col-span-1 md:col-span-2 relative">
                             <Controller
-                                name="vatNumber"
+                                name="name"
                                 control={control}
                                 render={({ field }) => (
                                     <FloatingLabelInput
-                                        label="Numéro de TVA (VIES)"
+                                        label="Nom de l'entreprise"
                                         {...field}
                                         value={field.value || ''}
+                                        error={errors.name?.message}
                                     />
                                 )}
                             />
-                            <button
-                                type="button"
-                                onClick={handleVatValidation}
-                                className="absolute right-3 top-3.5 text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors text-xs font-bold uppercase tracking-wider"
-                            >
-                                Vérifier
-                            </button>
+                            {!readOnly && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleAISuggestion('name')}
+                                    className="absolute right-3 top-3.5 text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
+                                    title="Suggérer un nom complet"
+                                    aria-label="Suggérer un nom complet par IA"
+                                >
+                                    <Wand2 className="w-4 h-4" />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Company Search Results */}
+                        {searchResults.length > 0 && !readOnly && (
+                            <div className="col-span-1 md:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 max-h-60 overflow-y-auto">
+                                {searchResults.map((company) => (
+                                    <button
+                                        key={company.siren}
+                                        type="button"
+                                        onClick={() => selectCompany(company)}
+                                        className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 border-b border-slate-100 dark:border-white/5 last:border-0 transition-colors flex justify-between items-center"
+                                        aria-label={`Sélectionner l'entreprise ${company.name}`}
+                                    >
+                                        <div>
+                                            <div className="font-bold text-slate-900 dark:text-white text-sm">{company.name}</div>
+                                            <div className="text-xs text-slate-600">{company.address}</div>
+                                        </div>
+                                        <div className="text-xs font-mono bg-slate-100 dark:bg-black/30 px-2 py-1 rounded text-slate-600">
+                                            {company.siren}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {!readOnly && (
+                            <div className="col-span-1 md:col-span-2">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Rechercher une entreprise (Sirene/Pappers)..."
+                                        className="w-full px-4 py-2 bg-transparent border-b border-slate-200 dark:border-white/10 text-sm focus:border-indigo-500 outline-none transition-colors"
+                                        onChange={(e) => handleCompanySearch(e.target.value)}
+                                        aria-label="Rechercher une entreprise"
+                                    />
+                                    <div className="absolute right-0 top-2 text-slate-500">
+                                        {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="col-span-1 md:col-span-2">
+                            <div className="relative">
+                                <Controller
+                                    name="vatNumber"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <FloatingLabelInput
+                                            label="Numéro de TVA (VIES)"
+                                            {...field}
+                                            value={field.value || ''}
+                                        />
+                                    )}
+                                />
+                                {!readOnly && (
+                                    <button
+                                        type="button"
+                                        onClick={handleVatValidation}
+                                        className="absolute right-3 top-3.5 text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors text-xs font-bold uppercase tracking-wider"
+                                    >
+                                        Vérifier
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {logoUrl && (
+                            <div className="col-span-1 md:col-span-2 flex justify-center py-4">
+                                <img src={logoUrl} alt="Logo" className="h-16 w-16 object-contain rounded-xl bg-white p-2 shadow-sm border border-slate-100" onError={(e) => e.currentTarget.style.display = 'none'} />
+                            </div>
+                        )}
+
+                        <div>
+                            <Controller
+                                name="category"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Catégorie"
+                                        options={SUPPLIER_CATEGORIES.map(c => ({ value: c, label: c }))}
+                                        value={field.value || ''}
+                                        onChange={field.onChange}
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        <div>
+                            <Controller
+                                name="criticality"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Criticité"
+                                        options={Object.values(Criticality).map(c => ({ value: c, label: c }))}
+                                        value={field.value || ''}
+                                        onChange={field.onChange}
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        <div>
+                            <Controller
+                                name="status"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Statut"
+                                        options={SUPPLIER_STATUSES.map(s => ({ value: s, label: s }))}
+                                        value={field.value || ''}
+                                        onChange={field.onChange}
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Responsable Interne</label>
+                            <Controller
+                                name="ownerId"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        options={users.map(u => ({ value: u.uid, label: u.displayName, subLabel: u.role }))}
+                                        value={field.value ?? ''}
+                                        onChange={field.onChange}
+                                        placeholder="Sélectionner un responsable..."
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        <div className="col-span-1 md:col-span-2 relative">
+                            <Controller
+                                name="description"
+                                control={control}
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        label="Description"
+                                        {...field}
+                                        value={field.value || ''}
+                                        textarea
+                                    />
+                                )}
+                            />
+                            {!readOnly && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleAISuggestion('description')}
+                                    className="absolute right-3 top-3.5 text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
+                                    title="Suggérer une description"
+                                    aria-label="Suggérer une description par IA"
+                                >
+                                    <Wand2 className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
                     </div>
-
-                    {logoUrl && (
-                        <div className="col-span-1 md:col-span-2 flex justify-center py-4">
-                            <img src={logoUrl} alt="Logo" className="h-16 w-16 object-contain rounded-xl bg-white p-2 shadow-sm border border-slate-100" onError={(e) => e.currentTarget.style.display = 'none'} />
-                        </div>
-                    )}
-
-                    <div>
-                        <Controller
-                            name="category"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label="Catégorie"
-                                    options={SUPPLIER_CATEGORIES.map(c => ({ value: c, label: c }))}
-                                    value={field.value || ''}
-                                    onChange={field.onChange}
-                                />
-                            )}
-                        />
-                    </div>
-
-                    <div>
-                        <Controller
-                            name="criticality"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label="Criticité"
-                                    options={Object.values(Criticality).map(c => ({ value: c, label: c }))}
-                                    value={field.value || ''}
-                                    onChange={field.onChange}
-                                />
-                            )}
-                        />
-                    </div>
-
-                    <div>
-                        <Controller
-                            name="status"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label="Statut"
-                                    options={SUPPLIER_STATUSES.map(s => ({ value: s, label: s }))}
-                                    value={field.value || ''}
-                                    onChange={field.onChange}
-                                />
-                            )}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Responsable Interne</label>
-                        <Controller
-                            name="ownerId"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    options={users.map(u => ({ value: u.uid, label: u.displayName, subLabel: u.role }))}
-                                    value={field.value ?? ''}
-                                    onChange={field.onChange}
-                                    placeholder="Sélectionner un responsable..."
-                                />
-                            )}
-                        />
-                    </div>
-
-                    <div className="col-span-1 md:col-span-2 relative">
-                        <Controller
-                            name="description"
-                            control={control}
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    label="Description"
-                                    {...field}
-                                    value={field.value || ''}
-                                    textarea
-                                />
-                            )}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => handleAISuggestion('description')}
-                            className="absolute right-3 top-3.5 text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
-                            title="Suggérer une description"
-                            aria-label="Suggérer une description par IA"
-                        >
-                            <Wand2 className="w-4 h-4" />
-                        </button>
-                    </div>
                 </div>
-            </div>
 
-            {/* DORA Compliance Card */}
-            <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm bg-indigo-50/30 dark:bg-slate-900/10">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
-                    <ShieldAlert className="w-5 h-5 mr-2 text-indigo-600" />
-                    Conformité DORA
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="flex items-center space-x-3 p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5">
-                        <input type="checkbox" className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...register('isICTProvider')} />
-                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Prestataire TIC Critique</label>
-                    </div>
-                    <div className="flex items-center space-x-3 p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5">
-                        <input type="checkbox" className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...register('supportsCriticalFunction')} />
-                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Supporte Fonction Critique</label>
-                    </div>
-
-                    <div>
-                        <Controller
-                            name="serviceType"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label="Type de Service"
-                                    options={DORA_SERVICE_TYPES.map(c => ({ value: c, label: c }))}
-                                    value={field.value || ''}
-                                    onChange={field.onChange}
-                                />
-                            )}
-                        />
-                    </div>
-                    <div>
-                        <Controller
-                            name="doraCriticality"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label="Criticité DORA"
-                                    options={DORA_CRITICALITIES.map(c => ({ value: c, label: c }))}
-                                    value={field.value || ''}
-                                    onChange={field.onChange}
-                                />
-                            )}
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* Relations Card */}
-            <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
-                    <LinkIcon className="w-5 h-5 mr-2 text-indigo-500" />
-                    Relations & Dépendances
-                </h3>
-
-                <div className="space-y-6">
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Processus Supportés</label>
-                        <Controller
-                            name="supportedProcessIds"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    options={processes.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
-                                    value={field.value || []}
-                                    onChange={field.onChange}
-                                    placeholder="Sélectionner les processus..."
-                                    multiple
-                                />
-                            )}
-                        />
-                    </div>
+                {/* DORA Compliance Card */}
+                <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm bg-indigo-50/30 dark:bg-slate-900/10">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                        <ShieldAlert className="w-5 h-5 mr-2 text-indigo-600" />
+                        Conformité DORA
+                    </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Actifs Liés</label>
-                            {/* This button seems to be misplaced or part of a different context, adding it as requested */}
+                        <div className="flex items-center space-x-3 p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5">
+                            <input type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...register('isICTProvider')} />
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Prestataire TIC Critique</label>
+                        </div>
+                        <div className="flex items-center space-x-3 p-4 bg-white/50 dark:bg-black/20 rounded-2xl border border-white/50 dark:border-white/5">
+                            <input type="checkbox" disabled={readOnly} className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300" {...register('supportsCriticalFunction')} />
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Supporte Fonction Critique</label>
+                        </div>
 
+                        <div>
                             <Controller
-                                name="relatedAssetIds"
+                                name="serviceType"
                                 control={control}
                                 render={({ field }) => (
                                     <CustomSelect
-                                        options={assets.map(a => ({ value: a.id, label: a.name, subLabel: a.type }))}
-                                        value={field.value || []}
+                                        label="Type de Service"
+                                        options={DORA_SERVICE_TYPES.map(c => ({ value: c, label: c }))}
+                                        value={field.value || ''}
                                         onChange={field.onChange}
-                                        placeholder="Lier des actifs..."
-                                        multiple
                                     />
                                 )}
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Risques Liés</label>
                             <Controller
-                                name="relatedRiskIds"
+                                name="doraCriticality"
                                 control={control}
                                 render={({ field }) => (
                                     <CustomSelect
-                                        options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
-                                        value={field.value || []}
+                                        label="Criticité DORA"
+                                        options={DORA_CRITICALITIES.map(c => ({ value: c, label: c }))}
+                                        value={field.value || ''}
                                         onChange={field.onChange}
-                                        placeholder="Lier des risques..."
-                                        multiple
                                     />
                                 )}
                             />
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Contract & Contact Card */}
-            <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
-                    <FileText className="w-5 h-5 mr-2 text-indigo-500" />
-                    Contrat & Contact
-                </h3>
+                {/* Relations Card */}
+                <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                        <LinkIcon className="w-5 h-5 mr-2 text-indigo-500" />
+                        Relations & Dépendances
+                    </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Controller
-                        name="contactName"
-                        control={control}
-                        render={({ field }) => (
-                            <FloatingLabelInput label="Nom du Contact" {...field} value={field.value || ''} />
-                        )}
-                    />
-                    <Controller
-                        name="contactEmail"
-                        control={control}
-                        render={({ field }) => (
-                            <FloatingLabelInput label="Email du Contact" {...field} value={field.value || ''} type="email" />
-                        )}
-                    />
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Processus Supportés</label>
+                            <Controller
+                                name="supportedProcessIds"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        options={processes.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
+                                        value={field.value || []}
+                                        onChange={field.onChange}
+                                        placeholder="Sélectionner les processus..."
+                                        multiple
+                                    />
+                                )}
+                            />
+                        </div>
 
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Contrat (Document)</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Actifs Liés</label>
+                                {/* This button seems to be misplaced or part of a different context, adding it as requested */}
+
+                                <Controller
+                                    name="relatedAssetIds"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <CustomSelect
+                                            options={assets.map(a => ({ value: a.id, label: a.name, subLabel: a.type }))}
+                                            value={field.value || []}
+                                            onChange={field.onChange}
+                                            placeholder="Lier des actifs..."
+                                            multiple
+                                        />
+                                    )}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Risques Liés</label>
+                                <Controller
+                                    name="relatedRiskIds"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <CustomSelect
+                                            options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score}` }))}
+                                            value={field.value || []}
+                                            onChange={field.onChange}
+                                            placeholder="Lier des risques..."
+                                            multiple
+                                        />
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Contract & Contact Card */}
+                <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                        <FileText className="w-5 h-5 mr-2 text-indigo-500" />
+                        Contrat & Contact
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Controller
-                            name="contractDocumentId"
+                            name="contactName"
                             control={control}
                             render={({ field }) => (
-                                <CustomSelect
-                                    options={documents.map(d => ({ value: d.id, label: d.title, subLabel: d.version }))}
-                                    value={field.value ?? ''}
-                                    onChange={field.onChange}
-                                    placeholder="Lier un contrat..."
-                                />
+                                <FloatingLabelInput label="Nom du Contact" {...field} value={field.value || ''} />
+                            )}
+                        />
+                        <Controller
+                            name="contactEmail"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput label="Email du Contact" {...field} value={field.value || ''} type="email" />
+                            )}
+                        />
+
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2 ml-1">Contrat (Document)</label>
+                            <Controller
+                                name="contractDocumentId"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        options={documents.map(d => ({ value: d.id, label: d.title, subLabel: d.version }))}
+                                        value={field.value ?? ''}
+                                        onChange={field.onChange}
+                                        placeholder="Lier un contrat..."
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        <Controller
+                            name="contractEnd"
+                            control={control}
+                            render={({ field }) => (
+                                <FloatingLabelInput label="Fin de Contrat" {...field} value={field.value || ''} type="date" />
                             )}
                         />
                     </div>
-
-                    <Controller
-                        name="contractEnd"
-                        control={control}
-                        render={({ field }) => (
-                            <FloatingLabelInput label="Fin de Contrat" {...field} value={field.value || ''} type="date" />
-                        )}
-                    />
                 </div>
-            </div>
 
-            <div className="flex justify-end gap-3 pt-6">
-                <Button
-                    type="button"
-                    onClick={onCancel}
-                    variant="ghost"
-                    disabled={isLoading}
-                    className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
-                >
-                    Annuler
-                </Button>
-                <Button
-                    type="submit"
-                    isLoading={isLoading}
-                    className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
-                >
-                    {isEditing ? 'Mettre à jour' : 'Créer le Fournisseur'}
-                </Button>
-            </div>
+                {!readOnly && (
+                    <div className="flex justify-end gap-3 pt-6">
+                        <Button
+                            type="button"
+                            onClick={onCancel}
+                            variant="ghost"
+                            disabled={isLoading}
+                            className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            type="submit"
+                            isLoading={isLoading}
+                            className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
+                        >
+                            {isEditing ? 'Mettre à jour' : 'Créer le Fournisseur'}
+                        </Button>
+                    </div>
+                )}
+            </fieldset>
         </form>
     );
 };

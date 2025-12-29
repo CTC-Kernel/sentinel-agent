@@ -37,6 +37,7 @@ interface RiskFormProps {
     initialData?: Partial<RiskFormData>;
     isEditing?: boolean;
     isLoading?: boolean;
+    readOnly?: boolean;
 }
 
 const TABS = [
@@ -58,7 +59,8 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     controls,
     initialData,
     isEditing = false,
-    isLoading = false
+    isLoading = false,
+    readOnly = false
 }) => {
     const [activeTab, setActiveTab] = useState('context');
     const { control, handleSubmit, reset, formState: { errors }, setValue, getValues } = useForm<RiskFormData>({
@@ -338,307 +340,311 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                         isGenerating={isGenerating}
                         title={`Modèles de Risques (${framework || 'ISO27005'})`}
                         description="Sélectionnez un modèle standard ajusté au référentiel choisi."
+                        readOnly={readOnly}
                     />
                 )}
 
-                {/* TAB: CONTEXT */}
-                {activeTab === 'context' && (
-                    <div className="space-y-6 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <LayoutGrid className="h-5 w-5 text-brand-500" /> Le Contexte du Risque
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <Controller
-                                name="framework"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        label="Référentiel / Standard"
-                                        value={field.value || ''}
-                                        onChange={(val) => {
-                                            field.onChange(val);
-                                            setValue('threat', '');
-                                            setValue('vulnerability', '');
-                                        }}
-                                        options={FRAMEWORK_OPTIONS}
-                                        placeholder="Sélectionner un référentiel..."
-                                        required
-                                    />
-                                )}
-                            />
-                            <Controller
-                                name="assetId"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        label="Actif Principal Concerné"
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        options={assets.map(a => ({ value: a.id, label: a.name, subLabel: a.type }))}
-                                        required
-                                        error={errors.assetId?.message}
-                                    />
-                                )}
-                            />
-                            <Controller
-                                name="ownerId"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        label="Propriétaire du Risque"
-                                        value={field.value || ''}
-                                        onChange={field.onChange}
-                                        options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                                    />
-                                )}
-                            />
-                            <Controller
-                                name="affectedProcessIds"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        label="Processus Métier Impactés"
-                                        value={field.value || []}
-                                        onChange={field.onChange}
-                                        options={processes.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
-                                        multiple
-                                    />
-                                )}
-                            />
-                            <Controller
-                                name="relatedSupplierIds"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        label="Fournisseurs / Tiers Concernés"
-                                        value={field.value || []}
-                                        onChange={field.onChange}
-                                        options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
-                                        multiple
-                                    />
-                                )}
-                            />
-                        </div>
-                    </div>
-                )}
+                <fieldset disabled={readOnly} className={`space-y-6 group-disabled:opacity-90 ${readOnly ? 'pointer-events-none' : ''}`}>
 
-                {/* TAB: IDENTIFICATION */}
-                {activeTab === 'identification' && (
-                    <div className="space-y-6 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <FileText className="h-5 w-5 text-brand-500" /> Identification de la Menace
-                        </h3>
-                        <div className="relative">
+                    {/* TAB: CONTEXT */}
+                    {activeTab === 'context' && (
+                        <div className="space-y-6 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <LayoutGrid className="h-5 w-5 text-brand-500" /> Le Contexte du Risque
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Controller
+                                    name="framework"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <CustomSelect
+                                            label="Référentiel / Standard"
+                                            value={field.value || ''}
+                                            onChange={(val) => {
+                                                field.onChange(val);
+                                                setValue('threat', '');
+                                                setValue('vulnerability', '');
+                                            }}
+                                            options={FRAMEWORK_OPTIONS}
+                                            placeholder="Sélectionner un référentiel..."
+                                            required
+                                        />
+                                    )}
+                                />
+                                <Controller
+                                    name="assetId"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <CustomSelect
+                                            label="Actif Principal Concerné"
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            options={assets.map(a => ({ value: a.id, label: a.name, subLabel: a.type }))}
+                                            required
+                                            error={errors.assetId?.message}
+                                        />
+                                    )}
+                                />
+                                <Controller
+                                    name="ownerId"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <CustomSelect
+                                            label="Propriétaire du Risque"
+                                            value={field.value || ''}
+                                            onChange={field.onChange}
+                                            options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
+                                        />
+                                    )}
+                                />
+                                <Controller
+                                    name="affectedProcessIds"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <CustomSelect
+                                            label="Processus Métier Impactés"
+                                            value={field.value || []}
+                                            onChange={field.onChange}
+                                            options={processes.map(p => ({ value: p.id, label: p.name, subLabel: `RTO: ${p.rto}` }))}
+                                            multiple
+                                        />
+                                    )}
+                                />
+                                <Controller
+                                    name="relatedSupplierIds"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <CustomSelect
+                                            label="Fournisseurs / Tiers Concernés"
+                                            value={field.value || []}
+                                            onChange={field.onChange}
+                                            options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
+                                            multiple
+                                        />
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* TAB: IDENTIFICATION */}
+                    {activeTab === 'identification' && (
+                        <div className="space-y-6 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <FileText className="h-5 w-5 text-brand-500" /> Identification de la Menace
+                            </h3>
+                            <div className="relative">
+                                <FloatingLabelInput
+                                    label="Menace (Cause Potentielle)"
+                                    {...control.register('threat')}
+                                    list="threatsList"
+                                    required
+                                    error={errors.threat?.message}
+                                    placeholder="Ex: Attaque par ingénierie sociale..."
+                                    icon={Search}
+                                />
+                                <div className="absolute right-2 top-2 z-10 flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowLibraryModal(true)}
+                                        className="p-1 px-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-lg text-xs font-bold transition-colors flex items-center border border-purple-200"
+                                    >
+                                        <BookOpen className="h-3 w-3 mr-1" /> Biblio
+                                    </button>
+                                    <AIAssistButton
+                                        context={{ asset: assets.find(a => a.id === getValues('assetId')), existingThreats: STANDARD_THREATS }}
+                                        fieldName="Menace"
+                                        prompt="Suggère une menace de sécurité pertinente pour cet actif. Réponds uniquement par le titre."
+                                        onSuggest={(val: string) => setValue('threat', val, { shouldDirty: true })}
+                                    />
+                                </div>
+                                <datalist id="threatsList">
+                                    {STANDARD_THREATS.map((t) => <option key={t} value={t} />)}
+                                </datalist>
+                            </div>
+
+                            <div className="relative">
+                                <Controller
+                                    control={control}
+                                    name="vulnerability"
+                                    render={({ field }) => (
+                                        <RichTextEditor
+                                            label="Vulnérabilité (Faiblesse)"
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            error={errors.vulnerability?.message}
+                                        />
+                                    )}
+                                />
+                                <div className="absolute right-2 top-2 z-10">
+                                    <AIAssistButton
+                                        context={{ asset: assets.find(a => a.id === getValues('assetId')), threat: getValues('threat') }}
+                                        fieldName="Vulnérabilité"
+                                        prompt="Décris une vulnérabilité qui permettrait cette menace. Sois concis."
+                                        onSuggest={(val: string) => setValue('vulnerability', val, { shouldDirty: true })}
+                                    />
+                                </div>
+                            </div>
+
                             <FloatingLabelInput
-                                label="Menace (Cause Potentielle)"
-                                {...control.register('threat')}
-                                list="threatsList"
-                                required
-                                error={errors.threat?.message}
-                                placeholder="Ex: Attaque par ingénierie sociale..."
-                                icon={Search}
+                                label="Scénario de Risque & Conséquences"
+                                {...control.register('scenario')}
+                                textarea
+                                rows={4}
                             />
-                            <div className="absolute right-2 top-2 z-10 flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowLibraryModal(true)}
-                                    className="p-1 px-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-lg text-xs font-bold transition-colors flex items-center border border-purple-200"
-                                >
-                                    <BookOpen className="h-3 w-3 mr-1" /> Biblio
-                                </button>
-                                <AIAssistButton
-                                    context={{ asset: assets.find(a => a.id === getValues('assetId')), existingThreats: STANDARD_THREATS }}
-                                    fieldName="Menace"
-                                    prompt="Suggère une menace de sécurité pertinente pour cet actif. Réponds uniquement par le titre."
-                                    onSuggest={(val: string) => setValue('threat', val, { shouldDirty: true })}
-                                />
-                            </div>
-                            <datalist id="threatsList">
-                                {STANDARD_THREATS.map((t) => <option key={t} value={t} />)}
-                            </datalist>
                         </div>
 
-                        <div className="relative">
-                            <Controller
-                                control={control}
-                                name="vulnerability"
-                                render={({ field }) => (
-                                    <RichTextEditor
-                                        label="Vulnérabilité (Faiblesse)"
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        error={errors.vulnerability?.message}
-                                    />
+                    )}
+
+                    {/* TAB: ASSESSMENT */}
+                    {activeTab === 'assessment' && (
+                        <div className="space-y-8 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Activity className="h-5 w-5 text-brand-500" /> Évaluation par Matrices
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <RiskMatrixSelector
+                                    label="Évaluation du Risque Brut (Inhérent)"
+                                    probability={probability}
+                                    impact={impact}
+                                    onChange={(p, i) => {
+                                        setValue('probability', p, { shouldDirty: true });
+                                        setValue('impact', i, { shouldDirty: true });
+                                    }}
+                                />
+                                <RiskMatrixSelector
+                                    label="Objectif / Risque Résiduel (Cible)"
+                                    probability={residualProbability || probability}
+                                    impact={residualImpact || impact}
+                                    onChange={(p, i) => {
+                                        setValue('residualProbability', p, { shouldDirty: true });
+                                        setValue('residualImpact', i, { shouldDirty: true });
+                                    }}
+                                />
+                            </div>
+
+                            {/* Validation Warning */}
+                            {(residualProbability && residualImpact && probability && impact) &&
+                                (residualProbability * residualImpact > probability * impact) && (
+                                    <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-xl border border-red-200 dark:border-red-900/50 text-sm font-bold flex items-center animate-pulse">
+                                        <AlertTriangle className="h-5 w-5 mr-2" />
+                                        Attention: Le risque résiduel ({residualProbability * residualImpact}) ne peut pas être supérieur au risque brut ({probability * impact}).
+                                    </div>
                                 )}
-                            />
-                            <div className="absolute right-2 top-2 z-10">
-                                <AIAssistButton
-                                    context={{ asset: assets.find(a => a.id === getValues('assetId')), threat: getValues('threat') }}
-                                    fieldName="Vulnérabilité"
-                                    prompt="Décris une vulnérabilité qui permettrait cette menace. Sois concis."
-                                    onSuggest={(val: string) => setValue('vulnerability', val, { shouldDirty: true })}
-                                />
-                            </div>
                         </div>
+                    )}
 
-                        <FloatingLabelInput
-                            label="Scénario de Risque & Conséquences"
-                            {...control.register('scenario')}
-                            textarea
-                            rows={4}
-                        />
-                    </div>
+                    {/* TAB: TREATMENT */}
+                    {activeTab === 'treatment' && (
+                        <div className="space-y-8 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Layers className="h-5 w-5 text-brand-500" /> Décision & Plan de Traitement
+                            </h3>
 
-                )}
-
-                {/* TAB: ASSESSMENT */}
-                {activeTab === 'assessment' && (
-                    <div className="space-y-8 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <Activity className="h-5 w-5 text-brand-500" /> Évaluation par Matrices
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            <RiskMatrixSelector
-                                label="Évaluation du Risque Brut (Inhérent)"
-                                probability={probability}
-                                impact={impact}
-                                onChange={(p, i) => {
-                                    setValue('probability', p, { shouldDirty: true });
-                                    setValue('impact', i, { shouldDirty: true });
+                            {/* 1. Main Treatment Plan (Source of Truth) */}
+                            <RiskTreatmentPlan
+                                risk={{ ...existingRisk, ...getValues() } as Risk}
+                                users={usersList}
+                                onUpdate={(treatment) => {
+                                    // Sync Form State
+                                    setValue('treatment', treatment, { shouldDirty: true });
+                                    if (treatment.strategy) setValue('strategy', treatment.strategy, { shouldDirty: true });
+                                    if (treatment.status) {
+                                        const statusMap: Record<string, string> = {
+                                            'Terminé': 'Fermé',
+                                            'En cours': 'En cours',
+                                            'Planifié': 'Ouvert',
+                                            'Retard': 'En cours'
+                                        };
+                                        const mappedStatus = statusMap[treatment.status] || 'Ouvert';
+                                        setValue('status', mappedStatus as Risk['status'], { shouldDirty: true });
+                                    }
                                 }}
                             />
-                            <RiskMatrixSelector
-                                label="Objectif / Risque Résiduel (Cible)"
-                                probability={residualProbability || probability}
-                                impact={residualImpact || impact}
-                                onChange={(p, i) => {
-                                    setValue('residualProbability', p, { shouldDirty: true });
-                                    setValue('residualImpact', i, { shouldDirty: true });
-                                }}
-                            />
-                        </div>
 
-                        {/* Validation Warning */}
-                        {(residualProbability && residualImpact && probability && impact) &&
-                            (residualProbability * residualImpact > probability * impact) && (
-                                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-xl border border-red-200 dark:border-red-900/50 text-sm font-bold flex items-center animate-pulse">
-                                    <AlertTriangle className="h-5 w-5 mr-2" />
-                                    Attention: Le risque résiduel ({residualProbability * residualImpact}) ne peut pas être supérieur au risque brut ({probability * impact}).
+                            {/* 2. Justification (Conditional) */}
+                            {strategy === 'Accepter' && (probability * impact) >= 12 && (
+                                <div className="space-y-2 animate-fade-in p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/30 rounded-xl">
+                                    <label className="flex items-center gap-2 text-sm font-bold text-orange-800 dark:text-orange-200">
+                                        <AlertTriangle className="h-4 w-4" />
+                                        Justification d'Acceptation du Risque (Obligatoire)
+                                    </label>
+                                    <p className="text-xs text-orange-700 dark:text-orange-300">
+                                        Vous vous apprêtez à accepter un risque critique (Score: {probability * impact}). Veuillez justifier cette décision pour le registre.
+                                    </p>
+                                    <FloatingLabelInput
+                                        label="Justification d'Acceptation"
+                                        {...control.register('justification')}
+                                        textarea
+                                        rows={3}
+                                        placeholder="Expliquez pourquoi ce risque est accepté (ex: coût de traitement disproportionné, risque transitoire...)"
+                                        error={errors.justification?.message}
+                                    />
+                                    {errors.justification && (
+                                        <p className="text-xs font-bold text-red-600 dark:text-red-400 mt-1">
+                                            {errors.justification.message}
+                                        </p>
+                                    )}
                                 </div>
                             )}
-                    </div>
-                )}
 
-                {/* TAB: TREATMENT */}
-                {activeTab === 'treatment' && (
-                    <div className="space-y-8 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <Layers className="h-5 w-5 text-brand-500" /> Décision & Plan de Traitement
-                        </h3>
+                            <div className="border-t border-slate-200 dark:border-white/10 pt-6"></div>
 
-                        {/* 1. Main Treatment Plan (Source of Truth) */}
-                        <RiskTreatmentPlan
-                            risk={{ ...existingRisk, ...getValues() } as Risk}
-                            users={usersList}
-                            onUpdate={(treatment) => {
-                                // Sync Form State
-                                setValue('treatment', treatment, { shouldDirty: true });
-                                if (treatment.strategy) setValue('strategy', treatment.strategy, { shouldDirty: true });
-                                if (treatment.status) {
-                                    const statusMap: Record<string, string> = {
-                                        'Terminé': 'Fermé',
-                                        'En cours': 'En cours',
-                                        'Planifié': 'Ouvert',
-                                        'Retard': 'En cours'
-                                    };
-                                    const mappedStatus = statusMap[treatment.status] || 'Ouvert';
-                                    setValue('status', mappedStatus as Risk['status'], { shouldDirty: true });
-                                }
-                            }}
-                        />
-
-                        {/* 2. Justification (Conditional) */}
-                        {strategy === 'Accepter' && (probability * impact) >= 12 && (
-                            <div className="space-y-2 animate-fade-in p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900/30 rounded-xl">
-                                <label className="flex items-center gap-2 text-sm font-bold text-orange-800 dark:text-orange-200">
-                                    <AlertTriangle className="h-4 w-4" />
-                                    Justification d'Acceptation du Risque (Obligatoire)
+                            {/* 3. Existing Controls Link */}
+                            <div className="space-y-3">
+                                <label className="flex items-center text-sm font-bold text-slate-900 dark:text-white">
+                                    <Shield className="h-4 w-4 mr-2 text-brand-500" />
+                                    Mesures de Sécurité Existantes (Contrôles)
                                 </label>
-                                <p className="text-xs text-orange-700 dark:text-orange-300">
-                                    Vous vous apprêtez à accepter un risque critique (Score: {probability * impact}). Veuillez justifier cette décision pour le registre.
-                                </p>
-                                <FloatingLabelInput
-                                    label="Justification d'Acceptation"
-                                    {...control.register('justification')}
-                                    textarea
-                                    rows={3}
-                                    placeholder="Expliquez pourquoi ce risque est accepté (ex: coût de traitement disproportionné, risque transitoire...)"
-                                    error={errors.justification?.message}
-                                />
-                                {errors.justification && (
-                                    <p className="text-xs font-bold text-red-600 dark:text-red-400 mt-1">
-                                        {errors.justification.message}
-                                    </p>
-                                )}
-                            </div>
-                        )}
+                                <div className="border border-slate-200 dark:border-slate-700 rounded-xl max-h-[250px] overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900/50">
+                                    {controls.length > 0 ? (
+                                        controls
+                                            .sort((a, b) => {
+                                                const aLinked = mitigationControlIds?.includes(a.id) ? 1 : 0;
+                                                const bLinked = mitigationControlIds?.includes(b.id) ? 1 : 0;
+                                                if (aLinked !== bLinked) return bLinked - aLinked;
 
-                        <div className="border-t border-slate-200 dark:border-white/10 pt-6"></div>
-
-                        {/* 3. Existing Controls Link */}
-                        <div className="space-y-3">
-                            <label className="flex items-center text-sm font-bold text-slate-900 dark:text-white">
-                                <Shield className="h-4 w-4 mr-2 text-brand-500" />
-                                Mesures de Sécurité Existantes (Contrôles)
-                            </label>
-                            <div className="border border-slate-200 dark:border-slate-700 rounded-xl max-h-[250px] overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900/50">
-                                {controls.length > 0 ? (
-                                    controls
-                                        .sort((a, b) => {
-                                            const aLinked = mitigationControlIds?.includes(a.id) ? 1 : 0;
-                                            const bLinked = mitigationControlIds?.includes(b.id) ? 1 : 0;
-                                            if (aLinked !== bLinked) return bLinked - aLinked;
-
-                                            const aSugg = suggestedControlIds.includes(a.id) ? 1 : 0;
-                                            const bSugg = suggestedControlIds.includes(b.id) ? 1 : 0;
-                                            return bSugg - aSugg;
-                                        })
-                                        .map(ctrl => {
-                                            const isSuggested = suggestedControlIds.includes(ctrl.id);
-                                            return (
-                                                <label key={ctrl.id} className={`flex items-start space-x-3 p-2 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 shadow-sm' : ''} ${isSuggested ? 'bg-purple-50/50 dark:bg-purple-900/10' : ' '}`}>
-                                                    <input checked={mitigationControlIds?.includes(ctrl.id) || false} onChange={() => toggleControlSelection(ctrl.id)}
-                                                        type="checkbox"
-                                                        className="mt-1 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                                                    />
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                                                                {ctrl.code}
-                                                                {isSuggested && <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-1.5 rounded-full flex items-center"><Sparkles className="w-3 h-3 mr-1" /> IA</span>}
-                                                            </span>
-                                                            {ctrl.status === 'Implémenté' && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 rounded-full">Implémenté</span>}
+                                                const aSugg = suggestedControlIds.includes(a.id) ? 1 : 0;
+                                                const bSugg = suggestedControlIds.includes(b.id) ? 1 : 0;
+                                                return bSugg - aSugg;
+                                            })
+                                            .map(ctrl => {
+                                                const isSuggested = suggestedControlIds.includes(ctrl.id);
+                                                return (
+                                                    <label key={ctrl.id} className={`flex items-start space-x-3 p-2 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-colors ${mitigationControlIds?.includes(ctrl.id) ? 'bg-white dark:bg-slate-800 shadow-sm' : ''} ${isSuggested ? 'bg-purple-50/50 dark:bg-purple-900/10' : ' '}`}>
+                                                        <input checked={mitigationControlIds?.includes(ctrl.id) || false} onChange={() => toggleControlSelection(ctrl.id)}
+                                                            type="checkbox"
+                                                            className="mt-1 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                                                        />
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                                                                    {ctrl.code}
+                                                                    {isSuggested && <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 px-1.5 rounded-full flex items-center"><Sparkles className="w-3 h-3 mr-1" /> IA</span>}
+                                                                </span>
+                                                                {ctrl.status === 'Implémenté' && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 rounded-full">Implémenté</span>}
+                                                            </div>
+                                                            <span className="text-xs text-slate-600 dark:text-slate-400">{ctrl.name}</span>
                                                         </div>
-                                                        <span className="text-xs text-slate-600 dark:text-slate-400">{ctrl.name}</span>
-                                                    </div>
-                                                </label>
-                                            )
-                                        })
-                                ) : (
-                                    <div className="p-4 text-center text-xs text-slate-500">Aucun contrôle disponible.</div>
-                                )}
+                                                    </label>
+                                                )
+                                            })
+                                    ) : (
+                                        <div className="p-4 text-center text-xs text-slate-500">Aucun contrôle disponible.</div>
+                                    )}
+                                </div>
+                                <p className="text-[10px] text-slate-500">Sélectionnez les contrôles déjà en place réduisant le risque.</p>
                             </div>
-                            <p className="text-[10px] text-slate-500">Sélectionnez les contrôles déjà en place réduisant le risque.</p>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* TAB: HISTORY */}
-                {activeTab === 'history' && existingRisk?.id && (
-                    <div className="space-y-6 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
-                        <ResourceHistory resourceId={existingRisk.id} resourceType="Risk" />
-                    </div>
-                )}
+                    {/* TAB: HISTORY */}
+                    {activeTab === 'history' && existingRisk?.id && (
+                        <div className="space-y-6 glass-panel p-6 rounded-3xl border border-white/60 dark:border-white/5 shadow-sm">
+                            <ResourceHistory resourceId={existingRisk.id} resourceType="Risk" />
+                        </div>
+                    )}
+                </fieldset>
                 {activeTab === 'history' && !existingRisk?.id && (
                     <div className="p-8 text-center text-slate-500">
                         Veuillez enregistrer le risque pour voir l'historique.
@@ -647,36 +653,38 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             </div>
 
             {/* Footer Buttons */}
-            <div className="border-t border-slate-200 dark:border-white/10 p-6 bg-white dark:bg-black/40 backdrop-blur-md flex justify-between items-center">
-                <Button type="button" onClick={onCancel} variant="ghost">Annuler</Button>
-                <div className="flex gap-3">
-                    {/* Navigation Buttons */}
-                    {activeTab !== 'context' && (
-                        <Button type="button" variant="secondary" onClick={() => {
-                            const idx = TABS.findIndex(t => t.id === activeTab);
-                            if (idx > 0) setActiveTab(TABS[idx - 1].id);
-                        }}>Précédent</Button>
-                    )}
-                    {activeTab !== 'treatment' ? (
-                        <Button type="button" onClick={() => {
-                            const idx = TABS.findIndex(t => t.id === activeTab);
-                            if (idx < TABS.length - 1) setActiveTab(TABS[idx + 1].id);
-                        }}>Suivant</Button>
-                    ) : (
-                        <div className="flex gap-2">
+            {!readOnly && (
+                <div className="border-t border-slate-200 dark:border-white/10 p-6 bg-white dark:bg-black/40 backdrop-blur-md flex justify-between items-center">
+                    <Button type="button" onClick={onCancel} variant="ghost">Annuler</Button>
+                    <div className="flex gap-3">
+                        {/* Navigation Buttons */}
+                        {activeTab !== 'context' && (
+                            <Button type="button" variant="secondary" onClick={() => {
+                                const idx = TABS.findIndex(t => t.id === activeTab);
+                                if (idx > 0) setActiveTab(TABS[idx - 1].id);
+                            }}>Précédent</Button>
+                        )}
+                        {activeTab !== 'treatment' ? (
+                            <Button type="button" onClick={() => {
+                                const idx = TABS.findIndex(t => t.id === activeTab);
+                                if (idx < TABS.length - 1) setActiveTab(TABS[idx + 1].id);
+                            }}>Suivant</Button>
+                        ) : (
+                            <div className="flex gap-2">
 
-                            <Button
-                                type="submit"
-                                isLoading={isLoading}
-                                disabled={isLoading}
-                                className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
-                            >
-                                {isEditing ? 'Sauvegarder' : 'Créer le Risque'}
-                            </Button>
-                        </div>
-                    )}
+                                <Button
+                                    type="submit"
+                                    isLoading={isLoading}
+                                    disabled={isLoading}
+                                    className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
+                                >
+                                    {isEditing ? 'Sauvegarder' : 'Créer le Risque'}
+                                </Button>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Threat Library Modal */}
             <Modal

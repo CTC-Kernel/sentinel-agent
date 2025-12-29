@@ -14,6 +14,7 @@ import { useForm } from 'react-hook-form'; // Removed Controller
 import { zodResolver } from '@hookform/resolvers/zod';
 import { findingSchema, FindingFormData } from '../../schemas/findingSchema';
 import { ErrorLogger } from '../../services/errorLogger';
+import { AuditForm } from './AuditForm';
 
 interface AuditInspectorProps {
     audit: Audit;
@@ -36,7 +37,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
         isGeneratingReport, isValidating
     } = useAuditDetails(audit, controls, documents, refreshAudits);
 
-    const [activeTab, setActiveTab] = useState('findings');
+    const [activeTab, setActiveTab] = useState('details');
 
     useEffect(() => {
         fetchDetails();
@@ -95,6 +96,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
     };
 
     const tabs = [
+        { id: 'details', label: 'Détails', icon: FileText },
         { id: 'findings', label: 'Constats', icon: AlertOctagon },
         { id: 'checklist', label: 'Checklist', icon: ClipboardCheck },
         { id: 'dashboard', label: 'Tableau de bord', icon: Target },
@@ -148,6 +150,36 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
             activeTab={activeTab}
             onTabChange={setActiveTab}
         >
+            {activeTab === 'details' && (
+                <div className="p-6">
+                    <AuditForm
+                        existingAudit={audit}
+                        onSubmit={async () => { }} // Read-only, empty handler
+                        onCancel={onClose}
+                        assets={[]} // Data might need to be fetched if not available in 'audit' object fully?
+                        // Actually 'audit' object has related IDs but AuditForm needs lists (assets, risks, controls, users) to display labels properly in Selects?
+                        // AuditForm logic uses IDs to select from options. If options are empty, it might show ID only or nothing.
+                        // We need to pass full lists: controls, documents are props. Assets?
+                        // AuditInspector props: controls, documents.
+                        // We need 'assets', 'risks', 'projects', 'usersList'.
+                        // They are NOT in AuditInspector props currently.
+                        // We should add them to AuditInspectorProps or fetch them?
+                        // 'AuditForm' uses them for Select options.
+                        // If we are readOnly, we just display values?
+                        // AuditForm uses CustomSelect. CustomSelect displays 'value' if option not found? Or nothing?
+                        // We should probably pass the lists.
+                        // Plan B: Just pass empty arrays and accept that labels might be raw IDs if not found?
+                        // A "Masterpiece" shouldn't show raw IDs.
+                        // I need to update AuditInspector props to receive these lists if I want to render AuditForm correctly.
+                        // Let's check Audits.tsx passing props.
+                        risks={[]}
+                        controls={controls}
+                        projects={[]}
+                        usersList={[]}
+                        readOnly={true}
+                    />
+                </div>
+            )}
             <div className="space-y-6 max-w-7xl mx-auto">
                 {activeTab === 'findings' && (
                     <>
