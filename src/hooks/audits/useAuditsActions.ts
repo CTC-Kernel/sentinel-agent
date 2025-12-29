@@ -1,6 +1,7 @@
 import { useFirestoreCollection } from '../useFirestore';
-import { where } from 'firebase/firestore';
+import { where, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../useAuth';
+import { useCallback } from 'react';
 import { Questionnaire, EvidenceRequest, UserProfile, Document, Audit, QuestionnaireResponse } from '../../types';
 
 export const useAuditsActions = () => {
@@ -30,17 +31,40 @@ export const useAuditsActions = () => {
     { enabled: !!user?.organizationId }
   );
 
-  const { data: documents, loading: loadingDocuments, add: addDocument } = useFirestoreCollection<Document>(
+  const { data: documents, loading: loadingDocuments, add: addDocumentRaw } = useFirestoreCollection<Document>(
     'documents',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { enabled: !!user?.organizationId }
   );
 
-  const { data: responses, loading: loadingResponses, add: addResponse, update: updateResponse } = useFirestoreCollection<QuestionnaireResponse>(
+  const { data: responses, loading: loadingResponses, add: addResponseRaw, update: updateResponseRaw } = useFirestoreCollection<QuestionnaireResponse>(
     'questionnaire_responses',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
   );
+
+  const addResponse = useCallback(async (data: Partial<QuestionnaireResponse>) => {
+    return addResponseRaw({
+      ...data,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  }, [addResponseRaw]);
+
+  const updateResponse = useCallback(async (id: string, data: Partial<QuestionnaireResponse>) => {
+    return updateResponseRaw(id, {
+      ...data,
+      updatedAt: serverTimestamp()
+    });
+  }, [updateResponseRaw]);
+
+  const addDocument = useCallback(async (data: Partial<Document>) => {
+    return addDocumentRaw({
+      ...data,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  }, [addDocumentRaw]);
 
   return {
     audits: audits || [],

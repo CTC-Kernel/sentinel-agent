@@ -70,7 +70,6 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 // answers already included in 75
                 evidence,
                 aiAnalysis: analysis || undefined,
-                updatedAt: new Date().toISOString(),
                 submittedAt: submit ? new Date().toISOString() : undefined
             };
 
@@ -116,8 +115,6 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 organizationId: questionnaire.organizationId,
                 owner: user.displayName || user.email,
                 ownerId: user.uid,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
                 relatedAuditIds: [questionnaire.auditId]
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
             }) as any);
