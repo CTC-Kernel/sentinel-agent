@@ -1,6 +1,6 @@
 import { db } from '../firebase';
 import { Supplier, SupplierQuestionnaireResponse, QuestionnaireTemplate, Criticality } from '../types';
-import { doc, updateDoc, addDoc, collection, query, where, getDocs, deleteDoc, arrayRemove, writeBatch } from 'firebase/firestore';
+import { doc, updateDoc, addDoc, collection, query, where, getDocs, deleteDoc, arrayRemove, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from './errorLogger';
 
@@ -86,7 +86,7 @@ export class SupplierService {
                 // We might not want to overwrite criticality automatically if manually set, 
                 // but for dynamic VRM it makes sense to suggest it.
                 // keeping criticality sync optional or secondary.
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             }));
         } catch (error) {
             ErrorLogger.error(error, 'SupplierService.updateSupplierRiskFromAssessment');
@@ -292,7 +292,7 @@ export class SupplierService {
                         doraCriticality: 'None',
                         owner: userDisplayName || 'Importé',
                         ownerId: userId,
-                        createdAt: new Date().toISOString()
+                        createdAt: serverTimestamp()
                     };
                     batch.set(newRef, sanitizeData(newSupplierData));
                     count++;
