@@ -63,6 +63,7 @@ export const CalendarDashboard: React.FC = () => {
         drill: true,
         google: true
     });
+    const [isExporting, setIsExporting] = useState(false);
 
     // Mobile specific: Switch to Day view by default on small screens
     useEffect(() => {
@@ -146,6 +147,29 @@ export const CalendarDashboard: React.FC = () => {
             toast.error("Impossible de déplacer l'événement");
         }
     };
+
+    const handleExport = useCallback(async () => {
+        if (!organizationId) return;
+        setIsExporting(true);
+        try {
+            const allEvents = await CalendarService.fetchAllEvents(organizationId);
+            const mappedEvents = allEvents.map(e => ({
+                title: e.title,
+                description: e.description,
+                startTime: e.start,
+                endTime: e.end,
+                location: e.location
+            }));
+            const icsContent = generateICS(mappedEvents);
+            downloadICS('sentinel_calendar_export.ics', icsContent);
+            toast.success('Calendrier exporté');
+        } catch (error) {
+            ErrorLogger.error(error, "CalendarExport");
+            toast.error("Erreur lors de l'export");
+        } finally {
+            setIsExporting(false);
+        }
+    }, [organizationId]);
 
     const eventStyleGetter = (event: CalendarEvent) => {
         let className = 'border-none rounded-md shadow-sm font-semibold text-xs transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-500 ';
@@ -251,29 +275,17 @@ export const CalendarDashboard: React.FC = () => {
 
                     <div className="flex gap-2 w-full md:w-auto">
                         <button
-                            onClick={async () => {
-                                try {
-                                    const allEvents = await CalendarService.fetchAllEvents(organizationId || '');
-                                    const mappedEvents = allEvents.map(e => ({
-                                        title: e.title,
-                                        description: e.description,
-                                        startTime: e.start,
-                                        endTime: e.end,
-                                        location: e.location
-                                    }));
-                                    const icsContent = generateICS(mappedEvents);
-                                    downloadICS('sentinel_calendar_export.ics', icsContent);
-                                    toast.success('Calendrier exporté');
-                                } catch (error) {
-                                    ErrorLogger.error(error, "CalendarExport");
-                                    toast.error("Erreur lors de l'export");
-                                }
-                            }}
-                            className="bg-white/80 dark:bg-white/5 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-300 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                            onClick={handleExport}
+                            disabled={isExporting}
+                            className="bg-white/80 dark:bg-white/5 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-300 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Exporter le calendrier"
                             aria-label="Exporter le calendrier"
                         >
-                            <Download className="h-5 w-5" />
+                            {isExporting ? (
+                                <div className="h-5 w-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                            ) : (
+                                <Download className="h-5 w-5" />
+                            )}
                         </button>
                         <button
                             onClick={() => {
