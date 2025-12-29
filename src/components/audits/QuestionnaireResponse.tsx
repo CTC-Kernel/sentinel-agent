@@ -8,6 +8,7 @@ import { aiService } from '../../services/aiService';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { SafeHTML } from '../ui/SafeHTML';
 import { useAuditsActions } from '../../hooks/audits/useAuditsActions';
+import { serverTimestamp } from 'firebase/firestore';
 
 interface QuestionnaireResponseProps {
     questionnaire: Questionnaire;
@@ -70,7 +71,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 // answers already included in 75
                 evidence,
                 aiAnalysis: analysis || undefined,
-                submittedAt: submit ? new Date().toISOString() : undefined
+                submittedAt: submit ? serverTimestamp() : undefined
             };
 
             if (responseId) {
@@ -83,7 +84,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                     auditId: questionnaire.auditId,
                     respondentId: user.uid,
                     respondentEmail: user.email,
-                    startedAt: new Date().toISOString()
+                    startedAt: serverTimestamp()
                 }) as QuestionnaireResponse);
                 setResponseId(newResponseId || null);
             }
