@@ -1,4 +1,3 @@
-
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { Login } from '../Login';
@@ -33,9 +32,7 @@ vi.mock('firebase/functions', () => {
 });
 
 // Mock Local Firebase Module
-// Mock Local Firebase Module
 vi.mock('../../firebase', async (importOriginal) => {
-
     const actual = await importOriginal<typeof import('../../firebase')>();
     const mockAuth = {
         currentUser: null,
@@ -104,41 +101,49 @@ describe('Login View', () => {
         vi.clearAllMocks();
     });
 
-    it('renders login form by default', () => {
+    it('renders login form by default', async () => {
         render(
             <MemoryRouter>
-                <Login />
+                <Login skipBoot={true} />
             </MemoryRouter>
         );
 
-        expect(screen.getByLabelText('auth.email')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByLabelText('auth.email')).toBeInTheDocument();
+        });
+
         expect(screen.getByLabelText('auth.password')).toBeInTheDocument();
         expect(screen.getByText('auth.login')).toBeInTheDocument();
         expect(screen.getByText('auth.google')).toBeInTheDocument();
         expect(screen.getByText('auth.apple')).toBeInTheDocument();
     });
 
-    it('switches to signup form', () => {
+    it('switches to signup form', async () => {
         render(
             <MemoryRouter>
-                <Login />
+                <Login skipBoot={true} />
             </MemoryRouter>
         );
 
-        // Click switch button
+        await waitFor(() => screen.getByLabelText('auth.email'));
+
         fireEvent.click(screen.getByText('auth.switchSignup'));
 
-        expect(screen.getByText('auth.signup')).toBeInTheDocument();
-        // Check if button text changed to switch back
+        await waitFor(() => {
+            expect(screen.getByText('auth.signup')).toBeInTheDocument();
+        });
+
         expect(screen.getByText('auth.switchLogin')).toBeInTheDocument();
     });
 
     it('submits login form with valid data', async () => {
         render(
             <MemoryRouter>
-                <Login />
+                <Login skipBoot={true} />
             </MemoryRouter>
         );
+
+        await waitFor(() => screen.getByLabelText('auth.email'));
 
         fireEvent.change(screen.getByLabelText('auth.email'), { target: { value: 'test@example.com' } });
         fireEvent.change(screen.getByLabelText('auth.password'), { target: { value: 'password123' } });
@@ -153,12 +158,17 @@ describe('Login View', () => {
     it('submits signup form with valid data', async () => {
         render(
             <MemoryRouter>
-                <Login />
+                <Login skipBoot={true} />
             </MemoryRouter>
         );
 
-        // Switch to signup
+        await waitFor(() => screen.getByLabelText('auth.email'));
+
         fireEvent.click(screen.getByText('auth.switchSignup'));
+
+        await waitFor(() => {
+            expect(screen.getByText('auth.signup')).toBeInTheDocument();
+        });
 
         fireEvent.change(screen.getByLabelText('auth.email'), { target: { value: 'new@example.com' } });
         fireEvent.change(screen.getByLabelText('auth.password'), { target: { value: 'newpass123' } });
@@ -170,14 +180,20 @@ describe('Login View', () => {
         });
     });
 
-    it('opens reset password modal', () => {
+    it('opens reset password modal', async () => {
         render(
             <MemoryRouter>
-                <Login />
+                <Login skipBoot={true} />
             </MemoryRouter>
         );
 
+        await waitFor(() => screen.getByLabelText('auth.email'));
+
         fireEvent.click(screen.getByText('auth.forgotPassword'));
-        expect(screen.getByText('auth.reset.title')).toBeInTheDocument();
+
+        await waitFor(() => {
+            expect(screen.getByText('auth.reset.title')).toBeInTheDocument();
+        });
     });
 });
+

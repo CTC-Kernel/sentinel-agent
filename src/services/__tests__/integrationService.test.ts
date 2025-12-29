@@ -20,7 +20,8 @@ vi.mock('firebase/firestore', () => ({
     updateDoc: vi.fn(),
     deleteDoc: vi.fn(),
     query: vi.fn(),
-    where: vi.fn()
+    where: vi.fn(),
+    serverTimestamp: vi.fn()
 }));
 
 // Mock ErrorLogger

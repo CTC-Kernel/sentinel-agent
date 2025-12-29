@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs, deleteDoc, doc, setDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { deleteUser, User } from 'firebase/auth';
 import { db, storage } from '../firebase';
 import { ref, deleteObject } from 'firebase/storage';
@@ -88,7 +88,7 @@ export class AccountService {
     try {
       const userRef = doc(db, 'users', userId);
       // We use setDoc with merge: true which is equivalent to update but safer if doc doesn't exist
-      await setDoc(userRef, { ...data, updatedAt: new Date().toISOString() }, { merge: true });
+      await setDoc(userRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
     } catch (error) {
       ErrorLogger.error(error, 'AccountService.updateProfile');
       throw error;

@@ -23,7 +23,7 @@ const GoogleIcon = () => (
     </svg>
 );
 
-export const Login: React.FC = () => {
+export const Login: React.FC<{ skipBoot?: boolean }> = ({ skipBoot = false }) => {
     const [isLogin, setIsLogin] = useState(true);
     const { t } = useStore();
 
@@ -88,9 +88,11 @@ export const Login: React.FC = () => {
 
     // Boot Sequence State
     const [bootSequence, setBootSequence] = useState<string[]>([]);
-    const [isBooting, setIsBooting] = useState(true);
+    const [isBooting, setIsBooting] = useState(!skipBoot);
 
     useEffect(() => {
+        if (skipBoot) return;
+
         const sequence = [
             "INITIALISATION DU NOYAU SENTINEL v2.0...",
             "CHARGEMENT DES MODULES DE SÉCURITÉ...",
@@ -110,7 +112,7 @@ export const Login: React.FC = () => {
         }, 600);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [skipBoot]);
 
     if (isBooting) {
         return (
