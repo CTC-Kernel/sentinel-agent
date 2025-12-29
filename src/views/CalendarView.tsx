@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom'; // Navigation: available for future enhancements
+
 import { CalendarDashboard } from '../components/calendar/CalendarDashboard';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Calendar as CalendarIcon } from 'lucide-react';

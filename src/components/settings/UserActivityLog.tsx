@@ -28,10 +28,20 @@ export const UserActivityLog: React.FC = () => {
         // Sort by timestamp descending
         const sorted = [...filtered].sort((a, b) => {
             const getMillis = (timestamp: unknown) => {
-                if (timestamp && typeof timestamp === 'object' && 'toMillis' in timestamp) {
+                if (!timestamp) return 0;
+                if (timestamp instanceof Date) return timestamp.getTime();
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                if (typeof timestamp === 'object' && timestamp && 'toMillis' in timestamp && typeof (timestamp as any).toMillis === 'function') {
                     return (timestamp as { toMillis: () => number }).toMillis();
                 }
-                return new Date(timestamp as string | number | Date).getTime();
+                if (typeof timestamp === 'object' && timestamp && 'seconds' in timestamp) {
+                    return (timestamp as { seconds: number }).seconds * 1000;
+                }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                if (typeof timestamp === 'object' && timestamp && 'toDate' in timestamp && typeof (timestamp as any).toDate === 'function') {
+                    return (timestamp as { toDate: () => Date }).toDate().getTime();
+                }
+                return new Date(timestamp as string | number).getTime();
             };
             return getMillis(b.timestamp) - getMillis(a.timestamp);
         });
@@ -48,14 +58,28 @@ export const UserActivityLog: React.FC = () => {
                 cell: ({ row }) => {
                     const val = row.original.timestamp;
                     if (!val) return '-';
-                    const date = (typeof val === 'object' && val && 'toDate' in val)
-                        ? (val as { toDate: () => Date }).toDate()
-                        : new Date(val as string | number);
+
+                    let date: Date;
+
                     try {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        if ((val as any) instanceof Date) {
+                            date = val as unknown as Date;
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        } else if (typeof val === 'object' && val && 'toDate' in val && typeof (val as any).toDate === 'function') {
+                            date = (val as { toDate: () => Date }).toDate();
+                        } else if (typeof val === 'object' && val && 'seconds' in val) {
+                            date = new Date((val as { seconds: number }).seconds * 1000);
+                        } else {
+                            date = new Date(val as string | number);
+                        }
+
                         // Check if date is valid
                         if (isNaN(date.getTime())) return '-';
                         return format(date, 'Pp', { locale: fr });
-                    } catch { return '-'; }
+                    } catch {
+                        return '-';
+                    }
                 }
             }
         ];

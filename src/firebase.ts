@@ -137,7 +137,8 @@ export const auth = getAuth(app);
 // Initialize Firestore with memory cache and forced long-polling for maximum stability.
 // We enable persistent cache for offline support, but auto-detect settings to avoid tab variance issues.
 export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+  experimentalForceLongPolling: true,
 });
 
 export const storage = getStorage(app);

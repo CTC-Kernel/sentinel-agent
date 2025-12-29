@@ -140,7 +140,16 @@ export class NotificationService {
             );
 
             const snap = await getDocs(q);
-            return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Notification));
+            return snap.docs.map((doc) => {
+                const data = doc.data();
+                let createdAt = data.createdAt;
+                if (createdAt && typeof createdAt.toDate === 'function') {
+                    createdAt = createdAt.toDate().toISOString();
+                } else if (createdAt && typeof createdAt === 'object' && 'seconds' in createdAt) {
+                    createdAt = new Date(createdAt.seconds * 1000).toISOString();
+                }
+                return { id: doc.id, ...data, createdAt: createdAt || new Date().toISOString() } as Notification;
+            });
         } catch (error) {
             ErrorLogger.error(error, 'NotificationService.getUnread');
             return [];
@@ -160,7 +169,16 @@ export class NotificationService {
             );
 
             const snap = await getDocs(q);
-            return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Notification));
+            return snap.docs.map((doc) => {
+                const data = doc.data();
+                let createdAt = data.createdAt;
+                if (createdAt && typeof createdAt.toDate === 'function') {
+                    createdAt = createdAt.toDate().toISOString();
+                } else if (createdAt && typeof createdAt === 'object' && 'seconds' in createdAt) {
+                    createdAt = new Date(createdAt.seconds * 1000).toISOString();
+                }
+                return { id: doc.id, ...data, createdAt: createdAt || new Date().toISOString() } as Notification;
+            });
         } catch (error) {
             ErrorLogger.error(error, 'NotificationService.getAll');
             return [];
@@ -216,10 +234,22 @@ export class NotificationService {
             );
 
             return onSnapshot(q, (snapshot) => {
-                const notifications = snapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    ...doc.data()
-                } as Notification));
+                const notifications = snapshot.docs.map((doc) => {
+                    const data = doc.data();
+                    let createdAt = data.createdAt;
+                    if (createdAt && typeof createdAt.toDate === 'function') {
+                        createdAt = createdAt.toDate().toISOString();
+                    } else if (createdAt && typeof createdAt === 'object' && 'seconds' in createdAt) {
+                        // Handle raw timestamp object if toDate is missing
+                        createdAt = new Date(createdAt.seconds * 1000).toISOString();
+                    }
+
+                    return {
+                        id: doc.id,
+                        ...data,
+                        createdAt: createdAt || new Date().toISOString()
+                    } as Notification;
+                });
                 callback(notifications);
             }, (error) => {
                 ErrorLogger.error(error, 'NotificationService.subscribeToNotifications.onSnapshot');

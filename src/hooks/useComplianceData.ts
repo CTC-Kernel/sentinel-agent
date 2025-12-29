@@ -22,10 +22,14 @@ export const useComplianceData = (currentFramework?: Framework) => {
     const complianceActions = useComplianceActions(user);
 
     useEffect(() => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setLoading(false);
+            return;
+        }
 
-        // eslint-disable-next-line
         setLoading(true);
+        console.log('Fetching compliance data for Org:', user.organizationId);
 
         // 1. Controls Listener
         const controlsQuery = query(
@@ -35,6 +39,7 @@ export const useComplianceData = (currentFramework?: Framework) => {
 
         const unsubControls = onSnapshot(controlsQuery, (snapshot) => {
             const fetchedControls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Control));
+            console.log('Fetched Controls:', fetchedControls.length);
             setControls(fetchedControls);
         });
 

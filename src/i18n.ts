@@ -463,6 +463,8 @@ i18n
                         importSuccess: "Import successful",
                         templateSuccess: "{count} risks created from template",
                         templateError: "Error importing from template",
+                        emptyTitle: "No risks found",
+                        emptyDesc: "Your risk registry is clean. Start by adding a new threat.",
                         validation_residual: "Residual risk (target) cannot be higher than gross risk (inherent).",
                         validation_justification: "Detailed justification is mandatory to accept a critical risk (Score ≥ 12).",
                         aiPrompt: "Analyze this list of {count} risks. Give me 3 key insights on the main threats and a strategic recommendation. Short format.",
@@ -1564,6 +1566,8 @@ i18n
                         validation_residual: "Le risque résiduel (cible) ne peut pas être supérieur au risque brut (inhérent).",
                         validation_justification: "Une justification détaillée est obligatoire pour accepter un risque critique (Score ≥ 12).",
                         aiPrompt: "Analyse cette liste de {count} risques. Donne-moi 3 insights clés sur les menaces principales et une recommandation stratégique. Format court.",
+                        emptyTitle: "Aucun risque trouvé",
+                        emptyDesc: "Votre registre de risques est vide. Commencez par ajouter une nouvelle menace.",
                         status: {
                             open: "Ouvert",
                             processed: "Pris en compte",

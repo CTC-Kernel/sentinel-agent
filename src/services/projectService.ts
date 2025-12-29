@@ -1,6 +1,6 @@
 import { collection, query, where, getDocs, doc, writeBatch, arrayUnion, arrayRemove, limit } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Project } from '../types';
+import { } from '../types';
 import { ErrorLogger } from './errorLogger';
 
 export interface ProjectDependency {
@@ -105,6 +105,7 @@ export class ProjectService {
 
     /**
      * Delete project with cascade cleanup of relationships
+     * Implements chunking to respect Firestore's 500 operations per batch limit
      */
     static async deleteProjectWithCascade(
         projectId: string,
@@ -116,41 +117,48 @@ export class ProjectService {
                 organizationId
             );
 
-            const batch = writeBatch(db);
+            const BATCH_SIZE = 499; // Reserve 1 slot for the delete operation
 
             if (hasDependencies && dependencies.length > 0) {
-                // Remove project ID from all related resources
+                // Collect all update operations
+                const allUpdates: Array<{ collection: string; id: string }> = [];
+
                 const riskDeps = dependencies.filter(d => d.type === 'Risque');
-                riskDeps.forEach(dep => {
-                    batch.update(doc(db, 'risks', dep.id), {
-                        relatedProjectIds: arrayRemove(projectId)
-                    });
-                });
+                allUpdates.push(...riskDeps.map(d => ({ collection: 'risks', id: d.id })));
 
                 const controlDeps = dependencies.filter(d => d.type === 'Contrôle');
-                controlDeps.forEach(dep => {
-                    batch.update(doc(db, 'controls', dep.id), {
-                        relatedProjectIds: arrayRemove(projectId)
-                    });
-                });
+                allUpdates.push(...controlDeps.map(d => ({ collection: 'controls', id: d.id })));
 
                 const assetDeps = dependencies.filter(d => d.type === 'Actif');
-                assetDeps.forEach(dep => {
-                    batch.update(doc(db, 'assets', dep.id), {
-                        relatedProjectIds: arrayRemove(projectId)
-                    });
-                });
+                allUpdates.push(...assetDeps.map(d => ({ collection: 'assets', id: d.id })));
 
                 const auditDeps = dependencies.filter(d => d.type === 'Audit');
-                auditDeps.forEach(dep => {
-                    batch.update(doc(db, 'audits', dep.id), {
-                        relatedProjectIds: arrayRemove(projectId)
-                    });
-                });
-            }
+                allUpdates.push(...auditDeps.map(d => ({ collection: 'audits', id: d.id })));
 
-            batch.delete(doc(db, 'projects', projectId));
-            await batch.commit();
+                // Process in chunks of 499 (leaving room for final delete)
+                for (let i = 0; i < allUpdates.length; i += BATCH_SIZE) {
+                    const chunk = allUpdates.slice(i, i + BATCH_SIZE);
+                    const batch = writeBatch(db);
+
+                    chunk.forEach(({ collection, id }) => {
+                        batch.update(doc(db, collection, id), {
+                            relatedProjectIds: arrayRemove(projectId)
+                        });
+                    });
+
+                    // Add delete operation only in the last batch
+                    if (i + BATCH_SIZE >= allUpdates.length) {
+                        batch.delete(doc(db, 'projects', projectId));
+                    }
+
+                    await batch.commit();
+                }
+            } else {
+                // No dependencies, just delete the project
+                const batch = writeBatch(db);
+                batch.delete(doc(db, 'projects', projectId));
+                await batch.commit();
+            }
         } catch (error) {
             ErrorLogger.error(error, 'ProjectService.deleteProjectWithCascade');
             throw error;

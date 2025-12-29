@@ -1,6 +1,6 @@
 import { collection, query, where, getDocs, deleteDoc, doc, writeBatch, arrayRemove, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Finding, AuditChecklist, Audit, UserProfile } from '../types';
+import { Finding, AuditChecklist, Audit } from '../types';
 import { ErrorLogger } from './errorLogger';
 
 export interface AuditDetails {
@@ -143,6 +143,7 @@ export class AuditService {
 
     /**
      * Batch create audits (used for AI-generated audit plans)
+     * Implements chunking to respect Firestore's 500 operations per batch limit
      */
     static async batchCreateAudits(
         audits: Partial<Audit>[],
@@ -150,25 +151,31 @@ export class AuditService {
         defaultAuditor: string
     ): Promise<void> {
         try {
-            const batch = writeBatch(db);
+            const BATCH_SIZE = 500;
             const now = new Date().toISOString();
 
-            audits.forEach(auditData => {
-                const newAuditRef = doc(collection(db, 'audits'));
-                batch.set(newAuditRef, {
-                    ...auditData,
-                    organizationId,
-                    status: 'Planifié',
-                    findingsCount: 0,
-                    createdAt: now,
-                    updatedAt: now,
-                    auditor: auditData.auditor || defaultAuditor,
-                    relatedProjectIds: auditData.relatedProjectIds || [],
-                    relatedControlIds: auditData.relatedControlIds || []
-                });
-            });
+            // Split audits into chunks of 500
+            for (let i = 0; i < audits.length; i += BATCH_SIZE) {
+                const chunk = audits.slice(i, i + BATCH_SIZE);
+                const batch = writeBatch(db);
 
-            await batch.commit();
+                chunk.forEach(auditData => {
+                    const newAuditRef = doc(collection(db, 'audits'));
+                    batch.set(newAuditRef, {
+                        ...auditData,
+                        organizationId,
+                        status: 'Planifié',
+                        findingsCount: 0,
+                        createdAt: now,
+                        updatedAt: now,
+                        auditor: auditData.auditor || defaultAuditor,
+                        relatedProjectIds: auditData.relatedProjectIds || [],
+                        relatedControlIds: auditData.relatedControlIds || []
+                    });
+                });
+
+                await batch.commit();
+            }
         } catch (error) {
             ErrorLogger.error(error, 'AuditService.batchCreateAudits');
             throw error;

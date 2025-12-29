@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom'; // Navigation: available for future enhancements
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store';
 import { usePersistedState } from '../hooks/usePersistedState';
