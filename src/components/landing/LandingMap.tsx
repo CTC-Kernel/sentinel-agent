@@ -20,7 +20,7 @@ export const LandingMap: React.FC = memo(() => {
         let animationFrameId: number;
 
         const animate = () => {
-            setRotation(r => (r + 0.2) % 360);
+            setRotation(r => (r + 0.04) % 360);
             animationFrameId = requestAnimationFrame(animate);
         };
 

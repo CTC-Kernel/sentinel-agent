@@ -12,6 +12,7 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, registerSchema, resetPasswordSchema, LoginFormData, RegisterFormData, ResetPasswordFormData } from '../schemas/authSchema';
 import { useAuthActions } from '../hooks/useAuthActions';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 
 // Google SVG optimized
 const GoogleIcon = () => (
@@ -116,7 +117,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = ({ skipBoot = false }) =>
 
     if (isBooting) {
         return (
-            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-emerald-600 dark:text-emerald-500 font-mono flex items-center justify-center p-8 transition-colors duration-500">
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-950 dark:text-emerald-500 font-mono flex items-center justify-center p-8 transition-colors duration-500">
                 <div className="w-full max-w-lg">
                     {bootSequence.map((line, i) => (
                         <div key={`msg-${i}`} className="mb-2 animate-fade-in font-bold">
@@ -132,6 +133,10 @@ export const Login: React.FC<{ skipBoot?: boolean }> = ({ skipBoot = false }) =>
 
     return (
         <AuroraBackground className="min-h-screen py-4 sm:py-0 px-4 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 bg-opacity-100 dark:bg-opacity-100 relative font-sans selection:bg-brand-500 selection:text-white overflow-hidden">
+            <div className="absolute top-4 right-4 z-50">
+                <ThemeToggle />
+            </div>
+
             <SEO
                 title="Connexion"
                 description="Connectez-vous à votre espace sécurisé Sentinel GRC."
@@ -399,5 +404,3 @@ export const Login: React.FC<{ skipBoot?: boolean }> = ({ skipBoot = false }) =>
         </AuroraBackground>
     );
 };
-
-// Headless UI handles FocusTrap and keyboard navigation
