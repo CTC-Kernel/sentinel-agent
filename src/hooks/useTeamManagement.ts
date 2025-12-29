@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, limit } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, limit, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { UserProfile, Invitation, JoinRequest, CustomRole } from '../types';
@@ -90,7 +90,7 @@ export const useTeamManagement = () => {
                 organizationId: user.organizationId,
                 organizationName: user.organizationName,
                 invitedBy: user.uid,
-                createdAt: new Date().toISOString()
+                createdAt: serverTimestamp()
             }));
 
             const inviteLink = `${window.location.origin}/#/login`;

@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react';
 import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
-import { where, doc, updateDoc, addDoc, collection, writeBatch, limit } from 'firebase/firestore';
+import { where, doc, updateDoc, addDoc, collection, writeBatch, limit, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Project, ProjectTask, Risk, Control, Asset, Audit, UserProfile } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -104,7 +104,7 @@ export const useProjectLogic = () => {
                     organizationId: user.organizationId,
                     progress: 0,
                     tasks: [],
-                    createdAt: new Date().toISOString()
+                    createdAt: serverTimestamp()
                 });
 
                 // Use ProjectService to sync new project links
@@ -143,7 +143,7 @@ export const useProjectLogic = () => {
             const newProjData = {
                 ...project,
                 name: `${project.name} (Copie)`,
-                createdAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
                 organizationId: user.organizationId,
                 progress: 0,
                 tasks: project.tasks.map(t => ({ ...t, status: 'A faire', id: Date.now() + Math.random().toString() }))

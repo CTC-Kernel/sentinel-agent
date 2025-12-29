@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { StatsHistoryEntry } from '../../types';
@@ -38,7 +38,7 @@ export const useDashboardStatsHistory = ({
                         risks: allRisksCount,
                         compliance: complianceScore,
                         incidents: activeIncidentsCount,
-                        timestamp: new Date().toISOString(),
+                        timestamp: serverTimestamp(),
                         frameworks: Object.entries(radarData).reduce((acc, [_, data]: [string, { subject: string; A: number }]) => ({ ...acc, [data.subject || 'Unknown']: data.A }), {})
                     }, { merge: true }); // Use merge to be safe
                 } catch (e) {
