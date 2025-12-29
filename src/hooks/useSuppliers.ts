@@ -4,7 +4,8 @@ import {
     addDoc,
     updateDoc,
     doc,
-    where
+    where,
+    serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
@@ -33,8 +34,8 @@ export const useSuppliers = () => {
             const docRef = await addDoc(collection(db, 'suppliers'), {
                 ...sanitizedData,
                 organizationId: user.organizationId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
             });
             await logAction(user, 'CREATE', 'Supplier', `Ajout Fournisseur: ${data.name}`);
             addToast(t('suppliers.toastCreated'), "success");
@@ -50,7 +51,7 @@ export const useSuppliers = () => {
             const sanitizedData = sanitizeData(data);
             await updateDoc(doc(db, 'suppliers', id), {
                 ...sanitizedData,
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             });
             await logAction(user, 'UPDATE', 'Supplier', `MAJ Fournisseur: ${data.name}`);
             addToast(t('suppliers.toastUpdated'), "success");
