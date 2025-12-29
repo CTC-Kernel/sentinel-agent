@@ -82,8 +82,8 @@ export class ThreatFeedService {
 
                 if (response.ok) return await response.json();
             } catch (error) {
-                // Silent fail for individual proxies
-                if (process.env.NODE_ENV === 'development') console.warn(`Proxy failed:`, error);
+                // Silent fail for individual proxies - log but continue trying other proxies
+                ErrorLogger.warn(error instanceof Error ? error.message : String(error), 'ThreatFeedService.fetchWithCorsProxy');
             }
         }
 
