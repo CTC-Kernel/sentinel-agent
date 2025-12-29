@@ -25,15 +25,15 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionIt
     const [isExpanded, setIsExpanded] = useState(false);
 
     const handleItemClick = useCallback((link: string) => {
-        const safeUrl = validateUrl(link); // Security: validateUrl uses isSafeUrl to validate internal links
-        if (safeUrl) navigate(safeUrl);
+        const safeUrl = validateUrl(link);
+        if (safeUrl) navigate(safeUrl); // validateUrl - URL validated before navigation
     }, [navigate]);
 
     const handleItemKeyDown = useCallback((e: React.KeyboardEvent, link: string) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            const safeUrl = validateUrl(link); // Security: validateUrl uses isSafeUrl to validate internal links
-            if (safeUrl) navigate(safeUrl);
+            const safeUrl = validateUrl(link);
+            if (safeUrl) navigate(safeUrl); // validateUrl - URL validated before navigation
         }
     }, [navigate]);
 
