@@ -107,7 +107,7 @@ export const useAuditDetails = (
                 organizationId: user.organizationId,
                 questions,
                 completedBy: user.email,
-                completedAt: new Date().toISOString()
+                completedAt: serverTimestamp()
             });
 
             if (checklist) {
