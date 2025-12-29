@@ -1,6 +1,7 @@
 import { useFirestoreCollection } from '../useFirestore';
-import { where } from 'firebase/firestore';
+import { where, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../useAuth';
+import { useCallback } from 'react';
 import { Risk, Asset } from '../../types';
 
 export const useThreatIntelActions = () => {
@@ -19,7 +20,7 @@ export const useThreatIntelActions = () => {
     { enabled: false } // Only used for writing, not reading
   );
 
-  const { data: risks, loading: loadingRisks, add: addRisk } = useFirestoreCollection<Risk>(
+  const { data: risks, loading: loadingRisks, add: addRiskRaw } = useFirestoreCollection<Risk>(
     'risks',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { enabled: !!user?.organizationId }
@@ -30,6 +31,14 @@ export const useThreatIntelActions = () => {
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { enabled: !!user?.organizationId }
   );
+
+  const addRisk = useCallback(async (data: Partial<Risk>) => {
+    return addRiskRaw({
+      ...data,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  }, [addRiskRaw]);
 
   return {
     threats: threats || [],

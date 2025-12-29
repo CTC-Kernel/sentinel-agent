@@ -66,8 +66,6 @@ export const ThreatToRiskModal: React.FC<ThreatToRiskModalProps> = ({ isOpen, on
                 status: 'Ouvert',
                 owner: user.email,
                 ownerId: user.uid,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
                 framework: 'ISO27005',
                 relatedThreatId: threat.id
             });
