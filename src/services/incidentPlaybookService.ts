@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, Timestamp, getDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc, Timestamp, getDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Incident } from '../types';
 import { logAction } from './logger';
@@ -330,7 +330,7 @@ export class IncidentPlaybookService {
             userId: userId || 'unknown',
             userName: userName || 'Unknown User',
             content: note,
-            createdAt: new Date().toISOString(),
+            createdAt: serverTimestamp(),
             category: 'action'
           }
         ];

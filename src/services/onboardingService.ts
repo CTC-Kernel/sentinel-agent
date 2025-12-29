@@ -1,7 +1,7 @@
 import { driver, DriveStep } from 'driver.js';
 import 'driver.js/dist/driver.css';
 
-import { doc, updateDoc, collection, query, where, getDocs, addDoc, writeBatch } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, addDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../firebase';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -110,7 +110,7 @@ export class OnboardingService {
                 organizationId: orgId,
                 organizationName: orgName,
                 status: 'pending',
-                createdAt: new Date().toISOString()
+                createdAt: serverTimestamp()
             }));
         } catch (error) {
             ErrorLogger.error(error, 'OnboardingService.sendJoinRequest');
@@ -152,7 +152,7 @@ export class OnboardingService {
                     organizationName: user.organizationName || '',
                     role: invite.role,
                     invitedBy: user.uid,
-                    createdAt: new Date().toISOString(),
+                    createdAt: serverTimestamp(),
                     status: 'pending'
                 }));
 
@@ -208,7 +208,7 @@ export class OnboardingService {
                     name: asset.name,
                     type: asset.type,
                     organizationId: user.organizationId,
-                    createdAt: new Date().toISOString(),
+                    createdAt: serverTimestamp(),
                     lifecycleStatus: 'En service',
                     confidentiality: 'Medium',
                     integrity: 'Medium',

@@ -1,18 +1,19 @@
 import { useFirestoreCollection } from '../useFirestore';
-import { where } from 'firebase/firestore';
+import { where, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../useAuth';
+import { useCallback } from 'react';
 import { UserProfile, UserGroup, CustomRole } from '../../types';
 
 export const useTeamData = () => {
   const { user } = useAuth();
 
-  const { data: groups, loading: loadingGroups, add: addGroup, update: updateGroup, remove: removeGroup } = useFirestoreCollection<UserGroup>(
+  const { data: groups, loading: loadingGroups, add: addGroupRaw, update: updateGroupRaw, remove: removeGroup } = useFirestoreCollection<UserGroup>(
     'user_groups',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
   );
 
-  const { data: roles, loading: loadingRoles, add: addRole, update: updateRole, remove: removeRole } = useFirestoreCollection<CustomRole>(
+  const { data: roles, loading: loadingRoles, add: addRoleRaw, update: updateRoleRaw, remove: removeRole } = useFirestoreCollection<CustomRole>(
     'roles',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
@@ -23,6 +24,34 @@ export const useTeamData = () => {
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
   );
+
+  const addRole = useCallback(async (data: Partial<CustomRole>) => {
+    return addRoleRaw({
+      ...data,
+      createdAt: serverTimestamp()
+    });
+  }, [addRoleRaw]);
+
+  const updateRole = useCallback(async (id: string, data: Partial<CustomRole>) => {
+    return updateRoleRaw(id, {
+      ...data,
+      updatedAt: serverTimestamp()
+    });
+  }, [updateRoleRaw]);
+
+  const addGroup = useCallback(async (data: Partial<UserGroup>) => {
+    return addGroupRaw({
+      ...data,
+      createdAt: serverTimestamp()
+    });
+  }, [addGroupRaw]);
+
+  const updateGroup = useCallback(async (id: string, data: Partial<UserGroup>) => {
+    return updateGroupRaw(id, {
+      ...data,
+      updatedAt: serverTimestamp()
+    });
+  }, [updateGroupRaw]);
 
   return {
     groups: groups || [],

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { db } from '../../firebase';
-import { collection, addDoc, updateDoc, doc, deleteDoc, writeBatch, arrayRemove } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, deleteDoc, writeBatch, arrayRemove, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../../hooks/useAuth';
 import { Risk } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -46,8 +46,8 @@ export const useRiskActions = (onRefresh: () => void) => {
             const riskData = sanitizeData({
                 ...data,
                 organizationId: user.organizationId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
                 status: data.status || 'Ouvert',
                 owner: user.uid,
                 history: [{
@@ -88,7 +88,7 @@ export const useRiskActions = (onRefresh: () => void) => {
             const riskRef = doc(db, 'risks', id);
             await updateDoc(riskRef, sanitizeData({
                 ...data,
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             }));
 
             if (user) {

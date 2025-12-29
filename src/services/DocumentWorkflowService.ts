@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { Document, UserProfile, WorkflowHistoryItem } from '../types';
 import { logAction } from './logger';
 import { ErrorLogger } from './errorLogger';
@@ -34,7 +34,7 @@ export class DocumentWorkflowService {
                 workflowStatus: 'Review',
                 reviewers: sanitizedReviewers,
                 workflowHistory: arrayUnion(historyItem),
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             });
 
             await logAction(user, 'WORKFLOW', 'Document', `Document submitted for review: ${document.title} `);
@@ -65,7 +65,7 @@ export class DocumentWorkflowService {
                 status: 'Approuvé',
                 workflowStatus: 'Approved',
                 workflowHistory: arrayUnion(historyItem),
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             });
 
             await logAction(user, 'WORKFLOW', 'Document', `Document approved: ${document.title} `);
@@ -94,7 +94,7 @@ export class DocumentWorkflowService {
                 status: 'Rejeté',
                 workflowStatus: 'Rejected',
                 workflowHistory: arrayUnion(historyItem),
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             });
 
             await logAction(user, 'WORKFLOW', 'Document', `Document rejected: ${document.title} `);
@@ -121,7 +121,7 @@ export class DocumentWorkflowService {
                 status: 'Publié',
                 workflowStatus: 'Approved', // Remains approved in workflow terms
                 workflowHistory: arrayUnion(historyItem),
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             });
 
             await logAction(user, 'WORKFLOW', 'Document', `Document published: ${document.title} `);

@@ -79,18 +79,14 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
                 organizationId: user.organizationId,
                 name: data.name,
                 description: data.description || '',
-                members: data.members || [],
-                updatedAt: new Date().toISOString()
+                members: data.members || []
             };
 
             if (editingGroup) {
                 await updateGroup(editingGroup.id, sanitizeData(groupData));
                 addToast("Groupe mis à jour", "success");
             } else {
-                await addGroup(sanitizeData({
-                    ...groupData,
-                    createdAt: new Date().toISOString()
-                }));
+                await addGroup(sanitizeData(groupData));
                 addToast("Groupe créé", "success");
             }
             setIsDrawerOpen(false);

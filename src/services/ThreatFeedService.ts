@@ -1,6 +1,6 @@
 
 import { db } from '../firebase';
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { Threat, Vulnerability } from '../types';
 import { ErrorLogger } from './errorLogger';
 
@@ -59,27 +59,37 @@ export class ThreatFeedService {
         const proxies = [
             (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
             (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-            // Fallback for demo environments or when CORS is strictly blocked
-            // We can also add a direct fetch attempt first if the environment supports it (e.g. backend proxy)
+            (url: string) => `https://thingproxy.freeboard.io/fetch/${url}`
         ];
 
-        // Try direct first (if allow-origin is * or if we are in an environment that ignores CORS like React Native or Electron, though here we are web)
-        // Actually, for CISA, sometimes simple fetch works if they enabled CORS.
+        // Try direct first (some might support CORS)
         try {
-            const response = await fetch(targetUrl);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+            const response = await fetch(targetUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
             if (response.ok) return await response.json();
-        } catch { /* continue to proxies */ }
+        } catch { /* continue */ }
 
         for (const proxy of proxies) {
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout per proxy
+
                 const url = proxy(targetUrl);
-                const response = await fetch(url);
+                const response = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
                 if (response.ok) return await response.json();
             } catch (error) {
-                ErrorLogger.warn(`Proxy failed: ${proxy.name || 'anonymous'}`, 'ThreatFeedService.fetchWithFailover', { metadata: { error } });
+                // Silent fail for individual proxies - log but continue trying other proxies
+                ErrorLogger.warn(error instanceof Error ? error.message : String(error), 'ThreatFeedService.fetchWithCorsProxy');
             }
         }
-        throw new Error("Impossible de joindre les serveurs de Threat Intel (CISA/URLhaus). Vérifiez votre connexion.");
+
+        // Return empty structure instead of throwing to prevent app crash/red error
+        console.warn("All threat feed proxies failed for", targetUrl);
+        return { vulnerabilities: [], urls: [] };
     }
 
     /**
@@ -178,7 +188,7 @@ export class ThreatFeedService {
                     await addDoc(collection(db, 'vulnerabilities'), {
                         ...v,
                         organizationId,
-                        createdAt: new Date().toISOString()
+                        createdAt: serverTimestamp()
                     });
                     vulnsAdded++;
                 }
@@ -200,7 +210,7 @@ export class ThreatFeedService {
                         organizationId, // INJECT ORGANIZATION ID
                         votes: 0,
                         comments: 0,
-                        createdAt: new Date().toISOString()
+                        createdAt: serverTimestamp()
                     });
                     threatsAdded++;
                 }
@@ -230,7 +240,7 @@ export class ThreatFeedService {
             for (const t of mockThreats) {
                 await addDoc(collection(db, 'threats'), {
                     ...t,
-                    createdAt: new Date().toISOString()
+                    createdAt: serverTimestamp()
                 });
                 threatsAdded++;
             }

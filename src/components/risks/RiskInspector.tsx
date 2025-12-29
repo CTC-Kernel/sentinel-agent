@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Badge } from '../ui/Badge';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
+import { SafeHTML } from '../ui/SafeHTML';
 import { RiskAIAssistant } from './RiskAIAssistant';
 import { RiskForm } from './RiskForm';
 import { RiskDashboard } from './RiskDashboard';
@@ -202,6 +203,26 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                     <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{risk.residualScore || risk.score}</div>
                                     <div className="text-xs font-medium text-slate-600">Prob: {risk.residualProbability || risk.probability} × Impact: {risk.residualImpact || risk.impact}</div>
                                 </div>
+                            </div>
+
+                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm space-y-4">
+                                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Identification du Risque</h4>
+                                <div>
+                                    <span className="text-[10px] uppercase text-slate-400 font-bold">Menace</span>
+                                    <p className="text-sm font-medium text-slate-900 dark:text-white">{risk.threat}</p>
+                                </div>
+                                {risk.scenario && (
+                                    <div>
+                                        <span className="text-[10px] uppercase text-slate-400 font-bold">Scénario</span>
+                                        <p className="text-sm text-slate-600 dark:text-slate-300">{risk.scenario}</p>
+                                    </div>
+                                )}
+                                {risk.vulnerability && (
+                                    <div>
+                                        <span className="text-[10px] uppercase text-slate-400 font-bold">Vulnérabilité Exploitée</span>
+                                        <SafeHTML content={risk.vulnerability} className="text-sm text-slate-600 dark:text-slate-300" />
+                                    </div>
+                                )}
                             </div>
 
                             <RiskAIAssistant

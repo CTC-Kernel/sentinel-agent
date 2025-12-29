@@ -5,7 +5,7 @@ import { auth } from '../../firebase';
 import {
   LayoutDashboard, Server, ShieldAlert, FileText, Users, Settings, Lock, Activity,
   Briefcase, FolderKanban, Siren, Building, Fingerprint, HelpCircle, HeartPulse,
-  LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe, History,
+  LogOut, Box, ChevronRight, Database, Calendar, Loader2, Bug, Globe,
   Scale, Shield, Printer, LucideIcon
 } from 'lucide-react';
 import { LegalModal } from '../ui/LegalModal';
@@ -87,7 +87,7 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
       title: t('common.administration'),
       items: [
         { key: 'team', name: t('sidebar.team'), to: '/team', icon: Users, resource: 'User' },
-        { key: 'audit-trail', name: "Journal d'Audit", to: '/audit-trail', icon: History, resource: 'AuditTrail' },
+
         { key: 'system-health', name: 'État du Système', to: '/system-health', icon: Activity, resource: 'Organization', action: 'manage' },
         { key: 'backup', name: t('common.backup'), to: '/backup', icon: Database, resource: 'Settings', action: 'manage' },
         { key: 'super_admin', name: t('sidebar.superAdmin'), to: '/admin_management', icon: Shield, superAdminOnly: true }

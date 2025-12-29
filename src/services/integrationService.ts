@@ -1,7 +1,7 @@
 
 import { functions, db } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
-import { collection, doc, getDocs, setDoc, deleteDoc, updateDoc, addDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, setDoc, deleteDoc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ErrorLogger } from './errorLogger';
 import { MitreTechnique, Vulnerability, CyberNewsItem, CompanySearchResult } from '../types';
 import { ScannerJob, ScannerJobCreate } from '../types/job';
@@ -148,9 +148,9 @@ class IntegrationService {
                 organizationId,
                 config: { ...config, redactedKey: '***' }, // Don't store actual secrets in plain text if possible
                 status: 'active',
-                connectedAt: new Date().toISOString(),
-                lastSync: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                connectedAt: serverTimestamp(),
+                lastSync: serverTimestamp(),
+                updatedAt: serverTimestamp()
             });
 
             return true;
@@ -207,9 +207,9 @@ class IntegrationService {
             // For this 'Masterpiece' implementation without a real backend, we just update the timestamp.
             const integrationRef = doc(db, 'organizations', organizationId, 'integrations', providerId);
             await updateDoc(integrationRef, {
-                lastSync: new Date().toISOString(),
+                lastSync: serverTimestamp(),
                 status: 'active', // Ensure it stays active
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             });
 
         } catch (error) {
@@ -601,7 +601,7 @@ class IntegrationService {
                 status: 'scheduled',
                 target: job.target,
                 frequency: job.frequency,
-                createdAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
                 nextRun: job.scheduledDate || new Date().toISOString()
             };
         }
@@ -617,7 +617,7 @@ class IntegrationService {
                 status: 'scheduled',
                 target: job.target,
                 frequency: job.frequency,
-                createdAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
                 nextRun: job.scheduledDate || new Date().toISOString()
             };
             const docRef = await addDoc(jobsRef, newJob);

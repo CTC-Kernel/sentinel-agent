@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs, deleteDoc, doc, writeBatch, arrayRemove, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc, writeBatch, arrayRemove, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Finding, AuditChecklist, Audit } from '../types';
 import { ErrorLogger } from './errorLogger';
@@ -152,7 +152,6 @@ export class AuditService {
     ): Promise<void> {
         try {
             const BATCH_SIZE = 500;
-            const now = new Date().toISOString();
 
             // Split audits into chunks of 500
             for (let i = 0; i < audits.length; i += BATCH_SIZE) {
@@ -166,8 +165,8 @@ export class AuditService {
                         organizationId,
                         status: 'Planifié',
                         findingsCount: 0,
-                        createdAt: now,
-                        updatedAt: now,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp(),
                         auditor: auditData.auditor || defaultAuditor,
                         relatedProjectIds: auditData.relatedProjectIds || [],
                         relatedControlIds: auditData.relatedControlIds || []

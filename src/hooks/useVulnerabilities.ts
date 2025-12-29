@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Vulnerability } from '../types';
 import { useStore } from '../store';
@@ -43,7 +43,7 @@ export const useVulnerabilities = () => {
                     addDoc(collection(db, 'vulnerabilities'), {
                         ...v,
                         organizationId: user.organizationId,
-                        createdAt: new Date().toISOString(),
+                        createdAt: serverTimestamp(),
                         severity: 'High', // Default for KEV
                         status: 'Open',
                         assetName: 'External Interest'
@@ -74,7 +74,7 @@ export const useVulnerabilities = () => {
             const dataToSave = sanitizeData({
                 ...vuln,
                 organizationId: user.organizationId,
-                createdAt: new Date().toISOString()
+                createdAt: serverTimestamp()
             });
             await addDoc(collection(db, 'vulnerabilities'), dataToSave);
             logAction(user, 'CREATE', 'Vulnerabilities', `Created Vulnerability ${vuln.cveId}`);
@@ -93,7 +93,7 @@ export const useVulnerabilities = () => {
             const { id: _unused, ...safeUpdates } = updates;
             const dataToSave = sanitizeData({
                 ...safeUpdates,
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             });
 
             await updateDoc(doc(db, 'vulnerabilities', id), dataToSave);
@@ -135,8 +135,8 @@ export const useVulnerabilities = () => {
                 strategy: 'Atténuer',
                 owner: user.email,
                 ownerId: user.uid,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
                 framework: 'ISO27005',
                 relatedVulnerabilityId: vuln.id
             };
@@ -166,7 +166,7 @@ export const useVulnerabilities = () => {
                 addDoc(collection(db, 'vulnerabilities'), {
                     ...sanitizeData(v),
                     organizationId: user.organizationId,
-                    createdAt: new Date().toISOString(),
+                    createdAt: serverTimestamp(),
                     status: 'Open'
                 })
             );

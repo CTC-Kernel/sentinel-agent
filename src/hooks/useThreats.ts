@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, writeBatch } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ThreatTemplate } from '../types';
 import { useStore } from '../store';
@@ -38,7 +38,7 @@ export const useThreats = () => {
                 ...threat,
                 organizationId: user.organizationId,
                 source: threat.source || 'Custom',
-                createdAt: new Date().toISOString()
+                createdAt: serverTimestamp()
             });
             await addDoc(collection(db, 'threat_library'), dataToSave);
             addToast("Menace créée", "success");
@@ -89,7 +89,7 @@ export const useThreats = () => {
                     ...template,
                     organizationId: user.organizationId,
                     source: 'Standard',
-                    createdAt: new Date().toISOString()
+                    createdAt: serverTimestamp()
                 }));
                 count++;
             });

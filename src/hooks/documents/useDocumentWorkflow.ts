@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Document, UserProfile } from '../../types';
 import { logAction } from '../../services/logger';
@@ -64,7 +64,7 @@ export const useDocumentWorkflow = (usersList: UserProfile[]) => {
         }
 
         try {
-            await updateDoc(doc(db, 'documents', docItem.id), { ...updates, updatedAt: new Date().toISOString() });
+            await updateDoc(doc(db, 'documents', docItem.id), { ...updates, updatedAt: serverTimestamp() });
             await logAction(user, 'WORKFLOW', 'Document', `${logMsg}: ${docItem.title}`);
 
             const updatedDoc = { ...docItem, ...updates };

@@ -1,4 +1,4 @@
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../useAuth';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -13,7 +13,7 @@ export const useSettingsActions = () => {
       const settingsRef = doc(db, 'users', user.uid, 'settings', 'community');
       await setDoc(settingsRef, {
         ...settings,
-        updatedAt: new Date().toISOString()
+        updatedAt: serverTimestamp()
       }, { merge: true });
     } catch (error) {
       ErrorLogger.error(error, 'useSettingsActions.saveCommunitySettings');
