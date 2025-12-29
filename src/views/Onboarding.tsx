@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useStore } from '../store';
 import { ArrowRight, User as UserIcon, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2, BrainCircuit } from '../components/ui/Icons';
@@ -75,6 +75,10 @@ export const Onboarding: React.FC = () => {
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [showLegalModal, setShowLegalModal] = useState(false);
     const [legalTab, setLegalTab] = useState<'mentions' | 'privacy' | 'terms' | 'cgv'>('terms');
+
+    const handleToggleStandard = useCallback((std: string) => {
+        setStandards(prev => prev.includes(std) ? prev.filter(s => s !== std) : [...prev, std]);
+    }, []);
 
     const runAutoScan = () => {
         setIsScanning(true);
@@ -686,7 +690,7 @@ export const Onboarding: React.FC = () => {
                                             {['ISO 27001', 'ISO 27005', 'RGPD', 'SOC 2', 'HDS', 'PCI-DSS'].map(std => (
                                                 <div
                                                     key={std}
-                                                    onClick={() => setStandards(prev => prev.includes(std) ? prev.filter(s => s !== std) : [...prev, std])}
+                                                    onClick={() => handleToggleStandard(std)}
                                                     className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${standards.includes(std) ? 'bg-brand-50/50 border-brand-500 ring-1 ring-brand-500' : 'bg-slate-50/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-brand-300'}`}
                                                 >
                                                     <span className="font-bold text-slate-700 dark:text-white">{std}</span>

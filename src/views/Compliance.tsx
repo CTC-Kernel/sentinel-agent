@@ -267,7 +267,7 @@ export const Compliance: React.FC = () => {
                             </Button>
                             <Button
                                 type="submit"
-                                form={projectFormId}
+                                form={projectFormId} // Intentional: HTML5 form attribute - submits form by ID
                                 isLoading={isProjectSubmitting}
                                 className="min-w-[160px]"
                             >

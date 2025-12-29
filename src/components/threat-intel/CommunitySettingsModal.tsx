@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Shield, Globe, Lock, Users, X, Save, AlertTriangle, Check, UserMinus } from 'lucide-react';
 import { useStore } from '../../store';
 import { Button } from '../ui/button';
@@ -38,12 +38,26 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
     React.useEffect(() => {
         if (!user) return;
         const loadSettings = async () => {
-            // Implementation of loading settings would go here in a full implementation, 
+            // Implementation of loading settings would go here in a full implementation,
             // for now we'll stick to saving to demonstrate the action.
             // In a real scenario, useFirestoreDocument would be better.
         };
         loadSettings();
     }, [user]);
+
+    const handleScopeChange = useCallback((scope: SharingPreferences['defaultScope']) => {
+        setSettings(prev => ({ ...prev, defaultScope: scope }));
+    }, []);
+
+    const handleToggleAnonymize = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSettings(prev => ({ ...prev, anonymizeIdentity: !prev.anonymizeIdentity }));
+    }, []);
+
+    const handleToggleAutoShare = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSettings(prev => ({ ...prev, autoShareHighSeverity: !prev.autoShareHighSeverity }));
+    }, []);
 
     const handleSaveSettings = async () => {
         if (!user) return;
@@ -151,7 +165,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                                 type="button"
                                                                 key={option.id}
                                                                 aria-label={`Définir la portée sur ${option.label}`}
-                                                                onClick={() => setSettings({ ...settings, defaultScope: option.id as SharingPreferences['defaultScope'] })}
+                                                                onClick={() => handleScopeChange(option.id as SharingPreferences['defaultScope'])}
                                                                 className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${settings.defaultScope === option.id
                                                                     ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300 ring-1 ring-brand-500'
                                                                     : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
@@ -176,11 +190,11 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                         </div>
                                                         <div
                                                             className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${settings.anonymizeIdentity ? 'bg-brand-500' : 'bg-slate-300 dark:bg-slate-700'}`}
-                                                            onClick={(e) => { e.stopPropagation(); setSettings({ ...settings, anonymizeIdentity: !settings.anonymizeIdentity }); }}
+                                                            onClick={handleToggleAnonymize}
                                                             onKeyDown={(e) => {
                                                                 if (e.key === 'Enter' || e.key === ' ') {
                                                                     e.preventDefault();
-                                                                    setSettings({ ...settings, anonymizeIdentity: !settings.anonymizeIdentity });
+                                                                    handleToggleAnonymize(e as unknown as React.MouseEvent);
                                                                 }
                                                             }}
                                                             role="button"
@@ -203,11 +217,11 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
                                                         </div>
                                                         <div
                                                             className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${settings.autoShareHighSeverity ? 'bg-brand-500' : 'bg-slate-300 dark:bg-slate-700'}`}
-                                                            onClick={(e) => { e.stopPropagation(); setSettings({ ...settings, autoShareHighSeverity: !settings.autoShareHighSeverity }); }}
+                                                            onClick={handleToggleAutoShare}
                                                             onKeyDown={(e) => {
                                                                 if (e.key === 'Enter' || e.key === ' ') {
                                                                     e.preventDefault();
-                                                                    setSettings({ ...settings, autoShareHighSeverity: !settings.autoShareHighSeverity });
+                                                                    handleToggleAutoShare(e as unknown as React.MouseEvent);
                                                                 }
                                                             }}
                                                             role="button"
