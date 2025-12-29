@@ -145,6 +145,8 @@ export class DocumentService {
                 cleanupPromises.push(
                     updateDoc(doc(db, 'controls', docSnap.id), {
                         evidenceIds: arrayRemove(documentId)
+                    }).catch(err => {
+                        ErrorLogger.warn(`Failed to remove document from control ${docSnap.id}: ${err}`, 'DocumentService.deleteDocumentWithCascade');
                     })
                 );
             });
@@ -154,6 +156,8 @@ export class DocumentService {
                 cleanupPromises.push(
                     updateDoc(doc(db, 'suppliers', docSnap.id), {
                         contractDocumentId: null
+                    }).catch(err => {
+                        ErrorLogger.warn(`Failed to remove document from supplier ${docSnap.id}: ${err}`, 'DocumentService.deleteDocumentWithCascade');
                     })
                 );
             });
@@ -163,6 +167,8 @@ export class DocumentService {
                 cleanupPromises.push(
                     updateDoc(doc(db, 'business_processes', docSnap.id), {
                         drpDocumentId: null
+                    }).catch(err => {
+                        ErrorLogger.warn(`Failed to remove document from BCP ${docSnap.id}: ${err}`, 'DocumentService.deleteDocumentWithCascade');
                     })
                 );
             });
@@ -172,6 +178,8 @@ export class DocumentService {
                 cleanupPromises.push(
                     updateDoc(doc(db, 'findings', docSnap.id), {
                         evidenceIds: arrayRemove(documentId)
+                    }).catch(err => {
+                        ErrorLogger.warn(`Failed to remove document from finding ${docSnap.id}: ${err}`, 'DocumentService.deleteDocumentWithCascade');
                     })
                 );
             });
@@ -180,7 +188,12 @@ export class DocumentService {
             await Promise.all(cleanupPromises);
 
             // Finally, delete the document itself
-            await deleteDoc(doc(db, 'documents', documentId));
+            try {
+                await deleteDoc(doc(db, 'documents', documentId));
+            } catch (err) {
+                ErrorLogger.error(err, 'DocumentService.deleteDocumentWithCascade.finalDelete');
+                throw err;
+            }
 
         } catch (error) {
             ErrorLogger.error(error, 'DocumentService.deleteDocumentWithCascade');

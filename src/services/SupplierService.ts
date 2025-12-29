@@ -214,7 +214,11 @@ export class SupplierService {
                 where('supplierId', '==', supplierId)
             );
             const assessmentsSnap = await getDocs(assessmentsQuery);
-            const deleteAssessments = assessmentsSnap.docs.map(d => deleteDoc(d.ref));
+            const deleteAssessments = assessmentsSnap.docs.map(d =>
+                deleteDoc(d.ref).catch(err => {
+                    ErrorLogger.warn(`Failed to delete assessment ${d.id}: ${err}`, 'SupplierService.deleteSupplierWithCascade');
+                })
+            );
 
             // 3. Delete related incidents
             const incidentsQuery = query(
@@ -222,13 +226,20 @@ export class SupplierService {
                 where('supplierId', '==', supplierId)
             );
             const incidentsSnap = await getDocs(incidentsQuery);
-            const deleteIncidents = incidentsSnap.docs.map(d => deleteDoc(d.ref));
+            const deleteIncidents = incidentsSnap.docs.map(d =>
+                deleteDoc(d.ref).catch(err => {
+                    ErrorLogger.warn(`Failed to delete incident ${d.id}: ${err}`, 'SupplierService.deleteSupplierWithCascade');
+                })
+            );
 
             // 4. Delete the supplier itself
             await Promise.all([
                 ...deleteAssessments,
                 ...deleteIncidents,
-                deleteDoc(doc(db, 'suppliers', supplierId))
+                deleteDoc(doc(db, 'suppliers', supplierId)).catch(err => {
+                    ErrorLogger.error(err, 'SupplierService.deleteSupplierWithCascade.finalDelete');
+                    throw err;
+                })
             ]);
         } catch (error) {
             ErrorLogger.error(error, 'SupplierService.deleteSupplierWithCascade');

@@ -85,39 +85,54 @@ export class AssetService {
      * Get audits related to an asset
      */
     static async getLinkedAudits(assetId: string, organizationId: string): Promise<Audit[]> {
-        const auditQ = query(
-            collection(db, 'audits'),
-            where('organizationId', '==', organizationId),
-            where('relatedAssetIds', 'array-contains', assetId)
-        );
-        const snapshot = await getDocs(auditQ);
-        return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Audit));
+        try {
+            const auditQ = query(
+                collection(db, 'audits'),
+                where('organizationId', '==', organizationId),
+                where('relatedAssetIds', 'array-contains', assetId)
+            );
+            const snapshot = await getDocs(auditQ);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Audit));
+        } catch (error) {
+            ErrorLogger.error(error, 'AssetService.getLinkedAudits');
+            throw error;
+        }
     }
 
     /**
      * Get documents related to an asset
      */
     static async getLinkedDocuments(assetId: string, organizationId: string): Promise<GRCDocument[]> {
-        const docQ = query(
-            collection(db, 'documents'),
-            where('organizationId', '==', organizationId),
-            where('relatedAssetIds', 'array-contains', assetId)
-        );
-        const snapshot = await getDocs(docQ);
-        return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as GRCDocument));
+        try {
+            const docQ = query(
+                collection(db, 'documents'),
+                where('organizationId', '==', organizationId),
+                where('relatedAssetIds', 'array-contains', assetId)
+            );
+            const snapshot = await getDocs(docQ);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as GRCDocument));
+        } catch (error) {
+            ErrorLogger.error(error, 'AssetService.getLinkedDocuments');
+            throw error;
+        }
     }
 
     /**
      * Get controls related to an asset
      */
     static async getLinkedControls(assetId: string, organizationId: string): Promise<Control[]> {
-        const ctrlQ = query(
-            collection(db, 'controls'),
-            where('organizationId', '==', organizationId),
-            where('relatedAssetIds', 'array-contains', assetId)
-        );
-        const snapshot = await getDocs(ctrlQ);
-        return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Control));
+        try {
+            const ctrlQ = query(
+                collection(db, 'controls'),
+                where('organizationId', '==', organizationId),
+                where('relatedAssetIds', 'array-contains', assetId)
+            );
+            const snapshot = await getDocs(ctrlQ);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Control));
+        } catch (error) {
+            ErrorLogger.error(error, 'AssetService.getLinkedControls');
+            throw error;
+        }
     }
 
     /**
