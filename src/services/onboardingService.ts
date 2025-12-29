@@ -295,7 +295,7 @@ export class OnboardingService {
             {
                 element: '[data-tour="command-palette"]',
                 popover: {
-                    title: '⚡ ' + i18n.t('settings.commandPalette.placeholder').split('...')[0],
+                    title: '⚡ ' + i18n.t('commandPalette.placeholder').split('...')[0],
                     description: "Cmd/Ctrl + K",
                     side: 'bottom',
                     align: 'center'

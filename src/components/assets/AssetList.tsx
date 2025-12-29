@@ -71,7 +71,7 @@ export const AssetList = React.memo<AssetListProps>(({
             )
         },
         {
-            header: t('common.actions'),
+            header: t('common.actions.title'),
             id: 'actions',
             cell: ({ row }) => (
                 <div className="flex items-center justify-end gap-2">

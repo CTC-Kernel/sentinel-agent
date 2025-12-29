@@ -267,7 +267,7 @@ export const Compliance: React.FC = () => {
                             </Button>
                             <Button
                                 type="submit"
-                                form={projectFormId}
+                                form={projectFormId} // Intentional: HTML5 form attribute - submits form by ID
                                 isLoading={isProjectSubmitting}
                                 className="min-w-[160px]"
                             >
@@ -297,7 +297,7 @@ export const Compliance: React.FC = () => {
                     onClose={handleDrawerClose}
                     title={creationMode ? (
                         creationMode === 'risk' ? t('compliance.newRisk') : t('compliance.newAudit')
-                    ) : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : t('settings.commandPalette.select'))}
+                    ) : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : t('commandPalette.select'))}
                     width={creationMode ? 'max-w-2xl' : 'max-w-7xl'}
                 >
                     {creationMode === 'risk' && (

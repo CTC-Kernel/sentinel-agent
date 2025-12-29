@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc, where, increment, query, arrayRemove, serverTimestamp, limit } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Document, DocumentFolder, UserProfile, Control } from '../../types';
 import { DocumentFormData } from '../../schemas/documentSchema';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { logAction } from '../../services/logger';
 import { ErrorLogger } from '../../services/errorLogger';
+import { DocumentService } from '../../services/documentService';
 import { useStore } from '../../store';
 import { canEditResource } from '../../utils/permissions';
 import { EncryptionService } from '../../services/encryptionService';
@@ -149,38 +150,21 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
     };
 
     const initiateDelete = async (docItem: Document, controls: Control[] = []) => {
-        if (!user || !canEditResource(user, 'Document', docItem.ownerId || docItem.owner)) return;
+        if (!user?.organizationId || !canEditResource(user, 'Document', docItem.ownerId || docItem.owner)) return;
 
         try {
-            const id = docItem.id;
-            const linkedControls = controls.filter(c => c.evidenceIds?.includes(id));
-
-            // Check dependencies in parallel
-            const [suppliersSnap, bcpSnap, findingsSnap] = await Promise.all([
-                getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', user?.organizationId), where('contractDocumentId', '==', id), limit(50))),
-                getDocs(query(collection(db, 'business_processes'), where('organizationId', '==', user?.organizationId), where('drpDocumentId', '==', id), limit(50))),
-                getDocs(query(collection(db, 'findings'), where('organizationId', '==', user?.organizationId), where('evidenceIds', 'array-contains', id), limit(50)))
-            ]);
-
-            const hasDependencies = linkedControls.length > 0 || !suppliersSnap.empty || !bcpSnap.empty || !findingsSnap.empty;
-            let message = "Cette action est définitive.";
-
-            if (hasDependencies) {
-                const deps = [
-                    linkedControls.length > 0 ? `${linkedControls.length} contrôle(s)` : '',
-                    !suppliersSnap.empty ? `${suppliersSnap.size} fournisseur(s)` : '',
-                    !bcpSnap.empty ? `${bcpSnap.size} processus` : '',
-                    !findingsSnap.empty ? `${findingsSnap.size} constat(s)` : ''
-                ].filter(Boolean).join(', ');
-
-                message = `Document utilisé dans : ${deps}. La suppression le retirera de ces éléments.`;
-            }
+            // Use DocumentService to check dependencies
+            const dependencies = await DocumentService.checkDependencies(
+                docItem.id,
+                user.organizationId,
+                controls
+            );
 
             setConfirmData({
                 isOpen: true,
                 title: "Supprimer le document ?",
-                message,
-                onConfirm: async () => await handleDelete(id, docItem.title),
+                message: dependencies.message,
+                onConfirm: async () => await handleDelete(docItem.id, docItem.title),
                 closeOnConfirm: false
             });
         } catch (e) {
@@ -189,43 +173,18 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
     };
 
     const handleDelete = async (id: string, title: string) => {
-        if (!user || !user.organizationId) return;
+        if (!user?.organizationId || !user?.uid) return;
         setConfirmData(prev => ({ ...prev, loading: true }));
         try {
-            // Cleanup Dependencies Logic (Re-query to be safe and consistent during atomic delete phase)
-            const [controlsSnap, suppliersSnap, bcpSnap, findingsSnap] = await Promise.all([
-                getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId), where('evidenceIds', 'array-contains', id), limit(50))),
-                getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', user.organizationId), where('contractDocumentId', '==', id), limit(50))),
-                getDocs(query(collection(db, 'business_processes'), where('organizationId', '==', user.organizationId), where('drpDocumentId', '==', id), limit(50))),
-                getDocs(query(collection(db, 'findings'), where('organizationId', '==', user.organizationId), where('evidenceIds', 'array-contains', id), limit(50)))
-            ]);
-
-            const cleanupPromises: Promise<void>[] = [];
-
-            // Remove from Controls
-            controlsSnap.docs.forEach(docSnap => {
-                cleanupPromises.push(updateDoc(doc(db, 'controls', docSnap.id), { evidenceIds: arrayRemove(id) }));
+            // Use DocumentService for cascade deletion with dependency cleanup
+            await DocumentService.deleteDocumentWithCascade({
+                documentId: id,
+                documentTitle: title,
+                organizationId: user.organizationId,
+                userId: user.uid,
+                userEmail: user.email || 'unknown'
             });
 
-            // Remove from Suppliers (set contractDocumentId to null)
-            suppliersSnap.docs.forEach(docSnap => {
-                cleanupPromises.push(updateDoc(doc(db, 'suppliers', docSnap.id), { contractDocumentId: null }));
-            });
-
-            // Remove from BCP (set drpDocumentId to null)
-            bcpSnap.docs.forEach(docSnap => {
-                cleanupPromises.push(updateDoc(doc(db, 'business_processes', docSnap.id), { drpDocumentId: null }));
-            });
-
-            // Remove from Findings
-            findingsSnap.docs.forEach(docSnap => {
-                cleanupPromises.push(updateDoc(doc(db, 'findings', docSnap.id), { evidenceIds: arrayRemove(id) }));
-            });
-
-            await Promise.all(cleanupPromises);
-
-            // Finally Delete Document
-            await deleteDoc(doc(db, 'documents', id));
             await logAction(user, 'DELETE', 'Document', `Suppression: ${title}`);
             addToast("Document et liens supprimés", "info");
             setConfirmData(prev => ({ ...prev, isOpen: false }));

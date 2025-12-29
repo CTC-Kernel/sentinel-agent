@@ -1,6 +1,7 @@
 import React from 'react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartsRadar, ResponsiveContainer, Tooltip } from 'recharts';
 import { ChartTooltip } from '../../ui/ChartTooltip';
+import { EmptyChartState } from '../../ui/EmptyChartState';
 
 interface MaturityRadarWidgetProps {
     radarData: { subject: string; A: number; fullMark?: number }[];
@@ -32,49 +33,62 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                 <div className="absolute inset-0 rounded-full animate-spin-slow pointer-events-none opacity-20 dark:opacity-10 bg-[conic-gradient(from_0deg,transparent_0deg,transparent_270deg,hsl(var(--primary))_360deg)]" style={{ animationDuration: '4s' }}></div>
 
                 <div className="w-full h-full relative z-10">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                            <defs>
-                                <linearGradient id={radarGradientId} x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor={chartColors.fill} stopOpacity={0.5} />
-                                    <stop offset="95%" stopColor={chartColors.fill} stopOpacity={0.05} />
-                                </linearGradient>
-                            </defs>
-                            <PolarGrid
-                                stroke={chartColors.grid}
-                                strokeDasharray="4 4"
+                    {radarData.every(d => d.A === 0) ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center pointer-events-none">
+                            <EmptyChartState
+                                variant="radar"
+                                message={t('dashboard.maturity')}
+                                description="Aucune donnée"
+                                className="scale-75 origin-center" // adjust size for the small widget
                             />
-                            <PolarAngleAxis
-                                dataKey="subject"
-                                tick={{
-                                    fill: chartColors.text,
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                    fontFamily: 'var(--font-sans)'
-                                }}
-                            />
-                            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                            <RechartsRadar
-                                name={t('dashboard.maturity')}
-                                dataKey="A"
-                                stroke={chartColors.stroke}
-                                strokeWidth={3}
-                                fill={`url(#${radarGradientId})`}
-                                fillOpacity={1}
-                                isAnimationActive={true}
-                            />
-                            <Tooltip
-                                content={<ChartTooltip />}
-                                cursor={{ stroke: chartColors.cursor, strokeWidth: 1 }}
-                            />
-                        </RadarChart>
-                    </ResponsiveContainer>
+                        </div>
+                    ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                                <defs>
+                                    <linearGradient id={radarGradientId} x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor={chartColors.fill} stopOpacity={0.5} />
+                                        <stop offset="95%" stopColor={chartColors.fill} stopOpacity={0.05} />
+                                    </linearGradient>
+                                </defs>
+                                <PolarGrid
+                                    stroke={chartColors.grid}
+                                    strokeDasharray="4 4"
+                                />
+                                <PolarAngleAxis
+                                    dataKey="subject"
+                                    tick={{
+                                        fill: chartColors.text,
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        fontFamily: 'var(--font-sans)'
+                                    }}
+                                />
+                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                <RechartsRadar
+                                    name={t('dashboard.maturity')}
+                                    dataKey="A"
+                                    stroke={chartColors.stroke}
+                                    strokeWidth={3}
+                                    fill={`url(#${radarGradientId})`}
+                                    fillOpacity={1}
+                                    isAnimationActive={true}
+                                />
+                                <Tooltip
+                                    content={<ChartTooltip />}
+                                    cursor={{ stroke: chartColors.cursor, strokeWidth: 1 }}
+                                />
+                            </RadarChart>
+                        </ResponsiveContainer>
+                    )}
                 </div>
-                <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center z-20">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-background/70 backdrop-blur-md border border-border text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest shadow-sm whitespace-nowrap">
-                        {t('dashboard.isoMaturity')}
-                    </span>
-                </div>
+                {!radarData.every(d => d.A === 0) && (
+                    <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center z-20">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-background/70 backdrop-blur-md border border-border text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest shadow-sm whitespace-nowrap">
+                            {t('dashboard.isoMaturity')}
+                        </span>
+                    </div>
+                )}
             </div>
         </div>
     );

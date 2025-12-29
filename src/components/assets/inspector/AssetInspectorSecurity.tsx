@@ -39,6 +39,10 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
         navigate('/risks', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } });
     }, [navigate, selectedAsset.id, selectedAsset.name]);
 
+    const handleCreateIncident = useCallback(() => {
+        navigate('/incidents', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } });
+    }, [navigate, selectedAsset.id, selectedAsset.name]);
+
     return (
         <div className="space-y-8">
             <div className="flex gap-4">
@@ -151,7 +155,7 @@ export const AssetInspectorSecurity: React.FC<AssetInspectorSecurityProps> = ({
                     </h3>
                     <button
                         type="button"
-                        onClick={() => navigate('/incidents', { state: { createForAsset: selectedAsset.id, assetName: selectedAsset.name } })}
+                        onClick={handleCreateIncident}
                         aria-label="Signaler un incident"
                         className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
                     >

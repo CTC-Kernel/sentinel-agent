@@ -86,8 +86,46 @@ export const RiskForm: React.FC<RiskFormProps> = ({
 
     const onInvalid = (errors: FieldErrors<RiskFormData>) => {
         console.error("Form Validation Errors:", errors);
-        const missingFields = Object.keys(errors).join(', ');
-        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+        const missingFields = Object.keys(errors);
+
+        // Map fields to their respective tabs
+        const fieldTabMapping: Record<string, string> = {
+            assetId: 'context',
+            framework: 'context',
+            ownerId: 'context',
+            affectedProcessIds: 'context',
+            relatedSupplierIds: 'context',
+            threat: 'identification',
+            vulnerability: 'identification',
+            scenario: 'identification',
+            probability: 'assessment',
+            impact: 'assessment',
+            residualProbability: 'assessment',
+            residualImpact: 'assessment',
+            strategy: 'treatment',
+            status: 'treatment',
+            mitigationControlIds: 'treatment',
+            justification: 'treatment',
+            treatment: 'treatment'
+        };
+
+        // Find the first error and switch to that tab
+        const firstErrorField = missingFields[0];
+        if (firstErrorField && fieldTabMapping[firstErrorField]) {
+            setActiveTab(fieldTabMapping[firstErrorField]);
+        }
+
+        const translatedFields = missingFields.map(field => {
+            switch (field) {
+                case 'assetId': return 'Actif Principal';
+                case 'threat': return 'Menace';
+                case 'vulnerability': return 'Vulnérabilité';
+                case 'justification': return 'Justification';
+                default: return field;
+            }
+        });
+
+        toast.error(`Formulaire incomplet. Veuillez vérifier : ${translatedFields.join(', ')}`);
     };
 
     const framework = useWatch({ control, name: 'framework' });
@@ -97,7 +135,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const residualImpact = useWatch({ control, name: 'residualImpact' });
     const mitigationControlIds = useWatch({ control, name: 'mitigationControlIds' });
     const strategy = useWatch({ control, name: 'strategy' });
-    const status = useWatch({ control, name: 'status' });
+    // const status = useWatch({ control, name: 'status' }); // Removed unused status watch
     const assetId = useWatch({ control, name: 'assetId' });
 
     // Watch for SLA fields
@@ -626,18 +664,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                         }}>Suivant</Button>
                     ) : (
                         <div className="flex gap-2">
-                            {(status !== 'En attente de validation' && status !== 'Fermé') && (
-                                <Button
-                                    type="submit"
-                                    isLoading={isLoading}
-                                    disabled={isLoading}
-                                    variant="secondary"
-                                    onClick={() => setValue('status', 'En attente de validation')}
-                                    className="border-brand-200 text-brand-700 hover:bg-brand-50"
-                                >
-                                    Soumettre pour validation
-                                </Button>
-                            )}
+
                             <Button
                                 type="submit"
                                 isLoading={isLoading}

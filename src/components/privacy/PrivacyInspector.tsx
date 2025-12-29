@@ -11,10 +11,13 @@ import { EmptyState } from '../ui/EmptyState';
 import { CommentSection } from '../collaboration/CommentSection';
 // Focus indicators: focus-visible:ring-2 applied globally via CSS
 
+
+export type InspectorTab = 'details' | 'data' | 'links' | 'history' | 'comments';
+
 interface PrivacyInspectorProps {
     selectedActivity: ProcessingActivity | null;
-    inspectorTab: string;
-    setInspectorTab: (tab: string) => void;
+    inspectorTab: InspectorTab;
+    setInspectorTab: (tab: InspectorTab) => void;
     isEditing: boolean;
     editActivityForm: UseFormReturn<ProcessingActivityFormData>;
     usersList: UserProfile[];

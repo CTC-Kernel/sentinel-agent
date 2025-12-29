@@ -6,6 +6,7 @@ import { useStore } from '../../../store';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Loader2 } from 'lucide-react';
 import { ChartTooltip } from '../../ui/ChartTooltip';
+import { EmptyChartState } from '../../ui/EmptyChartState';
 
 interface AuditsDonutWidgetProps {
     navigate?: (path: string) => void;
@@ -57,8 +58,17 @@ export const AuditsDonutWidget: React.FC<AuditsDonutWidgetProps> = ({ navigate, 
 
     if (data.length === 0) {
         return (
-            <div className="h-full flex flex-col items-center justify-center p-4 text-center text-muted-foreground">
-                <p>{t('dashboard.noAuditsData')}</p>
+            <div className="h-full flex flex-col p-4 bg-card rounded-2xl border border-border shadow-sm">
+                <h3 className="text-lg font-bold mb-4">{t('dashboard.auditsStatus')}</h3>
+                <div className="flex-1 flex items-center justify-center">
+                    <EmptyChartState
+                        message={t('dashboard.noAuditsData')}
+                        description="Créez votre premier audit pour visualiser la répartition."
+                        variant="pie"
+                        actionLabel="Nouvel Audit"
+                        onAction={() => navigate && navigate('/audits')}
+                    />
+                </div>
             </div>
         );
     }

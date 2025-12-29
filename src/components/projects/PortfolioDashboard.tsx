@@ -3,6 +3,7 @@ import { Project } from '../../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { TrendingUp } from '../ui/Icons';
+import { EmptyChartState } from '../ui/EmptyChartState';
 
 interface PortfolioDashboardProps {
     projects: Project[];
@@ -45,12 +46,12 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
 
     if (projects.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center p-12 text-center bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-300 dark:border-slate-700 min-h-[400px]">
-                <div className="p-4 bg-white dark:bg-slate-800 rounded-full shadow-lg mb-4">
-                    <TrendingUp className="h-10 w-10 text-slate-400" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucun projet en cours</h3>
-                <p className="text-sm text-slate-500 max-w-sm">Créez votre premier projet pour suivre son avancement et piloter votre portefeuille.</p>
+            <div className="flex flex-col items-center justify-center p-12 bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-300 dark:border-slate-700 min-h-[400px]">
+                <EmptyChartState
+                    message="Aucun projet en cours"
+                    description="Créez votre premier projet pour suivre son avancement et piloter votre portefeuille."
+                    variant="default"
+                />
             </div>
         );
     }
@@ -105,25 +106,33 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                 <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Statut des Projets</h3>
                     <div className="h-[140px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={statusData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={40}
-                                    outerRadius={60}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                >
-                                    {statusData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(255,255,255,0.05)" />
-                                    ))}
-                                </Pie>
-                                <Tooltip content={<ChartTooltip />} />
-                                <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
-                            </PieChart>
-                        </ResponsiveContainer>
+                        {statusData.length === 0 ? (
+                            <EmptyChartState
+                                variant="pie"
+                                message="Aucun statut"
+                                className="scale-75 origin-top"
+                            />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={statusData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={40}
+                                        outerRadius={60}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {statusData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(255,255,255,0.05)" />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<ChartTooltip />} />
+                                    <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
                 </div>
             </div>

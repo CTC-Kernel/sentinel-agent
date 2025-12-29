@@ -8,6 +8,7 @@ import { LifecycleTimeline } from '../LifecycleTimeline';
 import { Asset, MaintenanceRecord } from '../../../types';
 
 import { sanitizeData } from '../../../utils/dataSanitizer';
+import { EmptyChartState } from '../../ui/EmptyChartState';
 
 interface AssetInspectorLifecycleProps {
     selectedAsset: Asset;
@@ -112,19 +113,28 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Courbe d'amortissement (5 ans)</h4>
                             <div className="h-40 w-full">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={getDepreciationData()}>
-                                        <defs>
-                                            <linearGradient id="colorValueLifecycle" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.2} />
-                                        <XAxis dataKey="year" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                                        <YAxis hide />
-                                        <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }} itemStyle={{ color: '#fff' }} formatter={(val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)} />
-                                        <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorValueLifecycle)" />
-                                    </AreaChart>
+                                    {getDepreciationData().length === 0 ? (
+                                        <EmptyChartState
+                                            variant="line"
+                                            message="Données insuffisantes"
+                                            description="Prix ou date d'achat manquants"
+                                            className="scale-75 origin-top"
+                                        />
+                                    ) : (
+                                        <AreaChart data={getDepreciationData()}>
+                                            <defs>
+                                                <linearGradient id="colorValueLifecycle" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.2} />
+                                            <XAxis dataKey="year" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                                            <YAxis hide />
+                                            <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }} itemStyle={{ color: '#fff' }} formatter={(val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)} />
+                                            <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorValueLifecycle)" />
+                                        </AreaChart>
+                                    )}
                                 </ResponsiveContainer>
                             </div>
                         </div>

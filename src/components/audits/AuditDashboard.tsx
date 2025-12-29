@@ -3,6 +3,7 @@ import { ChartTooltip } from '../ui/ChartTooltip';
 import { Audit, Finding } from '../../types';
 import { AlertTriangle, Calendar, CheckCircle2 } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { EmptyChartState } from '../ui/EmptyChartState';
 // Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface AuditDashboardProps {
@@ -42,13 +43,13 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
 
     if (totalAudits === 0) {
         return (
-            <div className="flex flex-col items-center justify-center p-12 text-center bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-300 dark:border-slate-700 min-h-[400px]">
-                <div className="p-4 bg-white dark:bg-slate-800 rounded-full shadow-lg mb-4">
-                    <CheckCircle2 className="h-10 w-10 text-slate-400" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucun audit pour le moment</h3>
-                <p className="text-sm text-slate-500 max-w-sm">Commencez par planifier un audit pour voir apparaître des métriques et des analyses détaillées.</p>
-            </div>
+            <EmptyChartState
+                message="Aucun audit pour le moment"
+                description="Commencez par planifier un audit pour voir apparaître des métriques et des analyses détaillées."
+                className="bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-300 dark:border-slate-700 min-h-[400px]"
+                variant="default"
+                icon={<CheckCircle2 className="h-10 w-10 text-slate-400" />}
+            />
         );
     }
 
@@ -163,30 +164,38 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-6 uppercase tracking-widest pl-2 border-l-2 border-brand-500">Statut des Audits</h4>
                     <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                            <Pie
-                                data={statusData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={70}
-                                outerRadius={85}
-                                paddingAngle={4}
-                                dataKey="value"
-                                stroke="none"
-                                cornerRadius={4}
-                            >
-                                {statusData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                            </Pie>
-                            <Tooltip content={<ChartTooltip />} cursor={false} />
-                            <Legend
-                                verticalAlign="bottom"
-                                height={36}
-                                iconType="circle"
-                                formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                        {statusData.length === 0 ? (
+                            <EmptyChartState
+                                variant="pie"
+                                message="Aucune donnée"
+                                className="scale-90"
                             />
-                        </PieChart>
+                        ) : (
+                            <PieChart>
+                                <Pie
+                                    data={statusData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={70}
+                                    outerRadius={85}
+                                    paddingAngle={4}
+                                    dataKey="value"
+                                    stroke="none"
+                                    cornerRadius={4}
+                                >
+                                    {statusData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                </Pie>
+                                <Tooltip content={<ChartTooltip />} cursor={false} />
+                                <Legend
+                                    verticalAlign="bottom"
+                                    height={36}
+                                    iconType="circle"
+                                    formatter={(value) => <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                                />
+                            </PieChart>
+                        )}
                     </ResponsiveContainer>
                 </div>
 
@@ -201,31 +210,39 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-6 uppercase tracking-widest pl-2 border-l-2 border-red-500">Constats par Type</h4>
                     <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={findingsByType} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={'hsl(var(--border) / 0.6)'} />
-                            <XAxis
-                                dataKey="name"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
-                                dy={10}
+                        {findingsByType.length === 0 ? (
+                            <EmptyChartState
+                                variant="bar"
+                                message="Aucun constat"
+                                className="scale-90"
                             />
-                            <YAxis
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
-                            />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
-                                itemStyle={{ color: 'hsl(var(--foreground))' }}
-                                cursor={{ fill: 'hsl(var(--muted-foreground) / 0.12)' }}
-                            />
-                            <Bar dataKey="value" fill="#EF4444" radius={[4, 4, 0, 0]} barSize={30}>
-                                {findingsByType.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.name === 'Majeure' ? '#EF4444' : entry.name === 'Mineure' ? '#F59E0B' : '#3B82F6'} />
-                                ))}
-                            </Bar>
-                        </BarChart>
+                        ) : (
+                            <BarChart data={findingsByType} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={'hsl(var(--border) / 0.6)'} />
+                                <XAxis
+                                    dataKey="name"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                                />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
+                                    itemStyle={{ color: 'hsl(var(--foreground))' }}
+                                    cursor={{ fill: 'hsl(var(--muted-foreground) / 0.12)' }}
+                                />
+                                <Bar dataKey="value" fill="#EF4444" radius={[4, 4, 0, 0]} barSize={30}>
+                                    {findingsByType.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.name === 'Majeure' ? '#EF4444' : entry.name === 'Mineure' ? '#F59E0B' : '#3B82F6'} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        )}
                     </ResponsiveContainer>
                 </div>
             </div>

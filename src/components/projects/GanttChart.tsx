@@ -3,6 +3,7 @@ import { Gantt, Task, ViewMode } from 'gantt-task-react';
 import "gantt-task-react/dist/index.css";
 import { ProjectTask, UserProfile } from '../../types';
 import { CalendarDays, User } from 'lucide-react';
+import { EmptyChartState } from '../ui/EmptyChartState';
 
 interface GanttChartProps {
     tasks: ProjectTask[];
@@ -141,13 +142,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
 
     if (ganttTasks.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-[500px] glass-panel rounded-[2rem] border border-dashed border-white/20 text-slate-500 animate-fade-in">
-                <div className="w-16 h-16 mb-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 shadow-sm flex items-center justify-center border border-white/20">
-                    <CalendarDays className="w-8 h-8 text-blue-500" />
-                </div>
-                <p className="font-medium text-slate-600 dark:text-slate-300">Aucune tâche planifiée</p>
-                <p className="text-sm text-slate-600 mt-1">Ajoutez des tâches avec des dates pour voir le diagramme</p>
-            </div>
+            <EmptyChartState
+                variant="bar"
+                message="Aucune tâche planifiée"
+                description="Ajoutez des tâches avec des dates de début et de fin pour visualiser le diagramme de Gantt."
+                icon={<CalendarDays className="w-8 h-8 text-brand-500" />}
+            />
         );
     }
 

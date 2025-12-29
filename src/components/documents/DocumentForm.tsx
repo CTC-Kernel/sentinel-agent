@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useForm, useWatch, Controller, Resolver, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { documentSchema, DocumentFormData } from '../../schemas/documentSchema';
@@ -110,7 +110,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
         }
     };
 
-    const handleConnectProvider = async (provider: 'google_drive' | 'onedrive' | 'sharepoint') => {
+    const handleConnectProvider = useCallback(async (provider: 'google_drive' | 'onedrive' | 'sharepoint') => {
         try {
             if (provider === 'google_drive') {
                 await externalStorageService.connectGoogleDrive();
@@ -122,7 +122,13 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             addToast("Configuration OAuth manquante ou annulée", 'error');
             ErrorLogger.error(e, "DocumentForm.handleConnectProvider");
         }
-    };
+    }, [addToast]);
+
+    const handleBrowseProvider = useCallback(() => {
+        if (storageProvider === 'google_drive' || storageProvider === 'onedrive' || storageProvider === 'sharepoint') {
+            void handleConnectProvider(storageProvider);
+        }
+    }, [storageProvider, handleConnectProvider]);
 
     const onFormSubmit = async (data: DocumentFormData) => {
         await onSubmit({
@@ -364,7 +370,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                                 <Button
                                     type="button"
                                     variant="secondary"
-                                    onClick={() => handleConnectProvider(storageProvider as 'google_drive' | 'onedrive' | 'sharepoint')}
+                                    onClick={handleBrowseProvider}
                                 >
                                     Parcourir
                                 </Button>

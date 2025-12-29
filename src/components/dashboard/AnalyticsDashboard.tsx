@@ -22,6 +22,7 @@ import {
     Clock,
     HelpCircle
 } from '../ui/Icons';
+import { EmptyChartState } from '../ui/EmptyChartState';
 import { useStore } from '../../store';
 import { Risk } from '../../types';
 import { StatCard } from '../ui/StatCard';
@@ -326,71 +327,81 @@ export const AnalyticsDashboard: React.FC = () => {
                         <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6 font-display">
                             Évolution des Risques et Incidents
                         </h2>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <AreaChart data={trendData}>
-                                <defs>
-                                    <linearGradient id="colorRisks" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorIncidents" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} opacity={0.3} vertical={false} />
-                                <XAxis
-                                    dataKey="date"
-                                    stroke={chartColors.text}
-                                    style={{ fontSize: '11px', fontWeight: 500 }}
-                                    axisLine={false}
-                                    tickLine={false}
-                                    dy={10}
+                        <div className="h-[300px] w-full">
+                            {trendData.length === 0 || trendData.every(d => d.risks === 0 && d.incidents === 0) ? (
+                                <EmptyChartState
+                                    message="Aucune tendance"
+                                    description="L'historique des risques et incidents s'affichera ici."
+                                    variant="line"
                                 />
-                                <YAxis
-                                    stroke={chartColors.text}
-                                    style={{ fontSize: '11px', fontWeight: 500 }}
-                                    axisLine={false}
-                                    tickLine={false}
-                                    dx={-10}
-                                />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                                        borderRadius: '16px',
-                                        boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
-                                        backdropFilter: 'blur(12px)',
-                                        padding: '12px 16px',
-                                        color: '#1e293b'
-                                    }}
-                                    itemStyle={{ fontSize: '12px', fontWeight: 600, padding: '2px 0' }}
-                                    labelStyle={{ color: '#64748b', fontSize: '11px', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-                                    cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '4 4' }}
-                                />
-                                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                                <Area
-                                    type="monotone"
-                                    dataKey="risks"
-                                    stroke="#ef4444"
-                                    strokeWidth={3}
-                                    fillOpacity={1}
-                                    fill="url(#colorRisks)"
-                                    name="Risques"
-                                    animationDuration={1500}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="incidents"
-                                    stroke="#f59e0b"
-                                    strokeWidth={3}
-                                    fillOpacity={1}
-                                    fill="url(#colorIncidents)"
-                                    name="Incidents"
-                                    animationDuration={1500}
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                            ) : (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={trendData}>
+                                        <defs>
+                                            <linearGradient id="colorRisks" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                            </linearGradient>
+                                            <linearGradient id="colorIncidents" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} opacity={0.3} vertical={false} />
+                                        <XAxis
+                                            dataKey="date"
+                                            stroke={chartColors.text}
+                                            style={{ fontSize: '11px', fontWeight: 500 }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            dy={10}
+                                        />
+                                        <YAxis
+                                            stroke={chartColors.text}
+                                            style={{ fontSize: '11px', fontWeight: 500 }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            dx={-10}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                                borderColor: 'rgba(255, 255, 255, 0.2)',
+                                                borderRadius: '16px',
+                                                boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
+                                                backdropFilter: 'blur(12px)',
+                                                padding: '12px 16px',
+                                                color: '#1e293b'
+                                            }}
+                                            itemStyle={{ fontSize: '12px', fontWeight: 600, padding: '2px 0' }}
+                                            labelStyle={{ color: '#64748b', fontSize: '11px', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                                            cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '4 4' }}
+                                        />
+                                        <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="risks"
+                                            stroke="#ef4444"
+                                            strokeWidth={3}
+                                            fillOpacity={1}
+                                            fill="url(#colorRisks)"
+                                            name="Risques"
+                                            animationDuration={1500}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="incidents"
+                                            stroke="#f59e0b"
+                                            strokeWidth={3}
+                                            fillOpacity={1}
+                                            fill="url(#colorIncidents)"
+                                            name="Incidents"
+                                            animationDuration={1500}
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -435,37 +446,49 @@ export const AnalyticsDashboard: React.FC = () => {
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 font-display">
                         Distribution des Risques par Catégorie
                     </h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                            <Pie
-                                data={risksByCategory}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                                outerRadius={110}
-                                innerRadius={80}
-                                paddingAngle={5}
-                                dataKey="value"
-                            >
-                                {risksByCategory.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
-                                ))}
-                            </Pie>
-                            <Tooltip
-                                contentStyle={{
-                                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                    borderColor: 'rgba(255, 255, 255, 0.2)',
-                                    borderRadius: '16px',
-                                    boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
-                                    backdropFilter: 'blur(12px)',
-                                    padding: '12px 16px',
-                                    color: '#1e293b'
-                                }}
-                                itemStyle={{ fontSize: '12px', fontWeight: 600 }}
+                    <div className="h-[300px] w-full">
+                        {risksByCategory.length === 0 ? (
+                            <EmptyChartState
+                                variant="pie"
+                                message="Aucune catégorie"
+                                description="Les catégories de risques apparaîtront ici."
+                                actionLabel="Créer un risque"
+                                onAction={() => navigate('/risks')}
                             />
-                        </PieChart>
-                    </ResponsiveContainer>
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={risksByCategory}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                        outerRadius={110}
+                                        innerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {risksByCategory.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                                            borderRadius: '16px',
+                                            boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)',
+                                            backdropFilter: 'blur(12px)',
+                                            padding: '12px 16px',
+                                            color: '#1e293b'
+                                        }}
+                                        itemStyle={{ fontSize: '12px', fontWeight: 600 }}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
                 </div>
             </div>
 

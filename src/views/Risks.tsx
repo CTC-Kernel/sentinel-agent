@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Menu, Transition } from '@headlessui/react';
 import {
     FileText, FileSpreadsheet, FileCode, MoreVertical,
@@ -112,6 +112,7 @@ export const Risks: React.FC = () => {
 
     // ... URL Params ...
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const deepLinkRiskId = searchParams.get('id');
 
     // ... Deep Linking Effect ...
@@ -295,7 +296,6 @@ export const Risks: React.FC = () => {
     const handleAdvancedSearchClose = React.useCallback(() => setShowAdvancedSearch(false), [setShowAdvancedSearch]);
     const handleAdvancedSearchToggle = React.useCallback(() => setShowAdvancedSearch(prev => !prev), [setShowAdvancedSearch]);
     const handleResetMatrixFilter = React.useCallback(() => setMatrixFilter(null), [setMatrixFilter]);
-    const handleEmptyAction = React.useCallback(() => setCreationMode(true), []);
     const handleInspectorClose = React.useCallback(() => setSelectedRisk(null), []);
     const handleInspectorDelete = React.useCallback((id: string, name: string) => handleDelete({ id, name }), [handleDelete]);
     const handleCreationClose = React.useCallback(() => setCreationMode(false), []);
@@ -303,6 +303,21 @@ export const Risks: React.FC = () => {
     const handleTemplateModalClose = React.useCallback(() => setIsTemplateModalOpen(false), []);
     const handleConfirmClose = React.useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
     const handleNewRiskClick = React.useCallback(() => { setEditingRisk(null); setCreationMode(true); }, []);
+
+    // Dynamic Empty State Logic
+    const hasAssets = assets.length > 0;
+    const emptyStateTitle = hasAssets ? t('risks.emptyTitle') : t('assets.emptyTitle');
+    const emptyStateDescription = hasAssets ? t('risks.emptyDesc') : t('assets.emptyDesc');
+    const emptyStateActionLabel = hasAssets ? t('risks.newRisk') : t('assets.createAsset');
+
+    const handleEmptyAction = React.useCallback(() => {
+        if (hasAssets) {
+            setCreationMode(true);
+        } else {
+            // Navigate to assets page to create an asset
+            navigate('/assets');
+        }
+    }, [hasAssets, navigate]);
     const handleImportClick = React.useCallback(() => fileInputRef.current?.click(), []);
     const handleTemplateModalOpen = React.useCallback(() => setIsTemplateModalOpen(true), []);
     const handleObsidianExport = React.useCallback(() => ObsidianService.exportRisksToObsidian(filteredRisks), [filteredRisks]);
@@ -341,7 +356,7 @@ export const Risks: React.FC = () => {
                 title={risksTitle}
                 subtitle={risksSubtitle}
                 icon={<ShieldAlert className="h-6 w-6 text-brand-500" strokeWidth={2.5} />}
-                breadcrumbs={[{ label: t('settings.commandPalette.nav.risks') }]}
+                breadcrumbs={[{ label: t('commandPalette.nav.risks') }]}
                 trustType="integrity"
             />
 
@@ -553,6 +568,10 @@ export const Risks: React.FC = () => {
                             canEdit={canEdit}
                             onBulkDelete={bulkDeleteRisks}
                             assets={assets}
+                            emptyStateTitle={emptyStateTitle}
+                            emptyStateDescription={emptyStateDescription}
+                            emptyStateActionLabel={canEdit ? emptyStateActionLabel : undefined}
+                            onEmptyStateAction={canEdit ? handleEmptyAction : undefined}
                         />
                     ) : (
                         <RiskGrid
@@ -561,9 +580,9 @@ export const Risks: React.FC = () => {
                             assets={assets}
                             onSelect={setSelectedRisk}
                             emptyStateIcon={ShieldAlert}
-                            emptyStateTitle={t('assets.emptyTitle')}
-                            emptyStateDescription={t('assets.emptyDesc')}
-                            emptyStateActionLabel={canEdit ? t('risks.newRisk') : undefined}
+                            emptyStateTitle={emptyStateTitle}
+                            emptyStateDescription={emptyStateDescription}
+                            emptyStateActionLabel={canEdit ? emptyStateActionLabel : undefined}
                             onEmptyStateAction={canEdit ? handleEmptyAction : undefined}
                         />
                     )}

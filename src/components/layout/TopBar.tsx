@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Menu, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command, Shield, MessageSquare } from '../ui/Icons';
@@ -64,6 +64,18 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
         }
     };
 
+    const handleThemeToggle = useCallback(async () => {
+        toggleTheme();
+        if (user) {
+            try {
+                const newTheme = theme === 'light' ? 'dark' : 'light';
+                await updateUser(user.uid, { theme: newTheme });
+            } catch (e) {
+                ErrorLogger.error(e, 'TopBar.toggleTheme');
+            }
+        }
+    }, [toggleTheme, user, theme, updateUser]);
+
     return (
         <header className="h-16 pt-safe z-sticky sticky top-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-3xl border-b border-slate-200 dark:border-white/5 transition-all duration-300 px-4 md:px-8 shadow-sm dark:shadow-none">
             <div className="h-full max-w-[1600px] mx-auto flex items-center justify-between">
@@ -126,17 +138,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                     <Tooltip content={theme === 'light' ? t('common.darkMode') : t('common.lightMode')} position="bottom">
                         <button
                             data-tour="theme-toggle"
-                            onClick={async () => {
-                                toggleTheme();
-                                if (user) {
-                                    try {
-                                        const newTheme = theme === 'light' ? 'dark' : 'light';
-                                        await updateUser(user.uid, { theme: newTheme });
-                                    } catch (e) {
-                                        ErrorLogger.error(e, 'TopBar.toggleTheme');
-                                    }
-                                }
-                            }}
+                            onClick={handleThemeToggle}
                             className="p-2 rounded-full text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-brand-500/50"
                             aria-label="Toggle Theme"
                         >
@@ -189,7 +191,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                         className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors"
                                     >
                                         <SettingsIcon className="h-4 w-4 mr-3 text-slate-500" />
-                                        {t('common.settings')}
+                                        {t('common.settings.title')}
                                     </Link>
                                     <Link
                                         to="/pricing"

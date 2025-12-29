@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ThreatTemplate } from '../types';

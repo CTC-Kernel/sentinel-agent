@@ -1,7 +1,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { useFirestoreCollection } from '../useFirestore';
-import { where, collection, addDoc, updateDoc, doc, deleteDoc, query, getDocs, arrayUnion, writeBatch, arrayRemove, limit } from 'firebase/firestore';
+import { where, collection, addDoc, updateDoc, doc, arrayUnion, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Audit, Control, Asset, Risk, UserProfile, Document, Project, Finding, AuditChecklist } from '../../types';
@@ -9,6 +9,7 @@ import { canEditResource, canDeleteResource } from '../../utils/permissions';
 import { logAction } from '../../services/logger';
 import { ErrorLogger } from '../../services/errorLogger';
 import { AuditPlannerService } from '../../services/AuditPlannerService';
+import { AuditService } from '../../services/auditService';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { buildAppUrl } from '../../config/appConfig';
 import { analyticsService } from '../../services/analyticsService';
@@ -77,13 +78,10 @@ export const useAudits = () => {
     const fetchAuditDetails = useCallback(async (audit: Audit) => {
         if (!user?.organizationId) return;
         try {
-            const [findingsSnap, checklistSnap] = await Promise.all([
-                getDocs(query(collection(db, 'findings'), where('organizationId', '==', user.organizationId), where('auditId', '==', audit.id))),
-                getDocs(query(collection(db, 'audit_checklists'), where('organizationId', '==', user.organizationId), where('auditId', '==', audit.id)))
-            ]);
-
-            setAuditFindings(findingsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Finding)));
-            setAuditChecklist(checklistSnap.empty ? null : { id: checklistSnap.docs[0].id, ...checklistSnap.docs[0].data() } as AuditChecklist);
+            // Use AuditService to fetch findings and checklist
+            const details = await AuditService.getAuditDetails(audit.id, user.organizationId);
+            setAuditFindings(details.findings);
+            setAuditChecklist(details.checklist);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useAudits.fetchAuditDetails', 'FETCH_FAILED');
         }
@@ -139,44 +137,22 @@ export const useAudits = () => {
 
     const checkDependencies = async (auditId: string) => {
         if (!user?.organizationId) return { hasDependencies: false, dependencies: [] };
-
-        // Projects have relatedAuditIds
-        const projectsSnap = await getDocs(query(collection(db, 'projects'), where('organizationId', '==', user.organizationId), where('relatedAuditIds', 'array-contains', auditId)));
-
-        // Assets? Checked type, typically Assets don't link back to Audits in this codebase, but let's assume valid based on other patterns. 
-        // If Asset had relatedAuditIds, we would check it. 
-        // Based on previous steps, Project definitely has it. 
-        // Let's stick to Projects for now to be safe.
-
-        const dependencies = [
-            ...projectsSnap.docs.map(d => ({ id: d.id, name: d.data().name || 'Projet', type: 'Projet' }))
-        ];
-
-        return { hasDependencies: dependencies.length > 0, dependencies };
+        // Use AuditService to check dependencies
+        return await AuditService.checkDependencies(auditId, user.organizationId);
     };
 
     const handleDeleteAudit = async (id: string, name: string) => {
-        if (!canDelete || !user?.organizationId) return;
+        if (!canDelete || !user?.organizationId || !user?.uid) return;
         try {
-            // Check & Cleanup Dependencies
-            const { hasDependencies, dependencies } = await checkDependencies(id);
+            // Use AuditService for atomic cascade deletion
+            await AuditService.deleteAuditWithCascade({
+                auditId: id,
+                auditName: name,
+                organizationId: user.organizationId,
+                userId: user.uid,
+                userEmail: user.email || 'unknown'
+            });
 
-            if (hasDependencies && dependencies.length > 0) {
-                const cleanupPromises = [];
-                // Projects
-                const projectDeps = dependencies.filter(d => d.type === 'Projet');
-                for (const dep of projectDeps) {
-                    cleanupPromises.push(updateDoc(doc(db, 'projects', dep.id), { relatedAuditIds: arrayRemove(id) }));
-                }
-                await Promise.all(cleanupPromises);
-            }
-
-            // Cascade delete findings
-            const findingsQ = query(collection(db, 'findings'), where('organizationId', '==', user.organizationId), where('auditId', '==', id));
-            const findingsSnap = await getDocs(findingsQ);
-            await Promise.all(findingsSnap.docs.map(d => deleteDoc(doc(db, 'findings', d.id))));
-
-            await deleteDoc(doc(db, 'audits', id));
             await logAction(user, 'DELETE', 'Audit', `Suppression audit: ${name} `);
 
             if (selectedAudit?.id === id) setSelectedAudit(null);
@@ -210,27 +186,25 @@ export const useAudits = () => {
     };
 
     const handleGeneratePlan = async () => {
+        if (!user?.organizationId) return;
+
         // Logic for AI Plan Generation
         const suggestions = AuditPlannerService.generateAuditSuggestions(risks, assets, audits);
-        if (suggestions.length === 0) { addToast("Aucune suggestion d'audit pertinente trouvée.", "info"); return; }
+        if (suggestions.length === 0) {
+            addToast("Aucune suggestion d'audit pertinente trouvée.", "info");
+            return;
+        }
 
-        const batch = writeBatch(db);
-        suggestions.slice(0, 5).forEach(s => {
-            const newAuditRef = doc(collection(db, 'audits'));
-            batch.set(newAuditRef, {
-                ...s,
-                organizationId: user?.organizationId,
-                status: 'Planifié',
-                findingsCount: 0,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                auditor: user?.displayName || 'À définir',
-                relatedProjectIds: [], relatedControlIds: []
-            });
-        });
-        await batch.commit();
+        // Use AuditService for batch creation
+        const auditsToCreate = suggestions.slice(0, 5);
+        await AuditService.batchCreateAudits(
+            auditsToCreate,
+            user.organizationId,
+            user.displayName || 'À définir'
+        );
+
         refreshAudits();
-        addToast(`${suggestions.length} audits planifiés avec succès.`, "success");
+        addToast(`${auditsToCreate.length} audits planifiés avec succès.`, "success");
     };
 
 

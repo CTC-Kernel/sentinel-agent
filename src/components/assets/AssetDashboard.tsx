@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChartTooltip } from '../ui/ChartTooltip';
+import { EmptyChartState } from '../ui/EmptyChartState';
 import { Asset, Criticality } from '../../types';
 import { Server, Wrench, Euro, ShieldAlert } from '../ui/Icons';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -247,29 +248,37 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     <div className="relative z-decorator">
                         <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Distribution par Criticité</h4>
                         <ResponsiveContainer width="100%" height={250}>
-                            <PieChart>
-                                <Pie
-                                    data={distributionData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={65}
-                                    outerRadius={85}
-                                    paddingAngle={4}
-                                    dataKey="value"
-                                    stroke="none"
-                                >
-                                    {distributionData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} className="drop-shadow-sm" />
-                                    ))}
-                                </Pie>
-                                <Tooltip content={<ChartTooltip />} cursor={false} />
-                                <Legend
-                                    verticalAlign="bottom"
-                                    height={36}
-                                    iconType="circle"
-                                    formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>}
+                            {assets.length === 0 ? (
+                                <EmptyChartState
+                                    variant="pie"
+                                    message="Aucune donnée"
+                                    description="Ajoutez des actifs pour voir la répartition."
                                 />
-                            </PieChart>
+                            ) : (
+                                <PieChart>
+                                    <Pie
+                                        data={distributionData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={65}
+                                        outerRadius={85}
+                                        paddingAngle={4}
+                                        dataKey="value"
+                                        stroke="none"
+                                    >
+                                        {distributionData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} className="drop-shadow-sm" />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<ChartTooltip />} cursor={false} />
+                                    <Legend
+                                        verticalAlign="bottom"
+                                        height={36}
+                                        iconType="circle"
+                                        formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>}
+                                    />
+                                </PieChart>
+                            )}
                         </ResponsiveContainer>
                     </div>
                 </div>
@@ -286,27 +295,35 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     <div className="relative z-decorator">
                         <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Top Types d'Actifs</h4>
                         <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={typeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.4)'} vertical={false} />
-                                <XAxis
-                                    dataKey="name"
-                                    stroke={'hsl(var(--muted-foreground) / 0.8)'}
-                                    fontSize={10}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    dy={10}
-                                    tickFormatter={(value) => value.length > 10 ? `${value.substring(0, 10)}...` : value}
+                            {typeChartData.length === 0 ? (
+                                <EmptyChartState
+                                    variant="bar"
+                                    message="Aucun type"
+                                    description="Les types d'actifs s'afficheront ici."
                                 />
-                                <YAxis
-                                    stroke={'hsl(var(--muted-foreground) / 0.8)'}
-                                    fontSize={11}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    dx={-10}
-                                />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.1)', radius: 4 }} />
-                                <Bar dataKey="value" fill="hsl(var(--primary))" name="Nombre d'actifs" radius={[6, 6, 0, 0]} barSize={24} animationDuration={1000} />
-                            </BarChart>
+                            ) : (
+                                <BarChart data={typeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.4)'} vertical={false} />
+                                    <XAxis
+                                        dataKey="name"
+                                        stroke={'hsl(var(--muted-foreground) / 0.8)'}
+                                        fontSize={10}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        dy={10}
+                                        tickFormatter={(value) => value.length > 10 ? `${value.substring(0, 10)}...` : value}
+                                    />
+                                    <YAxis
+                                        stroke={'hsl(var(--muted-foreground) / 0.8)'}
+                                        fontSize={11}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        dx={-10}
+                                    />
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.1)', radius: 4 }} />
+                                    <Bar dataKey="value" fill="hsl(var(--primary))" name="Nombre d'actifs" radius={[6, 6, 0, 0]} barSize={24} animationDuration={1000} />
+                                </BarChart>
+                            )}
                         </ResponsiveContainer>
                     </div>
                 </div>
@@ -323,29 +340,37 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     <div className="relative z-decorator">
                         <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Distribution par Périmètre (Scope)</h4>
                         <ResponsiveContainer width="100%" height={250}>
-                            <PieChart>
-                                <Pie
-                                    data={scopeChartData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={65}
-                                    outerRadius={85}
-                                    paddingAngle={4}
-                                    dataKey="value"
-                                    stroke="none"
-                                >
-                                    {scopeChartData.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={SCOPE_COLORS[index % SCOPE_COLORS.length]} className="drop-shadow-sm" />
-                                    ))}
-                                </Pie>
-                                <Tooltip content={<ChartTooltip />} cursor={false} />
-                                <Legend
-                                    verticalAlign="bottom"
-                                    height={36}
-                                    iconType="circle"
-                                    formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>}
+                            {scopeChartData.length === 0 ? (
+                                <EmptyChartState
+                                    variant="pie"
+                                    message="Aucun périmètre"
+                                    description="Définissez le périmètre de vos actifs."
                                 />
-                            </PieChart>
+                            ) : (
+                                <PieChart>
+                                    <Pie
+                                        data={scopeChartData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={65}
+                                        outerRadius={85}
+                                        paddingAngle={4}
+                                        dataKey="value"
+                                        stroke="none"
+                                    >
+                                        {scopeChartData.map((_, index) => (
+                                            <Cell key={`cell-${index}`} fill={SCOPE_COLORS[index % SCOPE_COLORS.length]} className="drop-shadow-sm" />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<ChartTooltip />} cursor={false} />
+                                    <Legend
+                                        verticalAlign="bottom"
+                                        height={36}
+                                        iconType="circle"
+                                        formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>}
+                                    />
+                                </PieChart>
+                            )}
                         </ResponsiveContainer>
                     </div>
                 </div>
@@ -362,22 +387,30 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     <div className="relative z-decorator">
                         <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Actifs par Localisation</h4>
                         <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={locationChartData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.4)'} horizontal={false} />
-                                <XAxis type="number" hide />
-                                <YAxis
-                                    dataKey="name"
-                                    type="category"
-                                    stroke={'hsl(var(--muted-foreground) / 0.8)'}
-                                    fontSize={11}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    width={100}
-                                    tickFormatter={(value) => value.length > 12 ? `${value.substring(0, 12)}...` : value}
+                            {locationChartData.length === 0 ? (
+                                <EmptyChartState
+                                    variant="bar"
+                                    message="Aucune localisation"
+                                    description="Les localisations s'afficheront ici."
                                 />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.1)', radius: 4 }} />
-                                <Bar dataKey="value" fill="hsl(var(--emerald-500))" name="Nombre d'actifs" radius={[0, 4, 4, 0]} barSize={20} animationDuration={1000} />
-                            </BarChart>
+                            ) : (
+                                <BarChart data={locationChartData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.4)'} horizontal={false} />
+                                    <XAxis type="number" hide />
+                                    <YAxis
+                                        dataKey="name"
+                                        type="category"
+                                        stroke={'hsl(var(--muted-foreground) / 0.8)'}
+                                        fontSize={11}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        width={100}
+                                        tickFormatter={(value) => value.length > 12 ? `${value.substring(0, 12)}...` : value}
+                                    />
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.1)', radius: 4 }} />
+                                    <Bar dataKey="value" fill="hsl(var(--emerald-500))" name="Nombre d'actifs" radius={[0, 4, 4, 0]} barSize={20} animationDuration={1000} />
+                                </BarChart>
+                            )}
                         </ResponsiveContainer>
                     </div>
                 </div>

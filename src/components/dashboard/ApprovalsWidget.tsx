@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Document } from '../../types';
@@ -18,6 +18,17 @@ export const ApprovalsWidget: React.FC<ApprovalsWidgetProps> = ({ documents }) =
         doc.reviewers?.includes(user?.uid || '') &&
         !doc.approvers?.includes(user?.uid || '')
     );
+
+    const handleDocumentClick = useCallback((docId: string) => {
+        navigate('/documents', { state: { voxelSelectedId: docId, voxelSelectedType: 'document' } });
+    }, [navigate]);
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent, docId: string) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            navigate('/documents', { state: { voxelSelectedId: docId, voxelSelectedType: 'document' } });
+        }
+    }, [navigate]);
 
     if (pendingApprovals.length === 0) return null;
 
@@ -49,15 +60,10 @@ export const ApprovalsWidget: React.FC<ApprovalsWidgetProps> = ({ documents }) =
                 {pendingApprovals.slice(0, 3).map(doc => (
                     <div
                         key={doc.id}
-                        onClick={() => navigate('/documents', { state: { voxelSelectedId: doc.id, voxelSelectedType: 'document' } })}
+                        onClick={() => handleDocumentClick(doc.id)}
                         role="button"
                         tabIndex={0}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                navigate('/documents', { state: { voxelSelectedId: doc.id, voxelSelectedType: 'document' } });
-                            }
-                        }}
+                        onKeyDown={(e) => handleKeyDown(e, doc.id)}
                         className="bg-white/80 dark:bg-slate-900/50 p-3 rounded-xl border border-amber-200/50 dark:border-amber-900/20 cursor-pointer hover:shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                     >
                         <div className="flex items-center justify-between">

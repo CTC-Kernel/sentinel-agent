@@ -1,8 +1,9 @@
 import React from 'react';
 import { Audit, Finding } from '../../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { AlertTriangle, CheckCircle2, CircleDashed } from 'lucide-react';
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { ChartTooltip } from '../ui/ChartTooltip';
+import { EmptyChartState } from '../ui/EmptyChartState';
 
 interface SingleAuditStatsProps {
     audit: Audit;
@@ -107,10 +108,12 @@ export const SingleAuditStats: React.FC<SingleAuditStatsProps> = ({ findings }) 
                             </PieChart>
                         </ResponsiveContainer>
                     ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-slate-400">
-                            <CircleDashed className="w-8 h-8 mb-2 opacity-50" />
-                            <span className="text-sm">Aucune donnée à afficher</span>
-                        </div>
+                        <EmptyChartState
+                            variant="pie"
+                            message="Aucune donnée"
+                            description="Aucune donnée à afficher"
+                            className="scale-90"
+                        />
                     )}
                 </div>
                 {/* Legend */}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import { motion } from 'framer-motion';
 import { integrationService, IntegrationProvider } from '../services/integrationService';
 import { IntegrationCard } from '../components/integrations/IntegrationCard';

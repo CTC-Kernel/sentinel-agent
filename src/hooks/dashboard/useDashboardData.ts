@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
-import { db } from '../../firebase';
-import { collection, query, where, getCountFromServer, orderBy, limit, getDoc, doc } from 'firebase/firestore';
+import { where, orderBy, limit } from 'firebase/firestore';
 import { Risk, Control, Audit, Project, StatsHistoryEntry, Document, Asset, SystemLog, Supplier, Incident } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
+import { DashboardService } from '../../services/dashboardService';
 
 export interface DashboardData {
     controls: Control[];
@@ -62,16 +62,44 @@ export const useDashboardData = (): DashboardData => {
     const { data: allAssets, loading: assetsLoading } = useFirestoreCollection<Asset>('assets', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: needsAssets });
     const { data: allSuppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>('suppliers', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: false, enabled: needsSuppliers });
 
-    // Personal/Role specific data
-    const { data: myProjects, loading: projectsLoading } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId || 'ignore'), where('manager', '==', user?.displayName || 'ignore'), where('status', '==', 'En cours')], { logError: true, realtime: true, enabled: isPM || isAdmin });
-    const { data: myAudits, loading: auditsLoading } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId || 'ignore'), where('auditor', '==', user?.displayName || 'ignore'), where('status', 'in', ['Planifié', 'En cours'])], { logError: true, realtime: true, enabled: isAuditor || isAdmin });
-    const { data: myDocs, loading: myDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('owner', '==', user?.email || 'ignore')], { logError: true, realtime: true });
-    const { data: publishedDocs, loading: publishedDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('status', '==', 'Publié')], { logError: true, realtime: true });
-    const { data: myIncidents, loading: myIncidentsLoading } = useFirestoreCollection<Incident>('incidents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('reporter', '==', user?.displayName || 'ignore'), where('status', '!=', 'Fermé')], { logError: true, realtime: true });
+    // Personal/Role specific data - simplified queries, filter in memory to reduce complexity
+    const { data: allProjects, loading: projectsLoading } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: isPM || isAdmin });
+    const { data: allAudits, loading: auditsLoading } = useFirestoreCollection<Audit>('audits', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true, enabled: isAuditor || isAdmin });
+    const { data: allDocuments, loading: myDocsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true });
+    const { data: allIncidents, loading: myIncidentsLoading } = useFirestoreCollection<Incident>('incidents', [where('organizationId', '==', user?.organizationId || 'ignore')], { logError: true, realtime: true });
 
-    const { data: pendingReviews, loading: pendingReviewsLoading } = useFirestoreCollection<Document>('documents', [where('organizationId', '==', user?.organizationId || 'ignore'), where('status', '==', 'En revue'), where('reviewers', 'array-contains', user?.uid || 'ignore')], { logError: true, realtime: true });
+    // Filter in memory to avoid complex chained where() clauses
+    const myProjects = useMemo(() =>
+        allProjects.filter(p => p.manager === user?.displayName && p.status === 'En cours'),
+        [allProjects, user?.displayName]
+    );
 
-    const loading = manualLoading || (needsGlobalStats && controlsLoading) || (needsLogs && logsLoading) || ((needsGlobalStats || isAuditor) && historyLoading) || risksLoading || (needsAssets && assetsLoading) || (needsSuppliers && suppliersLoading) || ((isPM || isAdmin) && projectsLoading) || ((isAuditor || isAdmin) && auditsLoading) || myDocsLoading || publishedDocsLoading || myIncidentsLoading || pendingReviewsLoading;
+    const myAudits = useMemo(() =>
+        allAudits.filter(a => a.auditor === user?.displayName && ['Planifié', 'En cours'].includes(a.status)),
+        [allAudits, user?.displayName]
+    );
+
+    const myDocs = useMemo(() =>
+        allDocuments.filter(d => d.owner === user?.email),
+        [allDocuments, user?.email]
+    );
+
+    const publishedDocs = useMemo(() =>
+        allDocuments.filter(d => d.status === 'Publié'),
+        [allDocuments]
+    );
+
+    const myIncidents = useMemo(() =>
+        allIncidents.filter(i => i.reporter === user?.displayName && i.status !== 'Fermé'),
+        [allIncidents, user?.displayName]
+    );
+
+    const pendingReviews = useMemo(() =>
+        allDocuments.filter(d => d.status === 'En revue' && d.reviewers?.includes(user?.uid || '')),
+        [allDocuments, user?.uid]
+    );
+
+    const loading = manualLoading || (needsGlobalStats && controlsLoading) || (needsLogs && logsLoading) || ((needsGlobalStats || isAuditor) && historyLoading) || risksLoading || (needsAssets && assetsLoading) || (needsSuppliers && suppliersLoading) || ((isPM || isAdmin) && projectsLoading) || ((isAuditor || isAdmin) && auditsLoading) || myDocsLoading || myIncidentsLoading;
 
     const fetchCounts = useCallback(async () => {
         if (!user?.organizationId) {
@@ -81,7 +109,7 @@ export const useDashboardData = (): DashboardData => {
 
         setManualLoading(true);
         try {
-            const orgId = user.organizationId!;
+            const orgId = user.organizationId;
 
             // Check cache
             const now = Date.now();
@@ -92,48 +120,46 @@ export const useDashboardData = (): DashboardData => {
                 setError(null);
                 setManualLoading(false);
 
-                // Fetch org details if needed (and not cached effectively here, but kept simple)
+                // Fetch org details if needed
                 if (!organizationName) {
                     try {
-                        const orgSnap = await getDoc(doc(db, 'organizations', orgId));
-                        if (orgSnap.exists()) {
-                            const data = orgSnap.data();
-                            setOrganizationName(data.name || '');
-                            setOrganizationLogo(data.logoUrl);
-                        } else if (user.organizationName) setOrganizationName(user.organizationName);
-                    } catch { if (user.organizationName) setOrganizationName(user.organizationName); }
+                        const orgDetails = await DashboardService.getOrganizationDetails(orgId);
+                        if (orgDetails) {
+                            setOrganizationName(orgDetails.name);
+                            setOrganizationLogo(orgDetails.logoUrl);
+                        } else if (user.organizationName) {
+                            setOrganizationName(user.organizationName);
+                        }
+                    } catch {
+                        if (user.organizationName) setOrganizationName(user.organizationName);
+                    }
                 }
 
                 return;
             }
 
-            // Organization Name
+            // Use DashboardService to fetch organization details and counts
             try {
-                const orgSnap = await getDoc(doc(db, 'organizations', orgId));
-                if (orgSnap.exists()) {
-                    const data = orgSnap.data();
-                    setOrganizationName(data.name || '');
-                    setOrganizationLogo(data.logoUrl);
+                const orgDetails = await DashboardService.getOrganizationDetails(orgId);
+                if (orgDetails) {
+                    setOrganizationName(orgDetails.name);
+                    setOrganizationLogo(orgDetails.logoUrl);
+                } else if (user.organizationName) {
+                    setOrganizationName(user.organizationName);
                 }
-                else if (user.organizationName) setOrganizationName(user.organizationName);
-            } catch { if (user.organizationName) setOrganizationName(user.organizationName); }
+            } catch {
+                if (user.organizationName) setOrganizationName(user.organizationName);
+            }
 
-            // Counts
-            const [incCount, auditCount] = await Promise.all([
-                getCountFromServer(query(collection(db, 'incidents'), where('organizationId', '==', orgId), where('status', '!=', 'Fermé'))),
-                getCountFromServer(query(collection(db, 'audits'), where('organizationId', '==', orgId), where('status', 'in', ['Planifié', 'En cours'])))
-            ]);
+            // Fetch counts using DashboardService
+            const counts = await DashboardService.getDashboardCounts(orgId);
 
-            const next = {
-                activeIncidentsCount: incCount.data().count,
-                openAuditsCount: auditCount.data().count
-            };
-            lastCountsValue = next;
+            lastCountsValue = counts;
             lastCountsOrgId = orgId;
             lastCountsFetchAt = now;
 
-            setActiveIncidentsCount(next.activeIncidentsCount);
-            setOpenAuditsCount(next.openAuditsCount);
+            setActiveIncidentsCount(counts.activeIncidentsCount);
+            setOpenAuditsCount(counts.openAuditsCount);
             setError(null);
         } catch (err) {
             const code = (err as { code?: string })?.code;

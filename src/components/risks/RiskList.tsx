@@ -18,6 +18,10 @@ interface RiskListProps {
     onDelete: (id: string, name: string) => void;
     onBulkDelete: (ids: string[]) => void;
     onSelect: (risk: Risk) => void;
+    emptyStateTitle?: string;
+    emptyStateDescription?: string;
+    emptyStateActionLabel?: string;
+    onEmptyStateAction?: () => void;
 }
 
 const getRiskLevel = (score: number) => {
@@ -42,7 +46,8 @@ const getSLAStatus = (risk: Risk) => {
 };
 
 export const RiskList = React.memo<RiskListProps>(({
-    risks, loading, canEdit, assets, onEdit, onDelete, onBulkDelete, onSelect
+    risks, loading, canEdit, assets, onEdit, onDelete, onBulkDelete, onSelect,
+    emptyStateTitle, emptyStateDescription, emptyStateActionLabel, onEmptyStateAction
 }) => {
     const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set());
 
@@ -173,10 +178,10 @@ export const RiskList = React.memo<RiskListProps>(({
                     emptyState={
                         <EmptyState
                             icon={ShieldAlert}
-                            title="Aucun risque identifié"
-                            description="Votre registre de risques est parfaitement clean. Commencez par ajouter une nouvelle menace."
-                            actionLabel="Créer un risque"
-                            onAction={() => window.dispatchEvent(new CustomEvent('open-risk-modal'))}
+                            title={emptyStateTitle || "Aucun risque identifié"}
+                            description={emptyStateDescription || "Votre registre de risques est parfaitement clean. Commencez par ajouter une nouvelle menace."}
+                            actionLabel={emptyStateActionLabel || "Créer un risque"}
+                            onAction={onEmptyStateAction || (() => window.dispatchEvent(new CustomEvent('open-risk-modal')))}
                             color="emerald"
                         />
                     }

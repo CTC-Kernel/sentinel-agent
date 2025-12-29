@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+
 import { motion } from 'framer-motion';
 import { staggerContainerVariants } from '../components/ui/animationVariants';
 import { SEO } from '../components/SEO';

@@ -77,7 +77,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
         if (readOnly || !response) return;
 
         const isCompleted = response.completedSteps.includes(step.id);
-        // If already completed, we might want to allow un-checking, but the service logic 
+        // If already completed, we might want to allow un-checking, but the service logic
         // usually adds timeline events. For now, let's assume we can only mark as complete.
         if (isCompleted) return;
 
@@ -98,6 +98,16 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
             ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybook.handleStepToggle', 'UPDATE_FAILED');
         }
     };
+
+    const handleInitializePlaybooks = useCallback(async () => {
+        if (!user?.organizationId) return;
+        try {
+            await IncidentPlaybookService.initializeDefaultPlaybooks(user.organizationId);
+            await loadData();
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'IncidentPlaybook.handleInitializePlaybooks', 'CREATE_FAILED');
+        }
+    }, [user?.organizationId, loadData]);
 
     if (loading) {
         return <div className="p-8 text-center text-slate-500">Chargement du playbook...</div>;
@@ -158,7 +168,7 @@ export const IncidentPlaybook: React.FC<IncidentPlaybookProps> = ({ incident, re
                     <div className="text-center p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
                         <p className="text-slate-600">Aucun playbook disponible pour la catégorie "{incident.category}".</p>
                         <button
-                            onClick={() => user?.organizationId && IncidentPlaybookService.initializeDefaultPlaybooks(user.organizationId).then(loadData)}
+                            onClick={handleInitializePlaybooks}
                             className="mt-2 text-brand-600 hover:underline text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
                         >
                             Générer les playbooks par défaut

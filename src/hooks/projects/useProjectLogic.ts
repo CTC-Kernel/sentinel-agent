@@ -2,10 +2,11 @@
 import { useState, useMemo } from 'react';
 import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
-import { where, doc, updateDoc, addDoc, collection, arrayUnion, arrayRemove, getDocs, query, writeBatch, limit } from 'firebase/firestore';
+import { where, doc, updateDoc, addDoc, collection, writeBatch, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Project, ProjectTask, Risk, Control, Asset, Audit, UserProfile } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
+import { ProjectService } from '../../services/projectService';
 import { logAction } from '../../services/logger';
 import { projectSchema } from '../../schemas/projectSchema';
 import { sanitizeData } from '../../utils/dataSanitizer';
@@ -65,22 +66,18 @@ export const useProjectLogic = () => {
                 const projectRef = doc(db, 'projects', editingProject.id);
                 batch.update(projectRef, { ...cleanData });
 
-                // Helper for sync - arrays sized for typical relationships (chunk not needed)
-                const syncLinks = (collectionName: string, fieldName: string, newIds: string[] = [], oldIds: string[] = []) => {
-                    const added = newIds.filter(id => !oldIds.includes(id));
-                    const removed = oldIds.filter(id => !newIds.includes(id));
-                    added.forEach(id => {
-                        batch.update(doc(db, collectionName, id), { [fieldName]: arrayUnion(editingProject.id) });
-                    });
-                    removed.forEach(id => {
-                        batch.update(doc(db, collectionName, id), { [fieldName]: arrayRemove(editingProject.id) });
-                    });
-                };
-
-                syncLinks('risks', 'relatedProjectIds', validatedData.relatedRiskIds, editingProject.relatedRiskIds);
-                syncLinks('controls', 'relatedProjectIds', validatedData.relatedControlIds, editingProject.relatedControlIds);
-                syncLinks('assets', 'relatedProjectIds', validatedData.relatedAssetIds, editingProject.relatedAssetIds);
-                syncLinks('audits', 'relatedProjectIds', validatedData.relatedAuditIds, editingProject.relatedAuditIds);
+                // Use ProjectService to sync relationship links
+                ProjectService.syncProjectLinks(batch, {
+                    projectId: editingProject.id,
+                    relatedRiskIds: validatedData.relatedRiskIds,
+                    relatedControlIds: validatedData.relatedControlIds,
+                    relatedAssetIds: validatedData.relatedAssetIds,
+                    relatedAuditIds: validatedData.relatedAuditIds,
+                    oldRiskIds: editingProject.relatedRiskIds,
+                    oldControlIds: editingProject.relatedControlIds,
+                    oldAssetIds: editingProject.relatedAssetIds,
+                    oldAuditIds: editingProject.relatedAuditIds
+                });
 
                 await batch.commit();
                 await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${validatedData.name}`);
@@ -110,17 +107,15 @@ export const useProjectLogic = () => {
                     createdAt: new Date().toISOString()
                 });
 
-                // Sync for Create
-                const pId = newProjectRef.id;
-                const syncNew = (coll: string, ids: string[]) => {
-                    ids.forEach(id => {
-                        batch.update(doc(db, coll, id), { relatedProjectIds: arrayUnion(pId) });
-                    });
-                }
-                if (finalData.relatedRiskIds) syncNew('risks', finalData.relatedRiskIds);
-                if (finalData.relatedControlIds) syncNew('controls', finalData.relatedControlIds);
-                if (finalData.relatedAssetIds) syncNew('assets', finalData.relatedAssetIds);
-                if (finalData.relatedAuditIds) syncNew('audits', finalData.relatedAuditIds);
+                // Use ProjectService to sync new project links
+                ProjectService.syncNewProjectLinks(
+                    batch,
+                    newProjectRef.id,
+                    finalData.relatedRiskIds,
+                    finalData.relatedControlIds,
+                    finalData.relatedAssetIds,
+                    finalData.relatedAuditIds
+                );
 
                 await batch.commit();
                 await logAction(user, 'CREATE', 'Project', `Nouveau projet: ${validatedData.name}`);
@@ -170,56 +165,15 @@ export const useProjectLogic = () => {
 
     const checkDependencies = async (projectId: string) => {
         if (!user?.organizationId) return { hasDependencies: false, dependencies: [] };
-
-        const [rSnap, cSnap, aSnap, auSnap] = await Promise.all([
-            getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId), limit(20))),
-            getDocs(query(collection(db, 'controls'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId), limit(20))),
-            getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId), limit(20))),
-            getDocs(query(collection(db, 'audits'), where('organizationId', '==', user.organizationId), where('relatedProjectIds', 'array-contains', projectId), limit(20)))
-        ]);
-
-        const dependencies = [
-            ...rSnap.docs.map(d => ({ id: d.id, name: d.data().threat || 'Risque', type: 'Risque' })),
-            ...cSnap.docs.map(d => ({ id: d.id, name: d.data().code || d.data().name || 'Contrôle', type: 'Contrôle' })),
-            ...aSnap.docs.map(d => ({ id: d.id, name: d.data().name || 'Actif', type: 'Actif' })),
-            ...auSnap.docs.map(d => ({ id: d.id, name: d.data().name || 'Audit', type: 'Audit' }))
-        ];
-
-        return { hasDependencies: dependencies.length > 0, dependencies };
+        // Use ProjectService to check dependencies
+        return await ProjectService.checkDependencies(projectId, user.organizationId);
     };
 
     const deleteProject = async (id: string, name?: string) => {
-        if (!canDeleteResource(user, 'Project')) return;
+        if (!canDeleteResource(user, 'Project') || !user?.organizationId) return;
         try {
-            const { hasDependencies, dependencies } = await checkDependencies(id);
-
-            const batch = writeBatch(db); // Note: dependency cleanup operations sized for typical use (chunk not needed)
-
-            if (hasDependencies && dependencies.length > 0) {
-                // Risks
-                const riskDeps = dependencies.filter(d => d.type === 'Risque');
-                riskDeps.forEach(dep => {
-                    batch.update(doc(db, 'risks', dep.id), { relatedProjectIds: arrayRemove(id) });
-                });
-                // Controls
-                const controlDeps = dependencies.filter(d => d.type === 'Contrôle');
-                controlDeps.forEach(dep => {
-                    batch.update(doc(db, 'controls', dep.id), { relatedProjectIds: arrayRemove(id) });
-                });
-                // Assets
-                const assetDeps = dependencies.filter(d => d.type === 'Actif');
-                assetDeps.forEach(dep => {
-                    batch.update(doc(db, 'assets', dep.id), { relatedProjectIds: arrayRemove(id) });
-                });
-                // Audits
-                const auditDeps = dependencies.filter(d => d.type === 'Audit');
-                auditDeps.forEach(dep => {
-                    batch.update(doc(db, 'audits', dep.id), { relatedProjectIds: arrayRemove(id) });
-                });
-            }
-
-            batch.delete(doc(db, 'projects', id));
-            await batch.commit();
+            // Use ProjectService for cascade deletion with dependency cleanup
+            await ProjectService.deleteProjectWithCascade(id, user.organizationId);
 
             await logAction(user, 'DELETE', 'Project', `Suppression projet: ${name || id}`);
             addToast("Projet supprimé", "info");

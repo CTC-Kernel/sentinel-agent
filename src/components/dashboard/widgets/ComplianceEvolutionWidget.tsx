@@ -5,6 +5,7 @@ import { Skeleton } from '../../ui/Skeleton';
 import { AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChartTooltip } from '../../ui/ChartTooltip';
 import { DashboardCard } from '../DashboardCard';
+import { EmptyChartState } from '../../ui/EmptyChartState';
 
 interface ComplianceEvolutionWidgetProps {
     historyData: { date: string; compliance: number }[];
@@ -81,12 +82,11 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                 {loading ? (
                     <Skeleton className="h-full w-full rounded-2xl" />
                 ) : !filteredData || filteredData.length === 0 ? (
-                    <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 animate-fade-in">
-                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-full mb-3 ring-1 ring-slate-100 dark:ring-white/5">
-                            <TrendingUp className="w-6 h-6 opacity-40" />
-                        </div>
-                        <p className="text-sm font-medium">{t('dashboard.noDataAvailable')}</p>
-                    </div>
+                    <EmptyChartState
+                        message={t('dashboard.noDataAvailable')}
+                        description={t('dashboard.complianceValuesWillAppearHere')}
+                        variant="line"
+                    />
                 ) : (
                     /* FIXED: Explicit height to prevent collapse */
                     <div className="w-full h-[300px]">

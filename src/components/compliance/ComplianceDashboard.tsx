@@ -6,6 +6,7 @@ import { StatsService } from '../../services/statsService';
 import { useStore } from '../../store';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { ErrorLogger } from '../../services/errorLogger';
+import { EmptyChartState } from '../ui/EmptyChartState';
 
 interface ComplianceDashboardProps {
     controls: Control[];
@@ -364,15 +365,12 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center p-12 glass-panel rounded-[2rem] border border-white/60 dark:border-white/5 border-dashed">
-                    <div className="p-4 bg-slate-100 dark:bg-white/5 rounded-full mb-4">
-                        <TrendingUp className="h-8 w-8 text-slate-400" />
-                    </div>
-                    <h3 className="text-lg font-medium text-foreground mb-1">Aucune donnée de conformité</h3>
-                    <p className="text-muted-foreground text-center max-w-md">
-                        Commencez par importer ou créer des contrôles pour visualiser les graphiques de conformité.
-                    </p>
-                </div>
+                <EmptyChartState
+                    variant="bar"
+                    message="Aucune donnée de conformité"
+                    description="Commencez par importer ou créer des contrôles pour visualiser les graphiques de conformité."
+                    className="glass-panel border-dashed p-12"
+                />
             )}
 
             {/* Critical Controls Not Implemented */}
