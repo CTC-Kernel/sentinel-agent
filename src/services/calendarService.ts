@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, addDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Audit, Project, Asset, BcpDrill, Incident } from '../types';
 import { parseISO } from 'date-fns';
@@ -172,7 +172,7 @@ export const CalendarService = {
             // Common metadata
             const meta = {
                 organizationId,
-                createdAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
                 createdBy: userId
             };
 

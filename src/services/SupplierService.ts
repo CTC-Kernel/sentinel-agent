@@ -112,7 +112,7 @@ export class SupplierService {
                 status: 'Draft',
                 answers: {},
                 overallScore: 0,
-                sentDate: new Date().toISOString()
+                sentDate: serverTimestamp()
             };
 
             const res = await addDoc(collection(db, 'questionnaire_responses'), sanitizeData(newResponse));
@@ -285,7 +285,7 @@ export class SupplierService {
                             hasEncryption: false,
                             hasBcp: false,
                             hasIncidentProcess: false,
-                            lastAssessmentDate: new Date().toISOString()
+                            lastAssessmentDate: serverTimestamp()
                         },
                         isICTProvider: false,
                         supportsCriticalFunction: false,

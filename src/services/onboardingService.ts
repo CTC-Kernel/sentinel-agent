@@ -110,7 +110,7 @@ export class OnboardingService {
                 organizationId: orgId,
                 organizationName: orgName,
                 status: 'pending',
-                createdAt: new Date().toISOString()
+                createdAt: serverTimestamp()
             }));
         } catch (error) {
             ErrorLogger.error(error, 'OnboardingService.sendJoinRequest');
