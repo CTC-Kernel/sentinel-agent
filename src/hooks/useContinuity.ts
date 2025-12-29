@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { collection, addDoc, deleteDoc, updateDoc, doc, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, updateDoc, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
@@ -18,8 +18,8 @@ export const useContinuity = () => {
             const newProcess = {
                 ...data,
                 organizationId: user.organizationId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
                 status: 'Draft',
                 lastTestDate: null
             };
@@ -42,7 +42,7 @@ export const useContinuity = () => {
         try {
             await updateDoc(doc(db, 'business_processes', id), {
                 ...data,
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             });
             await logAction(user, 'UPDATE', 'BusinessProcess', `Updated process: ${data.name || id}`);
             addToast(t('continuity.toastUpdated'), 'success');
@@ -80,7 +80,7 @@ export const useContinuity = () => {
             const newDrill = {
                 ...data,
                 organizationId: user.organizationId,
-                createdAt: new Date().toISOString()
+                createdAt: serverTimestamp()
             };
             batch.set(drillRef, newDrill);
 
@@ -89,7 +89,7 @@ export const useContinuity = () => {
                 const processRef = doc(db, 'business_processes', data.processId);
                 batch.update(processRef, {
                     lastTestDate: data.date,
-                    updatedAt: new Date().toISOString()
+                    updatedAt: serverTimestamp()
                 });
             }
 
@@ -111,7 +111,7 @@ export const useContinuity = () => {
         try {
             await updateDoc(doc(db, 'bcp_drills', id), {
                 ...data,
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             });
             addToast(t('continuity.toastDrillUpdated'), 'success');
         } catch (e) {

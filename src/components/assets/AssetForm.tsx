@@ -38,6 +38,7 @@ interface AssetFormProps {
     suppliers: Supplier[];
     isEditing?: boolean;
     isLoading?: boolean;
+    readOnly?: boolean;
 }
 
 export const AssetForm: React.FC<AssetFormProps> = ({
@@ -47,7 +48,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     usersList,
     suppliers,
     isEditing = false,
-    isLoading = false
+    isLoading = false,
+    readOnly = false
 }) => {
     const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues, register } = useForm<AssetFormData>({
         resolver: zodResolver(assetSchema) as Resolver<AssetFormData>,
@@ -241,501 +243,507 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     onSelectTemplate={handleSelectTemplate}
                     onAutoGenerate={handleAutoGenerate}
                     isGenerating={isGenerating}
+                    readOnly={readOnly}
                 />
             )}
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Informations Principales</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="col-span-1 md:col-span-2">
+            <fieldset disabled={readOnly} className="space-y-8 group-disabled:opacity-80">
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Informations Principales</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="col-span-1 md:col-span-2">
+                            <div className="relative">
+                                <Controller
+                                    name="name"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <FloatingLabelInput
+                                            label="Nom de l'actif"
+                                            id="name"
+                                            autoComplete="off"
+                                            {...field}
+                                            error={errors.name?.message}
+                                        />
+                                    )}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => handleSuggestField('name')}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-brand-500 transition-colors"
+                                    title="Suggérer un nom"
+                                >
+                                    <Sparkles className={`h-4 w-4 ${suggestingField === 'name' ? 'animate-spin' : ''}`} />
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="relative">
                             <Controller
-                                name="name"
+                                name="type"
                                 control={control}
                                 render={({ field }) => (
-                                    <FloatingLabelInput
-                                        label="Nom de l'actif"
-                                        id="name"
-                                        autoComplete="off"
-                                        {...field}
-                                        error={errors.name?.message}
+                                    <CustomSelect
+                                        label="Type"
+                                        options={ASSET_TYPES.map(t => ({ value: t, label: t }))}
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        error={errors.type?.message}
                                     />
                                 )}
                             />
                             <button
                                 type="button"
-                                onClick={() => handleSuggestField('name')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-brand-500 transition-colors"
-                                title="Suggérer un nom"
+                                onClick={() => handleSuggestField('type')}
+                                className="absolute right-8 top-1/2 -translate-y-1/2 mt-0 text-slate-500 hover:text-brand-500 transition-colors z-10"
+                                title="Suggérer le type"
                             >
-                                <Sparkles className={`h-4 w-4 ${suggestingField === 'name' ? 'animate-spin' : ''}`} />
+                                <Sparkles className={`h-4 w-4 ${suggestingField === 'type' ? 'animate-spin' : ''}`} />
                             </button>
                         </div>
-                    </div>
 
-                    <div className="relative">
-                        <Controller
-                            name="type"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label="Type"
-                                    options={ASSET_TYPES.map(t => ({ value: t, label: t }))}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.type?.message}
+                        <div>
+                            <Controller
+                                name="owner"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Propriétaire"
+                                        options={usersList.map(u => ({ value: u.displayName || u.email, label: u.displayName || u.email }))}
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        error={errors.owner?.message}
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        <div className="col-span-1 md:col-span-2">
+                            <Controller
+                                name="location"
+                                control={control}
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        label="Localisation"
+                                        id="location"
+                                        autoComplete="off"
+                                        {...field}
+                                        error={errors.location?.message}
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        <div className="col-span-1 md:col-span-2">
+                            <Controller
+                                name="supplierId"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Fournisseur / Mainteneur"
+                                        options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
+                                        value={field.value || ''}
+                                        onChange={field.onChange}
+                                        placeholder="Sélectionner un fournisseur..."
+                                        error={errors.supplierId?.message}
+                                    />
+                                )}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Specialized Fields based on Type */}
+                {watch('type') === 'Matériel' && (
+                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Matériel</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Controller
+                                name="ipAddress"
+                                control={control}
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        label="Adresse IP"
+                                        id="ipAddress"
+                                        autoComplete="off"
+                                        {...field}
+                                        error={errors.ipAddress?.message}
+                                    />
+                                )}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {watch('type') === 'Logiciel' && (
+                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Logiciel</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Controller
+                                name="version"
+                                control={control}
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        label="Version"
+                                        id="version"
+                                        autoComplete="off"
+                                        {...field}
+                                        error={errors.version?.message}
+                                    />
+                                )}
+                            />
+                            <div>
+                                <Controller
+                                    control={control}
+                                    name="licenseExpiry"
+                                    render={({ field }) => (
+                                        <DatePicker
+                                            label="Expiration Licence"
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            error={errors.licenseExpiry?.message}
+                                        />
+                                    )}
                                 />
-                            )}
-                        />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {watch('type') === 'Humain' && (
+                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Collaborateur</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Controller
+                                name="email"
+                                control={control}
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        label="Email Professionnel"
+                                        id="email"
+                                        autoComplete="email"
+                                        {...field}
+                                        error={errors.email?.message}
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="role"
+                                control={control}
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        label="Fonction / Rôle"
+                                        id="role"
+                                        autoComplete="organization-title"
+                                        {...field}
+                                        error={errors.role?.message}
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="department"
+                                control={control}
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        label="Département"
+                                        id="department"
+                                        autoComplete="organization"
+                                        {...field}
+                                        error={errors.department?.message}
+                                    />
+                                )}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {watch('type') === 'Service' && (
+                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Service / SaaS</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Controller
+                                name="serviceDetails.providerUrl"
+                                control={control}
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        label="URL du Fournisseur"
+                                        id="providerUrl"
+                                        autoComplete="url"
+                                        {...field}
+                                        error={errors.serviceDetails?.providerUrl?.message}
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="serviceDetails.sla"
+                                control={control}
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        label="Niveau SLA (ex: 99.9%)"
+                                        id="sla"
+                                        autoComplete="off"
+                                        {...field}
+                                        error={errors.serviceDetails?.sla?.message}
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="serviceDetails.supportContact"
+                                control={control}
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        label="Contact Support"
+                                        id="supportContact"
+                                        autoComplete="tel"
+                                        {...field}
+                                        error={errors.serviceDetails?.supportContact?.message}
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="serviceDetails.hostingLocation"
+                                control={control}
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        label="Lieu d'hébergement"
+                                        id="hostingLocation"
+                                        autoComplete="off"
+                                        {...field}
+                                        error={errors.serviceDetails?.hostingLocation?.message}
+                                    />
+                                )}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {watch('type') === 'Données' && (
+                    <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Données</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Controller
+                                name="dataDetails.format"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Format"
+                                        options={['Numérique', 'Physique', 'Hybride'].map(f => ({ value: f, label: f }))}
+                                        value={field.value || 'Numérique'}
+                                        onChange={field.onChange}
+                                        error={errors.dataDetails?.format?.message}
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="dataDetails.dataCategory"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Catégorie de Données"
+                                        options={['Client', 'Employé', 'Financier', 'Propriété Intellectuelle', 'Autre'].map(c => ({ value: c, label: c }))}
+                                        value={field.value || 'Autre'}
+                                        onChange={field.onChange}
+                                        error={errors.dataDetails?.dataCategory?.message}
+                                    />
+                                )}
+                            />
+                            <Controller
+                                name="dataDetails.retentionPeriod"
+                                control={control}
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        label="Durée de rétention (ex: 5 ans)"
+                                        id="retentionPeriod"
+                                        autoComplete="off"
+                                        {...field}
+                                        error={errors.dataDetails?.retentionPeriod?.message}
+                                    />
+                                )}
+                            />
+                            <div className="flex flex-col gap-4 justify-center md:col-span-2">
+                                <label htmlFor="isEncrypted" className="flex items-center space-x-3 cursor-pointer group">
+                                    <input {...control.register('dataDetails.isEncrypted')}
+                                        type="checkbox"
+                                        id="isEncrypted"
+                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
+                                    />
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
+                                </label>
+                                <label htmlFor="isEncrypted" className="flex items-center space-x-3 cursor-pointer group">
+                                    <input {...register('dataDetails.isEncrypted')}
+                                        type="checkbox"
+                                        id="isEncrypted"
+                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
+                                    />
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
+                                </label>
+                                <label htmlFor="hasWorm" className="flex items-center space-x-3 cursor-pointer group">
+                                    <input {...register('dataDetails.hasWorm')}
+                                        type="checkbox"
+                                        id="hasWorm"
+                                        className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
+                                    />
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Stockage Immuable (WORM)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600/80 mb-6 flex items-center justify-between">
+                        <div className="flex items-center"><AlertTriangle className="h-4 w-4 mr-2" /> Classification DIC</div>
                         <button
                             type="button"
-                            onClick={() => handleSuggestField('type')}
-                            className="absolute right-8 top-1/2 -translate-y-1/2 mt-0 text-slate-500 hover:text-brand-500 transition-colors z-10"
-                            title="Suggérer le type"
+                            onClick={handleAutoClassify}
+                            className="text-xs normal-case font-medium text-brand-500 hover:text-brand-600 flex items-center bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg transition-colors"
                         >
-                            <Sparkles className={`h-4 w-4 ${suggestingField === 'type' ? 'animate-spin' : ''}`} />
+                            <Sparkles className="h-3 w-3 mr-1.5" /> Auto-Classifier (Règles)
                         </button>
-                    </div>
-
-                    <div>
-                        <Controller
-                            name="owner"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label="Propriétaire"
-                                    options={usersList.map(u => ({ value: u.displayName || u.email, label: u.displayName || u.email }))}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.owner?.message}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {['confidentiality', 'integrity', 'availability'].map((field) => (
+                            <div key={field}>
+                                <Controller
+                                    name={field as keyof AssetFormData}
+                                    control={control}
+                                    render={({ field: f }) => (
+                                        <CustomSelect
+                                            label={field.charAt(0).toUpperCase() + field.slice(1)}
+                                            options={Object.values(Criticality).map(c => ({ value: c, label: c }))}
+                                            value={f.value as string}
+                                            onChange={f.onChange}
+                                            error={errors[field as keyof AssetFormData]?.message}
+                                        />
+                                    )}
                                 />
-                            )}
-                        />
-                    </div>
-
-                    <div className="col-span-1 md:col-span-2">
-                        <Controller
-                            name="location"
-                            control={control}
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    label="Localisation"
-                                    id="location"
-                                    autoComplete="off"
-                                    {...field}
-                                    error={errors.location?.message}
-                                />
-                            )}
-                        />
-                    </div>
-
-                    <div className="col-span-1 md:col-span-2">
-                        <Controller
-                            name="supplierId"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label="Fournisseur / Mainteneur"
-                                    options={suppliers.map(s => ({ value: s.id, label: s.name, subLabel: s.category }))}
-                                    value={field.value || ''}
-                                    onChange={field.onChange}
-                                    placeholder="Sélectionner un fournisseur..."
-                                    error={errors.supplierId?.message}
-                                />
-                            )}
-                        />
+                            </div>
+                        ))}
                     </div>
                 </div>
-            </div>
 
-            {/* Specialized Fields based on Type */}
-            {watch('type') === 'Matériel' && (
-                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Matériel</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Controller
-                            name="ipAddress"
-                            control={control}
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    label="Adresse IP"
-                                    id="ipAddress"
-                                    autoComplete="off"
-                                    {...field}
-                                    error={errors.ipAddress?.message}
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6 flex items-center">
+                        <ShieldCheck className="h-4 w-4 mr-2" /> Périmètre de Conformité (Scope)
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                        {COMPLIANCE_SCOPES.map((scope) => (
+                            <label
+                                key={scope}
+                                htmlFor={`scope-${scope}`}
+                                className={`cursor-pointer px-4 py-2 rounded-xl border transition-all ${(watch('scope') || []).includes(scope)
+                                    ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-bold'
+                                    : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
+                                    }`}
+                            >
+                                <input
+                                    id={`scope-${scope}`}
+                                    type="checkbox"
+                                    name="scope"
+                                    value={scope}
+                                    className="sr-only peer"
+                                    checked={(watch('scope') || []).includes(scope)}
+                                    onChange={(e) => {
+                                        const current = watch('scope') || [];
+                                        if (e.target.checked) {
+                                            setValue('scope', [...current, scope], { shouldDirty: true });
+                                        } else {
+                                            setValue('scope', current.filter((s: string) => s !== scope), { shouldDirty: true });
+                                        }
+                                    }}
                                 />
-                            )}
-                        />
+                                {scope.replace('_', ' ')}
+                            </label>
+                        ))}
                     </div>
                 </div>
-            )}
 
-            {watch('type') === 'Logiciel' && (
-                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Logiciel</h3>
+                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Cycle de Vie</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Controller
-                            name="version"
-                            control={control}
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    label="Version"
-                                    id="version"
-                                    autoComplete="off"
-                                    {...field}
-                                    error={errors.version?.message}
-                                />
-                            )}
-                        />
+                        <div>
+                            <Controller
+                                name="lifecycleStatus"
+                                control={control}
+                                render={({ field }) => (
+                                    <CustomSelect
+                                        label="Statut"
+                                        options={ASSET_LIFECYCLE_STATUSES.map(s => ({ value: s, label: s }))}
+                                        value={field.value || 'Neuf'}
+                                        onChange={field.onChange}
+                                        error={errors.lifecycleStatus?.message}
+                                    />
+                                )}
+                            />
+                        </div>
                         <div>
                             <Controller
                                 control={control}
-                                name="licenseExpiry"
+                                name="purchaseDate"
                                 render={({ field }) => (
                                     <DatePicker
-                                        label="Expiration Licence"
+                                        label="Date d'achat"
                                         value={field.value}
                                         onChange={field.onChange}
-                                        error={errors.licenseExpiry?.message}
+                                        error={errors.purchaseDate?.message}
                                     />
                                 )}
                             />
                         </div>
-                    </div>
-                </div>
-            )}
-
-            {watch('type') === 'Humain' && (
-                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Collaborateur</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Controller
-                            name="email"
-                            control={control}
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    label="Email Professionnel"
-                                    id="email"
-                                    autoComplete="email"
-                                    {...field}
-                                    error={errors.email?.message}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="role"
-                            control={control}
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    label="Fonction / Rôle"
-                                    id="role"
-                                    autoComplete="organization-title"
-                                    {...field}
-                                    error={errors.role?.message}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="department"
-                            control={control}
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    label="Département"
-                                    id="department"
-                                    autoComplete="organization"
-                                    {...field}
-                                    error={errors.department?.message}
-                                />
-                            )}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {watch('type') === 'Service' && (
-                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Service / SaaS</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Controller
-                            name="serviceDetails.providerUrl"
-                            control={control}
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    label="URL du Fournisseur"
-                                    id="providerUrl"
-                                    autoComplete="url"
-                                    {...field}
-                                    error={errors.serviceDetails?.providerUrl?.message}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="serviceDetails.sla"
-                            control={control}
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    label="Niveau SLA (ex: 99.9%)"
-                                    id="sla"
-                                    autoComplete="off"
-                                    {...field}
-                                    error={errors.serviceDetails?.sla?.message}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="serviceDetails.supportContact"
-                            control={control}
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    label="Contact Support"
-                                    id="supportContact"
-                                    autoComplete="tel"
-                                    {...field}
-                                    error={errors.serviceDetails?.supportContact?.message}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="serviceDetails.hostingLocation"
-                            control={control}
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    label="Lieu d'hébergement"
-                                    id="hostingLocation"
-                                    autoComplete="off"
-                                    {...field}
-                                    error={errors.serviceDetails?.hostingLocation?.message}
-                                />
-                            )}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {watch('type') === 'Données' && (
-                <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm animate-fade-in">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Détails Données</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Controller
-                            name="dataDetails.format"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label="Format"
-                                    options={['Numérique', 'Physique', 'Hybride'].map(f => ({ value: f, label: f }))}
-                                    value={field.value || 'Numérique'}
-                                    onChange={field.onChange}
-                                    error={errors.dataDetails?.format?.message}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="dataDetails.dataCategory"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label="Catégorie de Données"
-                                    options={['Client', 'Employé', 'Financier', 'Propriété Intellectuelle', 'Autre'].map(c => ({ value: c, label: c }))}
-                                    value={field.value || 'Autre'}
-                                    onChange={field.onChange}
-                                    error={errors.dataDetails?.dataCategory?.message}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="dataDetails.retentionPeriod"
-                            control={control}
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    label="Durée de rétention (ex: 5 ans)"
-                                    id="retentionPeriod"
-                                    autoComplete="off"
-                                    {...field}
-                                    error={errors.dataDetails?.retentionPeriod?.message}
-                                />
-                            )}
-                        />
-                        <div className="flex flex-col gap-4 justify-center md:col-span-2">
-                            <label htmlFor="isEncrypted" className="flex items-center space-x-3 cursor-pointer group">
-                                <input {...control.register('dataDetails.isEncrypted')}
-                                    type="checkbox"
-                                    id="isEncrypted"
-                                    className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
-                                />
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
-                            </label>
-                            <label htmlFor="isEncrypted" className="flex items-center space-x-3 cursor-pointer group">
-                                <input {...register('dataDetails.isEncrypted')}
-                                    type="checkbox"
-                                    id="isEncrypted"
-                                    className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
-                                />
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Données Chiffrées (At rest / Transit)</span>
-                            </label>
-                            <label htmlFor="hasWorm" className="flex items-center space-x-3 cursor-pointer group">
-                                <input {...register('dataDetails.hasWorm')}
-                                    type="checkbox"
-                                    id="hasWorm"
-                                    className="form-checkbox h-5 w-5 text-brand-600 rounded border-gray-300 focus:ring-brand-500 transition-all duration-200"
-                                />
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Stockage Immuable (WORM)</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600/80 mb-6 flex items-center justify-between">
-                    <div className="flex items-center"><AlertTriangle className="h-4 w-4 mr-2" /> Classification DIC</div>
-                    <button
-                        type="button"
-                        onClick={handleAutoClassify}
-                        className="text-xs normal-case font-medium text-brand-500 hover:text-brand-600 flex items-center bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg transition-colors"
-                    >
-                        <Sparkles className="h-3 w-3 mr-1.5" /> Auto-Classifier (Règles)
-                    </button>
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {['confidentiality', 'integrity', 'availability'].map((field) => (
-                        <div key={field}>
+                        <div>
                             <Controller
-                                name={field as keyof AssetFormData}
                                 control={control}
-                                render={({ field: f }) => (
-                                    <CustomSelect
-                                        label={field.charAt(0).toUpperCase() + field.slice(1)}
-                                        options={Object.values(Criticality).map(c => ({ value: c, label: c }))}
-                                        value={f.value as string}
-                                        onChange={f.onChange}
-                                        error={errors[field as keyof AssetFormData]?.message}
+                                name="warrantyEnd"
+                                render={({ field }) => (
+                                    <DatePicker
+                                        label="Fin de garantie"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        error={errors.warrantyEnd?.message}
                                     />
                                 )}
                             />
                         </div>
-                    ))}
-                </div>
-            </div>
-
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6 flex items-center">
-                    <ShieldCheck className="h-4 w-4 mr-2" /> Périmètre de Conformité (Scope)
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                    {COMPLIANCE_SCOPES.map((scope) => (
-                        <label
-                            key={scope}
-                            htmlFor={`scope-${scope}`}
-                            className={`cursor-pointer px-4 py-2 rounded-xl border transition-all ${(watch('scope') || []).includes(scope)
-                                ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-bold'
-                                : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
-                                }`}
-                        >
-                            <input
-                                id={`scope-${scope}`}
-                                type="checkbox"
-                                name="scope"
-                                value={scope}
-                                className="sr-only peer"
-                                checked={(watch('scope') || []).includes(scope)}
-                                onChange={(e) => {
-                                    const current = watch('scope') || [];
-                                    if (e.target.checked) {
-                                        setValue('scope', [...current, scope], { shouldDirty: true });
-                                    } else {
-                                        setValue('scope', current.filter((s: string) => s !== scope), { shouldDirty: true });
-                                    }
-                                }}
+                        <div>
+                            <Controller
+                                control={control}
+                                name="purchasePrice"
+                                render={({ field }) => (
+                                    <FloatingLabelInput
+                                        type="number"
+                                        id="purchasePrice"
+                                        autoComplete="off"
+                                        label="Prix d'achat (€)"
+                                        value={field.value}
+                                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                        error={errors.purchasePrice?.message}
+                                    />
+                                )}
                             />
-                            {scope.replace('_', ' ')}
-                        </label>
-                    ))}
-                </div>
-            </div>
-
-            <div className="bg-white dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Cycle de Vie</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <Controller
-                            name="lifecycleStatus"
-                            control={control}
-                            render={({ field }) => (
-                                <CustomSelect
-                                    label="Statut"
-                                    options={ASSET_LIFECYCLE_STATUSES.map(s => ({ value: s, label: s }))}
-                                    value={field.value || 'Neuf'}
-                                    onChange={field.onChange}
-                                    error={errors.lifecycleStatus?.message}
-                                />
-                            )}
-                        />
-                    </div>
-                    <div>
-                        <Controller
-                            control={control}
-                            name="purchaseDate"
-                            render={({ field }) => (
-                                <DatePicker
-                                    label="Date d'achat"
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.purchaseDate?.message}
-                                />
-                            )}
-                        />
-                    </div>
-                    <div>
-                        <Controller
-                            control={control}
-                            name="warrantyEnd"
-                            render={({ field }) => (
-                                <DatePicker
-                                    label="Fin de garantie"
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.warrantyEnd?.message}
-                                />
-                            )}
-                        />
-                    </div>
-                    <div>
-                        <Controller
-                            control={control}
-                            name="purchasePrice"
-                            render={({ field }) => (
-                                <FloatingLabelInput
-                                    type="number"
-                                    id="purchasePrice"
-                                    autoComplete="off"
-                                    label="Prix d'achat (€)"
-                                    value={field.value}
-                                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                                    error={errors.purchasePrice?.message}
-                                />
-                            )}
-                        />
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
-                <Button
-                    type="button"
-                    onClick={onCancel}
-                    variant="ghost"
-                    disabled={isLoading}
-                    className="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-                >
-                    Annuler
-                </Button>
-                <Button
-                    type="submit"
-                    isLoading={isLoading}
-                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold hover:scale-105 transition-transform shadow-lg shadow-brand-500/20"
-                >
-                    {isEditing ? 'Mettre à jour' : 'Créer l\'actif'}
-                </Button>
-            </div>
+            </fieldset>
+
+            {!readOnly && (
+                <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
+                    <Button
+                        type="button"
+                        onClick={onCancel}
+                        variant="ghost"
+                        disabled={isLoading}
+                        className="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                    >
+                        Annuler
+                    </Button>
+                    <Button
+                        type="submit"
+                        isLoading={isLoading}
+                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold hover:scale-105 transition-transform shadow-lg shadow-brand-500/20"
+                    >
+                        {isEditing ? 'Mettre à jour' : 'Créer l\'actif'}
+                    </Button>
+                </div>
+            )}
         </form>
     );
 };
