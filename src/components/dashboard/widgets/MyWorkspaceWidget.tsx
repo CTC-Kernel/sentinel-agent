@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { User, CheckCircle2, ArrowRight } from '../../ui/Icons';
 import { Skeleton } from '../../ui/Skeleton';
 import { DashboardCard } from '../DashboardCard';
@@ -24,6 +24,19 @@ interface MyWorkspaceWidgetProps {
 export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionItems, loading, navigate, t }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
+    const handleItemClick = useCallback((link: string) => {
+        const safeUrl = validateUrl(link); // Security: validateUrl uses isSafeUrl to validate internal links
+        if (safeUrl) navigate(safeUrl);
+    }, [navigate]);
+
+    const handleItemKeyDown = useCallback((e: React.KeyboardEvent, link: string) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const safeUrl = validateUrl(link); // Security: validateUrl uses isSafeUrl to validate internal links
+            if (safeUrl) navigate(safeUrl);
+        }
+    }, [navigate]);
+
     // Filter items for compact view (show max 5)
     const displayItems = isExpanded ? myActionItems : myActionItems.slice(0, 5);
 
@@ -45,8 +58,8 @@ export const MyWorkspaceWidget: React.FC<MyWorkspaceWidgetProps> = ({ myActionIt
                         {displayItems.map(item => (
                             <div
                                 key={item.id}
-                                onClick={() => { const safeUrl = validateUrl(item.link); if (safeUrl) navigate(safeUrl); }}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const safeUrl = validateUrl(item.link); if (safeUrl) navigate(safeUrl); } }}
+                                onClick={() => handleItemClick(item.link)}
+                                onKeyDown={(e) => handleItemKeyDown(e, item.link)}
                                 role="button"
                                 tabIndex={0}
                                 aria-label={`Ouvrir ${item.title}`}

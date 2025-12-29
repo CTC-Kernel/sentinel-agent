@@ -82,7 +82,7 @@ export const ThreatIntelligence: React.FC = () => {
 
     const handleRefreshLiveFeed = React.useCallback(async () => {
         if (isSeeding) return;
-        setIsSeeding(true);
+        setIsSeeding(true); // Loading state: used in UI (line 208 spinner, line 304 button label)
         addToast("Actualisation des flux live CISA & URLhaus...", "info");
         try {
             const stats = await ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo');
