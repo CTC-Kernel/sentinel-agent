@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
-import { collection, addDoc, updateDoc, doc, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { NotificationService } from '../services/notificationService';
 import { hybridService } from '../services/hybridService';
 import { logAction } from '../services/logger';
+import { IncidentService } from '../services/incidentService';
 import { Incident, Criticality } from '../types';
 import { IncidentFormData } from '../schemas/incidentSchema';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -99,30 +100,13 @@ export const useIncidents = () => {
         if (!user?.organizationId || !user?.uid) return;
         setLoading(true);
         try {
-            const batch = writeBatch(db);
-
-            // 1. Delete Incident
-            const incidentRef = doc(db, 'incidents', id);
-            batch.delete(incidentRef);
-
-            // 2. Add Audit Log (Atomic) - Replicating System Log structure
-            const logRef = doc(collection(db, 'system_logs'));
-            const logData = {
+            // Use IncidentService for atomic deletion with audit logging
+            await IncidentService.deleteIncidentWithLog({
+                incidentId: id,
                 organizationId: user.organizationId,
-                timestamp: new Date().toISOString(),
-                action: 'DELETE',
-                resource: 'Incident',
                 userId: user.uid,
-                userEmail: user.email || 'unknown',
-                details: `Deleted incident ID: ${id}`,
-                metadata: { incidentId: id },
-                severity: 'critical', // Deletion is always critical
-                source: 'Sentinel-Core'
-            };
-            batch.set(logRef, logData);
-
-            // 3. Commit atomically
-            await batch.commit();
+                userEmail: user.email || 'unknown'
+            });
             addToast(t('incidents.toastDeleted'), "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useIncidents.deleteIncident', 'DELETE_FAILED');
@@ -133,42 +117,16 @@ export const useIncidents = () => {
     }, [user, addToast, t]);
 
     const deleteIncidentsBulk = useCallback(async (ids: string[]) => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId || !user?.uid) return;
         setLoading(true);
         try {
-            // We reuse deleteIncident logic but strictly we should probably batch differently if many.
-            // But reuse is safer for now to ensure Audit Log consistency.
-            // However, deleteIncident uses batch internally for 1 item.
-            // If we have many items, Promise.all with individual batches is fine for < 500 items.
-            await Promise.all(ids.map(id => {
-                // We convert the internal logic of deleteIncident to be callable or just call it.
-                // Since deleteIncident sets loading state, calling it in parallel might cause state updates conflicts?
-                // Actually setLoading useReducer or useState batching might be fine but ideally we don't spam state.
-                // Let's implement specific batch logic here?
-                // Or just call simple atomic deletions.
-
-                // Let's create a Helper that doesn't set state, to reuse.
-                const performDelete = async (id: string) => {
-                    const batch = writeBatch(db);
-                    const incidentRef = doc(db, 'incidents', id);
-                    batch.delete(incidentRef);
-                    const logRef = doc(collection(db, 'system_logs'));
-                    batch.set(logRef, {
-                        organizationId: user.organizationId,
-                        timestamp: new Date().toISOString(),
-                        action: 'DELETE',
-                        resource: 'Incident',
-                        userId: user.uid,
-                        userEmail: user.email || 'unknown',
-                        details: `Deleted incident ID: ${id}`,
-                        metadata: { incidentId: id },
-                        severity: 'critical',
-                        source: 'Sentinel-Core'
-                    });
-                    return batch.commit();
-                };
-                return performDelete(id);
-            }));
+            // Use IncidentService for atomic bulk deletion with audit logging
+            await IncidentService.bulkDeleteIncidents(
+                ids,
+                user.organizationId,
+                user.uid,
+                user.email || 'unknown'
+            );
 
             addToast(t('incidents.toastBulkDeleted', { count: ids.length }), "info");
         } catch (error) {
