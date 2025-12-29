@@ -1,6 +1,6 @@
 import { db } from '../firebase';
-import { Supplier, SupplierQuestionnaireResponse, QuestionnaireTemplate } from '../types';
-import { doc, updateDoc, addDoc, collection } from 'firebase/firestore';
+import { Supplier, SupplierQuestionnaireResponse, QuestionnaireTemplate, Criticality } from '../types';
+import { doc, updateDoc, addDoc, collection, query, where, getDocs, deleteDoc, arrayRemove, writeBatch } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from './errorLogger';
 
@@ -119,6 +119,179 @@ export class SupplierService {
             return res.id;
         } catch (error) {
             ErrorLogger.error(error, 'SupplierService.createAssessment');
+            throw error;
+        }
+    }
+
+    /**
+     * Check dependencies for a supplier across controls and risks
+     */
+    static async checkDependencies(
+        supplierId: string,
+        organizationId: string
+    ): Promise<{ controls: number; risks: number; details: string }> {
+        try {
+            const controlQuery = query(
+                collection(db, 'controls'),
+                where('organizationId', '==', organizationId),
+                where('relatedSupplierIds', 'array-contains', supplierId)
+            );
+            const riskQuery = query(
+                collection(db, 'risks'),
+                where('organizationId', '==', organizationId),
+                where('relatedSupplierIds', 'array-contains', supplierId)
+            );
+
+            const [controlsSnap, risksSnap] = await Promise.all([
+                getDocs(controlQuery),
+                getDocs(riskQuery)
+            ]);
+
+            const controlNames = controlsSnap.docs.slice(0, 3).map(d => d.data().code).join(', ');
+            const riskNames = risksSnap.docs.slice(0, 3).map(d => d.data().threat || 'Risque').join(', ');
+
+            let details = "";
+            if (!controlsSnap.empty) details += `\n- ${controlsSnap.size} contrôle(s) (${controlNames}...)`;
+            if (!risksSnap.empty) details += `\n- ${risksSnap.size} risque(s) (${riskNames}...)`;
+
+            return {
+                controls: controlsSnap.size,
+                risks: risksSnap.size,
+                details
+            };
+        } catch (error) {
+            ErrorLogger.error(error, 'SupplierService.checkDependencies');
+            throw error;
+        }
+    }
+
+    /**
+     * Delete supplier with cascade deletion of related data
+     */
+    static async deleteSupplierWithCascade(
+        supplierId: string,
+        organizationId: string
+    ): Promise<void> {
+        try {
+            // 1. Dependencies Cleanup
+            const controlQuery = query(
+                collection(db, 'controls'),
+                where('organizationId', '==', organizationId),
+                where('relatedSupplierIds', 'array-contains', supplierId)
+            );
+            const riskQuery = query(
+                collection(db, 'risks'),
+                where('organizationId', '==', organizationId),
+                where('relatedSupplierIds', 'array-contains', supplierId)
+            );
+
+            const [controlsSnap, risksSnap] = await Promise.all([
+                getDocs(controlQuery),
+                getDocs(riskQuery)
+            ]);
+
+            const cleanupPromises: Promise<void>[] = [];
+            controlsSnap.docs.forEach(docSnap => {
+                cleanupPromises.push(
+                    updateDoc(doc(db, 'controls', docSnap.id), {
+                        relatedSupplierIds: arrayRemove(supplierId)
+                    })
+                );
+            });
+            risksSnap.docs.forEach(docSnap => {
+                cleanupPromises.push(
+                    updateDoc(doc(db, 'risks', docSnap.id), {
+                        relatedSupplierIds: arrayRemove(supplierId)
+                    })
+                );
+            });
+
+            await Promise.all(cleanupPromises);
+
+            // 2. Delete related assessments
+            const assessmentsQuery = query(
+                collection(db, 'supplierAssessments'),
+                where('supplierId', '==', supplierId)
+            );
+            const assessmentsSnap = await getDocs(assessmentsQuery);
+            const deleteAssessments = assessmentsSnap.docs.map(d => deleteDoc(d.ref));
+
+            // 3. Delete related incidents
+            const incidentsQuery = query(
+                collection(db, 'supplierIncidents'),
+                where('supplierId', '==', supplierId)
+            );
+            const incidentsSnap = await getDocs(incidentsQuery);
+            const deleteIncidents = incidentsSnap.docs.map(d => deleteDoc(d.ref));
+
+            // 4. Delete the supplier itself
+            await Promise.all([
+                ...deleteAssessments,
+                ...deleteIncidents,
+                deleteDoc(doc(db, 'suppliers', supplierId))
+            ]);
+        } catch (error) {
+            ErrorLogger.error(error, 'SupplierService.deleteSupplierWithCascade');
+            throw error;
+        }
+    }
+
+    /**
+     * Batch import suppliers from CSV data
+     */
+    static async importSuppliersFromCSV(
+        lines: Record<string, string>[],
+        organizationId: string,
+        userId: string,
+        userDisplayName?: string
+    ): Promise<number> {
+        try {
+            const batch = writeBatch(db);
+            let count = 0;
+
+            lines.forEach((row: Record<string, string>) => {
+                const values = Object.values(row) as string[];
+                const name = row['Nom'] || row['Name'] || values[0] || 'Inconnu';
+                const category = row['Catégorie'] || row['Category'] || values[1] || 'Autre';
+                const criticality = row['Criticité'] || row['Criticality'] || values[2] || 'Moyenne';
+                const contactName = row['Contact'] || row['ContactName'] || values[3] || '';
+                const contactEmail = row['Email'] || row['ContactEmail'] || values[4] || '';
+
+                if (name) {
+                    const newRef = doc(collection(db, 'suppliers'));
+                    const newSupplierData: Partial<Supplier> = {
+                        organizationId,
+                        name: name.trim(),
+                        category: (category.trim() || 'Autre') as Supplier['category'],
+                        criticality: (criticality.trim() || 'Moyenne') as Criticality,
+                        contactName: contactName.trim(),
+                        contactEmail: contactEmail.trim(),
+                        status: 'Actif',
+                        securityScore: 0,
+                        assessment: {
+                            hasIso27001: false,
+                            hasGdprPolicy: false,
+                            hasEncryption: false,
+                            hasBcp: false,
+                            hasIncidentProcess: false,
+                            lastAssessmentDate: new Date().toISOString()
+                        },
+                        isICTProvider: false,
+                        supportsCriticalFunction: false,
+                        doraCriticality: 'None',
+                        owner: userDisplayName || 'Importé',
+                        ownerId: userId,
+                        createdAt: new Date().toISOString()
+                    };
+                    batch.set(newRef, sanitizeData(newSupplierData));
+                    count++;
+                }
+            });
+
+            await batch.commit();
+            return count;
+        } catch (error) {
+            ErrorLogger.error(error, 'SupplierService.importSuppliersFromCSV');
             throw error;
         }
     }
