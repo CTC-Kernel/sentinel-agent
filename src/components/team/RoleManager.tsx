@@ -93,18 +93,14 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                 organizationId: user.organizationId,
                 name: data.name,
                 description: data.description || '',
-                permissions: data.permissions || {},
-                updatedAt: new Date().toISOString()
+                permissions: data.permissions || {}
             };
 
             if (editingRole) {
                 await updateRole(editingRole.id, sanitizeData(roleData));
                 addToast("Rôle mis à jour", "success");
             } else {
-                await addRole(sanitizeData({
-                    ...roleData,
-                    createdAt: new Date().toISOString()
-                }));
+                await addRole(sanitizeData(roleData));
                 addToast("Rôle créé", "success");
             }
             setIsDrawerOpen(false);
