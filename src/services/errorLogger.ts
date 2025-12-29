@@ -94,6 +94,15 @@ class ErrorLoggerService {
   }
 
   /**
+   * Log de debug (développement uniquement)
+   */
+  debug(message: string, context?: string, additionalContext?: ErrorContext): void {
+    if (this.isDevelopment) {
+      console.debug(`🐞 DEBUG [${context || 'General'}]:`, message, additionalContext || '');
+    }
+  }
+
+  /**
    * Log une action utilisateur importante
    */
   logUserAction(action: string, details?: Record<string, unknown>): void {

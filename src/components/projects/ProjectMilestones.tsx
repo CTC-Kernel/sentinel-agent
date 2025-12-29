@@ -92,8 +92,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({ project, m
                     description: data.description || '',
                     targetDate: data.targetDate,
                     status: 'pending',
-                    linkedTaskIds: data.linkedTaskIds || [],
-                    createdAt: new Date().toISOString()
+                    linkedTaskIds: data.linkedTaskIds || []
                 }));
                 addToast('Jalon créé', 'success');
             }

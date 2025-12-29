@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, updateDoc, doc, writeBatch, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, updateDoc, doc, writeBatch, setDoc, getDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, getDownloadURL, deleteObject, uploadBytes } from 'firebase/storage';
 import { db, storage } from '../firebase';
 import { logAction } from './logger';
@@ -56,7 +56,7 @@ export class BackupService {
     const metadata: BackupMetadata = {
       id: backupId,
       organizationId: user.organizationId,
-      createdAt: new Date().toISOString(),
+      createdAt: serverTimestamp() as unknown as string,
       createdBy: user.email,
       config,
       size: 0,
@@ -292,7 +292,7 @@ export class BackupService {
       frequency,
       lastBackup: null,
       nextBackup: this.calculateNextBackup(frequency).toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: serverTimestamp()
     };
 
     await setDoc(doc(db, 'backup_schedules', scheduleId), scheduleData);

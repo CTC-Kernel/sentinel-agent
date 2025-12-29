@@ -754,7 +754,7 @@ export class NotificationService {
                                 : `Le traitement arrive à échéance dans ${diffDays} jours`,
                             link: notifLink,
                             read: false,
-                            createdAt: new Date().toISOString()
+                            createdAt: serverTimestamp()
                         }));
 
                         // Send Email

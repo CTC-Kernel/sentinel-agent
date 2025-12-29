@@ -82,7 +82,7 @@ export function useAssetSecurity(asset: Asset | null) {
                 strategy: 'Atténuer',
                 owner: user.email,
                 // tags: ['CVE', 'Auto-generated'], // Removed as not in Risk interface
-                createdAt: serverTimestamp(),
+                createdAt: serverTimestamp() as unknown as string,
                 updatedAt: new Date().toISOString()
             };
 

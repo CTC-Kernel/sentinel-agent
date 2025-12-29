@@ -2,8 +2,9 @@
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { PdfService } from './PdfService';
-import { Risk, Control, Document as GRCDocument, Audit, Incident, Asset } from '../types';
+import { Risk, Control, Document as GRCDocument, Audit, Incident, Asset, Project } from '../types';
 import { format } from 'date-fns';
+import { ReportEnrichmentService } from './ReportEnrichmentService';
 
 
 export class CompliancePackService {
@@ -20,6 +21,7 @@ export class CompliancePackService {
             audits: Audit[];
             incidents: Incident[];
             assets: Asset[];
+            projects?: Project[]; // Optional for now
         }
     ): Promise<void> {
         const zip = new JSZip();
@@ -38,12 +40,13 @@ Organisation: ${data.organizationName}
 CONTENU DU PACK:
 ----------------
 01. Gestion des Risques (ISO 27005)
-    - Registre des risques complet
+    - Registre des risques complet (Enrichi IA)
     - Plan de traitement (RTP)
 
 02. Déclaration d'Applicabilité (SoA - ISO 27001)
     - État des contrôles (Annexe A)
     - Justifications et preuves
+    - Tableaux de bord de conformité
 
 03. Politiques & Procédures
     - Documents publiés
@@ -66,17 +69,75 @@ L'intégrité de ces données est garantie par le système.
         // 2. Risk Management
         const riskFolder = rootFolder.folder("01_Gestion_des_Risques");
         if (riskFolder) {
-            // Risk Register
+            // Risk Register with AI & Graphics
+            const riskMetrics = ReportEnrichmentService.calculateMetrics(data.risks);
+            const riskSummary = ReportEnrichmentService.generateExecutiveSummary(riskMetrics);
+            const riskAnalysis = ReportEnrichmentService.analyzeRiskPortfolio(data.risks);
+
             const riskDoc = PdfService.generateExecutiveReport(
                 {
                     title: "Registre des Risques",
-                    subtitle: "Cartographie complète et évaluations",
+                    subtitle: "Cartographie complète et évaluations (ISO 27005)",
                     filename: "risks.pdf",
                     organizationName: data.organizationName,
                     orientation: 'landscape',
-                    save: false
+                    save: false,
+                    summary: riskSummary, // AI Summary
+                    metrics: [
+                        { label: 'Score Global', value: `${riskMetrics.risk_score}/100`, subtext: 'Exposition au risque' },
+                        { label: 'Risques Critiques', value: riskMetrics.critical_risks, subtext: 'Priorité immédiate' },
+                        { label: 'Taux de Traitement', value: `${riskMetrics.treated_percentage}%`, subtext: 'Plans actifs' }
+                    ],
+                    stats: [
+                        { label: 'Critique', value: riskMetrics.critical_risks, color: '#EF4444' },
+                        { label: 'Élevé', value: riskMetrics.high_risks, color: '#F97316' },
+                        { label: 'Moyen', value: riskMetrics.medium_risks, color: '#EAB308' },
+                        { label: 'Faible', value: riskMetrics.low_risks, color: '#10B981' }
+                    ]
                 },
                 (doc, y) => {
+                    let currentY = y;
+
+                    // Add Risk Matrix
+                    doc.setFontSize(14);
+                    doc.setTextColor('#334155');
+                    doc.setFont('helvetica', 'bold');
+                    doc.text("Matrice de Chaleur (Heatmap)", 14, currentY);
+                    currentY += 10;
+
+                    PdfService.drawRiskMatrix(
+                        doc,
+                        14,
+                        currentY,
+                        100, // width
+                        80,  // height
+                        data.risks.map(r => ({ probability: r.probability || 1, impact: r.impact || 1 }))
+                    );
+
+                    // Add Recommendations next to matrix
+                    doc.setFontSize(12);
+                    doc.text("Recommandations IA", 130, currentY);
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor('#475569');
+
+                    let recY = currentY + 10;
+                    riskAnalysis.recommendations.forEach(rec => {
+                        const splitRec = doc.splitTextToSize(`• ${rec}`, 150);
+                        doc.text(splitRec, 130, recY);
+                        recY += (splitRec.length * 5) + 2;
+                    });
+
+
+                    currentY += 90; // Move past matrix
+
+                    // Risk Table
+                    doc.setFontSize(14);
+                    doc.setTextColor('#334155');
+                    doc.setFont('helvetica', 'bold');
+                    doc.text("Détail du Registre", 14, currentY);
+                    currentY += 10;
+
                     const headers = ['Menace', 'Actif', 'Brut', 'Stratégie', 'Résiduel', 'SLA'];
                     const rows = data.risks.map(r => [
                         r.threat,
@@ -86,41 +147,82 @@ L'intégrité de ces données est garantie par le système.
                         (r.residualScore || r.score).toString(),
                         r.treatmentDeadline ? format(new Date(r.treatmentDeadline), 'dd/MM/yyyy') : 'N/A'
                     ]);
+
                     doc.autoTable({
-                        startY: y,
+                        startY: currentY,
                         head: [headers],
                         body: rows,
                         theme: 'striped',
-                        headStyles: { fillColor: '#0F172A' }, // Brand Primary
-                        styles: { fontSize: 8 }
+                        headStyles: { fillColor: '#0F172A' },
+                        styles: { fontSize: 8 },
+                        margin: { bottom: 20 }
                     });
                 }
             );
-            riskFolder.file("Registre_Risques.pdf", riskDoc.output('blob'));
+            riskFolder.file("Registre_Risques_Enrichi.pdf", riskDoc.output('blob'));
         }
 
         // 3. SoA (Statement of Applicability)
         const soaFolder = rootFolder.folder("02_SoA_Conformité");
         if (soaFolder) {
+            const soaMetrics = ReportEnrichmentService.calculateComplianceMetrics(data.controls);
+            const soaSummary = ReportEnrichmentService.generateComplianceExecutiveSummary(soaMetrics);
+
             const soaDoc = PdfService.generateExecutiveReport(
                 {
                     title: "Déclaration d'Applicabilité (SoA)",
-                    subtitle: "ISO/IEC 27001:2022 Annexe A",
+                    subtitle: "ISO/IEC 27001:2022 Annexe A - Analyse de Conformité",
                     filename: "soa.pdf",
                     organizationName: data.organizationName,
                     orientation: 'portrait',
-                    save: false
+                    save: false,
+                    summary: soaSummary,
+                    metrics: [
+                        { label: 'Couverture', value: `${soaMetrics.compliance_coverage}%`, subtext: 'Contrôles implémentés' },
+                        { label: 'Maturité Audit', value: `${soaMetrics.audit_readiness}%`, subtext: 'Prêt pour certificat' },
+                        { label: 'À Traiter', value: soaMetrics.not_started, subtext: 'Contrôles non commencés' }
+                    ]
                 },
                 (doc, y) => {
+                    let currentY = y;
+
+                    // Graphics Section
+                    doc.setFontSize(14);
+                    doc.setTextColor('#334155');
+                    doc.setFont('helvetica', 'bold');
+                    doc.text("Distribution des Contrôles", 14, currentY);
+                    currentY += 10;
+
+                    // Draw Donut Chart
+                    // Need to calculate center X to look good
+                    const pageWidth = doc.internal.pageSize.width;
+
+                    PdfService.drawDonutChart(
+                        doc,
+                        pageWidth / 2 - 40, // Center roughly
+                        currentY,
+                        30, // Radius
+                        [
+                            { label: 'Implémenté', value: soaMetrics.implemented_controls, color: '#10B981' },
+                            { label: 'En cours', value: soaMetrics.planned_controls, color: '#F59E0B' },
+                            { label: 'Non commencé', value: soaMetrics.not_started, color: '#EF4444' },
+                            { label: 'Non applicable', value: soaMetrics.not_applicable, color: '#CBD5E1' }
+                        ],
+                        `${soaMetrics.compliance_coverage}%`
+                    );
+
+                    currentY += 80; // Move past chart
+
                     const headers = ['Contrôle', 'Nom', 'Statut', 'Maturité'];
                     const rows = data.controls.map(c => [
                         c.code,
                         c.name,
                         c.applicability === 'Applicable' ? 'Oui' : 'Non',
-                        `${c.maturity}/5`
+                        `${c.maturity || 0}/5`
                     ]);
+
                     doc.autoTable({
-                        startY: y,
+                        startY: currentY,
                         head: [headers],
                         body: rows,
                         theme: 'grid',
@@ -129,7 +231,7 @@ L'intégrité de ces données est garantie par le système.
                     });
                 }
             );
-            soaFolder.file("SoA.pdf", soaDoc.output('blob'));
+            soaFolder.file("SoA_Enrichi.pdf", soaDoc.output('blob'));
         }
 
         // 4. Policies (Generated from content)
@@ -166,7 +268,8 @@ L'intégrité de ces données est garantie par le système.
                             title: docItem.title,
                             subtitle: `${docItem.type} | v${docItem.version}`,
                             organizationName: data.organizationName,
-                            save: false
+                            save: false,
+                            includeCover: false // Simple policy docs usually don't need full cover, or maybe they do? Let's keep it simple to save size.
                         },
                         (doc, y) => {
                             doc.setFontSize(10);

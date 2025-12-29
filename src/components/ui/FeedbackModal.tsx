@@ -60,7 +60,6 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                 userEmail: user?.email || 'anonymous',
                 organizationId: user?.organizationId || 'unknown',
                 status: 'new',
-                createdAt: new Date().toISOString(),
                 userAgent: navigator.userAgent,
                 url: window.location.href // Intentional: reading current URL for feedback context
             });

@@ -5,6 +5,7 @@ import { Save, Check, ChevronRight } from '../ui/Icons';
 import { SupplierService } from '../../services/SupplierService';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useSuppliersData } from '../../hooks/suppliers/useSuppliersData';
+import { serverTimestamp } from 'firebase/firestore';
 
 interface Props {
     responseId: string;
@@ -74,12 +75,11 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                 answers,
                 overallScore,
                 sectionScores,
-                status: submit ? 'Submitted' : 'In Progress',
-                updatedAt: new Date().toISOString() // Assuming field exists or we add it
+                status: submit ? 'Submitted' : 'In Progress'
             };
 
             if (submit) {
-                updates.submittedDate = new Date().toISOString();
+                updates.submittedDate = serverTimestamp() as unknown as string;
                 // Update Supplier Risk Level ONLY if in supplier context
                 if (context === 'supplier') {
                     await SupplierService.updateSupplierRiskFromAssessment(response.supplierId, overallScore);
@@ -229,7 +229,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                                             value={answers[q.id]?.comment || ''}
                                             onChange={(e) => setAnswers(prev => ({ ...prev, [q.id]: { ...prev[q.id], comment: e.target.value } }))}
                                             className="w-full text-sm bg-transparent border-none focus:ring-0 px-0 text-slate-500 placeholder-slate-400"
-                                            aria-label="Ajouter un commentaire"
+
                                         />
                                     </div>
                                 </div>

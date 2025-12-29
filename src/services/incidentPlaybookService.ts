@@ -330,7 +330,7 @@ export class IncidentPlaybookService {
             userId: userId || 'unknown',
             userName: userName || 'Unknown User',
             content: note,
-            createdAt: serverTimestamp(),
+            createdAt: serverTimestamp() as unknown as string,
             category: 'action'
           }
         ];

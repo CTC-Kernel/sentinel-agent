@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { orderBy } from 'firebase/firestore';
+import React, { useState, useMemo, useCallback } from 'react';
+import { orderBy, serverTimestamp } from 'firebase/firestore';
 import { useStore } from '../../store';
 import { Comment } from '../../types';
 import { Send, MessageSquare, Reply } from '../ui/Icons';
@@ -23,7 +23,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
     const { user } = useStore();
 
     // Use hook for comments subcollection
-    const { data: comments, add } = useFirestoreCollection<Comment>(
+    const { data: comments, add: addRaw } = useFirestoreCollection<Comment>(
         `${collectionName}/${documentId}/comments`,
         [orderBy('createdAt', 'asc')],
         {
@@ -31,6 +31,13 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
             enabled: !!documentId
         }
     );
+
+    const add = useCallback(async (data: Partial<Comment>) => {
+        return addRaw({
+            ...data,
+            createdAt: serverTimestamp()
+        });
+    }, [addRaw]);
 
     const organizedComments = useMemo(() => {
         const rootComments = comments.filter(c => !c.parentId);
@@ -70,7 +77,6 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ collectionName, 
                 userName: user.displayName || user.email || 'Utilisateur',
                 organizationId: user.organizationId,
                 content: data.content.trim(),
-                createdAt: new Date().toISOString(), // Warning: serverTimestamp prefered but sticking to existing pattern for now (or fix if requested)
                 parentId: replyTo || undefined,
                 mentions
             });

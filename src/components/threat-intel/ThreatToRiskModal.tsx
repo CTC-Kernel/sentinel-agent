@@ -7,7 +7,7 @@ import { AlertTriangle, Loader2, Save, X, Box } from 'lucide-react';
 import { useStore } from '../../store';
 import { useThreatIntelActions } from '../../hooks/threats/useThreatIntelActions';
 import { Button } from '../ui/button';
-import { Threat } from '../../types';
+import { Threat, Risk } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
 import { Dialog, Transition } from '@headlessui/react';
 
@@ -59,18 +59,16 @@ export const ThreatToRiskModal: React.FC<ThreatToRiskModalProps> = ({ isOpen, on
                 threat: threat.title,
                 scenario: data.scenario,
                 vulnerability: 'Source externe (Threat Intel)',
-                probability: prob,
-                impact: imp,
+                probability: prob as 1 | 2 | 3 | 4 | 5,
+                impact: imp as 1 | 2 | 3 | 4 | 5,
                 score: score,
                 strategy: data.strategy,
                 status: 'Ouvert',
                 owner: user.email,
                 ownerId: user.uid,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                framework: 'ISO27005',
                 relatedThreatId: threat.id
-            });
+            } as unknown as Partial<Risk>);
 
             // Bidirectional linking: Mark threat as processed into a risk
             if (riskId) {

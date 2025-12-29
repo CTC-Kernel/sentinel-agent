@@ -189,9 +189,9 @@ export const useIncidents = () => {
                 status: 'Contenu',
                 category: 'Ransomware',
                 reporter: 'Sentinel AI (Automated)',
-                dateReported: serverTimestamp(),
-                dateAnalysis: serverTimestamp(),
-                dateContained: serverTimestamp(),
+                dateReported: serverTimestamp() as unknown as string,
+                dateAnalysis: serverTimestamp() as unknown as string,
+                dateContained: serverTimestamp() as unknown as string,
                 financialImpact: 0,
                 history: [
                     { date: new Date().toISOString(), user: 'Sentinel AI', action: 'DETECTION', details: 'Signature match: LockBit 3.0 behavior detected.' },

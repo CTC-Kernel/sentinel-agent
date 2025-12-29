@@ -111,7 +111,7 @@ export const CalendarDashboard: React.FC = () => {
 
     // Fetch events
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+
         loadEvents();
     }, [loadEvents]);
 

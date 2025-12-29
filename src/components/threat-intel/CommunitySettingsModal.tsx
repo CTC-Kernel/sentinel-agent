@@ -63,7 +63,7 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
         if (!user) return;
         setIsSubmitting(true);
         try {
-            await saveCommunitySettings(settings);
+            await saveCommunitySettings(settings as unknown as Record<string, unknown>);
             addToast("Paramètres de confidentialité mis à jour", "success");
             onClose();
         } catch (error) {

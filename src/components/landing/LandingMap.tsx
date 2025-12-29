@@ -13,14 +13,20 @@ const visualThreats = [
     { coordinates: [103.8198, 1.3521], name: "Singapore" }, // Singapore
 ];
 
-export const LandingMap: React.FC = memo(() => {
+import { cn } from "../../lib/utils";
+
+interface LandingMapProps {
+    className?: string;
+}
+
+export const LandingMap: React.FC<LandingMapProps> = memo(({ className }) => {
     const [rotation, setRotation] = React.useState(0);
 
     React.useEffect(() => {
         let animationFrameId: number;
 
         const animate = () => {
-            setRotation(r => (r + 0.2) % 360);
+            setRotation(r => (r + 0.04) % 360);
             animationFrameId = requestAnimationFrame(animate);
         };
 
@@ -30,7 +36,7 @@ export const LandingMap: React.FC = memo(() => {
     }, []);
 
     return (
-        <div className="w-full h-full absolute inset-0 opacity-40 pointer-events-none transition-opacity duration-1000">
+        <div className={cn("w-full h-full absolute inset-0 opacity-40 pointer-events-none transition-opacity duration-1000", className)}>
             <ComposableMap
                 projectionConfig={{ scale: 220, rotate: [rotation, -10, 0] }}
                 style={{ width: "100%", height: "100%" }}

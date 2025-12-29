@@ -115,7 +115,7 @@ export const useAuditDetails = (
                 setChecklist({ ...checklist, questions });
             } else {
                 const ref = await addDoc(collection(db, 'audit_checklists'), newChecklistData);
-                setChecklist({ ...newChecklistData, id: ref.id } as AuditChecklist);
+                setChecklist({ ...newChecklistData, id: ref.id, completedAt: serverTimestamp() as unknown as string } as AuditChecklist);
             }
             addToast("Checklist générée", "success");
         } catch (e) { ErrorLogger.handleErrorWithToast(e, 'useAuditDetails.generateChecklist', 'AI_ERROR'); }
