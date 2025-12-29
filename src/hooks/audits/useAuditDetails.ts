@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { collection, addDoc, updateDoc, doc, deleteDoc, query, where, getDocs } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, deleteDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Audit, Finding, AuditChecklist, AuditQuestion, Control, Document, Risk } from '../../types';
@@ -48,7 +48,7 @@ export const useAuditDetails = (
                 ...cleanData,
                 organizationId: user.organizationId,
                 auditId: selectedAudit.id,
-                createdAt: new Date().toISOString()
+                createdAt: serverTimestamp()
             });
 
             const newCount = findings.length + 1;
@@ -154,8 +154,8 @@ export const useAuditDetails = (
                 organizationId: user.organizationId,
                 owner: user.displayName || user.email,
                 ownerId: user.uid,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
                 relatedAuditIds: [selectedAudit.id]
             }));
 

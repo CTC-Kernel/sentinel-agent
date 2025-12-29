@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from 'react';
-import { where, collection, addDoc, doc, updateDoc, deleteDoc, arrayUnion, increment } from 'firebase/firestore';
+import { where, collection, addDoc, doc, updateDoc, deleteDoc, arrayUnion, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
@@ -86,7 +86,7 @@ export function useAssets() {
             const newDoc = {
                 ...cleanData,
                 organizationId: user.organizationId,
-                createdAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
                 relatedProjectIds: preSelectedProjectId ? [preSelectedProjectId] : []
             };
             const docRef = await addDoc(collection(db, 'assets'), newDoc);
@@ -134,7 +134,7 @@ export function useAssets() {
 
             await updateDoc(doc(db, 'assets', id), {
                 ...cleanData,
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             });
 
             await logAction(user, 'UPDATE', 'Asset', `Mise à jour Actif: ${cleanData.name}`);
