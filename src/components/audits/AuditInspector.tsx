@@ -176,7 +176,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({ audit, onClose, 
                         controls={controls}
                         projects={[]}
                         usersList={[]}
-                        readOnly={true}
+
                     />
                 </div>
             )}

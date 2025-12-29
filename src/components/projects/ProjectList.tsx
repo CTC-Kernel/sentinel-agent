@@ -163,7 +163,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                 </div>
             )
         }
-    ], [canEdit, onEdit, handleDelete, deletingIds, user, usersList, t, createDeleteHandler]);
+    ], [canEdit, onEdit, deletingIds, user, usersList, t, createDeleteHandler]);
 
     return (
         <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">

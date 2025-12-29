@@ -21,7 +21,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'New': return 'info';
-            case 'Processing': return 'primary';
+            case 'Processing': return 'brand';
             case 'Completed': return 'success';
             case 'Rejected': return 'error';
             default: return 'neutral';
@@ -34,7 +34,7 @@ export const PrivacyRequestInspector: React.FC<PrivacyRequestInspectorProps> = (
             onClose={onClose}
             title={`Demande ${request.id}`}
             subtitle="Exercice de droits (GDPR Art. 15-22)"
-            statusBadge={<Badge status={getStatusColor(request.status) as any}>{request.status}</Badge>}
+            statusBadge={<Badge status={getStatusColor(request.status) as 'info' | 'brand' | 'success' | 'error' | 'neutral'}>{request.status}</Badge>}
             icon={User}
         >
             <div className="p-6 md:p-8 space-y-8 bg-slate-50/50 dark:bg-transparent min-h-full">

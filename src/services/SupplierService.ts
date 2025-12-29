@@ -112,7 +112,7 @@ export class SupplierService {
                 status: 'Draft',
                 answers: {},
                 overallScore: 0,
-                sentDate: serverTimestamp()
+                sentDate: serverTimestamp() as unknown as string
             };
 
             const res = await addDoc(collection(db, 'questionnaire_responses'), sanitizeData(newResponse));
@@ -285,14 +285,14 @@ export class SupplierService {
                             hasEncryption: false,
                             hasBcp: false,
                             hasIncidentProcess: false,
-                            lastAssessmentDate: serverTimestamp()
+                            lastAssessmentDate: serverTimestamp() as unknown as string
                         },
                         isICTProvider: false,
                         supportsCriticalFunction: false,
                         doraCriticality: 'None',
                         owner: userDisplayName || 'Importé',
                         ownerId: userId,
-                        createdAt: serverTimestamp()
+                        createdAt: serverTimestamp() as unknown as string
                     };
                     batch.set(newRef, sanitizeData(newSupplierData));
                     count++;

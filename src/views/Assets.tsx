@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Asset, Criticality } from '../types';
 import { canEditResource } from '../utils/permissions';
 import { toast } from 'sonner';
+import { AssetFormData } from '../schemas/assetSchema';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 import { useStore } from '../store';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
@@ -197,8 +198,10 @@ const Assets: React.FC = () => {
     }, []);
 
     // CRUD Handlers for Inspector
-    const handleUpdateAsset = React.useCallback(async (id: string, data: Partial<Asset>) => updateAsset(id, data as Partial<Asset>), [updateAsset]);
-    const handleCreateAsset = React.useCallback(async (data: Omit<Asset, 'id'>) => createAsset(data, null), [createAsset]);
+    const handleUpdateAsset = React.useCallback(async (id: string, data: Partial<Asset>) => updateAsset(id, data as unknown as AssetFormData), [updateAsset]);
+    // The previous edit didn't change the param type, so it stayed Omit<Asset, 'id'>.
+    // I need to change the param type to match AssetInspector.
+    const handleCreateAsset = React.useCallback(async (data: AssetFormData) => createAsset(data, null), [createAsset]);
 
     return (
         <motion.div

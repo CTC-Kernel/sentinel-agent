@@ -150,7 +150,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = ({ skipBoot = false }) =>
             />
 
             {/* Background Map - Visual Continuity */}
-            <LandingMap />
+            <LandingMap className="fixed inset-0" />
 
             {/* Ambient Background & Sparkles */}
             <div className="absolute inset-0 w-full h-full pointer-events-none">

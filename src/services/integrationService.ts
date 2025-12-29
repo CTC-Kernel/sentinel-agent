@@ -601,7 +601,7 @@ class IntegrationService {
                 status: 'scheduled',
                 target: job.target,
                 frequency: job.frequency,
-                createdAt: serverTimestamp(),
+                createdAt: serverTimestamp() as unknown as string,
                 nextRun: job.scheduledDate || new Date().toISOString()
             };
         }
@@ -617,7 +617,7 @@ class IntegrationService {
                 status: 'scheduled',
                 target: job.target,
                 frequency: job.frequency,
-                createdAt: serverTimestamp(),
+                createdAt: serverTimestamp() as unknown as string,
                 nextRun: job.scheduledDate || new Date().toISOString()
             };
             const docRef = await addDoc(jobsRef, newJob);

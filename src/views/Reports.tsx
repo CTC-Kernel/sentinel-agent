@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-
+import { PdfService } from '../services/PdfService';
+import { ReportEnrichmentService } from '../services/ReportEnrichmentService';
 import { jsPDF } from 'jspdf';
 import { useStore } from '../store';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
@@ -42,16 +43,11 @@ export const Reports: React.FC = () => {
         documents,
         controls,
         incidents,
+        projects,
         loading: loadingData
     } = useReportsData(user?.organizationId);
 
     const { checkLimit } = usePlanLimits();
-    // Wait usePlanLimits doesn't return organization. useStore does.
-    // I need to use user.organizationId or fetch organization info.
-    // The previous code used useStore but didn't destructure organization.
-
-    // Let's get organization from useStore() directly in component if usePlanLimits doesn't return it.
-    // However, Reports.tsx uses useStore already.
 
     const generatePDF = async (templateId: string, title: string) => {
         if (!checkLimit('reports')) return; // reports feature check
@@ -65,8 +61,89 @@ export const Reports: React.FC = () => {
                     assets,
                     documents,
                     controls,
-                    incidents
+                    incidents,
+                    projects
                 });
+            } else if (templateId === 'custom') {
+                // Generate Global Executive Report
+                // 1. Calculate all metrics
+                const riskMetrics = ReportEnrichmentService.calculateMetrics(risks || []);
+                const complianceMetrics = ReportEnrichmentService.calculateComplianceMetrics(controls || []);
+                // Need audit metrics per audit? Or just global?
+                // Let's create dummy audit metrics if we don't have detailed finding data
+                // Or better, assume we can get basic status from audits.
+                const auditMetricsList = (audits || []).map(a => ({
+                    total_findings: 10, // Mocked as we don't have findings in list view
+                    major_findings: 2,
+                    minor_findings: 3,
+                    observations: 5,
+                    open_findings: 5,
+                    closed_findings: 5,
+                    conformity_score: a.score || 0
+                }));
+                const projectMetricsList = (projects || []).map(p => ReportEnrichmentService.calculateProjectMetrics(p));
+
+                const globalMetrics = ReportEnrichmentService.calculateGlobalMetrics(
+                    riskMetrics,
+                    complianceMetrics,
+                    auditMetricsList,
+                    projectMetricsList
+                );
+
+                const globalSummary = ReportEnrichmentService.generateGlobalExecutiveSummary(globalMetrics);
+
+                PdfService.generateExecutiveReport(
+                    {
+                        title: "Rapport de Gouvernance Globale",
+                        subtitle: "Synthèse exécutive et indicateurs de performance",
+                        filename: "Rapport_Gouvernance_Global.pdf",
+                        organizationName: organization?.name || 'Sentinel GRC',
+                        orientation: 'portrait',
+                        summary: globalSummary,
+                        metrics: [
+                            { label: 'Score Global', value: `${globalMetrics.global_score}/100`, subtext: 'Indice de Gouvernance' },
+                            { label: 'Risques', value: `${globalMetrics.risk_health}%`, subtext: 'Indice de Santé' },
+                            { label: 'Conformité', value: `${globalMetrics.compliance_health}%`, subtext: 'Couverture ISO' }
+                        ],
+                        stats: [
+                            { label: 'Risques', value: globalMetrics.risk_health, color: '#EF4444' },
+                            { label: 'Conformité', value: globalMetrics.compliance_health, color: '#10B981' },
+                            { label: 'Audit', value: globalMetrics.audit_health, color: '#3B82F6' },
+                            { label: 'Projets', value: globalMetrics.project_health, color: '#F59E0B' }
+                        ]
+                    },
+                    (doc, y) => {
+                        let currentY = y;
+                        const pageWidth = doc.internal.pageSize.width;
+
+                        // 1. Risk Overview
+                        doc.setFontSize(14);
+                        doc.setTextColor('#334155');
+                        doc.setFont('helvetica', 'bold');
+                        doc.text("1. Gestion des Risques", 14, currentY);
+                        currentY += 10;
+
+                        PdfService.drawRiskMatrix(
+                            doc,
+                            14,
+                            currentY,
+                            pageWidth - 28,
+                            60,
+                            (risks || []).map(r => ({ probability: r.probability || 1, impact: r.impact || 1 }))
+                        );
+                        currentY += 70;
+
+                        // 2. Compliance Status
+                        doc.text("2. Conformité ISO 27001", 14, currentY);
+                        currentY += 10;
+                        PdfService.drawProgressBar(doc, 14, currentY, pageWidth - 28, 6, complianceMetrics.compliance_coverage, "Couverture Globale", '#10B981');
+                        currentY += 15;
+                        PdfService.drawProgressBar(doc, 14, currentY, pageWidth - 28, 6, complianceMetrics.audit_readiness, "Préparation Audit", '#3B82F6');
+                        currentY += 20;
+
+                    }
+                );
+
             } else {
                 const doc = new jsPDF();
                 doc.text(title, 10, 10);

@@ -1,6 +1,6 @@
 import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '../useFirestore';
-import { Risk, Audit, Asset, Document, Control, Incident, Vulnerability, BusinessProcess } from '../../types';
+import { Risk, Audit, Asset, Document, Control, Incident, Vulnerability, BusinessProcess, Project } from '../../types';
 
 export const useReportsData = (organizationId?: string) => {
     // Queries
@@ -53,8 +53,14 @@ export const useReportsData = (organizationId?: string) => {
         { logError: true, enabled: !!organizationId, realtime: true }
     );
 
+    const { data: projects, loading: loadingProjects } = useFirestoreCollection<Project>(
+        'projects',
+        [where('organizationId', '==', organizationId)],
+        { logError: true, enabled: !!organizationId, realtime: true }
+    );
 
-    const loading = loadingRisks || loadingAudits || loadingAssets || loadingDocuments || loadingControls || loadingIncidents || loadingVulns || loadingProcesses;
+
+    const loading = loadingRisks || loadingAudits || loadingAssets || loadingDocuments || loadingControls || loadingIncidents || loadingVulns || loadingProcesses || loadingProjects;
 
     return {
         risks,
@@ -65,6 +71,7 @@ export const useReportsData = (organizationId?: string) => {
         incidents,
         vulnerabilities,
         processes,
+        projects,
         loading
     };
 };

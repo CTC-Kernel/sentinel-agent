@@ -328,7 +328,7 @@ export class IncidentPlaybookService {
             userId: 'current_user', // Should be passed as parameter
             userName: 'Current User',
             content: note,
-            createdAt: serverTimestamp(),
+            createdAt: serverTimestamp() as unknown as string,
             category: 'action'
           }
         ];

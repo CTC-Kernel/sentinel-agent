@@ -79,7 +79,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
             };
 
             if (submit) {
-                updates.submittedDate = serverTimestamp();
+                updates.submittedDate = serverTimestamp() as unknown as string;
                 // Update Supplier Risk Level ONLY if in supplier context
                 if (context === 'supplier') {
                     await SupplierService.updateSupplierRiskFromAssessment(response.supplierId, overallScore);
@@ -229,7 +229,7 @@ export const AssessmentView: React.FC<Props> = ({ responseId, onClose, context =
                                             value={answers[q.id]?.comment || ''}
                                             onChange={(e) => setAnswers(prev => ({ ...prev, [q.id]: { ...prev[q.id], comment: e.target.value } }))}
                                             className="w-full text-sm bg-transparent border-none focus:ring-0 px-0 text-slate-500 placeholder-slate-400"
-                                            aria-label="Ajouter un commentaire"
+
                                         />
                                     </div>
                                 </div>

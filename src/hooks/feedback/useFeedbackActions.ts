@@ -9,7 +9,7 @@ export const useFeedbackActions = () => {
     { enabled: false }  // We only use this hook for writing, not reading
   );
 
-  const addFeedback = useCallback(async (data: any) => {
+  const addFeedback = useCallback(async (data: Record<string, unknown>) => {
     return addFeedbackRaw({
       ...data,
       createdAt: serverTimestamp()

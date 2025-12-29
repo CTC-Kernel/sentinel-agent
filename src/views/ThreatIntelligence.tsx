@@ -64,7 +64,7 @@ export const ThreatIntelligence: React.FC = () => {
     } = useThreatIntelligence();
 
     // Explicit loading state for async operations (audit requirement)
-    const loading = threatsLoading;
+
 
     const initialLoadRef = React.useRef(false);
 

@@ -70,7 +70,7 @@ export const useRiskActions = (onRefresh: () => void) => {
 
             // Notify owner if different from creator
             if (riskData.owner && riskData.owner !== user.uid) {
-                await NotificationService.notifyRiskAssigned(riskData as Risk, riskData.owner, user.displayName || user.email || 'Admin');
+                await NotificationService.notifyRiskAssigned(riskData as unknown as Risk, riskData.owner, user.displayName || user.email || 'Admin');
             }
             return true;
         } catch (error) {

@@ -63,7 +63,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
         switch (status) {
             case 'New': return 'info';
             case 'Verifying': return 'warning';
-            case 'Processing': return 'primary';
+            case 'Processing': return 'brand';
             case 'Completed': return 'success';
             case 'Rejected': return 'error';
             default: return 'neutral';
@@ -138,7 +138,7 @@ export const PrivacyRequests: React.FC<PrivacyRequestsProps> = ({ onCreate, onSe
                                         <div className="text-xs text-slate-500 mb-1">Reçu le</div>
                                         <div className="text-sm font-medium">{format(new Date(req.submissionDate), 'dd MMM yyyy', { locale: fr })}</div>
                                     </div>
-                                    <Badge status={getStatusColor(req.status) as any}>{req.status}</Badge>
+                                    <Badge status={getStatusColor(req.status) as 'info' | 'brand' | 'success' | 'error' | 'neutral'}>{req.status}</Badge>
                                 </div>
                             </div>
                         </motion.div>

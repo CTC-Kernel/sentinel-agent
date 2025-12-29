@@ -31,7 +31,7 @@ export const useContinuityActions = () => {
     { enabled: !!user?.organizationId }
   );
 
-  const addStrategy = useCallback(async (data: any) => {
+  const addStrategy = useCallback(async (data: Record<string, unknown>) => {
     return addStrategyRaw({
       ...data,
       createdAt: serverTimestamp()

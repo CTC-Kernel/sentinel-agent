@@ -93,7 +93,7 @@ export const RoleManager: React.FC<RoleManagerProps> = ({ roles, onRefresh }) =>
                 organizationId: user.organizationId,
                 name: data.name,
                 description: data.description || '',
-                permissions: data.permissions || {}
+                permissions: (data.permissions || {}) as Record<string, ActionType[]>
             };
 
             if (editingRole) {

@@ -146,7 +146,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                         accept={allowedTypes.join(',')}
                         className="hidden"
                         id="file-upload"
-                        aria-label="Sélectionner un fichier"
+
                         disabled={disabled}
                     />
                     <label

@@ -71,7 +71,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                 // answers already included in 75
                 evidence,
                 aiAnalysis: analysis || undefined,
-                submittedAt: submit ? serverTimestamp() : undefined
+                submittedAt: submit ? serverTimestamp() as unknown as string : undefined
             };
 
             if (responseId) {
@@ -84,7 +84,7 @@ export const QuestionnaireResponseView: React.FC<QuestionnaireResponseProps> = (
                     auditId: questionnaire.auditId,
                     respondentId: user.uid,
                     respondentEmail: user.email,
-                    startedAt: serverTimestamp()
+                    startedAt: serverTimestamp() as unknown as string
                 }) as QuestionnaireResponse);
                 setResponseId(newResponseId || null);
             }
