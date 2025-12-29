@@ -8,6 +8,7 @@ import { Activity, ShieldCheck, Zap, TrendingUp, History } from '../ui/Icons';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { BusinessProcess, BcpDrill } from '../../types';
+import { EmptyChartState } from '../ui/EmptyChartState';
 
 interface ContinuityDashboardProps {
     processes: BusinessProcess[];
@@ -172,26 +173,38 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
 
                     <div className="h-[100px] w-full mt-4">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={drillResultsData}>
-                                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                                    {drillResultsData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Bar>
-                                <RechartsTooltip
-                                    cursor={{ fill: 'transparent' }}
-                                    content={({ active, payload }) => {
-                                        if (active && payload && payload.length) {
-                                            return (
-                                                <div className="bg-slate-900 text-white text-xs py-1 px-2 rounded shadow-xl">
-                                                    <span className="font-bold">{payload[0].payload.name}:</span> {payload[0].value}
-                                                </div>
-                                            );
-                                        }
-                                        return null;
-                                    }}
+                            {drillResultsData.length === 0 ? (
+                                <EmptyChartState
+                                    variant="bar"
+                                    message="Aucune donnée"
+                                    // className="scale-[0.6] origin-top" // Adjusting scale for small container
+                                    className="!min-h-[100px] !p-0" // Compacting the empty state
+                                    description=""
+                                    actionLabel=""
                                 />
-                            </BarChart>
+                            ) : (
+                                <BarChart data={drillResultsData}>
+                                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                                        {drillResultsData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Bar>
+                                    {/* Tooltip disabled for empty state if wrapper doesn't catch it, but here we conditional render */}
+                                    <RechartsTooltip
+                                        cursor={{ fill: 'transparent' }}
+                                        content={({ active, payload }) => {
+                                            if (active && payload && payload.length) {
+                                                return (
+                                                    <div className="bg-slate-900 text-white text-xs py-1 px-2 rounded shadow-xl">
+                                                        <span className="font-bold">{payload[0].payload.name}:</span> {payload[0].value}
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        }}
+                                    />
+                                </BarChart>
+                            )}
                         </ResponsiveContainer>
                     </div>
                 </motion.div>
@@ -204,31 +217,39 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Distribution par Criticité</h3>
                     <div className="h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={criticalityData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                >
-                                    {criticalityData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                                    ))}
-                                </Pie>
-                                <RechartsTooltip content={<ChartTooltip />} />
-                                <Legend
-                                    verticalAlign="middle"
-                                    align="right"
-                                    layout="vertical"
-                                    iconType="circle"
-                                    formatter={(value) => (
-                                        <span className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-2">{value}</span>
-                                    )}
+                            {criticalityData.length === 0 ? (
+                                <EmptyChartState
+                                    variant="pie"
+                                    message="Aucun processus"
+                                    className="scale-90"
                                 />
-                            </PieChart>
+                            ) : (
+                                <PieChart>
+                                    <Pie
+                                        data={criticalityData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {criticalityData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                                        ))}
+                                    </Pie>
+                                    <RechartsTooltip content={<ChartTooltip />} />
+                                    <Legend
+                                        verticalAlign="middle"
+                                        align="right"
+                                        layout="vertical"
+                                        iconType="circle"
+                                        formatter={(value) => (
+                                            <span className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-2">{value}</span>
+                                        )}
+                                    />
+                                </PieChart>
+                            )}
                         </ResponsiveContainer>
                     </div>
                 </motion.div>

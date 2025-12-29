@@ -191,7 +191,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                         className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors"
                                     >
                                         <SettingsIcon className="h-4 w-4 mr-3 text-slate-500" />
-                                        {t('common.settings')}
+                                        {t('common.settings.title')}
                                     </Link>
                                     <Link
                                         to="/pricing"

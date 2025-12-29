@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChartTooltip } from '../ui/ChartTooltip';
+import { EmptyChartState } from '../ui/EmptyChartState';
 import { Supplier, Criticality } from '../../types';
 import { Building, ShieldAlert, FileText, CheckCircle2 } from '../ui/Icons';
 import {
@@ -139,44 +140,52 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm">
                     <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-6 px-2">Distribution par Criticité</h4>
                     <div className="h-[300px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <defs>
-                                    {criticalityData.map((entry, index) => (
-                                        <radialGradient key={`gradient-${index}`} id={`gradient-${index}`} cx="50%" cy="50%" r="70%" fx="50%" fy="50%">
-                                            <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
-                                            <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
-                                        </radialGradient>
-                                    ))}
-                                </defs>
-                                <Pie
-                                    data={criticalityData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={80}
-                                    outerRadius={100}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                    cornerRadius={6}
-                                    stroke="none"
-                                >
-                                    {criticalityData.map((_, index) => (
-                                        <Cell
-                                            key={`cell-${index}`}
-                                            fill={`url(#gradient-${index})`}
-                                            className="hover:opacity-80 transition-opacity cursor-pointer"
-                                        />
-                                    ))}
-                                </Pie>
-                                <Tooltip content={<ChartTooltip />} cursor={false} />
-                                <Legend
-                                    verticalAlign="bottom"
-                                    height={36}
-                                    iconType="circle"
-                                    formatter={(value) => <span className="text-sm font-bold text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
-                                />
-                            </PieChart>
-                        </ResponsiveContainer>
+                        {criticalityData.length === 0 ? (
+                            <EmptyChartState
+                                variant="pie"
+                                message="Aucune donnée"
+                                description="Ajoutez des fournisseurs pour voir la répartition par criticité."
+                            />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <defs>
+                                        {criticalityData.map((entry, index) => (
+                                            <radialGradient key={`gradient-${index}`} id={`gradient-${index}`} cx="50%" cy="50%" r="70%" fx="50%" fy="50%">
+                                                <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
+                                                <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
+                                            </radialGradient>
+                                        ))}
+                                    </defs>
+                                    <Pie
+                                        data={criticalityData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={80}
+                                        outerRadius={100}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                        cornerRadius={6}
+                                        stroke="none"
+                                    >
+                                        {criticalityData.map((_, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={`url(#gradient-${index})`}
+                                                className="hover:opacity-80 transition-opacity cursor-pointer"
+                                            />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<ChartTooltip />} cursor={false} />
+                                    <Legend
+                                        verticalAlign="bottom"
+                                        height={36}
+                                        iconType="circle"
+                                        formatter={(value) => <span className="text-sm font-bold text-slate-600 dark:text-slate-400 ml-1">{value}</span>}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
                 </div>
 
@@ -184,41 +193,49 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                 <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm">
                     <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-6 px-2">Top Catégories</h4>
                     <div className="h-[300px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={categoryData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                                <defs>
-                                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.8} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
-                                <XAxis
-                                    dataKey="name"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }}
-                                    dy={10}
-                                />
-                                <YAxis
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 11 }}
-                                />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-                                <Bar
-                                    dataKey="value"
-                                    fill="url(#barGradient)"
-                                    radius={[6, 6, 0, 0]}
-                                    barSize={32}
-                                    animationDuration={1500}
-                                >
-                                    {categoryData.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill="url(#barGradient)" />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        {categoryData.length === 0 ? (
+                            <EmptyChartState
+                                variant="bar"
+                                message="Aucune catégorie"
+                                description="Les catégories s'afficheront ici."
+                            />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={categoryData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
+                                    <XAxis
+                                        dataKey="name"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94a3b8', fontSize: 11 }}
+                                    />
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                                    <Bar
+                                        dataKey="value"
+                                        fill="url(#barGradient)"
+                                        radius={[6, 6, 0, 0]}
+                                        barSize={32}
+                                        animationDuration={1500}
+                                    >
+                                        {categoryData.map((_, index) => (
+                                            <Cell key={`cell-${index}`} fill="url(#barGradient)" />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
                 </div>
             </div>

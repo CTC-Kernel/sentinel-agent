@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { Risk, Asset } from '../../types';
 import { ShieldAlert, AlertTriangle, Target, Clock, TrendingUp, Layers, PieChart as PieIcon, Activity } from '../ui/Icons';
+import { EmptyChartState } from '../ui/EmptyChartState';
 import {
     PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ReferenceLine
@@ -208,21 +209,29 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
                         <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Exposition par Catégorie</span>
                     </h4>
                     <div className="h-[300px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                                <PolarGrid stroke={chartTheme.grid} />
-                                <PolarAngleAxis dataKey="subject" tick={{ fill: chartTheme.text, fontSize: 10 }} />
-                                <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={false} axisLine={false} />
-                                <Radar
-                                    name="Risques"
-                                    dataKey="A"
-                                    stroke={chartTheme.colors.purple}
-                                    fill={chartTheme.colors.purple}
-                                    fillOpacity={0.3}
-                                />
-                                <Tooltip content={<ChartTooltip />} cursor={false} />
-                            </RadarChart>
-                        </ResponsiveContainer>
+                        {radarData.length === 0 || radarData.every(d => d.A === 0) ? (
+                            <EmptyChartState
+                                variant="radar"
+                                message="Aucune catégorie"
+                                description="Les risques n'ont pas encore été catégorisés."
+                            />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                                    <PolarGrid stroke={chartTheme.grid} />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fill: chartTheme.text, fontSize: 10 }} />
+                                    <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={false} axisLine={false} />
+                                    <Radar
+                                        name="Risques"
+                                        dataKey="A"
+                                        stroke={chartTheme.colors.purple}
+                                        fill={chartTheme.colors.purple}
+                                        fillOpacity={0.3}
+                                    />
+                                    <Tooltip content={<ChartTooltip />} cursor={false} />
+                                </RadarChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
                 </div>
 
@@ -239,36 +248,46 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
                         <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Distribution par Criticité</span>
                     </h4>
                     <div className="h-[300px] w-full flex items-center justify-center relative">
-                        {/* Center Metric */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-3xl font-black text-foreground">{totalRisks}</span>
-                            <span className="text-xs text-muted-foreground uppercase tracking-wider">Risques</span>
-                        </div>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={distributionData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={80}
-                                    outerRadius={100}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                    cornerRadius={8}
-                                >
-                                    {distributionData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                                    ))}
-                                </Pie>
-                                <Tooltip content={<ChartTooltip />} cursor={false} />
-                                <Legend
-                                    verticalAlign="bottom"
-                                    height={36}
-                                    iconType="circle"
-                                    formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase">{value}</span>}
-                                />
-                            </PieChart>
-                        </ResponsiveContainer>
+                        {distributionData.length === 0 ? (
+                            <EmptyChartState
+                                variant="pie"
+                                message="Aucun risque"
+                                description="Aucun risque n'a été identifié pour le moment."
+                            />
+                        ) : (
+                            <>
+                                {/* Center Metric */}
+                                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                    <span className="text-3xl font-black text-foreground">{totalRisks}</span>
+                                    <span className="text-xs text-muted-foreground uppercase tracking-wider">Risques</span>
+                                </div>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={distributionData}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={80}
+                                            outerRadius={100}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                            cornerRadius={8}
+                                        >
+                                            {distributionData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip content={<ChartTooltip />} cursor={false} />
+                                        <Legend
+                                            verticalAlign="bottom"
+                                            height={36}
+                                            iconType="circle"
+                                            formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase">{value}</span>}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -285,27 +304,35 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
                         <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Risques par Type d'Actif</span>
                     </h4>
                     <div className="h-[300px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={risksByAssetType} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartTheme.grid} />
-                                <XAxis type="number" hide />
-                                <YAxis
-                                    dataKey="name"
-                                    type="category"
-                                    stroke={chartTheme.text}
-                                    fontSize={11}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    width={70}
-                                />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor, radius: 4 }} />
-                                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20} fill={chartTheme.colors.cyan}>
-                                    {risksByAssetType.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={index % 2 === 0 ? chartTheme.colors.cyan : chartTheme.colors.primary} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        {risksByAssetType.length === 0 ? (
+                            <EmptyChartState
+                                variant="bar"
+                                message="Aucun actif lié"
+                                description="Associez des risques à vos actifs pour voir cette répartition."
+                            />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={risksByAssetType} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartTheme.grid} />
+                                    <XAxis type="number" hide />
+                                    <YAxis
+                                        dataKey="name"
+                                        type="category"
+                                        stroke={chartTheme.text}
+                                        fontSize={11}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        width={70}
+                                    />
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor, radius: 4 }} />
+                                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20} fill={chartTheme.colors.cyan}>
+                                        {risksByAssetType.map((_, index) => (
+                                            <Cell key={`cell-${index}`} fill={index % 2 === 0 ? chartTheme.colors.cyan : chartTheme.colors.primary} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
                 </div>
             </div>
@@ -323,41 +350,49 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
                     <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Tendance du Score De Risque (12 mois)</span>
                 </h4>
                 <div className="h-[250px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={evolutionData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                            <defs>
-                                <linearGradient id={areaGradientId} x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor={chartTheme.colors.purple} stopOpacity={0.4} />
-                                    <stop offset="95%" stopColor={chartTheme.colors.purple} stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.grid} />
-                            <XAxis dataKey="date" stroke={chartTheme.text} fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
-                            <YAxis stroke={chartTheme.text} fontSize={11} tickLine={false} axisLine={false} />
-                            <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3', stroke: chartTheme.cursor }} />
-                            <ReferenceLine
-                                y={RISK_ACCEPTANCE_THRESHOLD}
-                                stroke="hsl(var(--destructive))"
-                                strokeDasharray="3 3"
-                                label={{
-                                    value: 'Seuil Acceptable',
-                                    position: 'insideTopRight',
-                                    fill: 'hsl(var(--destructive))',
-                                    fontSize: 10
-                                }}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="avgScore"
-                                stroke={chartTheme.colors.purple}
-                                fillOpacity={1}
-                                fill={`url(#${areaGradientId})`}
-                                strokeWidth={3}
-                                name="Score Moyen"
-                                activeDot={{ r: 6, strokeWidth: 0, fill: '#fff' }}
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                    {evolutionData.length === 0 ? (
+                        <EmptyChartState
+                            variant="line"
+                            message="Historique vide"
+                            description="L'évolution du risque s'affichera ici au fil du temps."
+                        />
+                    ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={evolutionData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id={areaGradientId} x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor={chartTheme.colors.purple} stopOpacity={0.4} />
+                                        <stop offset="95%" stopColor={chartTheme.colors.purple} stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.grid} />
+                                <XAxis dataKey="date" stroke={chartTheme.text} fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
+                                <YAxis stroke={chartTheme.text} fontSize={11} tickLine={false} axisLine={false} />
+                                <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3', stroke: chartTheme.cursor }} />
+                                <ReferenceLine
+                                    y={RISK_ACCEPTANCE_THRESHOLD}
+                                    stroke="hsl(var(--destructive))"
+                                    strokeDasharray="3 3"
+                                    label={{
+                                        value: 'Seuil Acceptable',
+                                        position: 'insideTopRight',
+                                        fill: 'hsl(var(--destructive))',
+                                        fontSize: 10
+                                    }}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="avgScore"
+                                    stroke={chartTheme.colors.purple}
+                                    fillOpacity={1}
+                                    fill={`url(#${areaGradientId})`}
+                                    strokeWidth={3}
+                                    name="Score Moyen"
+                                    activeDot={{ r: 6, strokeWidth: 0, fill: '#fff' }}
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    )}
                 </div>
             </div>
 

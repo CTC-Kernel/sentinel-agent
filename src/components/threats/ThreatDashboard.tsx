@@ -3,6 +3,7 @@ import { Threat } from '../../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Globe, AlertTriangle, Shield, Activity } from '../ui/Icons';
 import { ChartTooltip } from '../ui/ChartTooltip';
+import { EmptyChartState } from '../ui/EmptyChartState';
 
 interface ThreatDashboardProps {
     threats: Threat[];
@@ -106,22 +107,30 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                 <div className="glass-panel p-6 rounded-[2rem] border border-white/10">
                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Top Types de Menaces</h3>
                     <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={typeData} layout="vertical" margin={{ left: 40, right: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="rgba(255,255,255,0.1)" />
-                                <XAxis type="number" hide />
-                                <YAxis
-                                    dataKey="name"
-                                    type="category"
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fill: '#94a3b8', fontSize: 12 }}
-                                    width={100}
-                                />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-                                <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        {typeData.length === 0 ? (
+                            <EmptyChartState
+                                variant="bar"
+                                message="Aucune menace"
+                                description="Aucune menace détectée pour le moment."
+                            />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={typeData} layout="vertical" margin={{ left: 40, right: 20 }}>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="rgba(255,255,255,0.1)" />
+                                    <XAxis type="number" hide />
+                                    <YAxis
+                                        dataKey="name"
+                                        type="category"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94a3b8', fontSize: 12 }}
+                                        width={100}
+                                    />
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                                    <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
                 </div>
 
@@ -129,21 +138,29 @@ export const ThreatDashboard: React.FC<ThreatDashboardProps> = ({ threats }) => 
                 <div className="glass-panel p-6 rounded-[2rem] border border-white/10">
                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Volume d'Activité (24h)</h3>
                     <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={activityData}>
-                                <defs>
-                                    <linearGradient id="colorActivity" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
-                                <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                <Tooltip content={<ChartTooltip />} />
-                                <Area type="monotone" dataKey="value" stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorActivity)" />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                        {activityData.every(d => d.value === 0) ? (
+                            <EmptyChartState
+                                variant="line"
+                                message="Aucune activité"
+                                description="Aucune activité détectée ces dernières 24h."
+                            />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={activityData}>
+                                    <defs>
+                                        <linearGradient id="colorActivity" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
+                                    <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                    <Tooltip content={<ChartTooltip />} />
+                                    <Area type="monotone" dataKey="value" stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorActivity)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
                 </div>
             </div>

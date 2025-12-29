@@ -356,7 +356,7 @@ export const Risks: React.FC = () => {
                 title={risksTitle}
                 subtitle={risksSubtitle}
                 icon={<ShieldAlert className="h-6 w-6 text-brand-500" strokeWidth={2.5} />}
-                breadcrumbs={[{ label: t('settings.commandPalette.nav.risks') }]}
+                breadcrumbs={[{ label: t('commandPalette.nav.risks') }]}
                 trustType="integrity"
             />
 

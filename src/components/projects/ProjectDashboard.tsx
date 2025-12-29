@@ -9,6 +9,7 @@ import {
 } from '../ui/Icons';
 import { PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { ChartTooltip } from '../ui/ChartTooltip';
+import { EmptyChartState } from '../ui/EmptyChartState';
 
 interface ProjectDashboardProps {
     project: Project;
@@ -171,32 +172,40 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider">Distribution des Tâches</h4>
                     <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={taskDistribution}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                    stroke="none"
-                                >
-                                    {taskDistribution.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Pie>
-                                <Tooltip content={<ChartTooltip />} cursor={false} />
-                                <Legend
-                                    verticalAlign="bottom"
-                                    height={36}
-                                    iconType="circle"
-                                    wrapperStyle={{ paddingTop: '20px' }}
-                                    formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
-                                />
-                            </PieChart>
-                        </ResponsiveContainer>
+                        {(!project.tasks || project.tasks.length === 0) ? (
+                            <EmptyChartState
+                                variant="pie"
+                                message="Aucune tâche"
+                                description="Ajoutez des tâches au projet pour voir la distribution."
+                            />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={taskDistribution}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                        stroke="none"
+                                    >
+                                        {taskDistribution.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<ChartTooltip />} cursor={false} />
+                                    <Legend
+                                        verticalAlign="bottom"
+                                        height={36}
+                                        iconType="circle"
+                                        wrapperStyle={{ paddingTop: '20px' }}
+                                        formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
                 </div>
 
@@ -205,38 +214,46 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                     <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider">Tâches par Priorité</h4>
                     <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={tasksByPriority} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.6)'} vertical={false} opacity={0.5} />
-                                <XAxis
-                                    dataKey="name"
-                                    stroke={'hsl(var(--muted-foreground))'}
-                                    fontSize={11}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    dy={10}
-                                />
-                                <YAxis
-                                    stroke={'hsl(var(--muted-foreground))'}
-                                    fontSize={11}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    dx={-10}
-                                />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.12)', opacity: 1 }} />
-                                <Legend
-                                    verticalAlign="top"
-                                    height={36}
-                                    iconType="circle"
-                                    formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
-                                />
-                                <Bar dataKey="value" name="Nombre de tâches" radius={[4, 4, 0, 0]}>
-                                    {tasksByPriority.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        {(!project.tasks || project.tasks.length === 0) ? (
+                            <EmptyChartState
+                                variant="bar"
+                                message="Priorités non définies"
+                                description="Les priorités s'afficheront une fois les tâches créées."
+                            />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={tasksByPriority} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.6)'} vertical={false} opacity={0.5} />
+                                    <XAxis
+                                        dataKey="name"
+                                        stroke={'hsl(var(--muted-foreground))'}
+                                        fontSize={11}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        stroke={'hsl(var(--muted-foreground))'}
+                                        fontSize={11}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        dx={-10}
+                                    />
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.12)', opacity: 1 }} />
+                                    <Legend
+                                        verticalAlign="top"
+                                        height={36}
+                                        iconType="circle"
+                                        formatter={(value) => <span className="text-xs font-medium text-muted-foreground ml-1">{value}</span>}
+                                    />
+                                    <Bar dataKey="value" name="Nombre de tâches" radius={[4, 4, 0, 0]}>
+                                        {tasksByPriority.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
                 </div>
             </div>

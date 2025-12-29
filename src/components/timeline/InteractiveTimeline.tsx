@@ -16,6 +16,7 @@ import {
     Activity,
     FolderKanban
 } from '../ui/Icons';
+import { EmptyChartState } from '../ui/EmptyChartState';
 
 interface TimelineEvent {
     id: string;
@@ -391,8 +392,17 @@ export const InteractiveTimeline: React.FC = () => {
             </div>
 
             {/* Timeline */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10">
-                <div ref={timelineRef} className="timeline-container" />
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-white/10 min-h-[400px]">
+                {filteredEvents.length === 0 ? (
+                    <EmptyChartState
+                        variant="line"
+                        message="Aucun événement à afficher"
+                        description="Modifiez les filtres ou ajoutez des données (incidents, audits, projets...) pour voir l'historique."
+                        icon={<Activity className="w-8 h-8 text-brand-500" />}
+                    />
+                ) : (
+                    <div ref={timelineRef} className="timeline-container" />
+                )}
             </div>
 
             {/* Legend */}
