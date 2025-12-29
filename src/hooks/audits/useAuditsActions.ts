@@ -13,7 +13,7 @@ export const useAuditsActions = () => {
     { realtime: true, enabled: !!user?.organizationId }
   );
 
-  const { data: questionnaires, loading: loadingQuestionnaires, add: addQuestionnaire, update: updateQuestionnaire, remove: removeQuestionnaire } = useFirestoreCollection<Questionnaire>(
+  const { data: questionnaires, loading: loadingQuestionnaires, add: addQuestionnaireRaw, update: updateQuestionnaireRaw, remove: removeQuestionnaire } = useFirestoreCollection<Questionnaire>(
     'questionnaires',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
@@ -65,6 +65,21 @@ export const useAuditsActions = () => {
       updatedAt: serverTimestamp()
     });
   }, [addDocumentRaw]);
+
+  const addQuestionnaire = useCallback(async (data: Partial<Questionnaire>) => {
+    return addQuestionnaireRaw({
+      ...data,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  }, [addQuestionnaireRaw]);
+
+  const updateQuestionnaire = useCallback(async (id: string, data: Partial<Questionnaire>) => {
+    return updateQuestionnaireRaw(id, {
+      ...data,
+      updatedAt: serverTimestamp()
+    });
+  }, [updateQuestionnaireRaw]);
 
   return {
     audits: audits || [],

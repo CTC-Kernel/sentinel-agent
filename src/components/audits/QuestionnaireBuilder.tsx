@@ -62,8 +62,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                 title,
                 description,
                 dueDate,
-                questions,
-                updatedAt: new Date().toISOString()
+                questions
             };
 
             if (initialData) {
@@ -75,8 +74,7 @@ export const QuestionnaireBuilder: React.FC<QuestionnaireBuilderProps> = ({ audi
                     auditId,
                     organizationId,
                     status: 'Draft',
-                    createdBy: user?.uid || 'system',
-                    createdAt: new Date().toISOString()
+                    createdBy: user?.uid || 'system'
                 }) as Questionnaire);
                 addToast("Questionnaire créé", "success");
             }
