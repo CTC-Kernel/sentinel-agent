@@ -28,10 +28,10 @@ if (process.env.NODE_ENV !== 'production') {
 // Add security headers to allow Firebase Auth popups
 app.use((req, res, next) => {
     // FORCE permissive policies to allow Google Auth Popup interactions
-    // Headers removed to fallback to browser default (unsafe-none) which is compatible with Recaptcha
-    // res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-    // res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
-    // res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    // Headers restored to allow Recaptcha + Firebase Auth
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(self), payment=(), usb=(), interest-cohort=()');
 
     if (isProd) {
@@ -143,9 +143,9 @@ app.use(express.static(distPath, {
             res.setHeader('Expires', '0');
             // Force COOP for index.html to allow Auth Popups
             // Force Permissive Policy for Auth Popups
-            // Headers removed to fallback to browser default
-            // res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-            // res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+            // Headers restored to allow Recaptcha + Firebase Auth
+            res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+            res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
             return;
         }
 
