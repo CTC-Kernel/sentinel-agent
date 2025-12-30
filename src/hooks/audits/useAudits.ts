@@ -15,6 +15,7 @@ import { buildAppUrl } from '../../config/appConfig';
 import { analyticsService } from '../../services/analyticsService';
 import { generateICS, downloadICS } from '../../utils/calendarUtils';
 import { NotificationService } from '../../services/notificationService';
+import { CsvParser } from '../../utils/csvUtils';
 
 export const useAudits = () => {
     const { user, addToast } = useStore();
@@ -231,6 +232,32 @@ export const useAudits = () => {
         }
     };
 
+
+    const importAudits = useCallback(async (csvContent: string) => {
+        if (!user?.organizationId || !user?.uid) return;
+        try {
+            const lines = CsvParser.parseCSV(csvContent);
+            if (lines.length === 0) {
+                addToast("Fichier vide ou invalide", "error");
+                return;
+            }
+
+            // Use AuditService for batch import
+            const count = await AuditService.importAuditsFromCSV(
+                lines,
+                user.organizationId,
+                user.uid
+            );
+
+            await logAction(user, 'IMPORT', 'Audit', `Import CSV de ${count} audits`);
+            refreshAudits();
+            addToast(`Import de ${count} audits réussi`, "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useAudits.importAudits');
+            throw error;
+        }
+    }, [user, addToast, refreshAudits]);
+
     const handleExportCalendar = () => {
         const scheduledAudits = audits.filter(a => a.status === 'Planifié' && a.dateScheduled);
         if (scheduledAudits.length === 0) {
@@ -269,6 +296,7 @@ export const useAudits = () => {
         refreshAudits,
         handleExportCSV,
         handleExportCalendar,
+        importAudits,
 
         // Permissions
         canEdit, canDelete

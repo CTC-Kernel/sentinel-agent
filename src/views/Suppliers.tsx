@@ -1,4 +1,4 @@
-import React, { useDeferredValue, useEffect, useMemo, useState, useRef, useCallback } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useState, useCallback } from 'react';
 
 import { Menu, Transition } from '@headlessui/react';
 import { SEO } from '../components/SEO';
@@ -28,6 +28,7 @@ import { SupplierDashboard } from '../components/suppliers/SupplierDashboard';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { CsvParser } from '../utils/csvUtils';
+import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { QuestionnaireBuilder } from '../components/suppliers/QuestionnaireBuilder';
 import { AssessmentView } from '../components/suppliers/AssessmentView';
 
@@ -65,14 +66,11 @@ export const Suppliers: React.FC = () => {
 
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isImporting, setIsImporting] = useState(false);
+
     const [isExportingCSV, setIsExportingCSV] = useState(false);
     const [isExportingDORA, setIsExportingDORA] = useState(false);
 
 
-
-    // Import
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({
@@ -83,6 +81,34 @@ export const Suppliers: React.FC = () => {
 
     // Data Hooks
     const { suppliers: suppliersRaw, loading: loadingSuppliers, addSupplier, updateSupplier, deleteSupplier, importSuppliers, checkDependencies } = useSuppliers();
+
+    // Import Logic
+    const [importModalOpen, setImportModalOpen] = useState(false);
+    const supplierGuidelines = {
+        required: ['Nom'],
+        optional: ['Catégorie', 'Criticité', 'Contact', 'Email', 'Description'],
+        format: 'CSV'
+    };
+
+    const handleDownloadTemplate = useCallback(() => {
+        const headers = ['Nom', 'Catégorie', 'Criticité', 'Contact', 'Email', 'Description'];
+        const rows = [{
+            Nom: 'Acme Corp',
+            Catégorie: 'Logiciel',
+            Criticité: 'Haute',
+            Contact: 'John Doe',
+            Email: 'contact@acme.com',
+            Description: 'Fournisseur principal de services cloud'
+        }];
+        CsvParser.downloadCSV(headers, rows, 'template_fournisseurs.csv');
+    }, []);
+
+    const handleImportFile = useCallback(async (file: File) => {
+        if (!file) return;
+        const text = await file.text();
+        await importSuppliers(text);
+        setImportModalOpen(false);
+    }, [importSuppliers]);
 
     const {
         usersRaw,
@@ -200,9 +226,7 @@ export const Suppliers: React.FC = () => {
         setViewMode(mode as 'grid' | 'list' | 'matrix' | 'kanban');
     }, [setViewMode]);
 
-    const handleImportClick = useCallback(() => {
-        fileInputRef.current?.click();
-    }, []);
+
 
     const handleCreationDrawerOpen = useCallback(() => {
         setCreationMode(true);
@@ -409,15 +433,26 @@ export const Suppliers: React.FC = () => {
 
     const handleBulkDelete = useCallback(async (selectedIds: string[]) => {
         if (!canEdit) return;
-        if (!window.confirm(t('suppliers.deleteBulk', { count: selectedIds.length }))) return;
 
-        try {
-            await Promise.all(selectedIds.map(id => deleteSupplier(id)));
-            setSelectedSupplier(null);
-        } catch (error) {
-            ErrorLogger.warn('Bulk delete handled in hook', 'Suppliers.handleBulkDelete', { metadata: { error } });
-        }
-    }, [canEdit, t, deleteSupplier]);
+        setConfirmData({
+            isOpen: true,
+            title: t('suppliers.deleteBulkTitle', { count: selectedIds.length }),
+            message: t('suppliers.deleteBulk', { count: selectedIds.length }),
+            onConfirm: async () => {
+                setConfirmData(prev => ({ ...prev, loading: true }));
+                try {
+                    await Promise.all(selectedIds.map(id => deleteSupplier(id)));
+                    setSelectedSupplier(null);
+                    setConfirmData(prev => ({ ...prev, isOpen: false }));
+                } catch (error) {
+                    ErrorLogger.warn('Bulk delete handled in hook', 'Suppliers.handleBulkDelete', { metadata: { error } });
+                } finally {
+                    setConfirmData(prev => ({ ...prev, loading: false }));
+                }
+            },
+            closeOnConfirm: false
+        });
+    }, [canEdit, t, deleteSupplier, setSelectedSupplier]);
 
 
 
@@ -461,27 +496,7 @@ export const Suppliers: React.FC = () => {
         }
     }, [isExportingDORA, filteredSuppliers]);
 
-    const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!canEdit || !user?.organizationId) return;
-        const file = event.target.files?.[0];
-        if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const text = e.target?.result as string;
-            if (!text) return;
-            setIsImporting(true);
-            try {
-                await importSuppliers(text);
-            } catch (error) {
-                ErrorLogger.warn('Import handled in hook', 'Suppliers.handleFileUpload', { metadata: { error } });
-            } finally {
-                setIsImporting(false);
-                if (fileInputRef.current) fileInputRef.current.value = '';
-            }
-        };
-        reader.readAsText(file);
-    }, [canEdit, user, importSuppliers]);
 
     const handleConfirmClose = useCallback(() => {
         setConfirmData(prev => ({ ...prev, isOpen: false }));
@@ -538,9 +553,29 @@ export const Suppliers: React.FC = () => {
                         { label: t('suppliers.title') }
                     ]}
                     icon={<Handshake className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                    actions={undefined}
+                />
+            </motion.div>
+
+            {/* Dashboard */}
+            {/* Dashboard */}
+            <motion.div variants={slideUpVariants}>
+                <SupplierDashboard
+                    suppliers={filteredSuppliers}
+
+                    onFilterChange={handleDashboardFilterChange}
+                />
+            </motion.div>
+
+            <motion.div variants={slideUpVariants} className="mb-6">
+                <PremiumPageControl
+                    searchQuery={filter}
+                    onSearchChange={handleSearchChange}
+                    searchPlaceholder={t('suppliers.searchPlaceholder')}
+                    viewMode={viewMode}
+                    onViewModeChange={handleViewModeChange}
                     actions={canEdit && (
                         <>
-                            <input aria-label={t('common.import')} type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                             <Menu as="div" className="relative inline-block text-left">
                                 <Menu.Button aria-label={t('common.more')} className="p-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                     <MoreVertical className="h-5 w-5" />
@@ -562,13 +597,12 @@ export const Suppliers: React.FC = () => {
                                             <Menu.Item>
                                                 {({ active }) => (
                                                     <button
-                                                        onClick={handleImportClick}
-                                                        disabled={isImporting}
+                                                        onClick={() => setImportModalOpen(true)}
                                                         className={`${active ? 'bg-brand-500 text-white hover:bg-brand-600' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'
-                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
                                                         aria-label="Import Suppliers CSV"
                                                     >
-                                                        {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />}
+                                                        <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
                                                         {t('suppliers.importCsv')}
                                                     </button>
                                                 )}
@@ -633,26 +667,6 @@ export const Suppliers: React.FC = () => {
                             </CustomTooltip>
                         </>
                     )}
-                />
-            </motion.div>
-
-            {/* Dashboard */}
-            {/* Dashboard */}
-            <motion.div variants={slideUpVariants}>
-                <SupplierDashboard
-                    suppliers={filteredSuppliers}
-
-                    onFilterChange={handleDashboardFilterChange}
-                />
-            </motion.div>
-
-            <motion.div variants={slideUpVariants} className="mb-6">
-                <PremiumPageControl
-                    searchQuery={filter}
-                    onSearchChange={handleSearchChange}
-                    searchPlaceholder={t('suppliers.searchPlaceholder')}
-                    viewMode={viewMode}
-                    onViewModeChange={handleViewModeChange}
                 />
             </motion.div>
 
@@ -732,6 +746,15 @@ export const Suppliers: React.FC = () => {
                     onStartAssessment={handleStartAssessmentClick}
                 />
             )}
+
+            <ImportGuidelinesModal
+                isOpen={importModalOpen}
+                onClose={() => setImportModalOpen(false)}
+                entityName={t('suppliers.title')}
+                guidelines={supplierGuidelines}
+                onImport={handleImportFile}
+                onDownloadTemplate={handleDownloadTemplate}
+            />
         </motion.div>
     );
 };

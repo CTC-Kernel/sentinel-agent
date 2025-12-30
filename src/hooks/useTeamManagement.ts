@@ -11,6 +11,7 @@ import { sendEmail } from '../services/emailService';
 import { getInvitationTemplate } from '../services/emailTemplates';
 import { logAction } from '../services/logger';
 import { SubscriptionService } from '../services/subscriptionService';
+import { CsvParser } from '../utils/csvUtils';
 
 export const useTeamManagement = () => {
     const { user, addToast } = useStore();
@@ -78,7 +79,7 @@ export const useTeamManagement = () => {
         fetchRoles();
     }, [fetchUsers, fetchRoles]);
 
-    const inviteUser = async (data: UserFormData) => {
+    const inviteUser = async (data: UserFormData, silent = false) => {
         if (!user?.organizationId) return false;
         try {
             // Check plan limits
@@ -86,7 +87,7 @@ export const useTeamManagement = () => {
             if (!canAddUser) return 'LIMIT_REACHED';
 
             await addDoc(collection(db, 'invitations'), sanitizeData({
-                ...data,
+                ...data, // Invite logic...
                 organizationId: user.organizationId,
                 organizationName: user.organizationName,
                 invitedBy: user.uid,
@@ -103,12 +104,16 @@ export const useTeamManagement = () => {
                 html: htmlContent
             });
 
-            addToast("Invitation envoyée par email", "success");
+            if (!silent) addToast("Invitation envoyée par email", "success");
             fetchUsers();
             return true;
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error as Error, 'useTeamManagement.inviteUser', 'INVITE_FAILED');
-            addToast("Erreur invitation", "error");
+            if (!silent) {
+                ErrorLogger.handleErrorWithToast(error as Error, 'useTeamManagement.inviteUser', 'INVITE_FAILED');
+                addToast("Erreur invitation", "error");
+            } else {
+                ErrorLogger.error(error as Error, 'useTeamManagement.inviteUser (Silent)');
+            }
             return false;
         }
     };
@@ -198,6 +203,64 @@ export const useTeamManagement = () => {
         }
     };
 
+    const importUsers = async (csvContent: string) => {
+        if (!user?.organizationId) return;
+        setLoading(true);
+        try {
+            const lines = CsvParser.parseCSV(csvContent);
+            if (lines.length === 0) {
+                addToast("Fichier vide ou invalide", "error");
+                setLoading(false);
+                return;
+            }
+
+            let successCount = 0;
+            let failureCount = 0;
+            let limitReached = false;
+
+            for (const row of lines) {
+                if (limitReached) break;
+                if (!row.Email) continue;
+
+                // Map CSV fields to UserFormData
+                const userData: UserFormData = {
+                    email: row.Email,
+                    displayName: row.Nom || '',
+                    role: (row.Role as any) || 'user',
+                    department: row.Departement || ''
+                };
+
+                // Use inviteUser but suppress individual toasts (we need to refactor inviteUser or just accept toasts? Refactoring is better but complex. 
+                // Alternatively, recreate logic here for batching without toasts).
+                // Let's call inviteUser. It shows toasts. This might be spammy for large imports.
+                // Better to refactor inviteUser to accept a 'silent' flag.
+
+                // For now, I will duplicate logic slightly to avoid modifying inviteUser signature and breaking other calls, 
+                // OR I will modify inviteUser signature.
+                // Modifying inviteUser signature is cleaner. 
+                const result = await inviteUser(userData, true); // Pass silent=true
+                if (result === 'LIMIT_REACHED') {
+                    limitReached = true;
+                } else if (result) {
+                    successCount++;
+                } else {
+                    failureCount++;
+                }
+            }
+
+            if (limitReached) {
+                addToast(`Limite du plan atteinte. ${successCount} utilisateurs importés.`, "info");
+            } else {
+                addToast(`Import terminé : ${successCount} succès, ${failureCount} échecs`, "success");
+            }
+            fetchUsers();
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error as Error, 'useTeamManagement.importUsers');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         users,
         joinRequests,
@@ -206,6 +269,7 @@ export const useTeamManagement = () => {
         fetchUsers,
         fetchRoles,
         inviteUser,
+        importUsers,
         updateUser,
         deleteUser,
         checkDependencies,

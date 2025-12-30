@@ -6,6 +6,8 @@ import { ErrorLogger } from '../services/errorLogger';
 import { logAction } from '../services/logger';
 import { BcpDrill } from '../types';
 import { BusinessProcessFormData } from '../schemas/continuitySchema';
+import { CsvParser } from '../utils/csvUtils';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export const useContinuity = () => {
     const { user, addToast, t } = useStore();
@@ -136,6 +138,54 @@ export const useContinuity = () => {
         }
     }, [user, addToast, t]);
 
+    const importProcesses = useCallback(async (csvContent: string) => {
+        if (!user?.organizationId) return;
+        setLoading(true);
+        try {
+            const lines = CsvParser.parseCSV(csvContent);
+            if (lines.length === 0) {
+                addToast("Fichier vide ou invalide", "error");
+                setLoading(false);
+                return;
+            }
+
+            const batch = writeBatch(db);
+            let count = 0;
+
+            for (const row of lines) {
+                if (!row.Nom) continue;
+
+                const newRef = doc(collection(db, 'business_processes'));
+                const processData = {
+                    organizationId: user.organizationId,
+                    name: row.Nom,
+                    description: row.Description || '',
+                    owner: row.Responsable || user.displayName || '',
+                    priority: row.Priorite || 'Medium',
+                    rto: row.RTO || '4h',
+                    rpo: row.RPO || '1h',
+                    status: 'Draft',
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                    lastTestDate: null
+                };
+
+                batch.set(newRef, sanitizeData(processData));
+                count++;
+            }
+
+            if (count > 0) {
+                await batch.commit();
+                await logAction(user, 'IMPORT', 'BusinessProcess', `Imported ${count} processes`);
+                addToast(t('continuity.toastImported', { count }), 'success');
+            }
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useContinuity.importProcesses');
+        } finally {
+            setLoading(false);
+        }
+    }, [user, addToast, t]);
+
     return {
         addProcess,
         updateProcess,
@@ -143,6 +193,7 @@ export const useContinuity = () => {
         addDrill,
         updateDrill,
         deleteDrill,
+        importProcesses,
         loading
     };
 };

@@ -3,8 +3,10 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Activity, ShieldCheck, Zap, FileText, AlertOctagon,
-    Plus, Download
+    Plus, Download, Upload
 } from 'lucide-react';
+import { CsvParser } from '../utils/csvUtils';
+import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -49,7 +51,36 @@ export const Continuity: React.FC = () => {
     const [filter, setFilter] = useState('');
 
     // Actions Hook
-    const { addProcess, updateProcess, deleteProcess, addDrill, deleteDrill, loading: loadingAction } = useContinuity();
+    const { addProcess, updateProcess, deleteProcess, addDrill, deleteDrill, importProcesses, loading: loadingAction } = useContinuity();
+
+    const [csvImportOpen, setCsvImportOpen] = useState(false);
+
+    // CSV Import Handlers
+    const processGuidelines = {
+        required: ['Nom'],
+        optional: ['Description', 'Responsable', 'Priorite', 'RTO', 'RPO'],
+        format: 'CSV'
+    };
+
+    const handleDownloadTemplate = React.useCallback(() => {
+        const headers = ['Nom', 'Description', 'Responsable', 'Priorite', 'RTO', 'RPO'];
+        const rows = [{
+            Nom: 'Processus Critique A',
+            Description: 'Description du processus',
+            Responsable: user?.displayName || 'Admin',
+            Priorite: 'High',
+            RTO: '4h',
+            RPO: '1h'
+        }];
+        CsvParser.downloadCSV(headers, rows, 'template_processes.csv');
+    }, [user]);
+
+    const handleImportCsvFile = React.useCallback(async (file: File) => {
+        if (!file) return;
+        const text = await file.text();
+        await importProcesses(text);
+        setCsvImportOpen(false);
+    }, [importProcesses]);
 
     // Data Hook
     const {
@@ -122,10 +153,23 @@ export const Continuity: React.FC = () => {
         }
     }, [user, addDrill]);
 
-    const handleDeleteDrill = useCallback(async (id: string) => {
-        if (window.confirm("Supprimer cet exercice ?")) {
-            try { await deleteDrill(id); } catch (e) { ErrorLogger.handleErrorWithToast(e, 'DeleteDrill'); }
-        }
+    const handleDeleteDrill = useCallback((id: string) => {
+        setConfirmData({
+            isOpen: true,
+            title: "Supprimer l'exercice",
+            message: "Êtes-vous sûr de vouloir supprimer cet exercice de continuité ?",
+            onConfirm: async () => {
+                setConfirmData(prev => ({ ...prev, loading: true }));
+                try {
+                    await deleteDrill(id);
+                    setConfirmData(prev => ({ ...prev, isOpen: false }));
+                } catch (e) {
+                    ErrorLogger.handleErrorWithToast(e, 'DeleteDrill');
+                } finally {
+                    setConfirmData(prev => ({ ...prev, loading: false }));
+                }
+            }
+        });
     }, [deleteDrill]);
 
     const handleGenerateReport = useCallback(() => {
@@ -188,27 +232,7 @@ export const Continuity: React.FC = () => {
                     subtitle={t('continuity.subtitle')}
                     icon={<Activity className="h-6 w-6 text-white" strokeWidth={2.5} />}
                     trustType="availability"
-                    actions={
-                        <>
-                            <button
-                                aria-label="Générer le rapport"
-                                onClick={handleGenerateReport}
-                                className="p-2 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                            >
-                                <Download className="h-5 w-5" />
-                            </button>
-                            {canCreate && (
-                                <button
-                                    aria-label={t('continuity.newProcess')}
-                                    onClick={handleOpenProcessModal}
-                                    className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-brand-600/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-600"
-                                >
-                                    <Plus className="h-5 w-5 mr-2" />
-                                    {t('continuity.newProcess')}
-                                </button>
-                            )}
-                        </>
-                    }
+                    actions={undefined}
                 />
             </motion.div>
 
@@ -242,8 +266,38 @@ export const Continuity: React.FC = () => {
                                 searchQuery={filter}
                                 onSearchChange={setFilter}
                                 searchPlaceholder={t('continuity.searchPlaceholder')}
-                                viewMode={viewMode}
                                 onViewModeChange={handleViewModeChange}
+                                actions={
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            aria-label="Générer le rapport"
+                                            onClick={handleGenerateReport}
+                                            className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                        >
+                                            <Download className="h-5 w-5" />
+                                        </button>
+                                        {canCreate && (
+                                            <button
+                                                aria-label={t('continuity.newProcess')}
+                                                onClick={handleOpenProcessModal}
+                                                className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-brand-600/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-600"
+                                            >
+                                                <Plus className="h-5 w-5 mr-2" />
+                                                {t('continuity.newProcess')}
+                                            </button>
+                                        )}
+
+                                        {canCreate && (
+                                            <button
+                                                aria-label={t('common.importCsv')}
+                                                onClick={() => setCsvImportOpen(true)}
+                                                className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                            >
+                                                <Upload className="h-5 w-5" />
+                                            </button>
+                                        )}
+                                    </div>
+                                }
                             />
                             {filteredProcesses.length === 0 && !loading ? (
                                 <EmptyState
@@ -320,6 +374,15 @@ export const Continuity: React.FC = () => {
                 onSubmit={handleCreateDrill}
                 isLoading={loadingAction}
                 processes={processes}
+            />
+
+            <ImportGuidelinesModal
+                isOpen={csvImportOpen}
+                onClose={() => setCsvImportOpen(false)}
+                entityName={t('continuity.title')}
+                guidelines={processGuidelines}
+                onImport={handleImportCsvFile}
+                onDownloadTemplate={handleDownloadTemplate}
             />
 
         </motion.div>

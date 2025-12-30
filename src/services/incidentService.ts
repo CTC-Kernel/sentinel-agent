@@ -1,6 +1,7 @@
-import { collection, doc, writeBatch } from 'firebase/firestore';
+import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export interface DeleteIncidentOptions {
     incidentId: string;
@@ -70,6 +71,60 @@ export class IncidentService {
             );
         } catch (error) {
             ErrorLogger.error(error, 'IncidentService.bulkDeleteIncidents');
+            throw error;
+        }
+    }
+
+    /**
+     * Import multiple incidents from CSV data
+     */
+    static async importIncidentsFromCSV(
+        data: Record<string, any>[],
+        organizationId: string,
+        _userId: string,
+        userDisplayName: string
+    ): Promise<number> {
+        try {
+            const batch = writeBatch(db);
+            let count = 0;
+
+            for (const row of data) {
+                if (!row.Titre) continue;
+
+                const newDocRef = doc(collection(db, 'incidents'));
+                const severityLower = (row.Sévérité || 'Medium').toLowerCase();
+                const severity = ['critical', 'high', 'medium', 'low'].includes(severityLower)
+                    ? severityLower.charAt(0).toUpperCase() + severityLower.slice(1)
+                    : 'Medium'; // Normalize
+
+                const incidentData = {
+                    organizationId,
+                    title: row.Titre,
+                    description: row.Description || '',
+                    status: row.Statut || 'Nouveau',
+                    severity: severity, // Correct casing
+                    category: row.Catégorie || 'Social Engineering',
+                    reporter: row.Déclarant || userDisplayName,
+                    dateReported: serverTimestamp(),
+                    dateAnalysis: serverTimestamp(), // Default to now to avoid filtering issues
+                    financialImpact: 0,
+                    history: [],
+                    playbookId: null,
+                    tags: ['Import CSV']
+                };
+
+                const sanitized = sanitizeData(incidentData);
+                batch.set(newDocRef, sanitized);
+                count++;
+            }
+
+            if (count > 0) {
+                await batch.commit();
+            }
+
+            return count;
+        } catch (error) {
+            ErrorLogger.error(error, 'IncidentService.importIncidentsFromCSV');
             throw error;
         }
     }

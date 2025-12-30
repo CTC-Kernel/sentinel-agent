@@ -27,6 +27,9 @@ import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
+import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
+import { CsvParser } from '../utils/csvUtils';
+import { Upload } from 'lucide-react';
 
 const Team: React.FC = () => {
     const { t } = useTranslation();
@@ -49,8 +52,36 @@ const Team: React.FC = () => {
         deleteUser,
         checkDependencies,
         approveRequest,
-        rejectRequest
+        rejectRequest,
+        importUsers
     } = useTeamManagement();
+
+    const [csvImportOpen, setCsvImportOpen] = useState(false);
+
+    // CSV Import Handlers
+    const userGuidelines = {
+        required: ['Email'],
+        optional: ['Nom', 'Role', 'Departement'],
+        format: 'CSV'
+    };
+
+    const handleDownloadTemplate = React.useCallback(() => {
+        const headers = ['Email', 'Nom', 'Role', 'Departement'];
+        const rows = [{
+            Email: 'jean.dupont@example.com',
+            Nom: 'Jean Dupont',
+            Role: 'user',
+            Departement: 'IT'
+        }];
+        CsvParser.downloadCSV(headers, rows, 'template_users.csv');
+    }, []);
+
+    const handleImportCsvFile = React.useCallback(async (file: File) => {
+        if (!file) return;
+        const text = await file.text();
+        await importUsers(text);
+        setCsvImportOpen(false);
+    }, [importUsers]);
 
     const canAdmin = hasPermission(user, 'User', 'manage');
 
@@ -203,32 +234,7 @@ const Team: React.FC = () => {
                     { label: t('team.title') }
                 ]}
                 icon={<Users className="h-6 w-6 text-white" strokeWidth={2.5} />}
-                actions={canAdmin && activeTab === 'members' && (
-                    <>
-                        <CustomTooltip content={t('team.actions.exportCsv')}>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={exportCSV}
-                                className="gap-2"
-                                aria-label={t('team.actions.exportCsv')}
-                            >
-                                <FileSpreadsheet className="h-4 w-4" /> {t('team.actions.exportCsv')}
-                            </Button>
-                        </CustomTooltip>
-                        <CustomTooltip content={t('team.actions.invite')}>
-                            <Button
-                                type="button"
-                                onClick={handleOpenInviteModal}
-                                className="gap-2 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
-                                aria-label={t('team.actions.invite')}
-                            >
-                                <Plus className="h-4 w-4" />
-                                {t('team.actions.invite')}
-                            </Button>
-                        </CustomTooltip>
-                    </>
-                )}
+                actions={undefined}
             />
 
             {/* Summary Card */}
@@ -354,6 +360,43 @@ const Team: React.FC = () => {
                         searchQuery={filter}
                         onSearchChange={setFilter}
                         searchPlaceholder={t('common.settings.searchMembers')}
+                        actions={canAdmin && (
+                            <>
+                                <CustomTooltip content={t('team.actions.exportCsv')}>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={exportCSV}
+                                        className="gap-2"
+                                        aria-label={t('team.actions.exportCsv')}
+                                    >
+                                        <FileSpreadsheet className="h-4 w-4" /> {t('team.actions.exportCsv')}
+                                    </Button>
+                                </CustomTooltip>
+                                <CustomTooltip content={t('team.actions.importCsv')}>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setCsvImportOpen(true)}
+                                        className="gap-2"
+                                        aria-label={t('team.actions.importCsv')}
+                                    >
+                                        <Upload className="h-4 w-4" /> {t('team.actions.importCsv')}
+                                    </Button>
+                                </CustomTooltip>
+                                <CustomTooltip content={t('team.actions.invite')}>
+                                    <Button
+                                        type="button"
+                                        onClick={handleOpenInviteModal}
+                                        className="gap-2 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
+                                        aria-label={t('team.actions.invite')}
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        {t('team.actions.invite')}
+                                    </Button>
+                                </CustomTooltip>
+                            </>
+                        )}
                     />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -519,6 +562,15 @@ const Team: React.FC = () => {
                     </form>
                 )}
             </Drawer>
+
+            <ImportGuidelinesModal
+                isOpen={csvImportOpen}
+                onClose={() => setCsvImportOpen(false)}
+                entityName={t('team.title')}
+                guidelines={userGuidelines}
+                onImport={handleImportCsvFile}
+                onDownloadTemplate={handleDownloadTemplate}
+            />
         </motion.div>
     );
 };
@@ -574,9 +626,7 @@ const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: { user: UserP
     const { t } = useTranslation();
     const handleEdit = React.useCallback(() => onEdit(user), [onEdit, user]);
     const handleDelete = React.useCallback(() => {
-        if (window.confirm(`Voulez-vous vraiment supprimer ${user.displayName || user.email} ?`)) {
-            onDelete(user);
-        }
+        onDelete(user);
     }, [onDelete, user]);
 
     return (

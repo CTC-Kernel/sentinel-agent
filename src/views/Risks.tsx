@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Menu, Transition } from '@headlessui/react';
 import {
     FileText, FileSpreadsheet, FileCode, MoreVertical,
-    Loader2, Plus, BrainCircuit, ShieldAlert, Copy, HelpCircle, Filter, LayoutDashboard, List, Grid3x3
+    Loader2, Plus, BrainCircuit, ShieldAlert, Copy, HelpCircle, Filter, LayoutDashboard, List, Grid3x3, Upload
 } from 'lucide-react';
 import { OnboardingService } from '../services/onboardingService';
 import { ErrorLogger } from '../services/errorLogger';
@@ -18,6 +18,8 @@ import { UserProfile } from '../types';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
+import { CsvParser } from '../utils/csvUtils';
 
 import { useRiskData } from '../hooks/risks/useRiskData';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
@@ -127,7 +129,7 @@ export const Risks: React.FC = () => {
 
 
     // Refs
-    const fileInputRef = useRef<HTMLInputElement>(null);
+
 
     // Helper functions
     // Helper functions
@@ -163,24 +165,37 @@ export const Risks: React.FC = () => {
         handleExportExecutive();
     }, [handleExportExecutive]);
 
-    const handleFileUpload = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
+    // Import Logic
+    const [importModalOpen, setImportModalOpen] = useState(false);
 
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const text = e.target?.result as string;
-            if (text) {
-                await importRisks(text);
-                if (fileInputRef.current) fileInputRef.current.value = '';
-            }
+    const riskGuidelines = {
+        required: ['menace', 'probabilite', 'gravite', 'strategie'],
+        optional: ['description', 'vulnerabilite', 'statut', 'proprietaire'],
+        format: 'CSV'
+    };
+
+    const handleDownloadTemplate = React.useCallback(() => {
+        const headers = [...riskGuidelines.required, ...riskGuidelines.optional];
+        const exampleRow = {
+            menace: "Ransomware Attack",
+            probabilite: "3",
+            gravite: "4",
+            strategie: "Atténuer",
+            description: "Chiffrement des données par un malware",
+            vulnerabilite: "Patching non à jour",
+            statut: "Ouvert",
+            proprietaire: "john.doe@example.com"
         };
-        reader.readAsText(file);
-    }, [importRisks]);
+        CsvParser.downloadCSV(headers, [exampleRow], `template_risks.csv`);
+    }, []);
 
-    const onFileInputChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        handleFileUpload(e);
-    }, [handleFileUpload]);
+    const handleImportFile = async (file: File) => {
+        const text = await file.text();
+        const success = await importRisks(text);
+        if (success) {
+            setImportModalOpen(false);
+        }
+    };
 
 
     // Callbacks
@@ -318,7 +333,7 @@ export const Risks: React.FC = () => {
             navigate('/assets');
         }
     }, [hasAssets, navigate]);
-    const handleImportClick = React.useCallback(() => fileInputRef.current?.click(), []);
+
     const handleTemplateModalOpen = React.useCallback(() => setIsTemplateModalOpen(true), []);
     const handleObsidianExport = React.useCallback(() => ObsidianService.exportRisksToObsidian(filteredRisks), [filteredRisks]);
     const handleCSVExport = React.useCallback(() => exportCSV(filteredRisks), [exportCSV, filteredRisks]);
@@ -486,11 +501,11 @@ export const Risks: React.FC = () => {
                                                             <button
                                                                 type="button"
                                                                 aria-label={t('risks.importCsv')}
-                                                                onClick={handleImportClick}
+                                                                onClick={() => setImportModalOpen(true)}
                                                                 disabled={isImporting}
                                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                             >
-                                                                {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />} {t('risks.importCsv')}
+                                                                {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />} {t('risks.importCsv')}
                                                             </button>
                                                         )}
                                                     </Menu.Item>
@@ -543,7 +558,7 @@ export const Risks: React.FC = () => {
             )}
 
             {/* Hidden Input for Import */}
-            <input aria-label={t('risks.importCsv')} type="file" ref={fileInputRef} hidden accept=".csv" onChange={onFileInputChange} />
+
 
             {/* Advanced Search Panel Placeholder */}
             <AnimatePresence>
@@ -663,6 +678,15 @@ export const Risks: React.FC = () => {
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}
+            />
+
+            <ImportGuidelinesModal
+                isOpen={importModalOpen}
+                onClose={() => setImportModalOpen(false)}
+                entityName={t('risks.title')}
+                guidelines={riskGuidelines}
+                onImport={handleImportFile}
+                onDownloadTemplate={handleDownloadTemplate}
             />
 
         </motion.div>

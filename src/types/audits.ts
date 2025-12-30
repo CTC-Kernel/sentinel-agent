@@ -20,6 +20,7 @@ export interface Audit {
     collaborators?: string[]; // User IDs of internal collaborators
     externalAuditors?: string[]; // Emails of external auditors
     createdBy?: string; // User ID of the creator (for Segregation of Duties)
+    createdAt?: string;
     updatedAt?: string;
     score?: number; // Added for Audit reporting
     reference?: string; // e.g. AUD-2024-001

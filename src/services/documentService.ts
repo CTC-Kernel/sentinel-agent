@@ -1,7 +1,8 @@
-import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, arrayRemove, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, arrayRemove, limit, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Control } from '../types';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export interface DocumentDependencies {
     hasDependencies: boolean;
@@ -197,6 +198,58 @@ export class DocumentService {
 
         } catch (error) {
             ErrorLogger.error(error, 'DocumentService.deleteDocumentWithCascade');
+            throw error;
+        }
+    }
+    /**
+     * Import documents from CSV data
+     */
+    static async importDocumentsFromCSV(
+        data: Record<string, any>[],
+        organizationId: string,
+        userId: string,
+        userDisplayName: string
+    ): Promise<number> {
+        try {
+            const batch = writeBatch(db);
+            let count = 0;
+
+            for (const row of data) {
+                if (!row.Titre) continue;
+
+                const newRef = doc(collection(db, 'documents'));
+                const docData = {
+                    organizationId,
+                    title: row.Titre,
+                    type: row.Type || 'Autre',
+                    version: row.Version || '1.0',
+                    status: row.Statut || 'Brouillon',
+                    owner: row.Proprietaire || userDisplayName,
+                    ownerId: userId, // Default to importer if not specified or mapped
+                    nextReviewDate: row.Prochaine_Revue ? new Date(row.Prochaine_Revue).toISOString() : null,
+                    description: row.Description || '',
+                    url: row.URL || '',
+                    isSecure: false,
+                    watermarkEnabled: false,
+                    reviewers: [],
+                    approvers: [],
+                    readBy: [],
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                };
+
+                const sanitized = sanitizeData(docData);
+                batch.set(newRef, sanitized);
+                count++;
+            }
+
+            if (count > 0) {
+                await batch.commit();
+            }
+
+            return count;
+        } catch (error) {
+            ErrorLogger.error(error, 'DocumentService.importDocumentsFromCSV');
             throw error;
         }
     }

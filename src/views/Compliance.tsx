@@ -6,27 +6,27 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { SEO } from '../components/SEO';
 import { Drawer } from '../components/ui/Drawer';
+import { useComplianceActions } from '../hooks/useComplianceActions';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { InspectorLayout } from '../components/ui/InspectorLayout';
-import { ComplianceDashboard } from '../components/compliance/ComplianceDashboard';
-import { ComplianceList } from '../components/compliance/ComplianceList';
-import { ComplianceFilters } from '../components/compliance/ComplianceFilters';
-import { ComplianceInspector } from '../components/compliance/ComplianceInspector';
-import { useComplianceData } from '../hooks/useComplianceData';
-import { useComplianceActions } from '../hooks/useComplianceActions';
-import { useComplianceDataSeeder } from '../hooks/useComplianceDataSeeder';
-import { usePersistedState } from '../hooks/usePersistedState';
+import { ProjectForm } from '../components/projects/ProjectForm';
 import { canEditResource } from '../utils/permissions';
+import { usePersistedState } from '../hooks/usePersistedState';
+import { useComplianceData } from '../hooks/useComplianceData';
+import { useComplianceDataSeeder } from '../hooks/useComplianceDataSeeder';
+import { useProjectLogic } from '../hooks/projects/useProjectLogic';
 import { FRAMEWORKS } from '../data/frameworks';
 import { RiskForm } from '../components/risks/RiskForm';
-import { ProjectForm } from '../components/projects/ProjectForm';
 import { AuditForm } from '../components/audits/AuditForm';
-import { useProjectLogic } from '../hooks/projects/useProjectLogic';
-
-import { ShieldCheck, Download, LayoutDashboard, ListChecks, FileText, FolderKanban } from '../components/ui/Icons';
+import { ComplianceDashboard } from '../components/compliance/ComplianceDashboard';
+import { ComplianceList } from '../components/compliance/ComplianceList';
+import { ComplianceInspector } from '../components/compliance/ComplianceInspector';
+import { ShieldCheck, Download, LayoutDashboard, ListChecks, FileText, FolderKanban, AlertTriangle } from '../components/ui/Icons';
 import { toast } from 'sonner';
 import { SoAView } from '../components/compliance/SoAView';
 import { Button } from '../components/ui/button';
+import { PremiumPageControl } from '../components/ui/PremiumPageControl';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import { ProjectFormData } from '../schemas/projectSchema';
 import { ErrorLogger } from '../services/errorLogger';
 // Form validation: useForm with required fields
@@ -70,7 +70,7 @@ export const Compliance: React.FC = () => {
 
     // Filtering Logic
     const filteredControls = useMemo(() => {
-        return frameworkControls.filter(control => {
+        return frameworkControls.filter((control: import('../types').Control) => {
             // Search
             const matchesSearch = filter === '' ||
                 control.code.toLowerCase().includes(filter.toLowerCase()) ||
@@ -141,12 +141,12 @@ export const Compliance: React.FC = () => {
             );
             closeProjectDrawer();
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Compliance.handleProjectCreation');
+            ErrorLogger.handleErrorWithToast(error as Error, 'Compliance.handleProjectCreation');
         }
     };
 
 
-    const selectedControl = frameworkControls.find(c => c.id === selectedControlId);
+    const selectedControl = frameworkControls.find((c: import('../types').Control) => c.id === selectedControlId);
 
     return (
         <>
@@ -159,31 +159,12 @@ export const Compliance: React.FC = () => {
                         title={t('compliance.title')}
                         subtitle={t('compliance.subtitle')}
                         icon={<ShieldCheck className="h-6 w-6 text-white" />}
-                        actions={
-                            canEdit ? (
-                                <div className="flex gap-2">
-                                    <button
-                                        aria-label={t('compliance.newRisk')}
-                                        className="btn-secondary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                                        onClick={() => handleCreateClick('risk')}
-                                    >
-                                        <ShieldCheck className="h-4 w-4 mr-2" /> + {t('compliance.newRisk')}
-                                    </button>
-                                    <button
-                                        aria-label={t('compliance.export')}
-                                        className="btn-secondary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                                        onClick={() => toast.info(t('compliance.exportInfo'))}
-                                    >
-                                        <Download className="h-4 w-4 mr-2" /> {t('compliance.export')}
-                                    </button>
-                                </div>
-                            ) : null
-                        }
+                        actions={undefined}
                     />
 
                     {/* Framework Selector (Top Level) */}
                     <ScrollableTabs
-                        tabs={FRAMEWORKS.filter(f => f.type === 'Compliance').map(f => ({
+                        tabs={FRAMEWORKS.filter((f: any) => f.type === 'Compliance').map((f: any) => ({
                             id: f.id,
                             label: t(`frameworks.${f.id}`),
                         }))}
@@ -217,14 +198,61 @@ export const Compliance: React.FC = () => {
 
                     {activeTab === 'controls' && (
                         <div className="animate-fade-in space-y-6">
-                            <ComplianceFilters
+                            <PremiumPageControl
                                 searchQuery={filter}
                                 onSearchChange={setFilter}
-                                statusFilter={statusFilter}
-                                onStatusFilterChange={setStatusFilter}
-                                showMissingEvidence={showMissingEvidence}
-                                onShowMissingEvidenceChange={setShowMissingEvidence}
-                            />
+                                searchPlaceholder="Rechercher un contrôle (code, nom...)"
+                                actions={
+                                    canEdit && (
+                                        <div className="flex gap-2">
+                                            <button
+                                                aria-label={t('compliance.export')}
+                                                className="btn-secondary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                onClick={() => toast.info(t('compliance.exportInfo'))}
+                                            >
+                                                <Download className="h-4 w-4 mr-2" /> {t('compliance.export')}
+                                            </button>
+                                            <button
+                                                aria-label={t('compliance.newRisk')}
+                                                className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-brand-600/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-600"
+                                                onClick={() => handleCreateClick('risk')}
+                                            >
+                                                <ShieldCheck className="h-4 w-4 mr-2" />
+                                                {t('compliance.newRisk')}
+                                            </button>
+                                        </div>
+                                    )
+                                }
+                            >
+                                <div className="flex gap-3 items-center">
+                                    <div className="w-48">
+                                        <CustomSelect
+                                            label=""
+                                            value={statusFilter || 'all'}
+                                            onChange={(val) => setStatusFilter(val === 'all' ? null : val as string)}
+                                            options={[
+                                                { value: 'all', label: 'Tous les statuts' },
+                                                { value: 'Non commencé', label: 'Non commencé' },
+                                                { value: 'En cours', label: 'En cours' },
+                                                { value: 'Partiel', label: 'Partiel' },
+                                                { value: 'Implémenté', label: 'Implémenté' },
+                                                { value: 'Non applicable', label: 'Non applicable' }
+                                            ]}
+                                            placeholder="Filtrer par statut"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => setShowMissingEvidence(!showMissingEvidence)}
+                                        className={`px-4 py-2.5 rounded-xl border flex items-center gap-2 text-sm font-medium transition-all whitespace-nowrap ${showMissingEvidence
+                                            ? 'bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400'
+                                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-white/5 dark:border-white/10 dark:text-slate-300'
+                                            }`}
+                                    >
+                                        <AlertTriangle className="h-4 w-4" />
+                                        <span>Preuves manquantes</span>
+                                    </button>
+                                </div>
+                            </PremiumPageControl>
 
                             <ComplianceList
                                 controls={filteredControls}

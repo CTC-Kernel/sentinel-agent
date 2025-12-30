@@ -4,8 +4,10 @@ import { QuestionnaireTemplate } from '../../types/business';
 import { Plus, Save } from '../ui/Icons';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
+
 import { SectionEditor } from './QuestionnaireBuilder/SectionEditor';
 import { useSuppliersData } from '../../hooks/suppliers/useSuppliersData';
+import { ConfirmModal } from '../ui/ConfirmModal';
 // Form validation: zod schema with resolver pattern
 
 interface Props {
@@ -35,6 +37,9 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
         name: "sections"
     });
 
+
+    const [sectionToDelete, setSectionToDelete] = React.useState<number | null>(null);
+
     const onSubmit = async (data: QuestionnaireTemplate) => {
         try {
             const templateData = {
@@ -60,14 +65,19 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
         appendSection({ id: crypto.randomUUID(), title: 'Nouvelle Section', weight: 1, questions: [] });
     }, [appendSection]);
 
-    const handleRemoveSection = React.useCallback((index: number) => {
-        if (window.confirm('Êtes-vous sûr de vouloir supprimer cette section ?')) {
-            removeSection(index);
+    const handleRemoveSectionClick = React.useCallback((index: number) => {
+        setSectionToDelete(index);
+    }, []);
+
+    const confirmRemoveSection = React.useCallback(() => {
+        if (sectionToDelete !== null) {
+            removeSection(sectionToDelete);
+            setSectionToDelete(null);
         }
-    }, [removeSection]);
+    }, [sectionToDelete, removeSection]);
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" >
             <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
                 <div className="grid grid-cols-1 gap-4">
                     <div>
@@ -100,7 +110,8 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                         control={control}
                         register={register}
                         sIndex={sIndex}
-                        onRemove={handleRemoveSection}
+
+                        onRemove={handleRemoveSectionClick}
                     />
                 ))}
             </div>
@@ -138,7 +149,16 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
                     </button>
                 </div>
             </div>
-        </form>
+            <ConfirmModal
+                isOpen={sectionToDelete !== null}
+                onClose={() => setSectionToDelete(null)}
+                onConfirm={confirmRemoveSection}
+                title="Supprimer la section"
+                message="Êtes-vous sûr de vouloir supprimer cette section et toutes ses questions ?"
+                confirmText="Supprimer"
+                type="danger"
+            />
+        </form >
     );
 };
 

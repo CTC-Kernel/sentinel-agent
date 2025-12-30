@@ -306,6 +306,33 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
         } finally {
             setTimeout(() => setIsExportingCSV(false), 0);
         }
+    }
+
+
+    const importDocuments = async (csvContent: string) => {
+        if (!user?.organizationId) return;
+        setIsSubmitting(true);
+        try {
+            const lines = CsvParser.parseCSV(csvContent);
+            if (lines.length === 0) {
+                addToast("Fichier vide ou invalide", "error");
+                return;
+            }
+
+            const count = await DocumentService.importDocumentsFromCSV(
+                lines,
+                user.organizationId,
+                user.uid,
+                user.displayName || 'Utilisateur'
+            );
+
+            await logAction(user, 'IMPORT', 'Document', `Import CSV de ${count} documents`);
+            addToast(`Import de ${count} documents réussi`, "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useDocumentActions.importDocuments');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return {
@@ -318,6 +345,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
         handleUploadSuccess,
         sendReviewReminder,
         handleExportCSV,
+        importDocuments,
         isSubmitting,
         isExportingCSV,
         confirmData,

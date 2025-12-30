@@ -18,7 +18,7 @@ import { AssetList } from '../components/assets/AssetList';
 import { AssetInspector } from '../components/assets/AssetInspector';
 import { AssetDashboard } from '../components/assets/AssetDashboard';
 import { useAssets } from '../hooks/assets/useAssets';
-import { Database, FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, Loader2, MoreVertical, List, LayoutGrid } from 'lucide-react';
+import { Database, FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, Loader2, MoreVertical, List, LayoutGrid, Upload } from 'lucide-react';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { CsvParser } from '../utils/csvUtils';
@@ -27,6 +27,7 @@ import { aiService } from '../services/aiService';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { Menu, Transition } from '@headlessui/react';
+import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 
 const Assets: React.FC = () => {
     const { user, t } = useStore();
@@ -203,6 +204,76 @@ const Assets: React.FC = () => {
     // I need to change the param type to match AssetInspector.
     const handleCreateAsset = React.useCallback(async (data: AssetFormData) => createAsset(data, null), [createAsset]);
 
+    // Import Handlers
+    const [importModalOpen, setImportModalOpen] = useState(false);
+
+    const assetGuidelines = {
+        required: ['name', 'type', 'owner', 'confidentiality'],
+        optional: ['notes', 'availability', 'integrity', 'lifecycleStatus', 'location', 'purchasePrice', 'purchaseDate', 'warrantyEnd'],
+        format: 'CSV'
+    };
+
+    const handleImportAssets = React.useCallback(async (file: File) => {
+        const text = await file.text();
+        const parsed = CsvParser.parseCSV(text);
+
+        let successCount = 0;
+
+        // Process sequentially to avoid overwhelming Firestore
+        for (const row of parsed) {
+            // Basic validation
+            if (!row.name || !row.type) continue;
+
+            // Map CSV row to AssetFormData
+            // Ensure types match schema (some might need casting or fallback)
+            const assetData: AssetFormData = {
+                name: row.name,
+                type: (row.type as any) || 'Software', // Fallback or strict check needed
+                // Map description/notes to notes
+                notes: row.notes || row.description || '',
+                owner: row.owner || user?.displayName || 'Unknown',
+                confidentiality: (row.criticality || row.confidentiality || 'Public') as any, // Handle aliasing
+                integrity: (row.integrity || 'Medium') as any,
+                availability: (row.availability || 'Medium') as any,
+                lifecycleStatus: (row.status || row.lifecycleStatus || 'Active') as any,
+                // Optional fields
+                location: row.location,
+                purchasePrice: row.purchasePrice ? Number(row.purchasePrice) : undefined,
+                purchaseDate: row.purchaseDate,
+                warrantyEnd: row.warrantyEnd
+            };
+
+            await createAsset(assetData, null);
+            successCount++;
+        }
+
+        if (successCount > 0) {
+            toast.success(t('common.import.summary', { count: successCount, total: parsed.length }));
+        } else {
+            toast.warning(t('common.import.noData'));
+        }
+    }, [createAsset, user, t]);
+
+    const handleDownloadTemplate = React.useCallback(() => {
+        const headers = [...assetGuidelines.required, ...assetGuidelines.optional];
+        const exampleRow = {
+            name: "Server DB-01",
+            type: "Hardware",
+            owner: "John Doe",
+            confidentiality: "High",
+            description: "Main database server",
+            availability: "High",
+            integrity: "High",
+            lifecycleStatus: "Active",
+            location: "Data Center A",
+            purchasePrice: "5000",
+            purchaseDate: "2024-01-01",
+            warrantyEnd: "2027-01-01"
+        };
+        CsvParser.downloadCSV(headers, [exampleRow], `template_assets.csv`);
+    }, [assetGuidelines]);
+
+
     return (
         <motion.div
             variants={staggerContainerVariants}
@@ -331,6 +402,18 @@ const Assets: React.FC = () => {
                                                         <Menu.Item>
                                                             {({ active }) => (
                                                                 <button
+                                                                    aria-label={t('assets.importCsv')}
+                                                                    onClick={() => setImportModalOpen(true)}
+                                                                    className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                                >
+                                                                    <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
+                                                                    {t('assets.importCsv')}
+                                                                </button>
+                                                            )}
+                                                        </Menu.Item>
+                                                        <Menu.Item>
+                                                            {({ active }) => (
+                                                                <button
                                                                     aria-label={t('assets.kioskLink')}
                                                                     onClick={handleGenerateKioskLink}
                                                                     className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
@@ -398,6 +481,16 @@ const Assets: React.FC = () => {
                     suppliers={suppliers}
                     processes={processes}
                     canEdit={canEdit}
+                />
+
+                {/* Import Modal */}
+                <ImportGuidelinesModal
+                    isOpen={importModalOpen}
+                    onClose={() => setImportModalOpen(false)}
+                    entityName={t('assets.title')}
+                    guidelines={assetGuidelines}
+                    onImport={handleImportAssets}
+                    onDownloadTemplate={handleDownloadTemplate}
                 />
 
                 {/* Delete Confirmation */}

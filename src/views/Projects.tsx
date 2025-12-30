@@ -17,12 +17,13 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
 
-import { Plus, MoreVertical, Zap, FileSpreadsheet } from '../components/ui/Icons';
+import { Plus, MoreVertical, Zap, FileSpreadsheet, Upload } from '../components/ui/Icons';
 import { TemplateModal } from '../components/projects/TemplateModal';
 import { PortfolioDashboard } from '../components/projects/PortfolioDashboard';
 import { createProjectFromTemplate } from '../utils/projectTemplates';
 import { GanttChart } from '../components/projects/GanttChart';
 import { CsvParser } from '../utils/csvUtils';
+import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { PdfService } from '../services/PdfService';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
@@ -49,7 +50,7 @@ export const Projects: React.FC = () => {
     const {
         projects, risks, controls, assets, audits, usersList, loading,
         handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks,
-        isSubmitting, canEdit, checkDependencies // Destructured
+        isSubmitting, canEdit, checkDependencies, importProjects // Destructured
     } = useProjectLogic();
 
     // UI State
@@ -59,6 +60,7 @@ export const Projects: React.FC = () => {
     const [creationMode, setCreationMode] = useState(false);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
+    const [csvImportOpen, setCsvImportOpen] = useState(false);
 
     // Confirm Modal State
     const [confirmData, setConfirmData] = useState<{
@@ -154,6 +156,33 @@ export const Projects: React.FC = () => {
         generateReport();
     }, [selectedProject, generateReport]);
 
+    // CSV Import Handlers
+    const projectGuidelines = {
+        required: ['Nom'],
+        optional: ['Description', 'Statut', 'Priorité', 'Responsable', 'Echéance'],
+        format: 'CSV'
+    };
+
+    const handleDownloadTemplate = React.useCallback(() => {
+        const headers = ['Nom', 'Description', 'Statut', 'Priorité', 'Responsable', 'Echéance'];
+        const rows = [{
+            Nom: 'Projet de certification ISO27001',
+            Description: 'Mise en conformité du SI',
+            Statut: 'Nouveau',
+            Priorité: 'Elevee',
+            Responsable: user?.displayName || 'Admin',
+            Echéance: '2025-12-31'
+        }];
+        CsvParser.downloadCSV(headers, rows, 'template_projets.csv');
+    }, [user]);
+
+    const handleImportCsvFile = React.useCallback(async (file: File) => {
+        if (!file) return;
+        const text = await file.text();
+        await importProjects(text);
+        setCsvImportOpen(false);
+    }, [importProjects]);
+
     // UI Checks
     const handleTabChange = useCallback((id: string) => setActiveTab(id as 'overview' | 'list' | 'board' | 'gantt'), [setActiveTab]);
     const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as 'list' | 'grid' | 'matrix' | 'kanban'), []);
@@ -229,6 +258,13 @@ export const Projects: React.FC = () => {
                                                 {({ active }) => (
                                                     <button aria-label={t('projects.createFromTemplate')} onClick={handleOpenTemplateModal} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
                                                         <Zap className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-amber-500'}`} /> {t('projects.createFromTemplate')}
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button aria-label={t('common.importCsv')} onClick={() => setCsvImportOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                        <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> {t('common.importCsv')}
                                                     </button>
                                                 )}
                                             </Menu.Item>
@@ -395,6 +431,15 @@ export const Projects: React.FC = () => {
                 onClose={handleCloseTemplateModal}
                 onSelectTemplate={handleCreateFromTemplate}
                 managers={usersList}
+            />
+
+            <ImportGuidelinesModal
+                isOpen={csvImportOpen}
+                onClose={() => setCsvImportOpen(false)}
+                entityName={t('sidebar.projects')}
+                guidelines={projectGuidelines}
+                onImport={handleImportCsvFile}
+                onDownloadTemplate={handleDownloadTemplate}
             />
 
             <ConfirmModal

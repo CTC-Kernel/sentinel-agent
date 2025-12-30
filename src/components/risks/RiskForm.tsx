@@ -377,7 +377,7 @@ export const RiskForm: React.FC<RiskFormProps> = ({
                                     render={({ field }) => (
                                         <CustomSelect
                                             label="Actif Principal Concerné"
-                                            value={field.value}
+                                            value={field.value || ''}
                                             onChange={field.onChange}
                                             options={assets.map(a => ({ value: a.id, label: a.name, subLabel: a.type }))}
                                             required

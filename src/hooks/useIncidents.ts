@@ -11,6 +11,7 @@ import { Incident, Criticality } from '../types';
 import { IncidentFormData } from '../schemas/incidentSchema';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { SecurityEvent } from '../services/integrationService';
+import { CsvParser } from '../utils/csvUtils';
 
 export const useIncidents = () => {
     const { user, addToast, t } = useStore();
@@ -226,12 +227,39 @@ export const useIncidents = () => {
         }
     }, [user, addToast, t]);
 
+    const importIncidents = useCallback(async (csvContent: string) => {
+        if (!user?.organizationId || !user?.uid) return;
+        setLoading(true);
+        try {
+            const lines = CsvParser.parseCSV(csvContent);
+            if (lines.length === 0) {
+                addToast("Fichier vide ou invalide", "error");
+                return;
+            }
+
+            const count = await IncidentService.importIncidentsFromCSV(
+                lines,
+                user.organizationId,
+                user.uid,
+                user.displayName || 'Utilisateur'
+            );
+
+            await logAction(user, 'IMPORT', 'Incident', `Import CSV de ${count} incidents`);
+            addToast(t('incidents.toastImport', { count }), "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useIncidents.importIncidents');
+        } finally {
+            setLoading(false);
+        }
+    }, [user, addToast, t]);
+
     return {
         addIncident,
         updateIncident,
         deleteIncident,
         deleteIncidentsBulk,
         importIncidentsFromEvents,
+        importIncidents,
         simulateAttack,
         loading
     };
