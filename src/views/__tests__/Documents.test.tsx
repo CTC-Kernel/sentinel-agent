@@ -32,8 +32,14 @@ vi.mock('@headlessui/react', () => {
     (MockMenu as unknown as { Items: React.FC<{ children: React.ReactNode }> }).Items = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
     (MockMenu as unknown as { Item: React.FC<{ children: React.ReactNode }> }).Item = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
 
+    const MockTransition = ({ children, show = true }: { children: React.ReactNode; show?: boolean }) =>
+        show ? <div>{children}</div> : null;
+    (MockTransition as unknown as { Root: React.FC<{ children: React.ReactNode; show?: boolean }> }).Root = ({ children, show = true }: { children: React.ReactNode; show?: boolean }) =>
+        show ? <div>{children}</div> : null;
+    (MockTransition as unknown as { Child: React.FC<{ children: React.ReactNode }> }).Child = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+
     return {
-        Transition: ({ children, show }: { children: React.ReactNode; show?: boolean }) => show ? <div>{children}</div> : null,
+        Transition: MockTransition,
         Dialog: MockDialog,
         Listbox: {
             Button: ({ children }: { children: React.ReactNode }) => <button>{children}</button>,
