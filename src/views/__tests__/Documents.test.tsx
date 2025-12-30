@@ -27,14 +27,26 @@ vi.mock('@headlessui/react', () => {
     (MockDialog as unknown as { Title: React.FC<{ children: React.ReactNode }> }).Title = ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>;
     (MockDialog as unknown as { Description: React.FC<{ children: React.ReactNode }> }).Description = ({ children }: { children: React.ReactNode }) => <p>{children}</p>;
 
+    const MockMenu = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+    (MockMenu as unknown as { Button: React.FC<{ children: React.ReactNode }> }).Button = ({ children }: { children: React.ReactNode }) => <button>{children}</button>;
+    (MockMenu as unknown as { Items: React.FC<{ children: React.ReactNode }> }).Items = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+    (MockMenu as unknown as { Item: React.FC<{ children: React.ReactNode }> }).Item = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+
+    const MockTransition = ({ children, show = true }: { children: React.ReactNode; show?: boolean }) =>
+        show ? <div>{children}</div> : null;
+    (MockTransition as unknown as { Root: React.FC<{ children: React.ReactNode; show?: boolean }> }).Root = ({ children, show = true }: { children: React.ReactNode; show?: boolean }) =>
+        show ? <div>{children}</div> : null;
+    (MockTransition as unknown as { Child: React.FC<{ children: React.ReactNode }> }).Child = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+
     return {
-        Transition: ({ children, show }: { children: React.ReactNode; show?: boolean }) => show ? <div>{children}</div> : null,
+        Transition: MockTransition,
         Dialog: MockDialog,
         Listbox: {
             Button: ({ children }: { children: React.ReactNode }) => <button>{children}</button>,
             Options: ({ children }: { children: React.ReactNode }) => <ul>{children}</ul>,
             Option: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,
-        }
+        },
+        Menu: MockMenu
     };
 });
 
@@ -98,6 +110,10 @@ vi.mock('../../components/documents/DocumentForm', () => ({
     DocumentForm: () => <div data-testid="document-form" />
 }));
 
+vi.mock('../../components/ui/ImportGuidelinesModal', () => ({
+    ImportGuidelinesModal: () => <div data-testid="import-guidelines-modal" />
+}));
+
 // Mock UI Components
 vi.mock('../../components/SEO', () => ({
     SEO: () => <div data-testid="seo-mock" />
@@ -122,6 +138,34 @@ vi.mock('../../components/ui/LoadingScreen', () => ({
     LoadingScreen: () => <div data-testid="loading-screen" />
 }));
 
+vi.mock('../../components/ui/Drawer', () => ({
+    Drawer: ({ isOpen, children }: { isOpen: boolean, children: React.ReactNode }) => isOpen ? <div data-testid="drawer">{children}</div> : null
+}));
+
+vi.mock('../../components/ui/PageHeader', () => ({
+    PageHeader: () => <div data-testid="page-header" />
+}));
+
+vi.mock('../../components/ui/EmptyState', () => ({
+    EmptyState: () => <div data-testid="empty-state" />
+}));
+
+vi.mock('../../components/ui/ConfirmModal', () => ({
+    ConfirmModal: ({ isOpen, onConfirm }: { isOpen: boolean, onConfirm: () => void }) => isOpen ? <button aria-label="Confirm" onClick={onConfirm} data-testid="confirm-btn">Confirm</button> : null
+}));
+
+vi.mock('../../components/ui/button', () => ({
+    Button: ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => <button onClick={onClick}>{children}</button>
+}));
+
+vi.mock('../../components/ui/MasterpieceBackground', () => ({
+    MasterpieceBackground: ({ children }: { children: React.ReactNode }) => <>{children}</>
+}));
+
+vi.mock('../../components/ui/Tooltip', () => ({
+    Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>
+}));
+
 vi.mock('framer-motion', () => ({
     motion: {
         div: ({ children, className, ...props }: React.ComponentProps<'div'>) => <div className={className} {...props}>{children}</div>
@@ -129,21 +173,7 @@ vi.mock('framer-motion', () => ({
     AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
-vi.mock('@headlessui/react', () => {
-    const MockTransition = ({ show, children }: { show?: boolean; children: React.ReactNode }) => show ? <>{children}</> : null;
-    (MockTransition as unknown as { Root: React.FC<{ children: React.ReactNode }> }).Root = MockTransition;
-    (MockTransition as unknown as { Child: React.FC<{ children: React.ReactNode }> }).Child = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
-    const MockDialog = ({ open, children }: { open?: boolean; children: React.ReactNode }) => open ? <div>{children}</div> : null;
-    (MockDialog as unknown as { Panel: React.FC<{ children: React.ReactNode }> }).Panel = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
-    (MockDialog as unknown as { Title: React.FC<{ children: React.ReactNode }> }).Title = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
-    (MockDialog as unknown as { Description: React.FC<{ children: React.ReactNode }> }).Description = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
-
-    return {
-        Transition: MockTransition,
-        Dialog: MockDialog,
-    };
-});
 
 // ---------------------------------------------------------------------
 // Tests

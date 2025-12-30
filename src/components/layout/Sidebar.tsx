@@ -176,8 +176,8 @@ export const Sidebar: React.FC<{ mobileOpen: boolean; setMobileOpen: (o: boolean
                       className={({ isActive }) => `
                          group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[14px] font-medium tracking-tight transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 overflow-hidden
                          ${isActive
-                          ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-bold border border-slate-200 dark:border-white/10 shadow-sm'
-                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}
+                          ? 'bg-gradient-to-r from-brand-50/10 to-brand-100/10 dark:from-brand-500/10 dark:to-brand-400/5 text-brand-700 dark:text-brand-100 font-bold border border-brand-200/50 dark:border-brand-500/10 shadow-sm backdrop-blur-md'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white hover:translate-x-1'}
                        `}
                     >
                       {({ isActive }) => (

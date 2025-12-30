@@ -13,6 +13,7 @@ import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Drawer } from '../components/ui/Drawer';
 import { PageHeader } from '../components/ui/PageHeader';
+import { Button } from '../components/ui/button';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { DocumentForm } from '../components/documents/DocumentForm';
 import { FolderTree } from '../components/documents/FolderTree';
@@ -27,6 +28,11 @@ import { DocumentFormData } from '../schemas/documentSchema';
 
 type WorkflowAction = 'submit' | 'approve' | 'reject' | 'sign';
 type DocumentFormPayload = DocumentFormData & { fileUrl?: string; fileHash?: string; isSecure?: boolean };
+
+import { CsvParser } from '../utils/csvUtils';
+import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
+import { Menu, Transition } from '@headlessui/react';
+import { Upload, MoreVertical, FileSpreadsheet } from 'lucide-react';
 
 export const Documents: React.FC = () => {
     const { user, t } = useStore();
@@ -81,11 +87,43 @@ export const Documents: React.FC = () => {
         handleUpdateFolder,
         handleDeleteFolder,
         handleExportCSV,
+        importDocuments,
         isSubmitting,
         isExportingCSV,
         confirmData,
         setConfirmData
     } = useDocumentActions(effectiveUsers);
+
+    const [csvImportOpen, setCsvImportOpen] = useState(false);
+
+    // CSV Import Handlers
+    const documentGuidelines = {
+        required: ['Titre'],
+        optional: ['Description', 'Statut', 'Type', 'Version', 'Proprietaire', 'Prochaine_Revue', 'URL'],
+        format: 'CSV'
+    };
+
+    const handleDownloadTemplate = React.useCallback(() => {
+        const headers = ['Titre', 'Description', 'Statut', 'Type', 'Version', 'Proprietaire', 'Prochaine_Revue', 'URL'];
+        const rows = [{
+            Titre: 'Politique de Sécurité',
+            Description: 'Politique globale',
+            Statut: 'Brouillon',
+            Type: 'Politique',
+            Version: '1.0',
+            Proprietaire: user?.displayName || 'Admin',
+            Prochaine_Revue: '2025-12-31',
+            URL: ''
+        }];
+        CsvParser.downloadCSV(headers, rows, 'template_documents.csv');
+    }, [user]);
+
+    const handleImportCsvFile = React.useCallback(async (file: File) => {
+        if (!file) return;
+        const text = await file.text();
+        await importDocuments(text);
+        setCsvImportOpen(false);
+    }, [importDocuments]);
 
     // --- Effects ---
     // Handle Voxel/Link Navigation
@@ -225,17 +263,7 @@ export const Documents: React.FC = () => {
                 ]}
                 icon={<FileText className="h-6 w-6 text-white" strokeWidth={2.5} />}
                 trustType="storage"
-                actions={canCreate && (
-                    <CustomTooltip content={t('documents.newDocument')}>
-                        <button
-                            aria-label={t('documents.newDocument')}
-                            onClick={handleCreateClick}
-                            className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
-                        >
-                            <Plus className="h-4 w-4 mr-2" /> {t('documents.newDocument')}
-                        </button>
-                    </CustomTooltip>
-                )}
+                actions={undefined}
             />
 
             {/* Metrics Dashboard */}
@@ -339,18 +367,61 @@ export const Documents: React.FC = () => {
                             searchQuery={filter}
                             onSearchChange={setFilter}
                             actions={
-                                <button
-                                    aria-label={t('documents.exportCsv')}
-                                    onClick={handleExportClick}
-                                    className="p-2 text-slate-500 hover:text-brand-600 transition-colors"
-                                    title={t('documents.exportCsv')}
-                                >
-                                    {isExportingCSV ? (
-                                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-brand-600" />
-                                    ) : (
-                                        <FileText className="h-5 w-5" />
+                                <div className="flex items-center gap-2">
+                                    {/* Secondary Actions Menu */}
+                                    <Menu as="div" className="relative inline-block text-left">
+                                        <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                                            <MoreVertical className="h-5 w-5" />
+                                        </Menu.Button>
+                                        <Transition as={React.Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
+                                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-white/10 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                                <div className="p-1">
+                                                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('common.actions.title')}</div>
+                                                    <Menu.Item>
+                                                        {({ active }) => (
+                                                            <button aria-label={t('documents.newDocument')} onClick={handleCreateClick} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm md:hidden`}>
+                                                                <Plus className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} /> {t('documents.newDocument')}
+                                                            </button>
+                                                        )}
+                                                    </Menu.Item>
+                                                    <Menu.Item>
+                                                        {({ active }) => (
+                                                            <button
+                                                                aria-label={t('documents.exportCsv')}
+                                                                onClick={handleExportClick}
+                                                                disabled={isExportingCSV}
+                                                                className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm disabled:opacity-50 disabled:cursor-wait`}
+                                                            >
+                                                                <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'} ${isExportingCSV ? 'animate-pulse' : ''}`} />
+                                                                {isExportingCSV ? 'Export...' : t('documents.exportCsv')}
+                                                            </button>
+                                                        )}
+                                                    </Menu.Item>
+                                                    <Menu.Item>
+                                                        {({ active }) => (
+                                                            <button aria-label={t('common.importCsv')} onClick={() => setCsvImportOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}>
+                                                                <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} /> {t('common.importCsv')}
+                                                            </button>
+                                                        )}
+                                                    </Menu.Item>
+                                                </div>
+                                            </Menu.Items>
+                                        </Transition>
+                                    </Menu>
+
+                                    {canCreate && (
+                                        <CustomTooltip content={t('documents.newDocument')}>
+                                            <Button
+                                                aria-label={t('documents.newDocument')}
+                                                onClick={handleCreateClick}
+                                                className="gap-2 bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20"
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                                {t('documents.newDocument')}
+                                            </Button>
+                                        </CustomTooltip>
                                     )}
-                                </button>
+                                </div>
                             }
                         >
                             <div className="flex items-center gap-2">
@@ -445,7 +516,16 @@ export const Documents: React.FC = () => {
                     />
                 </div>
             </Drawer>
-        </motion.div>
+
+            <ImportGuidelinesModal
+                isOpen={csvImportOpen}
+                onClose={() => setCsvImportOpen(false)}
+                entityName={t('sidebar.documents')}
+                guidelines={documentGuidelines}
+                onImport={handleImportCsvFile}
+                onDownloadTemplate={handleDownloadTemplate}
+            />
+        </motion.div >
     );
 };
 

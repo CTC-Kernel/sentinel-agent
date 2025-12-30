@@ -52,6 +52,7 @@ vi.mock('../../components/ui/Icons', () => ({
     Wrench: () => <span data-testid="icon-wrench" />,
     ChevronDown: () => <span data-testid="icon-chevron-down" />,
     ChevronRight: () => <span data-testid="icon-chevron-right" />,
+    X: () => <span data-testid="icon-x" />,
 }));
 
 vi.mock('../../components/ui/PageHeader', () => ({

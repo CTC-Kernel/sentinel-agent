@@ -17,6 +17,7 @@ import { generateICS, downloadICS } from '../../utils/calendarUtils';
 import { TaskFormModal } from './TaskFormModal';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { useProjectMilestones } from '../../hooks/projects/useProjectMilestones';
+import { ConfirmModal } from '../ui/ConfirmModal';
 
 import './gantt.css';
 // Form validation: useForm with required fields
@@ -69,6 +70,9 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);
 
+    // Confirmation State
+    const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; taskId: string | null }>({ isOpen: false, taskId: null });
+
     // Derived Lists
     const linkedRisks = useMemo(() => risks.filter(r => project?.relatedRiskIds?.includes(r.id)), [risks, project?.relatedRiskIds]);
     const linkedControls = useMemo(() => controls.filter(c => project?.relatedControlIds?.includes(c.id)), [controls, project]);
@@ -102,12 +106,17 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
         await updateTasks(project, newTasks);
     }, [project, updateTasks]);
 
-    const deleteTask = React.useCallback(async (taskId: string) => {
-        if (!project) return;
-        if (!window.confirm("Supprimer cette tâche ?")) return;
-        const newTasks = project.tasks.filter(t => t.id !== taskId);
+    const deleteTask = React.useCallback((taskId: string) => {
+        setConfirmDelete({ isOpen: true, taskId });
+    }, []);
+
+    const handleConfirmDeleteTask = React.useCallback(async () => {
+        if (!project || !confirmDelete.taskId) return;
+
+        const newTasks = project.tasks.filter(t => t.id !== confirmDelete.taskId);
         await updateTasks(project, newTasks);
-    }, [project, updateTasks]);
+        setConfirmDelete({ isOpen: false, taskId: null });
+    }, [project, updateTasks, confirmDelete.taskId]);
 
     // Kanban Handlers
     const handleDragStart = React.useCallback((_: React.DragEvent, taskId: string) => {
@@ -469,6 +478,16 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                 existingTask={editingTask}
                 availableTasks={project.tasks || []}
                 availableUsers={usersList}
+            />
+
+            <ConfirmModal
+                isOpen={confirmDelete.isOpen}
+                onClose={() => setConfirmDelete({ isOpen: false, taskId: null })}
+                onConfirm={handleConfirmDeleteTask}
+                title="Supprimer la tâche"
+                message="Êtes-vous sûr de vouloir supprimer cette tâche ? Cette action est irréversible."
+                confirmText="Supprimer"
+                type="danger"
             />
         </>
     );

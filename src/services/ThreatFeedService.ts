@@ -55,22 +55,43 @@ export class ThreatFeedService {
      * Helper to fetch with proxy failover
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private static async fetchWithFailover(targetUrl: string): Promise<any> {
+    private static async fetchViaProxy(targetUrl: string): Promise<any> {
+        // Validation basique de l'URL pour éviter des appels inutiles
+        if (!targetUrl || !targetUrl.startsWith('http')) {
+            return { vulnerabilities: [], urls: [] };
+        }
+
+        // Si hors ligne, ne pas tenter de fetch
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            return { vulnerabilities: [], urls: [] };
+        }
+
         const proxies = [
             (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
             (url: string) => `https://thingproxy.freeboard.io/fetch/${url}`,
             (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`
         ];
 
-        // Try direct first (some might support CORS)
+        // 1. Try direct fetch first (some APIs might support CORS)
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+
             const response = await fetch(targetUrl, { signal: controller.signal });
             clearTimeout(timeoutId);
-            if (response.ok) return await response.json();
-        } catch { /* continue */ }
 
+            if (response.ok) {
+                const text = await response.text();
+                try {
+                    return JSON.parse(text);
+                } catch {
+                    // Si json parse fail, peut-être format invalid
+                    return { vulnerabilities: [], urls: [] };
+                }
+            }
+        } catch { /* continue to proxies */ }
+
+        // 2. Try proxies
         for (const proxy of proxies) {
             try {
                 const controller = new AbortController();
@@ -80,15 +101,22 @@ export class ThreatFeedService {
                 const response = await fetch(url, { signal: controller.signal });
                 clearTimeout(timeoutId);
 
-                if (response.ok) return await response.json();
-            } catch (error) {
-                // Silent fail for individual proxies - log but continue trying other proxies
-                ErrorLogger.warn(error instanceof Error ? error.message : String(error), 'ThreatFeedService.fetchWithCorsProxy');
+                if (response.ok) {
+                    const text = await response.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch {
+                        continue;
+                    }
+                }
+            } catch (_error) {
+                // Silent catch for individual proxy failures to keep trying others
+                // Only log if strictly necessary to avoid console noise
             }
         }
 
         // Return empty structure instead of throwing to prevent app crash/red error
-        console.warn("All threat feed proxies failed for", targetUrl);
+        // console.warn("All threat feed proxies failed for", targetUrl);
         return { vulnerabilities: [], urls: [] };
     }
 

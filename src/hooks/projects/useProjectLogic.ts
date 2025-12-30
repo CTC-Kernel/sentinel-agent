@@ -14,6 +14,7 @@ import { z } from 'zod';
 import { SubscriptionService } from '../../services/subscriptionService';
 import { canEditResource, canDeleteResource } from '../../utils/permissions';
 import { usePlanLimits } from '../usePlanLimits';
+import { CsvParser } from '../../utils/csvUtils';
 
 export const useProjectLogic = () => {
     const { user, addToast, organization } = useStore();
@@ -196,9 +197,35 @@ export const useProjectLogic = () => {
         }
     };
 
+    const importProjects = async (csvContent: string) => {
+        if (!user?.organizationId) return;
+        setIsSubmitting(true);
+        try {
+            const lines = CsvParser.parseCSV(csvContent);
+            if (lines.length === 0) {
+                addToast("Fichier vide ou invalide", "error");
+                return;
+            }
+
+            const count = await ProjectService.importProjectsFromCSV(
+                lines,
+                user.organizationId,
+                user.uid,
+                user.displayName || 'Utilisateur'
+            );
+
+            await logAction(user, 'IMPORT', 'Project', `Import CSV de ${count} projets`);
+            addToast(`Import de ${count} projets réussi`, "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useProjectLogic.importProjects');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return {
         projects, risks, audits, controls, assets, usersList: effectiveUsers, loading,
-        handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks, checkDependencies,
+        handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks, checkDependencies, importProjects,
         isSubmitting, role, canEdit, user, organization
     };
 };

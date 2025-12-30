@@ -29,6 +29,7 @@ export default {
       },
       fontFamily: {
         sans: [
+          'Outfit',
           '-apple-system',
           'BlinkMacSystemFont',
           'San Francisco',

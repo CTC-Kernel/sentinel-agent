@@ -2,6 +2,7 @@ import { collection, query, where, getDocs, deleteDoc, doc, writeBatch, arrayRem
 import { db } from '../firebase';
 import { Finding, AuditChecklist, Audit } from '../types';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
 
 export interface AuditDetails {
     findings: Finding[];
@@ -177,6 +178,56 @@ export class AuditService {
             }
         } catch (error) {
             ErrorLogger.error(error, 'AuditService.batchCreateAudits');
+            throw error;
+        }
+    }
+    /**
+     * Batch import audits from CSV data
+     */
+    static async importAuditsFromCSV(
+        lines: Record<string, string>[],
+        organizationId: string,
+        userId: string
+    ): Promise<number> {
+        try {
+            const batch = writeBatch(db);
+            let count = 0;
+
+            lines.forEach((row: Record<string, string>) => {
+                const values = Object.values(row) as string[];
+                const name = row['Nom'] || row['Name'] || values[0] || 'Nouvel Audit';
+                const type = row['Type'] || values[1] || 'Interne';
+                const status = row['Statut'] || row['Status'] || values[2] || 'Planifié';
+                const auditor = row['Auditeur'] || row['Auditor'] || values[3] || '';
+                const dateStr = row['Date'] || values[4];
+                const description = row['Description'] || values[5] || '';
+
+                if (name) {
+                    const newRef = doc(collection(db, 'audits'));
+                    const newAuditData: Partial<Audit> = {
+                        organizationId,
+                        name: name.trim(),
+                        type: (type.trim() || 'Interne') as Audit['type'],
+                        status: (status.trim() || 'Planifié') as Audit['status'],
+                        auditor: auditor.trim(),
+                        dateScheduled: dateStr ? new Date(dateStr).toISOString() : undefined,
+                        scope: description.trim(),
+                        findingsCount: 0,
+                        createdBy: userId,
+                        createdAt: serverTimestamp() as unknown as string,
+                        updatedAt: serverTimestamp() as unknown as string,
+                        relatedProjectIds: [],
+                        relatedControlIds: []
+                    };
+                    batch.set(newRef, sanitizeData(newAuditData));
+                    count++;
+                }
+            });
+
+            await batch.commit();
+            return count;
+        } catch (error) {
+            ErrorLogger.error(error, 'AuditService.importAuditsFromCSV');
             throw error;
         }
     }

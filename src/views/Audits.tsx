@@ -26,12 +26,15 @@ import { AuditCalendar } from '../components/audits/AuditCalendar';
 import { FindingsList } from '../components/audits/FindingsList';
 
 import { CustomSelect } from '../components/ui/CustomSelect';
+import { CsvParser } from '../utils/csvUtils';
+import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
+import { Upload } from 'lucide-react';
 
 export const Audits: React.FC = () => {
     const {
         audits, loading, canEdit, canDelete, controls, documents, assets, risks, usersList, projects,
         handleDeleteAudit, handleGeneratePlan, handleCreateAudit, handleUpdateAudit,
-        refreshAudits, handleExportCSV, handleExportCalendar, bulkDeleteAudits, checkDependencies // Destructured
+        refreshAudits, handleExportCSV, handleExportCalendar, bulkDeleteAudits, checkDependencies, importAudits
     } = useAudits();
 
     const { user, t } = useStore();
@@ -137,6 +140,34 @@ export const Audits: React.FC = () => {
         setEditingAudit(null);
     };
 
+    // Import Logic
+    const [importModalOpen, setImportModalOpen] = useState(false);
+    const auditGuidelines = {
+        required: ['Nom'],
+        optional: ['Type', 'Statut', 'Auditeur', 'Date', 'Description'],
+        format: 'CSV'
+    };
+
+    const handleDownloadTemplate = React.useCallback(() => {
+        const headers = ['Nom', 'Type', 'Statut', 'Auditeur', 'Date', 'Description'];
+        const rows = [{
+            Nom: 'Audit Sécurité 2024',
+            Type: 'Interne',
+            Statut: 'Planifié',
+            Auditeur: 'Jean Dupont',
+            Date: '2024-06-01',
+            Description: 'Audit annuel de sécurité'
+        }];
+        CsvParser.downloadCSV(headers, rows, 'template_audits.csv');
+    }, []);
+
+    const handleImportFile = React.useCallback(async (file: File) => {
+        if (!file) return;
+        const text = await file.text();
+        await importAudits(text);
+        setImportModalOpen(false);
+    }, [importAudits]);
+
     // Role-based Title
     const role = user?.role || 'user';
     let auditsTitle = t('audits.title');
@@ -225,6 +256,16 @@ export const Audits: React.FC = () => {
                                             {({ active }) => (
                                                 <button aria-label={t('audits.exportCsv')} onClick={handleExportCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/5`}>
                                                     <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> {t('audits.exportCsv')}
+                                                </button>
+                                            )}
+                                        </Menu.Item>
+                                    </div>
+                                    <div className="p-1 border-t border-slate-100 dark:border-white/10">
+                                        <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('common.import')}</div>
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button onClick={() => setImportModalOpen(true)} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/5`}>
+                                                    <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> {t('common.importCsv')}
                                                 </button>
                                             )}
                                         </Menu.Item>
@@ -364,6 +405,15 @@ export const Audits: React.FC = () => {
                 onConfirm={confirmData.onConfirm}
                 title={confirmData.title}
                 message={confirmData.message}
+            />
+
+            <ImportGuidelinesModal
+                isOpen={importModalOpen}
+                onClose={() => setImportModalOpen(false)}
+                entityName={t('audits.title')}
+                guidelines={auditGuidelines}
+                onImport={handleImportFile}
+                onDownloadTemplate={handleDownloadTemplate}
             />
         </motion.div >
     );

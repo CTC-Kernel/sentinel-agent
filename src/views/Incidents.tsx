@@ -27,6 +27,8 @@ import { IncidentFormData } from '../schemas/incidentSchema';
 
 import { canEditResource, hasPermission, canDeleteResource } from '../utils/permissions';
 import { IncidentImportModal } from '../components/incidents/IncidentImportModal';
+import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
+import { CsvParser } from '../utils/csvUtils';
 import { SecurityEvent } from '../services/integrationService';
 
 
@@ -48,6 +50,7 @@ export const Incidents: React.FC = () => {
         deleteIncident,
         deleteIncidentsBulk,
         importIncidentsFromEvents,
+        importIncidents,
         simulateAttack,
         loading: loadingAction
     } = useIncidents();
@@ -76,7 +79,9 @@ export const Incidents: React.FC = () => {
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void, loading?: boolean, closeOnConfirm?: boolean }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [importModalOpen, setImportModalOpen] = useState(false);
+
+    const [importModalOpen, setImportModalOpen] = useState(false); // SIEM Import
+    const [csvImportOpen, setCsvImportOpen] = useState(false); // CSV Import
     const [viewMode, setViewMode] = useState<'list' | 'grid' | 'kanban'>('grid');
     const [filter, setFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -103,6 +108,33 @@ export const Incidents: React.FC = () => {
             setIsSubmitting(false);
         }
     }, [importIncidentsFromEvents]);
+
+    // CSV Import Handlers
+    const incidentGuidelines = {
+        required: ['Titre'],
+        optional: ['Description', 'Statut', 'Sévérité', 'Catégorie', 'Déclarant'],
+        format: 'CSV'
+    };
+
+    const handleDownloadTemplate = React.useCallback(() => {
+        const headers = ['Titre', 'Description', 'Statut', 'Sévérité', 'Catégorie', 'Déclarant'];
+        const rows = [{
+            Titre: 'Phishing confirmé',
+            Description: 'Email suspect reçu par la compta',
+            Statut: 'Nouveau',
+            Sévérité: 'High',
+            Catégorie: 'Social Engineering',
+            Déclarant: 'Jean Dupont'
+        }];
+        CsvParser.downloadCSV(headers, rows, 'template_incidents.csv');
+    }, []);
+
+    const handleImportCsvFile = React.useCallback(async (file: File) => {
+        if (!file) return;
+        const text = await file.text();
+        await importIncidents(text);
+        setCsvImportOpen(false);
+    }, [importIncidents]);
 
     const handleSimulateAttack = useCallback(async () => {
         setIsSubmitting(true);
@@ -296,10 +328,20 @@ export const Incidents: React.FC = () => {
                 />
             </motion.div>
 
+
             <IncidentImportModal
                 isOpen={importModalOpen}
                 onClose={handleImportModalClose}
                 onImport={handleImportFromEvents}
+            />
+
+            <ImportGuidelinesModal
+                isOpen={csvImportOpen}
+                onClose={() => setCsvImportOpen(false)}
+                entityName={t('incidents.title')}
+                guidelines={incidentGuidelines}
+                onImport={handleImportCsvFile}
+                onDownloadTemplate={handleDownloadTemplate}
             />
 
             {/* Carte de synthèse Incidents */}
@@ -444,7 +486,20 @@ export const Incidents: React.FC = () => {
                                                             } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                     >
                                                         <BrainCircuit className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+
                                                         {t('incidents.importSiem')}
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button
+                                                        onClick={() => setCsvImportOpen(true)}
+                                                        className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
+                                                            } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                    >
+                                                        <MoreVertical className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
+                                                        {t('common.importCsv')}
                                                     </button>
                                                 )}
                                             </Menu.Item>

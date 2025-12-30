@@ -2,6 +2,8 @@ import { collection, query, where, getDocs, doc, writeBatch, arrayUnion, arrayRe
 import { db } from '../firebase';
 import { } from '../types';
 import { ErrorLogger } from './errorLogger';
+import { sanitizeData } from '../utils/dataSanitizer';
+import { serverTimestamp } from 'firebase/firestore';
 
 export interface ProjectDependency {
     id: string;
@@ -236,5 +238,51 @@ export class ProjectService {
         if (relatedControlIds) syncNew('controls', relatedControlIds);
         if (relatedAssetIds) syncNew('assets', relatedAssetIds);
         if (relatedAuditIds) syncNew('audits', relatedAuditIds);
+    }
+    /**
+     * Import projects from CSV data
+     */
+    static async importProjectsFromCSV(
+        data: Record<string, any>[],
+        organizationId: string,
+        userId: string,
+        userDisplayName: string
+    ): Promise<number> {
+        try {
+            const batch = writeBatch(db);
+            let count = 0;
+
+            for (const row of data) {
+                if (!row.Nom) continue;
+
+                const newRef = doc(collection(db, 'projects'));
+                const projectData = {
+                    organizationId,
+                    name: row.Nom,
+                    description: row.Description || '',
+                    status: row.Statut || 'Nouveau',
+                    priority: row.Priorité || 'Moyenne',
+                    manager: { id: userId, label: row.Responsable || userDisplayName },
+                    progress: 0,
+                    tasks: [],
+                    dueDate: row.Echéance || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    createdAt: serverTimestamp(),
+                    tags: ['Import CSV']
+                };
+
+                const sanitized = sanitizeData(projectData);
+                batch.set(newRef, sanitized);
+                count++;
+            }
+
+            if (count > 0) {
+                await batch.commit();
+            }
+
+            return count;
+        } catch (error) {
+            ErrorLogger.error(error, 'ProjectService.importProjectsFromCSV');
+            throw error;
+        }
     }
 }

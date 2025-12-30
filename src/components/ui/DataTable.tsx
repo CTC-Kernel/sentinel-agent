@@ -12,7 +12,9 @@ import {
 import { ChevronUp, ChevronDown, Download, Search, ChevronLeft, ChevronRight, Trash2 } from './Icons';
 import { cn } from '../../lib/utils';
 import { Skeleton } from './Skeleton';
+
 import { Tooltip } from './Tooltip';
+import { ConfirmModal } from './ConfirmModal';
 
 
 interface DataTableProps<TData, TValue> {
@@ -46,7 +48,9 @@ export function DataTable<TData extends { id: string }, TValue>({
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [globalFilter, setGlobalFilter] = useState('');
+
     const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Add selection column if selectable
     const tableColumns = useMemo(() => {
@@ -159,12 +163,7 @@ export function DataTable<TData extends { id: string }, TValue>({
                         <Tooltip content="Supprimer la sélection">
                             <button
                                 aria-label="Supprimer la sélection"
-                                onClick={() => {
-                                    if (window.confirm(`Voulez-vous vraiment supprimer ${selectedIds.length} éléments ?`)) {
-                                        onBulkDelete(selectedIds);
-                                        setRowSelection({});
-                                    }
-                                }}
+                                onClick={() => setShowDeleteConfirm(true)}
                                 className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors animate-fade-in"
                             >
                                 <Trash2 className="h-4 w-4" />
@@ -346,6 +345,23 @@ export function DataTable<TData extends { id: string }, TValue>({
                     </div>
                 </div>
             )}
-        </div>
+            {
+                onBulkDelete && (
+                    <ConfirmModal
+                        isOpen={showDeleteConfirm}
+                        onClose={() => setShowDeleteConfirm(false)}
+                        onConfirm={() => {
+                            onBulkDelete(selectedIds);
+                            setRowSelection({});
+                            setShowDeleteConfirm(false);
+                        }}
+                        title="Suppression multiple"
+                        message={`Voulez-vous vraiment supprimer les ${selectedIds.length} éléments sélectionnés ? Cette action est irréversible.`}
+                        confirmText="Supprimer"
+                        type="danger"
+                    />
+                )
+            }
+        </div >
     );
 }

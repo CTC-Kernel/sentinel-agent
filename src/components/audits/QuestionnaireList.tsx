@@ -3,7 +3,9 @@ import { Questionnaire, UserProfile } from '../../types';
 import { useStore } from '../../store';
 import { Plus, FileText, Trash2, Edit, Send } from '../ui/Icons';
 import { ErrorLogger } from '../../services/errorLogger';
+
 import { QuestionnaireBuilder } from './QuestionnaireBuilder';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { QuestionnaireResponseView } from './QuestionnaireResponse';
 import { useAuditsActions } from '../../hooks/audits/useAuditsActions';
 
@@ -19,19 +21,26 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
     const { questionnaires: allQuestionnaires, removeQuestionnaire } = useAuditsActions();
     const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<Questionnaire | null>(null);
     const [mode, setMode] = useState<'view' | 'edit' | 'respond' | null>(null);
+    const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
 
     // Filter questionnaires for this audit
     const questionnaires = useMemo(() => {
         return allQuestionnaires.filter(q => q.auditId === auditId && q.organizationId === organizationId);
     }, [allQuestionnaires, auditId, organizationId]);
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm("Supprimer ce questionnaire ?")) return;
+    const handleDeleteClick = (id: string) => {
+        setConfirmDelete({ isOpen: true, id });
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!confirmDelete.id) return;
         try {
-            await removeQuestionnaire(id);
+            await removeQuestionnaire(confirmDelete.id);
             addToast("Questionnaire supprimé", "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'QuestionnaireList.handleDelete', 'DELETE_FAILED');
+        } finally {
+            setConfirmDelete({ isOpen: false, id: null });
         }
     };
 
@@ -128,7 +137,7 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                                             <Edit className="w-4 h-4" />
                                         </button>
                                         <button
-                                            onClick={() => handleDelete(q.id)}
+                                            onClick={() => handleDeleteClick(q.id)}
                                             className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                             title="Supprimer"
                                         >
@@ -141,6 +150,17 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                     </div>
                 ))}
             </div>
-        </div>
+
+
+            <ConfirmModal
+                isOpen={confirmDelete.isOpen}
+                onClose={() => setConfirmDelete({ isOpen: false, id: null })}
+                onConfirm={handleConfirmDelete}
+                title="Supprimer le questionnaire"
+                message="Êtes-vous sûr de vouloir supprimer ce questionnaire ? Cette action est irréversible."
+                confirmText="Supprimer"
+                type="danger"
+            />
+        </div >
     );
 };

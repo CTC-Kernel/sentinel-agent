@@ -12,6 +12,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelTextarea';
 import { EmptyState } from '../ui/EmptyState';
 import { ErrorLogger } from '../../services/errorLogger';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { EvidenceRequestItem } from './EvidenceRequestItem';
 import { exportEvidenceRequestsZip } from '../../utils/EvidenceExportUtils';
@@ -28,6 +29,7 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
     const { user, addToast } = useStore();
     const [isCreating, setIsCreating] = useState(false);
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; id: string | null }>({ isOpen: false, id: null });
 
     const { data: requests, refresh, loading, add: addRequest, update: updateRequest, remove: removeRequest } = useFirestoreCollection<EvidenceRequest>(
         'evidence_requests',
@@ -145,16 +147,22 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
         }
     }, [refresh, updateRequest]);
 
-    const handleDelete = useCallback(async (id: string) => {
-        if (!window.confirm("Supprimer cette demande ?")) return;
+    const handleDeleteClick = useCallback((id: string) => {
+        setConfirmDelete({ isOpen: true, id });
+    }, []);
+
+    const handleConfirmDelete = async () => {
+        if (!confirmDelete.id) return;
         try {
-            await removeRequest(id);
+            await removeRequest(confirmDelete.id);
             refresh();
             addToast("Demande supprimée", "info");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'EvidenceRequestList.handleDelete', 'DELETE_FAILED');
+        } finally {
+            setConfirmDelete({ isOpen: false, id: null });
         }
-    }, [refresh, addToast, removeRequest]);
+    };
 
     const handleExpand = useCallback((id: string | null) => {
         setExpandedId(prev => prev === id ? null : id);
@@ -294,12 +302,23 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                             canEdit={canEdit}
                             onExpand={handleExpand}
                             onStatusChange={handleStatusChange}
-                            onDelete={handleDelete}
+                            onDelete={handleDeleteClick}
                             onUpload={handleFileUpload}
                         />
                     ))
                 )}
             </div>
-        </div>
+
+
+            <ConfirmModal
+                isOpen={confirmDelete.isOpen}
+                onClose={() => setConfirmDelete({ isOpen: false, id: null })}
+                onConfirm={handleConfirmDelete}
+                title="Supprimer la demande"
+                message="Êtes-vous sûr de vouloir supprimer cette demande de preuve ? Cette action est irréversible."
+                confirmText="Supprimer"
+                type="danger"
+            />
+        </div >
     );
 };
