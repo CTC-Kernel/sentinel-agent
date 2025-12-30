@@ -168,15 +168,37 @@ export const AssetList = React.memo<AssetListProps>(({
                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                             <div className="relative z-10 flex flex-col h-full">
                                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                                    <CustomTooltip content={t('assets.printLabel')}>
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); onGenerateLabel(asset); }}
-                                            className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-indigo-600 shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                                            disabled={isGeneratingLabels}
-                                        >
-                                            <Tag className="h-4 w-4" />
-                                        </button>
-                                    </CustomTooltip>
+                                    <div className="flex gap-2">
+                                        <CustomTooltip content={t('assets.printLabel')}>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); onGenerateLabel(asset); }}
+                                                className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-indigo-600 shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                disabled={isGeneratingLabels}
+                                            >
+                                                <Tag className="h-4 w-4" />
+                                            </button>
+                                        </CustomTooltip>
+                                        {canEdit && (
+                                            <CustomTooltip content={t('assets.editAsset')}>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onEdit(asset); }}
+                                                    className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-blue-600 shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </button>
+                                            </CustomTooltip>
+                                        )}
+                                        {canDeleteResource(user, 'Asset') && (
+                                            <CustomTooltip content={t('assets.deleteAssetTooltip')}>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onDelete(asset.id, asset.name); }}
+                                                    className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-red-600 shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </CustomTooltip>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300">

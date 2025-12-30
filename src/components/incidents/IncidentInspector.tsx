@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Incident, UserProfile, BusinessProcess, Asset, Risk, Criticality } from '../../types';
-import { Siren, BookOpen, CalendarDays, BrainCircuit, Activity, Server, AlertTriangle } from '../ui/Icons';
+import { Siren, BookOpen, CalendarDays, BrainCircuit, Activity, Server, AlertTriangle, Trash2 } from '../ui/Icons';
 import { IncidentForm } from './IncidentForm';
 import { IncidentFormData } from '../../schemas/incidentSchema';
 import { SafeHTML } from '../ui/SafeHTML';
@@ -22,6 +22,7 @@ interface IncidentInspectorProps {
     risks: Risk[];
     canEdit: boolean;
     onUpdate: (data: IncidentFormData) => Promise<void>;
+    onDelete?: (id: string) => void;
     isSubmitting?: boolean;
 }
 
@@ -35,6 +36,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
     risks,
     canEdit,
     onUpdate,
+    onDelete,
     isSubmitting = false
 }) => {
     const [activeTab, setActiveTab] = useState('details');
@@ -72,12 +74,22 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
             actions={
                 <div className="flex gap-2">
                     {!isEditing && canEdit && (
-                        <button
-                            onClick={() => setIsEditing(true)}
-                            className="bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
-                        >
-                            Modifier
-                        </button>
+                        <>
+                            {onDelete && (
+                                <button
+                                    onClick={() => onDelete(incident.id)}
+                                    className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                >
+                                    <Trash2 className="h-5 w-5" />
+                                </button>
+                            )}
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                className="bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                            >
+                                Modifier
+                            </button>
+                        </>
                     )}
                 </div>
             }

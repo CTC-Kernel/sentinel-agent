@@ -82,11 +82,30 @@ const stableConstraintKey = (c: QueryConstraint): string => {
 };
 
 
+import { useStore } from '../store';
+import { MockDataService } from '../services/mockDataService';
+
 export const useFirestoreCollection = <T = DocumentData>(
     collectionName: string,
     constraints: QueryConstraint[] = [],
     options: UseFirestoreOptions = { realtime: false, logError: true, enabled: true }
 ): UseFirestoreReturn<T & { id: string }> => {
+    const { demoMode } = useStore();
+
+    // DEMO MODE BYPASS
+    if (demoMode) {
+        const mockData = MockDataService.getCollection(collectionName) as (T & { id: string })[];
+        return {
+            data: mockData,
+            loading: false,
+            error: null,
+            refresh: async () => { },
+            add: async () => "mock-id-" + Date.now(),
+            update: async () => { },
+            remove: async () => { }
+        };
+    }
+
     const [realtimeData, setRealtimeData] = useState<(T & { id: string })[]>([]);
     const [realtimeLoading, setRealtimeLoading] = useState(options.enabled !== false);
     const [realtimeError, setRealtimeError] = useState<Error | null>(null);

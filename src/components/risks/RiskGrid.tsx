@@ -1,9 +1,10 @@
-import React from 'react';
-import { Server, TrendingDown, TrendingUp, ArrowRight, Clock, LucideIcon, ShieldAlert } from 'lucide-react';
+import React, { useState } from 'react';
+import { Server, TrendingDown, TrendingUp, ArrowRight, Clock, LucideIcon, ShieldAlert, Edit, Trash2 } from 'lucide-react';
 import { CardSkeleton } from '../ui/Skeleton';
 import { Badge } from '../ui/Badge';
 import { SafeHTML } from '../ui/SafeHTML';
 import { EmptyState } from '../ui/EmptyState';
+import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Risk, Asset } from '../../types';
 
 
@@ -17,11 +18,32 @@ interface RiskGridProps {
     emptyStateDescription: string;
     onEmptyStateAction?: () => void;
     emptyStateActionLabel?: string;
+    onEdit?: (risk: Risk) => void;
+    onDelete?: (id: string, name: string) => void;
+    canEdit?: boolean;
 }
 
 export const RiskGrid: React.FC<RiskGridProps> = ({
-    risks, loading, onSelect, assets, emptyStateIcon, emptyStateTitle, emptyStateDescription, onEmptyStateAction, emptyStateActionLabel
+    risks, loading, onSelect, assets, emptyStateIcon, emptyStateTitle, emptyStateDescription, onEmptyStateAction, emptyStateActionLabel,
+    onEdit, onDelete, canEdit
 }) => {
+    const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+
+    const handleDelete = React.useCallback(async (e: React.MouseEvent, id: string, name: string) => {
+        e.stopPropagation();
+        if (deletingIds.has(id) || !onDelete) return;
+
+        setDeletingIds(prev => new Set(prev).add(id));
+        try {
+            await onDelete(id, name);
+        } finally {
+            setDeletingIds(prev => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+        }
+    }, [deletingIds, onDelete]);
 
     const getAssetName = (id?: string) => assets.find(a => a.id === id)?.name || 'Actif inconnu';
 
@@ -91,6 +113,32 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                         className="group glass-panel p-6 rounded-[2rem] card-hover flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5 overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+
+                        {/* Hover Overlay with Actions */}
+                        <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
+                            {canEdit && onEdit && (
+                                <CustomTooltip content="Modifier">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); onEdit(risk); }}
+                                        className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-blue-600 shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                    >
+                                        <Edit className="h-4 w-4" />
+                                    </button>
+                                </CustomTooltip>
+                            )}
+                            {canEdit && onDelete && (
+                                <CustomTooltip content={deletingIds.has(risk.id) ? "Suppression..." : "Supprimer"}>
+                                    <button
+                                        onClick={(e) => handleDelete(e, risk.id, risk.threat)}
+                                        disabled={deletingIds.has(risk.id)}
+                                        className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-red-600 shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </button>
+                                </CustomTooltip>
+                            )}
+                        </div>
+
                         <div className="relative z-10 flex flex-col h-full">
                             <div className="flex justify-between items-start mb-5">
                                 <div className="flex items-center gap-2">

@@ -599,6 +599,9 @@ export const Risks: React.FC = () => {
                             emptyStateDescription={emptyStateDescription}
                             emptyStateActionLabel={canEdit ? emptyStateActionLabel : undefined}
                             onEmptyStateAction={canEdit ? handleEmptyAction : undefined}
+                            onEdit={handleEdit}
+                            onDelete={handleDeleteRiskItem}
+                            canEdit={canEdit}
                         />
                     )}
                 </motion.div>

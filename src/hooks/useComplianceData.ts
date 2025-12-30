@@ -7,7 +7,7 @@ import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export const useComplianceData = (currentFramework?: Framework) => {
-    const { user } = useStore();
+    const { user, demoMode } = useStore();
     const [controls, setControls] = useState<Control[]>([]);
     const [risks, setRisks] = useState<Risk[]>([]);
     const [findings, setFindings] = useState<Finding[]>([]);
@@ -20,6 +20,7 @@ export const useComplianceData = (currentFramework?: Framework) => {
     const [loading, setLoading] = useState(true);
 
     const complianceActions = useComplianceActions(user);
+    // ...
 
     useEffect(() => {
         if (!user?.organizationId) {
@@ -29,6 +30,23 @@ export const useComplianceData = (currentFramework?: Framework) => {
         }
 
         setLoading(true);
+
+        if (demoMode) {
+            console.log('Using Mock Data for Compliance');
+            import('../services/mockDataService').then(({ MockDataService }) => {
+                setControls(MockDataService.getCollection('controls') as Control[]);
+                setRisks(MockDataService.getCollection('risks') as Risk[]);
+                setDocuments(MockDataService.getCollection('documents') as Document[]);
+                setUsersList(MockDataService.getCollection('users') as unknown as UserProfile[]);
+                setAssets(MockDataService.getCollection('assets') as Asset[]);
+                setSuppliers(MockDataService.getCollection('suppliers') as Supplier[]);
+                setProjects(MockDataService.getCollection('projects') as Project[]);
+                setFindings([]); // Mock findings if needed
+                setLoading(false);
+            });
+            return;
+        }
+
         console.log('Fetching compliance data for Org:', user.organizationId);
 
         // 1. Controls Listener
@@ -39,7 +57,6 @@ export const useComplianceData = (currentFramework?: Framework) => {
 
         const unsubControls = onSnapshot(controlsQuery, (snapshot) => {
             const fetchedControls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Control));
-            console.log('Fetched Controls:', fetchedControls.length);
             setControls(fetchedControls);
         });
 
@@ -80,7 +97,7 @@ export const useComplianceData = (currentFramework?: Framework) => {
             unsubSupp();
             unsubProj();
         };
-    }, [user?.organizationId]);
+    }, [user?.organizationId, demoMode]);
 
     // Framework filtering
     const filteredControls = currentFramework

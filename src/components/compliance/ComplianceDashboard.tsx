@@ -9,16 +9,21 @@ import { ChartTooltip } from '../ui/ChartTooltip';
 import { ErrorLogger } from '../../services/errorLogger';
 import { EmptyChartState } from '../ui/EmptyChartState';
 
+import { Skeleton } from '../ui/Skeleton';
+
 interface ComplianceDashboardProps {
     controls: Control[];
     onFilterChange?: (status: string | null) => void;
     currentFramework?: string;
     onSeedData?: () => void;
+    loading?: boolean;
 }
 
-export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ controls, onFilterChange, currentFramework = 'ISO27001', onSeedData }) => {
+export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ controls, onFilterChange, currentFramework = 'ISO27001', onSeedData, loading }) => {
     const { user } = useStore();
     const [trend, setTrend] = useState<number | undefined>(undefined);
+
+    // ... existing hook logic ...
 
     // Chart Theme Configuration
     const chartTheme = {
@@ -35,6 +40,18 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
         }
     };
 
+    // Calculate metrics
+    const totalControls = controls.length;
+    // ... (rest of calcs)
+    const implementedControls = controls.filter(c => c.status === 'Implémenté').length;
+    const inProgressControls = controls.filter(c => c.status === 'Partiel').length;
+    const notImplementedControls = controls.filter(c => c.status === 'Non commencé').length;
+    const notApplicableControls = controls.filter(c => c.status === 'Non applicable').length;
+
+    const complianceRate = totalControls > 0 ? (implementedControls / totalControls * 100) : 0;
+    const globalScore = complianceRate;
+
+    // ... (trend effect)
     useEffect(() => {
         const fetchTrend = async () => {
             if (!user?.organizationId) return;
@@ -53,15 +70,6 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
         fetchTrend();
     }, [user?.organizationId]);
 
-    // Calculate metrics
-    const totalControls = controls.length;
-    const implementedControls = controls.filter(c => c.status === 'Implémenté').length;
-    const inProgressControls = controls.filter(c => c.status === 'Partiel').length;
-    const notImplementedControls = controls.filter(c => c.status === 'Non commencé').length;
-    const notApplicableControls = controls.filter(c => c.status === 'Non applicable').length;
-
-    const complianceRate = totalControls > 0 ? (implementedControls / totalControls * 100) : 0;
-    const globalScore = complianceRate;
 
     const calculateScore = (fw: string) => {
         const fwControls = controls.filter(c => c.framework === fw);
@@ -126,6 +134,39 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
     const barGradientPrimaryId = React.useId();
     const barGradientSuccessId = React.useId();
     const radarGradientId = React.useId();
+
+    if (loading) {
+        return (
+            <div className="space-y-6 w-full min-w-0">
+                {/* Summary Card Skeleton */}
+                <div className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/5 shadow-lg flex flex-col xl:flex-row gap-8">
+                    <div className="flex items-center gap-6 min-w-[240px]">
+                        <Skeleton className="w-24 h-24 rounded-full" />
+                        <div className="space-y-2">
+                            <Skeleton className="h-6 w-32" />
+                            <Skeleton className="h-4 w-24" />
+                        </div>
+                    </div>
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {[1, 2, 3].map(i => (
+                            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Charts Skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="glass-panel p-6 rounded-[2rem] h-[350px]">
+                            <Skeleton className="h-6 w-48 mb-6" />
+                            <Skeleton className="h-full w-full rounded-xl" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
 
     return (
         <div className="space-y-6 w-full min-w-0">

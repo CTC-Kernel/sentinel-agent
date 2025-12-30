@@ -17,10 +17,20 @@ import { usePlanLimits } from '../usePlanLimits';
 import { CsvParser } from '../../utils/csvUtils';
 
 export const useProjectLogic = () => {
-    const { user, addToast, organization } = useStore();
+    const { user, addToast, organization, demoMode } = useStore();
     const role = user?.role || 'user';
     const canEdit = canEditResource(user, 'Project');
     const { limits } = usePlanLimits();
+
+    // Mock Data State
+    const [mockData, setMockData] = useState<{
+        projects: Project[];
+        risks: Risk[];
+        controls: Control[];
+        assets: Asset[];
+        audits: Audit[];
+        users: UserProfile[];
+    } | null>(null);
 
     // Data Fetching
     const { data: rawProjects, loading: loadingProjects } = useFirestoreCollection<Project>('projects', [where('organizationId', '==', user?.organizationId), limit(500)], { logError: true, realtime: true });
@@ -30,22 +40,58 @@ export const useProjectLogic = () => {
     const { data: rawAssets, loading: loadingAssets } = useFirestoreCollection<Asset>('assets', [where('organizationId', '==', user?.organizationId), limit(500)], { logError: true, realtime: true });
     const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>('users', [where('organizationId', '==', user?.organizationId), limit(100)], { logError: true, realtime: true });
 
+    // Load Mock Data Effect
+    useState(() => { // Using generic effect for mount if demoMode
+        if (demoMode && !mockData) {
+            import('../../services/mockDataService').then(({ MockDataService }) => {
+                setMockData({
+                    projects: MockDataService.getCollection('projects') as Project[],
+                    risks: MockDataService.getCollection('risks') as Risk[],
+                    controls: MockDataService.getCollection('controls') as Control[],
+                    assets: MockDataService.getCollection('assets') as Asset[],
+                    audits: MockDataService.getCollection('audits') as Audit[],
+                    users: MockDataService.getCollection('users') as unknown as UserProfile[]
+                });
+            });
+        }
+    });
+
     // Derived State
-    const projects = useMemo(() => [...rawProjects].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()), [rawProjects]);
-    const risks = useMemo(() => [...rawRisks].sort((a, b) => b.score - a.score), [rawRisks]);
-    const audits = useMemo(() => [...rawAudits].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime()), [rawAudits]);
-    const controls = useMemo(() => [...rawControls].sort((a, b) => a.code.localeCompare(b.code)), [rawControls]);
-    const assets = useMemo(() => [...rawAssets].sort((a, b) => a.name.localeCompare(b.name)), [rawAssets]);
+    const projects = useMemo(() => {
+        const source = demoMode && mockData ? mockData.projects : rawProjects;
+        return [...source].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+    }, [rawProjects, mockData, demoMode]);
+
+    const risks = useMemo(() => {
+        const source = demoMode && mockData ? mockData.risks : rawRisks;
+        return [...source].sort((a, b) => b.score - a.score);
+    }, [rawRisks, mockData, demoMode]);
+
+    const audits = useMemo(() => {
+        const source = demoMode && mockData ? mockData.audits : rawAudits;
+        return [...source].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime());
+    }, [rawAudits, mockData, demoMode]);
+
+    const controls = useMemo(() => {
+        const source = demoMode && mockData ? mockData.controls : rawControls;
+        return [...source].sort((a, b) => a.code.localeCompare(b.code));
+    }, [rawControls, mockData, demoMode]);
+
+    const assets = useMemo(() => {
+        const source = demoMode && mockData ? mockData.assets : rawAssets;
+        return [...source].sort((a, b) => a.name.localeCompare(b.name));
+    }, [rawAssets, mockData, demoMode]);
 
     // Fix: Ensure usersList is never empty if we are logged in (fallback to self)
     // This prevents "Manager Required" validation errors if RBAC prevents listing other users
     const effectiveUsers = useMemo(() => {
-        if (usersList && usersList.length > 0) return usersList;
+        const source = demoMode && mockData ? mockData.users : usersList;
+        if (source && source.length > 0) return source;
         if (user && user.uid) return [user];
         return [];
-    }, [usersList, user]);
+    }, [usersList, user, mockData, demoMode]);
 
-    const loading = loadingProjects || loadingRisks || loadingControls || loadingAssets || loadingUsers || loadingAudits;
+    const loading = demoMode ? !mockData : (loadingProjects || loadingRisks || loadingControls || loadingAssets || loadingUsers || loadingAudits);
 
     // Actions
     const [isSubmitting, setIsSubmitting] = useState(false);

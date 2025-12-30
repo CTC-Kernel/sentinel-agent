@@ -12,17 +12,33 @@ import { getInvitationTemplate } from '../services/emailTemplates';
 import { logAction } from '../services/logger';
 import { SubscriptionService } from '../services/subscriptionService';
 import { CsvParser } from '../utils/csvUtils';
+import { useTranslation } from 'react-i18next'; // Added import
 
 export const useTeamManagement = () => {
-    const { user, addToast } = useStore();
+    const { t } = useTranslation(); // Added initialization
+    const { user, addToast, demoMode } = useStore();
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
+    const { MockDataService } = require('../services/mockDataService');
 
     const fetchUsers = useCallback(async () => {
         if (!user?.organizationId) return;
         setLoading(true);
+
+        if (demoMode) {
+            const mockUsers = MockDataService.getCollection('users');
+            const mockInvites = MockDataService.getCollection('invitations');
+            const mockRequests = MockDataService.getCollection('join_requests');
+
+            // Simulate structure matching Promise.allSettled logic roughly or just set state
+            setUsers([...mockUsers, ...mockInvites] as UserProfile[]);
+            setJoinRequests(mockRequests as JoinRequest[]);
+            setLoading(false);
+            return;
+        }
+
         try {
             const results = await Promise.allSettled([
                 getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId), limit(100))),
@@ -61,10 +77,17 @@ export const useTeamManagement = () => {
         } finally {
             setLoading(false);
         }
-    }, [user?.organizationId]);
+    }, [user?.organizationId, demoMode]);
 
     const fetchRoles = useCallback(async () => {
         if (!user?.organizationId) return;
+
+        if (demoMode) {
+            const mock = MockDataService.getCollection('custom_roles');
+            setCustomRoles(mock as CustomRole[]);
+            return;
+        }
+
         try {
             const q = query(collection(db, 'custom_roles'), where('organizationId', '==', user.organizationId));
             const snapshot = await getDocs(q);
@@ -72,7 +95,7 @@ export const useTeamManagement = () => {
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error as Error, 'useTeamManagement.fetchRoles');
         }
-    }, [user?.organizationId]);
+    }, [user?.organizationId, demoMode]);
 
     useEffect(() => {
         fetchUsers();
@@ -81,6 +104,21 @@ export const useTeamManagement = () => {
 
     const inviteUser = async (data: UserFormData, silent = false) => {
         if (!user?.organizationId) return false;
+
+        if (demoMode) {
+            addToast(t("team.invite.success"), "success");
+            setUsers(prev => [...prev, {
+                uid: `mock-invite-${Date.now()}`,
+                email: data.email,
+                role: data.role,
+                displayName: data.displayName,
+                department: data.department,
+                organizationId: user.organizationId,
+                isPending: true
+            } as UserProfile]);
+            return true;
+        }
+
         try {
             // Check plan limits
             const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', users.length);

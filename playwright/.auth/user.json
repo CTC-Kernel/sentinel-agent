@@ -1,1 +1,80 @@
-{"cookies":[],"origins":[]}
+{
+  "cookies": [
+    {
+      "name": "_ga",
+      "value": "GA1.1.1936722278.1767132491",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1801692492.816574,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_2MLLGDZ6GP",
+      "value": "GS2.1.s1767132491$o1$g1$t1767132492$j59$l0$h0",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1801692492.838333,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:8080",
+      "localStorage": [
+        {
+          "name": "i18nextLng",
+          "value": "en-US"
+        },
+        {
+          "name": "firestore_online_state_firestore/[DEFAULT]/sentinel-grc-a8701/",
+          "value": "{\"clientId\":\"9YnapCwZgkqHUxzkWI24\",\"onlineState\":\"Online\"}"
+        },
+        {
+          "name": "demoMode",
+          "value": "true"
+        },
+        {
+          "name": "firestore_sequence_number_firestore/[DEFAULT]/sentinel-grc-a8701/",
+          "value": "28"
+        },
+        {
+          "name": "E2E_TEST_USER",
+          "value": "{\"uid\":\"e2e-user-123\",\"email\":\"e2e@sentinel.com\",\"displayName\":\"E2E Sentinel\",\"emailVerified\":true,\"photoURL\":null,\"organizationId\":\"org_default\",\"role\":\"admin\",\"onboardingCompleted\":true}"
+        },
+        {
+          "name": "firestore_clients_firestore/[DEFAULT]/sentinel-grc-a8701/_9YnapCwZgkqHUxzkWI24",
+          "value": "{\"activeTargetIds\":[2,4,6,8,10,12,14,16,18,20],\"updateTimeMs\":1767132492978}"
+        },
+        {
+          "name": "onboarding_completed",
+          "value": "true"
+        },
+        {
+          "name": "app_logs",
+          "value": "[{\"type\":\"warning\",\"timestamp\":\"2025-12-30T22:08:10.827Z\",\"context\":\"appConfig.ts\",\"message\":\"VITE_APP_BASE_URL is not defined. APP_BASE_URL will be empty and email links may be relative only.\"},{\"type\":\"warning\",\"timestamp\":\"2025-12-30T22:08:11.864Z\",\"context\":\"appConfig.ts\",\"message\":\"VITE_APP_BASE_URL is not defined. APP_BASE_URL will be empty and email links may be relative only.\"},{\"type\":\"info\",\"timestamp\":\"2025-12-30T22:08:12.103Z\",\"context\":\"AuthContext\",\"message\":\"E2E Test Mode: Bypass Auth enabled\"},{\"type\":\"info\",\"timestamp\":\"2025-12-30T22:08:12.103Z\",\"context\":\"AuthContext\",\"message\":\"E2E Mode: Using mock profile without Firestore\"},{\"type\":\"info\",\"timestamp\":\"2025-12-30T22:08:12.105Z\",\"context\":\"AuthContext\",\"message\":\"E2E Test Mode: Bypass Auth enabled\"},{\"type\":\"info\",\"timestamp\":\"2025-12-30T22:08:12.105Z\",\"context\":\"AuthContext\",\"message\":\"E2E Mode: Using mock profile without Firestore\"}]"
+        },
+        {
+          "name": "onboarding_dismissed",
+          "value": "true"
+        },
+        {
+          "name": "language",
+          "value": "fr"
+        }
+      ]
+    },
+    {
+      "origin": "https://www.google.com",
+      "localStorage": [
+        {
+          "name": "rc::a",
+          "value": "MXFzbDF2ZzFqeXZ1dnI="
+        }
+      ]
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import { ProcessingActivity, UserProfile, Asset, Risk, SystemLog } from '../type
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { PrivacyService } from '../services/PrivacyService';
+import { MockDataService } from '../services/mockDataService';
 
 export function usePrivacy() {
     const { user, addToast } = useStore();
@@ -26,27 +27,43 @@ export function usePrivacy() {
 
     // Initial Fetch
     const fetchData = useCallback(async () => {
-        if (!user?.organizationId) return;
+        // Allow fetch in demo mode even if no org ID (or use mock org)
+        if (!user?.organizationId && !useStore.getState().demoMode) return;
+
         setLoading(true);
         try {
-            // Use PrivacyService for activities
-            const fetchedActivities = await PrivacyService.fetchActivities(user.organizationId);
+            const isDemo = useStore.getState().demoMode;
+            let fetchedActivities: ProcessingActivity[] = [];
+            let loadedUsers: UserProfile[] = [];
+            let loadedAssets: Asset[] = [];
+            let loadedRisks: Risk[] = [];
 
-            // Fetch other dependencies directly for now (could be moved to services)
-            // Note: keeping reads here is usually low risk for 'client side security' checks
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId), limit(100))),
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId), limit(500))),
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId), limit(500)))
-            ]);
+            if (isDemo) {
+                // Load from MockDataService
+                fetchedActivities = MockDataService.getCollection('activities') as ProcessingActivity[];
+                loadedUsers = MockDataService.getCollection('users') as unknown as UserProfile[];
+                loadedAssets = MockDataService.getCollection('assets') as Asset[];
+                loadedRisks = MockDataService.getCollection('risks') as Risk[];
+            } else {
+                if (!user?.organizationId) return;
+                // Use PrivacyService for activities
+                fetchedActivities = await PrivacyService.fetchActivities(user.organizationId);
 
-            const usersSnapshot = results[0].status === 'fulfilled' ? results[0].value : { docs: [] };
-            const assetsSnapshot = results[1].status === 'fulfilled' ? results[1].value : { docs: [] };
-            const risksSnapshot = results[2].status === 'fulfilled' ? results[2].value : { docs: [] };
+                // Fetch other dependencies directly for now
+                const results = await Promise.allSettled([
+                    getDocs(query(collection(db, 'users'), where('organizationId', '==', user!.organizationId), limit(100))),
+                    getDocs(query(collection(db, 'assets'), where('organizationId', '==', user!.organizationId), limit(500))),
+                    getDocs(query(collection(db, 'risks'), where('organizationId', '==', user!.organizationId), limit(500)))
+                ]);
 
-            const loadedUsers = usersSnapshot.docs.map(doc => doc.data() as UserProfile);
-            const loadedAssets = assetsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Asset));
-            const loadedRisks = risksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Risk));
+                const usersSnapshot = results[0].status === 'fulfilled' ? results[0].value : { docs: [] };
+                const assetsSnapshot = results[1].status === 'fulfilled' ? results[1].value : { docs: [] };
+                const risksSnapshot = results[2].status === 'fulfilled' ? results[2].value : { docs: [] };
+
+                loadedUsers = usersSnapshot.docs.map(doc => doc.data() as UserProfile);
+                loadedAssets = assetsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Asset));
+                loadedRisks = risksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Risk));
+            }
 
             // Resolve managerId
             const resolvedData = fetchedActivities.map(a => {

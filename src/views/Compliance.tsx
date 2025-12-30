@@ -192,6 +192,7 @@ export const Compliance: React.FC = () => {
                                 controls={filteredControls}
                                 currentFramework={currentFramework}
                                 onSeedData={() => seedControls(currentFramework)}
+                                loading={loading}
                             />
                         </div>
                     )}

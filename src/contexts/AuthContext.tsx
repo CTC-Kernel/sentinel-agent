@@ -180,6 +180,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 return;
             }
 
+            // E2E/Demo Mode Bypass for Profile Loading
+            // If we are in E2E mode, we skip Firestore interactions entirely
+            const e2eUserStr = import.meta.env.DEV ? localStorage.getItem('E2E_TEST_USER') : null;
+            if (e2eUserStr && u.uid === JSON.parse(e2eUserStr).uid) {
+                ErrorLogger.info('E2E Mode: Using mock profile without Firestore', 'AuthContext');
+                const userData = JSON.parse(e2eUserStr) as UserProfile;
+                setUser(userData);
+
+                // Set Organization if present
+                if (userData.organizationId) {
+                    setOrganization({
+                        id: userData.organizationId,
+                        name: 'Sentinel Demo Org',
+                        siret: '00000000000000',
+                        subscriptionPlan: 'enterprise',
+                        members: [],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        slug: 'sentinel-demo',
+                        ownerId: userData.uid,
+                        subscription: {
+                            status: 'active',
+                            planId: 'enterprise',
+                            currentPeriodEnd: new Date(2099, 11, 31).toISOString(),
+                            stripeCustomerId: 'cus_demo',
+                            cancelAtPeriodEnd: false
+                        }
+                    } as Organization);
+                }
+
+                // Allow sidebar to access roles
+                if (userData.role === 'admin') {
+                    // Mock custom roles or other things if needed
+                }
+
+                setClaimsSynced(true);
+                setLoading(false);
+                return;
+            }
+
             setLoading(true);
 
             try {
@@ -369,30 +409,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         };
 
-        const unsubscribeAuth = onIdTokenChanged(auth, async (user) => {
-            // Prevent infinite loops: We must update the ref SYNCHRONOUSLY here.
-            // Waiting for useEffect or state updates causes a race condition where
-            // rapid token refreshes trigger handleUser() multiple times.
-            const currentUid = firebaseUserUidRef.current;
-            const newUid = user?.uid;
-
-            // IMMEDIATE UPDATE
-            firebaseUserUidRef.current = newUid;
-
-            if (currentUid === newUid && newUid) {
-                // Token refreshed but same user identity.
-                setFirebaseUser(user);
-                return;
-            }
-
-            await handleUser(user);
-        });
-
         const handleOnline = () => enableNetwork(db);
         const handleOffline = () => disableNetwork(db);
 
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
+
+        // E2E Test Bypass
+        // Check if we are in DEV mode and if a special E2E flag is set in localStorage
+        const e2eUserStr = import.meta.env.DEV ? localStorage.getItem('E2E_TEST_USER') : null;
+
+        let unsubscribeAuth = () => { };
+
+        if (e2eUserStr) {
+            try {
+                const e2eUser = JSON.parse(e2eUserStr);
+                // Mock the Firebase User methods
+                const mockUser = {
+                    ...e2eUser,
+                    getIdToken: async () => "mock-token",
+                    getIdTokenResult: async () => ({ claims: { organizationId: e2eUser.organizationId || 'org_default' } }),
+                    reload: async () => { },
+                    toJSON: () => e2eUser
+                };
+
+                ErrorLogger.info('E2E Test Mode: Bypass Auth enabled', 'AuthContext');
+
+                // Simulate "auth state changed" with the mock user
+                handleUser(mockUser as unknown as User);
+
+                // We don't subscribe to real auth in this mode
+            } catch (e) {
+                console.error("Failed to parse E2E user", e);
+                unsubscribeAuth = onIdTokenChanged(auth, async (user) => {
+                    // Prevent infinite loops: We must update the ref SYNCHRONOUSLY here.
+                    const currentUid = firebaseUserUidRef.current;
+                    const newUid = user?.uid;
+                    firebaseUserUidRef.current = newUid;
+
+                    if (currentUid === newUid && newUid) {
+                        setFirebaseUser(user);
+                        return;
+                    }
+                    await handleUser(user);
+                });
+            }
+        } else {
+            unsubscribeAuth = onIdTokenChanged(auth, async (user) => {
+                // Prevent infinite loops: We must update the ref SYNCHRONOUSLY here.
+                const currentUid = firebaseUserUidRef.current;
+                const newUid = user?.uid;
+                firebaseUserUidRef.current = newUid;
+
+                if (currentUid === newUid && newUid) {
+                    setFirebaseUser(user);
+                    return;
+                }
+                await handleUser(user);
+            });
+        }
 
         return () => {
             clearTimeout(safetyTimeout);

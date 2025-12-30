@@ -481,6 +481,7 @@ const Assets: React.FC = () => {
                     suppliers={suppliers}
                     processes={processes}
                     canEdit={canEdit}
+                    onDelete={handleDeleteClick}
                 />
 
                 {/* Import Modal */}

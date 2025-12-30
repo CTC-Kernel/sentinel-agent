@@ -88,7 +88,7 @@ export const useStore = create<AppState>((set) => ({
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 
-  demoMode: import.meta.env.DEV && localStorage.getItem('demoMode') === 'true',
+  demoMode: (import.meta.env.DEV || !!localStorage.getItem('E2E_TEST_USER')) && localStorage.getItem('demoMode') === 'true',
   toggleDemoMode: () => set((state) => {
     if (!import.meta.env.DEV) {
       if (state.demoMode) {
