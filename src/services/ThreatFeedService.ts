@@ -141,7 +141,8 @@ export class ThreatFeedService {
             }));
 
         } catch (error) {
-            ErrorLogger.warn('Failed to fetch CISA KEV', 'ThreatFeedService.fetchCisaKev', { metadata: { error } });
+            // Log quietly to avoid spamming the console for free proxy limits related errors
+            console.warn('[ThreatFeedService] Failed to fetch CISA KEV via proxies:', error);
             return [];
         }
     }
@@ -171,7 +172,8 @@ export class ThreatFeedService {
             }));
 
         } catch (error) {
-            ErrorLogger.warn("Failed to fetch URLhaus", 'ThreatFeedService.fetchUrlHaus', { metadata: { error } });
+            // Log quietly to avoid spamming the console for free proxy limits related errors
+            console.warn('[ThreatFeedService] Failed to fetch URLhaus via proxies:', error);
             return [];
         }
     }
