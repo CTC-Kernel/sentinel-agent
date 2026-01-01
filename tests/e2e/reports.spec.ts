@@ -3,9 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Reports Module', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/#/reports');
-        await page.addLocatorHandler(page.getByRole('button', { name: /Start Tour|Commencer/i }), async (overlay) => {
-            await overlay.click({ force: true });
-        });
+
         await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
             await overlay.click({ force: true });
         });

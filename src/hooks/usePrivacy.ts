@@ -5,7 +5,7 @@ import { ProcessingActivity, UserProfile, Asset, Risk, SystemLog } from '../type
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { PrivacyService } from '../services/PrivacyService';
-import { MockDataService } from '../services/mockDataService';
+
 
 export function usePrivacy() {
     const { user, addToast } = useStore();
@@ -40,10 +40,41 @@ export function usePrivacy() {
 
             if (isDemo) {
                 // Load from MockDataService
-                fetchedActivities = MockDataService.getCollection('activities') as ProcessingActivity[];
-                loadedUsers = MockDataService.getCollection('users') as unknown as UserProfile[];
-                loadedAssets = MockDataService.getCollection('assets') as Asset[];
-                loadedRisks = MockDataService.getCollection('risks') as Risk[];
+                import('../services/mockDataService').then(({ MockDataService }) => {
+                    const fetchedActivities = MockDataService.getCollection('activities') as ProcessingActivity[];
+                    const loadedUsers = MockDataService.getCollection('users') as unknown as UserProfile[];
+                    const loadedAssets = MockDataService.getCollection('assets') as Asset[];
+                    const loadedRisks = MockDataService.getCollection('risks') as Risk[];
+
+                    // Resolve managerId
+                    const resolvedData = fetchedActivities.map(a => {
+                        if (!a.managerId && a.manager) {
+                            const managerUser = loadedUsers.find(u => u.displayName === a.manager);
+                            if (managerUser) return { ...a, managerId: managerUser.uid };
+                        }
+                        return a;
+                    });
+                    resolvedData.sort((a, b) => a.name.localeCompare(b.name));
+
+                    setActivities(resolvedData);
+                    setUsersList(loadedUsers);
+                    setAssetsList(loadedAssets);
+                    setRisksList(loadedRisks);
+
+                    // Calculate Stats
+                    const total = resolvedData.length;
+                    const sensitive = resolvedData.filter(a => a.dataCategories.some(c => ['Santé (Sensible)', 'Biométrique', 'Judiciaire'].includes(c))).length;
+                    const dpiaMissing = resolvedData.filter(a => a.dataCategories.some(c => ['Santé (Sensible)', 'Biométrique', 'Judiciaire'].includes(c)) && !a.hasDPIA).length;
+                    const review = resolvedData.filter(a => a.status !== 'Actif').length;
+
+                    setStats({ total, sensitive, dpiaMissing, review });
+                    setStats({ total, sensitive, dpiaMissing, review });
+                    setLoading(false);
+                }).catch(err => {
+                    console.error('Failed to load mock data module', err);
+                    setLoading(false);
+                });
+                return;
             } else {
                 if (!user?.organizationId) return;
                 // Use PrivacyService for activities

@@ -87,6 +87,11 @@ export const useDashboardData = (): DashboardData => {
                 setActiveIncidentsCount(5);
                 setOpenAuditsCount(2);
                 setManualLoading(false);
+                setManualLoading(false);
+            }).catch(err => {
+                console.error('Failed to load mock data module', err);
+                if (!isMounted) return;
+                setManualLoading(false);
             });
         }
         return () => { isMounted = false; };

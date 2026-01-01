@@ -18,6 +18,12 @@ import { UserProfile } from '../types';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
+
+const riskGuidelines = {
+    required: ['menace', 'probabilite', 'gravite', 'strategie'],
+    optional: ['description', 'vulnerabilite', 'statut', 'proprietaire'],
+    format: 'CSV'
+};
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { CsvParser } from '../utils/csvUtils';
 
@@ -168,11 +174,7 @@ export const Risks: React.FC = () => {
     // Import Logic
     const [importModalOpen, setImportModalOpen] = useState(false);
 
-    const riskGuidelines = {
-        required: ['menace', 'probabilite', 'gravite', 'strategie'],
-        optional: ['description', 'vulnerabilite', 'statut', 'proprietaire'],
-        format: 'CSV'
-    };
+
 
     const handleDownloadTemplate = React.useCallback(() => {
         const headers = [...riskGuidelines.required, ...riskGuidelines.optional];

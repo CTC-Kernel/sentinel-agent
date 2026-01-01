@@ -174,9 +174,22 @@ export const MockDataService = {
                     {
                         id: 'audit-1',
                         name: 'Audit Interne ISO 27001',
-                        status: 'In Progress',
-                        date: new Date().toISOString(),
-                        auditor: 'Jean Dupont'
+                        type: 'Interne',
+                        status: 'En cours',
+                        dateScheduled: new Date().toISOString(),
+                        auditor: 'Jean Dupont',
+                        organizationId: 'org_default',
+                        findingsCount: 5
+                    },
+                    {
+                        id: 'audit-2',
+                        name: 'Audit Fournisseur AWS',
+                        type: 'Externe',
+                        status: 'Planifié',
+                        dateScheduled: new Date(Date.now() + 86400000).toISOString(),
+                        auditor: 'Alice Security',
+                        organizationId: 'org_default',
+                        findingsCount: 0
                     }
                 ];
             case 'vulnerabilities':

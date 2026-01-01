@@ -83,7 +83,7 @@ const stableConstraintKey = (c: QueryConstraint): string => {
 
 
 import { useStore } from '../store';
-import { MockDataService } from '../services/mockDataService';
+
 
 export const useFirestoreCollection = <T = DocumentData>(
     collectionName: string,
@@ -92,22 +92,8 @@ export const useFirestoreCollection = <T = DocumentData>(
 ): UseFirestoreReturn<T & { id: string }> => {
     const { demoMode } = useStore();
 
-    // DEMO MODE BYPASS
-    if (demoMode) {
-        const mockData = MockDataService.getCollection(collectionName) as (T & { id: string })[];
-        return {
-            data: mockData,
-            loading: false,
-            error: null,
-            refresh: async () => { },
-            add: async () => "mock-id-" + Date.now(),
-            update: async () => { },
-            remove: async () => { }
-        };
-    }
-
     const [realtimeData, setRealtimeData] = useState<(T & { id: string })[]>([]);
-    const [realtimeLoading, setRealtimeLoading] = useState(options.enabled !== false);
+    const [realtimeLoading, setRealtimeLoading] = useState(options.enabled !== false && !demoMode);
     const [realtimeError, setRealtimeError] = useState<Error | null>(null);
     const [realtimeFailed, setRealtimeFailed] = useState(false);
 
@@ -132,6 +118,7 @@ export const useFirestoreCollection = <T = DocumentData>(
     const shouldUseRealtime = realtime && !realtimeFailed;
 
     // React Query implementation for non-realtime
+    // React Query implementation
     const {
         data: queryData,
         isLoading: queryLoading,
@@ -146,22 +133,34 @@ export const useFirestoreCollection = <T = DocumentData>(
                 return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
             } catch (err) {
                 const errorObj = err instanceof Error ? err : new Error(String(err));
-                if (logError) {
-                    ErrorLogger.error(errorObj, `useFirestoreCollection.fetchData.${collectionName}`);
-                }
+                if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.fetchData.${collectionName}`);
                 throw errorObj;
             }
         },
-        enabled: isEnabled && !shouldUseRealtime,
-        // Don't refetch on window focus for firestore usually to save reads, but can be configured
-        staleTime: 1000 * 60 * 5 // 5 minutes default
+        enabled: isEnabled && !shouldUseRealtime && !demoMode,
+        staleTime: 1000 * 60 * 5
     });
+
+    // Mock Data Loading (Demo Mode)
+    useEffect(() => {
+        if (demoMode && isEnabled) {
+            setRealtimeLoading(true);
+            import('../services/mockDataService').then(module => {
+                const mockData = module.MockDataService.getCollection(collectionName) as (T & { id: string })[];
+                setRealtimeData(mockData);
+                setRealtimeLoading(false);
+            }).catch(err => {
+                console.error('Failed to load mock data', err);
+                setRealtimeLoading(false);
+            });
+        }
+    }, [demoMode, collectionName, isEnabled]);
 
     // Realtime implementation
     useEffect(() => {
-        if (!isEnabled || !shouldUseRealtime) {
-            if (!shouldUseRealtime) {
-                setTimeout(() => setRealtimeLoading(false), 0);
+        if (!isEnabled || !shouldUseRealtime || demoMode) {
+            if (!shouldUseRealtime && !demoMode) {
+                // If checking queryMode, we might need to reset loading if not strict
             }
             return;
         }
@@ -169,6 +168,7 @@ export const useFirestoreCollection = <T = DocumentData>(
         // Avoid synchronous state update warning
         setTimeout(() => setRealtimeLoading(true), 0);
 
+        // ... (existing realtime logic) ...
         let timeoutId: number | null = null;
         timeoutId = window.setTimeout(() => {
             setRealtimeFailed(true);
@@ -185,19 +185,14 @@ export const useFirestoreCollection = <T = DocumentData>(
             },
             (err: unknown) => {
                 const errorObj = err instanceof Error ? err : new Error(String(err));
-
-                // Suppress 'permission-denied' errors if user is logged out (race condition on signout)
                 const code = (errorObj as { code?: string }).code;
                 const isPermissionError = code === 'permission-denied' || errorObj.message.includes('permission-denied');
 
                 if (isPermissionError) {
-                    // Gracefully handle logout race condition
-                    // If auth.currentUser is null, OR we are in a transition state, suppress.
                     if (!auth.currentUser) {
                         setRealtimeLoading(false);
                         return;
                     }
-                    // Optional: could add a check for 'isBlocked' from store if available, but hooks are decoupled.
                 }
 
                 setRealtimeError(errorObj);
@@ -213,13 +208,14 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (timeoutId !== null) window.clearTimeout(timeoutId);
             unsubscribe();
         };
-    }, [collectionName, constraintsKey, shouldUseRealtime, isEnabled, logError]); // constraintsRef is stable
+    }, [collectionName, constraintsKey, shouldUseRealtime, isEnabled, logError, demoMode]);
 
     const add = useCallback(async (newData: WithFieldValue<DocumentData>) => {
+        if (demoMode) return "mock-id-" + Date.now();
+        // ... (existing add) ...
         try {
             const docRef = await addDoc(collection(db, collectionName), newData);
             if (!realtime) {
-                // Invalidate query to trigger refetch
                 await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
             }
             return docRef.id;
@@ -228,9 +224,10 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.add.${collectionName}`);
             throw errorObj;
         }
-    }, [collectionName, logError, queryClient, realtime]);
+    }, [collectionName, logError, queryClient, realtime, demoMode]);
 
     const update = useCallback(async (id: string, updateData: UpdateData<DocumentData>) => {
+        if (demoMode) return;
         try {
             const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, updateData);
@@ -242,9 +239,10 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.update.${collectionName}`);
             throw errorObj;
         }
-    }, [collectionName, logError, queryClient, realtime]);
+    }, [collectionName, logError, queryClient, realtime, demoMode]);
 
     const remove = useCallback(async (id: string) => {
+        if (demoMode) return;
         try {
             const docRef = doc(db, collectionName, id);
             await deleteDoc(docRef);
@@ -256,14 +254,25 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.remove.${collectionName}`);
             throw errorObj;
         }
-    }, [collectionName, logError, queryClient, realtime]);
+    }, [collectionName, logError, queryClient, realtime, demoMode]);
 
     // Stable refresh function
     const refresh = useCallback(async () => {
+        if (demoMode) return;
         if (!realtime) await refetch();
-    }, [realtime, refetch]);
+    }, [realtime, refetch, demoMode]);
 
-    // Return logic: if realtime, use local state; otherwise use query state
+    // Return logic
+    if (demoMode) {
+        return {
+            data: realtimeData,
+            loading: realtimeLoading,
+            error: null,
+            refresh,
+            add, update, remove
+        };
+    }
+
     if (shouldUseRealtime) {
         return {
             data: realtimeData,

@@ -6,6 +6,7 @@ import { AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContai
 import { ChartTooltip } from '../../ui/ChartTooltip';
 import { DashboardCard } from '../DashboardCard';
 import { EmptyChartState } from '../../ui/EmptyChartState';
+import i18n from '../../../i18n';
 
 interface ComplianceEvolutionWidgetProps {
     historyData: { date: string; compliance: number }[];
@@ -62,7 +63,7 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
             expandable={true}
             className="lg:col-span-2 min-h-[400px]"
             headerAction={
-                <div className="flex bg-slate-100 dark:bg-white/5 rounded-lg p-1 gap-1 cursor-default hover:bg-slate-200 dark:hover:bg-white/10 transition-colors" onClick={(e) => e.stopPropagation()} role="group" aria-label="Sélection de la période">
+                <div className="flex bg-slate-100 dark:bg-white/5 rounded-lg p-1 gap-1 cursor-default hover:bg-slate-200 dark:hover:bg-white/10 transition-colors" onClick={(e) => e.stopPropagation()} role="group" aria-label={t('dashboard.selectPeriod')}>
                     {(['30d', '90d', '1y', 'all'] as const).map(range => (
                         <button
                             key={range}
@@ -105,7 +106,7 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                                     axisLine={false}
                                     tickLine={false}
                                     dy={10}
-                                    tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                                    tickFormatter={(value) => new Date(value).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit' })}
                                 />
                                 <YAxis hide={!isExpanded} domain={[0, 100]} tick={{ fontSize: 11, fill: chartColors.text }} axisLine={false} tickLine={false} />
                                 <Tooltip content={<ChartTooltip />} cursor={{ stroke: chartColors.stroke, strokeWidth: 1, strokeDasharray: '4 4', fill: chartColors.cursor }} />

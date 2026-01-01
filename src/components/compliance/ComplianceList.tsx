@@ -58,6 +58,8 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
         case 'NIST_CSF': domains = NIST_CSF_DOMAINS; break;
     }
 
+    console.log('ComplianceList: rendering with controls:', controls.length, 'loading:', loading);
+
     if (loading) {
         return (
             <div className="space-y-4">
@@ -138,6 +140,7 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
                                         return (
                                             <div
                                                 key={control.id}
+                                                data-testid={`control-row-${control.code}`}
                                                 onClick={() => onSelectControl(control)}
                                                 className={`group relative p-4 rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden hover:shadow-md ${isActive
                                                     ? 'bg-brand-50/50 border-brand-200 dark:bg-brand-900/20 dark:border-brand-800'

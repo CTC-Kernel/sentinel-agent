@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useStore } from '../../store';
 import {
     Edit2, Trash2, HeartPulse, Clock, Server, Truck,
     AlertTriangle, Zap, Activity, History
@@ -23,6 +24,7 @@ interface ProcessInspectorProps {
 export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
     process, isOpen, onClose, onEdit, onDelete, assets, suppliers, risks, drills
 }) => {
+    const { t } = useStore();
     // Note: 'any' cast used for setInspectorTab to avoid strict generic matching issues with the layout component,
     // though the types align.
     const [inspectorTab, setInspectorTab] = useState<'details' | 'dependencies' | 'drills' | 'history'>('details');
@@ -50,10 +52,10 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
     };
 
     const tabs = [
-        { id: 'details', label: "Vue d'ensemble", icon: Activity },
-        { id: 'dependencies', label: "Dépendances", icon: Server },
-        { id: 'drills', label: "Exercices", icon: Zap },
-        { id: 'history', label: "Historique", icon: History },
+        { id: 'details', label: t('common.overview'), icon: Activity },
+        { id: 'dependencies', label: t('common.dependencies'), icon: Server },
+        { id: 'drills', label: t('continuity.tabs.drills'), icon: Zap },
+        { id: 'history', label: t('common.history'), icon: History },
     ];
 
     return (
@@ -61,7 +63,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
             isOpen={isOpen}
             onClose={handleClose}
             title={process.name}
-            subtitle={`Géré par ${process.owner}`}
+            subtitle={`${t('common.managedBy')} ${process.owner}`}
             icon={HeartPulse}
             statusBadge={
                 <Badge
@@ -99,7 +101,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                                 </div>
                                 <div className="flex items-center gap-2 mb-2">
                                     <Clock className="h-4 w-4 text-slate-500" />
-                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">RTO (Objectif Temps)</span>
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('continuity.rto')}</span>
                                 </div>
                                 <span className="text-3xl font-black text-slate-900 dark:text-white">{process.rto}</span>
                             </div>
@@ -109,7 +111,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                                 </div>
                                 <div className="flex items-center gap-2 mb-2">
                                     <Activity className="h-4 w-4 text-slate-500" />
-                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">RPO (Perte Données)</span>
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('continuity.rpo')}</span>
                                 </div>
                                 <span className="text-3xl font-black text-slate-900 dark:text-white">{process.rpo}</span>
                             </div>
@@ -117,13 +119,13 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
 
                         {/* Description */}
                         <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Description</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">{t('common.description')}</h3>
                             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{process.description}</p>
                         </div>
 
                         {/* Recovery Tasks */}
                         <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Plan de Reprise (Étapes)</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">{t('continuity.recoveryPlan')}</h3>
                             <div className="space-y-3">
                                 {process.recoveryTasks?.length ? process.recoveryTasks.map((task, i) => (
                                     <div key={`dep-${i}`} className="flex gap-4 p-4 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5 group hover:border-brand-200 dark:hover:border-brand-800 transition-colors">
@@ -144,7 +146,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                                             </div>
                                         </div>
                                     </div>
-                                )) : <p className="text-sm text-slate-500 italic">Aucune étape définie</p>}
+                                )) : <p className="text-sm text-slate-500 italic">{t('continuity.noSteps')}</p>}
                             </div>
                         </div>
                     </div>
@@ -155,7 +157,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                         {/* Assets */}
                         <div>
                             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
-                                <Server className="h-4 w-4" /> Actifs Support ({linkedAssets.length})
+                                <Server className="h-4 w-4" /> {t('continuity.assetsSupport')} ({linkedAssets.length})
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {linkedAssets.length > 0 ? linkedAssets.map(a => (
@@ -170,7 +172,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                         {/* Suppliers */}
                         <div>
                             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
-                                <Truck className="h-4 w-4" /> Fournisseurs ({linkedSuppliers.length})
+                                <Truck className="h-4 w-4" /> {t('common.suppliers')} ({linkedSuppliers.length})
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {linkedSuppliers.length > 0 ? linkedSuppliers.map(s => (
@@ -185,7 +187,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                         {/* Risks */}
                         <div>
                             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
-                                <AlertTriangle className="h-4 w-4" /> Risques Associés ({linkedRisks.length})
+                                <AlertTriangle className="h-4 w-4" /> {t('common.associatedRisks')} ({linkedRisks.length})
                             </h3>
                             <div className="grid gap-3">
                                 {linkedRisks.length > 0 ? linkedRisks.map(r => (
@@ -204,7 +206,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                 {inspectorTab === 'drills' && (
                     <div className="space-y-6">
                         <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">Exercices Récents</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">{t('continuity.recentDrills')}</h3>
                             {/* Optional: Add button to log new drill if needed inside inspector */}
                         </div>
 
@@ -230,7 +232,7 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
                         ) : (
                             <div className="flex flex-col items-center justify-center py-12 text-slate-400 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl">
                                 <Zap className="h-8 w-8 mb-2 opacity-50" />
-                                <p className="text-sm">Aucun exercice enregistré pour ce processus.</p>
+                                <p className="text-sm">{t('continuity.noDrills')}</p>
                             </div>
                         )}
                     </div>

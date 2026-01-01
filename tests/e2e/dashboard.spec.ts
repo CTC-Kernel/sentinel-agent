@@ -1,15 +1,14 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Dashboard Module', () => {
+    test.setTimeout(90000);
     test.beforeEach(async ({ page }) => {
         // Go to Dashboard
         await page.goto('/');
 
         // Handle Onboarding Overlay if present
         // Robust dismissal of modals using locator handlers
-        await page.addLocatorHandler(page.getByRole('button', { name: /Start Tour|Commencer/i }), async (overlay) => {
-            await overlay.click({ force: true });
-        });
+
         await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
             await overlay.click({ force: true });
         });

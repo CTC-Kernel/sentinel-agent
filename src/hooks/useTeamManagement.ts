@@ -12,7 +12,8 @@ import { getInvitationTemplate } from '../services/emailTemplates';
 import { logAction } from '../services/logger';
 import { SubscriptionService } from '../services/subscriptionService';
 import { CsvParser } from '../utils/csvUtils';
-import { useTranslation } from 'react-i18next'; // Added import
+import { useTranslation } from 'react-i18next';
+
 
 export const useTeamManagement = () => {
     const { t } = useTranslation(); // Added initialization
@@ -21,21 +22,27 @@ export const useTeamManagement = () => {
     const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
-    const { MockDataService } = require('../services/mockDataService');
+
 
     const fetchUsers = useCallback(async () => {
         if (!user?.organizationId) return;
         setLoading(true);
 
         if (demoMode) {
-            const mockUsers = MockDataService.getCollection('users');
-            const mockInvites = MockDataService.getCollection('invitations');
-            const mockRequests = MockDataService.getCollection('join_requests');
+            import('../services/mockDataService').then(({ MockDataService }) => {
+                const mockUsers = MockDataService.getCollection('users');
+                const mockInvites = MockDataService.getCollection('invitations');
+                const mockRequests = MockDataService.getCollection('join_requests');
 
-            // Simulate structure matching Promise.allSettled logic roughly or just set state
-            setUsers([...mockUsers, ...mockInvites] as UserProfile[]);
-            setJoinRequests(mockRequests as JoinRequest[]);
-            setLoading(false);
+                // Simulate structure matching Promise.allSettled logic roughly or just set state
+                setUsers([...mockUsers, ...mockInvites] as unknown as UserProfile[]);
+                setJoinRequests(mockRequests as JoinRequest[]);
+                setJoinRequests(mockRequests as JoinRequest[]);
+                setLoading(false);
+            }).catch(err => {
+                console.error('Failed to load mock data module', err);
+                setLoading(false);
+            });
             return;
         }
 
@@ -83,8 +90,12 @@ export const useTeamManagement = () => {
         if (!user?.organizationId) return;
 
         if (demoMode) {
-            const mock = MockDataService.getCollection('custom_roles');
-            setCustomRoles(mock as CustomRole[]);
+            import('../services/mockDataService').then(({ MockDataService }) => {
+                const mock = MockDataService.getCollection('custom_roles');
+                setCustomRoles(mock as CustomRole[]);
+            }).catch(err => {
+                console.error('Failed to load mock data module', err);
+            });
             return;
         }
 
