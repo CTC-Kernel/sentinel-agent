@@ -8,8 +8,13 @@ import { ErrorLogger } from '../../services/errorLogger';
 export const CookieConsent: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false);
     const [showLegalModal, setShowLegalModal] = useState(false);
+    const [isDemoMode, setIsDemoMode] = useState(false);
 
     useEffect(() => {
+        const demoModeEnabled = localStorage.getItem('demoMode') === 'true';
+        setIsDemoMode(demoModeEnabled);
+        if (demoModeEnabled) return;
+
         const consent = localStorage.getItem('sentinel_cookie_consent');
         if (!consent) {
             // Small delay for better UX
@@ -36,7 +41,8 @@ export const CookieConsent: React.FC = () => {
         }
     };
 
-    if (!isVisible) return <LegalModal isOpen={showLegalModal} onClose={() => setShowLegalModal(false)} initialTab="privacy" />;
+    if (isDemoMode || !isVisible)
+        return <LegalModal isOpen={showLegalModal} onClose={() => setShowLegalModal(false)} initialTab="privacy" />;
 
     return (
         <>

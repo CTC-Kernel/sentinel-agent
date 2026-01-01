@@ -53,10 +53,14 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onD
 };
 
 export const OnboardingTrigger: React.FC = () => {
-    const { user } = useStore();
+    const { user, demoMode } = useStore(state => ({ user: state.user, demoMode: state.demoMode }));
     const [showBanner, setShowBanner] = React.useState(false);
 
     useEffect(() => {
+        if (demoMode) {
+            setShowBanner(false);
+            return;
+        }
         // Show banner only if:
         // 1. User has completed the Setup Wizard (user.onboardingCompleted)
         // 2. User has NOT seen the Tour (localStorage)
@@ -71,7 +75,7 @@ export const OnboardingTrigger: React.FC = () => {
             const timer = setTimeout(() => setShowBanner(true), 2000);
             return () => clearTimeout(timer);
         }
-    }, [user?.onboardingCompleted]);
+    }, [user?.onboardingCompleted, demoMode]);
 
     const handleStart = () => {
         setShowBanner(false);
@@ -83,7 +87,7 @@ export const OnboardingTrigger: React.FC = () => {
         localStorage.setItem('tour-dismissed', 'true');
     };
 
-    if (!showBanner) {
+    if (demoMode || !showBanner) {
         return null;
     }
 
