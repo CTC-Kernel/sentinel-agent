@@ -26,7 +26,7 @@ test.describe('Dashboard Module', () => {
         // Check for any significant dashboard element (Welcome text OR Quick Actions container)
         try {
             await expect(page.getByText(/Bienvenue|Welcome/i).first()).toBeVisible({ timeout: 15000 });
-        } catch (e) {
+        } catch {
             // Fallback: check for Quick Actions container
             await expect(page.locator('[data-tour="quick-actions"]')).toBeVisible({ timeout: 15000 });
         }
