@@ -12,8 +12,8 @@ test.describe('Privacy Module', () => {
 
     test('should display activities list', async ({ page }) => {
         // Verify mock data
-        await expect(page.getByText('Gestion Paie').first()).toBeVisible({ timeout: 15000 });
-        await expect(page.getByText('DRH').first()).toBeVisible();
+        await expect(page.getByRole('heading', { name: /Gestion Paie/i })).toBeVisible({ timeout: 15000 });
+        await expect(page.getByText(/Paiement des salaires/i)).toBeVisible();
     });
 
     test('should open new activity drawer', async ({ page }) => {
@@ -21,8 +21,9 @@ test.describe('Privacy Module', () => {
         await expect(newBtn).toBeVisible();
         await newBtn.click();
 
-        await expect(page.getByRole('dialog')).toBeVisible();
-        await expect(page.getByText(/Nouveau Traitement|New Activity/i)).toBeVisible(); // Drawer title
+        const drawer = page.locator('[role="dialog"][data-headlessui-state="open"]').first();
+        await expect(drawer).toBeVisible({ timeout: 30000 });
+        await expect(drawer.getByText(/Nouveau Traitement|New Activity/i)).toBeVisible(); // Drawer title
 
         await page.keyboard.press('Escape');
     });

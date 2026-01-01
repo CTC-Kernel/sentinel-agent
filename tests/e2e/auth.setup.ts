@@ -31,6 +31,9 @@ setup('authenticate', async ({ page }) => {
         localStorage.setItem('language', 'fr'); // Force French for tests
         localStorage.setItem('onboarding_completed', 'true');
         localStorage.setItem('onboarding_dismissed', 'true');
+        localStorage.setItem('sentinel_cookie_consent', 'true'); // Dismiss cookie banner for deterministic UI
+        localStorage.setItem('tour-dismissed', 'true'); // Prevent onboarding banner overlay
+        localStorage.setItem('tour-seen', 'true');
     }, mockUser);
 
     // Reload to trigger AuthContext
