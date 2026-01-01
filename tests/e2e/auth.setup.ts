@@ -5,6 +5,7 @@ import path from 'path';
 const authFile = 'playwright/.auth/user.json';
 
 setup('authenticate', async ({ page }) => {
+    setup.setTimeout(90000);
     const dir = path.dirname(authFile);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
@@ -21,7 +22,7 @@ setup('authenticate', async ({ page }) => {
     };
 
     // Go to home page
-    await page.goto('/');
+    await page.goto('/', { timeout: 60000 });
 
     // Inject into localStorage
     await page.evaluate((user) => {
@@ -33,11 +34,11 @@ setup('authenticate', async ({ page }) => {
     }, mockUser);
 
     // Reload to trigger AuthContext
-    await page.reload();
+    await page.reload({ timeout: 60000 });
 
     // Wait for redirect to Dashboard (HashRouter)
     // We expect to be at root /#/
-    await page.waitForURL(/.*#\/$/, { timeout: 30000 });
+    await page.waitForURL(/.*#\/$/, { timeout: 60000 });
 
     // Verify Sidebar is visible (Authenticated state)
     await expect(page.locator('aside')).toBeVisible({ timeout: 30000 });

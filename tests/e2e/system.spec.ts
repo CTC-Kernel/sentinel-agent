@@ -3,9 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('System Administration Module', () => {
     test.beforeEach(async ({ page }) => {
         // Robust overlay dismissal
-        await page.addLocatorHandler(page.getByRole('button', { name: /Start Tour|Commencer/i }), async (overlay) => {
-            await overlay.click();
-        });
+
         await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
             await overlay.click();
         });

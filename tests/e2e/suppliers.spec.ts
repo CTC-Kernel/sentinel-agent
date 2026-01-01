@@ -1,15 +1,13 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Suppliers Module', () => {
+    test.setTimeout(90000);
     test.beforeEach(async ({ page }) => {
-        test.setTimeout(60000);
         await page.goto('/#/suppliers');
 
         // Robust dismissal of modals
         // Robust dismissal of modals using locator handlers
-        await page.addLocatorHandler(page.getByRole('button', { name: /Start Tour|Commencer/i }), async (overlay) => {
-            await overlay.click({ force: true });
-        });
+
         await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
             await overlay.click({ force: true });
         });

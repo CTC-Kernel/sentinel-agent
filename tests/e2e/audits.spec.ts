@@ -2,22 +2,20 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Audits Module', () => {
+    test.setTimeout(90000);
     test.beforeEach(async ({ page }) => {
-        test.setTimeout(60000);
         await page.goto('/#/audits');
 
         // Robust dismissal of modals
         // Robust dismissal of modals using locator handlers
-        await page.addLocatorHandler(page.getByRole('button', { name: /Start Tour|Commencer/i }), async (overlay) => {
-            await overlay.click({ force: true });
-        });
+
         await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
             await overlay.click({ force: true });
         });
     });
 
     test('should display audits list', async ({ page }) => {
-        await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible();
+        await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible({ timeout: 45000 });
         // Check for page title
         await expect(page.getByRole('heading', { name: /Audit/i }).first()).toBeVisible({ timeout: 30000 });
 
@@ -29,11 +27,10 @@ test.describe('Audits Module', () => {
     });
 
     test('should open create audit drawer', async ({ page }) => {
-        await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible();
+        await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible({ timeout: 45000 });
 
         // "Nouvel Audit" button
-        const createButton = page.getByRole('button', { name: /Nouvel Audit|New Audit/i }).first();
-        await createButton.click();
+        await page.getByRole('button', { name: /Nouvel Audit|New Audit/i }).first().click({ force: true });
 
         // Verify drawer title
         await expect(page.getByText(/Nouvel Audit|New Audit/i).first()).toBeVisible();

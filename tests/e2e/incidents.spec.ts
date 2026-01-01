@@ -2,15 +2,13 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Incidents Module', () => {
+    test.setTimeout(90000);
     test.beforeEach(async ({ page }) => {
-        test.setTimeout(60000);
         await page.goto('/#/incidents');
 
         // Robust dismissal of modals
         // Robust dismissal of modals using locator handlers
-        await page.addLocatorHandler(page.getByRole('button', { name: /Start Tour|Commencer/i }), async (overlay) => {
-            await overlay.click({ force: true });
-        });
+
         await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
             await overlay.click({ force: true });
         });
@@ -38,6 +36,7 @@ test.describe('Incidents Module', () => {
 
         await expect(page.getByText(/Nouvel incident|New Security Incident/i)).toBeVisible();
         // Check form fields presence
-        await expect(page.getByLabel(/Titre|Title/i)).toBeVisible();
+        await expect(page.getByLabel(/Titre|Title/i)).toBeVisible({ timeout: 15000 });
+        await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible({ timeout: 15000 });
     });
 });

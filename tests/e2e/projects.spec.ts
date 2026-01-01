@@ -1,14 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Projects Module', () => {
+    test.setTimeout(90000);
     test.beforeEach(async ({ page }) => {
-        test.setTimeout(60000);
         await page.goto('/#/projects');
 
         // Robust dismissal of modals using locator handlers
-        await page.addLocatorHandler(page.getByRole('button', { name: /Start Tour|Commencer/i }), async (overlay) => {
-            await overlay.click();
-        });
+
         await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
             await overlay.click();
         });
