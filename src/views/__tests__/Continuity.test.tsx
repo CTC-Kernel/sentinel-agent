@@ -4,6 +4,40 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Continuity } from '../Continuity';
 import { MemoryRouter } from 'react-router-dom';
 
+// Mock Firebase Firestore
+vi.mock('firebase/firestore', () => ({
+    __esModule: true,
+    ...vi.importActual('firebase/firestore'),
+    collection: vi.fn().mockReturnThis(),
+    query: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    orderBy: vi.fn().mockReturnThis(),
+    onSnapshot: vi.fn((_query, onNext) => {
+        onNext({
+            docs: [],
+            empty: true,
+            forEach: (callback: () => void) => { callback(); }
+        });
+        return () => ({}); // Return unsubscribe function
+    }),
+    doc: vi.fn().mockReturnThis(),
+    getDoc: vi.fn().mockResolvedValue({
+        exists: () => false,
+        data: () => ({}),
+        id: 'test-doc',
+    }),
+    getDocs: vi.fn().mockResolvedValue({
+        docs: [],
+        empty: true,
+        forEach: (callback: () => void) => { callback(); }
+    }),
+    setDoc: vi.fn().mockResolvedValue(undefined),
+    updateDoc: vi.fn().mockResolvedValue(undefined),
+    deleteDoc: vi.fn().mockResolvedValue(undefined),
+    addDoc: vi.fn().mockResolvedValue({ id: 'new-doc' }),
+    serverTimestamp: vi.fn(() => new Date().toISOString()),
+}));
+
 // ---------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------
@@ -112,6 +146,23 @@ vi.mock('../../components/continuity/ProcessInspector', () => ({
 }));
 vi.mock('../../utils/pdfGenerator', () => ({
     generateContinuityReport: vi.fn()
+}));
+
+// Mock useContinuityData
+vi.mock('../../hooks/continuity/useContinuityData', () => ({
+    useContinuityData: () => ({
+        processes: [
+            { id: 'p1', name: 'Process A', rto: '4h', rpo: '1h', status: 'Active' },
+            { id: 'p2', name: 'Process B', rto: '24h', rpo: '4h', status: 'Draft' }
+        ],
+        drills: [],
+        assets: [],
+        risks: [],
+        suppliers: [],
+        users: [],
+        incidents: [],
+        loading: false
+    })
 }));
 
 vi.mock('framer-motion', () => ({
