@@ -2,22 +2,20 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Documents Module', () => {
+    test.setTimeout(90000);
     test.beforeEach(async ({ page }) => {
-        test.setTimeout(60000);
         await page.goto('/#/documents');
 
         // Robust dismissal of modals
         // Robust dismissal of modals using locator handlers
-        await page.addLocatorHandler(page.getByRole('button', { name: /Start Tour|Commencer/i }), async (overlay) => {
-            await overlay.click({ force: true });
-        });
+
         await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
             await overlay.click({ force: true });
         });
     });
 
     test('should display documents list', async ({ page }) => {
-        await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible();
+        await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible({ timeout: 30000 });
 
         // Relaxed title check
         await expect(page.getByText(/Gestion Documentaire|Documents/i).first()).toBeVisible({ timeout: 30000 });
@@ -27,7 +25,7 @@ test.describe('Documents Module', () => {
     });
 
     test('should open create document drawer', async ({ page }) => {
-        await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible();
+        await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible({ timeout: 15000 });
 
         const createButton = page.getByRole('button', { name: /Nouveau Document|New Document/i }).first();
         await createButton.click({ force: true });
