@@ -41,7 +41,7 @@ export const LandingMap: React.FC<LandingMapProps> = memo(({ className }) => {
                 projectionConfig={{ scale: 220, rotate: [rotation, -10, 0] }}
                 style={{ width: "100%", height: "100%" }}
             >
-                <ZoomableGroup center={[0, 0]} disablePanning disableZooming>
+                <ZoomableGroup center={[0, 0]} disablePanning={true} disableZooming={true}>
                     <Geographies geography={geoUrl}>
                         {({ geographies }) =>
                             geographies.map((geo) => (
