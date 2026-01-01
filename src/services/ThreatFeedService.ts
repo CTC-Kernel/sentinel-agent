@@ -109,7 +109,7 @@ export class ThreatFeedService {
                         continue;
                     }
                 }
-            } catch (_error) {
+            } catch {
                 // Silent catch for individual proxy failures to keep trying others
                 // Only log if strictly necessary to avoid console noise
             }

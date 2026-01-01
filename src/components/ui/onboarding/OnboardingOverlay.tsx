@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useOnboardingStore } from './useOnboardingStore';
 import { OnboardingCard } from './TourCard';
 import { createPortal } from 'react-dom';
+import { useStore } from '../../../store';
 
 export const OnboardingOverlay: React.FC = () => {
     const { isActive, steps, currentStepIndex, nextStep, prevStep, skipTour } = useOnboardingStore();
+    const demoMode = useStore(state => state.demoMode);
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
 
     const currentStep = steps[currentStepIndex];
@@ -44,7 +46,13 @@ export const OnboardingOverlay: React.FC = () => {
         }
     }, [isActive, currentStep, currentStepIndex, updateRect]);
 
-    if (!isActive) return null;
+    useEffect(() => {
+        if (demoMode && isActive) {
+            skipTour();
+        }
+    }, [demoMode, isActive, skipTour]);
+
+    if (!isActive || demoMode) return null;
 
     // Create a portal to render at the top level (body)
     return createPortal(

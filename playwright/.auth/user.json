@@ -1,1 +1,80 @@
-{"cookies":[],"origins":[]}
+{
+  "cookies": [
+    {
+      "name": "_ga",
+      "value": "GA1.1.458260555.1767305775",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1801865775.683832,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_2MLLGDZ6GP",
+      "value": "GS2.1.s1767305775$o1$g1$t1767305775$j60$l0$h0",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1801865775.691677,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:8080",
+      "localStorage": [
+        {
+          "name": "i18nextLng",
+          "value": "en-US"
+        },
+        {
+          "name": "sentinel_cookie_consent",
+          "value": "true"
+        },
+        {
+          "name": "demoMode",
+          "value": "true"
+        },
+        {
+          "name": "firestore_sequence_number_firestore/[DEFAULT]/sentinel-grc-a8701/",
+          "value": "28"
+        },
+        {
+          "name": "E2E_TEST_USER",
+          "value": "{\"uid\":\"e2e-user-123\",\"email\":\"e2e@sentinel.com\",\"displayName\":\"E2E Sentinel\",\"emailVerified\":true,\"photoURL\":null,\"organizationId\":\"org_default\",\"role\":\"admin\",\"onboardingCompleted\":true}"
+        },
+        {
+          "name": "onboarding_completed",
+          "value": "true"
+        },
+        {
+          "name": "app_logs",
+          "value": "[{\"type\":\"warning\",\"timestamp\":\"2026-01-01T22:16:14.554Z\",\"context\":\"appConfig.ts\",\"message\":\"VITE_APP_BASE_URL is not defined. APP_BASE_URL will be empty and email links may be relative only.\"},{\"type\":\"warning\",\"timestamp\":\"2026-01-01T22:16:15.286Z\",\"context\":\"appConfig.ts\",\"message\":\"VITE_APP_BASE_URL is not defined. APP_BASE_URL will be empty and email links may be relative only.\"},{\"type\":\"info\",\"timestamp\":\"2026-01-01T22:16:15.463Z\",\"context\":\"AuthContext\",\"message\":\"E2E Test Mode: Bypass Auth enabled\"},{\"type\":\"info\",\"timestamp\":\"2026-01-01T22:16:15.463Z\",\"context\":\"AuthContext\",\"message\":\"E2E Mode: Using mock profile without Firestore\"},{\"type\":\"info\",\"timestamp\":\"2026-01-01T22:16:15.464Z\",\"context\":\"AuthContext\",\"message\":\"E2E Test Mode: Bypass Auth enabled\"},{\"type\":\"info\",\"timestamp\":\"2026-01-01T22:16:15.464Z\",\"context\":\"AuthContext\",\"message\":\"E2E Mode: Using mock profile without Firestore\"}]"
+        },
+        {
+          "name": "firestore_clients_firestore/[DEFAULT]/sentinel-grc-a8701/_ljPXHch370S64D7Y8V3H",
+          "value": "{\"activeTargetIds\":[2,4,6,8,10,12,14,16,18,20],\"updateTimeMs\":1767305775745}"
+        },
+        {
+          "name": "onboarding_dismissed",
+          "value": "true"
+        },
+        {
+          "name": "language",
+          "value": "fr"
+        }
+      ]
+    },
+    {
+      "origin": "https://www.google.com",
+      "localStorage": [
+        {
+          "name": "rc::a",
+          "value": "MWtrODE5dGJkNW45ZQ=="
+        }
+      ]
+    }
+  ]
+}

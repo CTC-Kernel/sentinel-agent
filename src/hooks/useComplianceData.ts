@@ -3,11 +3,12 @@ import { useStore } from '../store';
 import { useComplianceActions } from './useComplianceActions';
 import { Control, Risk, Finding, Framework, Document, UserProfile, Asset, Supplier, Project } from '../types';
 
+
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export const useComplianceData = (currentFramework?: Framework) => {
-    const { user } = useStore();
+    const { user, demoMode } = useStore();
     const [controls, setControls] = useState<Control[]>([]);
     const [risks, setRisks] = useState<Risk[]>([]);
     const [findings, setFindings] = useState<Finding[]>([]);
@@ -23,12 +24,33 @@ export const useComplianceData = (currentFramework?: Framework) => {
 
     useEffect(() => {
         if (!user?.organizationId) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLoading(false);
             return;
         }
 
         setLoading(true);
+
+        const isDemo = demoMode || window.localStorage.getItem('demoMode') === 'true';
+
+        if (isDemo) {
+            console.log('Using Mock Data for Compliance');
+            import('../services/mockDataService').then(module => {
+                setControls(module.MockDataService.getCollection('controls') as unknown as Control[]);
+                setRisks(module.MockDataService.getCollection('risks') as unknown as Risk[]);
+                setDocuments(module.MockDataService.getCollection('documents') as unknown as Document[]);
+                setUsersList(module.MockDataService.getCollection('users') as unknown as UserProfile[]);
+                setAssets(module.MockDataService.getCollection('assets') as unknown as Asset[]);
+                setSuppliers(module.MockDataService.getCollection('suppliers') as unknown as Supplier[]);
+                setProjects(module.MockDataService.getCollection('projects') as unknown as Project[]);
+                setFindings([]);
+                setLoading(false);
+            }).catch(err => {
+                console.error('Failed to load mock data module', err);
+                setLoading(false);
+            });
+            return;
+        }
+
         console.log('Fetching compliance data for Org:', user.organizationId);
 
         // 1. Controls Listener
@@ -39,7 +61,6 @@ export const useComplianceData = (currentFramework?: Framework) => {
 
         const unsubControls = onSnapshot(controlsQuery, (snapshot) => {
             const fetchedControls = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Control));
-            console.log('Fetched Controls:', fetchedControls.length);
             setControls(fetchedControls);
         });
 
@@ -80,7 +101,7 @@ export const useComplianceData = (currentFramework?: Framework) => {
             unsubSupp();
             unsubProj();
         };
-    }, [user?.organizationId]);
+    }, [user?.organizationId, demoMode]);
 
     // Framework filtering
     const filteredControls = currentFramework

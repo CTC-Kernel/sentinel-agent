@@ -12,17 +12,40 @@ import { getInvitationTemplate } from '../services/emailTemplates';
 import { logAction } from '../services/logger';
 import { SubscriptionService } from '../services/subscriptionService';
 import { CsvParser } from '../utils/csvUtils';
+import { useTranslation } from 'react-i18next';
+
 
 export const useTeamManagement = () => {
-    const { user, addToast } = useStore();
+    const { t } = useTranslation(); // Added initialization
+    const { user, addToast, demoMode } = useStore();
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
 
+
     const fetchUsers = useCallback(async () => {
         if (!user?.organizationId) return;
         setLoading(true);
+
+        if (demoMode) {
+            import('../services/mockDataService').then(({ MockDataService }) => {
+                const mockUsers = MockDataService.getCollection('users');
+                const mockInvites = MockDataService.getCollection('invitations');
+                const mockRequests = MockDataService.getCollection('join_requests');
+
+                // Simulate structure matching Promise.allSettled logic roughly or just set state
+                setUsers([...mockUsers, ...mockInvites] as unknown as UserProfile[]);
+                setJoinRequests(mockRequests as JoinRequest[]);
+                setJoinRequests(mockRequests as JoinRequest[]);
+                setLoading(false);
+            }).catch(err => {
+                console.error('Failed to load mock data module', err);
+                setLoading(false);
+            });
+            return;
+        }
+
         try {
             const results = await Promise.allSettled([
                 getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId), limit(100))),
@@ -61,10 +84,21 @@ export const useTeamManagement = () => {
         } finally {
             setLoading(false);
         }
-    }, [user?.organizationId]);
+    }, [user?.organizationId, demoMode]);
 
     const fetchRoles = useCallback(async () => {
         if (!user?.organizationId) return;
+
+        if (demoMode) {
+            import('../services/mockDataService').then(({ MockDataService }) => {
+                const mock = MockDataService.getCollection('custom_roles');
+                setCustomRoles(mock as CustomRole[]);
+            }).catch(err => {
+                console.error('Failed to load mock data module', err);
+            });
+            return;
+        }
+
         try {
             const q = query(collection(db, 'custom_roles'), where('organizationId', '==', user.organizationId));
             const snapshot = await getDocs(q);
@@ -72,7 +106,7 @@ export const useTeamManagement = () => {
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error as Error, 'useTeamManagement.fetchRoles');
         }
-    }, [user?.organizationId]);
+    }, [user?.organizationId, demoMode]);
 
     useEffect(() => {
         fetchUsers();
@@ -81,6 +115,21 @@ export const useTeamManagement = () => {
 
     const inviteUser = async (data: UserFormData, silent = false) => {
         if (!user?.organizationId) return false;
+
+        if (demoMode) {
+            addToast(t("team.invite.success"), "success");
+            setUsers(prev => [...prev, {
+                uid: `mock-invite-${Date.now()}`,
+                email: data.email,
+                role: data.role,
+                displayName: data.displayName,
+                department: data.department,
+                organizationId: user.organizationId,
+                isPending: true
+            } as UserProfile]);
+            return true;
+        }
+
         try {
             // Check plan limits
             const canAddUser = await SubscriptionService.checkLimit(user.organizationId, 'users', users.length);
@@ -218,16 +267,24 @@ export const useTeamManagement = () => {
             let failureCount = 0;
             let limitReached = false;
 
+            const normalizeRole = (value?: string): UserFormData['role'] => {
+                const allowedRoles: UserFormData['role'][] = ['user', 'rssi', 'auditor', 'project_manager', 'direction', 'admin'];
+                if (!value) return 'user';
+                const lowerValue = value.trim().toLowerCase();
+                return (allowedRoles.find(role => role === lowerValue) ?? 'user') as UserFormData['role'];
+            };
+
             for (const row of lines) {
                 if (limitReached) break;
-                if (!row.Email) continue;
+                const email = row.Email || row.email;
+                if (!email) continue;
 
                 // Map CSV fields to UserFormData
                 const userData: UserFormData = {
-                    email: row.Email,
-                    displayName: row.Nom || '',
-                    role: (row.Role as any) || 'user',
-                    department: row.Departement || ''
+                    email,
+                    displayName: row.Nom || row.name || '',
+                    role: normalizeRole(row.Role || row.role),
+                    department: row.Departement || row.department || ''
                 };
 
                 // Use inviteUser but suppress individual toasts (we need to refactor inviteUser or just accept toasts? Refactoring is better but complex. 

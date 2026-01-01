@@ -6,6 +6,7 @@ import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { PrivacyService } from '../services/PrivacyService';
 
+
 export function usePrivacy() {
     const { user, addToast } = useStore();
 
@@ -25,28 +26,77 @@ export function usePrivacy() {
     const [stats, setStats] = useState({ total: 0, sensitive: 0, dpiaMissing: 0, review: 0 });
 
     // Initial Fetch
+    const organizationId = user?.organizationId;
+
     const fetchData = useCallback(async () => {
-        if (!user?.organizationId) return;
+        // Allow fetch in demo mode even if no org ID (or use mock org)
+        if (!organizationId && !useStore.getState().demoMode) return;
+
         setLoading(true);
         try {
-            // Use PrivacyService for activities
-            const fetchedActivities = await PrivacyService.fetchActivities(user.organizationId);
+            const isDemo = useStore.getState().demoMode;
+            let fetchedActivities: ProcessingActivity[] = [];
+            let loadedUsers: UserProfile[] = [];
+            let loadedAssets: Asset[] = [];
+            let loadedRisks: Risk[] = [];
 
-            // Fetch other dependencies directly for now (could be moved to services)
-            // Note: keeping reads here is usually low risk for 'client side security' checks
-            const results = await Promise.allSettled([
-                getDocs(query(collection(db, 'users'), where('organizationId', '==', user.organizationId), limit(100))),
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', user.organizationId), limit(500))),
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', user.organizationId), limit(500)))
-            ]);
+            if (isDemo) {
+                // Load from MockDataService
+                import('../services/mockDataService').then(({ MockDataService }) => {
+                    const fetchedActivities = MockDataService.getCollection('activities') as ProcessingActivity[];
+                    const loadedUsers = MockDataService.getCollection('users') as unknown as UserProfile[];
+                    const loadedAssets = MockDataService.getCollection('assets') as Asset[];
+                    const loadedRisks = MockDataService.getCollection('risks') as Risk[];
 
-            const usersSnapshot = results[0].status === 'fulfilled' ? results[0].value : { docs: [] };
-            const assetsSnapshot = results[1].status === 'fulfilled' ? results[1].value : { docs: [] };
-            const risksSnapshot = results[2].status === 'fulfilled' ? results[2].value : { docs: [] };
+                    // Resolve managerId
+                    const resolvedData = fetchedActivities.map(a => {
+                        if (!a.managerId && a.manager) {
+                            const managerUser = loadedUsers.find(u => u.displayName === a.manager);
+                            if (managerUser) return { ...a, managerId: managerUser.uid };
+                        }
+                        return a;
+                    });
+                    resolvedData.sort((a, b) => a.name.localeCompare(b.name));
 
-            const loadedUsers = usersSnapshot.docs.map(doc => doc.data() as UserProfile);
-            const loadedAssets = assetsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Asset));
-            const loadedRisks = risksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Risk));
+                    setActivities(resolvedData);
+                    setUsersList(loadedUsers);
+                    setAssetsList(loadedAssets);
+                    setRisksList(loadedRisks);
+
+                    // Calculate Stats
+                    const total = resolvedData.length;
+                    const sensitive = resolvedData.filter(a => a.dataCategories.some(c => ['Santé (Sensible)', 'Biométrique', 'Judiciaire'].includes(c))).length;
+                    const dpiaMissing = resolvedData.filter(a => a.dataCategories.some(c => ['Santé (Sensible)', 'Biométrique', 'Judiciaire'].includes(c)) && !a.hasDPIA).length;
+                    const review = resolvedData.filter(a => a.status !== 'Actif').length;
+
+                    setStats({ total, sensitive, dpiaMissing, review });
+                    setStats({ total, sensitive, dpiaMissing, review });
+                    setLoading(false);
+                }).catch(err => {
+                    console.error('Failed to load mock data module', err);
+                    setLoading(false);
+                });
+                return;
+            } else {
+                if (!organizationId) return;
+                // Use PrivacyService for activities
+                fetchedActivities = await PrivacyService.fetchActivities(organizationId);
+
+                // Fetch other dependencies directly for now
+                const results = await Promise.allSettled([
+                    getDocs(query(collection(db, 'users'), where('organizationId', '==', organizationId), limit(100))),
+                    getDocs(query(collection(db, 'assets'), where('organizationId', '==', organizationId), limit(500))),
+                    getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId), limit(500)))
+                ]);
+
+                const usersSnapshot = results[0].status === 'fulfilled' ? results[0].value : { docs: [] };
+                const assetsSnapshot = results[1].status === 'fulfilled' ? results[1].value : { docs: [] };
+                const risksSnapshot = results[2].status === 'fulfilled' ? results[2].value : { docs: [] };
+
+                loadedUsers = usersSnapshot.docs.map(doc => doc.data() as UserProfile);
+                loadedAssets = assetsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Asset));
+                loadedRisks = risksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Risk));
+            }
 
             // Resolve managerId
             const resolvedData = fetchedActivities.map(a => {
@@ -76,7 +126,7 @@ export function usePrivacy() {
         } finally {
             setLoading(false);
         }
-    }, [user?.organizationId]);
+    }, [organizationId]);
 
     const fetchHistory = useCallback(async (activityId: string) => {
         if (!user?.organizationId) return;

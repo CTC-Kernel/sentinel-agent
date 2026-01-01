@@ -43,9 +43,9 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ rece
                     className="px-2 py-1.5 bg-background rounded-lg text-[11px] font-bold text-muted-foreground border border-border hover:bg-accent transition-colors outline-none cursor-pointer"
                 >
                     <option value="All">{t('common.all')}</option>
-                    <option value="Risk">Risks</option>
-                    <option value="Incident">Incidents</option>
-                    <option value="Asset">Assets</option>
+                    <option value="Risk">{t('common.risks')}</option>
+                    <option value="Incident">{t('common.incidents')}</option>
+                    <option value="Asset">{t('common.assets')}</option>
                 </select>
             }
         >

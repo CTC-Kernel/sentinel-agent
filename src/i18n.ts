@@ -20,8 +20,16 @@ i18n
                         delete: "Delete",
                         edit: "Edit",
                         create: "Create",
+                        description: "Description",
                         pilotage: "Steering",
                         calendar: "Calendar",
+                        priority: "Priority",
+                        duration: "Duration",
+                        template: "Template",
+                        selectTemplate: "Select a template...",
+                        addStep: "Add step",
+                        update: "Update",
+                        recoveryTasks: "Recovery Tasks",
                         ctcEngine: "CTC Engine",
                         governance: "Governance",
                         riskManagement: "Risk Management",
@@ -86,7 +94,15 @@ i18n
                         risks: "Risks",
                         audits: "Audits",
                         tasks: "Tasks",
-                        system: "System"
+                        system: "System",
+                        assets: "Assets",
+                        incidents: "Incidents",
+                        dependencies: "Dependencies",
+                        history: "History",
+                        managedBy: "Managed by",
+                        associatedRisks: "Associated Risks",
+                        overview: "Overview",
+                        suppliers: "Suppliers"
                     },
                     validation: {
                         required: "This field is required",
@@ -431,6 +447,7 @@ i18n
                         }
                     },
                     dashboard: {
+                        selectPeriod: "Select period",
                         welcomeTitle_admin: "Welcome back",
                         welcomeTitle_user: "Welcome back",
                         welcomeSubtitle1_admin: "Here is your governance overview.",
@@ -887,7 +904,34 @@ i18n
                         deleteProcessTitle: "Delete Process?",
                         deleteProcessMessage: "This action is irreversible.",
                         toastDrillUpdated: "Drill updated successfully",
-                        toastDrillDeleted: "Drill deleted successfully"
+                        toastDrillDeleted: "Drill deleted successfully",
+                        rto: "RTO (Time Objective)",
+                        rpo: "RPO (Data Loss)",
+                        recoveryPlan: "Recovery Plan (Steps)",
+                        noSteps: "No steps defined",
+                        assetsSupport: "Supporting Assets",
+                        recentDrills: "Recent Drills",
+                        noDrills: "No drills recorded for this process.",
+                        ai: {
+                            assistant: "AI Assistant & Templates",
+                            enterName: "Please enter a process name to use AI",
+                            suggestionApplied: "Suggestion applied successfully",
+                            autocomplete: "AI Autocomplete",
+                            desc: "Select a standard template or use AI to generate a custom proposal."
+                        },
+                        processName: "Process Name",
+                        createProcess: "Create Process",
+                        criticalDependencies: "Critical Dependencies",
+                        riskScenarios: "Risk Scenarios",
+                        internalAssets: "Internal Assets",
+                        selectOwner: "Select an owner...",
+                        selectAssets: "Select assets...",
+                        selectSuppliers: "Select suppliers...",
+                        selectRisks: "Select risks...",
+                        placeholders: {
+                            name: "Ex: Supplier Payment",
+                            description: "Complete description of activities..."
+                        }
                     },
                     vulnerabilities: {
                         title: "Vulnerabilities",
@@ -1389,6 +1433,13 @@ i18n
                         create: "Créer",
                         pilotage: "Pilotage",
                         calendar: "Calendrier",
+                        priority: "Priorité",
+                        duration: "Durée",
+                        template: "Modèle",
+                        selectTemplate: "Choisir un modèle...",
+                        addStep: "Ajouter une étape",
+                        update: "Mettre à jour",
+                        recoveryTasks: "Tâches de Reprise",
                         ctcEngine: "Moteur CTC",
                         governance: "Gouvernance",
                         riskManagement: "Gestion des Risques",
@@ -1439,7 +1490,15 @@ i18n
                         risks: "Risques",
                         audits: "Audits",
                         tasks: "Tâches",
-                        system: "Système"
+                        system: "Système",
+                        assets: "Actifs",
+                        incidents: "Incidents",
+                        dependencies: "Dépendances",
+                        history: "Historique",
+                        managedBy: "Géré par",
+                        associatedRisks: "Risques Associés",
+                        overview: "Vue d'ensemble",
+                        suppliers: "Fournisseurs"
                     },
                     validation: {
                         required: "Ce champ est requis",
@@ -1673,6 +1732,7 @@ i18n
                         }
                     },
                     dashboard: {
+                        selectPeriod: "Sélection de la période",
                         welcomeTitle_admin: "Ravi de vous revoir",
                         welcomeTitle_user: "Bonjour",
                         welcomeSubtitle1_admin: "Voici la météo de votre gouvernance.",
@@ -2371,7 +2431,34 @@ i18n
                         deleteProcessTitle: "Supprimer le processus BIA ?",
                         deleteProcessMessage: "Cette action est irréversible et supprimera l'historique associé.",
                         toastDrillUpdated: "Exercice mis à jour avec succès",
-                        toastDrillDeleted: "Exercice supprimé avec succès"
+                        toastDrillDeleted: "Exercice supprimé avec succès",
+                        rto: "RTO (Objectif de Temps)",
+                        rpo: "RPO (Perte de Données)",
+                        recoveryPlan: "Plan de Reprise (Étapes)",
+                        noSteps: "Aucune étape définie",
+                        assetsSupport: "Actifs Supports",
+                        recentDrills: "Exercices Récents",
+                        noDrills: "Aucun exercice enregistré pour ce processus.",
+                        ai: {
+                            assistant: "Assistant IA & Modèles",
+                            enterName: "Veuillez saisir un nom de processus pour utiliser l'IA",
+                            suggestionApplied: "Suggestion appliquée avec succès",
+                            autocomplete: "Auto-complétion IA",
+                            desc: "Sélectionnez un modèle standard ou utilisez l'IA pour générer une proposition sur mesure."
+                        },
+                        processName: "Nom du Processus",
+                        createProcess: "Créer le processus",
+                        criticalDependencies: "Dépendances Critiques",
+                        riskScenarios: "Scénarios de Risques",
+                        internalAssets: "Actifs Internes",
+                        selectOwner: "Sélectionner un responsable...",
+                        selectAssets: "Sélectionner des actifs...",
+                        selectSuppliers: "Sélectionner des fournisseurs...",
+                        selectRisks: "Sélectionner des risques...",
+                        placeholders: {
+                            name: "Ex: Paiement Fournisseurs",
+                            description: "Description complète des activités..."
+                        }
                     },
                     audits: {
                         title: "Programme d'Audit",

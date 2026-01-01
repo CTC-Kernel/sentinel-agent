@@ -536,11 +536,20 @@ export const Incidents: React.FC = () => {
                 }
             />
 
+            {/* Incidents Board */}
             <motion.div variants={slideUpVariants} className={viewMode === 'kanban' ? 'h-[600px]' : ''}>
                 {viewMode === 'kanban' ? (
                     <IncidentKanban
                         incidents={incidents.filter(i => i.title.toLowerCase().includes(filter.toLowerCase()))}
                         onSelect={handleSelectIncident}
+                        onEdit={(inc) => {
+                            setSelectedIncident(inc);
+                            setCreationMode(false);
+                            setSelectedIncident(inc);
+                        }}
+                        onDelete={initiateDelete}
+                        canEdit={canEdit}
+                        loading={loading}
                     />
                 ) : (
                     <IncidentDashboard
@@ -569,6 +578,7 @@ export const Incidents: React.FC = () => {
                 risks={risks}
                 canEdit={canEdit}
                 onUpdate={handleUpdate}
+                onDelete={initiateDelete}
                 isSubmitting={isSubmitting}
             />
 

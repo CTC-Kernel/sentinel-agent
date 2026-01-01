@@ -11,6 +11,9 @@ import { AssetInspectorSecurity } from './inspector/AssetInspectorSecurity';
 import { AssetInspectorLifecycle } from './inspector/AssetInspectorLifecycle';
 import { useAssetDetails } from '../../hooks/assets/useAssetDetails';
 import { useAssetSecurity } from '../../hooks/assets/useAssetSecurity';
+import { useStore } from '../../store';
+import { canDeleteResource } from '../../utils/permissions';
+import { Trash2 } from '../ui/Icons';
 import {
     HeartPulse, ShieldAlert,
     FolderKanban, CheckSquare, CalendarClock,
@@ -31,6 +34,7 @@ interface AssetInspectorProps {
     suppliers: Supplier[];
     processes: BusinessProcess[];
     canEdit: boolean;
+    onDelete: (id: string, name: string) => void;
 }
 
 export const AssetInspector: React.FC<AssetInspectorProps> = ({
@@ -42,8 +46,28 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
     users,
     suppliers,
     processes,
-    canEdit
+    canEdit,
+    onDelete
 }) => {
+    const { user, t } = useStore();
+    // Check permission - we need to see if we can delete THIS specific asset if RBAC requires ownership,
+    // but usually canDeleteResource(user, 'Asset') checks the role.
+    const canDelete = React.useMemo(() => {
+        if (!user) return false;
+        // Using the imported helper
+        return canDeleteResource(user, 'Asset');
+    }, [user]);
+
+    const handleDelete = () => {
+        if (selectedAsset && onDelete) {
+            onDelete(selectedAsset.id, selectedAsset.name);
+            // onClose should be triggered by the parent after delete, or we can close here?
+            // Usually the parent handles the delete logic including closing/refreshing.
+            // But we should probably close the inspector if the asset is deleted.
+            // Rely on parent `onDelete` to handle UI updates.
+        }
+    };
+
     const navigate = useNavigate();
     const [inspectorTab, setInspectorTab] = useState<'details' | 'lifecycle' | 'security' | 'compliance' | 'projects' | 'audits' | 'documents' | 'history' | 'graph' | 'intelligence' | 'comments'>('details');
     const {
@@ -94,9 +118,21 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
             subtitle={selectedAsset ? "Détails et configuration de l'actif" : "Ajouter un nouvel actif à l'inventaire"}
             icon={selectedAsset ? Server : Plus}
             statusBadge={selectedAsset ? (
-                <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${selectedAsset.lifecycleStatus === 'En service' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400'}`}>
-                    {selectedAsset.lifecycleStatus || 'Neuf'}
-                </span>
+                <div className="flex gap-2 items-center">
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${selectedAsset.lifecycleStatus === 'En service' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400'}`}>
+                        {selectedAsset.lifecycleStatus || 'Neuf'}
+                    </span>
+                    {canDelete && selectedAsset && (
+                        <CustomTooltip content={t('assets.deleteAssetTooltip')}>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </CustomTooltip>
+                    )}
+                </div>
             ) : null}
             tabs={tabs}
             activeTab={inspectorTab}

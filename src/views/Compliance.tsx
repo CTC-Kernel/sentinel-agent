@@ -11,7 +11,6 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { InspectorLayout } from '../components/ui/InspectorLayout';
 import { ProjectForm } from '../components/projects/ProjectForm';
 import { canEditResource } from '../utils/permissions';
-import { usePersistedState } from '../hooks/usePersistedState';
 import { useComplianceData } from '../hooks/useComplianceData';
 import { useComplianceDataSeeder } from '../hooks/useComplianceDataSeeder';
 import { useProjectLogic } from '../hooks/projects/useProjectLogic';
@@ -38,7 +37,7 @@ export const Compliance: React.FC = () => {
 
     // UI State
     const [currentFramework, setCurrentFramework] = useState<Framework>('ISO27001');
-    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'controls' | 'soa'>('compliance-active-tab', 'overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'controls' | 'soa'>('overview');
     const [selectedControlId, setSelectedControlId] = useState<string | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [filter, setFilter] = useState('');
@@ -164,7 +163,7 @@ export const Compliance: React.FC = () => {
 
                     {/* Framework Selector (Top Level) */}
                     <ScrollableTabs
-                        tabs={FRAMEWORKS.filter((f: any) => f.type === 'Compliance').map((f: any) => ({
+                        tabs={FRAMEWORKS.filter((f: { type: string, id: string }) => f.type === 'Compliance').map((f: { id: string }) => ({
                             id: f.id,
                             label: t(`frameworks.${f.id}`),
                         }))}
@@ -192,6 +191,7 @@ export const Compliance: React.FC = () => {
                                 controls={filteredControls}
                                 currentFramework={currentFramework}
                                 onSeedData={() => seedControls(currentFramework)}
+                                loading={loading}
                             />
                         </div>
                     )}

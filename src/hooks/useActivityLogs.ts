@@ -103,21 +103,6 @@ export const useActivityLogs = (limitCount: number = 50) => {
 
             // Fetch Stats (Mocked or simple queries for now to save reads, or real if critical)
             // For Masterpiece, let's calculate from the fetched logs + active admins count
-            if (!isLoadMore) {
-                // Update mock/local stats based on fetched data or separate counts
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
-                // Note: This is client-side approximation from latest logs for "Today" if pagination allows,
-                // otherwise we'd need separate count queries. For now, assuming high volume logs, we simulate stats or use fetched.
-                // Let's use simple logic:
-                setStats({
-                    scansToday: 124, // Placeholder or fetch real
-                    criticalAlerts: 3, // Placeholder
-                    activeAdmins: 4 // Placeholder
-                });
-            }
-
             if (snapshot.empty) {
                 setHasMore(false);
                 if (!isLoadMore) setLogs([]);
@@ -129,6 +114,35 @@ export const useActivityLogs = (limitCount: number = 50) => {
                 id: doc.id,
                 ...doc.data()
             } as SystemLog));
+
+            // Calculate stats from the initial batch (and potentially accumulated logs if managed differently)
+            if (!isLoadMore) {
+                const recentLogs = newLogs;
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                const logsToday = recentLogs.filter(l => {
+                    const ts = l.timestamp as { seconds: number } | string | Date;
+                    let date: Date;
+                    if (ts && typeof ts === 'object' && 'seconds' in ts) {
+                        date = new Date(ts.seconds * 1000);
+                    } else if (typeof ts === 'string') {
+                        date = new Date(ts);
+                    } else {
+                        date = new Date(); // Fallback
+                    }
+                    return date >= today;
+                });
+
+                const uniqueUsers = new Set(recentLogs.map(l => l.userEmail)).size;
+                const criticals = recentLogs.filter(l => l.severity === 'danger' || l.severity === 'critical' as string).length;
+
+                setStats({
+                    scansToday: logsToday.length,
+                    criticalAlerts: criticals,
+                    activeAdmins: uniqueUsers
+                });
+            }
 
             lastDocRef.current = snapshot.docs[snapshot.docs.length - 1];
             setLogs(prev => isLoadMore ? [...prev, ...newLogs] : newLogs);

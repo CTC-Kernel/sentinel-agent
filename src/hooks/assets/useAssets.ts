@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { where, collection, addDoc, doc, updateDoc, deleteDoc, arrayUnion, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useFirestoreCollection } from '../useFirestore';
@@ -15,23 +15,62 @@ import { usePlanLimits } from '../usePlanLimits';
 import { DependencyService } from '../../services/dependencyService';
 
 export function useAssets() {
-    const { user, addToast } = useStore();
+    const { user, addToast, demoMode } = useStore();
     const { limits } = usePlanLimits();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    // Harden demoMode
+    const isDemo = demoMode || window.localStorage.getItem('demoMode') === 'true';
 
-    // Fetch Assets
-    const { data: rawAssets, loading: assetsLoading, refresh: refreshAssets } = useFirestoreCollection<Asset>(
+    // Mock Data State
+    const [mockAssets, setMockAssets] = useState<Asset[]>([]);
+    const [mockUsers, setMockUsers] = useState<UserProfile[]>([]);
+    const [mockSuppliers, setMockSuppliers] = useState<Supplier[]>([]);
+    const [mockProcesses, setMockProcesses] = useState<BusinessProcess[]>([]);
+    const [mockLoading, setMockLoading] = useState(true);
+
+    // Load Mock Data
+    useEffect(() => {
+        let mounted = true;
+        if (isDemo) {
+            setMockLoading(true);
+            Promise.all([
+                import('../../services/mockDataService').then(m => m.MockDataService.getCollection('assets') as unknown as Asset[]),
+                import('../../services/mockDataService').then(m => m.MockDataService.getCollection('users') as unknown as UserProfile[]),
+                import('../../services/mockDataService').then(m => m.MockDataService.getCollection('suppliers') as unknown as Supplier[]),
+                import('../../services/mockDataService').then(m => m.MockDataService.getCollection('business_processes') as unknown as BusinessProcess[]),
+            ]).then(([assets, users, suppliers, processes]) => {
+                if (!mounted) return;
+                setMockAssets(assets);
+                setMockUsers(users);
+                setMockSuppliers(suppliers);
+                setMockProcesses(processes);
+                setMockLoading(false);
+                setMockLoading(false);
+            }).catch(err => {
+                console.error('Failed to load mock data module', err);
+                if (mounted) setMockLoading(false);
+            });
+        }
+        return () => { mounted = false; };
+    }, [isDemo]);
+
+    // Fetch Assets (Firestore)
+    const { data: firestoreAssets, loading: assetsLoading, refresh: refreshFirestoreAssets } = useFirestoreCollection<Asset>(
         'assets',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        { logError: true, enabled: !!user?.organizationId && !isDemo, realtime: true }
     );
 
-    // Fetch dependencies for forms/filters
-    const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
+    // Fetch dependencies
+    const { data: firestoreUsers, loading: usersLoading } = useFirestoreCollection<UserProfile>(
         'users',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        { logError: true, enabled: !!user?.organizationId && !isDemo, realtime: true }
     );
+
+    // Switch Data source
+    const rawAssets = isDemo ? mockAssets : firestoreAssets;
+    const usersList = isDemo ? mockUsers : firestoreUsers;
 
     // FIX: Ensure usersList is never empty if logged in
     const effectiveUsers = useMemo(() => {
@@ -40,17 +79,22 @@ export function useAssets() {
         return [];
     }, [usersList, user]);
 
-    const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
+    // Firestore Calls for dependencies (suppliers/processes also need hooks if we want them robust)
+    // For now, implementing demo logic inline for what's here.
+    const { data: firestoreSuppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        { logError: true, enabled: !!user?.organizationId && !isDemo, realtime: true }
     );
 
-    const { data: processes, loading: processesLoading } = useFirestoreCollection<BusinessProcess>(
+    const { data: firestoreProcesses, loading: processesLoading } = useFirestoreCollection<BusinessProcess>(
         'business_processes',
         [where('organizationId', '==', user?.organizationId)],
-        { logError: true, enabled: !!user?.organizationId, realtime: true }
+        { logError: true, enabled: !!user?.organizationId && !isDemo, realtime: true }
     );
+
+    const suppliers = isDemo ? mockSuppliers : firestoreSuppliers;
+    const processes = isDemo ? mockProcesses : firestoreProcesses;
 
     // Calculations
     const calculateDepreciation = (price: number, purchaseDate: string) => {
@@ -70,7 +114,12 @@ export function useAssets() {
         })).sort((a, b) => a.name.localeCompare(b.name));
     }, [rawAssets]);
 
-    const loading = assetsLoading || usersLoading || suppliersLoading || processesLoading;
+    const loading = isDemo ? mockLoading : (assetsLoading || usersLoading || suppliersLoading || processesLoading);
+
+    // Wrapper for refresh
+    const refreshAssets = () => {
+        if (!isDemo) refreshFirestoreAssets();
+    };
 
     // Actions
     const createAsset = async (data: AssetFormData, preSelectedProjectId?: string | null) => {

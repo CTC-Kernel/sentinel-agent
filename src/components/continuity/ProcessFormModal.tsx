@@ -39,7 +39,7 @@ interface ProcessFormModalProps {
 export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
     isOpen, onClose, onSubmit, initialData, title, isEditing, assets, suppliers, risks, users
 }) => {
-    const { addToast } = useStore();
+    const { addToast, t } = useStore();
     const [isGenerating, setIsGenerating] = useState(false);
 
     const { handleSubmit, control, watch, setValue, formState: { errors, isSubmitting } } = useForm<BusinessProcessFormData>({
@@ -66,7 +66,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
         const desc = watch('description');
 
         if (!name || name.length < 3) {
-            addToast("Veuillez saisir un nom de processus pour utiliser l'IA", "info");
+            addToast(t('continuity.ai.enterName'), "info");
             return;
         }
 
@@ -88,7 +88,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
             }));
             setValue('recoveryTasks', newTasks);
 
-            addToast("Suggestion appliquée avec succès", "success");
+            addToast(t('continuity.ai.suggestionApplied'), "success");
             addToast(suggestion.reasoning, "info"); // Show reasoning as info
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'ProcessFormModal.handleAISuggestion', 'UNKNOWN_ERROR'); // AI_FAILED not in type
@@ -120,14 +120,14 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                         <div className="flex justify-between items-center mb-2">
                             <h4 className="text-sm font-bold text-brand-700 dark:text-brand-300 flex items-center">
                                 <Sparkles className="h-4 w-4 mr-2" />
-                                Assistant IA & Modèles
+                                {t('continuity.ai.assistant')}
                             </h4>
                             <div className="flex gap-2">
                                 <div className="w-64">
                                     <CustomSelect
-                                        label="Modèle"
+                                        label={t('common.template')}
                                         options={[
-                                            { value: "", label: "Choisir un modèle..." },
+                                            { value: "", label: t('common.selectTemplate') },
                                             ...TEMPLATES.map(t => ({ value: t.name, label: t.name }))
                                         ]}
                                         value={watch('name')} // Using name as a proxy for the template selection logic
@@ -149,15 +149,15 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                     onClick={handleAISuggestion}
                                     disabled={isGenerating}
                                     className="text-xs font-bold bg-white dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 px-3 py-1.5 rounded-lg border border-brand-200 dark:border-brand-900/30 hover:bg-brand-50 transition-colors flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                                    aria-label="Générer une proposition par IA"
+                                    aria-label={t('continuity.ai.autocomplete')}
                                 >
                                     {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                                    {isGenerating ? 'IA...' : 'Auto-complétion IA'}
+                                    {isGenerating ? 'IA...' : t('continuity.ai.autocomplete')}
                                 </button>
                             </div>
                         </div>
                         <p className="text-xs text-brand-600/80 dark:text-brand-400">
-                            Sélectionnez un modèle standard ou utilisez l'IA pour générer une proposition sur mesure.
+                            {t('continuity.ai.desc')}
                         </p>
                     </div>
                 )}
@@ -170,10 +170,10 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <FloatingLabelInput
-                                        label="Nom du Processus"
+                                        label={t('continuity.processName')}
                                         value={field.value}
                                         onChange={field.onChange}
-                                        placeholder="Ex: Paiement Fournisseurs"
+                                        placeholder={t('continuity.placeholders.name')}
                                         error={errors.name?.message}
                                     />
                                 )}
@@ -186,9 +186,9 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <CustomSelect
-                                        label="Responsable"
+                                        label={t('common.owner')}
                                         options={[
-                                            { value: "", label: "Sélectionner un responsable..." },
+                                            { value: "", label: t('continuity.selectOwner') },
                                             ...users.map(u => ({ value: u.displayName || u.email || '', label: u.displayName || u.email || '' }))
                                         ]}
                                         value={field.value}
@@ -206,10 +206,10 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                             control={control}
                             render={({ field }) => (
                                 <FloatingLabelInput
-                                    label="Description"
+                                    label={t('common.description')}
                                     value={field.value}
                                     onChange={field.onChange}
-                                    placeholder="Description complète des activités..."
+                                    placeholder={t('continuity.placeholders.description')}
                                     textarea
                                     error={errors.description?.message}
                                 />
@@ -225,7 +225,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                             control={control}
                             render={({ field }) => (
                                 <CustomSelect
-                                    label="Priorité"
+                                    label={t('common.priority')}
                                     options={['Critique', 'Élevée', 'Moyenne', 'Faible'].map(p => ({ value: p, label: p }))}
                                     value={field.value}
                                     onChange={field.onChange}
@@ -239,7 +239,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                             control={control}
                             render={({ field }) => (
                                 <FloatingLabelInput
-                                    label="RTO (Temps)"
+                                    label={t('continuity.rto')}
                                     value={field.value}
                                     onChange={field.onChange}
                                 />
@@ -252,7 +252,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                             control={control}
                             render={({ field }) => (
                                 <FloatingLabelInput
-                                    label="RPO (Données)"
+                                    label={t('continuity.rpo')}
                                     value={field.value}
                                     onChange={field.onChange}
                                 />
@@ -263,10 +263,10 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
 
                 <div className="space-y-4">
                     <div>
-                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">Dépendances Critiques</h4>
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">{t('continuity.criticalDependencies')}</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <span className="text-xs font-semibold text-slate-500 mb-2 block flex items-center gap-1"><Server className="h-3 w-3" /> Actifs Internes</span>
+                                <span className="text-xs font-semibold text-slate-500 mb-2 block flex items-center gap-1"><Server className="h-3 w-3" /> {t('continuity.internalAssets')}</span>
                                 <Controller
                                     name="supportingAssetIds"
                                     control={control}
@@ -277,13 +277,13 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                             value={field.value || []}
                                             onChange={field.onChange}
                                             multiple
-                                            placeholder="Sélectionner des actifs..."
+                                            placeholder={t('continuity.selectAssets')}
                                         />
                                     )}
                                 />
                             </div>
                             <div>
-                                <span className="text-xs font-semibold text-slate-500 mb-2 block flex items-center gap-1"><Truck className="h-3 w-3" /> Fournisseurs</span>
+                                <span className="text-xs font-semibold text-slate-500 mb-2 block flex items-center gap-1"><Truck className="h-3 w-3" /> {t('common.suppliers')}</span>
                                 <Controller
                                     name="supplierIds"
                                     control={control}
@@ -294,7 +294,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                             value={field.value || []}
                                             onChange={field.onChange}
                                             multiple
-                                            placeholder="Sélectionner des fournisseurs..."
+                                            placeholder={t('continuity.selectSuppliers')}
                                         />
                                     )}
                                 />
@@ -304,7 +304,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                 </div>
                 <div className="space-y-4">
                     <div>
-                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">Scénarios de Risques</h4>
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">{t('continuity.riskScenarios')}</h4>
                         <Controller
                             name="relatedRiskIds"
                             control={control}
@@ -315,7 +315,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                     value={field.value || []}
                                     onChange={field.onChange}
                                     multiple
-                                    placeholder="Sélectionner des risques..."
+                                    placeholder={t('continuity.selectRisks')}
                                 />
                             )}
                         />
@@ -324,9 +324,9 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
 
                 <div>
                     <div className="flex justify-between items-center mb-3">
-                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600">Plan de Reprise (Étapes)</label>
-                        <button type="button" onClick={addRecoveryTask} className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2" aria-label="Ajouter une étape au plan de reprise">
-                            <Plus className="h-3 w-3" /> Ajouter une étape
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-600">{t('continuity.recoveryPlan')}</label>
+                        <button type="button" onClick={addRecoveryTask} className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2" aria-label={t('common.addStep')}>
+                            <Plus className="h-3 w-3" /> {t('common.addStep')}
                         </button>
                     </div>
                     <div className="space-y-3">
@@ -340,7 +340,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                             control={control}
                                             render={({ field }) => (
                                                 <FloatingLabelInput
-                                                    label="Action"
+                                                    label={t('common.action')}
                                                     value={field.value}
                                                     onChange={field.onChange}
                                                 />
@@ -353,7 +353,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                             control={control}
                                             render={({ field }) => (
                                                 <FloatingLabelInput
-                                                    label="Responsable"
+                                                    label={t('common.owner')}
                                                     value={field.value}
                                                     onChange={field.onChange}
                                                 />
@@ -366,7 +366,7 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                             control={control}
                                             render={({ field }) => (
                                                 <FloatingLabelInput
-                                                    label="Durée"
+                                                    label={t('common.duration')}
                                                     value={field.value}
                                                     onChange={field.onChange}
                                                 />
@@ -381,17 +381,17 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                         ))}
                         {(!watchedRecoveryTasks || watchedRecoveryTasks.length === 0) && (
                             <div className="text-center p-6 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl">
-                                <p className="text-sm text-slate-500">Aucune étape définie. Utilisez l'assistant IA ou ajoutez-les manuellement.</p>
+                                <p className="text-sm text-slate-500">{t('continuity.noSteps')}</p>
                             </div>
                         )}
                     </div>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/10">
-                    <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-slate-700 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2" aria-label="Annuler">Annuler</button>
-                    <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-sm hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20 disabled:opacity-50 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2" aria-label={isEditing ? 'Mettre à jour le processus' : 'Créer le processus'}>
+                    <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-slate-700 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2" aria-label={t('common.cancel')}>{t('common.cancel')}</button>
+                    <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-sm hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20 disabled:opacity-50 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2" aria-label={isEditing ? t('common.update') : t('continuity.createProcess')}>
                         {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                        {isEditing ? 'Mettre à jour' : 'Créer le processus'}
+                        {isEditing ? t('common.update') : t('continuity.createProcess')}
                     </button>
                 </div>
             </form>

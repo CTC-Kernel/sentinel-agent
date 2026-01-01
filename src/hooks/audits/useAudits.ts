@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useFirestoreCollection } from '../useFirestore';
 import { where, collection, addDoc, updateDoc, doc, arrayUnion, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -18,26 +18,93 @@ import { NotificationService } from '../../services/notificationService';
 import { CsvParser } from '../../utils/csvUtils';
 
 export const useAudits = () => {
-    const { user, addToast } = useStore();
+    const { user, addToast, demoMode } = useStore();
     const canEdit = canEditResource(user, 'Audit');
     const canDelete = canDeleteResource(user, 'Audit');
 
     // --- Data Fetching ---
-    const { data: rawAudits, loading: auditsLoading, refresh: refreshAudits } = useFirestoreCollection<Audit>(
-        'audits', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true }
+    // --- Data Fetching ---
+
+    // Harden demoMode detection
+    const isDemo = demoMode || window.localStorage.getItem('demoMode') === 'true';
+
+    // Firestore Data (Disabled in Demo Mode)
+    const { data: firestoreAudits, loading: firestoreAuditsLoading, refresh: refreshFirestoreAudits } = useFirestoreCollection<Audit>(
+        'audits', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true, enabled: !isDemo }
     );
-    const { data: rawControls, loading: controlsLoading } = useFirestoreCollection<Control>(
-        'controls', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(1000)], { logError: true, realtime: true }
+    const { data: firestoreControls, loading: firestoreControlsLoading } = useFirestoreCollection<Control>(
+        'controls', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(1000)], { logError: true, realtime: true, enabled: !isDemo }
     );
-    const { data: rawAssets, loading: assetsLoading } = useFirestoreCollection<Asset>(
-        'assets', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true }
+    const { data: firestoreAssets, loading: firestoreAssetsLoading } = useFirestoreCollection<Asset>(
+        'assets', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true, enabled: !isDemo }
     );
-    const { data: rawRisks, loading: risksLoading } = useFirestoreCollection<Risk>(
-        'risks', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true }
+    const { data: firestoreRisks, loading: firestoreRisksLoading } = useFirestoreCollection<Risk>(
+        'risks', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true, enabled: !isDemo }
     );
-    const { data: usersList, loading: usersLoading } = useFirestoreCollection<UserProfile>(
-        'users', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(100)], { logError: true, realtime: true }
+    const { data: firestoreUsers, loading: firestoreUsersLoading } = useFirestoreCollection<UserProfile>(
+        'users', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(100)], { logError: true, realtime: true, enabled: !isDemo }
     );
+    const { data: firestoreDocs, loading: firestoreDocsLoading } = useFirestoreCollection<Document>(
+        'documents', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(200)], { logError: true, realtime: true, enabled: !isDemo }
+    );
+    const { data: firestoreProjects, loading: firestoreProjectsLoading } = useFirestoreCollection<Project>(
+        'projects', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(100)], { logError: true, realtime: true, enabled: !isDemo }
+    );
+    const { data: firestoreFindings, loading: firestoreFindingsLoading } = useFirestoreCollection<Finding>(
+        'findings', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true, enabled: !isDemo }
+    );
+
+    // Mock Data State
+    const [mockAudits, setMockAudits] = useState<Audit[]>([]);
+    const [mockControls, setMockControls] = useState<Control[]>([]);
+    const [mockAssets, setMockAssets] = useState<Asset[]>([]);
+    const [mockRisks, setMockRisks] = useState<Risk[]>([]);
+    const [mockUsers, setMockUsers] = useState<UserProfile[]>([]);
+    const [mockDocs, setMockDocs] = useState<Document[]>([]);
+    const [mockProjects, setMockProjects] = useState<Project[]>([]);
+    const [mockFindings, setMockFindings] = useState<Finding[]>([]);
+    const [mockLoading, setMockLoading] = useState(true);
+
+    // Load Mock Data if Demo Mode
+    useEffect(() => {
+        if (isDemo) {
+            setMockLoading(true);
+            Promise.all([
+                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('audits') as unknown as Audit[]),
+                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('controls') as unknown as Control[]),
+                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('assets') as unknown as Asset[]),
+                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('risks') as unknown as Risk[]),
+                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('users') as unknown as UserProfile[]),
+                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('documents') as unknown as Document[]),
+                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('projects') as unknown as Project[]),
+                import('../../services/mockDataService').then(module => module.MockDataService.getCollection('findings') as unknown as Finding[]),
+            ]).then(([audits, controls, assets, risks, users, docs, projects, findings]) => {
+                setMockAudits(audits);
+                setMockControls(controls);
+                setMockAssets(assets);
+                setMockRisks(risks);
+                setMockUsers(users);
+                setMockDocs(docs);
+                setMockProjects(projects);
+                setMockFindings(findings);
+                setMockLoading(false);
+                setMockFindings(findings);
+                setMockLoading(false);
+            }).catch(err => {
+                console.error('Failed to load mock data module', err);
+                setMockLoading(false);
+            });
+        }
+    }, [isDemo]);
+
+    const rawAudits = isDemo ? mockAudits : firestoreAudits;
+    const rawControls = isDemo ? mockControls : firestoreControls;
+    const rawAssets = isDemo ? mockAssets : firestoreAssets;
+    const rawRisks = isDemo ? mockRisks : firestoreRisks;
+    const usersList = isDemo ? mockUsers : firestoreUsers;
+    const documents = isDemo ? mockDocs : firestoreDocs;
+    const rawProjects = isDemo ? mockProjects : firestoreProjects;
+    const allFindings = isDemo ? mockFindings : firestoreFindings;
 
     // FIX: Ensure usersList is never empty if we are logged in (fallback to self)
     const effectiveUsers = useMemo(() => {
@@ -46,17 +113,13 @@ export const useAudits = () => {
         return [];
     }, [usersList, user]);
 
-    const { data: documents, loading: docsLoading } = useFirestoreCollection<Document>(
-        'documents', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(200)], { logError: true, realtime: true }
-    );
-    const { data: rawProjects, loading: projectsLoading } = useFirestoreCollection<Project>(
-        'projects', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(100)], { logError: true, realtime: true }
-    );
-    const { data: allFindings, loading: findingsLoading } = useFirestoreCollection<Finding>(
-        'findings', [where('organizationId', '==', user?.organizationId || 'ignore'), limit(500)], { logError: true, realtime: true }
-    );
+    const loading = isDemo ? mockLoading : (firestoreAuditsLoading || firestoreControlsLoading || firestoreAssetsLoading || firestoreRisksLoading || firestoreUsersLoading || firestoreDocsLoading || firestoreProjectsLoading || firestoreFindingsLoading);
 
-    const loading = auditsLoading || controlsLoading || assetsLoading || risksLoading || usersLoading || docsLoading || projectsLoading || findingsLoading;
+    const refreshAudits = useCallback(() => {
+        if (!isDemo) {
+            refreshFirestoreAudits();
+        }
+    }, [isDemo, refreshFirestoreAudits]);
 
     // --- Derived State ---
     const audits = useMemo(() => {
