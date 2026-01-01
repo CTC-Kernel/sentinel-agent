@@ -54,18 +54,22 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onD
 
 export const OnboardingTrigger: React.FC = () => {
     const { user, demoMode } = useStore(state => ({ user: state.user, demoMode: state.demoMode }));
-    const [showBanner, setShowBanner] = React.useState(false);
+    // Initial state based on conditions
+    const [showBanner, setShowBanner] = React.useState(() => {
+        if (demoMode) return false;
+        const isWizardCompleted = user?.onboardingCompleted;
+        const hasSeenTour = OnboardingService.hasSeenTour();
+        const hasDismissedBanner = localStorage.getItem('dismissedOnboardingBanner') === 'true';
+        
+        return Boolean(isWizardCompleted && !hasSeenTour && !hasDismissedBanner);
+    });
 
     useEffect(() => {
+        // This effect only handles side effects, not state updates
         if (demoMode) {
-            setShowBanner(false);
             return;
         }
-        // Show banner only if:
-        // 1. User has completed the Setup Wizard (user.onboardingCompleted)
-        // 2. User has NOT seen the Tour (localStorage)
-        // 3. User has NOT dismissed the banner (localStorage)
-
+        
         const isWizardCompleted = user?.onboardingCompleted;
         const hasSeenTour = OnboardingService.hasSeenTour();
         const isDismissed = localStorage.getItem('tour-dismissed');

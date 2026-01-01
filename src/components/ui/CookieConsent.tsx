@@ -8,12 +8,10 @@ import { ErrorLogger } from '../../services/errorLogger';
 export const CookieConsent: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false);
     const [showLegalModal, setShowLegalModal] = useState(false);
-    const [isDemoMode, setIsDemoMode] = useState(false);
+    const isDemoMode = localStorage.getItem('demoMode') === 'true';
 
     useEffect(() => {
-        const demoModeEnabled = localStorage.getItem('demoMode') === 'true';
-        setIsDemoMode(demoModeEnabled);
-        if (demoModeEnabled) return;
+        if (isDemoMode) return;
 
         const consent = localStorage.getItem('sentinel_cookie_consent');
         if (!consent) {
