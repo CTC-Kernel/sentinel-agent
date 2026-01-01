@@ -220,7 +220,7 @@ exports.beforeUserSignedIn = onCall({enforceAppCheck: false}, async (request) =>
                 source: 'before_sign_in',
                 ip: request.rawRequest?.ip || null
             });
-            return {}; // Allow the sign-in to proceed with no additional claims
+            return { success: true, customClaims: {} }; // Allow the sign-in to proceed with no additional claims
         }
 
         const settings = await fetchOrganizationSsoSettings(organizationId);
@@ -259,8 +259,9 @@ exports.beforeUserSignedIn = onCall({enforceAppCheck: false}, async (request) =>
             ip: request.rawRequest?.ip || null
         });
 
-        // Return custom claims to be set on the user's ID token
+        // Return success response with custom claims data
         return {
+            success: true,
             customClaims: {
                 organizationId,
                 role: userRecord?.role || 'user',
