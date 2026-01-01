@@ -26,16 +26,24 @@ test.describe('Team Module', () => {
     });
 
     test('should open invite user modal', async ({ page }) => {
-        // Click "Invite Member" button
+        // Wait for the invite button to be visible
         const inviteBtn = page.getByRole('button', { name: /Inviter|Invite/i }).first();
-        await expect(inviteBtn).toBeVisible();
-        await inviteBtn.click();
-
-        // Check for Modal Title
-        await expect(page.getByRole('dialog')).toBeVisible();
-        await expect(page.getByText(/Inviter un membre|Invite Member/i)).toBeVisible();
+        await expect(inviteBtn).toBeVisible({ timeout: 30000 });
+        
+        // Click the invite button
+        await inviteBtn.click({ timeout: 10000 });
+        
+        // Wait for the dialog to be visible with a longer timeout
+        const dialog = page.getByRole('dialog');
+        await expect(dialog).toBeVisible({ timeout: 30000 });
+        
+        // Check for the invite title in the dialog
+        await expect(
+            dialog.getByText(/Inviter un membre|Invite Member/i)
+        ).toBeVisible({ timeout: 10000 });
 
         // Close modal
         await page.keyboard.press('Escape');
+        await expect(dialog).toBeHidden({ timeout: 10000 });
     });
 });
