@@ -154,7 +154,14 @@ const canViewSsoSettings = (token = {}) =>
 /**
  * Public Callable Function to log authentication attempts (pre-login)
  */
-exports.logAuthAttempt = onCall(async (request) => {
+exports.logAuthAttempt = onCall({
+    cors: [
+        'http://localhost:8080',
+        'https://app.cyber-threat-consulting.com',
+        'https://sentinel-grc-a8701.web.app',
+        'https://sentinel-grc-a8701.firebaseapp.com'
+    ]
+}, async (request) => {
     const { provider, status, email, errorCode, metadata } = request.data;
 
     if (!provider || !status) {
