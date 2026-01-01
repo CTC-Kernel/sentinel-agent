@@ -11,7 +11,6 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { InspectorLayout } from '../components/ui/InspectorLayout';
 import { ProjectForm } from '../components/projects/ProjectForm';
 import { canEditResource } from '../utils/permissions';
-import { usePersistedState } from '../hooks/usePersistedState';
 import { useComplianceData } from '../hooks/useComplianceData';
 import { useComplianceDataSeeder } from '../hooks/useComplianceDataSeeder';
 import { useProjectLogic } from '../hooks/projects/useProjectLogic';

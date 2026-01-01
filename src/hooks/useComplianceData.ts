@@ -24,7 +24,6 @@ export const useComplianceData = (currentFramework?: Framework) => {
 
     useEffect(() => {
         if (!user?.organizationId) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLoading(false);
             return;
         }
@@ -43,7 +42,6 @@ export const useComplianceData = (currentFramework?: Framework) => {
                 setAssets(module.MockDataService.getCollection('assets') as unknown as Asset[]);
                 setSuppliers(module.MockDataService.getCollection('suppliers') as unknown as Supplier[]);
                 setProjects(module.MockDataService.getCollection('projects') as unknown as Project[]);
-                setFindings([]);
                 setFindings([]);
                 setLoading(false);
             }).catch(err => {

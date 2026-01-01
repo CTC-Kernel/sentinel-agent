@@ -243,7 +243,7 @@ export class ProjectService {
      * Import projects from CSV data
      */
     static async importProjectsFromCSV(
-        data: Record<string, any>[],
+        data: Record<string, string>[],
         organizationId: string,
         userId: string,
         userDisplayName: string
@@ -253,19 +253,20 @@ export class ProjectService {
             let count = 0;
 
             for (const row of data) {
-                if (!row.Nom) continue;
+                const name = row.Nom || row.name;
+                if (!name) continue;
 
                 const newRef = doc(collection(db, 'projects'));
                 const projectData = {
                     organizationId,
-                    name: row.Nom,
-                    description: row.Description || '',
-                    status: row.Statut || 'Nouveau',
-                    priority: row.Priorité || 'Moyenne',
-                    manager: { id: userId, label: row.Responsable || userDisplayName },
+                    name,
+                    description: row.Description || row.description || '',
+                    status: row.Statut || row.status || 'Nouveau',
+                    priority: row.Priorité || row['Priorite'] || row.priority || 'Moyenne',
+                    manager: { id: userId, label: row.Responsable || row.responsable || userDisplayName },
                     progress: 0,
                     tasks: [],
-                    dueDate: row.Echéance || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    dueDate: row.Echéance || row['Echeance'] || row.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                     createdAt: serverTimestamp(),
                     tags: ['Import CSV']
                 };

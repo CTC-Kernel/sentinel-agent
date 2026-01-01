@@ -115,9 +115,11 @@ export const useAudits = () => {
 
     const loading = isDemo ? mockLoading : (firestoreAuditsLoading || firestoreControlsLoading || firestoreAssetsLoading || firestoreRisksLoading || firestoreUsersLoading || firestoreDocsLoading || firestoreProjectsLoading || firestoreFindingsLoading);
 
-    const refreshAudits = () => {
-        if (!isDemo) refreshFirestoreAudits();
-    };
+    const refreshAudits = useCallback(() => {
+        if (!isDemo) {
+            refreshFirestoreAudits();
+        }
+    }, [isDemo, refreshFirestoreAudits]);
 
     // --- Derived State ---
     const audits = useMemo(() => {

@@ -253,6 +253,7 @@ export const MockDataService = {
             case 'users':
                 return [
                     {
+                        id: 'user-1',
                         uid: 'e2e-user-123',
                         email: 'e2e@sentinel.com',
                         displayName: 'E2E Sentinel',
@@ -261,7 +262,7 @@ export const MockDataService = {
                         department: 'IT',
                         isPending: false
                     }
-                ] as any;
+                ];
             default:
                 return [];
         }

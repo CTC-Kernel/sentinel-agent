@@ -26,9 +26,11 @@ export function usePrivacy() {
     const [stats, setStats] = useState({ total: 0, sensitive: 0, dpiaMissing: 0, review: 0 });
 
     // Initial Fetch
+    const organizationId = user?.organizationId;
+
     const fetchData = useCallback(async () => {
         // Allow fetch in demo mode even if no org ID (or use mock org)
-        if (!user?.organizationId && !useStore.getState().demoMode) return;
+        if (!organizationId && !useStore.getState().demoMode) return;
 
         setLoading(true);
         try {
@@ -76,15 +78,15 @@ export function usePrivacy() {
                 });
                 return;
             } else {
-                if (!user?.organizationId) return;
+                if (!organizationId) return;
                 // Use PrivacyService for activities
-                fetchedActivities = await PrivacyService.fetchActivities(user.organizationId);
+                fetchedActivities = await PrivacyService.fetchActivities(organizationId);
 
                 // Fetch other dependencies directly for now
                 const results = await Promise.allSettled([
-                    getDocs(query(collection(db, 'users'), where('organizationId', '==', user!.organizationId), limit(100))),
-                    getDocs(query(collection(db, 'assets'), where('organizationId', '==', user!.organizationId), limit(500))),
-                    getDocs(query(collection(db, 'risks'), where('organizationId', '==', user!.organizationId), limit(500)))
+                    getDocs(query(collection(db, 'users'), where('organizationId', '==', organizationId), limit(100))),
+                    getDocs(query(collection(db, 'assets'), where('organizationId', '==', organizationId), limit(500))),
+                    getDocs(query(collection(db, 'risks'), where('organizationId', '==', organizationId), limit(500)))
                 ]);
 
                 const usersSnapshot = results[0].status === 'fulfilled' ? results[0].value : { docs: [] };
@@ -124,7 +126,7 @@ export function usePrivacy() {
         } finally {
             setLoading(false);
         }
-    }, [user?.organizationId]);
+    }, [organizationId]);
 
     const fetchHistory = useCallback(async (activityId: string) => {
         if (!user?.organizationId) return;

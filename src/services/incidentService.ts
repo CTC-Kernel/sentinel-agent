@@ -10,6 +10,8 @@ export interface DeleteIncidentOptions {
     userEmail: string;
 }
 
+type IncidentCsvRow = Record<string, string>;
+
 export class IncidentService {
     /**
      * Delete an incident with atomic audit logging using writeBatch
@@ -79,7 +81,7 @@ export class IncidentService {
      * Import multiple incidents from CSV data
      */
     static async importIncidentsFromCSV(
-        data: Record<string, any>[],
+        data: IncidentCsvRow[],
         organizationId: string,
         _userId: string,
         userDisplayName: string
@@ -89,22 +91,24 @@ export class IncidentService {
             let count = 0;
 
             for (const row of data) {
-                if (!row.Titre) continue;
+                const title = row.Titre || row.title;
+                if (!title) continue;
 
                 const newDocRef = doc(collection(db, 'incidents'));
-                const severityLower = (row.Sévérité || 'Medium').toLowerCase();
+                const severityInput = row.Sévérité || row['Severite'] || row.Severity || '';
+                const severityLower = severityInput.toLowerCase();
                 const severity = ['critical', 'high', 'medium', 'low'].includes(severityLower)
-                    ? severityLower.charAt(0).toUpperCase() + severityLower.slice(1)
+                    ? (severityLower.charAt(0).toUpperCase() + severityLower.slice(1)) as 'Critical' | 'High' | 'Medium' | 'Low'
                     : 'Medium'; // Normalize
 
                 const incidentData = {
                     organizationId,
-                    title: row.Titre,
-                    description: row.Description || '',
-                    status: row.Statut || 'Nouveau',
+                    title,
+                    description: row.Description || row.description || '',
+                    status: row.Statut || row.status || 'Nouveau',
                     severity: severity, // Correct casing
-                    category: row.Catégorie || 'Social Engineering',
-                    reporter: row.Déclarant || userDisplayName,
+                    category: row.Catégorie || row.Categorie || 'Social Engineering',
+                    reporter: row.Déclarant || row.declarant || userDisplayName,
                     dateReported: serverTimestamp(),
                     dateAnalysis: serverTimestamp(), // Default to now to avoid filtering issues
                     financialImpact: 0,

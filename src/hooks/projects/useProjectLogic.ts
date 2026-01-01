@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { where, doc, updateDoc, addDoc, collection, writeBatch, limit, serverTimestamp } from 'firebase/firestore';
@@ -41,25 +41,31 @@ export const useProjectLogic = () => {
     const { data: usersList, loading: loadingUsers } = useFirestoreCollection<UserProfile>('users', [where('organizationId', '==', user?.organizationId), limit(100)], { logError: true, realtime: true });
 
     // Load Mock Data Effect
-    useState(() => { // Using generic effect for mount if demoMode
+    useEffect(() => {
+        let isMounted = true;
         if (demoMode && !mockData) {
-            import('../../services/mockDataService').then(({ MockDataService }) => {
-                setMockData({
-                    projects: MockDataService.getCollection('projects') as Project[],
-                    risks: MockDataService.getCollection('risks') as Risk[],
-                    controls: MockDataService.getCollection('controls') as Control[],
-                    assets: MockDataService.getCollection('assets') as Asset[],
-                    audits: MockDataService.getCollection('audits') as Audit[],
-                    users: MockDataService.getCollection('users') as unknown as UserProfile[]
+            import('../../services/mockDataService')
+                .then(({ MockDataService }) => {
+                    if (!isMounted) return;
+                    setMockData({
+                        projects: MockDataService.getCollection('projects') as Project[],
+                        risks: MockDataService.getCollection('risks') as Risk[],
+                        controls: MockDataService.getCollection('controls') as Control[],
+                        assets: MockDataService.getCollection('assets') as Asset[],
+                        audits: MockDataService.getCollection('audits') as Audit[],
+                        users: MockDataService.getCollection('users') as unknown as UserProfile[]
+                    });
+                })
+                .catch(err => {
+                    console.error('Failed to load mock data module', err);
+                    if (!isMounted) return;
+                    setMockData({ projects: [], risks: [], controls: [], assets: [], audits: [], users: [] });
                 });
-                users: MockDataService.getCollection('users') as unknown as UserProfile[]
-            });
-        }).catch(err => {
-            console.error('Failed to load mock data module', err);
-            setMockData({ projects: [], risks: [], controls: [], assets: [], audits: [], users: [] });
-        });
-}
-    });
+        }
+        return () => {
+            isMounted = false;
+        };
+    }, [demoMode, mockData]);
 
 // Derived State
 const projects = useMemo(() => {

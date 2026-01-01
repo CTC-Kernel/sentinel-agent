@@ -207,17 +207,74 @@ const Assets: React.FC = () => {
     // Import Handlers
     const [importModalOpen, setImportModalOpen] = useState(false);
 
-    const assetGuidelines = {
+    const assetGuidelines = useMemo(() => ({
         required: ['name', 'type', 'owner', 'confidentiality'],
         optional: ['notes', 'availability', 'integrity', 'lifecycleStatus', 'location', 'purchasePrice', 'purchaseDate', 'warrantyEnd'],
         format: 'CSV'
-    };
+    }), []);
 
     const handleImportAssets = React.useCallback(async (file: File) => {
         const text = await file.text();
         const parsed = CsvParser.parseCSV(text);
 
         let successCount = 0;
+
+        const resolveCriticality = (value?: string): Criticality => {
+            const normalized = (value || '').toLowerCase();
+            const mapping: Record<string, Criticality> = {
+                'critique': Criticality.CRITICAL,
+                'critical': Criticality.CRITICAL,
+                'élevé': Criticality.HIGH,
+                'eleve': Criticality.HIGH,
+                'high': Criticality.HIGH,
+                'moyen': Criticality.MEDIUM,
+                'moyenne': Criticality.MEDIUM,
+                'medium': Criticality.MEDIUM,
+                'faible': Criticality.LOW,
+                'low': Criticality.LOW,
+                'public': Criticality.LOW
+            };
+            return mapping[normalized] ?? Criticality.MEDIUM;
+        };
+
+        const resolveAssetType = (value?: string): AssetFormData['type'] => {
+            const normalized = (value || '').toLowerCase();
+            const mapping: Record<string, AssetFormData['type']> = {
+                'matériel': 'Matériel',
+                'materiel': 'Matériel',
+                'hardware': 'Matériel',
+                'logiciel': 'Logiciel',
+                'software': 'Logiciel',
+                'données': 'Données',
+                'donnees': 'Données',
+                'data': 'Données',
+                'service': 'Service',
+                'humain': 'Humain',
+                'human': 'Humain'
+            };
+            return mapping[normalized] ?? 'Logiciel';
+        };
+
+        const resolveLifecycleStatus = (value?: string): AssetFormData['lifecycleStatus'] => {
+            if (!value) return undefined;
+            const normalized = value.toLowerCase();
+            const mapping: Record<string, AssetFormData['lifecycleStatus']> = {
+                'neuf': 'Neuf',
+                'new': 'Neuf',
+                'en service': 'En service',
+                'active': 'En service',
+                'activee': 'En service',
+                'en réparation': 'En réparation',
+                'en reparation': 'En réparation',
+                'repair': 'En réparation',
+                'fin de vie': 'Fin de vie',
+                'endoflife': 'Fin de vie',
+                'end_of_life': 'Fin de vie',
+                'rebut': 'Rebut',
+                'retired': 'Rebut'
+            };
+            return mapping[normalized] ?? 'En service';
+        };
 
         // Process sequentially to avoid overwhelming Firestore
         for (const row of parsed) {
@@ -228,16 +285,14 @@ const Assets: React.FC = () => {
             // Ensure types match schema (some might need casting or fallback)
             const assetData: AssetFormData = {
                 name: row.name,
-                type: (row.type as any) || 'Software', // Fallback or strict check needed
-                // Map description/notes to notes
+                type: resolveAssetType(row.type),
                 notes: row.notes || row.description || '',
                 owner: row.owner || user?.displayName || 'Unknown',
-                confidentiality: (row.criticality || row.confidentiality || 'Public') as any, // Handle aliasing
-                integrity: (row.integrity || 'Medium') as any,
-                availability: (row.availability || 'Medium') as any,
-                lifecycleStatus: (row.status || row.lifecycleStatus || 'Active') as any,
-                // Optional fields
-                location: row.location,
+                confidentiality: resolveCriticality(row.criticality || row.confidentiality),
+                integrity: resolveCriticality(row.integrity),
+                availability: resolveCriticality(row.availability),
+                lifecycleStatus: resolveLifecycleStatus(row.status || row.lifecycleStatus),
+                location: row.location || '',
                 purchasePrice: row.purchasePrice ? Number(row.purchasePrice) : undefined,
                 purchaseDate: row.purchaseDate,
                 warrantyEnd: row.warrantyEnd

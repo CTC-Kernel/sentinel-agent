@@ -267,16 +267,24 @@ export const useTeamManagement = () => {
             let failureCount = 0;
             let limitReached = false;
 
+            const normalizeRole = (value?: string): UserFormData['role'] => {
+                const allowedRoles: UserFormData['role'][] = ['user', 'rssi', 'auditor', 'project_manager', 'direction', 'admin'];
+                if (!value) return 'user';
+                const lowerValue = value.trim().toLowerCase();
+                return (allowedRoles.find(role => role === lowerValue) ?? 'user') as UserFormData['role'];
+            };
+
             for (const row of lines) {
                 if (limitReached) break;
-                if (!row.Email) continue;
+                const email = row.Email || row.email;
+                if (!email) continue;
 
                 // Map CSV fields to UserFormData
                 const userData: UserFormData = {
-                    email: row.Email,
-                    displayName: row.Nom || '',
-                    role: (row.Role as any) || 'user',
-                    department: row.Departement || ''
+                    email,
+                    displayName: row.Nom || row.name || '',
+                    role: normalizeRole(row.Role || row.role),
+                    department: row.Departement || row.department || ''
                 };
 
                 // Use inviteUser but suppress individual toasts (we need to refactor inviteUser or just accept toasts? Refactoring is better but complex. 

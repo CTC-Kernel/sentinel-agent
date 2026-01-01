@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, arrayRemove, limit, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, writeBatch, getDocs, query, where, deleteDoc, arrayRemove, limit, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Control } from '../types';
 import { ErrorLogger } from './errorLogger';
@@ -20,6 +20,8 @@ export interface DeleteDocumentOptions {
     userId: string;
     userEmail: string;
 }
+
+type DocumentCsvRow = Record<string, string>;
 
 export class DocumentService {
     /**
@@ -146,8 +148,8 @@ export class DocumentService {
                 cleanupPromises.push(
                     updateDoc(doc(db, 'controls', docSnap.id), {
                         evidenceIds: arrayRemove(documentId)
-                    }).catch(err => {
-                        ErrorLogger.warn(`Failed to remove document from control ${docSnap.id}: ${err}`, 'DocumentService.deleteDocumentWithCascade');
+                    }).catch((err: unknown) => {
+                        ErrorLogger.warn(`Failed to remove document from control ${docSnap.id}: ${String(err)}`, 'DocumentService.deleteDocumentWithCascade');
                     })
                 );
             });
@@ -157,8 +159,8 @@ export class DocumentService {
                 cleanupPromises.push(
                     updateDoc(doc(db, 'suppliers', docSnap.id), {
                         contractDocumentId: null
-                    }).catch(err => {
-                        ErrorLogger.warn(`Failed to remove document from supplier ${docSnap.id}: ${err}`, 'DocumentService.deleteDocumentWithCascade');
+                    }).catch((err: unknown) => {
+                        ErrorLogger.warn(`Failed to remove document from supplier ${docSnap.id}: ${String(err)}`, 'DocumentService.deleteDocumentWithCascade');
                     })
                 );
             });
@@ -168,8 +170,8 @@ export class DocumentService {
                 cleanupPromises.push(
                     updateDoc(doc(db, 'business_processes', docSnap.id), {
                         drpDocumentId: null
-                    }).catch(err => {
-                        ErrorLogger.warn(`Failed to remove document from BCP ${docSnap.id}: ${err}`, 'DocumentService.deleteDocumentWithCascade');
+                    }).catch((err: unknown) => {
+                        ErrorLogger.warn(`Failed to remove document from BCP ${docSnap.id}: ${String(err)}`, 'DocumentService.deleteDocumentWithCascade');
                     })
                 );
             });
@@ -179,8 +181,8 @@ export class DocumentService {
                 cleanupPromises.push(
                     updateDoc(doc(db, 'findings', docSnap.id), {
                         evidenceIds: arrayRemove(documentId)
-                    }).catch(err => {
-                        ErrorLogger.warn(`Failed to remove document from finding ${docSnap.id}: ${err}`, 'DocumentService.deleteDocumentWithCascade');
+                    }).catch((err: unknown) => {
+                        ErrorLogger.warn(`Failed to remove document from finding ${docSnap.id}: ${String(err)}`, 'DocumentService.deleteDocumentWithCascade');
                     })
                 );
             });
@@ -205,7 +207,7 @@ export class DocumentService {
      * Import documents from CSV data
      */
     static async importDocumentsFromCSV(
-        data: Record<string, any>[],
+        data: DocumentCsvRow[],
         organizationId: string,
         userId: string,
         userDisplayName: string
