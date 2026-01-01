@@ -60,6 +60,11 @@ if (typeof window !== 'undefined') {
 
   try {
     if (appCheckKey) {
+      // Configure debug token for development
+      if (window.location.hostname === 'localhost') {
+        (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string }).FIREBASE_APPCHECK_DEBUG_TOKEN = '***REDACTED***';
+      }
+      
       appCheckInstance = initializeAppCheck(app, {
         provider: new ReCaptchaEnterpriseProvider(appCheckKey),
         isTokenAutoRefreshEnabled: true

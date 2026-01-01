@@ -1,5 +1,6 @@
 const { onDocumentCreated, onDocumentUpdated, onDocumentWritten, onDocumentDeleted } = require("firebase-functions/v2/firestore");
 const { logger } = require("firebase-functions");
+const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
 admin.initializeApp(); // Initialize immediately to avoid "default Firebase app does not exist" errors
@@ -9,7 +10,7 @@ const sgMail = require('@sendgrid/mail');
 
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { beforeUserSignedIn } = require("firebase-functions/v2/identity");
+const { beforeUserCreated } = require("firebase-functions/v2/identity");
 const { defineString, defineSecret } = require("firebase-functions/params");
 const nodemailer = require("nodemailer");
 const { getMessaging } = require('firebase-admin/messaging');
@@ -192,39 +193,62 @@ exports.logAuthAttempt = onCall({
     }
 });
 
-exports.beforeUserSignedIn = beforeUserSignedIn(async (event) => {
-    const providerId = event.credential?.providerId || event.data?.providerId || 'password';
-    const normalizedProvider = normalizeProvider(providerId);
+// Using beforeUserSignedIn with proper async/await and error handling
+exports.beforeUserSignedIn = onCall({enforceAppCheck: false}, async (request) => {
+    try {
+        const providerId = request.data?.providerId || 'password';
+        const normalizedProvider = normalizeProvider(providerId);
+        const user = request.auth;
 
-    const { organizationId, userRecord } = await resolveOrganizationContext({
-        userId: event.user?.uid,
-        email: event.user?.email
-    });
+        if (!user) {
+            throw new HttpsError('unauthenticated', 'User must be authenticated.');
+        }
 
-    if (!organizationId) {
-        // Allow first login but log for follow-up
-        await persistAuthAuditLog({
-            provider: normalizedProvider,
-            status: 'failure',
-            email: event.user?.email,
-            errorCode: 'missing_organization',
-            metadata: { reason: 'No organization context resolved before sign-in' },
-            source: 'before_sign_in',
-            ip: event.rawRequest?.ip || null
+        const { organizationId, userRecord } = await resolveOrganizationContext({
+            userId: user.uid,
+            email: user.token.email || request.data?.email
         });
 
-        return;
-    }
+        if (!organizationId) {
+            // Log but allow the sign-in to proceed
+            await persistAuthAuditLog({
+                provider: normalizedProvider,
+                status: 'failure',
+                email: user.token.email || request.data?.email,
+                errorCode: 'missing_organization',
+                metadata: { reason: 'No organization context resolved before sign-in' },
+                source: 'before_sign_in',
+                ip: request.rawRequest?.ip || null
+            });
+            return {}; // Allow the sign-in to proceed with no additional claims
+        }
 
-    const settings = await fetchOrganizationSsoSettings(organizationId);
-    const isAllowed = settings.allowedProviders.includes(normalizedProvider);
+        const settings = await fetchOrganizationSsoSettings(organizationId);
+        const isAllowed = settings.allowedProviders.includes(normalizedProvider);
 
-    if (!isAllowed && settings.enforcementMode === 'strict') {
+        if (!isAllowed && settings.enforcementMode === 'strict') {
+            await persistAuthAuditLog({
+                provider: normalizedProvider,
+                status: 'failure',
+                email: user.token.email || request.data?.email,
+                errorCode: 'provider_not_allowed',
+                metadata: {
+                    enforcementMode: settings.enforcementMode,
+                    allowedProviders: settings.allowedProviders,
+                    requestedProvider: normalizedProvider
+                },
+                organizationId,
+                source: 'before_sign_in',
+                ip: request.rawRequest?.ip || null
+            });
+
+            throw new HttpsError('permission-denied', 'SSO provider is not allowed for this organization.');
+        }
+
         await persistAuthAuditLog({
             provider: normalizedProvider,
-            status: 'failure',
-            email: event.user?.email,
-            errorCode: 'provider_not_allowed',
+            status: isAllowed ? 'success' : 'attempt',
+            email: user.token.email || request.data?.email,
             metadata: {
                 enforcementMode: settings.enforcementMode,
                 allowedProviders: settings.allowedProviders,
@@ -232,33 +256,26 @@ exports.beforeUserSignedIn = beforeUserSignedIn(async (event) => {
             },
             organizationId,
             source: 'before_sign_in',
-            ip: event.rawRequest?.ip || null
+            ip: request.rawRequest?.ip || null
         });
 
-        throw new HttpsError('permission-denied', 'SSO provider is not allowed for this organization.');
+        // Return custom claims to be set on the user's ID token
+        return {
+            customClaims: {
+                organizationId,
+                role: userRecord?.role || 'user',
+                allowedSsoProviders: settings.allowedProviders,
+                provider: normalizedProvider,
+                ssoEnforcementMode: settings.enforcementMode
+            }
+        };
+    } catch (error) {
+        logger.error('Error in beforeUserSignedIn:', error);
+        if (error instanceof HttpsError) {
+            throw error;
+        }
+        throw new HttpsError('internal', 'An error occurred during sign-in validation.');
     }
-
-    await persistAuthAuditLog({
-        provider: normalizedProvider,
-        status: isAllowed ? 'success' : 'attempt',
-        email: event.user?.email,
-        metadata: {
-            enforcementMode: settings.enforcementMode,
-            allowedProviders: settings.allowedProviders,
-            requestedProvider: normalizedProvider
-        },
-        organizationId,
-        source: 'before_sign_in',
-        ip: event.rawRequest?.ip || null
-    });
-
-    event.data.sessionClaims = {
-        ...(event.data.sessionClaims || {}),
-        organizationId,
-        role: userRecord?.role || 'user',
-        allowedSsoProviders: settings.allowedProviders,
-        ssoEnforcementMode: settings.enforcementMode
-    };
 });
 
 exports.getSsoSettings = onCall(async (request) => {
