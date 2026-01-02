@@ -53,7 +53,10 @@ export const Reports: React.FC = () => {
         if (!checkLimit('reports')) return; // reports feature check
         setLoadingAction(true);
         try {
+            console.log('🔄 Generating PDF:', { templateId, title, risksCount: risks?.length, controlsCount: controls?.length });
+            
             if (templateId === 'iso27001' || templateId === 'gdpr') {
+                console.log('📦 Generating compliance pack...');
                 await CompliancePackService.generatePack({
                     organizationName: organization?.name || 'Organization',
                     risks,
@@ -64,7 +67,9 @@ export const Reports: React.FC = () => {
                     incidents,
                     projects
                 });
+                console.log('✅ Compliance pack generated successfully');
             } else if (templateId === 'custom') {
+                console.log('📊 Generating custom executive report...');
                 // Generate Global Executive Report
                 // 1. Calculate all metrics
                 const riskMetrics = ReportEnrichmentService.calculateMetrics(risks || []);
@@ -144,14 +149,24 @@ export const Reports: React.FC = () => {
 
                     }
                 );
+                console.log('✅ Custom report generated successfully');
 
             } else {
                 const doc = new jsPDF();
                 doc.text(title, 10, 10);
                 doc.save(`${title}.pdf`);
+                console.log('✅ Simple PDF generated successfully');
             }
 
         } catch (error) {
+            console.error('❌ PDF Generation Error:', error);
+            console.error('Error details:', {
+                name: error instanceof Error ? error.name : 'Unknown',
+                message: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : 'No stack available',
+                templateId,
+                title
+            });
             ErrorLogger.handleErrorWithToast(error, 'Reports.generatePDF', 'CREATE_FAILED');
         } finally {
             setLoadingAction(false);
