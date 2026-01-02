@@ -116,120 +116,132 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         );
     }
 
+
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.98, filter: 'blur(10px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-            className="glass-panel relative rounded-3xl p-1 border border-glass-border shadow-lg overflow-hidden group"
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="group relative rounded-[2rem] p-[1px] overflow-hidden"
         >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+            {/* Animated Glow Border */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-500/50 to-transparent animate-shine opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-            {/* Inner Content Container */}
-            <div className="relative z-10 rounded-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-md p-6 md:p-8 transition-all duration-500 group-hover:bg-white/50 dark:group-hover:bg-slate-900/50">
+            <div className="glass-premium relative rounded-[2rem] overflow-hidden">
+                {/* Aurora Dynamic Background */}
+                <div className="absolute inset-0 bg-aurora animate-aurora opacity-40 dark:opacity-20 pointer-events-none" />
+                <div className="absolute inset-0 bg-grid-slate-900/5 dark:bg-grid-white/5 opacity-50 pointer-events-none" />
 
-                <div className="relative z-10 px-6 py-5">
-                    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                {/* Inner Content Container */}
+                <div className="relative z-10 p-6 md:p-8">
 
-                        {/* Left: Organization & Welcome */}
-                        <div className="flex items-center gap-5 min-w-[280px]">
-                            <div className="relative shrink-0">
-                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getGradeColor(scoreGrade)} flex items-center justify-center shadow-lg relative overflow-hidden`}>
-                                    <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                                    <span className="text-xl font-black text-white font-display relative z-10">{scoreGrade || '-'}</span>
-                                </div>
-                                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-background flex items-center justify-center">
-                                    <div className="w-3 h-3 rounded-full bg-emerald-500 animate-monitoring-ping absolute" />
-                                    <div className="w-3 h-3 rounded-full bg-emerald-500 relative z-10" />
-                                </div>
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight leading-none mb-1">
-                                    {organizationName || user?.organizationName || t('sidebar.dashboard')}
-                                </h1>
-                                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                                    <span>{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
-                                    <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                                    <span className="uppercase tracking-wide">{t('dashboard.workspace')}</span>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="relative z-10 px-6 py-5">
+                        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
 
-                        {/* Middle: Integrated Insight Banner */}
-                        <div className="flex-1 w-full lg:w-auto">
-                            {insight?.text ? (
-                                <button
-                                    onClick={() => {
-                                        if (insight.link && insight.link.startsWith('/')) navigate(insight.link); // validateUrl check
-                                    }}
-                                    className={`flex w-full text-left items-start sm:items-center gap-3 p-3 rounded-xl border ${insight.type === 'danger' ? 'bg-red-500/5 border-red-500/10' : insight.type === 'warning' ? 'bg-orange-500/5 border-orange-500/10' : 'bg-emerald-500/5 border-emerald-500/10'} hover:bg-opacity-80 transition-colors cursor-pointer group/insight focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
-                                >
-                                    <div className={`p-1.5 rounded-lg shrink-0 ${insight.type === 'danger' ? 'bg-red-500/10 text-red-600' : 'bg-orange-500/10 text-orange-600'}`}>
-                                        {insight.type === 'danger' ? <AlertTriangle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
+                            {/* Left: Organization & Welcome */}
+                            <div className="flex items-center gap-5 min-w-[280px]">
+                                <div className="relative shrink-0 group/orb cursor-default">
+                                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${getGradeColor(scoreGrade)} flex items-center justify-center shadow-lg shadow-brand-500/30 relative overflow-hidden transition-all duration-500 group-hover/orb:scale-110 group-hover/orb:rotate-3`}>
+                                        <div className="absolute inset-0 bg-white/30 animate-pulse" />
+                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/50 to-transparent opacity-0 group-hover/orb:opacity-100 transition-opacity duration-500" />
+                                        <span className="text-3xl font-black text-white font-display relative z-10 drop-shadow-md">{scoreGrade || '-'}</span>
+                                        {/* Holographic ring */}
+                                        <div className="absolute inset-0 border-2 border-white/20 rounded-2xl animate-spin-slow" />
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-foreground truncate pr-2">{insight.text}</p>
-                                        <p className="text-xs text-muted-foreground truncate hidden sm:block">{insight.details}</p>
+                                    <div className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-background/50 backdrop-blur-sm flex items-center justify-center shadow-sm border border-white/10">
+                                        <div className="w-3 h-3 rounded-full bg-emerald-500 animate-monitoring-ping absolute" />
+                                        <div className="w-3 h-3 rounded-full bg-emerald-500 relative z-10 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
                                     </div>
-                                    {insight.link && <ArrowRight className="h-4 w-4 text-muted-foreground group-hover/insight:translate-x-1 transition-transform" />}
-                                </button>
-                            ) : (
-                                <div className="hidden lg:flex items-center gap-2 p-3 rounded-xl bg-accent/30 border border-border/50 text-muted-foreground text-sm">
-                                    <Activity className="h-4 w-4" />
-                                    <span>{t('dashboard.allSystemsOperational')}</span>
                                 </div>
-                            )}
-                        </div>
-
-                        {/* Right: Actions */}
-                        <div className="flex items-center gap-3 shrink-0 w-full lg:w-auto flex-wrap lg:flex-nowrap justify-end">
-                            {onToggleEdit && (
-                                <Tooltip content={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')} position="bottom">
-                                    <button
-                                        onClick={onToggleEdit}
-                                        className={`p-2 rounded-md transition-all ${isEditing ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-muted-foreground hover:text-foreground hover:bg-background border border-transparent'} focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
-                                        aria-label={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')}
-                                    >
-                                        {isEditing ? <Check className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
-                                    </button>
-                                </Tooltip>
-                            )}
-
-                            <div className="flex items-center gap-2 p-1 bg-accent/50 rounded-lg border border-border/50">
-                                <Tooltip content={t('dashboard.executiveReport')} position="bottom">
-                                    <button
-                                        onClick={generateExecutiveReport}
-                                        disabled={isGeneratingReport}
-                                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                                        aria-label={t('dashboard.executiveReport')}
-                                    >
-                                        {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-                                    </button>
-                                </Tooltip>
-                                <Tooltip content={t('dashboard.exportIcal')} position="bottom">
-                                    <button
-                                        onClick={generateICal}
-                                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all"
-                                        aria-label={t('dashboard.exportIcal')}
-                                    >
-                                        <CalendarDays className="h-4 w-4" />
-                                    </button>
-                                </Tooltip>
-
+                                <div>
+                                    <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight leading-none mb-1">
+                                        {organizationName || user?.organizationName || t('sidebar.dashboard')}
+                                    </h1>
+                                    <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                                        <span>{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                                        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                                        <span className="uppercase tracking-wide">{t('dashboard.workspace')}</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            {role === 'admin' && (
-                                <Tooltip content={t('dashboard.inviteTooltip')} position="bottom">
+                            {/* Middle: Integrated Insight Banner */}
+                            <div className="flex-1 w-full lg:w-auto">
+                                {insight?.text ? (
                                     <button
-                                        onClick={() => navigate('/team')}
-                                        className="hidden sm:flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:-translate-y-0.5"
-                                        aria-label={t('dashboard.inviteMember')}
+                                        onClick={() => {
+                                            if (insight.link && insight.link.startsWith('/')) navigate(insight.link); // validateUrl check
+                                        }}
+                                        className={`flex w-full text-left items-start sm:items-center gap-3 p-3 rounded-xl border ${insight.type === 'danger' ? 'bg-red-500/5 border-red-500/10' : insight.type === 'warning' ? 'bg-orange-500/5 border-orange-500/10' : 'bg-emerald-500/5 border-emerald-500/10'} hover:bg-opacity-80 transition-colors cursor-pointer group/insight focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
                                     >
-                                        <Users className="h-4 w-4" />
-                                        <span className="hidden xl:inline">{t('dashboard.inviteMember')}</span>
+                                        <div className={`p-1.5 rounded-lg shrink-0 ${insight.type === 'danger' ? 'bg-red-500/10 text-red-600' : 'bg-orange-500/10 text-orange-600'}`}>
+                                            {insight.type === 'danger' ? <AlertTriangle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-foreground truncate pr-2">{insight.text}</p>
+                                            <p className="text-xs text-muted-foreground truncate hidden sm:block">{insight.details}</p>
+                                        </div>
+                                        {insight.link && <ArrowRight className="h-4 w-4 text-muted-foreground group-hover/insight:translate-x-1 transition-transform" />}
                                     </button>
-                                </Tooltip>
-                            )}
+                                ) : (
+                                    <div className="hidden lg:flex items-center gap-2 p-3 rounded-xl bg-accent/30 border border-border/50 text-muted-foreground text-sm">
+                                        <Activity className="h-4 w-4" />
+                                        <span>{t('dashboard.allSystemsOperational')}</span>
+                                    </div>
+                                )}
+                            </div>
 
+                            {/* Right: Actions */}
+                            <div className="flex items-center gap-3 shrink-0 w-full lg:w-auto flex-wrap lg:flex-nowrap justify-end">
+                                {onToggleEdit && (
+                                    <Tooltip content={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')} position="bottom">
+                                        <button
+                                            onClick={onToggleEdit}
+                                            className={`p-2 rounded-md transition-all ${isEditing ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-muted-foreground hover:text-foreground hover:bg-background border border-transparent'} focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+                                            aria-label={isEditing ? t('dashboard.edit.finish') : t('dashboard.edit.customize')}
+                                        >
+                                            {isEditing ? <Check className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
+                                        </button>
+                                    </Tooltip>
+                                )}
+
+                                <div className="flex items-center gap-2 p-1 bg-accent/50 rounded-lg border border-border/50">
+                                    <Tooltip content={t('dashboard.executiveReport')} position="bottom">
+                                        <button
+                                            onClick={generateExecutiveReport}
+                                            disabled={isGeneratingReport}
+                                            className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                            aria-label={t('dashboard.executiveReport')}
+                                        >
+                                            {isGeneratingReport ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                                        </button>
+                                    </Tooltip>
+                                    <Tooltip content={t('dashboard.exportIcal')} position="bottom">
+                                        <button
+                                            onClick={generateICal}
+                                            className="p-2 text-muted-foreground hover:text-foreground hover:bg-background rounded-md transition-all"
+                                            aria-label={t('dashboard.exportIcal')}
+                                        >
+                                            <CalendarDays className="h-4 w-4" />
+                                        </button>
+                                    </Tooltip>
+
+                                </div>
+
+                                {role === 'admin' && (
+                                    <Tooltip content={t('dashboard.inviteTooltip')} position="bottom">
+                                        <button
+                                            onClick={() => navigate('/team')}
+                                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-brand-500/20 transition-all hover:-translate-y-0.5"
+                                            aria-label={t('dashboard.inviteMember')}
+                                        >
+                                            <Users className="h-4 w-4" />
+                                            <span className="hidden xl:inline">{t('dashboard.inviteMember')}</span>
+                                        </button>
+                                    </Tooltip>
+                                )}
+
+                            </div>
                         </div>
                     </div>
                 </div>
