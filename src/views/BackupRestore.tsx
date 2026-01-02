@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
+import { Navigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { BackupService, BackupMetadata } from '../services/backupService';
@@ -18,13 +18,12 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SEO } from '../components/SEO';
 import { usePersistedState } from '../hooks/usePersistedState';
+import { hasPermission } from '../utils/permissions';
 
 export const BackupRestore: React.FC = () => {
   const { user, addToast } = useStore();
   // hasPermission check
-  if (user?.role !== 'direction' && user?.role !== 'rssi') {
-    // Redirect or show access denied (handled by Layout usually, but explicit check helps audit)
-  }
+
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [backups, setBackups] = useState<BackupMetadata[]>([]);
@@ -102,6 +101,10 @@ export const BackupRestore: React.FC = () => {
       setInitialLoading(false);
     }
   }, [user?.organizationId, loadBackups, loadStats]);
+
+  if (!user || !hasPermission(user, 'Backup', 'read')) {
+    return <Navigate to="/" replace />;
+  }
 
   if (initialLoading) {
     return <LoadingScreen />;

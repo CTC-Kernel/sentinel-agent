@@ -5,13 +5,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { businessProcessSchema, BusinessProcessFormData } from '../../schemas/continuitySchema';
 import { Modal } from '../ui/Modal';
 import { aiService } from '../../services/aiService';
-import { Sparkles, Loader2, Plus, Trash2, Server, Truck } from 'lucide-react'; // Using Lucide directly or Icons if customized
+import { Sparkles, Plus, Trash2, Server, Truck } from 'lucide-react'; // Using Lucide directly or Icons if customized
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { Asset, Supplier, Risk, UserProfile } from '../../types';
 
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
+import { Button } from '../ui/button';
 
 const TEMPLATES = [
     { name: 'Systèmes d\'Information (IT)', description: 'Maintenance et support des infrastructures critiques.', rto: '4h', rpo: '1h', priority: 'Critique' as const },
@@ -144,16 +145,18 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                         }}
                                     />
                                 </div>
-                                <button
+                                <Button
                                     type="button"
                                     onClick={handleAISuggestion}
                                     disabled={isGenerating}
-                                    className="text-xs font-bold bg-white dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 px-3 py-1.5 rounded-lg border border-brand-200 dark:border-brand-900/30 hover:bg-brand-50 transition-colors flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                                    aria-label={t('continuity.ai.autocomplete')}
+                                    className="text-xs px-3 py-1.5 h-auto bg-white dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 border border-brand-200 dark:border-brand-900/30 hover:bg-brand-50"
+                                    isLoading={isGenerating}
                                 >
-                                    {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                                    {!isGenerating && <Sparkles className="h-3 w-3 mr-2" />}
                                     {isGenerating ? 'IA...' : t('continuity.ai.autocomplete')}
-                                </button>
+                                </Button>
+
+
                             </div>
                         </div>
                         <p className="text-xs text-brand-600/80 dark:text-brand-400">
@@ -387,12 +390,13 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/10">
-                    <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-slate-700 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2" aria-label={t('common.cancel')}>{t('common.cancel')}</button>
-                    <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-sm hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20 disabled:opacity-50 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2" aria-label={isEditing ? t('common.update') : t('continuity.createProcess')}>
-                        {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                <div className="flex justify-end gap-2 pt-4 border-t border-gray-100 dark:border-white/10">
+                    <Button type="button" variant="ghost" onClick={onClose}>
+                        {t('common.cancel')}
+                    </Button>
+                    <Button type="submit" isLoading={isSubmitting} className="bg-brand-600 text-white">
                         {isEditing ? t('common.update') : t('continuity.createProcess')}
-                    </button>
+                    </Button>
                 </div>
             </form>
         </Modal>

@@ -122,9 +122,9 @@ export const ComplianceEvolutionWidget: React.FC<ComplianceEvolutionWidgetProps>
                                     dot={(props: { cx: number; cy: number; index: number }) => {
                                         const { cx, cy, index } = props;
                                         const isLast = index === filteredData.length - 1;
-                                        if (!isLast) return <circle cx={cx} cy={cy} r={0} />;
+                                        if (!isLast) return <circle key={`dot-${index}`} cx={cx} cy={cy} r={0} />;
                                         return (
-                                            <g>
+                                            <g key={`dot-group-${index}`}>
                                                 <circle cx={cx} cy={cy} r={6} fill={chartColors.stroke} className="animate-ping opacity-75" />
                                                 <circle cx={cx} cy={cy} r={4} fill={chartColors.fill} stroke={chartColors.stroke} strokeWidth={2} />
                                             </g>

@@ -1,11 +1,12 @@
-import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Modal } from '../ui/Modal';
 import { BusinessProcess, BcpDrill } from '../../types';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Save } from 'lucide-react';
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { DatePicker } from '../ui/DatePicker';
+import { Button } from '../ui/button';
+
 interface DrillModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -122,11 +123,12 @@ export const DrillModal: React.FC<DrillModalProps> = ({ isOpen, onClose, onSubmi
                     />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4">
-                    <button type="submit" disabled={isSubmitting} className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-brand-600 rounded-lg hover:bg-brand-700 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
-                        {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                        Enregistrer
-                    </button>
+                <div className="flex justify-end gap-2 pt-4">
+                    <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
+                    <Button type="submit" disabled={isSubmitting} className="bg-brand-600 text-white">
+                        {isSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                        {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+                    </Button>
                 </div>
             </form>
         </Modal>

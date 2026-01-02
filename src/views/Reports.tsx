@@ -72,13 +72,14 @@ export const Reports: React.FC = () => {
                 // Need audit metrics per audit? Or just global?
                 // Let's create dummy audit metrics if we don't have detailed finding data
                 // Or better, assume we can get basic status from audits.
+                // Real Audit Metrics
                 const auditMetricsList = (audits || []).map(a => ({
-                    total_findings: 10, // Mocked as we don't have findings in list view
-                    major_findings: 2,
-                    minor_findings: 3,
-                    observations: 5,
-                    open_findings: 5,
-                    closed_findings: 5,
+                    total_findings: a.findingsCount || 0,
+                    major_findings: 0, // Breakdown not available in list view
+                    minor_findings: 0,
+                    observations: 0,
+                    open_findings: a.status !== 'Terminé' && a.status !== 'Validé' ? (a.findingsCount || 0) : 0, // Approximation
+                    closed_findings: a.status === 'Terminé' || a.status === 'Validé' ? (a.findingsCount || 0) : 0, // Approximation
                     conformity_score: a.score || 0
                 }));
                 const projectMetricsList = (projects || []).map(p => ReportEnrichmentService.calculateProjectMetrics(p));
@@ -94,22 +95,22 @@ export const Reports: React.FC = () => {
 
                 PdfService.generateExecutiveReport(
                     {
-                        title: "Rapport de Gouvernance Globale",
-                        subtitle: "Synthèse exécutive et indicateurs de performance",
-                        filename: "Rapport_Gouvernance_Global.pdf",
+                        title: t('reports.pdf.title'),
+                        subtitle: t('reports.pdf.subtitle'),
+                        filename: t('reports.pdf.filename'),
                         organizationName: organization?.name || 'Sentinel GRC',
                         orientation: 'portrait',
                         summary: globalSummary,
                         metrics: [
-                            { label: 'Score Global', value: `${globalMetrics.global_score}/100`, subtext: 'Indice de Gouvernance' },
-                            { label: 'Risques', value: `${globalMetrics.risk_health}%`, subtext: 'Indice de Santé' },
-                            { label: 'Conformité', value: `${globalMetrics.compliance_health}%`, subtext: 'Couverture ISO' }
+                            { label: t('reports.pdf.globalScore'), value: `${globalMetrics.global_score}/100`, subtext: t('reports.pdf.governanceIndex') },
+                            { label: t('reports.pdf.labelRisks'), value: `${globalMetrics.risk_health}%`, subtext: t('reports.pdf.riskHealth') },
+                            { label: t('reports.pdf.isoCoverage'), value: `${globalMetrics.compliance_health}%`, subtext: t('reports.pdf.isoCoverage') }
                         ],
                         stats: [
-                            { label: 'Risques', value: globalMetrics.risk_health, color: '#EF4444' },
-                            { label: 'Conformité', value: globalMetrics.compliance_health, color: '#10B981' },
-                            { label: 'Audit', value: globalMetrics.audit_health, color: '#3B82F6' },
-                            { label: 'Projets', value: globalMetrics.project_health, color: '#F59E0B' }
+                            { label: t('reports.pdf.labelRisks'), value: globalMetrics.risk_health, color: '#EF4444' },
+                            { label: t('reports.pdf.labelCompliance'), value: globalMetrics.compliance_health, color: '#10B981' },
+                            { label: t('reports.pdf.labelAudit'), value: globalMetrics.audit_health, color: '#3B82F6' },
+                            { label: t('reports.pdf.labelProjects'), value: globalMetrics.project_health, color: '#F59E0B' }
                         ]
                     },
                     (doc, y) => {
@@ -120,7 +121,7 @@ export const Reports: React.FC = () => {
                         doc.setFontSize(14);
                         doc.setTextColor('#334155');
                         doc.setFont('helvetica', 'bold');
-                        doc.text("1. Gestion des Risques", 14, currentY);
+                        doc.text(t('reports.pdf.riskManagement'), 14, currentY);
                         currentY += 10;
 
                         PdfService.drawRiskMatrix(
@@ -134,11 +135,11 @@ export const Reports: React.FC = () => {
                         currentY += 70;
 
                         // 2. Compliance Status
-                        doc.text("2. Conformité ISO 27001", 14, currentY);
+                        doc.text(t('reports.pdf.complianceStatus'), 14, currentY);
                         currentY += 10;
-                        PdfService.drawProgressBar(doc, 14, currentY, pageWidth - 28, 6, complianceMetrics.compliance_coverage, "Couverture Globale", '#10B981');
+                        PdfService.drawProgressBar(doc, 14, currentY, pageWidth - 28, 6, complianceMetrics.compliance_coverage, t('reports.pdf.globalCoverage'), '#10B981');
                         currentY += 15;
-                        PdfService.drawProgressBar(doc, 14, currentY, pageWidth - 28, 6, complianceMetrics.audit_readiness, "Préparation Audit", '#3B82F6');
+                        PdfService.drawProgressBar(doc, 14, currentY, pageWidth - 28, 6, complianceMetrics.audit_readiness, t('reports.pdf.auditReadiness'), '#3B82F6');
                         currentY += 20;
 
                     }
@@ -196,13 +197,13 @@ export const Reports: React.FC = () => {
                     {/* Template Cards Demo */}
                     <div
                         className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group"
-                        onClick={() => generatePDF('iso27001', 'Rapport ISO 27001')}
+                        onClick={() => generatePDF('iso27001', t('reports.templateCards.iso27001.title'))}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
-                                generatePDF('iso27001', 'Rapport ISO 27001');
+                                generatePDF('iso27001', t('reports.templateCards.iso27001.title'));
                             }
                         }}
                     >
@@ -211,24 +212,24 @@ export const Reports: React.FC = () => {
                                 <ShieldCheck className="h-6 w-6" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-slate-900 dark:text-white">Pack ISO 27001</h3>
-                                <p className="text-xs text-slate-500">SoA, Politiques, Risques</p>
+                                <h3 className="font-bold text-slate-900 dark:text-white">{t('reports.templateCards.iso27001.title')}</h3>
+                                <p className="text-xs text-slate-500">{t('reports.templateCards.iso27001.desc')}</p>
                             </div>
                         </div>
-                        <button aria-label="Générer Rapport ISO 27001" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                            Générer
+                        <button aria-label={t('reports.templateCards.iso27001.button')} className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                            {t('reports.templateCards.iso27001.action')}
                         </button>
                     </div>
 
                     <div
                         className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group"
-                        onClick={() => generatePDF('gdpr', 'Rapport RGPD')}
+                        onClick={() => generatePDF('gdpr', t('reports.templateCards.gdpr.title'))}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
-                                generatePDF('gdpr', 'Rapport RGPD');
+                                generatePDF('gdpr', t('reports.templateCards.gdpr.title'));
                             }
                         }}
                     >
@@ -237,24 +238,24 @@ export const Reports: React.FC = () => {
                                 <Lock className="h-6 w-6" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-slate-900 dark:text-white">Pack RGPD</h3>
-                                <p className="text-xs text-slate-500">Registre, DPIA, Violations</p>
+                                <h3 className="font-bold text-slate-900 dark:text-white">{t('reports.templateCards.gdpr.title')}</h3>
+                                <p className="text-xs text-slate-500">{t('reports.templateCards.gdpr.desc')}</p>
                             </div>
                         </div>
-                        <button aria-label="Générer Rapport RGPD" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                            Générer
+                        <button aria-label={t('reports.templateCards.gdpr.button')} className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                            {t('reports.templateCards.gdpr.action')}
                         </button>
                     </div>
 
                     <div
                         className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group"
-                        onClick={() => generatePDF('custom', 'Rapport Personnalisé')}
+                        onClick={() => generatePDF('custom', t('reports.templateCards.custom.title'))}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
-                                generatePDF('custom', 'Rapport Personnalisé');
+                                generatePDF('custom', t('reports.templateCards.custom.title'));
                             }
                         }}
                     >
@@ -263,12 +264,12 @@ export const Reports: React.FC = () => {
                                 <Settings className="h-6 w-6" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-slate-900 dark:text-white">Rapport Personnalisé</h3>
-                                <p className="text-xs text-slate-500">Choisissez vos indicateurs</p>
+                                <h3 className="font-bold text-slate-900 dark:text-white">{t('reports.templateCards.custom.title')}</h3>
+                                <p className="text-xs text-slate-500">{t('reports.templateCards.custom.desc')}</p>
                             </div>
                         </div>
-                        <button aria-label="Configurer Rapport Personnalisé" className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                            Configurer
+                        <button aria-label={t('reports.templateCards.custom.button')} className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                            {t('reports.templateCards.custom.action')}
                         </button>
                     </div>
                 </div>

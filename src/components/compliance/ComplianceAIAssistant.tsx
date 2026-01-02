@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Control } from '../../types';
 import { aiService } from '../../services/aiService';
 import { Sparkles, Bot, Lightbulb, FileText, Loader2 } from '../ui/Icons';
@@ -10,6 +11,7 @@ interface ComplianceAIAssistantProps {
 }
 
 export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ control, onApplyPolicy }) => {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [response, setResponse] = useState<string | null>(null);
     const [mode, setMode] = useState<'explain' | 'evidence' | 'policy' | null>(null);
@@ -21,11 +23,11 @@ export const ComplianceAIAssistant: React.FC<ComplianceAIAssistantProps> = ({ co
         try {
             let prompt = '';
             if (action === 'explain') {
-                prompt = `Explique le contrôle ISO 27001 "${control.code} - ${control.name}" de manière simple et concrète pour une PME. Donne des exemples d'application.`;
+                prompt = t('ai.prompts.explain', { code: control.code, name: control.name });
             } else if (action === 'evidence') {
-                prompt = `Quelles sont les preuves (documents, logs, captures) typiquement attendues par un auditeur pour le contrôle "${control.code} - ${control.name}" ? Liste-les sous forme de bullet points.`;
+                prompt = t('ai.prompts.evidence', { code: control.code, name: control.name });
             } else if (action === 'policy') {
-                prompt = `Rédige un paragraphe de politique de sécurité concis pour répondre au contrôle "${control.code} - ${control.name}". Le ton doit être formel.`;
+                prompt = t('ai.prompts.policy', { code: control.code, name: control.name });
             }
 
             const res = await aiService.chatWithAI(prompt);

@@ -255,7 +255,7 @@ export const Audits: React.FC = () => {
                                         <Menu.Item>
                                             {({ active }) => (
                                                 <button aria-label={t('audits.exportCsv')} onClick={handleExportCSV} className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/5`}>
-                                                    <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> {t('audits.exportCsv')}
+                                                    <Download className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} /> {t('audits.exportCSV')}
                                                 </button>
                                             )}
                                         </Menu.Item>
@@ -291,7 +291,7 @@ export const Audits: React.FC = () => {
                                     className="gap-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 font-medium"
                                 >
                                     <BrainCircuit className="w-4 h-4" />
-                                    <span className="hidden sm:inline">{t('audits.ai')}</span>
+                                    <span className="hidden sm:inline">{t('audits.aiAssistant')}</span>
                                 </Button>
                                 <Button
                                     onClick={() => { setEditingAudit(null); setCreationMode(true); }}

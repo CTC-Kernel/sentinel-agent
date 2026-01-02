@@ -12,7 +12,7 @@ interface OnboardingBannerProps {
 export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onDismiss }) => {
     const { t } = useTranslation();
     return (
-        <div className="fixed bottom-6 right-6 z-modal max-w-md animate-slide-up">
+        <div className="fixed bottom-6 left-6 z-modal max-w-md animate-slide-up">
             <div className="bg-gradient-to-r from-brand-600 to-purple-600 rounded-2xl shadow-2xl p-6 text-white">
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -53,14 +53,16 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onD
 };
 
 export const OnboardingTrigger: React.FC = () => {
-    const { user, demoMode } = useStore(state => ({ user: state.user, demoMode: state.demoMode }));
+    const user = useStore(state => state.user);
+    const demoMode = useStore(state => state.demoMode);
+
     // Initial state based on conditions
     const [showBanner, setShowBanner] = React.useState(() => {
         if (demoMode) return false;
         const isWizardCompleted = user?.onboardingCompleted;
         const hasSeenTour = OnboardingService.hasSeenTour();
         const hasDismissedBanner = localStorage.getItem('dismissedOnboardingBanner') === 'true';
-        
+
         return Boolean(isWizardCompleted && !hasSeenTour && !hasDismissedBanner);
     });
 
@@ -69,17 +71,17 @@ export const OnboardingTrigger: React.FC = () => {
         if (demoMode) {
             return;
         }
-        
+
         const isWizardCompleted = user?.onboardingCompleted;
         const hasSeenTour = OnboardingService.hasSeenTour();
         const isDismissed = localStorage.getItem('tour-dismissed');
 
-        // Delay slighty to avoid clashing with initial load
+        // Delay slightly to avoid clashing with initial load
         if (isWizardCompleted && !hasSeenTour && !isDismissed) {
             const timer = setTimeout(() => setShowBanner(true), 2000);
             return () => clearTimeout(timer);
         }
-    }, [user?.onboardingCompleted, demoMode]);
+    }, [user?.onboardingCompleted, demoMode, user?.uid]); // Added stable dependencies
 
     const handleStart = () => {
         setShowBanner(false);

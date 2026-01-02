@@ -300,7 +300,7 @@ export const OrganizationSettings: React.FC = () => {
                                     error={orgForm.formState.errors.contactEmail?.message}
                                 />
                                 <FloatingLabelInput
-                                    label={t('common.address')}
+                                    label={t('settings.address')}
                                     {...orgForm.register('address')}
                                 />
                                 <FloatingLabelInput

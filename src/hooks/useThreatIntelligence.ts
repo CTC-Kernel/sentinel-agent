@@ -5,9 +5,11 @@ import { orderBy, limit, increment } from 'firebase/firestore';
 import { useStore } from '../store';
 import { logAction } from '../services/logger';
 import { ErrorLogger } from '../services/errorLogger';
+import { useTranslation } from 'react-i18next';
 
 export const useThreatIntelligence = () => {
     const { user, addToast } = useStore();
+    const { t } = useTranslation();
     const myOrgId = user?.organizationId || 'demo';
 
     // Data Fetching
@@ -31,14 +33,14 @@ export const useThreatIntelligence = () => {
         try {
             if (action === 'remove') {
                 await removeRelationship(id);
-                addToast("Relation supprimée", "info");
+                addToast(t('threats.relationshipDeleted'), "info");
             } else {
                 await updateRelationship(id, { status: action === 'trust' ? 'trusted' : 'blocked' });
-                addToast(action === 'trust' ? "Partenaire ajouté aux cercles de confiance" : "Organisation bloquée", "success");
+                addToast(action === 'trust' ? t('threats.partnerTrusted') : t('threats.partnerBlocked'), "success");
             }
         } catch (e) {
             ErrorLogger.error(e as Error, 'ThreatIntelligence.handleTrustAction');
-            addToast("Erreur lors de la mise à jour", "error");
+            addToast(t('threats.updateError'), "error");
         }
     };
 
@@ -47,10 +49,10 @@ export const useThreatIntelligence = () => {
         try {
             await updateThreat(threatId, { votes: increment(1) });
             logAction(user, 'CONFIRM_SIGHTING', 'ThreatIntelligence', `Confirmed sighting ${threatId}`);
-            addToast("Observation confirmée (+1)", "success");
+            addToast(t('threats.sightingConfirmed'), "success");
         } catch (e) {
             ErrorLogger.error(e as Error, 'ThreatIntelligence.confirmSighting');
-            addToast("Action non autorisée (Mode Démo)", "info");
+            addToast(t('threats.demoModeError'), "info");
         }
     };
 

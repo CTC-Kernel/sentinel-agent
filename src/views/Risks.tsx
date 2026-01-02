@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, Transition } from '@headlessui/react';
 import {
     FileText, FileSpreadsheet, FileCode, MoreVertical,
@@ -112,15 +112,18 @@ export const Risks: React.FC = () => {
     const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
     const [confirmData, setConfirmData] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
     const [viewMode, setViewMode] = usePersistedState<'list' | 'grid'>('risks-view-mode', 'grid');
-    const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'matrix'>('risks-active-tab', 'overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'matrix'>('overview');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     // const [isImporting, setIsImporting] = useState(false); // Removed local state
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
+    const [initialFormData, setInitialFormData] = useState<Partial<RiskFormData> | undefined>(undefined);
+
     // ... URL Params ...
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const deepLinkRiskId = searchParams.get('id');
 
     // ... Deep Linking Effect ...
@@ -133,6 +136,19 @@ export const Risks: React.FC = () => {
         }
     }, [loading, deepLinkRiskId, risks]);
 
+    // Handle navigation from AssetInspector (Create Risk for Asset)
+    React.useEffect(() => {
+        const state = location.state as { createForAsset?: string; assetName?: string } | null;
+        if (state?.createForAsset && !creationMode) {
+            setInitialFormData({
+                assetId: state.createForAsset
+            });
+            setCreationMode(true);
+            // Clear state to prevent reopening on refresh (optional, but good practice)
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state, creationMode]);
+
 
     // Refs
 
@@ -142,6 +158,7 @@ export const Risks: React.FC = () => {
     const handleEdit = React.useCallback((risk: Risk) => {
         if (!canEditResource(user as UserProfile, 'Risk')) return;
         setEditingRisk(risk);
+        setInitialFormData(undefined); // Clear initial data when editing existing
         setCreationMode(true);
     }, [user]);
 
@@ -657,7 +674,8 @@ export const Risks: React.FC = () => {
             >
                 <div className="p-6">
                     <RiskForm
-                        initialData={editingRisk || undefined}
+                        initialData={initialFormData} // Use initialFormData state
+                        existingRisk={editingRisk}   // existingRisk is null when creating new
                         onSubmit={handleFormSubmit}
                         onCancel={handleFormCancel}
                         assets={assets}

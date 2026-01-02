@@ -3,6 +3,7 @@ import { Audit } from '../../types';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface AuditCalendarProps {
     audits: Audit[];
@@ -10,6 +11,7 @@ interface AuditCalendarProps {
 }
 
 export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditClick }) => {
+    const { t, i18n } = useTranslation();
     const [currentDate, setCurrentDate] = React.useState(new Date());
 
     const daysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -17,8 +19,6 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
 
     const days = Array.from({ length: daysInMonth(currentDate) }, (_, i) => i + 1);
     const firstDay = firstDayOfMonth(currentDate); // 0 = Sunday
-
-    const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 
     const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
     const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
@@ -38,23 +38,23 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white capitalize">
-                        {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                        {currentDate.toLocaleString(i18n.language, { month: 'long', year: 'numeric' })}
                     </h2>
                     <div className="flex gap-1 bg-slate-100 dark:bg-white/5 rounded-lg p-1">
-                        <button onClick={prevMonth} aria-label="Mois précédent" className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" /></button>
-                        <button onClick={today} className="px-3 py-1 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Aujourd'hui</button>
-                        <button onClick={nextMonth} aria-label="Mois suivant" className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-400" /></button>
+                        <button onClick={prevMonth} aria-label={t('audits.calendarLabels.prevMonth')} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" /></button>
+                        <button onClick={today} className="px-3 py-1 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('audits.calendarLabels.today')}</button>
+                        <button onClick={nextMonth} aria-label={t('audits.calendarLabels.nextMonth')} className="p-1 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-400" /></button>
                     </div>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-slate-500">
                     <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-blue-500"></span> Planifié
+                        <span className="w-3 h-3 rounded-full bg-blue-500"></span> {t('audits.status.planned')}
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-amber-500"></span> En Cours
+                        <span className="w-3 h-3 rounded-full bg-amber-500"></span> {t('audits.status.inProgress')}
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-emerald-500"></span> Terminé
+                        <span className="w-3 h-3 rounded-full bg-emerald-500"></span> {t('audits.status.completed')}
                     </div>
                 </div>
             </div>
@@ -62,9 +62,9 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
             {/* Grid */}
             <div className="flex-1 grid grid-cols-7 auto-rows-fr gap-px bg-slate-200 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden">
                 {/* Weekdays */}
-                {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map(d => (
+                {[0, 1, 2, 3, 4, 5, 6].map(d => (
                     <div key={d} className="bg-slate-50 dark:bg-slate-900/50 p-4 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
-                        {d}
+                        {new Date(2024, 0, d).toLocaleString(i18n.language, { weekday: 'short' })}
                     </div>
                 ))}
 

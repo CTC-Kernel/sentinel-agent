@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Suspense } from 'react';
-import { HashRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom'; // HashRouter aliased as Router
+import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'; // HashRouter aliased as Router
 import { Toaster } from 'sonner';
 
 // Contexts & Hooks
@@ -52,18 +52,7 @@ const VerifyEmail = React.lazy(() => import('./views/VerifyEmail').then(module =
 
 
 // Route wrapper that decides whether to show Landing Page or App logic
-const LandingOrAppRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user, loading } = useAuth();
-    if (loading) return <LoadingScreen />;
-    if (user) {
-        return (
-            <AuthGuard>
-                {children}
-            </AuthGuard>
-        );
-    }
-    return <Navigate to="/login" replace />; // Redirect to login instead of LandingPage
-};
+
 
 // Wrapper to activate global shortcuts inside Router context
 const GlobalShortcutsWrapper: React.FC = () => {
@@ -196,7 +185,10 @@ const AppLayout: React.FC = () => {
 
 const AppContent: React.FC = () => {
     return (
-        <Router>
+        <Router future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true
+        }}>
             <AuthProvider>
                 <AppInner />
             </AuthProvider>
@@ -239,14 +231,7 @@ const AppInner: React.FC = () => {
                             </AuthGuard>
                         } />
 
-                        {/* Landing Page Route: Shows LandingPage for visitors, AppLayout (Dashboard) for users */}
-                        <Route path="/" element={
-                            <LandingOrAppRoute>
-                                <AppLayout />
-                            </LandingOrAppRoute>
-                        } />
-
-                        {/* Catch-all for sub-routes (e.g. /risks, /assets) protected by AuthGuard */}
+                        {/* Main App Route - Handles all paths and sub-routes */}
                         <Route path="/*" element={
                             <AuthGuard>
                                 <AppLayout />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
+import { hasPermission } from '../utils/permissions';
 import { motion } from 'framer-motion';
 import { integrationService, IntegrationProvider } from '../services/integrationService';
 import { IntegrationCard } from '../components/integrations/IntegrationCard';
@@ -63,7 +63,7 @@ export const Integrations: React.FC = () => {
             setConnectingId(provider.id);
             try {
                 // hasPermission check
-                if (user.role !== 'admin' && user.role !== 'project_manager') throw new Error('Unauthorized');
+                if (!hasPermission(user, 'Integration', 'manage')) throw new Error('Unauthorized');
                 await integrationService.connectProvider(provider.id, { credential: 'mock-cred' }, user.organizationId, true);
                 setProviders(prev => prev.map(p =>
                     p.id === provider.id ? { ...p, status: 'connected' } : p
@@ -86,8 +86,8 @@ export const Integrations: React.FC = () => {
     const confirmConnect = async () => {
         // hasPermission check
         if (!selectedProvider || !user?.organizationId) return;
-        if (user.role !== 'admin') {
-            toast.error("Seuls les administrateurs peuvent connecter des services.");
+        if (!hasPermission(user, 'Integration', 'manage')) {
+            toast.error("Vous n'avez pas la permission de connecter des services.");
             return;
         }
         if (!apiKey.trim()) {

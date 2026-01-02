@@ -68,7 +68,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
 
                     <div className="flex flex-col w-full items-center">
                         {/* Grid */}
-                        <div className="grid grid-rows-5 grid-cols-5 gap-3 md:gap-4 w-full max-w-2xl aspect-square">
+                        <div className="grid grid-rows-5 grid-cols-5 gap-3 md:gap-4 w-full max-w-2xl min-h-[500px]">
                             {PROBABILITY_LABELS.map(probObj => {
                                 const prob = probObj.val;
                                 return (

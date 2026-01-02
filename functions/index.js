@@ -3622,6 +3622,64 @@ exports.fetchEvidence = onCall({
     }
 });
 /**
+ * Proxy function to fetch external threat feeds and bypass CORS
+ */
+exports.fetchThreatFeed = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be authenticated.');
+    }
+
+    const { url } = request.data;
+
+    if (!url) {
+        throw new HttpsError('invalid-argument', 'URL is required.');
+    }
+
+    // Validate URL to prevent SSRF attacks
+    const allowedDomains = [
+        'www.cisa.gov',
+        'urlhaus-api.abuse.ch',
+        'haveibeenpwned.com',
+        'safebrowsing.googleapis.com',
+        'api.shodan.io'
+    ];
+
+    try {
+        const parsedUrl = new URL(url);
+        if (!allowedDomains.includes(parsedUrl.hostname)) {
+            throw new HttpsError('permission-denied', 'Domain not allowed.');
+        }
+    } catch (error) {
+        throw new HttpsError('invalid-argument', 'Invalid URL.');
+    }
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'User-Agent': 'Sentinel-GRC/1.0'
+            }
+        });
+
+        if (!response.ok) {
+            throw new HttpsError('internal', `HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const text = await response.text();
+        
+        try {
+            return JSON.parse(text);
+        } catch {
+            // Return raw text if JSON parsing fails
+            return { data: text };
+        }
+    } catch (error) {
+        logger.error('Error fetching threat feed:', error);
+        throw new HttpsError('internal', 'Failed to fetch threat feed.');
+    }
+});
+
+/**
  * Proxy function to fetch RSS feeds and avoid CORS issues.
  */
 exports.fetchRssFeed = onCall(async (request) => {
