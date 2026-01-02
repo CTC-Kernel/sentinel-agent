@@ -23,7 +23,7 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 
 let appCheck: AppCheck | null = null;
 
@@ -60,6 +60,11 @@ if (typeof window !== 'undefined') {
 
   try {
     if (appCheckKey) {
+      // Configure debug token for development
+      if (window.location.hostname === 'localhost') {
+        (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN: string }).FIREBASE_APPCHECK_DEBUG_TOKEN = '***REDACTED***';
+      }
+
       appCheckInstance = initializeAppCheck(app, {
         provider: new ReCaptchaEnterpriseProvider(appCheckKey),
         isTokenAutoRefreshEnabled: true

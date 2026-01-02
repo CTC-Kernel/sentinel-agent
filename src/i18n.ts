@@ -56,7 +56,8 @@ i18n
                                 project_manager: "Project Manager",
                                 direction: "Executive",
                                 user: "User"
-                            }
+                            },
+                            address: "Address"
                         },
                         name: "Name",
                         type: "Type",
@@ -954,7 +955,17 @@ i18n
                         findings: "Findings",
                         searchPlaceholder: "Search for an audit...",
                         allStatuses: "All Statuses",
+                        aiAssistant: "AI Assistant",
+                        newAudit: "New Audit",
+                        exportCalendar: "Export Calendar",
+                        exportCSV: "Export CSV",
+                        calendarLabels: {
+                            prevMonth: "Previous Month",
+                            nextMonth: "Next Month",
+                            today: "Today"
+                        },
                         status: {
+                            completed: "Completed",
                             planned: "Planned",
                             inProgress: "In Progress",
                             finished: "Finished",
@@ -967,11 +978,7 @@ i18n
                             certification: "Certification"
                         },
                         exports: "Exports",
-                        exportCalendar: "Export Calendar",
-                        exportCsv: "Export CSV",
                         deleteBulk: "Delete ({count})",
-                        ai: "AI Assistant",
-                        newAudit: "New Audit",
                         editAudit: "Edit Audit",
                         deleteTitle: "Delete audit?",
                         deleteMessage: "This action is irreversible and will delete all associated findings.",
@@ -1220,7 +1227,59 @@ i18n
                         upgradeLock: "Available from Professional plan (Custom Templates).",
                         upgradeBtn: "Upgrade",
                         restricted: "Restricted Access",
-                        generatePdf: "Generate PDF"
+                        generatePdf: "Generate PDF",
+                        pdf: {
+                            title: "Global Governance Report",
+                            subtitle: "Executive Summary and Performance Indicators",
+                            filename: "Global_Governance_Report.pdf",
+                            globalScore: "Global Score",
+                            governanceIndex: "Governance Index",
+                            riskHealth: "Health Index",
+                            isoCoverage: "ISO Coverage",
+                            riskManagement: "1. Risk Management",
+                            complianceStatus: "2. ISO 27001 Compliance",
+                            globalCoverage: "Global Coverage",
+                            auditReadiness: "Audit Readiness",
+                            labelRisks: "Risks",
+                            labelCompliance: "Compliance",
+                            labelAudit: "Audit",
+                            labelProjects: "Projects"
+                        },
+                        templateCards: {
+                            iso27001: {
+                                title: "ISO 27001 Pack",
+                                desc: "SoA, Policies, Risks",
+                                button: "Generate ISO 27001 Report",
+                                action: "Generate"
+                            },
+                            gdpr: {
+                                title: "GDPR Pack",
+                                desc: "Register, DPIA, Breaches",
+                                button: "Generate GDPR Report",
+                                action: "Generate"
+                            },
+                            custom: {
+                                title: "Custom Report",
+                                desc: "Choose your indicators",
+                                button: "Configure Custom Report",
+                                action: "Configure"
+                            }
+                        }
+                    },
+                    threats: {
+                        relationshipDeleted: "Relationship deleted",
+                        partnerTrusted: "Partner added to trusted circle",
+                        partnerBlocked: "Organization blocked",
+                        updateError: "Error during update",
+                        sightingConfirmed: "Sighting confirmed (+1)",
+                        demoModeError: "Action not authorized (Demo Mode)"
+                    },
+                    ai: {
+                        prompts: {
+                            explain: "Explain the ISO 27001 control \"{{code}} - {{name}}\" simply and concretely for an SMB. Give application examples.",
+                            evidence: "What evidence (documents, logs, screenshots) is typically expected by an auditor for control \"{{code}} - {{name}}\"? List them as bullet points.",
+                            policy: "Write a concise security policy paragraph to address control \"{{code}} - {{name}}\". The tone should be formal."
+                        }
                     },
                     admin: {
                         dashboard: "Super Admin Dashboard",
@@ -1466,7 +1525,8 @@ i18n
                                 project_manager: "Chef de Projet",
                                 direction: "Direction / CODIR",
                                 user: "Utilisateur"
-                            }
+                            },
+                            address: "Adresse"
                         },
                         name: "Nom",
                         type: "Type",
@@ -2278,7 +2338,59 @@ i18n
                         upgradeLock: "Disponible à partir du plan Professional (Custom Templates).",
                         upgradeBtn: "Mettre à niveau",
                         restricted: "Accès restreint",
-                        generatePdf: "Générer le PDF"
+                        generatePdf: "Générer le PDF",
+                        pdf: {
+                            title: "Rapport de Gouvernance Globale",
+                            subtitle: "Synthèse exécutive et indicateurs de performance",
+                            filename: "Rapport_Gouvernance_Global.pdf",
+                            globalScore: "Score Global",
+                            governanceIndex: "Indice de Gouvernance",
+                            riskHealth: "Indice de Santé",
+                            isoCoverage: "Couverture ISO",
+                            riskManagement: "1. Gestion des Risques",
+                            complianceStatus: "2. Conformité ISO 27001",
+                            globalCoverage: "Couverture Globale",
+                            auditReadiness: "Préparation Audit",
+                            labelRisks: "Risques",
+                            labelCompliance: "Conformité",
+                            labelAudit: "Audit",
+                            labelProjects: "Projets"
+                        },
+                        templateCards: {
+                            iso27001: {
+                                title: "Pack ISO 27001",
+                                desc: "SoA, Politiques, Risques",
+                                button: "Générer Rapport ISO 27001",
+                                action: "Générer"
+                            },
+                            gdpr: {
+                                title: "Pack RGPD",
+                                desc: "Registre, DPIA, Violations",
+                                button: "Générer Rapport RGPD",
+                                action: "Générer"
+                            },
+                            custom: {
+                                title: "Rapport Personnalisé",
+                                desc: "Choisissez vos indicateurs",
+                                button: "Configurer Rapport Personnalisé",
+                                action: "Configurer"
+                            }
+                        }
+                    },
+                    threats: {
+                        relationshipDeleted: "Relation supprimée",
+                        partnerTrusted: "Partenaire ajouté aux cercles de confiance",
+                        partnerBlocked: "Organisation bloquée",
+                        updateError: "Erreur lors de la mise à jour",
+                        sightingConfirmed: "Observation confirmée (+1)",
+                        demoModeError: "Action non autorisée (Mode Démo)"
+                    },
+                    ai: {
+                        prompts: {
+                            explain: "Explique le contrôle ISO 27001 \"{{code}} - {{name}}\" de manière simple et concrète pour une PME. Donne des exemples d'application.",
+                            evidence: "Quelles sont les preuves (documents, logs, captures) typiquement attendues par un auditeur pour le contrôle \"{{code}} - {{name}}\" ? Liste-les sous forme de bullet points.",
+                            policy: "Rédige un paragraphe de politique de sécurité concis pour répondre au contrôle \"{{code}} - {{name}}\". Le ton doit être formel."
+                        }
                     },
                     compliance: {
                         title: "Conformité",
@@ -2473,7 +2585,17 @@ i18n
                         findings: "Constats",
                         searchPlaceholder: "Rechercher un audit...",
                         allStatuses: "Tous les statuts",
+                        aiAssistant: "Assistant IA",
+                        newAudit: "Nouvel Audit",
+                        exportCalendar: "Exporter Calendrier",
+                        exportCSV: "Exporter CSV",
+                        calendarLabels: {
+                            prevMonth: "Mois précédent",
+                            nextMonth: "Mois suivant",
+                            today: "Aujourd'hui"
+                        },
                         status: {
+                            completed: "Terminé",
                             planned: "Planifié",
                             inProgress: "En cours",
                             finished: "Terminé",
@@ -2486,11 +2608,7 @@ i18n
                             certification: "Certification"
                         },
                         exports: "Exports",
-                        exportCalendar: "Export Calendrier",
-                        exportCsv: "Export CSV",
                         deleteBulk: "Supprimer ({count})",
-                        ai: "Assistant IA",
-                        newAudit: "Nouvel Audit",
                         editAudit: "Modifier l'audit",
                         deleteTitle: "Supprimer l'audit ?",
                         deleteMessage: "Cette action est irréversible et supprimera tous les constats associés.",

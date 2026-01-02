@@ -25,6 +25,7 @@ import { usePersistedState } from '../hooks/usePersistedState';
 import { useThreatIntelligence } from '../hooks/useThreatIntelligence';
 import { ErrorLogger } from '../services/errorLogger';
 
+import { hasPermission } from '../utils/permissions';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -90,6 +91,7 @@ export const ThreatIntelligence: React.FC = () => {
         try {
             const stats = await ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo');
             addToast(`Flux mis à jour : ${stats.threats} nouvelles menaces`, "success");
+            logAction(user, 'REFRESH_THREAT_FEED', 'ThreatIntelligence', `Manual feed refresh: ${stats.threats} new, ${stats.vulns} vulnerabilities`);
         } catch (e) {
             ErrorLogger.error(e as Error, 'ThreatIntelligence.seedLiveThreats');
             addToast("Passage en mode simulation (Hors-ligne).", "info");
@@ -99,24 +101,29 @@ export const ThreatIntelligence: React.FC = () => {
         } finally {
             setIsSeeding(false);
         }
-    }, [isSeeding, addToast, user?.organizationId]);
-
+    }, [isSeeding, addToast, user]);
 
     const mapData = useMemo(() => {
         const countryCounts: Record<string, { value: number, markers: { coordinates: [number, number]; name: string }[] }> = {};
-        const baseCountries = ['China', 'Russia', 'Brazil', 'United States', 'Germany', 'France', 'India'];
         const countryCoords: Record<string, [number, number]> = {
             'United States': [-95.7129, 37.0902], 'Germany': [10.4515, 51.1657], 'France': [2.2137, 46.2276],
-            'India': [78.9629, 20.5937], 'China': [104.1954, 35.8617], 'Russia': [105.3188, 61.5240], 'Brazil': [-51.9253, -14.2350]
+            'India': [78.9629, 20.5937], 'China': [104.1954, 35.8617], 'Russia': [105.3188, 61.5240], 'Brazil': [-51.9253, -14.2350],
+            'United Kingdom': [-3.4359, 55.3781], 'Japan': [138.2529, 36.2048], 'Canada': [-106.3468, 56.1304]
         };
 
-        baseCountries.forEach(c => { countryCounts[c] = { value: Math.floor(Math.random() * 5) + 2, markers: [] }; });
+        // Removed random base initialization. Map is now strictly driven by explicit threat data.
 
         threats.forEach(t => {
-            if (!countryCounts[t.country]) countryCounts[t.country] = { value: 0, markers: [] };
-            countryCounts[t.country].value += (t.severity === 'Critical' ? 3 : t.severity === 'High' ? 2 : 1);
-            if (countryCoords[t.country]) {
-                countryCounts[t.country].markers.push({ coordinates: countryCoords[t.country], name: t.title });
+            const country = t.country || 'Unknown';
+            if (country === 'Unknown') return;
+
+            if (!countryCounts[country]) countryCounts[country] = { value: 0, markers: [] };
+
+            // Criticality weight
+            countryCounts[country].value += (t.severity === 'Critical' ? 3 : t.severity === 'High' ? 2 : 1);
+
+            if (countryCoords[country]) {
+                countryCounts[country].markers.push({ coordinates: countryCoords[country], name: t.title });
             }
         });
 
@@ -157,7 +164,8 @@ export const ThreatIntelligence: React.FC = () => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         addToast("Règle de détection téléchargée", "success");
-    }, [addToast]);
+        logAction(user, 'DOWNLOAD_SIGMA_RULE', 'ThreatIntelligence', `Downloaded SIGMA rule for threat ${threat.title}`, undefined, threat.id);
+    }, [addToast, user]);
 
     // UI Handlers
     const handleViewChange = React.useCallback((view: string) => setActiveTab(view as 'overview' | 'map' | 'feed' | 'community'), [setActiveTab]);
@@ -168,7 +176,10 @@ export const ThreatIntelligence: React.FC = () => {
     const handleCommunitySettingsClose = React.useCallback(() => setIsSettingsOpen(false), []);
     const handleDiscussionClose = React.useCallback(() => setSelectedThreatId(null), []);
     const handleSubmitModalClose = React.useCallback(() => setIsSubmitModalOpen(false), []);
-    const handleSubmitSuccess = React.useCallback(() => addToast("Menace signalée !", "success"), [addToast]);
+    const handleSubmitSuccess = React.useCallback(() => {
+        addToast("Menace signalée !", "success");
+        logAction(user, 'SIGNAL_THREAT', 'ThreatIntelligence', 'User signaled a new community threat');
+    }, [addToast, user]);
     const handleRiskModalClose = React.useCallback(() => setIsRiskModalOpen(false), []);
     const handleToggleViewMode = React.useCallback(() => setViewMode(prev => prev === '2d' ? '3d' : '2d'), []);
 
@@ -179,12 +190,14 @@ export const ThreatIntelligence: React.FC = () => {
 
     const handleConfirmSighting = React.useCallback((id: string) => {
         confirmSighting(id);
-    }, [confirmSighting]);
+        logAction(user, 'CONFIRM_SIGHTING', 'ThreatIntelligence', `Confirmed sighting for threat ${id}`, undefined, id);
+    }, [confirmSighting, user]);
 
     const handleCreateRisk = React.useCallback((t: Threat) => {
         setThreatForRisk(t);
         setIsRiskModalOpen(true);
-    }, []);
+        logAction(user, 'INITIATE_RISK_CREATION', 'Risks', `Initiated risk creation from threat ${t.title}`, undefined, t.id);
+    }, [user]);
 
     const viewOptions = React.useMemo(() => [
         { id: 'overview', label: 'Vue Globale', icon: LayoutDashboard },
@@ -207,15 +220,36 @@ export const ThreatIntelligence: React.FC = () => {
                 breadcrumbs={[{ label: 'Pilotage' }, { label: 'Threat Intel' }]}
                 actions={
                     <div className="flex gap-2">
-                        <button aria-label="Refresh threat feeds" onClick={handleRefreshLiveFeed} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 p-2 rounded-xl backdrop-blur-md transition-all" title="Refresh threat feeds">
-                            <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin' : ''}`} />
+                        <button
+                            aria-label="Refresh threat feeds"
+                            onClick={handleRefreshLiveFeed}
+                            className="bg-white/5 hover:bg-white/10 text-white border border-white/10 p-2.5 rounded-xl backdrop-blur-md transition-all hover:scale-105 active:scale-95 shadow-sm"
+                            title="Actualiser les flux"
+                        >
+                            <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin text-brand-400' : 'text-slate-200'}`} />
                         </button>
-                        <button aria-label="Share new threat" onClick={handleSubmitModalOpen} className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl flex items-center text-sm font-bold shadow-lg shadow-brand-500/20" title="Share new threat">
-                            <Share2 className="h-4 w-4 mr-2" /> Partager
-                        </button>
-                        <button aria-label="Community settings" onClick={handleSettingsOpen} className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl border border-white/10" title="Community settings">
-                            <Settings className="h-5 w-5" />
-                        </button>
+
+                        {hasPermission(user, 'Threat', 'create') && (
+                            <button
+                                aria-label="Share new threat"
+                                onClick={handleSubmitModalOpen}
+                                className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl flex items-center text-sm font-bold shadow-lg shadow-brand-500/20 transition-all hover:scale-105 active:scale-95"
+                                title="Partager une menace"
+                            >
+                                <Share2 className="h-4 w-4 mr-2" /> Partager
+                            </button>
+                        )}
+
+                        {hasPermission(user, 'Threat', 'manage') && (
+                            <button
+                                aria-label="Community settings"
+                                onClick={handleSettingsOpen}
+                                className="bg-white/5 hover:bg-white/10 text-white p-2.5 rounded-xl border border-white/10 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                                title="Paramètres Communauté"
+                            >
+                                <Settings className="h-5 w-5 text-slate-200" />
+                            </button>
+                        )}
                     </div>
                 }
             />
@@ -259,134 +293,147 @@ export const ThreatIntelligence: React.FC = () => {
             <ThreatToRiskModal isOpen={isRiskModalOpen} threat={threatForRisk} onClose={handleRiskModalClose} />
             {/* FocusTrap and keyboard navigation are handled internally by Headless UI's Dialog/Drawer components */}
 
-            {activeTab === 'overview' && (
-                <motion.div variants={slideUpVariants} className="space-y-6">
-                    <ThreatDashboard threats={threats} />
-                </motion.div>
-            )}
+            {
+                activeTab === 'overview' && (
+                    <motion.div variants={slideUpVariants} className="space-y-6">
+                        <ThreatDashboard threats={threats} />
+                    </motion.div>
+                )
+            }
 
             {/* MAP TAB */}
-            {activeTab === 'map' && (
-                <motion.div variants={slideUpVariants} className="relative h-[70vh] min-h-[500px] w-full bg-slate-900 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden">
-                    <div className="absolute top-6 right-6 z-10 flex gap-2">
-                        <button aria-label="Toggle 2D/3D view" onClick={handleToggleViewMode} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-sm font-bold backdrop-blur-md flex items-center border border-white/10 transition-all" title="Toggle 2D/3D view">
-                            {viewMode === '2d' ? <Box className="h-4 w-4 mr-2" /> : <Globe className="h-4 w-4 mr-2" />}
-                            {viewMode === '2d' ? 'Vue 3D' : 'Vue 2D'}
-                        </button>
-                        <div className="bg-red-500/80 text-white px-4 py-2 rounded-full text-sm font-bold backdrop-blur-md flex items-center animate-pulse">
-                            <Activity className="h-4 w-4 mr-2" /> Live
+            {
+                activeTab === 'map' && (
+                    <motion.div variants={slideUpVariants} className="relative h-[70vh] min-h-[500px] w-full bg-slate-900 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden">
+                        <div className="absolute top-6 right-6 z-10 flex gap-3">
+                            <button
+                                aria-label="Toggle 2D/3D view"
+                                onClick={handleToggleViewMode}
+                                className="bg-slate-900/40 hover:bg-slate-900/60 text-white px-4 py-2 rounded-full text-sm font-bold backdrop-blur-md flex items-center border border-white/10 transition-all shadow-lg hover:scale-105 active:scale-95"
+                                title="Toggle 2D/3D view"
+                            >
+                                {viewMode === '2d' ? <Box className="h-4 w-4 mr-2" /> : <Globe className="h-4 w-4 mr-2" />}
+                                {viewMode === '2d' ? 'Vue 3D' : 'Vue 2D'}
+                            </button>
+                            <div className="bg-red-500/90 text-white px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md flex items-center shadow-lg shadow-red-500/20 animate-pulse">
+                                <Activity className="h-3 w-3 mr-2" /> LIVE
+                            </div>
                         </div>
-                    </div>
 
-                    {viewMode === '2d' ? (
-                        <>
-                            <WorldThreatMap data={mapData} setTooltipContent={setTooltipContent} />
-                            <Tooltip id="rsm-tooltip" isOpen={!!tooltipContent} content={tooltipContent} />
-                        </>
-                    ) : (
-                        <div className="w-full h-full relative">
-                            <ThreatPlanet data={mapData} />
-                        </div>
-                    )}
-                </motion.div>
-            )}
+                        {viewMode === '2d' ? (
+                            <>
+                                <WorldThreatMap data={mapData} setTooltipContent={setTooltipContent} />
+                                <Tooltip id="rsm-tooltip" isOpen={!!tooltipContent} content={tooltipContent} />
+                            </>
+                        ) : (
+                            <div className="w-full h-full relative">
+                                <ThreatPlanet data={mapData} />
+                            </div>
+                        )}
+                    </motion.div>
+                )
+            }
 
             {/* FEED TAB */}
-            {activeTab === 'feed' && (
-                <motion.div variants={slideUpVariants} className="space-y-6">
+            {
+                activeTab === 'feed' && (
+                    <motion.div variants={slideUpVariants} className="space-y-6">
 
 
-                    <div className="grid grid-cols-1 gap-4">
-                        {threatsLoading ? (
-                            <div className="text-center py-20"><LoadingScreen /></div>
-                        ) : filteredThreats.length === 0 ? (
-                            <EmptyState
-                                icon={Shield}
-                                title="Flux de menaces vide"
-                                description="Aucune menace live détectée. Cliquez pour actualiser les flux."
-                                actionLabel={isSeeding ? "Actualisation..." : "Actualiser les Flux Live"}
-                                onAction={handleRefreshLiveFeed}
-                            />
-                        ) : (
-                            filteredThreats.map((threat) => (
-                                <ThreatCard
-                                    key={threat.id}
-                                    threat={threat}
-                                    onSelect={handleThreatSelect}
-                                    onConfirmSighting={handleConfirmSighting}
-                                    onDownloadRule={handleDownloadRule}
-                                    onCreateRisk={handleCreateRisk}
+                        <div className="grid grid-cols-1 gap-4">
+                            {threatsLoading ? (
+                                <div className="text-center py-20"><LoadingScreen /></div>
+                            ) : filteredThreats.length === 0 ? (
+                                <EmptyState
+                                    icon={Shield}
+                                    title="Flux de menaces vide"
+                                    description="Aucune menace live détectée. Cliquez pour actualiser les flux."
+                                    actionLabel={isSeeding ? "Actualisation..." : "Actualiser les Flux Live"}
+                                    onAction={handleRefreshLiveFeed}
                                 />
-                            ))
-                        )}
-                    </div>
-                </motion.div>
-            )}
+                            ) : (
+                                filteredThreats.map((threat) => (
+                                    <ThreatCard
+                                        key={threat.id}
+                                        threat={threat}
+                                        onSelect={handleThreatSelect}
+                                        onConfirmSighting={handleConfirmSighting}
+                                        onDownloadRule={handleDownloadRule}
+                                        onCreateRisk={handleCreateRisk}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </motion.div>
+                )
+            }
 
             {/* COMMUNITY TAB */}
-            {activeTab === 'community' && (
-                <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="bg-gradient-to-br from-brand-900 to-purple-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
-                        <div className="absolute top-0 right-0 p-8 opacity-20 animate-pulse"><Globe className="h-64 w-64" /></div>
+            {
+                activeTab === 'community' && (
+                    <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="bg-gradient-to-br from-brand-900 to-purple-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden ring-1 ring-white/10 shadow-2xl">
+                            <div className="absolute top-0 right-0 p-8 opacity-20 animate-pulse"><Globe className="h-64 w-64" /></div>
 
-                        <div className="relative z-10">
-                            <Badge status="success" className="mb-4">Verified Community</Badge>
-                            <h3 className="text-3xl font-black mb-2 tracking-tight">Sentinel Force</h3>
-                            <p className="text-white/80 text-lg mb-8 max-w-sm leading-relaxed">
-                                Rejoignez <span className="text-white font-bold">12,000+ experts</span> pour une cyberdéfense proactive et collaborative.
-                            </p>
+                            <div className="relative z-10">
+                                <Badge status="success" className="mb-4">Verified Community</Badge>
+                                <h3 className="text-3xl font-black mb-2 tracking-tight">Sentinel Force</h3>
+                                <p className="text-white/80 text-lg mb-8 max-w-sm leading-relaxed">
+                                    Rejoignez <span className="text-white font-bold">12,000+ experts</span> pour une cyberdéfense proactive et collaborative.
+                                </p>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Users className="h-5 w-5 text-brand-300" />
-                                        <div className="text-xs uppercase tracking-wider opacity-70">Experts</div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Users className="h-5 w-5 text-brand-300" />
+                                            <div className="text-xs uppercase tracking-wider opacity-70">Experts</div>
+                                        </div>
+                                        <div className="text-4xl font-black tracking-tight">12.4k</div>
                                     </div>
-                                    <div className="text-4xl font-black tracking-tight">12.4k</div>
-                                </div>
-                                <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Shield className="h-5 w-5 text-emerald-300" />
-                                        <div className="text-xs uppercase tracking-wider opacity-70">Mitigations</div>
+                                    <div className="bg-white/10 rounded-2xl p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Shield className="h-5 w-5 text-emerald-300" />
+                                            <div className="text-xs uppercase tracking-wider opacity-70">Mitigations</div>
+                                        </div>
+                                        <div className="text-4xl font-black tracking-tight">850<span className="text-lg opacity-60">/j</span></div>
                                     </div>
-                                    <div className="text-4xl font-black tracking-tight">850<span className="text-lg opacity-60">/j</span></div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="bg-white dark:bg-slate-800/50 rounded-[2.5rem] border border-slate-200 dark:border-white/5 p-8 backdrop-blur-xl shadow-xl">
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <Activity className="h-6 w-6 text-brand-500" /> Top Hunters
-                            </h3>
-                            <button aria-label="View all top hunters" className="text-xs font-bold text-brand-500 hover:text-brand-400">Voir tout</button>
-                        </div>
+                        <div className="bg-white dark:bg-slate-800/50 rounded-[2.5rem] border border-slate-200 dark:border-white/5 p-8 backdrop-blur-xl shadow-xl">
+                            <div className="flex items-center justify-between mb-8">
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Activity className="h-6 w-6 text-brand-500" /> Top Hunters
+                                </h3>
+                                <button aria-label="View all top hunters" className="text-xs font-bold text-brand-500 hover:text-brand-400">Voir tout</button>
+                            </div>
 
-                        <div className="space-y-6">
-                            {topContributors.map((c, i) => (
-                                <div key={c.name} className="flex items-center justify-between group p-3 hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl transition-all cursor-pointer">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg text-lg transform transition-transform group-hover:scale-110 ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500' : i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500' : i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-800' : 'bg-brand-500'}`}>
-                                            {i < 3 ? i + 1 : c.name.charAt(0)}
-                                            {i < 3 && <div className="absolute -top-1 -right-1 bg-white dark:bg-slate-900 rounded-full p-0.5"><Shield className={`h-3 w-3 ${i === 0 ? 'text-yellow-500' : i === 1 ? 'text-slate-400' : 'text-orange-700'}`} /></div>}
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
-                                                {c.name}
-                                                {i === 0 && <Badge status="warning" className="scale-75 origin-left">MVP</Badge>}
+                            <div className="space-y-6">
+                                {topContributors.map((c, i) => (
+                                    <div key={c.name} className="flex items-center justify-between group p-3 hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl transition-all cursor-pointer">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg text-lg transform transition-transform group-hover:scale-110 ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500' : i === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500' : i === 2 ? 'bg-gradient-to-br from-orange-600 to-orange-800' : 'bg-brand-500'}`}>
+                                                {i < 3 ? i + 1 : c.name.charAt(0)}
+                                                {i < 3 && <div className="absolute -top-1 -right-1 bg-white dark:bg-slate-900 rounded-full p-0.5"><Shield className={`h-3 w-3 ${i === 0 ? 'text-yellow-500' : i === 1 ? 'text-slate-400' : 'text-orange-700'}`} /></div>}
                                             </div>
-                                            <div className="text-sm text-slate-500 font-medium">{c.count} Menaces signalées</div>
+                                            <div>
+                                                <div className="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
+                                                    {c.name}
+                                                    {i === 0 && <Badge status="warning" className="scale-75 origin-left">MVP</Badge>}
+                                                </div>
+                                                <div className="text-sm text-slate-500 font-medium">{c.count} Menaces signalées</div>
+                                            </div>
                                         </div>
+                                        <ChevronRight className="h-5 w-5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </div>
-                                    <ChevronRight className="h-5 w-5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                </motion.div>
-            )}
-        </motion.div>
+                    </motion.div>
+                )
+            }
+        </motion.div >
     );
 };
 

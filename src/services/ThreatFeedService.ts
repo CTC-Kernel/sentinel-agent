@@ -1,9 +1,12 @@
+// import { getFunctions, httpsCallable } from 'firebase/functions';
+// import { getApp } from 'firebase/app';
 
+// const functions = getFunctions(getApp(), 'us-central1');
+// const fetchThreatFeed = httpsCallable(functions, 'fetchThreatFeed');
 import { db } from '../firebase';
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { Threat, Vulnerability } from '../types';
 import { ErrorLogger } from './errorLogger';
-
 
 interface CisaVulnerability {
     cveID: string;
@@ -61,23 +64,44 @@ export class ThreatFeedService {
             return { vulnerabilities: [], urls: [] };
         }
 
-        // Si hors ligne, ne pas tenter de fetch
-        if (typeof navigator !== 'undefined' && !navigator.onLine) {
-            return { vulnerabilities: [], urls: [] };
+        // 0. Try Firebase proxy first (most reliable)
+        // FUNCTION MISSING in current deployment - Disabling to prevent 500 errors
+        /*
+        try {
+            const result = await fetchThreatFeed({ url: targetUrl });
+            if (result.data) {
+                return result.data;
+            }
+        } catch (error) {
+            // Continue to other methods if Firebase proxy fails
         }
+        */
 
+        // List of proxy services to try in order
         const proxies = [
             (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
             (url: string) => `https://thingproxy.freeboard.io/fetch/${url}`,
             (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`
         ];
 
+        // Si hors ligne, ne pas tenter de fetch
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            return { vulnerabilities: [], urls: [] };
+        }
+
         // 1. Try direct fetch first (some APIs might support CORS)
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
 
-            const response = await fetch(targetUrl, { signal: controller.signal });
+            const response = await fetch(targetUrl, {
+                signal: controller.signal,
+                mode: 'cors',
+                headers: {
+                    'Accept': 'application/json, text/plain, */*',
+                    'User-Agent': 'Sentinel-GRC/1.0'
+                }
+            });
             clearTimeout(timeoutId);
 
             if (response.ok) {
@@ -89,7 +113,9 @@ export class ThreatFeedService {
                     return { vulnerabilities: [], urls: [] };
                 }
             }
-        } catch { /* continue to proxies */ }
+        } catch {
+            // Continue to proxies if direct fetch fails
+        }
 
         // 2. Try proxies
         for (const proxy of proxies) {
@@ -98,7 +124,13 @@ export class ThreatFeedService {
                 const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout per proxy
 
                 const url = proxy(targetUrl);
-                const response = await fetch(url, { signal: controller.signal });
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                    headers: {
+                        'Accept': 'application/json, text/plain, */*',
+                        'User-Agent': 'Sentinel-GRC/1.0'
+                    }
+                });
                 clearTimeout(timeoutId);
 
                 if (response.ok) {
@@ -106,12 +138,13 @@ export class ThreatFeedService {
                     try {
                         return JSON.parse(text);
                     } catch {
-                        continue;
+                        continue; // Try next proxy if JSON parsing fails
                     }
                 }
             } catch {
                 // Silent catch for individual proxy failures to keep trying others
                 // Only log if strictly necessary to avoid console noise
+                continue;
             }
         }
 

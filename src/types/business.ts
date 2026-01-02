@@ -236,3 +236,33 @@ export interface SupplierQuestionnaireResponse {
     dueDate?: string;
     updatedAt?: string;
 }
+
+export interface Strategy {
+    id: string;
+    organizationId: string;
+    title: string;
+    description: string;
+    type: 'Active-Active' | 'Active-Passive' | 'Cold Standby' | 'Cloud DR';
+    rto: string;
+    rpo: string;
+    linkedAssets: string[];
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface WarRoomSession {
+    id: string;
+    organizationId: string;
+    scenario: string;
+    isActive: boolean;
+    startedAt: string;
+    endedAt?: string;
+    messages?: Array<{
+        id: string;
+        sender: string;
+        role: string;
+        content: string;
+        timestamp: string;
+        isSystem?: boolean;
+    }>;
+}

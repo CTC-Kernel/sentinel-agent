@@ -26,7 +26,9 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         Threat: ['manage'],
         User: ['manage'],
         CTCEngine: ['read'],
-        AuditTrail: ['read']
+        AuditTrail: ['read'],
+        Backup: ['manage'],
+        Integration: ['manage']
     },
     auditor: {
         Audit: ['read', 'create', 'update'],
@@ -71,7 +73,9 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         ProcessingActivity: ['read'],
         SupplierAssessment: ['read'],
         SupplierIncident: ['read'],
-        CTCEngine: ['read']
+        CTCEngine: ['read'],
+        Backup: ['read'],
+        Integration: ['read']
     },
     user: {
         Document: ['read'],

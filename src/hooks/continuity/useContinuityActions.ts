@@ -2,24 +2,24 @@ import { useFirestoreCollection } from '../useFirestore';
 import { where, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../useAuth';
 import { useCallback } from 'react';
-import { BusinessProcess } from '../../types';
+import { BusinessProcess, Strategy } from '../../types';
 
 export const useContinuityActions = () => {
   const { user } = useAuth();
 
-  const { data: strategies, loading: loadingStrategies, add: addStrategyRaw, remove: removeStrategy } = useFirestoreCollection(
+  const { data: strategies, loading: loadingStrategies, add: addStrategyRaw, remove: removeStrategy } = useFirestoreCollection<Strategy>(
     'bcp_strategies',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
   );
 
-  const { data: drills, loading: loadingDrills } = useFirestoreCollection(
+  const { data: drills, loading: loadingDrills } = useFirestoreCollection<import('../../types').BcpDrill>(
     'drills',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }
   );
 
-  const { data: warRoomSessions, loading: loadingWarRoom } = useFirestoreCollection(
+  const { data: warRoomSessions, loading: loadingWarRoom } = useFirestoreCollection<import('../../types').WarRoomSession>(
     'war_room_sessions',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { realtime: true, enabled: !!user?.organizationId }

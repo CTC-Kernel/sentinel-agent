@@ -978,6 +978,47 @@ export const translations = {
             progression: 'Progress',
 
             reportFilename: 'executive-report.pdf'
+        },
+        reports: {
+            title: 'Rapports',
+            subtitle: 'Génération de rapports de conformité et d\'audit',
+            templates: 'Modèles',
+            history: 'Historique',
+            scheduled: 'Planifiés',
+            templateCards: {
+                iso27001: {
+                    title: 'Pack ISO 27001',
+                    desc: 'Générez un pack de conformité complet ISO 27001',
+                    action: 'Générer'
+                },
+                gdpr: {
+                    title: 'Pack RGPD',
+                    desc: 'Générez un pack de conformité RGPD',
+                    action: 'Générer'
+                },
+                custom: {
+                    title: 'Personnalisé',
+                    desc: 'Créez un rapport personnalisé',
+                    action: 'Générer'
+                }
+            },
+            pdf: {
+                title: 'Rapport Exécutif',
+                subtitle: 'Analyse complète de la conformité',
+                filename: 'rapport-executif.pdf',
+                globalScore: 'Score Global',
+                governanceIndex: 'Index de Gouvernance',
+                labelRisks: 'Risques',
+                riskHealth: 'Santé Risque',
+                isoCoverage: 'Couverture ISO',
+                labelCompliance: 'Conformité',
+                labelAudit: 'Audit',
+                labelProjects: 'Projets',
+                riskManagement: 'Gestion des Risques',
+                complianceStatus: 'Statut de Conformité',
+                globalCoverage: 'Couverture Globale',
+                auditReadiness: 'Prêt Audit'
+            }
         }
     }
 };

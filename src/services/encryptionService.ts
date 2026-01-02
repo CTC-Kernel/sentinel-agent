@@ -1,13 +1,26 @@
 import CryptoJS from 'crypto-js';
 import { ErrorLogger } from './errorLogger';
 
-// Fallback key for development/demo if env var is missing
-// In production, this MUST be set in environment variables
-const DEFAULT_KEY = 'SENTINEL_GRC_SECURE_DEFAULT_KEY_CHANGE_ME_IN_PROD';
+// Fallback key for development ONLY. 
+// In production, the application will crash if VITE_ENCRYPTION_KEY is missing.
+const DEV_FALLBACK_KEY = 'SENTINEL_GRC_SECURE_DEFAULT_KEY_CHANGE_ME_IN_PROD';
 
 export class EncryptionService {
     private static getKey(): string {
-        return import.meta.env.VITE_ENCRYPTION_KEY || DEFAULT_KEY;
+        const envKey = import.meta.env.VITE_ENCRYPTION_KEY;
+
+        if (envKey) {
+            return envKey;
+        }
+
+        // CRITICAL: Fail fast in production
+        if (import.meta.env.PROD) {
+            throw new Error('CRITICAL SECURITY ERROR: VITE_ENCRYPTION_KEY is missing in production environment. Application halted.');
+        }
+
+        // Warn in development
+        console.warn('SECURITY WARNING: Using insecure fallback encryption key. Please set VITE_ENCRYPTION_KEY in your .env file.');
+        return DEV_FALLBACK_KEY;
     }
 
     /**

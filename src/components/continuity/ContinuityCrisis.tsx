@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { UserProfile } from '../../types';
 import { useStore } from '../../store';
 import { WarRoomModal } from './WarRoomModal';
+import { ConfirmModal } from '../ui/ConfirmModal';
 
 interface ContinuityCrisisProps {
     users: UserProfile[];
@@ -15,6 +16,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
     const [crisisActive, setCrisisActive] = useState(false);
     const [activationStep, setActivationStep] = useState(0);
     const [isWarRoomOpen, setIsWarRoomOpen] = useState(false);
+    const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
     const crisisTeam = users.filter(u => u.role === 'admin' || u.role === 'rssi' || u.role === 'direction');
 
@@ -35,11 +37,10 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
     };
 
     const handleDeactivate = () => {
-        if (confirm("Confirmer la fin de la crise ? Un rapport sera généré automatiquement.")) {
-            setCrisisActive(false);
-            setActivationStep(0);
-            addToast("Mode crise désactivé. Retour à la normale.", "success");
-        }
+        setCrisisActive(false);
+        setActivationStep(0);
+        setConfirmDeactivate(false);
+        addToast("Mode crise désactivé. Retour à la normale.", "success");
     };
 
     return (
@@ -91,7 +92,7 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                                 </Button>
                             </div>
                         ) : (
-                            <Button onClick={handleDeactivate} variant="outline" className="h-16 px-8 text-lg border-red-500 text-red-500 hover:bg-red-500/10 font-bold rounded-2xl">
+                            <Button onClick={() => setConfirmDeactivate(true)} variant="outline" className="h-16 px-8 text-lg border-red-500 text-red-500 hover:bg-red-500/10 font-bold rounded-2xl">
                                 <CheckCircle2 className="w-6 h-6 mr-2" /> Clôturer la Crise
                             </Button>
                         )}
@@ -164,8 +165,16 @@ export const ContinuityCrisis: React.FC<ContinuityCrisisProps> = ({ users }) => 
                 onClose={() => setIsWarRoomOpen(false)}
                 scenario={scenario}
             />
+
+            <ConfirmModal
+                isOpen={confirmDeactivate}
+                onClose={() => setConfirmDeactivate(false)}
+                onConfirm={handleDeactivate}
+                title="Clôturer la crise ?"
+                message="Confirmer la fin de la crise ? Un rapport sera généré automatiquement et le journal des événements sera archivé."
+                confirmText="Clôturer"
+                cancelText="Annuler"
+            />
         </div>
     );
 };
-
-// Headless UI handles FocusTrap and keyboard navigation

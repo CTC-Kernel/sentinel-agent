@@ -193,7 +193,7 @@ export class PdfService {
         }
 
         doc.setFontSize(24);
-        doc.setFont('helvetica', 'light');
+        doc.setFont('helvetica', 'normal'); // Changed from 'light' to 'normal'
         doc.setTextColor('#FFFFFF');
         doc.text(options.organizationName || 'Sentinel', 20, 85);
         if (!options.organizationName) {

@@ -3,7 +3,7 @@ import { Control, UserProfile, Asset, Supplier, Risk, Project, Document, Finding
 import { ScrollableTabs } from '../../components/ui/ScrollableTabs';
 import { ComplianceAIAssistant } from './ComplianceAIAssistant';
 import { CustomSelect } from '../../components/ui/CustomSelect';
-import { Loader2, Link, FileText, Paperclip, MessageSquare, User, X, ShieldAlert, AlertOctagon, ExternalLink, FolderKanban } from '../../components/ui/Icons';
+import { Loader2, Link, FileText, Paperclip, MessageSquare, User, X, ShieldAlert, AlertOctagon, ExternalLink, FolderKanban, Upload } from '../../components/ui/Icons';
 import { formatDate } from '@/utils/date';
 import { CommentSection } from '../collaboration/CommentSection';
 import { TimelineView } from '../shared/TimelineView';
@@ -34,6 +34,7 @@ interface ComplianceInspectorProps {
         handleLinkDocument: (c: Control, did: string) => Promise<void>;
         handleUnlinkDocument: (c: Control, did: string) => Promise<void>;
         updateJustification: (c: Control, text: string) => Promise<void>;
+        onUploadEvidence: (c: Control) => void;
     };
 }
 
@@ -335,7 +336,15 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                         <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="font-bold text-slate-900 dark:text-white">Preuves documentaires</h3>
-                                {/* Add Evidence Button logic can be added here or passed as prop slot */}
+                                {canEdit && (
+                                    <button
+                                        onClick={() => handlers.onUploadEvidence(control)}
+                                        className="text-xs bg-brand-600 hover:bg-brand-700 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center shadow-sm"
+                                    >
+                                        <Upload className="h-3 w-3 mr-1.5" />
+                                        Ajouter une preuve
+                                    </button>
+                                )}
                             </div>
                             <div className="space-y-3">
                                 {control.evidenceIds?.map(docId => {

@@ -1,14 +1,21 @@
 import React from 'react';
-
+import { Navigate } from 'react-router-dom';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Activity, Database, Server, Shield, Globe, Cpu, HardDrive, Users, Zap, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { useSystemHealth } from '../hooks/useSystemHealth';
+import { useStore } from '../store';
+import { hasPermission } from '../utils/permissions';
 
 export const SystemHealth: React.FC = () => {
     const { userCount, loading, metrics } = useSystemHealth();
+    const { user } = useStore();
+
+    if (!user || !hasPermission(user, 'SystemLog', 'read')) {
+        return <Navigate to="/" replace />;
+    }
 
     // Service Status (Simulated for "Live" feel)
     const services = [
