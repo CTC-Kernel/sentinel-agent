@@ -159,7 +159,7 @@ export const Login: React.FC<{ skipBoot?: boolean }> = ({ skipBoot = false }) =>
             </div>
 
             <div className="w-full max-w-[440px] p-6 relative z-10 animate-scale-in flex-1 flex flex-col justify-center mx-auto px-4 sm:px-6 min-w-0">
-                <div className="glass-panel rounded-[2rem] p-8 flex flex-col items-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:shadow-2xl border border-white/40 dark:border-white/10 bg-white/70 dark:bg-black/60 backdrop-blur-xl">
+                <div className="glass-premium rounded-[2rem] p-8 flex flex-col items-center shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:shadow-2xl overflow-hidden relative">
 
                     {/* Logo */}
                     <div className="mb-6 flex flex-col items-center">
@@ -228,9 +228,14 @@ export const Login: React.FC<{ skipBoot?: boolean }> = ({ skipBoot = false }) =>
                             <div className="space-y-1.5">
                                 <div className="flex justify-between items-center ml-1 mb-1">
                                     {isLogin && (
-                                        <button type="button" aria-label={t('auth.forgotPassword')} onClick={() => setShowResetModal(true)} className="text-[13px] font-bold text-brand-600 hover:text-brand-700 transition-colors">
+                                        <Button
+                                            variant="link"
+                                            size="sm"
+                                            onClick={() => setShowResetModal(true)}
+                                            className="text-[13px] font-bold text-brand-600 hover:text-brand-700 p-0 h-auto"
+                                        >
                                             {t('auth.forgotPassword')}
-                                        </button>
+                                        </Button>
                                     )}
                                 </div>
                                 <FloatingLabelInput
@@ -258,13 +263,13 @@ export const Login: React.FC<{ skipBoot?: boolean }> = ({ skipBoot = false }) =>
                     </div>
 
                     <div className="mt-8 text-center">
-                        <button
-                            aria-label={isLogin ? t('auth.switchSignup') : t('auth.switchLogin')}
+                        <Button
+                            variant="ghost"
                             onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); }}
-                            className="text-[13px] font-bold text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
+                            className="text-[13px] font-bold text-slate-600 hover:text-slate-900 dark:hover:text-white"
                         >
                             {isLogin ? t('auth.switchSignup') : t('auth.switchLogin')}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -297,9 +302,9 @@ export const Login: React.FC<{ skipBoot?: boolean }> = ({ skipBoot = false }) =>
                 showResetModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
                         <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
-                            <button aria-label="Fermer" onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <Button variant="ghost" size="sm" onClick={() => setShowResetModal(false)} className="absolute top-6 right-6 text-slate-500 hover:text-slate-900 dark:hover:text-white p-2 h-auto rounded-full">
                                 <X className="h-5 w-5" />
-                            </button>
+                            </Button>
 
                             <div className="text-center mb-6">
                                 <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center mx-auto mb-4 text-brand-600">
@@ -344,9 +349,9 @@ export const Login: React.FC<{ skipBoot?: boolean }> = ({ skipBoot = false }) =>
                 showMfaModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
                         <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 w-full max-w-md border border-white/20 shadow-2xl relative">
-                            <button aria-label="Fermer" onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <Button variant="ghost" size="sm" onClick={() => setShowMfaModal(false)} className="absolute top-6 right-6 text-slate-500 hover:text-slate-900 dark:hover:text-white p-2 h-auto rounded-full">
                                 <X className="h-5 w-5" />
-                            </button>
+                            </Button>
 
                             <div className="text-center mb-6">
                                 <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mx-auto mb-4 text-emerald-600">

@@ -350,7 +350,7 @@ export const Projects: React.FC = () => {
                         );
 
                         return (
-                            <div key={statusKey} className="flex flex-col glass-panel rounded-2xl p-4 border border-white/20 h-full">
+                            <div key={statusKey} className="flex flex-col glass-premium rounded-2xl p-4 h-full">
                                 <h4 className="text-sm font-bold uppercase text-slate-600 dark:text-slate-400 mb-4 flex justify-between tracking-wider px-1">
                                     {statusLabel}
                                     <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg text-xs shadow-sm border border-slate-200 dark:border-white/5">

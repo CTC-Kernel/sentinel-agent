@@ -11,6 +11,7 @@ import { RecentActivityWidget } from '../widgets/RecentActivityWidget';
 import { AddWidgetModal } from '../configurable/AddWidgetModal';
 import { WIDGET_REGISTRY, WidgetId } from '../configurable/WidgetRegistry';
 import { StatsHistoryEntry, Risk } from '../../../types';
+import { Button } from '../../../components/ui/button';
 
 interface DashboardStats {
     totalRisks: number;
@@ -130,7 +131,8 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
                 {/* Activity Feed - Spans 2 cols on LG */}
                 <div className="col-span-1 md:col-span-2 lg:col-span-2 glass-premium rounded-[2.5rem] p-1 overflow-hidden group hover:shadow-apple-xl transition-all duration-500 max-h-[400px]">
                     <RecentActivityWidget
-                        recentActivity={props.recentActivity as any[]} // Still need cast if types don't align, but let's try to map if possible. recentActivity is unknown[] in props.
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        recentActivity={props.recentActivity as any[]}
                         loading={props.loading}
                         t={props.t}
                     />
@@ -159,21 +161,25 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
                         exit={{ opacity: 0, scale: 0.9 }}
                         className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex gap-4"
                     >
-                        <button
+                        <Button
                             onClick={resetLayout}
-                            className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-6 py-3 rounded-full shadow-xl font-bold border border-slate-200 dark:border-slate-700 hover:scale-105 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                            variant="secondary"
+                            className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-6 py-6 rounded-full shadow-xl font-bold border border-slate-200 dark:border-slate-700 hover:scale-105 transition-all text-sm"
                         >
                             {props.t('common.reset')}
-                        </button>
+                        </Button>
 
-                        <motion.button
-                            onClick={() => setIsAddWidgetModalOpen(true)}
+                        <motion.div
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            className="bg-brand-600 text-white px-6 py-3 rounded-full shadow-xl font-bold flex items-center gap-2 border border-brand-500 hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                         >
-                            <Plus className="w-5 h-5" /> <span>{props.t('dashboard.addWidget')}</span>
-                        </motion.button>
+                            <Button
+                                onClick={() => setIsAddWidgetModalOpen(true)}
+                                className="bg-brand-600 text-white px-6 py-6 rounded-full shadow-xl font-bold flex items-center gap-2 border border-brand-500 hover:bg-brand-700 transition-colors text-sm"
+                            >
+                                <Plus className="w-5 h-5" /> <span>{props.t('dashboard.addWidget')}</span>
+                            </Button>
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>

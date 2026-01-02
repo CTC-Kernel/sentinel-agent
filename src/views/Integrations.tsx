@@ -5,6 +5,7 @@ import { integrationService, IntegrationProvider } from '../services/integration
 import { IntegrationCard } from '../components/integrations/IntegrationCard';
 import { Modal } from '../components/ui/Modal';
 import { Search, ShieldCheck, Cloud, Code, LayoutGrid, Key } from 'lucide-react';
+import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 
 import { useStore } from '../store';
@@ -210,8 +211,9 @@ export const Integrations: React.FC = () => {
                                 { id: 'code', label: 'Code', icon: Code },
                                 { id: 'security', label: 'Sécurité', icon: ShieldCheck },
                             ].map((cat) => (
-                                <button
+                                <Button
                                     key={cat.id}
+                                    variant="ghost"
                                     aria-label={cat.label}
                                     onClick={() => setCategoryFilter(cat.id)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${categoryFilter === cat.id
@@ -219,9 +221,9 @@ export const Integrations: React.FC = () => {
                                         : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                                         }`}
                                 >
-                                    <cat.icon className="h-3.5 w-3.5" />
+                                    <cat.icon className="h-3.5 w-3.5 mr-2" />
                                     {cat.label}
-                                </button>
+                                </Button>
                             ))}
                         </div>
                     </div>
@@ -276,28 +278,24 @@ export const Integrations: React.FC = () => {
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4">
-                                <button
+                                <Button
+                                    variant="outline"
                                     aria-label="Annuler la connexion"
                                     onClick={() => setApiKeyModalOpen(false)}
                                     className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
                                 >
                                     Annuler
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     aria-label="Connecter l'intégration"
                                     onClick={confirmConnect}
                                     disabled={isSubmittingKey || !apiKey.trim()}
+                                    isLoading={isSubmittingKey}
                                     className="px-4 py-2 text-sm font-bold text-white bg-brand-500 hover:bg-brand-600 rounded-lg shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
-                                    {isSubmittingKey ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            Connexion...
-                                        </>
-                                    ) : (
-                                        'Connecter l\'intégration'
-                                    )}
-                                </button>
+                                    {!isSubmittingKey && 'Connecter l\'intégration'}
+                                    {isSubmittingKey && 'Connexion...'}
+                                </Button>
                             </div>
                         </div>
                     </Modal>

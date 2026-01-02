@@ -10,6 +10,7 @@ import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 import { useStore } from '../store';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { Button } from '../components/ui/button';
 import { Pagination } from '../components/ui/Pagination';
 import { usePagination } from '../hooks/usePagination';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
@@ -18,7 +19,7 @@ import { AssetList } from '../components/assets/AssetList';
 import { AssetInspector } from '../components/assets/AssetInspector';
 import { AssetDashboard } from '../components/assets/AssetDashboard';
 import { useAssets } from '../hooks/assets/useAssets';
-import { Database, FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, Loader2, MoreVertical, List, LayoutGrid, Upload } from 'lucide-react';
+import { Database, FileSpreadsheet, Link, Plus, Filter, HelpCircle, BrainCircuit, MoreVertical, List, LayoutGrid, Upload } from 'lucide-react';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { CsvParser } from '../utils/csvUtils';
@@ -359,13 +360,14 @@ const Assets: React.FC = () => {
                     {reachedAssetLimit && (
                         <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-4 py-3 text-sm font-semibold flex items-center justify-between backdrop-blur-md shadow-lg shadow-amber-500/10">
                             <span>{t('assets.limitReached', { count: assets.length, max: limits.maxAssets })}</span>
-                            <button
+                            <Button
+                                variant="link"
                                 aria-label={t('assets.upgradePlan')}
                                 onClick={() => toast.info(t('assets.contactSupport'))}
                                 className="text-amber-900 underline font-bold"
                             >
                                 {t('assets.upgradePlan')}
-                            </button>
+                            </Button>
                         </div>
                     )}
                     <AssetDashboard
@@ -395,15 +397,19 @@ const Assets: React.FC = () => {
                         ]}
                         actions={
                             <>
-                                <button
+                                <Button
+                                    variant="outline"
+                                    size="icon"
                                     onClick={handleStartTour}
                                     className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm"
                                     title={t('assets.startTour')}
                                 >
                                     <HelpCircle className="h-5 w-5" />
-                                </button>
+                                </Button>
                                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
-                                <button
+                                <Button
+                                    variant="outline"
+                                    size="icon"
                                     onClick={handleToggleSearch}
                                     className={`p-2.5 rounded-xl transition-all border shadow-sm ${showAdvancedSearch
                                         ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
@@ -412,25 +418,26 @@ const Assets: React.FC = () => {
                                     title={t('assets.advancedFilters')}
                                 >
                                     <Filter className="h-5 w-5" />
-                                </button>
+                                </Button>
                                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
 
                                 {canEdit && (
                                     <>
                                         <CustomTooltip content={t('assets.createAsset')}>
-                                            <button
+                                            <Button
                                                 aria-label={t('assets.aiAnalysis')}
                                                 onClick={handleAnalyze}
                                                 disabled={isAnalyzing}
+                                                isLoading={isAnalyzing}
                                                 className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
                                             >
-                                                {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
+                                                {!isAnalyzing && <BrainCircuit className="h-4 w-4 mr-2" />}
                                                 <span className="hidden xl:inline">{isAnalyzing ? t('assets.analyzing') : t('assets.aiAnalysis')}</span>
-                                            </button>
+                                            </Button>
                                         </CustomTooltip>
 
                                         <CustomTooltip content={t('assets.createAsset')}>
-                                            <button
+                                            <Button
                                                 aria-label={t('assets.newAsset')}
                                                 data-tour="assets-add"
                                                 onClick={handleCreateNew}
@@ -440,7 +447,7 @@ const Assets: React.FC = () => {
                                                 <Plus className="h-4 w-4 mr-2" />
                                                 <span className="hidden sm:inline">{t('assets.newAsset')}</span>
                                                 <span className="sm:hidden">{t('assets.new')}</span>
-                                            </button>
+                                            </Button>
                                         </CustomTooltip>
 
                                         <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
@@ -456,31 +463,34 @@ const Assets: React.FC = () => {
                                                         <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('assets.tools')}</div>
                                                         <Menu.Item>
                                                             {({ active }) => (
-                                                                <button
+                                                                <Button
+                                                                    variant="ghost"
                                                                     aria-label={t('assets.importCsv')}
                                                                     onClick={() => setImportModalOpen(true)}
                                                                     className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                                 >
                                                                     <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
                                                                     {t('assets.importCsv')}
-                                                                </button>
+                                                                </Button>
                                                             )}
                                                         </Menu.Item>
                                                         <Menu.Item>
                                                             {({ active }) => (
-                                                                <button
+                                                                <Button
+                                                                    variant="ghost"
                                                                     aria-label={t('assets.kioskLink')}
                                                                     onClick={handleGenerateKioskLink}
                                                                     className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'} group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
                                                                 >
                                                                     <Link className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-blue-500'}`} />
                                                                     {t('assets.kioskLink')}
-                                                                </button>
+                                                                </Button>
                                                             )}
                                                         </Menu.Item>
                                                         <Menu.Item>
                                                             {({ active }) => (
-                                                                <button
+                                                                <Button
+                                                                    variant="ghost"
                                                                     aria-label={t('assets.exportCsv')}
                                                                     data-tour="assets-export"
                                                                     onClick={handleExportCSV}
@@ -488,7 +498,7 @@ const Assets: React.FC = () => {
                                                                 >
                                                                     <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-emerald-500'}`} />
                                                                     {t('assets.exportCsv')}
-                                                                </button>
+                                                                </Button>
                                                             )}
                                                         </Menu.Item>
                                                     </div>

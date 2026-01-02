@@ -20,6 +20,8 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean, id: string | null }>({ isOpen: false, id: null });
 
+    const canManage = user?.role === 'admin' || user?.role === 'rssi' || user?.role === 'project_manager';
+
     const onSubmit = async (data: StrategyFormData) => {
         if (!user?.organizationId) return;
 
@@ -66,10 +68,17 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {strategies.map((strategy: Strategy) => (
-                    <div key={strategy.id} className="glass-panel p-6 rounded-2xl relative group hover:border-brand-500/30 transition-all">
-                        <button onClick={() => handleDeleteClick(strategy.id)} className="absolute top-4 right-4 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
-                            <Trash2 className="w-4 h-4" />
-                        </button>
+                    <div key={strategy.id} className="glass-panel p-6 rounded-2xl relative group hover:border-brand-500/30">
+                        {canManage && (
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteClick(strategy.id)}
+                                className="absolute top-4 right-4 text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        )}
                         <div className="flex items-center gap-3 mb-4">
                             <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600">
                                 <Shield className="w-6 h-6" />

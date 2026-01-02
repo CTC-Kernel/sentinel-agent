@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
-import {
-    Edit2, Trash2, HeartPulse, Clock, Server, Truck,
-    AlertTriangle, Zap, Activity, History
-} from 'lucide-react';
+import { Clock, Edit2, Trash2, Loader2, AlertTriangle, Activity, Server, Zap, History, HeartPulse, Truck } from 'lucide-react';
+import { Button } from '../ui/button';
 import { BusinessProcess, Asset, Supplier, Risk, BcpDrill } from '../../types';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Badge } from '../ui/Badge';
@@ -81,12 +79,25 @@ export const ProcessInspector: React.FC<ProcessInspectorProps> = ({
             onTabChange={(id) => setInspectorTab(id as 'details' | 'dependencies' | 'drills' | 'history')}
             actions={
                 <div className="flex gap-2">
-                    <button onClick={handleDelete} disabled={isDeleting} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed" title={isDeleting ? "Suppression..." : "Supprimer"}>
-                        <Trash2 className="h-4 w-4" />
-                    </button>
-                    <button onClick={() => onEdit(process)} className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" title="Modifier">
-                        <Edit2 className="h-4 w-4" />
-                    </button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEdit(process)}
+                        className="text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20"
+                        title="Modifier"
+                    >
+                        <Edit2 className="w-5 h-5" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        className="text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        title={isDeleting ? "Suppression..." : "Supprimer"}
+                    >
+                        {isDeleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                    </Button>
                 </div>
             }
         >

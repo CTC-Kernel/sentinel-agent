@@ -20,6 +20,7 @@ import { GettingStartedWidget } from '../components/dashboard/widgets/GettingSta
 import { ApprovalsWidget } from '../components/dashboard/ApprovalsWidget';
 import { DashboardSkeleton } from '../components/skeletons/DashboardSkeleton';
 import { motion } from 'framer-motion';
+import { Button } from '../components/ui/button';
 
 // Role-based Views
 import { AdminDashboardView } from '../components/dashboard/views/AdminDashboardView';
@@ -157,7 +158,7 @@ export const Dashboard: React.FC = () => {
 
 
 
-    if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="glass-panel rounded-[2rem] p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-red-500 shadow-xl"> <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.accessDenied')}</h2> <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">{t('dashboard.dbLocked')}</p> <button aria-label={t('dashboard.copyRules')} onClick={copyRules} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('dashboard.copyRules')}</button> </div> </div>); }
+    if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="glass-premium rounded-[2rem] p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-red-500 shadow-xl"> <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.accessDenied')}</h2> <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">{t('dashboard.dbLocked')}</p> <Button aria-label={t('dashboard.copyRules')} onClick={copyRules} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('dashboard.copyRules')}</Button> </div> </div>); }
 
     if (loading) {
         return <DashboardSkeleton />;

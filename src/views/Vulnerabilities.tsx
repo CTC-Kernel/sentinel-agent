@@ -12,6 +12,7 @@ import { useVulnerabilitiesData } from '../hooks/vulnerabilities/useVulnerabilit
 import { PageHeader } from '../components/ui/PageHeader';
 import { Bug, Plus, Upload, MoreVertical } from '../components/ui/Icons';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+import { Button } from '../components/ui/button';
 
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 
@@ -169,7 +170,7 @@ export const Vulnerabilities: React.FC = () => {
                 />
             </motion.div>
 
-            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-lg relative overflow-hidden">
+            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-lg relative overflow-hidden">
                 <VulnerabilityDashboard vulnerabilities={vulnerabilities} />
             </motion.div>
 
@@ -200,8 +201,8 @@ export const Vulnerabilities: React.FC = () => {
                                             <div className="p-1">
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button
-                                                            type="button"
+                                                        <Button
+                                                            variant="ghost"
                                                             aria-label="Import Scan"
                                                             onClick={handleImportClick}
                                                             className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
@@ -209,7 +210,7 @@ export const Vulnerabilities: React.FC = () => {
                                                         >
                                                             <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
                                                             Import Scan
-                                                        </button>
+                                                        </Button>
                                                     )}
                                                 </Menu.Item>
                                             </div>
@@ -218,15 +219,14 @@ export const Vulnerabilities: React.FC = () => {
                                 </Menu>
 
                                 <CustomTooltip content="Create new vulnerability">
-                                    <button
-                                        type="button"
+                                    <Button
                                         onClick={handleCreateClick}
                                         className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-brand-600/20"
                                         aria-label="Create new vulnerability"
                                     >
                                         <Plus className="h-5 w-5 mr-2" />
                                         <span className="hidden sm:inline">{t('vulnerabilities.declare')}</span>
-                                    </button>
+                                    </Button>
                                 </CustomTooltip>
                             </div>
                         </>

@@ -5,7 +5,8 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { ThreatTemplate } from '../types';
 import { useStore } from '../store';
 import { useThreats } from '../hooks/useThreats';
-import { Plus, Search, Trash2, ShieldAlert, BookOpen, AlertTriangle, Shield, Database, RefreshCw } from '../components/ui/Icons';
+import { Plus, Search, Trash2, ShieldAlert, BookOpen, AlertTriangle, Shield, Database } from '../components/ui/Icons';
+import { Button } from '../components/ui/button';
 import { Modal } from '../components/ui/Modal';
 import { FloatingLabelInput } from '../components/ui/FloatingLabelInput';
 import { FloatingLabelSelect } from '../components/ui/FloatingLabelSelect';
@@ -166,24 +167,24 @@ export const ThreatRegistry: React.FC = () => {
                 actions={
                     <div className="flex gap-3">
                         {threats.length === 0 && canEdit && (
-                            <button
+                            <Button
                                 aria-label="Importer Standard"
                                 onClick={handleSeed}
                                 className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-xl flex items-center transition-all shadow-lg shadow-purple-500/20 text-sm font-bold"
                             >
                                 <Database className="h-4 w-4 mr-2" />
                                 Importer Standard
-                            </button>
+                            </Button>
                         )}
                         {canEdit && (
-                            <button
+                            <Button
                                 aria-label="Nouvelle Menace"
                                 onClick={handleNewThreat}
                                 className="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl flex items-center transition-all shadow-lg shadow-brand-500/20 text-sm font-bold"
                             >
                                 <Plus className="h-4 w-4 mr-2" />
                                 Nouvelle Menace
-                            </button>
+                            </Button>
                         )}
                     </div>
                 }
@@ -197,7 +198,7 @@ export const ThreatRegistry: React.FC = () => {
                 message={confirmData.message}
             />
 
-            <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-white/5 p-6 backdrop-blur-xl">
+            <div className="glass-premium rounded-3xl border border-slate-200 dark:border-white/5 p-6 backdrop-blur-xl">
                 <div className="flex items-center space-x-4 mb-6 relative">
                     <Search className="h-5 w-5 text-slate-500 absolute left-4" />
                     <input value={searchTerm}
@@ -219,9 +220,9 @@ export const ThreatRegistry: React.FC = () => {
                         <h3 className="text-lg font-medium text-slate-900 dark:text-white">Aucune menace trouvée</h3>
                         <p className="text-slate-600 mt-2">Commencez par importer la bibliothèque standard ou créez votre première menace.</p>
                         {threats.length === 0 && (
-                            <button aria-label="Importer les modèles standards" onClick={handleSeed} className="mt-6 text-brand-500 hover:underline">
+                            <Button variant="link" aria-label="Importer les modèles standards" onClick={handleSeed} className="mt-6 text-brand-500 hover:underline">
                                 Importer les modèles standards
-                            </button>
+                            </Button>
                         )}
                     </div>
                 ) : (
@@ -319,23 +320,23 @@ export const ThreatRegistry: React.FC = () => {
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                        <button
-                            type="button"
+                        <Button
+                            variant="ghost"
                             aria-label="Annuler"
                             onClick={handleModalClose}
                             className="px-4 py-2 text-slate-600 hover:text-slate-900 font-medium"
                         >
                             Annuler
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
                             aria-label="Sauvegarder"
                             disabled={isSubmitting}
+                            isLoading={isSubmitting}
                             className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-2 rounded-xl flex items-center shadow-lg shadow-brand-500/20 disabled:opacity-50"
                         >
-                            {isSubmitting && <RefreshCw className="h-4 w-4 mr-2 animate-spin" />}
-                            {isEditing ? 'Enregistrer les modifications' : 'Créer la menace'}
-                        </button>
+                            {!isSubmitting && isEditing ? 'Enregistrer les modifications' : 'Créer la menace'}
+                        </Button>
                     </div>
                 </form>
             </Modal>
@@ -359,13 +360,15 @@ const ThreatRegistryCard = React.memo(({
                 className="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-6 border border-slate-100 dark:border-white/5 hover:border-brand-500/30 transition-all group relative overflow-hidden cursor-pointer hover:shadow-lg"
             >
                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={(e) => { e.stopPropagation(); onDelete(threat.id!); }}
                         aria-label="Supprimer la menace"
                         className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"
                     >
                         <Trash2 className="h-4 w-4" />
-                    </button>
+                    </Button>
                 </div>
 
                 <div className="flex items-start justify-between mb-4">

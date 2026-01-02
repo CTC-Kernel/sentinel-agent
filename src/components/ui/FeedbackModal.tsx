@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, MessageSquare, Bug, Lightbulb, Star, Send } from 'lucide-react';
+import { Button } from './button';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useForm, useWatch } from 'react-hook-form';
@@ -99,9 +100,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                         <MessageSquare className="w-6 h-6 text-brand-500" />
                         Votre Avis Compte
                     </h2>
-                    <button aria-label="Fermer la fenêtre" onClick={onClose} className="text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                    <Button variant="ghost" size="icon" aria-label="Fermer la fenêtre" onClick={onClose} className="text-slate-500 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                         <X className="w-6 h-6" />
-                    </button>
+                    </Button>
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent pointer-events-none" />
                 </div>
 
@@ -185,33 +186,30 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
                 <div className="p-6 border-t border-white/10 glass-panel relative z-10 flex justify-end gap-3 shrink-0 rounded-b-[2rem]">
                     <div className="absolute inset-0 bg-slate-50/50 dark:bg-black/20 pointer-events-none" />
-                    <button
+                    <Button
                         type="button"
+                        variant="ghost"
                         aria-label="Annuler le retour"
                         onClick={onClose}
                         className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors font-medium relative z-10"
                     >
                         Annuler
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type="submit"
                         form="feedback-form"
                         aria-label="Envoyer le retour"
                         disabled={isSubmitting}
+                        isLoading={isSubmitting}
                         className="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
                     >
-                        {isSubmitting ? (
-                            <>
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                Envoi...
-                            </>
-                        ) : (
-                            <>
-                                <Send className="w-4 h-4" />
-                                Envoyer
-                            </>
-                        )}
-                    </button>
+
+                        <>
+                            <Send className="w-4 h-4" />
+                            Envoyer
+                        </>
+
+                    </Button>
                 </div>
             </div>
         </div>

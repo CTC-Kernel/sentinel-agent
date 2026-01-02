@@ -1,6 +1,7 @@
 import React from 'react';
 import { Plus, Download, Calendar, BrainCircuit } from 'lucide-react';
 import { PageHeader } from '../ui/PageHeader';
+import { Button } from '../ui/button';
 import { useTranslation } from 'react-i18next';
 
 
@@ -26,28 +27,29 @@ export const AuditsHeader: React.FC<AuditsHeaderProps> = ({
 
             actions={
                 <div className="flex gap-2">
-                    <button onClick={onExportCalendar} className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg" title={t('audits.exportCalendar')}>
+                    <Button variant="ghost" size="icon" onClick={onExportCalendar} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white" title={t('audits.exportCalendar')}>
                         <Calendar className="w-5 h-5" />
-                    </button>
-                    <button onClick={onExportCSV} className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg" title={t('audits.exportCSV')}>
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={onExportCSV} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white" title={t('audits.exportCSV')}>
                         <Download className="w-5 h-5" />
-                    </button>
+                    </Button>
                     {canEdit && (
                         <>
-                            <button
+                            <Button
+                                variant="outline"
                                 onClick={onGeneratePlan}
-                                className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium text-sm border border-purple-200 dark:border-purple-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                                className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 border-purple-200 dark:border-purple-800"
                             >
                                 <BrainCircuit className="w-4 h-4" />
                                 <span>{t('audits.aiAssistant')}</span>
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 onClick={onNewAudit}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors font-medium text-sm shadow-sm hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-sm hover:shadow-md"
                             >
                                 <Plus className="w-4 h-4" />
                                 <span>{t('audits.newAudit')}</span>
-                            </button>
+                            </Button>
                         </>
                     )}
                 </div>

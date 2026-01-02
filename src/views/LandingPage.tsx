@@ -8,7 +8,7 @@ import { LandingDashboardMockup } from '../components/landing/LandingDashboardMo
 import { SystemEntrance } from '../components/landing/SystemEntrance';
 
 const FeatureCard = ({ icon: Icon, title, description, delay }: { icon: LucideIcon, title: string, description: string, delay: string }) => (
-    <div className={`glass-panel p-8 rounded-[2rem] border border-slate-200/60 dark:border-white/5 bg-white/70 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 hover:bg-white/90 dark:hover:bg-white/10 hover:border-brand-500/30 hover:shadow-2xl hover:shadow-brand-500/10 dark:hover:shadow-brand-500/10 transition-all duration-500 group animate-slide-up flex flex-col items-start relative hover:z-20`} style={{ animationDelay: delay }}>
+    <div className={`glass-premium p-8 rounded-[2rem] bg-white/70 dark:bg-white/5 overflow-hidden transition-all duration-500 group animate-slide-up flex flex-col items-start relative hover:z-20`} style={{ animationDelay: delay }}>
         {/* Hover Highlight Line */}
         <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
