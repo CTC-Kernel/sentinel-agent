@@ -1,37 +1,52 @@
+
 import { test, expect } from '@playwright/test';
 
 test.describe('Risks Module', () => {
     test.setTimeout(90000);
+
     test.beforeEach(async ({ page }) => {
-        await page.goto('/#/risks');
+        // Go to Assets to start the flow
+        await page.goto('/#/assets');
 
         // Robust dismissal of modals
-        // Robust dismissal of modals using locator handlers
-
         await page.addLocatorHandler(page.getByText('Accepter et Fermer'), async (overlay) => {
-            await overlay.click();
+            await overlay.click({ force: true });
         });
     });
 
-    test('should display risks list', async ({ page }) => {
-        console.log('Risks - URL:', page.url());
-        console.log('Risks - Body Start:', (await page.locator('body').innerText()).substring(0, 500));
+    test('should navigate from Asset to Risk Creation with pre-filled asset', async ({ page }) => {
+        // 1. Wait for Assets list to load
+        await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible({ timeout: 30000 });
+        await expect(page.getByText(/Inventaire des Actifs|Asset Inventory/i).first()).toBeVisible();
 
-        // Wait for title "Risques" - relaxed selector
-        await expect(page.getByText(/Chargement|Loading/i)).not.toBeVisible({ timeout: 15000 });
+        // 2. Select the first asset in the list (Support Grid View which uses role="button" on cards)
+        // AssetList cards have class 'glass-panel' and role 'button'
+        // We use a locator that finds the first glass-panel that acts as a button
+        const firstAsset = page.locator('.glass-panel[role="button"]').first();
+        await expect(firstAsset).toBeVisible();
+        await firstAsset.click();
 
-        // Switch to "Registre" tab to see the list
-        await page.getByRole('button', { name: /Registre|Registry/i }).click({ timeout: 15000 });
+        // 3. Verify Drawer/Page opens (Asset Details)
+        // Look for "Détails" or "Informations"
+        await expect(page.getByText(/Détails|Details/i).first()).toBeVisible();
 
-        // Check for primary action button (present in both list and empty state)
-        await expect(page.getByRole('button', { name: /Nouveau risque|New Risk/i }).first()).toBeVisible({ timeout: 15000 });
-    });
+        // 4. Click on "Sécurité" tab
+        const securityTab = page.getByRole('tab', { name: /Sécurité|Security/i });
+        await securityTab.click();
 
-    test('should open create risk drawer', async ({ page }) => {
-        // Click "Nouveau risque"
-        await page.getByRole('button', { name: 'Nouveau risque' }).click({ force: true });
+        // 5. Click "Créer un Risque" or "Ajouter un Risque" button
+        const createRiskBtn = page.getByRole('button', { name: /Créer un Risque|Create Risk/i });
+        await expect(createRiskBtn).toBeVisible();
+        await createRiskBtn.click();
 
-        // Verify Drawer is visible
-        await expect(page.getByText(/Nouveau risque|New Risk/i, { exact: false })).toBeVisible();
+        // 6. Assert redirection to Risks page
+        // URL should contain /risks
+        await expect(page).toHaveURL(/.*\/risks/);
+
+        // 7. Assert "Nouveau Risque" modal is open
+        await expect(page.getByText(/Nouveau Risque|New Risk/i).first()).toBeVisible();
+
+        // 8. Assert Asset field is pre-filled
+        await expect(page.locator('button[role="combobox"]').filter({ hasText: /Actif|Asset/i }).first()).toBeVisible();
     });
 });
