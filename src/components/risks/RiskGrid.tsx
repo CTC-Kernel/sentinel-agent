@@ -4,6 +4,7 @@ import { CardSkeleton } from '../ui/Skeleton';
 import { Badge } from '../ui/Badge';
 import { SafeHTML } from '../ui/SafeHTML';
 import { EmptyState } from '../ui/EmptyState';
+import { Button } from '../ui/button';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Risk, Asset } from '../../types';
 
@@ -110,7 +111,7 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                                 onSelect(risk);
                             }
                         }}
-                        className="group glass-panel p-6 rounded-[2rem] card-hover flex flex-col h-full relative cursor-pointer border border-white/50 dark:border-white/5 overflow-hidden"
+                        className="group glass-premium p-6 rounded-[2rem] card-hover flex flex-col h-full relative cursor-pointer overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
 
@@ -118,23 +119,27 @@ export const RiskGrid: React.FC<RiskGridProps> = ({
                         <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
                             {canEdit && onEdit && (
                                 <CustomTooltip content="Modifier">
-                                    <button
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        className="h-8 w-8 p-0 bg-white/90 dark:bg-slate-800/90 shadow-sm backdrop-blur-sm hover:text-blue-600"
                                         onClick={(e) => { e.stopPropagation(); onEdit(risk); }}
-                                        className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-blue-600 shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     >
                                         <Edit className="h-4 w-4" />
-                                    </button>
+                                    </Button>
                                 </CustomTooltip>
                             )}
                             {canEdit && onDelete && (
                                 <CustomTooltip content={deletingIds.has(risk.id) ? "Suppression..." : "Supprimer"}>
-                                    <button
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        className="h-8 w-8 p-0 bg-white/90 dark:bg-slate-800/90 shadow-sm backdrop-blur-sm hover:text-red-600"
                                         onClick={(e) => handleDelete(e, risk.id, risk.threat)}
                                         disabled={deletingIds.has(risk.id)}
-                                        className="p-2 bg-white/90 dark:bg-slate-800/90 rounded-lg text-slate-500 hover:text-red-600 shadow-sm backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50"
                                     >
                                         <Trash2 className="h-4 w-4" />
-                                    </button>
+                                    </Button>
                                 </CustomTooltip>
                             )}
                         </div>

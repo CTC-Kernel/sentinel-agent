@@ -14,6 +14,8 @@ import { canEditResource } from '../utils/permissions';
 import { useComplianceData } from '../hooks/useComplianceData';
 import { useComplianceDataSeeder } from '../hooks/useComplianceDataSeeder';
 import { useProjectLogic } from '../hooks/projects/useProjectLogic';
+import { useDocumentActions } from '../hooks/documents/useDocumentActions';
+import { useDocumentsData } from '../hooks/documents/useDocumentsData';
 import { FRAMEWORKS } from '../data/frameworks';
 import { RiskForm } from '../components/risks/RiskForm';
 import { AuditForm } from '../components/audits/AuditForm';
@@ -59,7 +61,9 @@ export const Compliance: React.FC = () => {
 
     // Data Hooks
     const { filteredControls: frameworkControls, risks, findings, documents, usersList, assets, suppliers, projects, loading } = useComplianceData(currentFramework);
+    const { folders } = useDocumentsData(user?.organizationId);
     const complianceActions = useComplianceActions(user);
+    const documentActions = useDocumentActions(usersList);
     const { seedControls } = useComplianceDataSeeder();
     const { handleProjectFormSubmit, isSubmitting: isProjectSubmitting } = useProjectLogic();
 
@@ -208,21 +212,19 @@ export const Compliance: React.FC = () => {
                                 actions={
                                     canEdit && (
                                         <div className="flex gap-2">
-                                            <button
-                                                aria-label={t('compliance.export')}
-                                                className="btn-secondary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                            <Button
+                                                variant="secondary"
                                                 onClick={() => toast.info(t('compliance.exportInfo'))}
                                             >
                                                 <Download className="h-4 w-4 mr-2" /> {t('compliance.export')}
-                                            </button>
-                                            <button
-                                                aria-label={t('compliance.newRisk')}
-                                                className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-brand-600/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-600"
+                                            </Button>
+                                            <Button
+                                                className="shadow-lg shadow-brand-600/20"
                                                 onClick={() => handleCreateClick('risk')}
                                             >
                                                 <ShieldCheck className="h-4 w-4 mr-2" />
                                                 {t('compliance.newRisk')}
-                                            </button>
+                                            </Button>
                                         </div>
                                     )
                                 }
@@ -244,16 +246,18 @@ export const Compliance: React.FC = () => {
                                             placeholder="Filtrer par statut"
                                         />
                                     </div>
-                                    <button
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
                                         onClick={() => setShowMissingEvidence(!showMissingEvidence)}
-                                        className={`px-4 py-2.5 rounded-xl border flex items-center gap-2 text-sm font-medium transition-all whitespace-nowrap ${showMissingEvidence
+                                        className={`transition-all ${showMissingEvidence
                                             ? 'bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400'
-                                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-white/5 dark:border-white/10 dark:text-slate-300'
+                                            : ''
                                             }`}
                                     >
-                                        <AlertTriangle className="h-4 w-4" />
+                                        <AlertTriangle className="h-4 w-4 mr-2" />
                                         <span>Preuves manquantes</span>
-                                    </button>
+                                    </Button>
                                 </div>
                             </PremiumPageControl>
 
@@ -394,36 +398,34 @@ export const Compliance: React.FC = () => {
                 isOpen={uploadWizardOpen}
                 onClose={() => setUploadWizardOpen(false)}
                 onSubmit={async (data) => {
-                    // Create document via complianceActions or direct call
-                    // Since I don't have documentActions imported/setup fully here, I might need to rely on what complianceActions provides or import a service.
-                    // For now, I'll assume complianceActions has a 'createDocument' or I use the hook.
-                    // Actually, I'll use the hook logic. I need to make sure I have access to create document.
-                    // Let's assume validation passed.
-
                     try {
-                        // Quick way: link to current control
-                        const docData = {
+                        // 1. Create the document
+                        const docId = await documentActions.handleCreate({
                             ...data,
-                            relatedControlIds: selectedControlId ? [selectedControlId] : []
-                        };
-                        // Wait, I need a 'createDocument' action. 
-                        // I will check useComplianceActions or assume I can import it.
-                        // To be safe, I'll log for now and maybe add a TODO if I can't find the action.
-                        // Ah, I need to fetch folders too.
-                        // I will trigger a re-fetch of documents after.
-                        // I'll add a provisional implementation.
-                        console.log("Creating document", docData);
-                        toast.success("Document créé (Simulation)");
-                        setUploadWizardOpen(false);
-                    } catch {
-                        toast.error("Erreur création document");
+                            ownerId: user?.uid, // Default to current user if not specified
+                        });
+
+                        // 2. Link to Control if successful and context exists
+                        if (docId && selectedControlId) {
+                            const control = frameworkControls.find(c => c.id === selectedControlId);
+                            if (control) {
+                                await complianceActions.handleLinkDocument(control, docId);
+                            }
+                        }
+
+                        if (docId) {
+                            setUploadWizardOpen(false);
+                        }
+                    } catch (error) {
+                        toast.error("Erreur critique lors de la création du document");
+                        console.error(error);
                     }
                 }}
                 users={usersList}
                 controls={frameworkControls}
                 assets={assets}
                 risks={risks}
-                folders={[]} // Need to fetch folders
+                folders={folders} // Real folders from useDocumentsData
             />
         </>
     );

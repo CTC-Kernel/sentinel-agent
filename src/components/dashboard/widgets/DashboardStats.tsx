@@ -57,7 +57,7 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, n
             {/* Health Score - Compact */}
             <div className="flex items-center gap-4 min-w-[180px]">
                 <div className="relative w-14 h-14 flex items-center justify-center">
-                    <svg className="w-full h-full transform -rotate-90">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="-6 -6 68 68">
                         <circle cx="28" cy="28" r="26" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-muted-foreground/10" />
                         <circle cx="28" cy="28" r="26" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={163.36} strokeDashoffset={163.36 - (163.36 * healthScore) / 100} strokeLinecap="round" className={`${getHealthColor(healthScore)} transition-all duration-1000 ease-out`} />
                     </svg>

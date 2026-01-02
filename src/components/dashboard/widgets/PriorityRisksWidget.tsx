@@ -3,6 +3,7 @@ import { Flame, ShieldAlert } from '../../ui/Icons';
 import { Skeleton } from '../../ui/Skeleton';
 import { Risk } from '../../../types';
 import { DashboardCard } from '../DashboardCard';
+import { EmptyState } from '../../ui/EmptyState';
 // Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 interface PriorityRisksWidgetProps {
@@ -50,7 +51,15 @@ export const PriorityRisksWidget: React.FC<PriorityRisksWidgetProps> = ({ topRis
                             <span className="text-[10px] font-bold bg-background/60 px-3 py-1.5 rounded-lg border border-border text-muted-foreground">{risk.strategy}</span>
                         </div>
                     ))}
-                    {topRisks.length === 0 && !loading && <div className="flex flex-col items-center justify-center py-8 text-center"><ShieldAlert className="h-10 w-10 text-muted-foreground/40 mb-2" /><p className="text-sm text-muted-foreground font-medium">{t('dashboard.noCriticalRisks')}</p></div>}
+                    {topRisks.length === 0 && !loading && (
+                        <EmptyState
+                            icon={ShieldAlert}
+                            title={t('dashboard.noCriticalRisks')}
+                            description={t('dashboard.allClear')}
+                            color="emerald"
+                            className="py-8"
+                        />
+                    )}
 
                     {!isExpanded && topRisks.length > 3 && (
                         <div className="mt-3 text-center">

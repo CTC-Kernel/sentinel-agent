@@ -1,7 +1,8 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Settings as Settings3D, Siren, ShieldAlert, Server, User } from '../../ui/Icons'; // Settings aliased as Settings3D
 
-interface QuickActionsProps {
+interface QuickActionProps {
     navigate: (path: string) => void;
     t: (key: string) => string;
     stats?: {
@@ -12,73 +13,109 @@ interface QuickActionsProps {
     };
 }
 
-export const QuickActions: React.FC<QuickActionsProps> = ({ navigate, t, stats }) => {
+export const QuickActions: React.FC<QuickActionProps> = ({ navigate, t, stats }) => {
     return (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-5" data-tour="quick-actions">
-            <button onClick={() => navigate('/ctc-engine')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-purple-300 dark:hover:border-purple-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
-                <div className="relative z-10 flex flex-col items-center gap-3">
-                    <div className="p-3 bg-purple-50 dark:bg-purple-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-purple-100 dark:group-hover:bg-purple-500/30">
-                        <Settings3D className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <span className="text-sm font-bold text-foreground group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{t('dashboard.voxel3d')}</span>
-                </div>
-            </button>
+        <div className="flex items-center justify-center py-2" data-tour="quick-actions">
+            <div className="glass-premium px-6 py-4 rounded-[2rem] flex items-center gap-4 relative">
+                {/* Dock Background Glow */}
+                <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 rounded-[2rem] blur-xl opacity-50 -z-10" />
 
-            <button onClick={() => navigate('/incidents')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-red-300 dark:hover:border-red-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500" aria-label={t('dashboard.incidents')}>
-                <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none" />
-                <div className="relative z-10 flex flex-col items-center gap-3">
-                    {stats && stats.activeIncidents > 0 && (
-                        <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
-                            {stats.activeIncidents}
-                        </span>
-                    )}
-                    <div className="p-3 bg-red-50 dark:bg-red-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-red-100 dark:group-hover:bg-red-500/30">
-                        <Siren className="h-6 w-6 text-red-600 dark:text-red-400" />
-                    </div>
-                    <span className="text-sm font-bold text-foreground group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">{t('dashboard.incidents')}</span>
-                </div>
-            </button>
+                <DockItem
+                    icon={Settings3D}
+                    label={t('dashboard.voxel3d')}
+                    onClick={() => navigate('/ctc-engine')}
+                    color="purple"
+                    delay={0}
+                />
 
-            <button onClick={() => navigate('/risks')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-orange-300 dark:hover:border-orange-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500" aria-label={t('dashboard.risks')}>
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent pointer-events-none" />
-                <div className="relative z-10 flex flex-col items-center gap-3">
-                    {stats && stats.highRisks > 0 && (
-                        <span className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
-                            {stats.highRisks}
-                        </span>
-                    )}
-                    <div className="p-3 bg-orange-50 dark:bg-orange-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/30">
-                        <ShieldAlert className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <span className="text-sm font-bold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{t('dashboard.risks')}</span>
-                </div>
-            </button>
+                <DockItem
+                    icon={Siren}
+                    label={t('dashboard.incidents')}
+                    onClick={() => navigate('/incidents')}
+                    color="red"
+                    badge={stats?.activeIncidents}
+                    delay={0.1}
+                />
 
-            <button onClick={() => navigate('/assets')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-blue-300 dark:hover:border-blue-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label={t('dashboard.assets')}>
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none" />
-                <div className="relative z-10 flex flex-col items-center gap-3">
-                    {stats && stats.assets > 0 && (
-                        <span className="absolute top-3 right-3 flex h-auto min-w-[20px] px-1 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
-                            {stats.assets}
-                        </span>
-                    )}
-                    <div className="p-3 bg-blue-50 dark:bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/30">
-                        <Server className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <span className="text-sm font-bold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{t('dashboard.assets')}</span>
-                </div>
-            </button>
+                <DockItem
+                    icon={ShieldAlert}
+                    label={t('dashboard.risks')}
+                    onClick={() => navigate('/risks')}
+                    color="orange"
+                    badge={stats?.highRisks}
+                    delay={0.2}
+                />
 
-            <button onClick={() => navigate('/team')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-emerald-300 dark:hover:border-emerald-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" aria-label={t('dashboard.team')}>
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none" />
-                <div className="relative z-10 flex flex-col items-center gap-3">
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/30">
-                        <User className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <span className="text-sm font-bold text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{t('dashboard.team')}</span>
-                </div>
-            </button>
+                <DockItem
+                    icon={Server}
+                    label={t('dashboard.assets')}
+                    onClick={() => navigate('/assets')}
+                    color="blue"
+                    badge={stats?.assets}
+                    delay={0.3}
+                />
+
+                <DockItem
+                    icon={User}
+                    label={t('dashboard.team')}
+                    onClick={() => navigate('/team')}
+                    color="emerald"
+                    delay={0.4}
+                />
+            </div>
         </div>
+    );
+};
+
+interface DockItemProps {
+    icon: React.ElementType;
+    label: string;
+    onClick: () => void;
+    color: 'purple' | 'red' | 'orange' | 'blue' | 'emerald';
+    badge?: number;
+    delay: number;
+}
+
+const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, badge, delay }) => {
+    const colorStyles = {
+        purple: 'text-purple-600 dark:text-purple-400 group-hover:bg-purple-100 dark:group-hover:bg-purple-500/20',
+        red: 'text-red-600 dark:text-red-400 group-hover:bg-red-100 dark:group-hover:bg-red-500/20',
+        orange: 'text-orange-600 dark:text-orange-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/20',
+        blue: 'text-blue-600 dark:text-blue-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/20',
+        emerald: 'text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/20'
+    };
+
+    const badgeColors = {
+        purple: 'bg-purple-500',
+        red: 'bg-red-500',
+        orange: 'bg-orange-500',
+        blue: 'bg-blue-500',
+        emerald: 'bg-emerald-500'
+    };
+
+    return (
+        <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay, duration: 0.4, type: "spring" }}
+            whileHover={{ scale: 1.15, y: -5 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onClick}
+            className="group relative flex flex-col items-center gap-2 p-2 focus:outline-none"
+        >
+            <div className={`p-3 rounded-2xl transition-all duration-300 bg-transparent ${colorStyles[color]} shadow-sm group-hover:shadow-lg`}>
+                {/* @ts-expect-error: Icon component type mismatch */}
+                <Icon className="h-7 w-7" />
+            </div>
+            {badge && badge > 0 && (
+                <span className={`absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full ${badgeColors[color]} text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-900`}>
+                    {badge}
+                </span>
+            )}
+            <span className="absolute -bottom-8 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 rounded-full shadow-sm whitespace-nowrap pointer-events-none">
+                {label}
+            </span>
+            <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </motion.button>
     );
 };

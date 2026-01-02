@@ -9,9 +9,10 @@ interface EmptyStateProps {
     onAction?: () => void;
     color?: 'slate' | 'blue' | 'indigo' | 'rose' | 'amber' | 'emerald';
     compact?: boolean;
+    className?: string;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, actionLabel, onAction, color = 'slate', compact = false }) => {
+export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, actionLabel, onAction, color = 'slate', compact = false, className = '' }) => {
     const colorStyles = {
         slate: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
         blue: 'bg-blue-50 dark:bg-slate-900 text-blue-600 dark:bg-slate-900/20 dark:text-blue-400',
@@ -34,7 +35,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
     }
 
     return (
-        <div className="flex flex-col items-center justify-center p-12 text-center animate-in fade-in zoom-in-50 duration-500">
+        <div className={`flex flex-col items-center justify-center p-12 text-center animate-in fade-in zoom-in-50 duration-500 ${className}`}>
             <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-6 shadow-sm border border-white/60 dark:border-white/5 backdrop-blur-sm ${colorStyles[color]}`}>
                 <Icon className="w-10 h-10" />
             </div>

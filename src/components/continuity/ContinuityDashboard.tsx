@@ -9,6 +9,7 @@ import { ChartTooltip } from '../ui/ChartTooltip';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { BusinessProcess, BcpDrill } from '../../types';
 import { EmptyChartState } from '../ui/EmptyChartState';
+import { EmptyState } from '../ui/EmptyState';
 
 interface ContinuityDashboardProps {
     processes: BusinessProcess[];
@@ -87,7 +88,7 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
 
                     <div className="flex items-center gap-8 relative z-10">
                         <div className="relative">
-                            <svg className="w-32 h-32 transform -rotate-90">
+                            <svg className="w-32 h-32 transform -rotate-90" viewBox="-15 -15 158 158">
                                 <circle
                                     className="text-slate-100 dark:text-slate-800"
                                     strokeWidth="10"
@@ -159,8 +160,8 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
 
                 {/* 2. Drill Success Rate Card */}
                 <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 flex flex-col justify-between relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Zap className="h-24 w-24 text-brand-500" />
+                    <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <Zap className="h-20 w-20 text-brand-500" />
                     </div>
                     <div>
                         <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Succès des Exercices</h3>
@@ -281,11 +282,13 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
                         ))}
 
                         {drills.length === 0 && (
-                            <div className="text-center py-8">
-                                <div className="bg-slate-100 dark:bg-white/5 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                                    <History className="h-6 w-6 text-slate-400" />
-                                </div>
-                                <p className="text-sm text-slate-500">Aucun exercice récent.</p>
+                            <div className="py-4">
+                                <EmptyState
+                                    compact
+                                    icon={History}
+                                    title="Aucun exercice"
+                                    description="Aucun exercice récent."
+                                />
                             </div>
                         )}
                     </div>

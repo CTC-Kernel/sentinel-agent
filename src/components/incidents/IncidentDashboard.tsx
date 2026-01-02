@@ -143,7 +143,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 {/* Global Score */}
                 <div className="flex items-center gap-6 relative z-decorator">
                     <div className="relative">
-                        <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
+                        <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="-4 -4 104 104">
                             <defs>
                                 <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                                     <stop offset="0%" stopColor="#10B981" />

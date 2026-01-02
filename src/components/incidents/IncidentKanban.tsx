@@ -4,6 +4,8 @@ import { Incident, Criticality } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Edit, Trash2 } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
+import { EmptyState } from '../ui/EmptyState';
+import { ShieldAlert } from 'lucide-react';
 
 // Columns definition
 const COLUMNS = [
@@ -79,11 +81,15 @@ export const IncidentKanban: React.FC<IncidentKanbanProps> = ({ incidents, onSel
                                 </div>
                             ))
                         ) : groupedIncidents[column.id]?.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-32 text-center opacity-50">
-                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-2">
-                                    <div className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                                </div>
-                                <p className="text-xs font-medium text-slate-500">Aucun incident</p>
+
+                            <div className="h-32 flex items-center justify-center">
+                                <EmptyState
+                                    compact
+                                    icon={ShieldAlert}
+                                    title="Aucun incident"
+                                    description="Tout est calme pour le moment."
+                                    color="slate"
+                                />
                             </div>
                         ) : (
                             groupedIncidents[column.id]?.map(incident => (

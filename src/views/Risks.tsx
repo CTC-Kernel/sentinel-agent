@@ -37,6 +37,7 @@ import { RiskGrid } from '../components/risks/RiskGrid';
 import { RiskMatrix } from '../components/risks/RiskMatrix';
 import { RiskDashboard } from '../components/risks/RiskDashboard';
 import { CustomSelect } from '../components/ui/CustomSelect';
+import { Button } from '../components/ui/button';
 
 import { Drawer } from '../components/ui/Drawer';
 import { RiskForm } from '../components/risks/RiskForm';
@@ -443,31 +444,32 @@ export const Risks: React.FC = () => {
                                 <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden md:block" />
 
                                 <CustomTooltip content={t('risks.startTour')}>
-                                    <button
-                                        type="button"
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
                                         onClick={handleStartTour}
-                                        className="p-2.5 rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                         aria-label={t('risks.startTour')}
                                     >
                                         <HelpCircle className="h-5 w-5" />
-                                    </button>
+                                    </Button>
                                 </CustomTooltip>
 
                                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
 
                                 <CustomTooltip content={t('assets.advancedFilters')}>
-                                    <button
-                                        type="button"
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
                                         data-tour="risks-filters"
                                         onClick={handleAdvancedSearchToggle}
                                         aria-label={t('assets.advancedFilters')}
-                                        className={`p-2.5 rounded-xl transition-all border shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${showAdvancedSearch
+                                        className={`transition-all ${showAdvancedSearch
                                             ? 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:text-brand-400 dark:border-brand-900/30'
-                                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10'
+                                            : ''
                                             }`}
                                     >
                                         <Filter className="h-5 w-5" />
-                                    </button>
+                                    </Button>
                                 </CustomTooltip>
 
                                 <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1" />
@@ -545,28 +547,27 @@ export const Risks: React.FC = () => {
                                 {canEdit && (
                                     <>
                                         <CustomTooltip content="Lancer l'analyse IA">
-                                            <button
-                                                type="button"
+                                            <Button
                                                 onClick={handleStartAiAnalysis}
                                                 disabled={isAnalyzing}
+                                                isLoading={isAnalyzing}
                                                 aria-label={isAnalyzing ? t('risks.analyzing') : t('risks.aiAnalysis')}
-                                                className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
+                                                className="hidden lg:flex bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-indigo-500/20 border-0"
                                             >
-                                                {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
+                                                {!isAnalyzing && <BrainCircuit className="h-4 w-4 mr-2" />}
                                                 <span className="hidden xl:inline">{isAnalyzing ? t('risks.analyzing') : t('risks.aiAnalysis')}</span>
-                                            </button>
+                                            </Button>
                                         </CustomTooltip>
                                         <CustomTooltip content="Créer un nouveau risque">
-                                            <button
-                                                type="button"
+                                            <Button
                                                 data-tour="risks-create"
                                                 onClick={handleNewRiskClick}
                                                 aria-label={t('risks.newRisk')}
-                                                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500"
+                                                className="shadow-lg shadow-brand-500/20"
                                             >
-                                                <Plus className="h-4 w-4" />
+                                                <Plus className="h-4 w-4 mr-2" />
                                                 <span className="hidden sm:inline">{t('risks.newRisk')}</span>
-                                            </button>
+                                            </Button>
                                         </CustomTooltip>
                                     </>
                                 )}
@@ -582,10 +583,17 @@ export const Risks: React.FC = () => {
             {/* Advanced Search Panel Placeholder */}
             <AnimatePresence>
                 {showAdvancedSearch && (
-                    <AdvancedSearch
-                        onSearch={handleAdvancedSearch}
-                        onClose={handleAdvancedSearchClose}
-                    />
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                    >
+                        <AdvancedSearch
+                            onSearch={handleAdvancedSearch}
+                            onClose={handleAdvancedSearchClose}
+                        />
+                    </motion.div>
                 )}
             </AnimatePresence>
 
@@ -628,7 +636,7 @@ export const Risks: React.FC = () => {
 
             {/* MATRIX TAB CONTENT */}
             {activeTab === 'matrix' && (
-                <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-2xl border border-glass-border">
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="p-1">
                     {matrixFilter && (
                         <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 flex justify-between items-center mb-6">
                             <span className="text-sm font-bold text-brand-900 dark:text-brand-100">

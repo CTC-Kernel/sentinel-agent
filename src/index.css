@@ -684,6 +684,77 @@ body.voxel-fullscreen header {
 
 }
 
+/* --- Aurora Gradients & Animations --- */
+@keyframes aurora-flow {
+  0% {
+    background-position: 50% 50%, 50% 50%;
+  }
+
+  50% {
+    background-position: 100% 0%, 0% 100%;
+  }
+
+  100% {
+    background-position: 50% 50%, 50% 50%;
+  }
+}
+
+.animate-aurora {
+  animation: aurora-flow 20s ease infinite alternate;
+}
+
+.bg-aurora {
+  background-image:
+    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.15) 0px, transparent 50%);
+  background-size: 150% 150%;
+}
+
+.dark .bg-aurora {
+  background-image:
+    radial-gradient(at 0% 0%, rgba(30, 64, 175, 0.2) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(109, 40, 217, 0.2) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(190, 24, 93, 0.2) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(6, 95, 70, 0.2) 0px, transparent 50%);
+}
+
+/* Premium Glass - "Sentinel Glass" */
+.glass-premium {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px) saturate(180%) contrast(1.1);
+  -webkit-backdrop-filter: blur(24px) saturate(180%) contrast(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 0 40px -10px rgba(255, 255, 255, 0.5) inset;
+  /* Inner glow */
+}
+
+.dark .glass-premium {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8px 32px 0 rgba(0, 0, 0, 0.4),
+    0 0 40px -10px rgba(255, 255, 255, 0.03) inset;
+}
+
+/* Shimmer overlay for extra polish */
+.shimmer-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(105deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.1) 25%,
+      transparent 30%);
+  animation: shine 4s infinite linear;
+  pointer-events: none;
+}
+
 /* --- Driver.js Masterpiece Theme --- */
 .driverjs-theme-masterpiece {
   background-color: rgba(255, 255, 255, 0.9) !important;
