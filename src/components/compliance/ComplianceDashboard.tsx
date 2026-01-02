@@ -178,7 +178,7 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
                 {/* Left: Global Score */}
                 <div className="flex items-center gap-6 md:p-8 min-w-[240px] z-10">
                     <div className="relative flex-shrink-0 group/ring">
-                        <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
+                        <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="-14 -14 124 124">
                             <circle className="text-muted-foreground/10" strokeWidth="6" stroke="currentColor" fill="transparent" r="42" cx="48" cy="48" />
                             <circle
                                 className="text-brand-600 transition-all duration-1000 ease-out"

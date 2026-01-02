@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { integrationService, SecurityEvent } from '../../services/integrationService';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/button';
+import { EmptyState } from '../ui/EmptyState';
 import { Shield, Activity, CheckCircle, Disc } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { toast } from 'sonner';
@@ -128,7 +129,14 @@ export const IncidentImportModal: React.FC<IncidentImportModalProps> = ({ isOpen
                 {step === 'select' && (
                     <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pb-4">
                         {events.length === 0 ? (
-                            <p className="text-center text-slate-600 py-8">Aucune nouvelle alerte détectée.</p>
+                            <div className="py-8">
+                                <EmptyState
+                                    icon={Activity}
+                                    title="Aucune alerte"
+                                    description="Aucune nouvelle alerte détectée par ce connecteur."
+                                    compact
+                                />
+                            </div>
                         ) : (
                             events.map(event => (
                                 <div

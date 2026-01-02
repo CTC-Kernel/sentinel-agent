@@ -69,7 +69,7 @@ export const ComplianceProgressWidget: React.FC<ComplianceProgressWidgetProps> =
                     tabIndex={0}
                     onKeyDown={(e) => e.key === 'Enter' && navigate && navigate('/compliance')}
                 >
-                    <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
+                    <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="-4 -4 104 104">
                         <defs>
                             <linearGradient id="complianceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor={stats.complianceRate >= 80 ? 'hsl(var(--success))' : stats.complianceRate >= 50 ? 'hsl(var(--primary))' : 'hsl(var(--warning))'} />

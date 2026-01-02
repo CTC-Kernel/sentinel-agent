@@ -76,8 +76,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     if (isEmpty && !loading) {
         return (
             <div className="relative overflow-hidden rounded-[2.5rem] bg-card text-card-foreground shadow-2xl dark:shadow-none border border-border p-8 md:p-16 text-center animate-fade-in group">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500/10 via-slate-50/50 to-white dark:from-indigo-500/10 dark:via-slate-900/50 dark:to-slate-900 pointer-events-none" />
-                <div className="relative z-10 flex flex-col items-center max-w-4xl mx-auto">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500/20 via-slate-50/50 to-white dark:from-indigo-900/40 dark:via-slate-900/50 dark:to-slate-900 pointer-events-none" />
+                <div className="relative z-10 flex flex-col items-center max-w-5xl mx-auto">
                     <div className="inline-flex items-center px-4 py-2 rounded-full bg-background/60 border border-border mb-8 backdrop-blur-md shadow-sm">
                         <span className="relative flex h-2.5 w-2.5 mr-3">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, Home } from '../components/ui/Icons';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { Button } from '../components/ui/button';
@@ -8,6 +8,7 @@ import { slideUpVariants } from '../components/ui/animationVariants';
 import { FeedbackModal } from '../components/ui/FeedbackModal';
 
 export const NotFound: React.FC = () => {
+    const navigate = useNavigate();
     const [showFeedback, setShowFeedback] = React.useState(false);
 
     return (
@@ -37,11 +38,12 @@ export const NotFound: React.FC = () => {
                 </p>
 
                 <div className="flex flex-col gap-4">
-                    <Button asChild className="w-full text-base py-6 rounded-xl font-bold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 transition-all duration-300">
-                        <Link to="/">
-                            <Home className="mr-2 h-5 w-5" />
-                            Retour au Tableau de Bord
-                        </Link>
+                    <Button
+                        onClick={() => navigate('/')}
+                        className="w-full text-base py-6 rounded-xl font-bold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 transition-all duration-300"
+                    >
+                        <Home className="mr-2 h-5 w-5" />
+                        Retour au Tableau de Bord
                     </Button>
                     <div className="grid grid-cols-2 gap-4">
                         <Button

@@ -628,7 +628,7 @@ export const Risks: React.FC = () => {
 
             {/* MATRIX TAB CONTENT */}
             {activeTab === 'matrix' && (
-                <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-2xl border border-glass-border">
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="p-1">
                     {matrixFilter && (
                         <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-900/30 flex justify-between items-center mb-6">
                             <span className="text-sm font-bold text-brand-900 dark:text-brand-100">

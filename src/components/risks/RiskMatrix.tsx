@@ -32,9 +32,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
     ];
 
     return (
-        <div className="glass-panel p-4 sm:p-8 rounded-[2.5rem] shadow-lg overflow-x-auto animate-fade-in border border-white/60 dark:border-white/10 relative backdrop-blur-xl bg-white/40 dark:bg-black/40">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 dark:from-indigo-500/10 dark:to-purple-500/10 pointer-events-none" />
-
+        <div className="w-full">
             <div className="relative z-10 w-full mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
                     <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 tracking-tight">Matrice des Risques</h3>

@@ -231,7 +231,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                 <div className="w-full md:w-72 flex-shrink-0">
                     <div className="glass-panel text-card-foreground rounded-[2rem] p-8 shadow-xl text-center border border-white/20 dark:border-white/5 bg-white/30 dark:bg-black/20">
                         <div className="relative w-40 h-40 mx-auto mb-6 flex items-center justify-center">
-                            <svg className="w-full h-full transform -rotate-90 overflow-visible" viewBox="0 0 128 128">
+                            <svg className="w-full h-full transform -rotate-90 overflow-visible" viewBox="-4 -4 136 136">
                                 <defs>
                                     <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                                         <stop offset="0%" stopColor="hsl(var(--primary))" />

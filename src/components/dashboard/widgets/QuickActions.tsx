@@ -15,17 +15,17 @@ interface QuickActionsProps {
 export const QuickActions: React.FC<QuickActionsProps> = ({ navigate, t, stats }) => {
     return (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-5" data-tour="quick-actions">
-            <button onClick={() => navigate('/ctc-engine')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-purple-300 dark:hover:border-purple-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500">
+            <button onClick={() => navigate('/ctc-engine')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-xl transition-all duration-500 group shadow-sm hover:border-purple-300 dark:hover:border-purple-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500">
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
                 <div className="relative z-10 flex flex-col items-center gap-3">
-                    <div className="p-3 bg-purple-50 dark:bg-purple-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-purple-100 dark:group-hover:bg-purple-500/30">
+                    <div className="p-3 bg-purple-50 dark:bg-purple-500/20 rounded-xl group-hover:scale-110 transition-transform duration-500 group-hover:bg-purple-100 dark:group-hover:bg-purple-500/30">
                         <Settings3D className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                     </div>
-                    <span className="text-sm font-bold text-foreground group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{t('dashboard.voxel3d')}</span>
+                    <span className="text-sm font-bold text-foreground group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">{t('dashboard.voxel3d')}</span>
                 </div>
             </button>
 
-            <button onClick={() => navigate('/incidents')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-red-300 dark:hover:border-red-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500" aria-label={t('dashboard.incidents')}>
+            <button onClick={() => navigate('/incidents')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-xl transition-all duration-500 group shadow-sm hover:border-red-300 dark:hover:border-red-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500" aria-label={t('dashboard.incidents')}>
                 <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none" />
                 <div className="relative z-10 flex flex-col items-center gap-3">
                     {stats && stats.activeIncidents > 0 && (
@@ -33,14 +33,14 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ navigate, t, stats }
                             {stats.activeIncidents}
                         </span>
                     )}
-                    <div className="p-3 bg-red-50 dark:bg-red-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-red-100 dark:group-hover:bg-red-500/30">
+                    <div className="p-3 bg-red-50 dark:bg-red-500/20 rounded-xl group-hover:scale-110 transition-transform duration-500 group-hover:bg-red-100 dark:group-hover:bg-red-500/30">
                         <Siren className="h-6 w-6 text-red-600 dark:text-red-400" />
                     </div>
-                    <span className="text-sm font-bold text-foreground group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">{t('dashboard.incidents')}</span>
+                    <span className="text-sm font-bold text-foreground group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors duration-300">{t('dashboard.incidents')}</span>
                 </div>
             </button>
 
-            <button onClick={() => navigate('/risks')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-orange-300 dark:hover:border-orange-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500" aria-label={t('dashboard.risks')}>
+            <button onClick={() => navigate('/risks')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-xl transition-all duration-500 group shadow-sm hover:border-orange-300 dark:hover:border-orange-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500" aria-label={t('dashboard.risks')}>
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent pointer-events-none" />
                 <div className="relative z-10 flex flex-col items-center gap-3">
                     {stats && stats.highRisks > 0 && (
@@ -48,14 +48,14 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ navigate, t, stats }
                             {stats.highRisks}
                         </span>
                     )}
-                    <div className="p-3 bg-orange-50 dark:bg-orange-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/30">
+                    <div className="p-3 bg-orange-50 dark:bg-orange-500/20 rounded-xl group-hover:scale-110 transition-transform duration-500 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/30">
                         <ShieldAlert className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                     </div>
-                    <span className="text-sm font-bold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{t('dashboard.risks')}</span>
+                    <span className="text-sm font-bold text-foreground group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-300">{t('dashboard.risks')}</span>
                 </div>
             </button>
 
-            <button onClick={() => navigate('/assets')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-blue-300 dark:hover:border-blue-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label={t('dashboard.assets')}>
+            <button onClick={() => navigate('/assets')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-xl transition-all duration-500 group shadow-sm hover:border-blue-300 dark:hover:border-blue-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label={t('dashboard.assets')}>
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none" />
                 <div className="relative z-10 flex flex-col items-center gap-3">
                     {stats && stats.assets > 0 && (
@@ -63,20 +63,20 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ navigate, t, stats }
                             {stats.assets}
                         </span>
                     )}
-                    <div className="p-3 bg-blue-50 dark:bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/30">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform duration-500 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/30">
                         <Server className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <span className="text-sm font-bold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{t('dashboard.assets')}</span>
+                    <span className="text-sm font-bold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">{t('dashboard.assets')}</span>
                 </div>
             </button>
 
-            <button onClick={() => navigate('/team')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.05] hover:shadow-xl transition-all duration-300 group shadow-sm hover:border-emerald-300 dark:hover:border-emerald-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" aria-label={t('dashboard.team')}>
+            <button onClick={() => navigate('/team')} className="glass-panel relative p-5 border border-glass-border rounded-2xl flex flex-col items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-xl transition-all duration-500 group shadow-sm hover:border-emerald-300 dark:hover:border-emerald-500/50 active:scale-95 overflow-hidden hover:animate-pulse-glow focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" aria-label={t('dashboard.team')}>
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none" />
                 <div className="relative z-10 flex flex-col items-center gap-3">
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/30">
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-500/20 rounded-xl group-hover:scale-110 transition-transform duration-500 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/30">
                         <User className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                     </div>
-                    <span className="text-sm font-bold text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{t('dashboard.team')}</span>
+                    <span className="text-sm font-bold text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300">{t('dashboard.team')}</span>
                 </div>
             </button>
         </div>

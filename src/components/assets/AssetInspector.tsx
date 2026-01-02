@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { InspectorLayout } from '../ui/InspectorLayout';
+import { EmptyState } from '../ui/EmptyState';
 import { Asset, UserProfile, Supplier, BusinessProcess } from '../../types';
 import { AssetFormData } from '../../schemas/assetSchema';
 import { AssetForm } from './AssetForm';
@@ -191,7 +192,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                     <div className="space-y-8">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><Shield className="h-4 w-4 mr-2" /> Contrôles de Sécurité ({linkedControls.length})</h3>
                         {linkedControls.length === 0 ? (
-                            <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun contrôle associé.</p>
+                            <EmptyState compact icon={Shield} title="Aucun contrôle" description="Aucun contrôle associé." />
                         ) : (
                             <div className="grid gap-4">
                                 {linkedControls.map(ctrl => (
@@ -235,7 +236,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                     <div className="space-y-8">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><FolderKanban className="h-4 w-4 mr-2" /> Projets Liés ({linkedProjects.length})</h3>
                         {linkedProjects.length === 0 ? (
-                            <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun projet associé.</p>
+                            <EmptyState compact icon={FolderKanban} title="Aucun projet" description="Aucun projet associé." />
                         ) : (
                             <div className="grid gap-4">
                                 {linkedProjects.map(proj => (
@@ -262,7 +263,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                     <div className="space-y-8">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><CheckSquare className="h-4 w-4 mr-2" /> Audits Liés ({linkedAudits.length})</h3>
                         {linkedAudits.length === 0 ? (
-                            <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun audit associé.</p>
+                            <EmptyState compact icon={CheckSquare} title="Aucun audit" description="Aucun audit associé." />
                         ) : (
                             <div className="grid gap-4">
                                 {linkedAudits.map(audit => (
@@ -292,7 +293,7 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                     <div className="space-y-8">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4 flex items-center"><FileText className="h-4 w-4 mr-2" /> Documents Liés ({linkedDocuments.length})</h3>
                         {linkedDocuments.length === 0 ? (
-                            <p className="text-sm text-slate-500 italic text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">Aucun document associé.</p>
+                            <EmptyState compact icon={FileText} title="Aucun document" description="Aucun document associé." />
                         ) : (
                             <div className="grid gap-4">
                                 {linkedDocuments.map(doc => (

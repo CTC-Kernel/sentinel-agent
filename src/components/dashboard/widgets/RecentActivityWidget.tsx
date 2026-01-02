@@ -3,6 +3,7 @@ import { History, ShieldAlert, Siren, Server, CheckCircle2 } from '../../ui/Icon
 import { Skeleton } from '../../ui/Skeleton';
 import { SystemLog } from '../../../types';
 import { DashboardCard } from '../DashboardCard';
+import { EmptyState } from '../../ui/EmptyState';
 
 interface RecentActivityWidgetProps {
     recentActivity: SystemLog[];
@@ -52,7 +53,12 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ rece
             <div className="p-0 h-full overflow-y-auto custom-scrollbar">
                 <div className="border-l border-border space-y-8 py-8 ml-14 pr-8 relative">
                     {loading ? <Skeleton className="h-20 w-full" /> : displayActivity.length === 0 ? (
-                        <div className="text-sm text-muted-foreground">{t('dashboard.nothingToReport')}</div>
+                        <EmptyState
+                            icon={CheckCircle2}
+                            title={t('dashboard.nothingToReport')}
+                            description={t('dashboard.systemRunningSmoothly')}
+                            className="py-8"
+                        />
                     ) : displayActivity.map((log, i) => (
                         <div key={`activity-${i}`} className="relative group">
                             <span className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full bg-card border border-border shadow-sm group-hover:scale-110 group-hover:border-blue-400 transition-all z-10">
