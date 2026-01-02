@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, File, CheckCircle2, AlertTriangle, ShieldCheck } from '../ui/Icons';
+import { Button } from './button';
+import { Switch } from './Switch';
 import { uploadFile, validateFile, formatFileSize, generateFilePath } from '../../services/fileUploadService';
 import { useStore } from '../../store';
 import CryptoJS from 'crypto-js';
@@ -177,7 +179,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
             {/* Selected File */}
             {selectedFile && (
-                <div className="glass-panel p-4 rounded-xl">
+                <div className="glass-premium p-4 rounded-xl">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
                             <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 dark:bg-slate-900/30 flex items-center justify-center">
@@ -193,12 +195,14 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                             </div>
                         </div>
                         {!uploading && (
-                            <button
+                            <Button
                                 onClick={handleCancel}
-                                className="ml-2 p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                                variant="ghost"
+                                size="icon"
+                                className="ml-2 py-0 h-8 w-8 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
                             >
-                                <X className="h-4 w-4 text-slate-500" />
-                            </button>
+                                <X className="h-4 w-4" />
+                            </Button>
                         )}
                     </div>
 
@@ -212,12 +216,11 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                                     <p className="text-[10px] text-slate-600">Active le filigrane et la vérification d'intégrité</p>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setIsSecure(!isSecure)}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isSecure ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'}`}
-                            >
-                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${isSecure ? 'translate-x-6' : 'translate-x-1'}`} />
-                            </button>
+                            <Switch
+                                checked={isSecure}
+                                onChange={setIsSecure}
+                                className={isSecure ? '!bg-emerald-500' : ''}
+                            />
                         </div>
                     )}
 
@@ -238,13 +241,13 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
                     {/* Upload Button */}
                     {!uploading && (
-                        <button
+                        <Button
                             onClick={handleUpload}
-                            className="mt-3 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-sm transition-colors flex items-center justify-center"
+                            className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white shadow-md font-medium"
                         >
                             <Upload className="h-4 w-4 mr-2" />
                             Téléverser
-                        </button>
+                        </Button>
                     )}
                 </div>
             )}

@@ -168,7 +168,7 @@ const AppLayout: React.FC = () => {
                     enabled={location.pathname !== '/ctc-engine'}
                     className={`flex-1 min-w-0 overflow-y-auto overflow-x-hidden scroll-smooth [scrollbar-gutter:stable] p-0`}
                 >
-                    <div className={`${location.pathname === '/ctc-engine' ? 'w-full flex-1 animate-fade-in flex flex-col' : 'w-full animate-fade-in min-h-full pb-10'}`}>
+                    <div className={`${location.pathname === '/ctc-engine' ? 'w-full flex-1 animate-fade-in flex flex-col' : 'w-full animate-fade-in min-h-full pb-24'}`}>
                         <AnimatedRoutes />
                     </div>
                 </SmoothScroll>

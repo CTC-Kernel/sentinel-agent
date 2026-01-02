@@ -1245,6 +1245,10 @@ i18n
                             labelAudit: "Audit",
                             labelProjects: "Projects"
                         },
+                        categories: {
+                            compliance: "Compliance Packs",
+                            executive: "Executive Reports"
+                        },
                         templateCards: {
                             iso27001: {
                                 title: "ISO 27001 Pack",
@@ -1463,6 +1467,7 @@ i18n
                             q4: "Is there a commitment?", a4: "No commitment on monthly plans. Annual plans have a 1-year commitment with a 20% discount."
                         }
                     },
+
                     notifications: {
                         title: "Notifications",
                         subtitle: "Stay informed about important activities.",
@@ -2356,6 +2361,10 @@ i18n
                             labelAudit: "Audit",
                             labelProjects: "Projets"
                         },
+                        categories: {
+                            compliance: "Packs de Conformité",
+                            executive: "Rapports Exécutifs"
+                        },
                         templateCards: {
                             iso27001: {
                                 title: "Pack ISO 27001",
@@ -2786,6 +2795,7 @@ i18n
                             q4: "Y a-t-il un engagement ?", a4: "Aucun engagement sur les plans mensuels. L'engagement est d'un an sur les plans annuels avec une remise de 20%."
                         }
                     },
+
                     notifications: {
                         title: "Notifications",
                         subtitle: "Restez informé des activités importantes.",

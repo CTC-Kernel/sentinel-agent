@@ -51,7 +51,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             onClick={onClick}
             className={`
                 relative group p-6 rounded-4xl border transition-all duration-500 overflow-hidden
-                glass-panel
+                glass-premium
                 hover:shadow-apple-xl dark:hover:shadow-brand-900/20
                 hover:-translate-y-1
                 ${onClick ? 'cursor-pointer' : ''}

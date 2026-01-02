@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
+import { Button } from '../ui/button';
 import { DocumentFolder } from '../../types';
-import { Folder, ChevronRight, ChevronDown, Plus, MoreVertical, Edit2, Trash2, FolderOpen } from '../ui/Icons';
+import { Folder, ChevronRight, ChevronDown, Plus, MoreVertical, Edit2, Trash2, FolderOpen, Loader2 } from '../ui/Icons';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 const folderSchema = z.object({
-  name: z.string().min(1, 'Le nom est requis').max(100, 'Le nom est trop long')
+    name: z.string().min(1, 'Le nom est requis').max(100, 'Le nom est trop long')
 });
 
 type FolderFormData = z.infer<typeof folderSchema>;
@@ -147,14 +148,16 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         <div className="h-full flex flex-col">
             <div className="p-4 border-b border-gray-100 dark:border-white/5 flex justify-between items-center">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-slate-600">Dossiers</h3>
-                <button
+                <Button
                     aria-label="Créer un nouveau dossier racine"
                     onClick={handleCreateRoot}
-                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg text-slate-600 hover:text-brand-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-slate-600 hover:text-brand-600"
                     title="Nouveau dossier racine"
                 >
                     <Plus className="h-4 w-4" />
-                </button>
+                </Button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
@@ -196,7 +199,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                     className="fixed inset-0 z-modal flex items-center justify-center bg-black/20 backdrop-blur-sm cursor-default"
                     onClick={handleBackdropClick}
                 >
-                    <div className="glass-panel p-6 rounded-[2rem] shadow-2xl w-80 border border-white/20 relative overflow-hidden" onClick={e => e.stopPropagation()} role="presentation">
+                    <div className="glass-premium p-6 rounded-[2rem] shadow-2xl w-80 border border-white/20 relative overflow-hidden" onClick={e => e.stopPropagation()} role="presentation">
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 dark:from-white/10 dark:to-transparent pointer-events-none" />
                         <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white relative z-10">Nouveau Dossier</h3>
                         <form onSubmit={handleSubmit(onSubmitFolder)}>
@@ -206,9 +209,8 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                     aria-label="Nom du nouveau dossier"
                                     type="text"
                                     placeholder="Nom du dossier"
-                                    className={`w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border ${
-                                        errors.name ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
-                                    } mb-1 focus:ring-2 focus:ring-brand-500 outline-none`}
+                                    className={`w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border ${errors.name ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
+                                        } mb-1 focus:ring-2 focus:ring-brand-500 outline-none`}
                                     autoFocus
                                 />
                                 {errors.name && (
@@ -216,10 +218,23 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                                 )}
                             </div>
                             <div className="flex justify-end gap-2 relative z-10">
-                                <button aria-label="Annuler la création" type="button" onClick={handleCreateModalClose} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" disabled={isCreatingFolder}>Annuler</button>
-                                <button aria-label="Confirmer la création" type="submit" className="px-4 py-2 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white rounded-xl text-sm font-bold shadow-lg shadow-brand-500/20 disabled:opacity-50 flex items-center transition-all hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" disabled={isCreatingFolder}>
-                                    {isCreatingFolder && <span className="animate-spin mr-2">⏳</span>} Créer
-                                </button>
+                                <Button
+                                    aria-label="Annuler la création"
+                                    type="button"
+                                    onClick={handleCreateModalClose}
+                                    variant="ghost"
+                                    disabled={isCreatingFolder}
+                                >
+                                    Annuler
+                                </Button>
+                                <Button
+                                    aria-label="Confirmer la création"
+                                    type="submit"
+                                    className="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white shadow-lg shadow-brand-500/20 hover:scale-105"
+                                    disabled={isCreatingFolder}
+                                >
+                                    {isCreatingFolder && <Loader2 className="animate-spin mr-2 h-4 w-4" />} Créer
+                                </Button>
                             </div>
                         </form>
                     </div>
@@ -237,31 +252,34 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                         onClick={handleContextMenuBackdropClick}
                     />
                     <div
-                        className="fixed z-modal glass-panel rounded-xl shadow-2xl border border-white/20 py-1 w-48 animate-scale-in overflow-hidden backdrop-blur-md"
+                        className="fixed z-modal glass-premium rounded-xl shadow-2xl border border-white/20 py-1 w-48 animate-scale-in overflow-hidden backdrop-blur-md"
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                     >
-                        <button
+                        <Button
                             aria-label="Nouveau sous-dossier"
                             onClick={handleContextMenuCreateSub}
-                            className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center focus:outline-none focus:bg-slate-50 dark:focus:bg-white/5 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset"
+                            variant="ghost"
+                            className="w-full justify-start text-sm font-normal px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
                         >
                             <Plus className="h-4 w-4 mr-2" /> Nouveau sous-dossier
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             aria-label="Renommer le dossier"
                             onClick={handleContextMenuRename}
-                            className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center focus:outline-none focus:bg-slate-50 dark:focus:bg-white/5 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset"
+                            variant="ghost"
+                            className="w-full justify-start text-sm font-normal px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
                         >
                             <Edit2 className="h-4 w-4 mr-2" /> Renommer
-                        </button>
+                        </Button>
                         <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />
-                        <button
+                        <Button
                             aria-label="Supprimer le dossier"
                             onClick={handleContextMenuDelete}
-                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center focus:outline-none focus:bg-red-50 dark:focus:bg-red-900/20 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset"
+                            variant="ghost"
+                            className="w-full justify-start text-sm font-normal px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                         >
                             <Trash2 className="h-4 w-4 mr-2" /> Supprimer
-                        </button>
+                        </Button>
                     </div>
                 </>
             )}
@@ -348,13 +366,15 @@ const FolderNode = React.memo(({
                 onKeyDown={handleKeyDown}
                 onContextMenu={handleContextMenuFn}
             >
-                <button
+                <Button
                     aria-label={isExpanded ? "Replier le dossier" : "Déplier le dossier"}
                     onClick={handleExpandClick}
-                    className={`p-1 rounded hover:bg-slate-200 dark:hover:bg-white/10 mr-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${children.length === 0 ? 'invisible' : ''}`}
+                    variant="ghost"
+                    size="icon"
+                    className={`h-6 w-6 rounded mr-1 ${children.length === 0 ? 'invisible' : ''}`}
                 >
                     {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                </button>
+                </Button>
 
                 {isEditing ? (
                     <input value={newFolderName} onChange={handleInputChange} onBlur={handleUpdateBlur} onKeyDown={handleUpdateKeyDown}
@@ -371,13 +391,15 @@ const FolderNode = React.memo(({
                     </div>
                 )}
 
-                <button
+                <Button
                     aria-label="Options du dossier"
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-200 dark:hover:bg-white/10 rounded transition-opacity focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 rounded"
+                    variant="ghost"
+                    size="icon"
                     onClick={handleMoreClick}
                 >
                     <MoreVertical className="h-3 w-3" />
-                </button>
+                </Button>
             </div>
 
             {isExpanded && children.map(child => (

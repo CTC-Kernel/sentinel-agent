@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WidgetLayout, useDashboardPreferences } from '../../../hooks/useDashboardPreferences';
-import { Plus, Activity } from '../../../components/ui/Icons';
+import { Plus } from '../../../components/ui/Icons';
 import { useStore } from '../../../store';
 import { DashboardStats } from '../widgets/DashboardStats';
 import { ComplianceEvolutionWidget } from '../widgets/ComplianceEvolutionWidget';
@@ -103,18 +103,14 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
                     />
                 </div>
 
-                {/* Status Card - 1x1 */}
-                <div className="col-span-1 glass-premium rounded-[2.5rem] p-6 relative overflow-hidden group hover:shadow-apple-xl transition-all duration-500">
-                    <div className="absolute top-0 right-0 p-4 opacity-50"><Activity className="w-24 h-24 text-brand-500/10" /></div>
-                    <h3 className="text-lg font-bold mb-1 font-display">Conformité</h3>
-                    <div className="mt-4 h-[120px]">
-                        <ComplianceEvolutionWidget
-                            historyData={props.historyData.map(h => ({ date: h.date, compliance: h.metrics.complianceRate }))}
-                            loading={props.loading}
-                            t={props.t}
-                            theme={props.theme}
-                        />
-                    </div>
+                {/* Status Card - Spans 2 cols */}
+                <div className="col-span-1 md:col-span-2">
+                    <ComplianceEvolutionWidget
+                        historyData={props.historyData.map(h => ({ date: h.date, compliance: h.metrics.complianceRate }))}
+                        loading={props.loading}
+                        t={props.t}
+                        theme={props.theme}
+                    />
                 </div>
 
                 {/* Risks - Spans 1 col, 2 rows (Tall) */}

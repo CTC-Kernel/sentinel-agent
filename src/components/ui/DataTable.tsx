@@ -10,6 +10,7 @@ import {
     SortingState,
 } from '@tanstack/react-table';
 import { ChevronUp, ChevronDown, Download, Search, ChevronLeft, ChevronRight, Trash2 } from './Icons';
+import { Button } from './button';
 import { cn } from '../../lib/utils';
 import { Skeleton } from './Skeleton';
 
@@ -161,34 +162,38 @@ export function DataTable<TData extends { id: string }, TValue>({
                     {/* Bulk Actions */}
                     {selectable && selectedIds.length > 0 && onBulkDelete && (
                         <Tooltip content="Supprimer la sélection">
-                            <button
+                            <Button
                                 aria-label="Supprimer la sélection"
                                 onClick={() => setShowDeleteConfirm(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors animate-fade-in"
+                                variant="destructive"
+                                size="sm"
+                                className="flex items-center gap-2"
                             >
                                 <Trash2 className="h-4 w-4" />
                                 Supprimer ({selectedIds.length})
-                            </button>
+                            </Button>
                         </Tooltip>
                     )}
 
                     {exportable && (
                         <Tooltip content="Exporter en CSV">
-                            <button
+                            <Button
                                 aria-label="Exporter les données en CSV"
                                 onClick={handleExport}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:scale-105 transition-transform"
+                                variant="secondary"
+                                size="sm"
+                                className="flex items-center gap-2 font-bold"
                             >
                                 <Download className="h-4 w-4" />
                                 Exporter CSV
-                            </button>
+                            </Button>
                         </Tooltip>
                     )}
                 </div>
             </div>
 
             {/* Table */}
-            <div className="w-full overflow-x-auto rounded-4xl glass-panel overflow-hidden">
+            <div className="w-full overflow-x-auto rounded-4xl glass-premium overflow-hidden">
                 <table
                     className="w-full"
                     role="table"
@@ -287,14 +292,16 @@ export function DataTable<TData extends { id: string }, TValue>({
 
                     <div className="flex gap-2">
                         <Tooltip content="Page précédente">
-                            <button
+                            <Button
                                 aria-label="Page précédente"
                                 onClick={() => table.previousPage()}
                                 disabled={!table.getCanPreviousPage()}
-                                className="w-10 h-10 rounded-2xl flex items-center justify-center border border-slate-200 dark:border-white/10 text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                                variant="outline"
+                                size="icon"
+                                className="w-10 h-10 rounded-2xl"
                             >
                                 <ChevronLeft className="h-4 w-4" />
-                            </button>
+                            </Button>
                         </Tooltip>
 
                         <div className="flex items-center gap-1">
@@ -314,33 +321,35 @@ export function DataTable<TData extends { id: string }, TValue>({
                                 }
 
                                 return (
-                                    <button
+                                    <Button
                                         key={pageNum}
                                         aria-label={`Page ${pageNum}`}
                                         aria-current={currentPage === pageNum ? 'page' : undefined}
                                         onClick={() => table.setPageIndex(pageNum - 1)}
+                                        variant={currentPage === pageNum ? 'default' : 'outline'}
+                                        size="icon"
                                         className={cn(
-                                            "w-10 h-10 rounded-xl text-sm font-bold transition-colors",
-                                            currentPage === pageNum
-                                                ? "bg-brand-600 text-white"
-                                                : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700"
+                                            "w-10 h-10 rounded-xl font-bold transition-colors",
+                                            currentPage !== pageNum && "hover:bg-slate-50 dark:hover:bg-slate-700"
                                         )}
                                     >
                                         {pageNum}
-                                    </button>
+                                    </Button>
                                 );
                             })}
                         </div>
 
                         <Tooltip content="Page suivante">
-                            <button
+                            <Button
                                 aria-label="Page suivante"
                                 onClick={() => table.nextPage()}
                                 disabled={!table.getCanNextPage()}
-                                className="p-2 bg-white/50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-white/10 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors backdrop-blur-sm"
+                                variant="outline"
+                                size="icon"
+                                className="w-10 h-10 rounded-2xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm"
                             >
                                 <ChevronRight className="h-4 w-4" />
-                            </button>
+                            </Button>
                         </Tooltip>
                     </div>
                 </div>

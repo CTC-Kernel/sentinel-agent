@@ -64,7 +64,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
                     <div className="flex items-center gap-6 relative z-10">
                         <div className="relative">
-                            <svg className="w-24 h-24 transform -rotate-90">
+                            <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 96 96">
                                 <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-200 dark:text-slate-700" />
                                 <circle
                                     cx="48" cy="48" r="40"
@@ -119,8 +119,8 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                                         data={statusData}
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius={40}
-                                        outerRadius={60}
+                                        innerRadius="60%"
+                                        outerRadius="80%"
                                         paddingAngle={5}
                                         dataKey="value"
                                     >

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '../ui/button';
 import { Document, Control, UserProfile } from '../../types';
 import { Drawer } from '../ui/Drawer';
 import { ScrollableTabs } from '../ui/ScrollableTabs';
@@ -81,22 +82,26 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                 <div className="flex gap-2">
                     {canEdit && (
                         <>
-                            <button
+                            <Button
                                 onClick={onEdit}
-                                className="p-2 text-slate-500 hover:text-brand-600 transition-colors rounded-lg hover:bg-brand-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-500 hover:text-brand-600 hover:bg-brand-50"
                                 title="Modifier"
                             >
                                 <Edit className="h-5 w-5" />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 onClick={handleDelete}
                                 disabled={isDeleting}
-                                className="p-2 text-slate-500 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                variant="ghost"
+                                size="icon"
+                                className="text-slate-500 hover:text-red-600 hover:bg-red-50 disabled:opacity-50"
                                 title={isDeleting ? "Suppression..." : "Supprimer"}
                                 aria-label="Supprimer le document"
                             >
                                 <Trash2 className="h-5 w-5" />
-                            </button>
+                            </Button>
                         </>
                     )}
                 </div>
@@ -124,13 +129,13 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                     {/* Action Buttons */}
                     <div className="flex gap-2">
                         {selectedDocument.url && (
-                            <button
+                            <Button
                                 onClick={() => onSecureView(selectedDocument)}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-slate-800 text-white rounded-xl hover:bg-slate-800 transition-colors shadow-sm text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                className="flex items-center gap-2 bg-slate-900 dark:bg-slate-800 text-white hover:bg-slate-800 shadow-sm font-medium"
                             >
                                 <Eye className="w-4 h-4" />
                                 {selectedDocument.isSecure ? "Consultation Sécurisée" : "Visualiser"}
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>
@@ -171,7 +176,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                 <h3 className="text-sm font-bold bg-slate-100 dark:bg-slate-800 p-2 rounded-lg inline-block text-slate-700 dark:text-slate-300 mb-4">
                                     Description
                                 </h3>
-                                <div className="glass-panel p-6 rounded-2xl border border-white/50 dark:border-white/5">
+                                <div className="glass-premium p-6 rounded-2xl border border-white/50 dark:border-white/5">
                                     <SafeHTML content={selectedDocument.description || '<p className="text-slate-400 italic">Aucune description disponible.</p>'} />
                                 </div>
                             </div>
@@ -265,12 +270,13 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
                                         </div>
                                         <div>
                                             <p className="font-medium text-slate-900 dark:text-white">{selectedDocument.title}</p>
-                                            <button
+                                            <Button
+                                                variant="link"
                                                 onClick={() => onSecureView(selectedDocument)}
-                                                className="text-sm text-brand-600 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded px-1"
+                                                className="text-sm text-brand-600 hover:underline px-1 h-auto py-0"
                                             >
                                                 Ouvrir l'aperçu
-                                            </button>
+                                            </Button>
                                         </div>
                                     </div>
                                 </div>

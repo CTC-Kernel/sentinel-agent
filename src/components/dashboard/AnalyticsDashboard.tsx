@@ -464,8 +464,8 @@ export const AnalyticsDashboard: React.FC = () => {
                                         cy="50%"
                                         labelLine={false}
                                         label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                                        outerRadius={110}
-                                        innerRadius={80}
+                                        innerRadius="60%"
+                                        outerRadius="80%"
                                         paddingAngle={5}
                                         dataKey="value"
                                     >

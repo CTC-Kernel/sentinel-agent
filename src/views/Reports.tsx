@@ -26,7 +26,7 @@ import { Button } from '../components/ui/button';
 import { SEO } from '../components/SEO';
 
 export const Reports: React.FC = () => {
-    const { user, t, organization } = useStore();
+    const { user, t, organization, addToast } = useStore();
     const [activeTab, setActiveTab] = useState('templates');
     const [loadingAction, setLoadingAction] = useState(false);
 
@@ -69,6 +69,7 @@ export const Reports: React.FC = () => {
                     projects
                 });
                 console.log('✅ Compliance pack generated successfully');
+                addToast(t('reports.success'), 'success');
             } else if (templateId === 'custom') {
                 console.log('📊 Generating custom executive report...');
                 // Generate Global Executive Report
@@ -151,12 +152,14 @@ export const Reports: React.FC = () => {
                     }
                 );
                 console.log('✅ Custom report generated successfully');
+                addToast(t('reports.success'), 'success');
 
             } else {
                 const doc = new jsPDF();
                 doc.text(title, 10, 10);
                 doc.save(`${title}.pdf`);
                 console.log('✅ Simple PDF generated successfully');
+                addToast(t('reports.success'), 'success');
             }
 
         } catch (error) {

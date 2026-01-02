@@ -12,7 +12,7 @@ interface OnboardingBannerProps {
 export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onStart, onDismiss }) => {
     const { t } = useTranslation();
     return (
-        <div className="fixed bottom-6 left-6 z-modal max-w-md animate-slide-up">
+        <div className="fixed bottom-6 left-6 lg:left-[284px] z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
             <div className="bg-gradient-to-r from-brand-600 to-purple-600 rounded-2xl shadow-2xl p-6 text-white">
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -61,7 +61,7 @@ export const OnboardingTrigger: React.FC = () => {
         if (demoMode) return false;
         const isWizardCompleted = user?.onboardingCompleted;
         const hasSeenTour = OnboardingService.hasSeenTour();
-        const hasDismissedBanner = localStorage.getItem('dismissedOnboardingBanner') === 'true';
+        const hasDismissedBanner = localStorage.getItem('tour-dismissed') === 'true';
 
         return Boolean(isWizardCompleted && !hasSeenTour && !hasDismissedBanner);
     });

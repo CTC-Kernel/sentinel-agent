@@ -112,7 +112,7 @@ const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, 
                     {badge}
                 </span>
             )}
-            <span className="absolute -bottom-8 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 rounded-full shadow-sm whitespace-nowrap pointer-events-none">
+            <span className="absolute -bottom-8 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 rounded-full shadow-sm whitespace-nowrap z-50 pointer-events-none">
                 {label}
             </span>
             <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />

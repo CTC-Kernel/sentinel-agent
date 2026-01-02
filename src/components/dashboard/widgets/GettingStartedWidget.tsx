@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Circle, ArrowRight, X } from 'lucide-react';
+import { X, Rocket, Check, ChevronRight, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../../store';
 import { ErrorLogger } from '../../../services/errorLogger';
@@ -127,7 +127,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
         {
             id: 'team',
             label: t('dashboard.stepTeam'),
-            path: '/settings', // Assuming team invite is under settings/users
+            path: '/settings',
             isCompleted: status.hasTeam
         },
         {
@@ -143,15 +143,15 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
             isCompleted: status.hasRisks
         },
         {
-            id: 'controls',
-            label: t('dashboard.stepControls'),
+            id: 'control',
+            label: t('dashboard.stepControl'),
             path: '/compliance',
             isCompleted: status.hasControls
         },
         {
-            id: 'policies',
-            label: t('dashboard.stepPolicies'),
-            path: '/documents',
+            id: 'policy',
+            label: t('dashboard.stepPolicy'),
+            path: '/documents/libraries',
             isCompleted: status.hasPolicies
         },
         {
@@ -163,111 +163,67 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
     ];
 
     const completedCount = steps.filter(s => s.isCompleted).length;
-    const progress = (completedCount / steps.length) * 100;
 
     if (completedCount === steps.length) return null;
 
-    const validateUrl = (url: string) => {
-        return url.startsWith('/') && !url.includes('//');
-    };
-
     return (
-        <div className="mb-8 glass-panel p-6 md:p-8 rounded-[2rem] border border-white/60 dark:border-white/10 bg-gradient-to-br from-brand-50/50 via-white/40 to-white/10 dark:from-brand-900/10 dark:via-slate-900/40 dark:to-slate-900/10 relative overflow-hidden shadow-sm hover:shadow-apple transition-all duration-500 group">
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent skew-x-12 translate-x-[-100%] group-hover:animate-shine pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-            <button
-                onClick={onClose}
-                className="absolute top-6 right-6 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-all duration-200 z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                aria-label="Close"
-            >
-                <X className="h-5 w-5" />
-            </button>
-
-            <div className="flex flex-col md:flex-row gap-8 items-start md:items-center relative z-10">
-                <div className="flex-1">
-                    <h3 className="text-2xl font-bold text-foreground mb-3 tracking-tight">
-                        {t('dashboard.gettingStartedTitle')}
-                    </h3>
-                    <p className="text-muted-foreground mb-8 max-w-lg text-base leading-relaxed">
-                        {t('dashboard.gettingStartedSubtitle')}
-                    </p>
-
-                    <div className="space-y-3">
-                        {steps.map((step) => (
-                            <div
-                                key={step.id}
-                                onClick={() => {
-                                    if (!step.isCompleted && validateUrl(step.path)) navigate(step.path);
-                                }}
-                                role={step.isCompleted ? undefined : "button"}
-                                tabIndex={step.isCompleted ? undefined : 0}
-                                onKeyDown={(e) => {
-                                    if (!step.isCompleted && (e.key === 'Enter' || e.key === ' ')) {
-                                        e.preventDefault();
-                                        if (validateUrl(step.path)) navigate(step.path);
-                                    }
-                                }}
-                                className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 border border-transparent ${step.isCompleted
-                                    ? 'opacity-60 bg-transparent'
-                                    : 'bg-white/40 dark:bg-black/20 hover:bg-white/60 dark:hover:bg-black/30 cursor-pointer shadow-sm hover:translate-x-1 hover:border-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500'
-                                    }`}
-                            >
-                                {step.isCompleted ? (
-                                    <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-                                ) : (
-                                    <Circle className="h-5 w-5 text-muted-foreground/40 flex-shrink-0" />
-                                )}
-                                <span className={`font-medium flex-1 ${step.isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
-                                    {step.label}
-                                </span>
-                                {!step.isCompleted && (
-                                    <ArrowRight className="h-4 w-4 text-brand-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                )}
-                            </div>
-                        ))}
+        <div className="fixed bottom-6 left-6 lg:left-[284px] z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-brand-500/10 rounded-lg text-brand-500">
+                        <Rocket className="h-5 w-5" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-slate-900 dark:text-white text-sm">{t('dashboard.gettingStarted')}</h3>
+                        <p className="text-xs text-slate-500">{t('dashboard.setupProgress')}</p>
                     </div>
                 </div>
+                <button
+                    onClick={onClose}
+                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                >
+                    <X className="h-4 w-4 text-slate-400" />
+                </button>
+            </div>
 
-                <div className="w-full md:w-72 flex-shrink-0">
-                    <div className="glass-panel text-card-foreground rounded-[2rem] p-8 shadow-xl text-center border border-white/20 dark:border-white/5 bg-white/30 dark:bg-black/20">
-                        <div className="relative w-40 h-40 mx-auto mb-6 flex items-center justify-center">
-                            <svg className="w-full h-full transform -rotate-90 overflow-visible" viewBox="-4 -4 136 136">
-                                <defs>
-                                    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="hsl(var(--primary))" />
-                                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
-                                    </linearGradient>
-                                </defs>
-                                <circle
-                                    cx="64"
-                                    cy="64"
-                                    r="58"
-                                    stroke="currentColor"
-                                    strokeWidth="10"
-                                    fill="transparent"
-                                    className="text-slate-200 dark:text-slate-800"
-                                />
-                                <circle
-                                    cx="64"
-                                    cy="64"
-                                    r="58"
-                                    stroke="url(#progressGradient)"
-                                    strokeWidth="10"
-                                    fill="transparent"
-                                    strokeDasharray={364.4}
-                                    strokeDashoffset={364.4 - (364.4 * progress) / 100}
-                                    className="transition-all duration-1000 ease-out"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                <span className="text-3xl font-black text-foreground tracking-tighter">{Math.round(progress)}%</span>
+            <div className="space-y-1">
+                {steps.map((step) => (
+                    <div
+                        key={step.id}
+                        onClick={() => {
+                            if (!step.isCompleted) navigate(step.path);
+                        }}
+                        className={`flex items-center justify-between p-2 rounded-lg text-sm transition-all ${step.isCompleted
+                            ? 'bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 cursor-default'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-slate-600 dark:text-slate-300'
+                            }`}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${step.isCompleted
+                                ? 'bg-emerald-500 border-emerald-500 text-white'
+                                : 'border-slate-300 dark:border-slate-600'
+                                }`}>
+                                {step.isCompleted ? <Check className="h-3 w-3" /> : <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />}
                             </div>
+                            <span className={step.isCompleted ? 'font-medium' : ''}>
+                                {step.label}
+                            </span>
                         </div>
-                        <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
-                            {t('dashboard.progression')}
-                        </p>
+                        {step.isCompleted ? (
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded text-emerald-700 dark:text-emerald-300">
+                                {t('common.done')}
+                            </span>
+                        ) : (
+                            <ChevronRight className="h-4 w-4 text-slate-400" />
+                        )}
                     </div>
+                ))}
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <Info className="h-3.5 w-3.5" />
+                    <span>{t('dashboard.gettingStartedTip')}</span>
                 </div>
             </div>
         </div>
