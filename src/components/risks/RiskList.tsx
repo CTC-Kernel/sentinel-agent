@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ShieldAlert, Clock, Edit, Trash2 } from 'lucide-react';
 import { DataTable } from '../ui/DataTable';
 import { Badge } from '../ui/Badge';
+import { Button } from '../ui/button';
 import { EmptyState } from '../ui/EmptyState';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Risk, Asset } from '../../types';
@@ -146,14 +147,26 @@ export const RiskList = React.memo<RiskListProps>(({
                     {canEdit && (
                         <>
                             <CustomTooltip content="Modifier le risque">
-                                <button onClick={() => onEdit(row.original)} className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                                    <Edit className="h-4 w-4" />
-                                </button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => onEdit(row.original)}
+                                    className="h-8 w-8 p-0"
+                                >
+                                    <Edit className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                                </Button>
                             </CustomTooltip>
                             <CustomTooltip content={deletingIds.has(row.original.id) ? "Suppression..." : "Supprimer le risque"}>
-                                <button onClick={() => handleDelete(row.original.id, row.original.threat)} disabled={deletingIds.has(row.original.id)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Supprimer le risque ${row.original.threat}`}>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDelete(row.original.id, row.original.threat)}
+                                    disabled={deletingIds.has(row.original.id)}
+                                    className="h-8 w-8 p-0 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    aria-label={`Supprimer le risque ${row.original.threat}`}
+                                >
                                     <Trash2 className="h-4 w-4" />
-                                </button>
+                                </Button>
                             </CustomTooltip>
                         </>
                     )}
@@ -163,7 +176,7 @@ export const RiskList = React.memo<RiskListProps>(({
     ], [canEdit, assets, onEdit, handleDelete, deletingIds]);
 
     return (
-        <motion.div variants={slideUpVariants} className="glass-panel w-full max-w-full rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 relative">
+        <motion.div variants={slideUpVariants} className="glass-premium w-full max-w-full rounded-[2.5rem] overflow-hidden relative">
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
             <div className="relative z-10">
                 <DataTable

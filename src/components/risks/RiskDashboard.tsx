@@ -8,7 +8,7 @@ import {
     AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ReferenceLine
 } from 'recharts';
 import { RISK_ACCEPTANCE_THRESHOLD } from '../../constants/RiskConstants';
-// Focus indicators: focus-visible:ring-2 applied globally via CSS
+import { motion } from 'framer-motion';
 
 interface RiskDashboardProps {
     risks: Risk[];
@@ -142,190 +142,193 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
     const areaGradientId = `area-gradient-${uniqueId}`;
 
     return (
-        <div className="space-y-6">
-            {/* Top Summary Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div
-                    onClick={() => onFilterChange?.({ type: 'level', value: 'Critique' })}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            onFilterChange?.({ type: 'level', value: 'Critique' });
-                        }
-                    }}
-                    className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/5 flex flex-col items-center justify-center cursor-pointer hover:shadow-apple transition-all group bg-gradient-to-br from-red-50 to-white dark:from-red-900/10 dark:to-transparent relative overflow-hidden"
-                >
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/10 rounded-full blur-2xl -mr-12 -mt-12 pointer-events-none transition-opacity opacity-0 group-hover:opacity-100"></div>
-                    <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 ring-1 ring-red-500/20 dark:ring-red-500/30">
-                        <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
-                    </div>
-                    <span className="text-4xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{criticalRisks}</span>
-                    <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mt-1 font-mono">Risques Critiques</span>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-max p-1">
 
-                <div className={`glass-panel p-5 rounded-[2rem] border flex flex-col items-center justify-center bg-gradient-to-br transition-all relative overflow-hidden ${risksAboveAppetite > 0 ? 'border-orange-200 dark:border-orange-500/30 from-orange-50 to-white dark:from-orange-900/10 dark:to-transparent' : 'border-white/60 dark:border-white/5 from-indigo-50 to-white dark:from-indigo-900/10 dark:to-transparent'}`}>
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-3 ring-1 transition-transform duration-300 hover:scale-110 ${risksAboveAppetite > 0 ? 'bg-orange-100 dark:bg-orange-500/20 ring-orange-500/20' : 'bg-indigo-100 dark:bg-indigo-500/20 ring-indigo-500/20'}`}>
-                        <Activity className={`h-6 w-6 ${risksAboveAppetite > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
-                    </div>
-                    <span className={`text-4xl font-black tracking-tight ${risksAboveAppetite > 0 ? 'text-orange-700 dark:text-orange-200' : 'text-slate-800 dark:text-slate-100'}`}>{risksAboveAppetite}</span>
-                    <span className={`text-xs font-bold uppercase tracking-wider mt-1 font-mono ${risksAboveAppetite > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
-                        Hors Appétence
-                    </span>
+            {/* 1. Critical Risks Card */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                onClick={() => onFilterChange?.({ type: 'level', value: 'Critique' })}
+                className="glass-premium p-6 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer hover:shadow-apple transition-all group relative overflow-hidden h-48"
+            >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none transition-opacity opacity-50 group-hover:opacity-100"></div>
+                <div className="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 ring-1 ring-red-500/20">
+                    <AlertTriangle className="h-7 w-7 text-red-600 dark:text-red-400" />
                 </div>
+                <span className="text-5xl font-black text-slate-800 dark:text-white tracking-tighter">{criticalRisks}</span>
+                <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-widest mt-2 font-mono">Critiques</span>
+            </motion.div>
 
-                <div className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/5 flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/10 dark:to-transparent relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl -ml-12 -mt-12 pointer-events-none transition-opacity opacity-0 group-hover:opacity-100"></div>
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mb-3 ring-1 ring-emerald-500/20 dark:ring-emerald-500/30 group-hover:scale-110 transition-transform duration-300">
-                        <ShieldAlert className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <span className="text-4xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{Math.round(riskReduction)}%</span>
-                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mt-1 font-mono">Réduction (SLA)</span>
+            {/* 2. Appetite Card */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className={`glass-premium p-6 rounded-[2rem] flex flex-col items-center justify-center relative overflow-hidden h-48 transition-all group hover:shadow-apple ${risksAboveAppetite > 0 ? 'border-orange-500/20' : ''}`}
+            >
+                <div className={`absolute top-0 left-0 w-32 h-32 rounded-full blur-3xl -ml-16 -mt-16 pointer-events-none transition-opacity opacity-30 group-hover:opacity-70 ${risksAboveAppetite > 0 ? 'bg-orange-500/20' : 'bg-indigo-500/10'}`}></div>
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 ring-1 transition-transform duration-300 group-hover:scale-110 ${risksAboveAppetite > 0 ? 'bg-orange-100 dark:bg-orange-500/20 ring-orange-500/20' : 'bg-indigo-100 dark:bg-indigo-500/20 ring-indigo-500/20'}`}>
+                    <Activity className={`h-7 w-7 ${risksAboveAppetite > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
                 </div>
+                <span className={`text-5xl font-black tracking-tighter ${risksAboveAppetite > 0 ? 'text-orange-700 dark:text-orange-100' : 'text-slate-800 dark:text-white'}`}>{risksAboveAppetite}</span>
+                <span className={`text-xs font-bold uppercase tracking-widest mt-2 font-mono ${risksAboveAppetite > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
+                    Hors Appétence
+                </span>
+            </motion.div>
 
-                <div className="glass-panel p-5 rounded-[2rem] border border-white/60 dark:border-white/5 flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 to-white dark:from-amber-900/10 dark:to-transparent relative overflow-hidden group">
-                    <div className="absolute bottom-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl -mr-12 -mb-12 pointer-events-none transition-opacity opacity-0 group-hover:opacity-100"></div>
-                    <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center mb-3 ring-1 ring-amber-500/20 dark:ring-amber-500/30 group-hover:scale-110 transition-transform duration-300">
-                        <Clock className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+            {/* 3. Reduction Card */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="glass-premium p-6 rounded-[2rem] flex flex-col items-center justify-center relative overflow-hidden h-48 transition-all group hover:shadow-apple"
+            >
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mb-16 pointer-events-none transition-opacity opacity-30 group-hover:opacity-70"></div>
+                <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mb-4 ring-1 ring-emerald-500/20 group-hover:scale-110 transition-transform duration-300">
+                    <ShieldAlert className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <span className="text-5xl font-black text-slate-800 dark:text-white tracking-tighter">{Math.round(riskReduction)}%</span>
+                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mt-2 font-mono">Réduction</span>
+            </motion.div>
+
+            {/* 4. Untreated Card */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="glass-premium p-6 rounded-[2rem] flex flex-col items-center justify-center relative overflow-hidden h-48 transition-all group hover:shadow-apple"
+            >
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none transition-opacity opacity-30 group-hover:opacity-70"></div>
+                <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center mb-4 ring-1 ring-amber-500/20 group-hover:scale-110 transition-transform duration-300">
+                    <Clock className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+                </div>
+                <span className="text-5xl font-black text-slate-800 dark:text-white tracking-tighter">{untreatedRisks}</span>
+                <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest mt-2 font-mono">Non Traités</span>
+            </motion.div>
+
+            {/* Row 2: Charts */}
+
+            {/* Categories Radar - Large Box */}
+            <div className="col-span-1 md:col-span-2 lg:col-span-2 glass-premium p-8 rounded-[2.5rem] relative overflow-hidden min-h-[400px]">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-brand-500/10 rounded-lg">
+                        <Target className="h-5 w-5 text-brand-500" />
                     </div>
-                    <span className="text-4xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{untreatedRisks}</span>
-                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mt-1 font-mono">Non Traités</span>
+                    <div>
+                        <h3 className="font-bold text-lg text-slate-800 dark:text-white">Exposition par Catégorie</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Distribution par nature de risque</p>
+                    </div>
+                </div>
+                <div className="h-[300px] w-full">
+                    {radarData.length === 0 || radarData.every(d => d.A === 0) ? (
+                        <EmptyChartState
+                            variant="radar"
+                            message="Aucune catégorie"
+                            description="Les risques n'ont pas encore été catégorisés."
+                        />
+                    ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                                <PolarGrid stroke={chartTheme.grid} />
+                                <PolarAngleAxis dataKey="subject" tick={{ fill: chartTheme.text, fontSize: 11, fontWeight: 500 }} />
+                                <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={false} axisLine={false} />
+                                <Radar
+                                    name="Risques"
+                                    dataKey="A"
+                                    stroke={chartTheme.colors.purple}
+                                    fill={chartTheme.colors.purple}
+                                    fillOpacity={0.4}
+                                />
+                                <Tooltip content={<ChartTooltip />} cursor={false} />
+                            </RadarChart>
+                        </ResponsiveContainer>
+                    )}
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* Distribution Pie & Asset Bar - Right Column Stack */}
+            <div className="col-span-1 md:col-span-2 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                {/* 1. Radar Chart: Threat Categories */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple transition-all duration-300">
-                    {/* Tech Corners Generic */}
-                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-
-                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 pl-2">
-                        <Target className="h-4 w-4 text-brand-500" />
-                        <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Exposition par Catégorie</span>
-                    </h4>
-                    <div className="h-[300px] w-full">
-                        {radarData.length === 0 || radarData.every(d => d.A === 0) ? (
-                            <EmptyChartState
-                                variant="radar"
-                                message="Aucune catégorie"
-                                description="Les risques n'ont pas encore été catégorisés."
-                            />
-                        ) : (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                                    <PolarGrid stroke={chartTheme.grid} />
-                                    <PolarAngleAxis dataKey="subject" tick={{ fill: chartTheme.text, fontSize: 10 }} />
-                                    <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={false} axisLine={false} />
-                                    <Radar
-                                        name="Risques"
-                                        dataKey="A"
-                                        stroke={chartTheme.colors.purple}
-                                        fill={chartTheme.colors.purple}
-                                        fillOpacity={0.3}
-                                    />
-                                    <Tooltip content={<ChartTooltip />} cursor={false} />
-                                </RadarChart>
-                            </ResponsiveContainer>
-                        )}
-                    </div>
-                </div>
-
-                {/* 2. Donut Chart: Risk Level Distribution */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple transition-all duration-300">
-                    {/* Tech Corners Generic */}
-                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-
-                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 pl-2">
+                {/* Pie Chart */}
+                <div className="glass-premium p-6 rounded-[2.5rem] relative overflow-hidden flex flex-col">
+                    <div className="flex items-center gap-2 mb-4">
                         <PieIcon className="h-4 w-4 text-brand-500" />
-                        <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Distribution par Criticité</span>
-                    </h4>
-                    <div className="h-[300px] w-full flex items-center justify-center relative">
+                        <span className="font-mono text-xs uppercase text-slate-500 dark:text-slate-400 tracking-wider">Criticité</span>
+                    </div>
+                    <div className="flex-1 min-h-[250px] relative">
                         {distributionData.length === 0 ? (
                             <EmptyChartState
                                 variant="pie"
                                 message="Aucun risque"
-                                description="Aucun risque n'a été identifié pour le moment."
+                                description="Aucun risque n'a été identifié."
                             />
                         ) : (
-                            <>
-                                {/* Center Metric */}
-                                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                    <span className="text-3xl font-black text-foreground">{totalRisks}</span>
-                                    <span className="text-xs text-muted-foreground uppercase tracking-wider">Risques</span>
-                                </div>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={distributionData}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={80}
-                                            outerRadius={85}
-                                            paddingAngle={5}
-                                            dataKey="value"
-                                            cornerRadius={8}
-                                        >
-                                            {distributionData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip content={<ChartTooltip />} cursor={false} />
-                                        <Legend
-                                            verticalAlign="bottom"
-                                            height={36}
-                                            iconType="circle"
-                                            formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase">{value}</span>}
-                                        />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={distributionData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                        cornerRadius={6}
+                                        stroke="none"
+                                    >
+                                        {distributionData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<ChartTooltip />} cursor={false} />
+                                    <Legend
+                                        verticalAlign="bottom"
+                                        height={36}
+                                        iconType="circle"
+                                        formatter={(value) => <span className="text-xs font-medium text-slate-500 dark:text-slate-400 ml-1">{value}</span>}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        )}
+                        {/* Centered Total */}
+                        {distributionData.length > 0 && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8">
+                                <span className="text-3xl font-black text-slate-800 dark:text-white">{totalRisks}</span>
+                            </div>
                         )}
                     </div>
                 </div>
 
-                {/* 3. Bar Chart: Risks by Asset Type */}
-                <div className="glass-panel text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple transition-all duration-300">
-                    {/* Tech Corners Generic */}
-                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-
-                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 pl-2">
+                {/* Bar Chart */}
+                <div className="glass-premium p-6 rounded-[2.5rem] relative overflow-hidden flex flex-col">
+                    <div className="flex items-center gap-2 mb-4">
                         <Layers className="h-4 w-4 text-brand-500" />
-                        <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Risques par Type d'Actif</span>
-                    </h4>
-                    <div className="h-[300px] w-full">
+                        <span className="font-mono text-xs uppercase text-slate-500 dark:text-slate-400 tracking-wider">Par Actif</span>
+                    </div>
+                    <div className="flex-1 min-h-[250px]">
                         {risksByAssetType.length === 0 ? (
                             <EmptyChartState
                                 variant="bar"
-                                message="Aucun actif lié"
-                                description="Associez des risques à vos actifs pour voir cette répartition."
+                                message="Aucun actif"
+                                description="Liez des actifs pour voir la répartition."
                             />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={risksByAssetType} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                                <BarChart data={risksByAssetType} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={chartTheme.grid} />
                                     <XAxis type="number" hide />
                                     <YAxis
                                         dataKey="name"
                                         type="category"
                                         stroke={chartTheme.text}
-                                        fontSize={11}
+                                        fontSize={10}
                                         tickLine={false}
                                         axisLine={false}
-                                        width={70}
+                                        width={60}
                                     />
                                     <Tooltip content={<ChartTooltip />} cursor={{ fill: chartTheme.cursor, radius: 4 }} />
-                                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20} fill={chartTheme.colors.cyan}>
+                                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={16} fill={chartTheme.colors.cyan}>
                                         {risksByAssetType.map((_, index) => (
                                             <Cell key={`cell-${index}`} fill={index % 2 === 0 ? chartTheme.colors.cyan : chartTheme.colors.primary} />
                                         ))}
@@ -335,33 +338,36 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
                         )}
                     </div>
                 </div>
+
             </div>
 
-            {/* Area Chart: Trend */}
-            <div className="glass-panel text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple transition-all duration-300">
-                {/* Tech Corners Generic */}
-                <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+            {/* Full Width Trend */}
+            <div className="col-span-1 md:col-span-2 lg:col-span-4 glass-premium p-8 rounded-[2.5rem] relative overflow-hidden min-h-[350px]">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
 
-                <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 pl-2">
-                    <TrendingUp className="h-4 w-4 text-brand-500" />
-                    <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Tendance du Score De Risque (12 mois)</span>
-                </h4>
-                <div className="h-[250px] w-full">
+                <div className="flex items-center gap-3 mb-6 relative z-10">
+                    <div className="p-2 bg-brand-500/10 rounded-lg">
+                        <TrendingUp className="h-5 w-5 text-brand-500" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-lg text-slate-800 dark:text-white">Analyse Tendancielle</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Évolution du score de risque moyen sur 12 mois</p>
+                    </div>
+                </div>
+
+                <div className="h-[250px] w-full relative z-10">
                     {evolutionData.length === 0 ? (
                         <EmptyChartState
                             variant="line"
                             message="Historique vide"
-                            description="L'évolution du risque s'affichera ici au fil du temps."
+                            description="L'évolution s'affichera avec le temps."
                         />
                     ) : (
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={evolutionData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id={areaGradientId} x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor={chartTheme.colors.purple} stopOpacity={0.4} />
+                                        <stop offset="5%" stopColor={chartTheme.colors.purple} stopOpacity={0.3} />
                                         <stop offset="95%" stopColor={chartTheme.colors.purple} stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
@@ -371,12 +377,12 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
                                 <Tooltip content={<ChartTooltip />} cursor={{ strokeDasharray: '3 3', stroke: chartTheme.cursor }} />
                                 <ReferenceLine
                                     y={RISK_ACCEPTANCE_THRESHOLD}
-                                    stroke="hsl(var(--destructive))"
+                                    stroke={chartTheme.colors.critical}
                                     strokeDasharray="3 3"
                                     label={{
-                                        value: 'Seuil Acceptable',
+                                        value: 'Seuil Max',
                                         position: 'insideTopRight',
-                                        fill: 'hsl(var(--destructive))',
+                                        fill: chartTheme.colors.critical,
                                         fontSize: 10
                                     }}
                                 />
@@ -396,37 +402,37 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
                 </div>
             </div>
 
-            {/* Top Critical Risks Table (Optional, can be kept) - Let's keep it but cleaner */}
+            {/* Top Critical Risks Table */}
             {criticalRisks > 0 && (
-                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden">
-                    {/* Tech Corners Generic */}
-                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                <div className="col-span-1 md:col-span-2 lg:col-span-4 glass-premium p-8 rounded-[2.5rem] relative overflow-hidden">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 bg-red-500/10 rounded-lg">
+                            <AlertTriangle className="h-5 w-5 text-red-500" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-lg text-slate-800 dark:text-white">Top Risques Critiques</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Actions prioritaires requises</p>
+                        </div>
+                    </div>
 
-                    <h4 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2 pl-2">
-                        <AlertTriangle className="h-4 w-4 text-red-500" />
-                        <span className="font-mono tracking-wide text-xs uppercase text-muted-foreground">Top Risques Critiques</span>
-                    </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {risks
                             .filter(r => r.score >= 15)
                             .sort((a, b) => b.score - a.score)
                             .slice(0, 6)
                             .map((risk, index) => (
-                                <div key={`risk-card-${index}`} className="flex flex-col p-4 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-800/30 hover:bg-red-100 dark:hover:bg-red-900/20 transition-all cursor-default">
+                                <div key={`risk-card-${index}`} className="flex flex-col p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-red-200 dark:border-red-500/20 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all cursor-default group">
                                     <div className="flex justify-between items-start mb-2">
-                                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-white dark:bg-black/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800/30">
+                                        <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
                                             Score {risk.score}
                                         </span>
-                                        <span className="text-[10px] text-muted-foreground">{risk.treatmentDeadline ? new Date(risk.treatmentDeadline).toLocaleDateString() : 'Pas d\'échéance'}</span>
+                                        <span className="text-[10px] text-slate-500">{risk.treatmentDeadline ? new Date(risk.treatmentDeadline).toLocaleDateString() : 'Pas d\'échéance'}</span>
                                     </div>
-                                    <h5 className="font-bold text-sm text-foreground mb-1 line-clamp-2">{risk.threat}</h5>
-                                    <p className="text-xs text-muted-foreground mb-3">{risk.category || 'Général'}</p>
+                                    <h5 className="font-bold text-sm text-slate-800 dark:text-slate-200 mb-1 line-clamp-2 group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors">{risk.threat}</h5>
+                                    <p className="text-xs text-slate-500 mb-3 line-clamp-1">{risk.category || 'Général'}</p>
 
-                                    <div className="mt-auto pt-3 border-t border-red-100 dark:border-red-800/30 flex justify-between items-center">
-                                        <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded
+                                    <div className="mt-auto pt-3 border-t border-slate-100 dark:border-white/5 flex justify-between items-center">
+                                        <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md
                                             ${risk.strategy === 'Atténuer' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
                                                 risk.strategy === 'Transférer' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
                                                     risk.strategy === 'Éviter' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
@@ -440,6 +446,7 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks, assets, onF
                     </div>
                 </div>
             )}
+
         </div>
     );
 };

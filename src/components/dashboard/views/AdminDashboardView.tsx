@@ -89,7 +89,13 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
                 {/* Hero Stats - Spans 2 cols, 1 row */}
                 <div className="col-span-1 md:col-span-2 row-span-1 glass-premium rounded-[2.5rem] p-1 overflow-hidden group hover:shadow-glow transition-all duration-500">
                     <DashboardStats
-                        stats={props.stats as any}
+                        stats={{
+                            activeIncidents: props.stats.openIncidents,
+                            highRisks: props.stats.highRisks,
+                            financialRisk: 0, // Default or calculate from somewhere
+                            assetValue: 0, // Default or calculate
+                            compliance: props.stats.complianceRate
+                        }}
                         loading={props.loading}
                         navigate={props.navigate}
                         t={props.t}
@@ -102,7 +108,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
                     <h3 className="text-lg font-bold mb-1 font-display">Conformité</h3>
                     <div className="mt-4 h-[120px]">
                         <ComplianceEvolutionWidget
-                            historyData={props.historyData as any}
+                            historyData={props.historyData.map(h => ({ date: h.date, compliance: h.metrics.complianceRate }))}
                             loading={props.loading}
                             t={props.t}
                             theme={props.theme}
@@ -124,7 +130,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
                 {/* Activity Feed - Spans 2 cols on LG */}
                 <div className="col-span-1 md:col-span-2 lg:col-span-2 glass-premium rounded-[2.5rem] p-1 overflow-hidden group hover:shadow-apple-xl transition-all duration-500 max-h-[400px]">
                     <RecentActivityWidget
-                        recentActivity={props.recentActivity as any}
+                        recentActivity={props.recentActivity as any[]} // Still need cast if types don't align, but let's try to map if possible. recentActivity is unknown[] in props.
                         loading={props.loading}
                         t={props.t}
                     />

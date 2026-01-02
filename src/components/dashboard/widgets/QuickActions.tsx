@@ -104,7 +104,7 @@ const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, 
             className="group relative flex flex-col items-center gap-2 p-2 focus:outline-none"
         >
             <div className={`p-3 rounded-2xl transition-all duration-300 bg-transparent ${colorStyles[color]} shadow-sm group-hover:shadow-lg`}>
-                {/* @ts-ignore */}
+                {/* @ts-expect-error: Icon component type mismatch */}
                 <Icon className="h-7 w-7" />
             </div>
             {badge && badge > 0 && (

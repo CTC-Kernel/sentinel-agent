@@ -81,10 +81,10 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
 
             await logAction(user, 'CREATE', 'Document', `Nouveau document: ${data.title}`);
             addToast("Document ajouté", "success");
-            return true;
+            return docRef.id;
         } catch (e) {
             ErrorLogger.handleErrorWithToast(e, 'Documents.handleCreate');
-            return false;
+            return null;
         } finally {
             setIsSubmitting(false);
         }
