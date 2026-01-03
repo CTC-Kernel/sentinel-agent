@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
-import { useAuth } from '../../hooks/useAuth';
 import { Key, ShieldAlert } from '../ui/Icons';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,7 +15,22 @@ import { SSOPlaceholder } from './SSOPlaceholder';
 
 export const SecuritySettings: React.FC = () => {
     const { addToast, t } = useStore();
-    const { enrollMFA, verifyMFA, unenrollMFA } = useAuth();
+    
+    // Try to use Auth hook, but provide fallback
+    let enrollMFA: (() => Promise<string>) | undefined;
+    let verifyMFA: ((verificationId: string, code: string) => Promise<void>) | undefined;
+    let unenrollMFA: (() => Promise<void>) | undefined;
+    
+    try {
+        // Dynamic import to avoid breaking if AuthContext is not available
+        const authHook = require('../../hooks/useAuth').useAuth();
+        enrollMFA = authHook.enrollMFA;
+        verifyMFA = authHook.verifyMFA;
+        unenrollMFA = authHook.unenrollMFA;
+    } catch (error) {
+        console.warn('Auth context not available in SecuritySettings:', error);
+        // Functions will remain undefined, MFA features will be disabled
+    }
 
     // Password State
     const [changingPassword, setChangingPassword] = useState(false);
@@ -51,6 +65,11 @@ export const SecuritySettings: React.FC = () => {
     };
 
     const handleEnrollMFA = async () => {
+        if (!enrollMFA) {
+            addToast("Fonctionnalité MFA non disponible", "error");
+            return;
+        }
+        
         try {
             setIsEnrollingMFA(true);
             const uri = await enrollMFA();
@@ -74,13 +93,18 @@ export const SecuritySettings: React.FC = () => {
     };
 
     const handleVerifyMFA = async () => {
+        if (!verifyMFA) {
+            addToast("Fonctionnalité MFA non disponible", "error");
+            return;
+        }
+        
         setVerifyingMFA(true);
         try {
             await verifyMFA('Sentinel Authenticator', mfaCode);
-            addToast(t('settings.securityPage.mfaSuccess'), "success");
-            setIsEnrollingMFA(false);
-            setQrCodeUrl(null);
+            addToast(t('settings.mfaEnabled'), "success");
             setMfaCode('');
+            setQrCodeUrl(null);
+            setIsEnrollingMFA(false);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'SecuritySettings.handleVerifyMFA', 'UNKNOWN_ERROR');
         } finally {
@@ -88,13 +112,17 @@ export const SecuritySettings: React.FC = () => {
         }
     };
 
-    const handleDisableMFA = async () => {
-        if (!confirm("Êtes-vous sûr de vouloir désactiver l'authentification à deux facteurs ?")) return;
+    const handleUnenrollMFA = async () => {
+        if (!unenrollMFA) {
+            addToast("Fonctionnalité MFA non disponible", "error");
+            return;
+        }
+        
         try {
             await unenrollMFA();
-            addToast(t('settings.securityPage.mfaDisabled'), "success");
+            addToast(t('settings.mfaDisabled'), "success");
         } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'SecuritySettings.handleDisableMFA', 'UNKNOWN_ERROR');
+            ErrorLogger.handleErrorWithToast(error, 'SecuritySettings.handleUnenrollMFA', 'UNKNOWN_ERROR');
         }
     };
 
@@ -165,7 +193,7 @@ export const SecuritySettings: React.FC = () => {
                                 {t('settings.securityPage.enableMfa')}
                             </Button>
                             <button
-                                onClick={handleDisableMFA}
+                                onClick={handleUnenrollMFA}
                                 className="w-full text-xs text-rose-500 hover:text-rose-600 font-bold hover:underline py-2"
                             >
                                 {t('settings.securityPage.disableMfa')}

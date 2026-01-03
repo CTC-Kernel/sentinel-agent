@@ -22,6 +22,26 @@ export const useDashboardMetrics = ({
     myProjectsLength,
     userOrgId
 }: MetricInputs) => {
+    // Debug logging
+    useMemo(() => {
+        if (process.env.NODE_ENV === 'development') {
+            console.log('Dashboard Metrics Debug:', {
+                controlsCount: controls.length,
+                risksCount: allRisks.length,
+                assetsCount: allAssets.length,
+                activeIncidentsCount,
+                openAuditsCount,
+                myProjectsLength,
+                userOrgId
+            });
+            
+            // Log sample data for debugging
+            console.log('Sample risks:', allRisks.slice(0, 3));
+            console.log('Sample assets:', allAssets.slice(0, 3));
+            console.log('Sample controls:', controls.slice(0, 3));
+        }
+    }, [controls, allRisks, allAssets, activeIncidentsCount, openAuditsCount, myProjectsLength, userOrgId]);
+
     // History Data Mapping
     const historyData = useMemo(() => {
         return historyStats
@@ -80,15 +100,43 @@ export const useDashboardMetrics = ({
 
         let financialExposure = 0;
         allRisks.forEach(risk => {
-            if (risk.score >= 12 && risk.assetId) {
-                const asset = allAssets.find(a => a.id === risk.assetId);
-                if (asset) {
-                    financialExposure += calculateDepreciation(asset.purchasePrice || 0, asset.purchaseDate || '');
+            // Updated threshold to be more realistic - include high risks (score >= 10)
+            if (risk.score >= 10) {
+                if (risk.assetId) {
+                    const asset = allAssets.find(a => a.id === risk.assetId);
+                    if (asset) {
+                        financialExposure += calculateDepreciation(asset.purchasePrice || 0, asset.purchaseDate || '');
+                    }
+                } else {
+                    // For risks without specific assets, estimate based on risk score and average asset value
+                    const avgAssetValue = allAssets.length > 0 
+                        ? allAssets.reduce((acc, a) => acc + calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || ''), 0) / allAssets.length
+                        : 10000; // Default estimate if no assets exist
+                    
+                    // Scale exposure based on risk severity (score 10-20 maps to 10-100% of avg asset value)
+                    const exposurePercentage = Math.min(1, (risk.score - 9) / 10); // 10->10%, 20->100%
+                    financialExposure += Math.round(avgAssetValue * exposurePercentage);
                 }
             }
         });
 
-        const criticalRisksCount = allRisks.filter(r => r.score >= 15).length;
+        // Updated critical risks calculation to be more inclusive
+        const criticalRisksCount = allRisks.filter(r => r.score >= 10).length; // Changed from 15 to 10
+
+        // Debug financial exposure calculation
+        if (process.env.NODE_ENV === 'development') {
+            console.log('Financial Exposure Debug:', {
+                totalRisks: allRisks.length,
+                highScoreRisks: allRisks.filter(r => r.score >= 10).length,
+                risksWithAssets: allRisks.filter(r => r.score >= 10 && r.assetId).length,
+                risksWithoutAssets: allRisks.filter(r => r.score >= 10 && !r.assetId).length,
+                avgAssetValue: allAssets.length > 0 
+                    ? allAssets.reduce((acc, a) => acc + calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || ''), 0) / allAssets.length
+                    : 0,
+                financialExposure,
+                totalAssetValue
+            });
+        }
 
         return {
             stats: {
