@@ -10,7 +10,7 @@ import { useVulnerabilities } from '../hooks/useVulnerabilities';
 import { useVulnerabilitiesData } from '../hooks/vulnerabilities/useVulnerabilitiesData';
 
 import { PageHeader } from '../components/ui/PageHeader';
-import { Bug, Plus, Upload, MoreVertical } from '../components/ui/Icons';
+import { Plus, Upload, MoreVertical } from '../components/ui/Icons';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { Button } from '../components/ui/button';
 
