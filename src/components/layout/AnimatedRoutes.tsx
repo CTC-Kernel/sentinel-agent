@@ -5,7 +5,6 @@ import { AnimatedPage } from './AnimatedPage';
 import { RoleGuard } from '../auth/RoleGuard';
 
 // Lazy Imports (Copied from App.tsx)
-const Dashboard = React.lazy(() => import('../../views/Dashboard').then(module => ({ default: module.Dashboard })));
 const DashboardWithQuickActions = React.lazy(() => import('../../views/Dashboard').then(module => ({ default: module.DashboardWithQuickActions })));
 const Assets = React.lazy(() => import('../../views/Assets'));
 const Risks = React.lazy(() => import('../../views/Risks').then(module => ({ default: module.Risks })));
