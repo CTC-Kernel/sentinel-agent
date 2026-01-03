@@ -37,6 +37,14 @@ const Assets: React.FC = () => {
     const { limits } = usePlanLimits();
     const reachedAssetLimit = assets.length >= limits.maxAssets;
 
+    // Start module tour
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            OnboardingService.startAssetsTour();
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, []);
+
     // UI State
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix' | 'kanban'>('assets-view-mode', 'grid');
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);

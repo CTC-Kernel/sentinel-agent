@@ -39,9 +39,19 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 // Form validation: useForm with required fields
 
+import { OnboardingService } from '../services/onboardingService';
+
 export const Incidents: React.FC = () => {
     const { user, t } = useStore();
     const location = useLocation();
+
+    // Start module tour
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            OnboardingService.startIncidentsTour();
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, []);
 
     // Action Hooks
     const {
@@ -323,12 +333,12 @@ export const Incidents: React.FC = () => {
                     title={t('incidents.title')}
                     subtitle={t('incidents.subtitle')}
                     icon={
-                    <img 
-                        src="/images/operations.png" 
-                        alt="OPÉRATIONS" 
-                        className="w-full h-full object-contain"
-                    />
-                }
+                        <img
+                            src="/images/operations.png"
+                            alt="OPÉRATIONS"
+                            className="w-full h-full object-contain"
+                        />
+                    }
                     trustType="confidentiality"
                     breadcrumbs={[{ label: t('common.operations') }, { label: t('sidebar.incidents') }]}
                 />

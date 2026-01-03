@@ -25,12 +25,22 @@ import { useContinuityData } from '../hooks/continuity/useContinuityData';
 import { ErrorLogger } from '../services/errorLogger';
 import { hasPermission, canEditResource, canDeleteResource } from '../utils/permissions';
 import { ContinuityContent } from '../components/continuity/ContinuityContent';
+import { OnboardingService } from '../services/onboardingService';
 // Form validation: useForm with required fields
 
 type ContinuityTab = 'overview' | 'strategies' | 'bia' | 'drills' | 'crisis';
 
 export const Continuity: React.FC = () => {
     const { user, t } = useStore();
+
+    // Start module tour
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            OnboardingService.startContinuityTour();
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, []);
+
     // Use utility functions instead of non-existent hook
     const canCreate = hasPermission(user, 'BusinessProcess', 'create');
     const canUpdate = canEditResource(user, 'BusinessProcess');
@@ -223,18 +233,18 @@ export const Continuity: React.FC = () => {
                     title={t('continuity.title')}
                     subtitle={t('continuity.subtitle')}
                     icon={
-                    <img 
-                        src="/images/gouvernance.png" 
-                        alt="GOUVERNANCE" 
-                        className="w-full h-full object-contain"
-                    />
-                }
+                        <img
+                            src="/images/gouvernance.png"
+                            alt="GOUVERNANCE"
+                            className="w-full h-full object-contain"
+                        />
+                    }
                     trustType="availability"
                     actions={undefined}
                 />
             </motion.div>
 
-            <motion.div variants={slideUpVariants} className="mb-2">
+            <motion.div variants={slideUpVariants} className="mb-2" data-tour="continuity-tabs">
                 <ScrollableTabs
                     tabs={tabs}
                     activeTab={activeTab}

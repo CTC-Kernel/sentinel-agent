@@ -34,10 +34,20 @@ import { DocumentUploadWizard } from '../components/documents/DocumentUploadWiza
 // Form validation: useForm with required fields
 // Form validation: useForm with required fields
 
+import { OnboardingService } from '../services/onboardingService';
+
 export const Compliance: React.FC = () => {
     const { user, addToast, t } = useStore();
     const location = useLocation();
     const canEdit = canEditResource(user, 'Control');
+
+    // Start module tour
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            OnboardingService.startComplianceTour();
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, []);
 
     // UI State
     const [currentFramework, setCurrentFramework] = useState<Framework>('ISO27001');
@@ -165,9 +175,9 @@ export const Compliance: React.FC = () => {
                         title={t('compliance.title')}
                         subtitle={t('compliance.subtitle')}
                         icon={
-                            <img 
-                                src="/images/gouvernance.png" 
-                                alt="GOUVERNANCE" 
+                            <img
+                                src="/images/gouvernance.png"
+                                alt="GOUVERNANCE"
                                 className="w-full h-full object-contain"
                             />
                         }

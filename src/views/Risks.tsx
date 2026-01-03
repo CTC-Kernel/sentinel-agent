@@ -62,6 +62,14 @@ export const Risks: React.FC = () => {
     // Permission check
     const canEdit = canEditResource(user as UserProfile, 'Risk');
 
+    // Start module tour
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            OnboardingService.startRisksTour();
+        }, 1000); // Wait for animations
+        return () => clearTimeout(timer);
+    }, []);
+
     const {
         createRisk, updateRisk, deleteRisk, bulkDeleteRisks,
         exportCSV, isGeneratingReport, setIsGeneratingReport, submitting, isExportingCSV,
@@ -391,9 +399,9 @@ export const Risks: React.FC = () => {
                 title={risksTitle}
                 subtitle={risksSubtitle}
                 icon={
-                    <img 
-                        src="/images/gouvernance.png" 
-                        alt="GOUVERNANCE" 
+                    <img
+                        src="/images/gouvernance.png"
+                        alt="GOUVERNANCE"
                         className="w-full h-full object-contain"
                     />
                 }

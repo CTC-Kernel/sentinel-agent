@@ -35,6 +35,7 @@ import { AssessmentView } from '../components/suppliers/AssessmentView';
 import { SupplierService } from '../services/SupplierService';
 import { SupplierCard } from '../components/suppliers/SupplierCard';
 import { SupplierInspector } from '../components/suppliers/SupplierInspector';
+import { OnboardingService } from '../services/onboardingService';
 
 const getCriticalityColor = (c: Criticality) => {
     switch (c) {
@@ -57,6 +58,15 @@ export const Suppliers: React.FC = () => {
     const [filter, setFilter] = useState('');
     const { user, addToast, t } = useStore();
     const location = useLocation();
+
+    // Start module tour
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            OnboardingService.startSuppliersTour();
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, []);
+
     const canEdit = canEditResource(user, 'Supplier');
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix' | 'kanban'>('suppliers_view_mode', 'grid');
 
@@ -553,12 +563,12 @@ export const Suppliers: React.FC = () => {
                         { label: t('suppliers.title') }
                     ]}
                     icon={
-                    <img 
-                        src="/images/referentiel.png" 
-                        alt="RÉFÉRENTIEL" 
-                        className="w-full h-full object-contain"
-                    />
-                }
+                        <img
+                            src="/images/referentiel.png"
+                            alt="RÉFÉRENTIEL"
+                            className="w-full h-full object-contain"
+                        />
+                    }
                     actions={undefined}
                 />
             </motion.div>
@@ -566,11 +576,13 @@ export const Suppliers: React.FC = () => {
             {/* Dashboard */}
             {/* Dashboard */}
             <motion.div variants={slideUpVariants}>
-                <SupplierDashboard
-                    suppliers={filteredSuppliers}
+                <div data-tour="suppliers-dashboard">
+                    <SupplierDashboard
+                        suppliers={filteredSuppliers}
 
-                    onFilterChange={handleDashboardFilterChange}
-                />
+                        onFilterChange={handleDashboardFilterChange}
+                    />
+                </div>
             </motion.div>
 
             <motion.div variants={slideUpVariants} className="mb-6">
@@ -666,6 +678,7 @@ export const Suppliers: React.FC = () => {
                                     aria-label={t('suppliers.newSupplier')}
                                     onClick={handleCreationDrawerOpen}
                                     className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500"
+                                    data-tour="suppliers-new"
                                 >
                                     <Plus className="h-4 w-4 mr-2" />
                                     <span className="hidden sm:inline">{t('suppliers.newSupplier')}</span>
