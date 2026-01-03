@@ -624,6 +624,7 @@ export const Risks: React.FC = () => {
                             canEdit={canEdit}
                             onBulkDelete={bulkDeleteRisks}
                             assets={assets}
+                            users={usersList}
                             emptyStateTitle={emptyStateTitle}
                             emptyStateDescription={emptyStateDescription}
                             emptyStateActionLabel={canEdit ? emptyStateActionLabel : undefined}

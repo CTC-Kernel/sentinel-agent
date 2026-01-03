@@ -71,6 +71,13 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
 
     const getAssetName = React.useCallback((id?: string) => assets.find(a => a.id === id)?.name || 'Actif inconnu', [assets]);
 
+    const getOwnerName = React.useCallback((ownerId?: string) => {
+        if (!ownerId) return 'Non assigné';
+        // If ownerId looks like a UID (long string), try to find user
+        const user = usersList.find(u => u.uid === ownerId);
+        return user ? (user.displayName || user.email) : ownerId;
+    }, [usersList]);
+
     const handleLocalUpdate = React.useCallback(async (updates: Partial<Risk>) => {
         if (!risk) return;
         setUpdating(true);
@@ -289,7 +296,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                             </div>
                             <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Propriétaire</h4>
-                                <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{risk.owner || 'Non assigné'}</div>
+                                <div className="p-4 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 text-sm font-medium text-slate-700 dark:text-slate-200">{getOwnerName(risk.owner)}</div>
                             </div>
                             <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Statut Actuel</h4>

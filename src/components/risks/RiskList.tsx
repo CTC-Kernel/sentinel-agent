@@ -6,7 +6,7 @@ import { Badge } from '../ui/Badge';
 import { Button } from '../ui/button';
 import { EmptyState } from '../ui/EmptyState';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
-import { Risk, Asset } from '../../types';
+import { Risk, Asset, UserProfile } from '../../types';
 import { slideUpVariants } from '../ui/animationVariants';
 import { ColumnDef } from '@tanstack/react-table';
 
@@ -15,6 +15,7 @@ interface RiskListProps {
     loading: boolean;
     canEdit: boolean;
     assets: Asset[];
+    users: UserProfile[]; // Add users prop
     onEdit: (risk: Risk) => void;
     onDelete: (id: string, name: string) => void;
     onBulkDelete: (ids: string[]) => void;
@@ -47,7 +48,7 @@ const getSLAStatus = (risk: Risk) => {
 };
 
 export const RiskList = React.memo<RiskListProps>(({
-    risks, loading, canEdit, assets, onEdit, onDelete, onBulkDelete, onSelect,
+    risks, loading, canEdit, assets, users, onEdit, onDelete, onBulkDelete, onSelect,
     emptyStateTitle, emptyStateDescription, emptyStateActionLabel, onEmptyStateAction
 }) => {
     const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set());
@@ -66,6 +67,14 @@ export const RiskList = React.memo<RiskListProps>(({
         }
     }, [deletingIds, onDelete]);
 
+    // ... existing hooks ...
+
+    const getOwnerName = React.useCallback((ownerId?: string) => {
+        if (!ownerId) return 'Non assigné';
+        const user = users.find(u => u.uid === ownerId);
+        return user ? (user.displayName || user.email) : ownerId;
+    }, [users]);
+
     const columns = useMemo<ColumnDef<Risk>[]>(() => [
         {
             header: 'Menace',
@@ -77,7 +86,7 @@ export const RiskList = React.memo<RiskListProps>(({
                     </div>
                     <div>
                         <div className="font-bold text-slate-900 dark:text-white text-[15px]">{row.original.threat}</div>
-                        <div className="text-xs text-slate-600 font-medium">{row.original.owner || 'Non assigné'}</div>
+                        <div className="text-xs text-slate-600 font-medium">{getOwnerName(row.original.owner)}</div>
                     </div>
                 </div>
             ),
