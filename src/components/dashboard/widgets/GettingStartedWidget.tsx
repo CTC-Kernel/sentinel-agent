@@ -19,6 +19,7 @@ interface Step {
 export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const navigate = useNavigate();
     const { user, t } = useStore();
+    const [isExpanded, setIsExpanded] = React.useState(true);
 
     const inFlightKeyRef = React.useRef(false);
 
@@ -171,32 +172,40 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
         <div className="fixed bottom-0 left-6 lg:left-[284px] z-[9999] bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-6 rounded-t-2xl rounded-b-none border border-slate-200 dark:border-slate-800 border-b-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-brand-500/10 rounded-lg text-brand-500">
+                    <div className="p-2 bg-gradient-to-r from-brand-500/10 to-brand-600/10 rounded-xl text-brand-600 dark:text-brand-400 shadow-lg border border-brand-200/20">
                         <Rocket className="h-5 w-5" />
                     </div>
                     <div>
                         <h3 className="font-bold text-slate-900 dark:text-white text-sm">{t('dashboard.gettingStarted')}</h3>
-                        <p className="text-xs text-slate-500">{t('dashboard.setupProgress')}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{t('dashboard.setupProgress')}</p>
                     </div>
                 </div>
-                <button
-                    onClick={onClose}
-                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
-                >
-                    <X className="h-4 w-4 text-slate-400" />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
+                    >
+                        <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
             </div>
 
-            <div className="space-y-1">
+            <div className={`space-y-1 transition-all duration-300 ${isExpanded ? 'opacity-100 max-h-96' : 'opacity-50 max-h-12 overflow-hidden'}`}>
                 {steps.map((step) => (
                     <div
                         key={step.id}
                         onClick={() => {
                             if (!step.isCompleted) navigate(step.path);
                         }}
-                        className={`flex items-center justify-between p-2 rounded-lg text-sm transition-all ${step.isCompleted
-                            ? 'bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 cursor-default'
-                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-slate-600 dark:text-slate-300'
+                        className={`flex items-center justify-between p-3 rounded-xl text-sm transition-all duration-200 border ${step.isCompleted
+                            ? 'bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 cursor-default border-emerald-200/30 dark:border-emerald-800/30'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-slate-600 dark:text-slate-300 border-slate-200/30 dark:border-slate-700/30 hover:border-slate-300/50 dark:hover:border-slate-600/50'
                             }`}
                     >
                         <div className="flex items-center gap-3">
@@ -211,7 +220,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                             </span>
                         </div>
                         {step.isCompleted ? (
-                            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded text-emerald-700 dark:text-emerald-300">
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-500/20 px-2 py-1 rounded-full text-emerald-700 dark:text-emerald-300 shadow-sm">
                                 {t('common.done')}
                             </span>
                         ) : (
