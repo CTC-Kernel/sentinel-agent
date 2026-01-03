@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X, Rocket, Check, ChevronRight, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../../store';
@@ -166,8 +167,8 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
 
     if (completedCount === steps.length) return null;
 
-    return (
-        <div className="fixed bottom-6 left-6 lg:left-[284px] z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
+    return createPortal(
+        <div className="fixed bottom-0 left-6 lg:left-[284px] z-[9999] bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-6 rounded-t-2xl rounded-b-none border border-slate-200 dark:border-slate-800 border-b-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-brand-500/10 rounded-lg text-brand-500">
@@ -226,6 +227,7 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                     <span>{t('dashboard.gettingStartedTip')}</span>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };

@@ -33,7 +33,7 @@ export interface Vulnerability {
     dateDiscovered?: string;
     detectedAt?: string;
     remediatedAt?: string;
-    status?: 'Open' | 'In Progress' | 'Resolved' | 'False Positive';
+    status?: 'Open' | 'In Progress' | 'Resolved' | 'False Positive' | 'Patch Applied' | 'Risk Accepted';
     assetId?: string;
     assetName?: string;
     source: string;

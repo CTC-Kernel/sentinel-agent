@@ -107,7 +107,7 @@ const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, 
                 {/* @ts-expect-error: Icon component type mismatch */}
                 <Icon className="h-7 w-7" />
             </div>
-            {badge && badge > 0 && (
+            {(badge || 0) > 0 && (
                 <span className={`absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full ${badgeColors[color]} text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-900`}>
                     {badge}
                 </span>

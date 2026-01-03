@@ -55,8 +55,8 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, n
 
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
             {/* Health Score - Compact */}
-            <div className="flex items-center gap-4 min-w-[180px]">
-                <div className="relative w-14 h-14 flex items-center justify-center">
+            <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shrink-0">
                     <svg className="w-full h-full transform -rotate-90" viewBox="-6 -6 68 68">
                         <circle cx="28" cy="28" r="26" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-muted-foreground/10" />
                         <circle
@@ -72,12 +72,12 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, n
                             className={`${getHealthColor(healthScore)} transition-all duration-1000 ease-out`}
                         />
                     </svg>
-                    <span className={`absolute text-sm font-black ${getHealthColor(healthScore)}`}>{healthScore}%</span>
+                    <span className={`absolute text-xs sm:text-sm font-black ${getHealthColor(healthScore)}`}>{healthScore}%</span>
                 </div>
-                <div>
-                    <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Santé Globale</div>
-                    <div className={`text-sm font-bold ${getHealthColor(healthScore)}`}>
-                        {healthScore >= 80 ? 'Système Sain' : healthScore >= 60 ? 'Attention' : 'Critique'}
+                <div className="flex flex-col">
+                    <div className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest mb-0.5 whitespace-nowrap">{t('dashboard.healthCheck') || 'Santé Globale'}</div>
+                    <div className={`text-xs sm:text-sm font-bold ${getHealthColor(healthScore)} whitespace-nowrap`}>
+                        {healthScore >= 80 ? (t('dashboard.systemHealthy') || 'Système Sain') : healthScore >= 60 ? (t('dashboard.statusReview') || 'Attention') : (t('dashboard.statusToRead') || 'Critique')}
                     </div>
                 </div>
             </div>

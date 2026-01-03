@@ -6,7 +6,7 @@ i18n
     .use(LanguageDetector)
     .use(initReactI18next)
     .init({
-        debug: false,
+        debug: true,
         fallbackLng: 'fr',
         interpolation: {
             escapeValue: false, // not needed for react as it escapes by default
@@ -73,6 +73,7 @@ i18n
                         action: "Action",
                         address: "Address",
                         all: "All",
+                        done: "Done",
                         and: "and",
                         category: "Category",
                         date: "Date",
@@ -476,7 +477,27 @@ i18n
                         stepControls: "Controls",
                         stepPolicies: "Policies",
                         stepAudit: "Audits",
+                        gettingStartedTip: "Tip: Start by defining your organization profile.",
+                        gettingStarted: "Welcome to Sentinel",
+                        setupProgress: "Setup Progress",
+                        stepControl: "Controls",
+                        stepPolicy: "Policies",
                         progression: "Progression",
+                        actions: {
+                            USERS_UPDATE: "User Updated",
+                            USERS_CREATE: "User Created",
+                            USERS_DELETE: "User Deleted",
+                            ASSET_CREATE: "Asset Created",
+                            ASSET_UPDATE: "Asset Updated",
+                            ASSET_DELETE: "Asset Deleted",
+                            RISK_CREATE: "Risk Identified",
+                            RISK_UPDATE: "Risk Updated",
+                            RISK_DELETE: "Risk Deleted",
+                            INCIDENT_CREATE: "Incident Reported",
+                            INCIDENT_UPDATE: "Incident Updated",
+                            INCIDENT_CLOSE: "Incident Closed",
+                            CONTROL_UPDATE: "Control Updated"
+                        },
 
                         seoTitle: "Governance Dashboard",
                         seoDescription: "Overview of your security and compliance posture.",
@@ -978,13 +999,86 @@ i18n
                             certification: "Certification"
                         },
                         exports: "Exports",
-                        deleteBulk: "Delete ({count})",
+                        deleteBulk: "Delete ({{count}})",
                         editAudit: "Edit Audit",
                         deleteTitle: "Delete audit?",
                         deleteMessage: "This action is irreversible and will delete all associated findings.",
-                        deleteWarning: "Warning: This audit is linked to {count} element(s) ({details}). Deleting it will remove it from these elements.",
-                        deleteBulkTitle: "Delete {count} audits?",
-                        deleteBulkMessage: "This action is irreversible and will delete all associated findings."
+                        deleteWarning: "Warning: This audit is linked to {{count}} element(s) ({{details}}). Deleting it will remove it from these elements.",
+                        deleteBulkTitle: "Delete {{count}} audits?",
+                        deleteBulkMessage: "This action is irreversible and will delete all associated findings.",
+                        tabs: {
+                            details: "Details",
+                            findings: "Findings",
+                            checklist: "Checklist",
+                            dashboard: "Dashboard",
+                            history: "History"
+                        },
+                        inspector: {
+                            deleteConfirm: "Delete Audit",
+                            validate: "Validate",
+                            generateReport: "Generate Report",
+                            exportPack: "Export Pack"
+                        },
+                        findingsSection: {
+                            title: "Findings",
+                            newFinding: "New Finding",
+                            listTitle: "Findings List ({{count}})",
+                            add: "Add",
+                            uploadEvidence: "Attach Evidence",
+                            delete: "Delete",
+                            emptyTitle: "No findings",
+                            emptyDesc: "No findings recorded for this audit yet.",
+                            form: {
+                                description: "Description",
+                                descriptionPlaceholder: "Write a factual audit finding.",
+                                linkControl: "Link to control (optional)",
+                                type: {
+                                    minor: "Minor",
+                                    major: "Major",
+                                    opportunity: "Opportunity"
+                                }
+                            },
+                            toast: {
+                                evidenceSuccess: "Evidence added successfully"
+                            }
+                        },
+                        checklist: {
+                            title: "Audit Checklist",
+                            generateAI: "Generate with AI",
+                            emptyTitle: "No checklist",
+                            emptyDesc: "Generate a custom audit checklist based on scope and standard.",
+                            generateAction: "Generate Now",
+                            responses: {
+                                compliant: "Compliant",
+                                nonCompliant: "Non-compliant",
+                                notApplicable: "N/A"
+                            }
+                        },
+                        form: {
+                            name: "Audit Name",
+                            namePlaceholder: "Ex: Internal Audit ISO 27001 - Q1",
+                            description: "Description",
+                            descriptionPlaceholder: "Audit objectives and context...",
+                            typeLabel: "Type",
+                            framework: "Framework / Standard (Optional)",
+                            dateScheduled: "Scheduled Date",
+                            auditor: "Auditor",
+                            auditorPlaceholder: "Select an auditor...",
+                            scope: "Scope Description",
+                            scopeLabel: "Scope",
+                            assets: "Related Assets",
+                            controls: "Controls to Verify",
+                            risks: "Related Risks",
+                            projects: "Linked Projects",
+                            cancel: "Cancel",
+                            save: "Save",
+                            plan: "Plan",
+                            auditAssistant: {
+                                title: "Audit Assistant",
+                                desc: "Start your audit quickly with a template or AI assistance.",
+                                prompt: "Describe security audit \"{{name}}\"."
+                            }
+                        }
                     },
                     auth: {
                         title: "Login",
@@ -1490,6 +1584,7 @@ i18n
             fr: {
                 translation: {
                     common: {
+                        all: "Tous",
                         save: "Enregistrer",
                         cancel: "Annuler",
                         delete: "Supprimer",
@@ -1545,6 +1640,7 @@ i18n
                             prev: "Précédent"
                         },
                         noResults: "Aucun résultat trouvé",
+                        done: "Terminé",
                         reset: "Réinitialiser",
                         copy: "Copie",
                         unknown: "Inconnu",
@@ -1825,7 +1921,27 @@ i18n
                         stepControls: "Contrôles",
                         stepPolicies: "Politiques",
                         stepAudit: "Audits",
+                        gettingStartedTip: "Conseil : Commencez par définir le profil de votre organisation.",
+                        gettingStarted: "Bienvenue sur Sentinel",
+                        setupProgress: "Progression de la Configuration",
+                        stepControl: "Contrôles",
+                        stepPolicy: "Politiques",
                         progression: "Progression",
+                        actions: {
+                            USERS_UPDATE: "Utilisateur mis à jour",
+                            USERS_CREATE: "Utilisateur créé",
+                            USERS_DELETE: "Utilisateur supprimé",
+                            ASSET_CREATE: "Actif créé",
+                            ASSET_UPDATE: "Actif mis à jour",
+                            ASSET_DELETE: "Actif supprimé",
+                            RISK_CREATE: "Risque identifié",
+                            RISK_UPDATE: "Risque mis à jour",
+                            RISK_DELETE: "Risque supprimé",
+                            INCIDENT_CREATE: "Incident signalé",
+                            INCIDENT_UPDATE: "Incident mis à jour",
+                            INCIDENT_CLOSE: "Incident clôturé",
+                            CONTROL_UPDATE: "Contrôle mis à jour"
+                        },
 
                         seoTitle: "Tableau de bord de Gouvernance",
                         seoDescription: "Vue d'overview de votre posture de sécurité et conformité.",
@@ -2471,6 +2587,123 @@ i18n
                             done: "Terminé"
                         }
                     },
+                    audits: {
+                        title: "Programme d'Audit",
+                        subtitle: "Planification, exécution et suivi des audits internes et externes.",
+                        title_admin: "Programme d'Audit & Conformité",
+                        subtitle_admin: "Orchestrez les audits ISO 27001, le suivi des écarts et les plans d'actions.",
+                        title_exec: "Vue Exécutive Audit",
+                        subtitle_exec: "Suivez l'état des audits, des non-conformités et des risques associés.",
+                        dashboard: "Tableau de Bord",
+                        list: "Liste des Audits",
+                        calendar: "Calendrier",
+                        findings: "Constats",
+                        searchPlaceholder: "Rechercher un audit...",
+                        allStatuses: "Tous les statuts",
+                        aiAssistant: "Assistant IA",
+                        newAudit: "Nouvel Audit",
+                        exportCalendar: "Exporter Calendrier",
+                        exportCSV: "Export CSV",
+                        calendarLabels: {
+                            prevMonth: "Mois précédent",
+                            nextMonth: "Mois suivant",
+                            today: "Aujourd'hui"
+                        },
+                        status: {
+                            completed: "Terminé",
+                            planned: "Planifié",
+                            inProgress: "En cours",
+                            finished: "Terminé",
+                            validated: "Validé"
+                        },
+                        allTypes: "Tous les types",
+                        type: {
+                            internal: "Interne",
+                            external: "Externe",
+                            certification: "Certification"
+                        },
+                        exports: "Exports",
+                        deleteBulk: "Supprimer ({{count}})",
+                        editAudit: "Modifier l'Audit",
+                        deleteTitle: "Supprimer l'audit ?",
+                        deleteMessage: "Cette action est irréversible et supprimera tous les constats associés.",
+                        deleteWarning: "Attention : Cet audit est lié à {{count}} élément(s) ({{details}}). La suppression le retirera de ces éléments.",
+                        deleteBulkTitle: "Supprimer {{count}} audits ?",
+                        deleteBulkMessage: "Cette action est irréversible et supprimera tous les constats associés.",
+                        tabs: {
+                            details: "Détails",
+                            findings: "Constats",
+                            checklist: "Checklist",
+                            dashboard: "Tableau de bord",
+                            history: "Historique"
+                        },
+                        inspector: {
+                            deleteConfirm: "Supprimer l'audit",
+                            validate: "Valider",
+                            generateReport: "Générer le rapport PDF",
+                            exportPack: "Exporter le pack d'audit ZIP"
+                        },
+                        findingsSection: {
+                            title: "Constats",
+                            newFinding: "Nouveau Constat",
+                            listTitle: "Liste des Écarts ({{count}})",
+                            add: "Ajouter",
+                            uploadEvidence: "Joindre une preuve",
+                            delete: "Supprimer",
+                            emptyTitle: "Aucun constat",
+                            emptyDesc: "Aucun constat n'a été relevé pour cet audit pour le moment.",
+                            form: {
+                                description: "Description",
+                                descriptionPlaceholder: "Rédige un constat d'audit factuel.",
+                                linkControl: "Lier à un contrôle (optionnel)",
+                                type: {
+                                    minor: "Mineure",
+                                    major: "Majeure",
+                                    opportunity: "Opportunité"
+                                }
+                            },
+                            toast: {
+                                evidenceSuccess: "Preuve ajoutée avec succès"
+                            }
+                        },
+                        checklist: {
+                            title: "Checklist d'Audit",
+                            generateAI: "Générer avec IA",
+                            emptyTitle: "Aucune checklist",
+                            emptyDesc: "Générez une checklist d'audit personnalisée basée sur le périmètre et le référentiel.",
+                            generateAction: "Générer maintenant",
+                            responses: {
+                                compliant: "Conforme",
+                                nonCompliant: "Non-conforme",
+                                notApplicable: "Non-applicable"
+                            }
+                        },
+                        form: {
+                            name: "Nom de l'audit",
+                            namePlaceholder: "Ex: Audit Interne ISO 27001 - Q1",
+                            description: "Description",
+                            descriptionPlaceholder: "Objectifs et contexte de l'audit...",
+                            typeLabel: "Type",
+                            framework: "Référentiel / Standard (Optionnel)",
+                            dateScheduled: "Date Prévue",
+                            auditor: "Auditeur",
+                            auditorPlaceholder: "Sélectionner un auditeur...",
+                            scope: "Description du Périmètre",
+                            scopeLabel: "Périmètre",
+                            assets: "Actifs concernés",
+                            controls: "Contrôles à vérifier",
+                            risks: "Risques concernés",
+                            projects: "Projets liés",
+                            cancel: "Annuler",
+                            save: "Enregistrer",
+                            plan: "Planifier",
+                            auditAssistant: {
+                                title: "Assistant Audit",
+                                desc: "Initiez votre audit rapidement avec un modèle ou l'aide de l'IA.",
+                                prompt: "Décris un audit de sécurité intitulé \"{{name}}\"."
+                            }
+                        }
+                    },
                     suppliers: {
                         title: "Fournisseurs",
                         subtitle: "Gestion des tiers et des contrats (ISO 27001 A.15).",
@@ -2581,50 +2814,7 @@ i18n
                             description: "Description complète des activités..."
                         }
                     },
-                    audits: {
-                        title: "Programme d'Audit",
-                        subtitle: "Planification, exécution et suivi des audits internes et externes.",
-                        title_admin: "Programme d'Audit & Conformité",
-                        subtitle_admin: "Orchestrez les audits ISO 27001, le suivi des écarts et les plans d'actions associés.",
-                        title_exec: "Vue Exécutive des Audits",
-                        subtitle_exec: "Suivez l'état des audits, les non-conformités et les risques associés pour la direction.",
-                        dashboard: "Tableau de Bord",
-                        list: "Liste des Audits",
-                        calendar: "Calendrier",
-                        findings: "Constats",
-                        searchPlaceholder: "Rechercher un audit...",
-                        allStatuses: "Tous les statuts",
-                        aiAssistant: "Assistant IA",
-                        newAudit: "Nouvel Audit",
-                        exportCalendar: "Exporter Calendrier",
-                        exportCSV: "Exporter CSV",
-                        calendarLabels: {
-                            prevMonth: "Mois précédent",
-                            nextMonth: "Mois suivant",
-                            today: "Aujourd'hui"
-                        },
-                        status: {
-                            completed: "Terminé",
-                            planned: "Planifié",
-                            inProgress: "En cours",
-                            finished: "Terminé",
-                            validated: "Validé"
-                        },
-                        allTypes: "Tous les types",
-                        type: {
-                            internal: "Interne",
-                            external: "Externe",
-                            certification: "Certification"
-                        },
-                        exports: "Exports",
-                        deleteBulk: "Supprimer ({count})",
-                        editAudit: "Modifier l'audit",
-                        deleteTitle: "Supprimer l'audit ?",
-                        deleteMessage: "Cette action est irréversible et supprimera tous les constats associés.",
-                        deleteWarning: "Attention: Cet audit est lié à {count} élément(s) ({details}). La suppression le retirera de ces éléments.",
-                        deleteBulkTitle: "Supprimer {count} audits ?",
-                        deleteBulkMessage: "Cette action est irréversible et supprimera tous les constats associés."
-                    },
+
                     vulnerabilities: {
                         title: "Vulnérabilités",
                         subtitle: "Gestion et remédiation des vulnérabilités de sécurité.",

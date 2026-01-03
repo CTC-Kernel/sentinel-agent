@@ -14,13 +14,13 @@ import type { Framework } from '../../types';
 import { FRAMEWORK_OPTIONS } from '../../data/frameworks';
 import { toast } from 'sonner';
 
-type AuditTemplate = BaseTemplate & { type: string; standard: string; scope: string };
+import { useStore } from '../../store';
 
-const AUDIT_TEMPLATES: AuditTemplate[] = [
-    { name: 'Audit Interne ISO 27001', description: 'Vérification de conformité annuelle sur le périmètre complet.', type: 'Interne', standard: 'ISO 27001', scope: 'Organisation Globale' },
-    { name: 'Audit Fournisseur Critique', description: 'Évaluation de sécurité d\'un hébergeur de données de santé.', type: 'Externe', standard: 'HDS / ISO 27001', scope: 'Fournisseurs' },
-    { name: 'Review Accès Logiques', description: 'Revue trimestrielle des comptes à privilèges.', type: 'Interne', standard: 'Interne', scope: 'IT / IAM' },
-];
+interface AuditTemplate extends BaseTemplate {
+    type: string;
+    standard: string;
+    scope: string
+}
 import { AUDIT_TYPES } from '../../data/auditConstants';
 import { RichTextEditor } from '../ui/RichTextEditor';
 import { DatePicker } from '../ui/DatePicker';
@@ -35,7 +35,9 @@ interface AuditFormProps {
     projects: Project[];
     usersList: UserProfile[];
     initialData?: Partial<AuditFormData>;
+
     isLoading?: boolean;
+    readOnly?: boolean;
 }
 
 export const AuditForm: React.FC<AuditFormProps> = ({
@@ -48,8 +50,18 @@ export const AuditForm: React.FC<AuditFormProps> = ({
     projects,
     usersList,
     initialData,
-    isLoading = false
+    isLoading = false,
+    readOnly = false
 }) => {
+    const { t } = useStore();
+
+    // Dynamic templates using translations
+    const auditTemplates: AuditTemplate[] = [
+        { name: 'Audit Interne ISO 27001', description: t('audits.form.templates.internal', 'Vérification de conformité annuelle sur le périmètre complet.'), type: 'Interne', standard: 'ISO 27001', scope: 'Organisation Globale' },
+        { name: 'Audit Fournisseur Critique', description: t('audits.form.templates.supplier', 'Évaluation de sécurité d\'un hébergeur de données de santé.'), type: 'Externe', standard: 'HDS / ISO 27001', scope: 'Fournisseurs' },
+        { name: 'Review Accès Logiques', description: t('audits.form.templates.access', 'Revue trimestrielle des comptes à privilèges.'), type: 'Interne', standard: 'Interne', scope: 'IT / IAM' },
+    ];
+
     const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useForm<AuditFormData>({
         resolver: zodResolver(auditSchema),
         shouldUnregister: true,
@@ -117,7 +129,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
     const [isGenerating, setIsGenerating] = React.useState(false);
 
     const handleSelectTemplate = (templateName: string) => {
-        const t = AUDIT_TEMPLATES.find(t => t.name === templateName);
+        const t = auditTemplates.find(t => t.name === templateName);
         if (t) {
             setValue('name', t.name);
             setValue('description', t.description);
@@ -137,7 +149,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({
 
         setIsGenerating(true);
         try {
-            const prompt = `Décris un audit de sécurité intitulé "${currentName}".
+            const prompt = t('audits.form.auditAssistant.prompt', { name: currentName }) + `
             Format JSON attendu:
             {
                 "description": "Objectifs et description",
@@ -174,31 +186,33 @@ export const AuditForm: React.FC<AuditFormProps> = ({
             }}
             className="space-y-6 p-4 sm:p-6"
         >
-            {!isEditing && (
+            {!isEditing && !readOnly && (
                 <AIAssistantHeader
-                    templates={AUDIT_TEMPLATES}
+                    templates={auditTemplates}
                     onSelectTemplate={handleSelectTemplate}
                     onAutoGenerate={handleAutoGenerate}
                     isGenerating={isGenerating}
-                    title="Assistant Audit"
-                    description="Initiez votre audit rapidement avec un modèle ou l'aide de l'IA."
+                    title={t('audits.form.auditAssistant.title')}
+                    description={t('audits.form.auditAssistant.desc')}
                 />
             )}
             <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
                 <FloatingLabelInput
-                    label="Nom de l'audit"
+                    label={t('audits.form.name')}
                     {...register('name')}
-                    placeholder="Ex: Audit Interne ISO 27001 - Q1"
+                    placeholder={t('audits.form.namePlaceholder')}
                     error={errors.name?.message}
+                    disabled={readOnly}
                 />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Description</label>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('audits.form.description')}</label>
                     <textarea
                         {...register('description')}
                         rows={3}
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400"
-                        placeholder="Objectifs et contexte de l'audit..."
+                        disabled={readOnly}
+                        className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400 disabled:opacity-70 disabled:cursor-not-allowed"
+                        placeholder={t('audits.form.descriptionPlaceholder')}
                     />
                     {errors.description && <span className="text-red-500 text-sm">{errors.description.message}</span>}
                 </div>
@@ -209,11 +223,12 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                         control={control}
                         render={({ field }) => (
                             <CustomSelect
-                                label="Type"
+                                label={t('audits.form.typeLabel')}
                                 value={field.value}
                                 onChange={field.onChange}
                                 options={AUDIT_TYPES.map(t => ({ value: t, label: t }))}
                                 error={errors.type?.message}
+                                disabled={readOnly}
                             />
                         )}
                     />
@@ -226,11 +241,12 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                             control={control}
                             render={({ field }) => (
                                 <CustomSelect
-                                    label="Référentiel / Standard (Optionnel)"
+                                    label={t('audits.form.framework')}
                                     value={field.value || ''}
                                     onChange={(val) => field.onChange(val as Framework)}
                                     options={FRAMEWORK_OPTIONS}
                                     error={errors.framework?.message}
+                                    disabled={readOnly}
                                 />
                             )}
                         />
@@ -244,10 +260,11 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                             name="dateScheduled"
                             render={({ field }) => (
                                 <DatePicker
-                                    label="Date Prévue"
+                                    label={t('audits.form.dateScheduled')}
                                     value={field.value}
                                     onChange={field.onChange}
                                     error={errors.dateScheduled?.message}
+                                    disabled={readOnly}
                                 />
                             )}
                         />
@@ -273,12 +290,13 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     control={control}
                     render={({ field }) => (
                         <CustomSelect
-                            label="Auditeur"
+                            label={t('audits.form.auditor')}
                             value={field.value || ''}
                             onChange={field.onChange}
                             options={usersList.map(u => ({ value: u.uid, label: u.displayName || u.email }))}
-                            placeholder="Sélectionner un auditeur..."
+                            placeholder={t('audits.form.auditorPlaceholder')}
                             error={errors.auditor?.message}
+                            disabled={readOnly}
                         />
                     )}
                 />
@@ -288,27 +306,29 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                     control={control}
                     render={({ field }) => (
                         <RichTextEditor
-                            label="Description du Périmètre"
+                            label={t('audits.form.scope')}
                             value={field.value || ''}
                             onChange={field.onChange}
                             error={errors.scope?.message}
+                            readOnly={readOnly}
                         />
                     )}
                 />
 
                 <div className="space-y-4">
-                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600">Périmètre</label>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-600">{t('audits.form.scopeLabel')}</label>
                     <Controller
                         name="relatedAssetIds"
                         control={control}
                         render={({ field }) => (
                             <CustomSelect
-                                label="Actifs concernés"
+                                label={t('audits.form.assets')}
                                 value={field.value || []}
                                 onChange={field.onChange}
                                 options={assets.map(a => ({ value: a.id, label: a.name }))}
                                 multiple
                                 error={errors.relatedAssetIds?.message}
+                                disabled={readOnly}
                             />
                         )}
                     />
@@ -317,12 +337,13 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                         control={control}
                         render={({ field }) => (
                             <CustomSelect
-                                label="Contrôles à vérifier"
+                                label={t('audits.form.controls')}
                                 value={field.value || []}
                                 onChange={field.onChange}
                                 options={controls.map(c => ({ value: c.id, label: c.code, subLabel: c.name }))}
                                 multiple
                                 error={errors.relatedControlIds?.message}
+                                disabled={readOnly}
                             />
                         )}
                     />
@@ -331,12 +352,13 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                         control={control}
                         render={({ field }) => (
                             <CustomSelect
-                                label="Risques concernés"
+                                label={t('audits.form.risks')}
                                 value={field.value || []}
                                 onChange={field.onChange}
                                 options={risks.map(r => ({ value: r.id, label: r.threat, subLabel: `Score: ${r.score} ` }))}
                                 multiple
                                 error={errors.relatedRiskIds?.message}
+                                disabled={readOnly}
                             />
                         )}
                     />
@@ -345,36 +367,39 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                         control={control}
                         render={({ field }) => (
                             <CustomSelect
-                                label="Projets liés"
+                                label={t('audits.form.projects')}
                                 value={field.value || []}
                                 onChange={field.onChange}
                                 options={projects.map(p => ({ value: p.id, label: p.name }))}
                                 multiple
                                 error={errors.relatedProjectIds?.message}
+                                disabled={readOnly}
                             />
                         )}
                     />
                 </div>
             </div>
 
-            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100 dark:border-white/5">
-                <Button
-                    type="button"
-                    onClick={onCancel}
-                    variant="ghost"
-                    disabled={isLoading}
-                    className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
-                >
-                    Annuler
-                </Button>
-                <Button
-                    type="submit"
-                    isLoading={isLoading}
-                    className="px-8 py-3 text-sm font-bold text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20"
-                >
-                    {existingAudit ? 'Enregistrer' : 'Planifier'}
-                </Button>
-            </div>
+            {!readOnly && (
+                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100 dark:border-white/5">
+                    <Button
+                        type="button"
+                        onClick={onCancel}
+                        variant="ghost"
+                        disabled={isLoading}
+                        className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                    >
+                        {t('audits.form.cancel')}
+                    </Button>
+                    <Button
+                        type="submit"
+                        isLoading={isLoading}
+                        className="px-8 py-3 text-sm font-bold text-white bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20"
+                    >
+                        {existingAudit ? t('audits.form.save') : t('audits.form.plan')}
+                    </Button>
+                </div>
+            )}
         </form>
     );
 };

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 // Form validation: schema-based validation via VulnerabilityForm component
 import { useStore } from '../store';
-import { Vulnerability } from '../types';
+import { Vulnerability, UserProfile } from '../types';
 import { VulnerabilityDashboard } from '../components/vulnerabilities/VulnerabilityDashboard';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useVulnerabilities } from '../hooks/useVulnerabilities';
@@ -51,6 +51,7 @@ export const Vulnerabilities: React.FC = () => {
         addVulnerability,
         updateVulnerability,
         deleteVulnerability,
+        importVulnerabilities,
         loading: loadingAction
     } = useVulnerabilities();
 
@@ -78,6 +79,18 @@ export const Vulnerabilities: React.FC = () => {
             setSelectedVulnerability(vuln);
         }
     }, [location.state, loading, vulnerabilities]);
+
+    // Auto-seed if empty
+    const initialSeedRef = React.useRef(false);
+    useEffect(() => {
+        if (!loadingData && vulnerabilities.length === 0 && !initialSeedRef.current) {
+            initialSeedRef.current = true;
+            // Attempt to seed
+            import('../services/ThreatFeedService').then(({ ThreatFeedService }) => {
+                ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo').catch(console.error);
+            });
+        }
+    }, [loadingData, vulnerabilities.length, user]);
 
     const handleCreate = useCallback(async (data: Partial<Vulnerability>) => {
         if (!user?.organizationId) return;
@@ -133,11 +146,16 @@ export const Vulnerabilities: React.FC = () => {
     const handleCancelEdit = useCallback(() => setSelectedVulnerability(null), []);
     const handleImportModalClose = useCallback(() => setImportModalOpen(false), []);
     const handleConfirmClose = useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
-    const handleImportMock = useCallback(async () => {
-        // Logic for file handling usually in component or hook
-    }, []);
+    const handleImportMock = useCallback(async (importData: Partial<Vulnerability>[]) => {
+        try {
+            await importVulnerabilities(importData);
+            setImportModalOpen(false);
+        } catch {
+            ErrorLogger.warn('Import handled in hook');
+        }
+    }, [importVulnerabilities]);
 
-    const canEdit = canEditResource(user, 'Vulnerability');
+    const canEdit = canEditResource(user as UserProfile, 'Vulnerability');
 
     return (
         <motion.div

@@ -17,7 +17,7 @@ export const useRiskFilters = (risks: Risk[]) => {
     // Defer the query to avoid UI lag on typing
     const deferredQuery = useDeferredValue(activeFilters.query);
 
-    const filteredRisks = useMemo(() => {
+    const filteredRisks = useMemo((): Risk[] => {
         return risks.filter(r => {
             if (!r) return false;
 
@@ -35,13 +35,15 @@ export const useRiskFilters = (risks: Risk[]) => {
             const matchesFramework = frameworkFilter ? r.framework === frameworkFilter : true;
 
             // Matrix Filter
-            const matchesMatrix = matrixFilter ? (r.probability === matrixFilter.p && r.impact === matrixFilter.i) : true;
+            const matchesMatrix = matrixFilter ? (Number(r.probability) === Number(matrixFilter.p) && Number(r.impact) === Number(matrixFilter.i)) : true;
 
             // Advanced Filters (Status, Owner, etc. - extending basic logic)
             const matchesStatus = activeFilters.status ? r.status === activeFilters.status : true;
 
             return matchesSearch && matchesMatrix && matchesFramework && matchesStatus;
         });
+
+        return filteredRisks;
     }, [risks, deferredQuery, frameworkFilter, matrixFilter, activeFilters.status]);
 
     return {

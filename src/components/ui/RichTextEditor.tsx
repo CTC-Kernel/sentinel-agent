@@ -14,6 +14,7 @@ interface RichTextEditorProps {
     error?: string;
     className?: string;
     editable?: boolean;
+    readOnly?: boolean;
 }
 
 const ToolbarButton = ({ onClick, isActive, disabled, children, title }: { onClick: () => void, isActive?: boolean, disabled?: boolean, children: React.ReactNode, title?: string }) => (
@@ -137,8 +138,11 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     label,
     error,
     className = '',
-    editable = true
+    editable = true,
+    readOnly = false
 }) => {
+    const isEditable = editable && !readOnly;
+
     const editor = useEditor({
         extensions: [
             StarterKit,
@@ -154,13 +158,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             }),
         ],
         content: value,
-        editable: editable,
+        editable: isEditable,
         onUpdate: ({ editor }) => {
             onChange(editor.getHTML());
         },
         editorProps: {
             attributes: {
-                class: 'prose dark:prose-invert max-w-none p-4 min-h-[150px] focus:outline-none text-slate-700 dark:text-slate-300 text-sm',
+                class: `prose dark:prose-invert max-w-none p-4 min-h-[150px] focus:outline-none text-slate-700 dark:text-slate-300 text-sm ${!isEditable ? 'opacity-70 cursor-not-allowed bg-gray-50 dark:bg-black/10' : ''}`,
             },
         },
     });
@@ -176,6 +180,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         }
     }, [value, editor]);
 
+    // Update editable state when props change
+    React.useEffect(() => {
+        if (editor) {
+            editor.setEditable(isEditable);
+        }
+    }, [isEditable, editor]);
+
     return (
         <div className={`flex flex-col gap-2 ${className}`}>
             {label && <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</label>}
@@ -186,7 +197,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                     : 'border-slate-200 dark:border-white/10 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20'
                 }
             `}>
-                {editable && <MenuBar editor={editor} />}
+                {isEditable && <MenuBar editor={editor} />}
                 <EditorContent editor={editor} />
             </div>
             {error && <span className="text-xs text-red-500 font-medium">{error}</span>}

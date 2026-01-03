@@ -8,11 +8,20 @@ export const useRiskData = () => {
     const { user } = useAuth();
 
 
-    const { data: risks, loading: risksLoading } = useFirestoreCollection<Risk>(
+    const { data: rawRisks, loading: risksLoading } = useFirestoreCollection<Risk>(
         'risks',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
         { logError: true, realtime: true, enabled: !!user?.organizationId }
     );
+
+    const risks = React.useMemo(() => {
+        return (rawRisks || []).map(r => ({
+            ...r,
+            probability: Number(r.probability) as Risk['probability'],
+            impact: Number(r.impact) as Risk['impact'],
+            score: Number(r.score)
+        }));
+    }, [rawRisks]);
 
     const { data: assets, loading: assetsLoading } = useFirestoreCollection<Asset>(
         'assets',

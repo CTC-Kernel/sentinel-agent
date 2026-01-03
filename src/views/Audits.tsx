@@ -390,6 +390,10 @@ export const Audits: React.FC = () => {
                     onClose={() => setSelectedAudit(null)}
                     controls={controls}
                     documents={documents}
+                    assets={assets}
+                    risks={risks}
+                    projects={projects}
+                    usersList={usersList}
                     refreshAudits={refreshAudits}
                     canEdit={canEdit}
                     onDelete={(id, name) => {

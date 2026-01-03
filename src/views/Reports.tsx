@@ -60,13 +60,13 @@ export const Reports: React.FC = () => {
                 console.log('📦 Generating compliance pack...');
                 await CompliancePackService.generatePack({
                     organizationName: organization?.name || 'Organization',
-                    risks,
-                    audits,
-                    assets,
-                    documents,
-                    controls,
-                    incidents,
-                    projects
+                    risks: risks || [],
+                    audits: audits || [],
+                    assets: assets || [],
+                    documents: documents || [],
+                    controls: controls || [],
+                    incidents: incidents || [],
+                    projects: projects || []
                 });
                 console.log('✅ Compliance pack generated successfully');
                 addToast(t('reports.success'), 'success');
@@ -168,6 +168,7 @@ export const Reports: React.FC = () => {
                 name: error instanceof Error ? error.name : 'Unknown',
                 message: error instanceof Error ? error.message : String(error),
                 stack: error instanceof Error ? error.stack : 'No stack available',
+                fullError: typeof error === 'object' ? JSON.stringify(error) : error,
                 templateId,
                 title
             });

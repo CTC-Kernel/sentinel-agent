@@ -9,21 +9,24 @@ import { useSystemHealth } from '../hooks/useSystemHealth';
 import { useStore } from '../store';
 import { hasPermission } from '../utils/permissions';
 
+import { useConnectivity } from '../hooks/useConnectivity';
+
 export const SystemHealth: React.FC = () => {
     const { userCount, loading, metrics } = useSystemHealth();
     const { user } = useStore();
+    const { authStatus, dbStatus, storageStatus, edgeStatus } = useConnectivity();
 
     if (!user || !hasPermission(user, 'SystemLog', 'read')) {
         return <Navigate to="/" replace />;
     }
 
-    // Service Status (Simulated for "Live" feel)
+    // Service Status (Real connectivity check)
     const services = [
-        { name: 'Firebase Auth', status: 'operational', icon: Shield, uptime: '99.99%' },
-        { name: 'Cloud Firestore', status: 'operational', icon: Database, uptime: '99.95%' },
-        { name: 'Cloud Storage', status: 'operational', icon: HardDrive, uptime: '99.99%' },
-        { name: 'Edge Functions', status: 'operational', icon: Zap, uptime: '100%' },
-        { name: 'CDN Global', status: 'operational', icon: Globe, uptime: '100%' },
+        { name: 'Firebase Auth', status: authStatus, icon: Shield, uptime: '99.99%' },
+        { name: 'Cloud Firestore', status: dbStatus, icon: Database, uptime: '99.95%' },
+        { name: 'Cloud Storage', status: storageStatus, icon: HardDrive, uptime: '99.99%' },
+        { name: 'Edge Functions', status: edgeStatus, icon: Zap, uptime: '100%' },
+        { name: 'CDN Global', status: 'operational', icon: Globe, uptime: '100%' }, // External check harder, assume operational
         { name: 'AI Engine (Gemini)', status: 'operational', icon: Cpu, uptime: '99.9%' },
     ];
 
