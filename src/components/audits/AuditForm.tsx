@@ -57,9 +57,9 @@ export const AuditForm: React.FC<AuditFormProps> = ({
 
     // Dynamic templates using translations
     const auditTemplates: AuditTemplate[] = [
-        { name: 'Audit Interne ISO 27001', description: t('audits.form.templates.internal', 'Vérification de conformité annuelle sur le périmètre complet.'), type: 'Interne', standard: 'ISO 27001', scope: 'Organisation Globale' },
-        { name: 'Audit Fournisseur Critique', description: t('audits.form.templates.supplier', 'Évaluation de sécurité d\'un hébergeur de données de santé.'), type: 'Externe', standard: 'HDS / ISO 27001', scope: 'Fournisseurs' },
-        { name: 'Review Accès Logiques', description: t('audits.form.templates.access', 'Revue trimestrielle des comptes à privilèges.'), type: 'Interne', standard: 'Interne', scope: 'IT / IAM' },
+        { name: 'Audit Interne ISO 27001', description: t('audits.form.templates.internal', { defaultValue: 'Vérification de conformité annuelle sur le périmètre complet.' }), type: 'Interne', standard: 'ISO 27001', scope: 'Organisation Globale' },
+        { name: 'Audit Fournisseur Critique', description: t('audits.form.templates.supplier', { defaultValue: 'Évaluation de sécurité d\'un hébergeur de données de santé.' }), type: 'Externe', standard: 'HDS / ISO 27001', scope: 'Fournisseurs' },
+        { name: 'Review Accès Logiques', description: t('audits.form.templates.access', { defaultValue: 'Revue trimestrielle des comptes à privilèges.' }), type: 'Interne', standard: 'Interne', scope: 'IT / IAM' },
     ];
 
     const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useForm<AuditFormData>({

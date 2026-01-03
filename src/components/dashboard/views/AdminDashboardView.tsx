@@ -66,28 +66,21 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
     };
 
     return (
-        <div className="space-y-8 animate-fade-in relative z-10 text-balance">
+        <div className="space-y-6 animate-fade-in relative z-10 text-balance">
 
-            <ConfigurableDashboardGrid
-                layout={layout}
-                onLayoutChange={updateLayout}
-                isEditing={!!props.isEditing}
-                widgetProps={props as unknown as Record<string, unknown>}
-            />
-
-            {/* Add Widget Button (Only visible in Edit Mode) */}
+            {/* Edit Mode Actions Header */}
             <AnimatePresence>
                 {props.isEditing && (
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex gap-4"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex justify-end gap-3 mb-6"
                     >
                         <Button
                             onClick={resetLayout}
                             variant="secondary"
-                            className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-6 py-6 rounded-full shadow-xl font-bold border border-slate-200 dark:border-slate-700 hover:scale-105 transition-all text-sm"
+                            className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-xl shadow-md font-bold border border-slate-200 dark:border-slate-700 hover:scale-105 transition-all text-sm"
                         >
                             {props.t('common.reset')}
                         </Button>
@@ -98,14 +91,21 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = (props) => 
                         >
                             <Button
                                 onClick={() => setIsAddWidgetModalOpen(true)}
-                                className="bg-brand-600 text-white px-6 py-6 rounded-full shadow-xl font-bold flex items-center gap-2 border border-brand-500 hover:bg-brand-700 transition-colors text-sm"
+                                className="bg-brand-600 text-white px-4 py-2 rounded-xl shadow-md font-bold flex items-center gap-2 border border-brand-500 hover:bg-brand-700 transition-colors text-sm"
                             >
-                                <Plus className="w-5 h-5" /> <span>{props.t('dashboard.addWidget')}</span>
+                                <Plus className="w-4 h-4" /> <span>{props.t('dashboard.addWidget')}</span>
                             </Button>
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <ConfigurableDashboardGrid
+                layout={layout}
+                onLayoutChange={updateLayout}
+                isEditing={!!props.isEditing}
+                widgetProps={props as unknown as Record<string, unknown>}
+            />
 
             <AddWidgetModal
                 isOpen={isAddWidgetModalOpen}

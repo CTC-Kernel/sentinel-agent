@@ -1,0 +1,118 @@
+import React, { useEffect, useState } from 'react';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
+import { db, functions } from '../../firebase';
+import { Loader2, Trash2, ExternalLink, ShieldAlert, Clock } from 'lucide-react';
+import { toast } from 'sonner';
+import { ErrorLogger } from '../../services/errorLogger';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
+
+interface SharedLink {
+    id: string; // The token itself is the ID
+    auditorEmail: string;
+    organizationId: string;
+    createdAt: string;
+    expiresAt: string;
+    revoked: boolean;
+    permissions: string[];
+}
+
+interface SharedLinksListProps {
+    auditId: string;
+}
+
+export const SharedLinksList: React.FC<SharedLinksListProps> = ({ auditId }) => {
+    const [links, setLinks] = useState<SharedLink[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [revokingId, setRevokingId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchLinks = async () => {
+            try {
+                const q = query(
+                    collection(db, 'audit_shares'),
+                    where('auditId', '==', auditId),
+                    // orderBy('createdAt', 'desc') // Requires composite index, doing client sort for MVP safety
+                );
+                const snapshot = await getDocs(q);
+                const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SharedLink));
+
+                // Client-side sort by date desc
+                items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+                setLinks(items);
+            } catch (error) {
+                ErrorLogger.error(error, 'SharedLinksList.fetch');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchLinks();
+    }, [auditId]);
+
+    const handleRevoke = async (token: string) => {
+        if (!confirm('Êtes-vous sûr de vouloir révoquer cet accès ? Le lien ne fonctionnera plus immédiatement.')) return;
+
+        setRevokingId(token);
+        try {
+            const revokeFn = httpsCallable(functions, 'revokeAuditShare');
+            await revokeFn({ token });
+            toast.success('Accès révoqué avec succès');
+            // Optimistic update
+            setLinks(prev => prev.map(l => l.id === token ? { ...l, revoked: true } : l));
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'SharedLinksList.revoke', 'UPDATE_FAILED');
+        } finally {
+            setRevokingId(null);
+        }
+    };
+
+    if (loading) return <div className="flex justify-center p-4"><Loader2 className="w-5 h-5 animate-spin text-slate-400" /></div>;
+
+    if (links.length === 0) return null; // Handled by parent EmptyState normally, but here we render nothing inside the container if empty to avoid double empty states
+
+    return (
+        <div className="space-y-3">
+            {links.map(link => {
+                const isExpired = new Date(link.expiresAt) < new Date();
+                const isActive = !link.revoked && !isExpired;
+
+                return (
+                    <div key={link.id} className={`flex items-center justify-between p-3 rounded-lg border ${isActive ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-white/5 opacity-75'}`}>
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-full ${isActive ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-500'}`}>
+                                {link.revoked ? <ShieldAlert className="w-4 h-4" /> : <ExternalLink className="w-4 h-4" />}
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-slate-900 dark:text-white flex items-center gap-2">
+                                    {link.auditorEmail}
+                                    {!isActive && <span className="text-xs px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded">Inactif</span>}
+                                </p>
+                                <div className="flex items-center gap-3 text-xs text-slate-500">
+                                    <span className="flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        Expire {formatDistanceToNow(new Date(link.expiresAt), { addSuffix: true, locale: fr })}
+                                    </span>
+                                    {isActive && <span className="text-brand-600 font-mono text-[10px] select-all">...{link.id.substring(0, 8)}</span>}
+                                </div>
+                            </div>
+                        </div>
+
+                        {isActive && (
+                            <button
+                                onClick={() => handleRevoke(link.id)}
+                                disabled={!!revokingId}
+                                className="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                                title="Révoquer l'accès"
+                            >
+                                {revokingId === link.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                            </button>
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+    );
+};

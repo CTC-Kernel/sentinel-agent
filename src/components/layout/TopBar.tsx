@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
-import { Menu, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command, Shield, MessageSquare } from '../ui/Icons';
+import { Menu, Search, Moon, Sun, User, Settings as SettingsIcon, LogOut, Command, Shield, MessageSquare, Globe } from '../ui/Icons';
 import { NotificationCenter } from '../notifications/NotificationCenter';
 import { Breadcrumbs } from '../ui/Breadcrumbs';
 
@@ -18,7 +18,7 @@ interface TopBarProps {
 }
 
 export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
-    const { theme, toggleTheme, user, t } = useStore();
+    const { theme, toggleTheme, user, t, language, setLanguage } = useStore();
     const { updateUser } = useTeamData();
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showFeedback, setShowFeedback] = useState(false);
@@ -177,6 +177,16 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                     <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5">{user?.email}</p>
                                 </div>
                                 <div className="p-2 space-y-1">
+                                    <button
+                                        onClick={() => {
+                                            setLanguage(language === 'fr' ? 'en' : 'fr');
+                                            setShowUserMenu(false);
+                                        }}
+                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                    >
+                                        <Globe className="h-4 w-4 mr-3 text-slate-500" />
+                                        {language === 'fr' ? 'Switch to English' : 'Passer en Français'}
+                                    </button>
                                     <Link
                                         to="/settings"
                                         onClick={() => setShowUserMenu(false)}

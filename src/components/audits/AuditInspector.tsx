@@ -3,7 +3,7 @@ import { Audit, Control, Document as GRCDocument, Asset, Risk, Project, UserProf
 import { EmptyState } from '../ui/EmptyState';
 import { useAuditDetails } from '../../hooks/audits/useAuditDetails';
 import { InspectorLayout } from '../ui/InspectorLayout';
-import { AlertOctagon, ClipboardCheck, BrainCircuit, FileText, Target, Plus, Trash2, CheckCheck, Loader2, Download, History, Upload } from 'lucide-react';
+import { AlertOctagon, ClipboardCheck, BrainCircuit, FileText, Target, Plus, Trash2, CheckCheck, Loader2, Download, History, Upload, ShieldCheck, Link as LinkIcon, ExternalLink } from 'lucide-react';
 import { ResourceHistory } from '../shared/ResourceHistory';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { FloatingLabelTextarea } from '../ui/FloatingLabelInput';
@@ -11,11 +11,12 @@ import { AIAssistButton } from '../ai/AIAssistButton';
 import { SingleAuditStats } from './SingleAuditStats';
 import { useStore } from '../../store';
 import { canDeleteResource } from '../../utils/permissions';
-import { useForm } from 'react-hook-form'; // Removed Controller
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { findingSchema, FindingFormData } from '../../schemas/findingSchema';
 import { ErrorLogger } from '../../services/errorLogger';
 import { AuditForm } from './AuditForm';
+import { ShareAuditModal } from './ShareAuditModal';
 
 interface AuditInspectorProps {
     audit: Audit;
@@ -36,6 +37,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
     refreshAudits, canEdit, onDelete
 }) => {
     const { user, t } = useStore();
+    // ... existing hooks ...
     const {
         findings, checklist, fetchDetails,
         handleAddFinding, handleDeleteFinding,
@@ -46,11 +48,13 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
     } = useAuditDetails(audit, controls, documents, refreshAudits);
 
     const [activeTab, setActiveTab] = useState('details');
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     useEffect(() => {
         fetchDetails();
     }, [fetchDetails]);
 
+    // ... findingForm logic ...
     const findingForm = useForm<FindingFormData>({
         resolver: zodResolver(findingSchema),
         defaultValues: { description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] }
@@ -82,6 +86,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
         { id: 'findings', label: t('audits.tabs.findings'), icon: AlertOctagon },
         { id: 'checklist', label: t('audits.tabs.checklist'), icon: ClipboardCheck },
         { id: 'dashboard', label: t('audits.tabs.dashboard'), icon: Target },
+        { id: 'certification', label: 'Certification / Externe', icon: ShieldCheck },
         { id: 'history', label: t('audits.tabs.history'), icon: History },
     ];
 
@@ -149,6 +154,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
             )}
             <div className="space-y-6 max-w-7xl mx-auto">
                 {activeTab === 'findings' && (
+                    /* ... findings tab content reuse ... */
                     <>
                         {canEdit && (
                             <form onSubmit={findingForm.handleSubmit(onSubmitFinding)} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
@@ -285,10 +291,50 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                     <SingleAuditStats audit={audit} findings={findings} />
                 )}
 
+                {activeTab === 'certification' && (
+                    <div className="space-y-6">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                <ShieldCheck className="w-5 h-5 text-brand-500" />
+                                Accès Auditeur Externe
+                            </h3>
+                            <p className="text-slate-600 dark:text-slate-400 mb-6">
+                                Créez un lien sécurisé pour permettre à un auditeur externe ou un organisme de certification d'accéder à cet audit, consulter les preuves et valider la conformité.
+                            </p>
+
+                            <button
+                                onClick={() => setIsShareModalOpen(true)}
+                                className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-lg shadow-brand-500/20 flex items-center gap-2 transition-all"
+                            >
+                                <LinkIcon className="w-4 h-4" />
+                                Générer un lien d'accès
+                            </button>
+
+                            {/* Assuming we might fetch active shares in the future, simpler placeholder for now */}
+                            <div className="mt-8 border-t border-slate-100 dark:border-white/5 pt-6">
+                                <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Accès actifs</h4>
+                                <EmptyState
+                                    icon={ExternalLink}
+                                    title="Aucun auditeur externe actif"
+                                    description="Aucun lien d'accès n'est actuellement actif pour cet audit."
+                                    color="slate"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {activeTab === 'history' && (
                     <ResourceHistory resourceId={audit.id} resourceType="Audit" />
                 )}
             </div>
+
+            <ShareAuditModal
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                auditId={audit.id}
+                auditName={audit.name}
+            />
         </InspectorLayout>
     );
 };

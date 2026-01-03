@@ -10,6 +10,7 @@ import { ProfileSettings } from '../components/settings/ProfileSettings';
 import { UserActivityLog } from '../components/settings/UserActivityLog';
 import { SecuritySettings } from '../components/settings/SecuritySettings';
 import { OrganizationSettings } from '../components/settings/OrganizationSettings';
+import { PartnerManagement } from '../components/settings/PartnerManagement';
 import { IntegrationSettings } from '../components/settings/IntegrationSettings';
 import { SystemSettings } from '../components/settings/SystemSettings';
 
@@ -29,6 +30,10 @@ const Settings: React.FC = () => {
             case 'organization':
                 return hasPermission(user, 'Settings', 'manage')
                     ? <OrganizationSettings />
+                    : <ProfileSettings />;
+            case 'partners':
+                return hasPermission(user, 'Settings', 'manage')
+                    ? <PartnerManagement />
                     : <ProfileSettings />;
             case 'integrations': return <IntegrationSettings />;
             case 'system':

@@ -242,9 +242,79 @@ h6 {
   text-wrap: pretty;
 }
 
-/* Global Scrollbar Hiding REMOVED to fix layout issues */
-/* ::-webkit-scrollbar { display: none; } */
-/* * { -ms-overflow-style: none; scrollbar-width: none; } */
+/* Global Scrollbar Hiding - COMPLETE */
+*::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+/* Firefox */
+* {
+    scrollbar-width: none !important;
+}
+
+/* Modern Styled Scrollbar - When explicitly needed */
+.styled-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+}
+
+.styled-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.styled-scrollbar::-webkit-scrollbar-track {
+    background: rgba(148, 163, 184, 0.1);
+    border-radius: 4px;
+}
+
+.styled-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(148, 163, 184, 0.4), rgba(148, 163, 184, 0.6));
+    border-radius: 4px;
+    border: 2px solid rgba(148, 163, 184, 0.2);
+    background-clip: content-box;
+}
+
+.styled-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, rgba(148, 163, 184, 0.6), rgba(148, 163, 184, 0.8));
+    border: 2px solid rgba(148, 163, 184, 0.4);
+}
+
+.styled-scrollbar::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(135deg, rgba(148, 163, 184, 0.8), rgba(148, 163, 184, 0.9));
+    border: 2px solid rgba(148, 163, 184, 0.6);
+}
+
+/* Dark mode styled scrollbar */
+.dark .styled-scrollbar {
+    scrollbar-color: rgba(30, 41, 59, 0.3) transparent;
+}
+
+.dark .styled-scrollbar::-webkit-scrollbar-track {
+    background: rgba(30, 41, 59, 0.1);
+}
+
+.dark .styled-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(99, 102, 241, 0.6));
+    border: 2px solid rgba(99, 102, 241, 0.2);
+}
+
+.dark .styled-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.6), rgba(99, 102, 241, 0.8));
+    border: 2px solid rgba(99, 102, 241, 0.4);
+}
+
+.dark .styled-scrollbar::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(99, 102, 241, 0.9));
+    border: 2px solid rgba(99, 102, 241, 0.6);
+}
 
 /* Ceramic/Glass Panel - Enhanced contrast */
 .glass-panel {

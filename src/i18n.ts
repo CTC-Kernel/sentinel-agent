@@ -603,6 +603,87 @@ i18n
                         typeReview: "Document Review",
                         typeSignature: "Signature Needed",
                     },
+                    certifier: {
+                        portalTitle: "Auditor Portal",
+                        portalSubtitle: "Log in to manage your audits and certifications",
+                        emailLabel: "Professional Email",
+                        passwordLabel: "Password",
+                        loginButton: "Log In",
+                        newPartner: "New Partner?",
+                        registerLink: "Register my certification body",
+                        registerTitle: "Become a Partner",
+                        registerSubtitle: "Register your certification body to collaborate with your clients",
+                        orgNameLabel: "Organization Name",
+                        siretLabel: "Company ID / Tax ID",
+                        confirmPasswordLabel: "Confirmation",
+                        registerButton: "Register",
+                        alreadyRegistered: "Already registered?",
+                        loginLink: "Log In",
+                        dashboard: {
+                            title: "Sentinel Certifier",
+                            role: "Lead Auditor",
+                            activeClients: "Active Clients",
+                            activeAudits: "Audits in Progress",
+                            certifiedAudits: "Certified Audits",
+                            assignedAudits: "Assigned Audits",
+                            searchPlaceholder: "Search for an audit...",
+                            noAudits: "No audits assigned yet.",
+                            myClients: "My Clients",
+                            noClients: "No partner clients yet.",
+                            inviteClient: "+ Invite a client to collaborate"
+                        },
+                        partners: {
+                            title: "Certification Partners",
+                            description: "Manage your relationships with external certification bodies.",
+                            inviteButton: "Invite a Partner",
+                            noPartners: "No Partners",
+                            noPartnersDesc: "Invite your auditor or certification body to collaborate.",
+                            activePartner: "Active Partner",
+                            pendingInvite: "Invitation Pending",
+                            resendInvite: "Resend Invitation",
+                            modalTitle: "Invite an Organization",
+                            emailPlaceholder: "auditor@bureauveritas.com",
+                            inviteHelp: "An email will be sent with a link for them to create their Certifier account and join your ecosystem.",
+                            cancel: "Cancel",
+                            send: "Send Invitation"
+                        },
+                        portal: {
+                            loading: "Verifying secure access...",
+                            accessDenied: "Access Denied",
+                            invalidLink: "The access link is invalid or has expired.",
+                            contactAdmin: "If you believe this is an error, contact the administrator who invited you.",
+                            defaultError: "Access denied or link expired",
+                            invitedAs: "Invited as:",
+                            tabs: {
+                                overview: "Overview",
+                                findings: "Findings",
+                                evidence: "Evidence",
+                                certification: "Certification"
+                            },
+                            overview: {
+                                scope: "Audit Scope",
+                                defaultScope: "The entire Information Security Management System (ISMS) is included in the scope, including HR, IT processes, and HQ physical premises.",
+                                refDocs: "Reference Documents",
+                                docs: {
+                                    pssi: "Information Systems Security Policy (ISSP)",
+                                    charter: "IT Charter",
+                                    gdpr: "Processing Register (GDPR)"
+                                }
+                            },
+                            findings: {
+                                title: "Findings Register",
+                                new: "+ New Finding",
+                                empty: "No findings recorded yet"
+                            },
+                            evidence: {
+                                title: "Controls & Evidence",
+                                subtitle: "Review evidence documents associated with this audit to validate controls.",
+                                download: "Download",
+                                empty: "No evidence documents available.",
+                                defaultCategory: "Documentation"
+                            }
+                        }
+                    },
                     assets: {
                         title: "Asset Inventory",
                         description: "Manage your asset mapping and impact analysis.",
@@ -3027,6 +3108,87 @@ i18n
                             desc: "Découvrez Sentinel GRC en 2 minutes",
                             start: "Démarrer le tour",
                             dismiss: "Plus tard"
+                        }
+                    },
+                    certifier: {
+                        portalTitle: "Portail Auditeur",
+                        portalSubtitle: "Connectez-vous pour gérer vos audits et certifications",
+                        emailLabel: "Email professionnel",
+                        passwordLabel: "Mot de passe",
+                        loginButton: "Se connecter",
+                        newPartner: "Nouveau partenaire ?",
+                        registerLink: "Inscrire mon organisme de certification",
+                        registerTitle: "Devenir Partenaire",
+                        registerSubtitle: "Inscrivez votre organisme de certification pour collaborer avec vos clients",
+                        orgNameLabel: "Nom de l'organisme",
+                        siretLabel: "SIRET / ID Légal",
+                        confirmPasswordLabel: "Confirmation",
+                        registerButton: "S'inscrire",
+                        alreadyRegistered: "Déjà inscrit ?",
+                        loginLink: "Se connecter",
+                        dashboard: {
+                            title: "Sentinel Certifier",
+                            role: "Auditeur Principal",
+                            activeClients: "Clients Actifs",
+                            activeAudits: "Audits en cours",
+                            certifiedAudits: "Audits Certifiés",
+                            assignedAudits: "Audits Assignés",
+                            searchPlaceholder: "Rechercher un audit...",
+                            noAudits: "Aucun audit assigné pour le moment.",
+                            myClients: "Mes Clients",
+                            noClients: "Pas encore de clients partenaires.",
+                            inviteClient: "+ Inviter un client à collaborer"
+                        },
+                        partners: {
+                            title: "Partenaires de Certification",
+                            description: "Gérez vos relations avec les organismes de certification externes.",
+                            inviteButton: "Inviter un partenaire",
+                            noPartners: "Aucun partenaire",
+                            noPartnersDesc: "Invitez votre auditeur ou organisme de certification pour collaborer.",
+                            activePartner: "Partenaire Actif",
+                            pendingInvite: "Invitation en attente",
+                            resendInvite: "Renvoyer l'invitation",
+                            modalTitle: "Inviter un organisme",
+                            emailPlaceholder: "auditeur@bureauveritas.com",
+                            inviteHelp: "Un email sera envoyé avec un lien pour qu'ils créent leur compte Certifieur et rejoignent votre écosystème.",
+                            cancel: "Annuler",
+                            send: "Envoyer l'invitation"
+                        },
+                        portal: {
+                            loading: "Vérification de l'accès sécurisé...",
+                            accessDenied: "Accès Impossible",
+                            invalidLink: "Le lien d'accès est invalide ou a expiré.",
+                            contactAdmin: "Si vous pensez qu'il s'agit d'une erreur, contactez l'administrateur qui vous a invité.",
+                            defaultError: "Accès refusé ou lien expiré",
+                            invitedAs: "Invité en tant que :",
+                            tabs: {
+                                overview: "Vue d'ensemble",
+                                findings: "Constats",
+                                evidence: "Preuves",
+                                certification: "Certification"
+                            },
+                            overview: {
+                                scope: "Périmètre de l'audit",
+                                defaultScope: "L'ensemble du système de management de la sécurité de l'information (SMSI) est inclus dans le périmètre, y compris les processus RH, IT et les locaux physiques du siège.",
+                                refDocs: "Documents de référence",
+                                docs: {
+                                    pssi: "Politique de Sécurité du Système d'Information (PSSI)",
+                                    charter: "Charte informatique",
+                                    gdpr: "Registre des traitements (GDPR)"
+                                }
+                            },
+                            findings: {
+                                title: "Registre des constats",
+                                new: "+ Nouveau constat",
+                                empty: "Aucun constat relevé pour le moment"
+                            },
+                            evidence: {
+                                title: "Contrôles & Preuves",
+                                subtitle: "Consultez les documents de preuve associés à cet audit pour valider les contrôles.",
+                                download: "Télécharger",
+                                empty: "Aucun document de preuve disponible.",
+                                defaultCategory: "Documentation"
+                            }
                         }
                     }
                 }

@@ -275,7 +275,11 @@ export const ERROR_MESSAGES = {
   // IA
   AI_ERROR: "Erreur lors de l'analyse IA",
   HIBP_FAILED: "Erreur lors de la vérification HIBP",
-  DELETE_ACCOUNT_FAILED: "Échec de la suppression du compte"
+  DELETE_ACCOUNT_FAILED: "Échec de la suppression du compte",
+
+  // Audit Portal
+  LINK_GEN_FAILED: "Échec de la génération du lien de partage",
+  PORTAL_ACCESS_FAILED: "Accès au portail refusé ou impossible"
 } as const;
 
 export type ErrorMessageKey = keyof typeof ERROR_MESSAGES;

@@ -25,10 +25,13 @@ import { useReportsData } from '../hooks/reports/useReportsData';
 import { Button } from '../components/ui/button';
 import { SEO } from '../components/SEO';
 
+import { ReportConfigurationModal, ReportConfig } from '../components/reports/ReportConfigurationModal';
+
 export const Reports: React.FC = () => {
     const { user, t, organization, addToast } = useStore();
     const [activeTab, setActiveTab] = useState('templates');
     const [loadingAction, setLoadingAction] = useState(false);
+    const [showConfigModal, setShowConfigModal] = useState(false);
 
     const TABS = [
         { id: 'templates', label: t('reports.templates'), icon: FileText },
@@ -50,7 +53,7 @@ export const Reports: React.FC = () => {
 
     const { checkLimit } = usePlanLimits();
 
-    const generatePDF = async (templateId: string, title: string) => {
+    const generatePDF = async (templateId: string, title: string, config?: ReportConfig) => {
         if (!checkLimit('reports')) return; // reports feature check
         setLoadingAction(true);
         try {
@@ -60,27 +63,36 @@ export const Reports: React.FC = () => {
                 console.log('📦 Generating compliance pack...');
                 await CompliancePackService.generatePack({
                     organizationName: organization?.name || 'Organization',
-                    risks: risks || [],
-                    audits: audits || [],
-                    assets: assets || [],
+                    risks: config?.includeRisks === false ? [] : (risks || []),
+                    audits: config?.includeAudits === false ? [] : (audits || []),
+                    assets: config?.includeCompliance === false ? [] : (assets || []),
                     documents: documents || [],
-                    controls: controls || [],
-                    incidents: incidents || [],
-                    projects: projects || []
+                    controls: config?.includeCompliance === false ? [] : (controls || []),
+                    incidents: config?.includeIncidents === false ? [] : (incidents || []),
+                    projects: config?.includeProjects === false ? [] : (projects || [])
                 });
                 console.log('✅ Compliance pack generated successfully');
                 addToast(t('reports.success'), 'success');
             } else if (templateId === 'custom') {
-                console.log('📊 Generating custom executive report...');
+                console.log('📊 Generating custom executive report...', config);
                 // Generate Global Executive Report
                 // 1. Calculate all metrics
-                const riskMetrics = ReportEnrichmentService.calculateMetrics(risks || []);
-                const complianceMetrics = ReportEnrichmentService.calculateComplianceMetrics(controls || []);
-                // Need audit metrics per audit? Or just global?
-                // Let's create dummy audit metrics if we don't have detailed finding data
-                // Or better, assume we can get basic status from audits.
+                const riskMetrics = config?.includeRisks !== false ? ReportEnrichmentService.calculateMetrics(risks || []) : { total_risks: 0, critical_risks: 0, high_risks: 0, medium_risks: 0, low_risks: 0, avg_score: 0, risk_score: 0, treated_percentage: 0 };
+                const complianceMetrics = config?.includeCompliance !== false ? ReportEnrichmentService.calculateComplianceMetrics(controls || []) : {
+                    total_controls: 0,
+                    implemented_controls: 0,
+                    partial_controls: 0,
+                    not_implemented_controls: 0,
+                    not_applicable_controls: 0,
+                    compliance_coverage: 0,
+                    audit_readiness: 0,
+                    planned_controls: 0,
+                    not_applicable: 0,
+                    not_started: 0
+                };
+
                 // Real Audit Metrics
-                const auditMetricsList = (audits || []).map(a => ({
+                const auditMetricsList = config?.includeAudits !== false ? (audits || []).map(a => ({
                     total_findings: a.findingsCount || 0,
                     major_findings: 0, // Breakdown not available in list view
                     minor_findings: 0,
@@ -88,8 +100,8 @@ export const Reports: React.FC = () => {
                     open_findings: a.status !== 'Terminé' && a.status !== 'Validé' ? (a.findingsCount || 0) : 0, // Approximation
                     closed_findings: a.status === 'Terminé' || a.status === 'Validé' ? (a.findingsCount || 0) : 0, // Approximation
                     conformity_score: a.score || 0
-                }));
-                const projectMetricsList = (projects || []).map(p => ReportEnrichmentService.calculateProjectMetrics(p));
+                })) : [];
+                const projectMetricsList = config?.includeProjects !== false ? (projects || []).map(p => ReportEnrichmentService.calculateProjectMetrics(p)) : [];
 
                 const globalMetrics = ReportEnrichmentService.calculateGlobalMetrics(
                     riskMetrics,
@@ -164,14 +176,14 @@ export const Reports: React.FC = () => {
 
         } catch (error) {
             console.error('❌ PDF Generation Error:', error);
-            console.error('Error details:', {
-                name: error instanceof Error ? error.name : 'Unknown',
-                message: error instanceof Error ? error.message : String(error),
-                stack: error instanceof Error ? error.stack : 'No stack available',
-                fullError: typeof error === 'object' ? JSON.stringify(error) : error,
-                templateId,
-                title
-            });
+            // Enhanced error logging for debugging
+            if (error instanceof Error) {
+                console.error('Stack:', error.stack);
+                console.error('Message:', error.message);
+            }
+            // Log to console for user to provide if needed
+            console.error('Context:', { templateId, title, organization });
+
             ErrorLogger.handleErrorWithToast(error, 'Reports.generatePDF', 'CREATE_FAILED');
         } finally {
             setLoadingAction(false);
@@ -303,7 +315,7 @@ export const Reports: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div
                                 className="glass-premium p-6 rounded-2xl border border-white/10 hover:border-purple-500 transition-all cursor-pointer group relative overflow-hidden"
-                                onClick={() => generatePDF('custom', t('reports.templateCards.custom.title'))}
+                                onClick={() => setShowConfigModal(true)}
                                 role="button"
                                 tabIndex={0}
                                 onKeyDown={(e) => {
@@ -385,6 +397,12 @@ export const Reports: React.FC = () => {
                 </div>
             )}
 
+            <ReportConfigurationModal
+                isOpen={showConfigModal}
+                onClose={() => setShowConfigModal(false)}
+                onGenerate={(config) => generatePDF('custom', config.title, config)}
+                defaultTitle={t('reports.templateCards.custom.title')}
+            />
         </motion.div>
     );
 };

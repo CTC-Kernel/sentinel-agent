@@ -49,10 +49,21 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
         }
     });
 
-    const onInvalid = (errors: FieldErrors<IncidentFormData>) => {
-        console.error("Form Validation Errors:", errors);
-        const missingFields = Object.keys(errors).join(', ');
+    const scrollToFirstError = (fieldErrors: FieldErrors<IncidentFormData>) => {
+        const firstErrorKey = Object.keys(fieldErrors)[0];
+        if (firstErrorKey) {
+            const el = document.getElementById('incident-form')?.querySelector(`[name="${firstErrorKey}"]`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                (el as HTMLElement).focus?.();
+            }
+        }
+    };
+
+    const onInvalid = (fieldErrors: FieldErrors<IncidentFormData>) => {
+        const missingFields = Object.keys(fieldErrors).join(', ');
         toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
+        scrollToFirstError(fieldErrors);
     };
 
     const affectedAssetId = useWatch({ control, name: 'affectedAssetId' });
@@ -74,7 +85,7 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
     }, [affectedAssetId, processes, setValue, getValues, addToast]);
 
     return (
-        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
+        <form id="incident-form" onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
             <div className="space-y-6">
                 <FloatingLabelInput
                     label="Titre de l'incident"
@@ -84,43 +95,46 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                 />
 
                 {/* NIS 2 Section */}
-                <div className="bg-red-50/50 dark:bg-red-900/10 p-6 rounded-3xl border border-red-100 dark:border-red-900/30 space-y-4">
-                    <div className="flex items-center space-x-3">
-                        <input {...register('isSignificant')}
-                            type="checkbox"
-                            className="h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300"
-                        />
-                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center">
-                            <ShieldAlert className="h-4 w-4 mr-2 text-red-500" />
-                            Incident Significatif (NIS 2)
-                        </label>
-                    </div>
-
-                    {isSignificant && (
-                        <div className="animate-fade-in pl-8 space-y-4">
-                            <div className="p-4 bg-white dark:bg-slate-900/50 rounded-2xl border border-red-100 dark:border-red-900/30">
-                                <h4 className="text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 mb-2">Délais de Notification</h4>
-                                <ul className="text-xs space-y-1 text-slate-600 dark:text-slate-400">
-                                    <li className="flex justify-between"><span>Pré-notification (Early Warning)</span> <span className="font-bold">24h</span></li>
-                                    <li className="flex justify-between"><span>Notification Initiale</span> <span className="font-bold">72h</span></li>
-                                    <li className="flex justify-between"><span>Rapport Final</span> <span className="font-bold">1 mois</span></li>
-                                </ul>
-                            </div>
-
-                            <Controller
-                                name="notificationStatus"
-                                control={control}
-                                render={({ field }) => (
-                                    <CustomSelect
-                                        label="Statut Notification"
-                                        value={field.value || ''}
-                                        onChange={field.onChange}
-                                        options={[...NOTIFICATION_STATUSES]}
-                                    />
-                                )}
+                <div className="glass-panel p-6 rounded-[2rem] border border-red-100 dark:border-red-900/30 space-y-4 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/10 pointer-events-none" />
+                    <div className="relative z-10">
+                        <div className="flex items-center space-x-3">
+                            <input {...register('isSignificant')}
+                                type="checkbox"
+                                className="h-5 w-5 rounded text-red-600 focus:ring-red-500 border-gray-300"
                             />
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center">
+                                <ShieldAlert className="h-4 w-4 mr-2 text-red-500" />
+                                Incident Significatif (NIS 2)
+                            </label>
                         </div>
-                    )}
+
+                        {isSignificant && (
+                            <div className="animate-fade-in pl-8 space-y-4 mt-4">
+                                <div className="p-4 bg-white/60 dark:bg-slate-900/50 rounded-2xl border border-red-100 dark:border-red-900/30">
+                                    <h4 className="text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 mb-2">Délais de Notification</h4>
+                                    <ul className="text-xs space-y-2 text-slate-600 dark:text-slate-400">
+                                        <li className="flex justify-between items-center bg-white/40 dark:bg-white/5 p-2 rounded-lg"><span>Pré-notification (Early Warning)</span> <span className="font-bold bg-white dark:bg-black/20 px-2 py-0.5 rounded text-red-600">24h</span></li>
+                                        <li className="flex justify-between items-center bg-white/40 dark:bg-white/5 p-2 rounded-lg"><span>Notification Initiale</span> <span className="font-bold bg-white dark:bg-black/20 px-2 py-0.5 rounded text-red-600">72h</span></li>
+                                        <li className="flex justify-between items-center bg-white/40 dark:bg-white/5 p-2 rounded-lg"><span>Rapport Final</span> <span className="font-bold bg-white dark:bg-black/20 px-2 py-0.5 rounded text-red-600">1 mois</span></li>
+                                    </ul>
+                                </div>
+
+                                <Controller
+                                    name="notificationStatus"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <CustomSelect
+                                            label="Statut Notification"
+                                            value={field.value || ''}
+                                            onChange={field.onChange}
+                                            options={[...NOTIFICATION_STATUSES]}
+                                        />
+                                    )}
+                                />
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="relative">
@@ -286,6 +300,6 @@ export const IncidentForm: React.FC<IncidentFormProps> = ({
                     Enregistrer
                 </Button>
             </div>
-        </form>
+        </form >
     );
 };

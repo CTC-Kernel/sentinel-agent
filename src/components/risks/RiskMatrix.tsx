@@ -49,100 +49,99 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
             </div>
 
             <div className="relative p-6 lg:p-10 bg-slate-50/50 dark:bg-black/20 rounded-[2rem] border border-slate-200/50 dark:border-white/5 shadow-inner overflow-x-auto">
-                <div className="min-w-[700px] grid grid-cols-[auto_1fr] gap-4 lg:gap-8 justify-items-center">
+                <div className="overflow-x-auto pb-4">
+                    <div className="min-w-[600px] md:min-w-0 mx-auto max-w-4xl grid grid-cols-[auto_repeat(5,1fr)] gap-2 md:gap-4 items-center">
 
-                    {/* Y-Axis Label */}
-                    <div className="flex flex-col justify-center items-center w-8 md:w-16 lg:w-24 relative">
-                        <div className="-rotate-90 font-bold text-xs text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap absolute -left-8 lg:-left-6 top-1/2 -translate-y-1/2">
-                            Probabilité
+                        {/* Y-Axis Title (Rotated) */}
+                        <div className="row-span-5 flex justify-center -mr-4 md:mr-0">
+                            <div className="-rotate-90 font-bold text-xs text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap w-8">
+                                Probabilité
+                            </div>
                         </div>
-                        <div className="grid grid-rows-5 gap-3 md:gap-4 w-full h-full">
-                            {PROBABILITY_LABELS.map(label => (
-                                <div key={label.val} className="flex flex-col justify-center items-end w-full pr-4">
-                                    <span className="text-xs lg:text-sm font-bold text-slate-700 dark:text-slate-300 text-right leading-tight">{label.label}</span>
-                                    {label.sub && <span className="text-[10px] text-slate-400 text-right">{label.sub}</span>}
+
+                        {/* Matrix Rows (Labels + Cells) */}
+                        {PROBABILITY_LABELS.map((probObj) => (
+                            <React.Fragment key={probObj.val}>
+                                {/* Y-Axis Label */}
+                                <div className="text-right pr-2 md:pr-4 flex flex-col justify-center h-full">
+                                    <span className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300 leading-tight">
+                                        {probObj.label}
+                                    </span>
+                                    {probObj.sub && <span className="text-[10px] text-slate-400 hidden sm:inline-block">{probObj.sub}</span>}
                                 </div>
-                            ))}
-                        </div>
-                    </div>
 
-                    <div className="flex flex-col w-full items-center">
-                        {/* Grid */}
-                        <div className="grid grid-rows-5 grid-cols-5 gap-3 md:gap-4 w-full max-w-2xl">
-                            {PROBABILITY_LABELS.map(probObj => {
-                                const prob = probObj.val;
-                                return (
-                                    <React.Fragment key={prob}>
-                                        {IMPACT_LABELS.map(impactObj => {
-                                            const impact = impactObj.val;
-                                            const cellRisks = getRisksForCell(prob, impact);
-                                            const hasRisks = cellRisks.length > 0;
-                                            const isSelected = matrixFilter?.p === prob && matrixFilter?.i === impact;
-                                            const score = prob * impact;
+                                {/* Matrix Cells for this Row */}
+                                {IMPACT_LABELS.map((impactObj) => {
+                                    const cellRisks = getRisksForCell(probObj.val, impactObj.val);
+                                    const hasRisks = cellRisks.length > 0;
+                                    const isSelected = matrixFilter?.p === probObj.val && matrixFilter?.i === impactObj.val;
+                                    const score = probObj.val * impactObj.val;
 
-                                            // Determine styles based on score
-                                            let bgClass = 'bg-slate-100 dark:bg-white/5';
-                                            let borderClass = 'border-slate-200 dark:border-white/10';
+                                    let bgClass = 'bg-slate-100 dark:bg-white/5';
+                                    let borderClass = 'border-slate-200 dark:border-white/10';
 
-                                            if (score >= 15) { bgClass = 'bg-rose-500/10 dark:bg-rose-500/20'; borderClass = 'border-rose-500/30'; }
-                                            else if (score >= 10) { bgClass = 'bg-orange-500/10 dark:bg-orange-500/20'; borderClass = 'border-orange-500/30'; }
-                                            else if (score >= 5) { bgClass = 'bg-amber-400/10 dark:bg-amber-400/20'; borderClass = 'border-amber-400/30'; }
-                                            else if (hasRisks) { bgClass = 'bg-emerald-500/10 dark:bg-emerald-500/20'; borderClass = 'border-emerald-500/30'; }
+                                    if (score >= 15) { bgClass = 'bg-rose-500/10 dark:bg-rose-500/20'; borderClass = 'border-rose-500/30'; }
+                                    else if (score >= 10) { bgClass = 'bg-orange-500/10 dark:bg-orange-500/20'; borderClass = 'border-orange-500/30'; }
+                                    else if (score >= 5) { bgClass = 'bg-amber-400/10 dark:bg-amber-400/20'; borderClass = 'border-amber-400/30'; }
+                                    else if (hasRisks) { bgClass = 'bg-emerald-500/10 dark:bg-emerald-500/20'; borderClass = 'border-emerald-500/30'; }
 
-                                            return (
-                                                <CustomTooltip key={`${prob}-${impact}`} content={`Prob: ${prob}, Impact: ${impact}, ${cellRisks.length} Risques (Score: ${score})`} position="top">
-                                                    <div
-                                                        onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: prob, i: impact })}
-                                                        className={`
-                                                                relative rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 border cursor-pointer aspect-square
-                                                                ${bgClass} ${borderClass}
-                                                                ${hasRisks ? 'hover:scale-105 hover:z-10 hover:shadow-lg cursor-pointer' : 'opacity-60 cursor-default'}
-                                                                ${isSelected ? 'ring-2 ring-brand-500 scale-105 z-20 shadow-xl opacity-100' : matrixFilter && hasRisks ? 'opacity-40' : ''}
-                                                            `}
-                                                    >
-                                                        {hasRisks && (
-                                                            <>
-                                                                <div className="flex flex-col items-center">
-                                                                    <span className={`text-lg md:text-3xl font-black drop-shadow-sm transition-all
-                                                                            ${score >= 15 ? 'text-rose-600 dark:text-rose-400' :
-                                                                            score >= 10 ? 'text-orange-600 dark:text-orange-400' :
-                                                                                score >= 5 ? 'text-amber-600 dark:text-amber-400' :
-                                                                                    'text-emerald-600 dark:text-emerald-400'
-                                                                        }
-                                                                        `}>{cellRisks.length}</span>
-                                                                </div>
-                                                                {/* Corner Indicator */}
-                                                                <div className={`hidden md:block absolute top-2 right-2 w-2 h-2 rounded-full
-                                                                         ${score >= 15 ? 'bg-rose-500 animate-pulse' :
-                                                                        score >= 10 ? 'bg-orange-500' :
-                                                                            score >= 5 ? 'bg-amber-500' :
-                                                                                'bg-emerald-500'
-                                                                    }
-                                                                     `}></div>
-                                                            </>
-                                                        )}
+                                    return (
+                                        <CustomTooltip
+                                            key={`${probObj.val}-${impactObj.val}`}
+                                            content={`Prob: ${probObj.val}, Impact: ${impactObj.val}, ${cellRisks.length} Risques`}
+                                            position="top"
+                                        >
+                                            <div
+                                                onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: probObj.val, i: impactObj.val })}
+                                                className={`
+                                                    relative aspect-square w-full rounded-lg md:rounded-xl lg:rounded-2xl 
+                                                    flex items-center justify-center border transition-all duration-300
+                                                    ${bgClass} ${borderClass}
+                                                    ${hasRisks ? 'cursor-pointer hover:scale-105 hover:z-10 hover:shadow-lg' : 'cursor-default opacity-60'}
+                                                    ${isSelected ? 'ring-2 ring-brand-500 scale-105 z-20 shadow-xl opacity-100' : matrixFilter && hasRisks ? 'opacity-40' : ''}
+                                                `}
+                                            >
+                                                {hasRisks && (
+                                                    <>
+                                                        <span className={`text-sm md:text-xl lg:text-3xl font-black drop-shadow-sm
+                                                            ${score >= 15 ? 'text-rose-600 dark:text-rose-400' :
+                                                                score >= 10 ? 'text-orange-600 dark:text-orange-400' :
+                                                                    score >= 5 ? 'text-amber-600 dark:text-amber-400' :
+                                                                        'text-emerald-600 dark:text-emerald-400'
+                                                            }
+                                                        `}>
+                                                            {cellRisks.length}
+                                                        </span>
+                                                        {/* Dot for >10 */}
+                                                        <div className={`hidden md:block absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full
+                                                            ${score >= 15 ? 'bg-rose-500 animate-pulse' :
+                                                                score >= 10 ? 'bg-orange-500' :
+                                                                    score >= 5 ? 'bg-amber-500' : 'bg-emerald-500'}
+                                                        `} />
+                                                    </>
+                                                )}
+                                                {/* Mobile Score Hint */}
+                                                {hasRisks && <span className="md:hidden absolute bottom-0.5 right-1 text-[8px] opacity-40 font-mono">{score}</span>}
+                                            </div>
+                                        </CustomTooltip>
+                                    );
+                                })}
+                            </React.Fragment>
+                        ))}
 
-                                                        {/* Mobile Score Indicator */}
-                                                        {hasRisks && <span className="md:hidden absolute bottom-1 right-2 text-[8px] opacity-50">{score}</span>}
-                                                    </div>
-                                                </CustomTooltip>
-                                            )
-                                        })}
-                                    </React.Fragment>
-                                );
-                            })}
-                        </div>
-
-                        {/* X-Axis Labels */}
-                        <div className="grid grid-cols-5 gap-3 md:gap-4 mt-4 w-full max-w-2xl px-0">
-                            {IMPACT_LABELS.map(label => (
-                                <div key={label.val} className="flex flex-col items-center text-center">
-                                    <span className="text-xs lg:text-sm font-bold text-slate-700 dark:text-slate-300">{label.label}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="text-center font-bold text-xs text-slate-400 uppercase tracking-[0.2em] mt-2">
-                            Impact
+                        {/* X-Axis Title & Labels */}
+                        <div className="col-start-1" /> {/* Spacer for Y-axis label */}
+                        <div className="col-start-2 col-span-5 pt-4">
+                            <div className="grid grid-cols-5 gap-2 md:gap-4 text-center">
+                                {IMPACT_LABELS.map(label => (
+                                    <div key={label.val} className="flex flex-col items-center">
+                                        <span className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">{label.label}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="text-center font-bold text-xs text-slate-400 uppercase tracking-[0.2em] mt-3">
+                                Impact
+                            </div>
                         </div>
                     </div>
                 </div>

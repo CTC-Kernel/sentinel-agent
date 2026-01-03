@@ -45,7 +45,7 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, n
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-panel-command flex flex-col md:flex-row items-center justify-between p-4 md:px-8 rounded-[1.5rem] gap-6 md:gap-12 relative overflow-hidden group hover:shadow-blue-500/15 hover:shadow-[0_0_30px_-5px] transition-shadow duration-500"
+            className="glass-panel-command flex flex-col md:flex-row items-center justify-center min-h-[320px] p-4 md:px-8 rounded-[1.5rem] gap-6 md:gap-12 relative overflow-hidden group hover:shadow-blue-500/15 hover:shadow-[0_0_30px_-5px] transition-shadow duration-500"
             data-tour="dashboard-reports"
         >
             <TechCorner position="top-left" className="opacity-0 group-hover:opacity-100" />

@@ -194,7 +194,7 @@ exports.logAuthAttempt = onCall({
 });
 
 // Using beforeUserSignedIn with proper async/await and error handling
-exports.beforeUserSignedIn = onCall({enforceAppCheck: false}, async (request) => {
+exports.beforeUserSignedIn = onCall({ enforceAppCheck: false }, async (request) => {
     try {
         const providerId = request.data?.providerId || 'password';
         const normalizedProvider = normalizeProvider(providerId);
@@ -587,6 +587,23 @@ exports.auditDocuments = generateAuditTrigger('documents/{docId}', 'title');
 exports.auditSuppliers = generateAuditTrigger('suppliers/{docId}', 'name');
 exports.auditUsers = generateAuditTrigger('users/{docId}', 'email');
 exports.auditIncidents = generateAuditTrigger('incidents/{docId}', 'title');
+
+// --- B2B2C AUDIT PORTAL TRIGGERS ---
+const auditPortal = require('./auditPortal');
+exports.generateAuditShareLink = auditPortal.generateAuditShareLink;
+exports.getSharedAuditData = auditPortal.getSharedAuditData;
+exports.portal_submitFinding = auditPortal.portal_submitFinding;
+exports.portal_updateStatus = auditPortal.portal_updateStatus;
+exports.revokeAuditShare = auditPortal.revokeAuditShare;
+
+// --- CERTIFIER ECOSYSTEM ---
+const certifierPortal = require('./certifierPortal');
+exports.inviteCertifier = certifierPortal.inviteCertifier;
+exports.createCertifierOrganization = certifierPortal.createCertifierOrganization;
+exports.acceptPartnership = certifierPortal.acceptPartnership;
+exports.getCertifierDashboard = certifierPortal.getCertifierDashboard;
+exports.assignAuditToPartner = certifierPortal.assignAuditToPartner;
+
 
 // Imports moved to top
 
@@ -3657,7 +3674,7 @@ exports.fetchThreatFeed = onCall(async (request) => {
         const response = await fetch(url, {
             headers: {
                 'Accept': 'application/json, text/plain, */*',
-                'User-Agent': 'Sentinel-GRC/1.0'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
         });
 
@@ -3666,7 +3683,7 @@ exports.fetchThreatFeed = onCall(async (request) => {
         }
 
         const text = await response.text();
-        
+
         try {
             return JSON.parse(text);
         } catch {

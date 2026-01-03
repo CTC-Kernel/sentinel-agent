@@ -1,5 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { Settings as Settings3D, Siren, ShieldAlert, Server, User } from '../../ui/Icons'; // Settings aliased as Settings3D
 
 interface QuickActionProps {
@@ -14,11 +15,57 @@ interface QuickActionProps {
 }
 
 export const QuickActions: React.FC<QuickActionProps> = ({ navigate, t, stats }) => {
-    return (
-        <div className="flex items-center justify-center py-2" data-tour="quick-actions">
-            <div className="glass-premium px-6 py-4 rounded-[2rem] flex items-center gap-4 relative">
-                {/* Dock Background Glow */}
-                <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 rounded-[2rem] blur-xl opacity-50 -z-10" />
+    const [isVisible, setIsVisible] = useState(false);
+    const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId);
+        };
+    }, [timeoutId]);
+
+    const handleMouseEnter = () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        setIsVisible(true);
+    };
+
+    const handleMouseLeave = () => {
+        const id = setTimeout(() => {
+            setIsVisible(false);
+        }, 300); // 300ms delay before hiding
+        setTimeoutId(id);
+    };
+
+    return createPortal(
+        <div 
+            className="fixed right-6 top-24 z-[9999] !important" 
+            data-tour="quick-actions"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+        >
+            {/* Subtle indicator when hidden */}
+            <AnimatePresence>
+                {!isVisible && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="absolute right-0 top-1/2 transform -translate-y-1/2 w-2 h-12 bg-gradient-to-b from-brand-500/50 to-brand-600/50 rounded-l-full shadow-lg"
+                    />
+                )}
+            </AnimatePresence>
+            
+            <AnimatePresence>
+                {isVisible && (
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="glass-premium px-4 py-6 rounded-[2rem] flex flex-col items-center gap-4 relative"
+                    >
+                        {/* Dock Background Glow */}
+                        <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 rounded-[2rem] blur-xl opacity-50 -z-10" />
 
                 <DockItem
                     icon={Settings3D}
@@ -62,9 +109,11 @@ export const QuickActions: React.FC<QuickActionProps> = ({ navigate, t, stats })
                     color="emerald"
                     delay={0.4}
                 />
-            </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
-    );
+        , document.body);
 };
 
 interface DockItemProps {
@@ -108,11 +157,11 @@ const DockItem: React.FC<DockItemProps> = ({ icon: Icon, label, onClick, color, 
                 <Icon className="h-7 w-7" />
             </div>
             {(badge || 0) > 0 && (
-                <span className={`absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full ${badgeColors[color]} text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-900`}>
+                <span className={`absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full ${badgeColors[color]} text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-900`}>
                     {badge}
                 </span>
             )}
-            <span className="absolute -bottom-8 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 rounded-full shadow-sm whitespace-nowrap z-50 pointer-events-none">
+            <span className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 rounded-full shadow-sm whitespace-nowrap z-50 pointer-events-none">
                 {label}
             </span>
             <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
