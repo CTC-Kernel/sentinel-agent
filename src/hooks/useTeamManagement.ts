@@ -283,8 +283,8 @@ export const useTeamManagement = () => {
                 const userData: UserFormData = {
                     email,
                     displayName: row.Nom || row.name || '',
-                    role: normalizeRole(row.Role || row.role),
-                    department: row.Departement || row.department || ''
+                    role: normalizeRole(row.Role || row.role || row['Rôle'] || row['rôle']),
+                    department: row.Departement || row.department || row['Département'] || row['département'] || ''
                 };
 
                 // Use inviteUser but suppress individual toasts (we need to refactor inviteUser or just accept toasts? Refactoring is better but complex. 

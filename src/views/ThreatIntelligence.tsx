@@ -39,7 +39,7 @@ export const ThreatIntelligence: React.FC = () => {
     const [activeTab, setActiveTab] = usePersistedState<'overview' | 'map' | 'feed' | 'community'>('threat_intelligence_active_tab', 'map');
 
     const [tooltipContent, setTooltipContent] = useState('');
-    const [viewMode, setViewMode] = useState<'2d' | '3d'>('3d');
+    const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
     const [isSeeding, setIsSeeding] = useState(false);
 
     // Filters (PremiumPageControl)
@@ -218,9 +218,9 @@ export const ThreatIntelligence: React.FC = () => {
                 title="Threat Intelligence"
                 subtitle="Veille collaborative et cartographie mondiale"
                 icon={
-                    <img 
-                        src="/images/operations.png" 
-                        alt="OPÉRATIONS" 
+                    <img
+                        src="/images/operations.png"
+                        alt="OPÉRATIONS"
                         className="w-full h-full object-contain"
                     />
                 }

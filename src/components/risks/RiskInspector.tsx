@@ -238,7 +238,9 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                         <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4 flex items-center gap-2">
                                             <ShieldAlert className="h-4 w-4" /> Risque Brut
                                         </h4>
-                                        <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{risk.score}</div>
+                                        <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">
+                                            {Number(risk.score) || (risk.probability * risk.impact)}
+                                        </div>
                                         <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Prob: {risk.probability} × Impact: {risk.impact}</div>
                                     </div>
                                 </div>
@@ -248,7 +250,9 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                         <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4 flex items-center gap-2">
                                             <CheckCircle2 className="h-4 w-4" /> Risque Résiduel
                                         </h4>
-                                        <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{risk.residualScore || risk.score}</div>
+                                        <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">
+                                            {Number(risk.residualScore) || ((risk.residualProbability || risk.probability) * (risk.residualImpact || risk.impact))}
+                                        </div>
                                         <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Prob: {risk.residualProbability || risk.probability} × Impact: {risk.residualImpact || risk.impact}</div>
                                     </div>
                                 </div>

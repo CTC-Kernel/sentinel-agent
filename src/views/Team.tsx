@@ -61,22 +61,27 @@ const Team: React.FC = () => {
     const [csvImportOpen, setCsvImportOpen] = useState(false);
 
     // CSV Import Handlers
-    const userGuidelines = {
-        required: ['Email'],
-        optional: ['Nom', 'Role', 'Departement'],
+    const userGuidelines = React.useMemo(() => ({
+        required: [t('common.columns.email')],
+        optional: [t('common.columns.name'), t('common.columns.role'), t('common.columns.department')],
         format: 'CSV'
-    };
+    }), [t]);
 
     const handleDownloadTemplate = React.useCallback(() => {
-        const headers = ['Email', 'Nom', 'Role', 'Departement'];
+        const headers = [
+            t('common.columns.email'),
+            t('common.columns.name'),
+            t('common.columns.role'),
+            t('common.columns.department')
+        ];
         const rows = [{
-            Email: 'jean.dupont@example.com',
-            Nom: 'Jean Dupont',
-            Role: 'user',
-            Departement: 'IT'
+            [t('common.columns.email')]: 'jean.dupont@example.com',
+            [t('common.columns.name')]: 'Jean Dupont',
+            [t('common.columns.role')]: 'user',
+            [t('common.columns.department')]: 'IT'
         }];
         CsvParser.downloadCSV(headers, rows, 'template_users.csv');
-    }, []);
+    }, [t]);
 
     const handleImportCsvFile = React.useCallback(async (file: File) => {
         if (!file) return;
@@ -236,9 +241,9 @@ const Team: React.FC = () => {
                     { label: t('team.title') }
                 ]}
                 icon={
-                    <img 
-                        src="/images/administration.png" 
-                        alt="ADMINISTRATION" 
+                    <img
+                        src="/images/administration.png"
+                        alt="ADMINISTRATION"
                         className="w-full h-full object-contain"
                     />
                 }

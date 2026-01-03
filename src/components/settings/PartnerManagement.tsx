@@ -26,14 +26,23 @@ export const PartnerManagement: React.FC = () => {
     const [inviting, setInviting] = useState(false);
 
     useEffect(() => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId) {
+            setLoading(false);
+            return;
+        }
 
         const q = query(collection(db, 'partnerships'), where('tenantId', '==', user.organizationId));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const parts = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Partner));
-            setPartners(parts);
-            setLoading(false);
-        });
+        const unsubscribe = onSnapshot(q,
+            (snapshot) => {
+                const parts = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Partner));
+                setPartners(parts);
+                setLoading(false);
+            },
+            (error) => {
+                ErrorLogger.handleErrorWithToast(error, 'PartnerManagement.fetch');
+                setLoading(false);
+            }
+        );
 
         return () => unsubscribe();
     }, [user?.organizationId]);
