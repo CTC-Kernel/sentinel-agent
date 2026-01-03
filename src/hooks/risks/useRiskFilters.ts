@@ -43,7 +43,7 @@ export const useRiskFilters = (risks: Risk[]) => {
             return matchesSearch && matchesMatrix && matchesFramework && matchesStatus;
         });
 
-        return filteredRisks;
+
     }, [risks, deferredQuery, frameworkFilter, matrixFilter, activeFilters.status]);
 
     return {
