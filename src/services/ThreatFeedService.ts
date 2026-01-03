@@ -1,12 +1,10 @@
-// import { getFunctions, httpsCallable } from 'firebase/functions';
-// import { getApp } from 'firebase/app';
-
-// const functions = getFunctions(getApp(), 'us-central1');
-// const fetchThreatFeed = httpsCallable(functions, 'fetchThreatFeed');
-import { db } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { db, functions } from '../firebase';
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { Threat, Vulnerability } from '../types';
 import { ErrorLogger } from './errorLogger';
+
+const fetchThreatFeed = httpsCallable(functions, 'fetchThreatFeed');
 
 interface CisaVulnerability {
     cveID: string;
@@ -76,18 +74,17 @@ export class ThreatFeedService {
         }
 
         // 0. Try Firebase proxy first (most reliable)
-        // FUNCTION MISSING in current deployment - Disabling to prevent 500 errors
-        /*
         try {
             const result = await fetchThreatFeed({ url: targetUrl });
-            if (result.data) {
-                return result.data;
+            // Type safe access to data
+            const data = (result.data as any);
+            if (data) {
+                return data;
             }
         } catch (error) {
             // Continue to other methods if Firebase proxy fails
             console.warn("Firebase proxy failed, trying alternatives", error);
         }
-        */
 
         // List of proxy services to try in order
         const proxies = [
@@ -111,8 +108,7 @@ export class ThreatFeedService {
                 signal: controller.signal,
                 mode: 'cors',
                 headers: {
-                    'Accept': 'application/json, text/plain, */*',
-                    'User-Agent': 'Sentinel-GRC/1.0'
+                    'Accept': 'application/json, text/plain, */*'
                 }
             });
             clearTimeout(timeoutId);
@@ -140,8 +136,7 @@ export class ThreatFeedService {
                 const response = await fetch(url, {
                     signal: controller.signal,
                     headers: {
-                        'Accept': 'application/json, text/plain, */*',
-                        'User-Agent': 'Sentinel-GRC/1.0'
+                        'Accept': 'application/json, text/plain, */*'
                     }
                 });
                 clearTimeout(timeoutId);

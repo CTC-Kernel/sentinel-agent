@@ -11,6 +11,7 @@ import { cn } from '../../lib/utils';
 // Form validation: schema-based input validation with required fields
 import { usePlanLimits } from '../../hooks/usePlanLimits';
 import { useAIConversation } from '../../hooks/ai/useAIConversation';
+import { useDashboardData } from '../../hooks/dashboard/useDashboardData';
 
 const QUICK_PROMPTS = [
     { label: "Analyser les risques", prompt: "Analyse les risques actuels et propose des mesures de mitigation prioritaires." },
@@ -33,6 +34,10 @@ export const GeminiAssistant: React.FC = () => {
 
     // Use AI conversation hook
     const { messages, conversationRef, addMessage } = useAIConversation(user?.uid, aiEnabled);
+
+    // Fetch App Context Data
+    // We only fetch if AI is enabled and user is logged in to avoid unnecessary reads
+    const { allRisks, allAssets, myProjects, myIncidents } = useDashboardData();
 
     const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -61,7 +66,6 @@ export const GeminiAssistant: React.FC = () => {
         // Basic input validate/sanitize
         if (textToSend.length > 2000) {
             // Toast or just limit
-            // For now, just return. In a real app, you might show a toast notification.
             return;
         }
 
@@ -79,10 +83,37 @@ export const GeminiAssistant: React.FC = () => {
             // Save user message to Firestore
             await addMessage(userMsg);
 
+            // Prepare rich context from dashboard data
+            // We summarize data to stay efficient and avoid massive payloads
             const context = {
                 userRole: user?.role,
                 organizationId: user?.organizationId,
-                currentPage: window.location.hash
+                currentPage: window.location.hash,
+                data: {
+                    risks: allRisks?.slice(0, 50).map(r => ({
+                        threat: r.threat,
+                        score: r.score,
+                        status: r.status,
+                        assetName: allAssets.find(a => a.id === r.assetId)?.name || 'Inconnu'
+                    })),
+                    assets: allAssets?.slice(0, 50).map(a => ({
+                        name: a.name,
+                        type: a.type,
+                        criticality: a.confidentiality
+                    })),
+                    projects: myProjects?.slice(0, 20).map(p => ({
+                        name: p.name,
+                        status: p.status,
+                        progress: p.progress,
+                        dueDate: p.dueDate
+                    })),
+                    incidents: myIncidents?.slice(0, 20).map(i => ({
+                        title: i.title,
+                        severity: i.severity,
+                        status: i.status,
+                        date: i.dateReported
+                    }))
+                }
             };
 
             const responseText = await aiService.chatWithAI(userMsg.content, context);
@@ -119,7 +150,7 @@ export const GeminiAssistant: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [input, aiEnabled, isLoading, conversationRef, navigate, user?.role, user?.organizationId, addMessage]);
+    }, [input, aiEnabled, isLoading, conversationRef, navigate, user?.role, user?.organizationId, addMessage, allRisks, allAssets, myProjects, myIncidents]);
 
     const copyToClipboard = useCallback((text: string, id: string) => {
         navigator.clipboard.writeText(text);
