@@ -1,0 +1,237 @@
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const admin = require("firebase-admin");
+const { logger } = require("firebase-functions");
+const crypto = require("crypto");
+
+// Helper to validate token
+const validatePortalToken = async (token) => {
+    if (!token) throw new HttpsError('unauthenticated', 'Token missing');
+
+    const db = admin.firestore();
+    const shareDoc = await db.collection('audit_shares').doc(token).get();
+
+    if (!shareDoc.exists) {
+        throw new HttpsError('not-found', 'Invalid audit token');
+    }
+
+    const shareData = shareDoc.data();
+    if (shareData.expiresAt && new Date(shareData.expiresAt) < new Date()) {
+        throw new HttpsError('permission-denied', 'Audit token expired');
+    }
+
+    if (shareData.revoked) {
+        throw new HttpsError('permission-denied', 'Audit access revoked');
+    }
+
+    return shareData;
+};
+
+// 1. Generate Audit Share Link (Internal Admin Only)
+exports.generateAuditShareLink = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
+
+    // Check if user is admin/manager/auditor
+    const { auditId, auditorEmail, expiryDays } = request.data;
+
+    // TODO: Add strict RBAC check here (e.g. check if user owns the audit or is manager)
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + (expiryDays || 30)); // Default 30 days
+
+    const shareData = {
+        auditId,
+        organizationId: request.auth.token.organizationId,
+        auditorEmail,
+        generatedBy: request.auth.uid,
+        createdAt: new Date().toISOString(),
+        expiresAt: expiresAt.toISOString(),
+        permissions: ['read', 'write_findings', 'certify'],
+        revoked: false,
+        token // indexed by doc ID effectively, but storing it for sanity
+    };
+
+    try {
+        await admin.firestore().collection('audit_shares').doc(token).set(shareData);
+        // In a real app, trigger email sending here via Mail Service
+        return {
+            success: true,
+            link: `/portal/audit/${token}`,
+            token: token
+        };
+    } catch (error) {
+        logger.error('Error creating audit share', error);
+        throw new HttpsError('internal', 'Failed to generate share link');
+    }
+});
+
+// 2. Get Shared Audit Data (External Public Access via Token)
+exports.getSharedAuditData = onCall({ enforceAppCheck: false }, async (request) => {
+    const { token } = request.data;
+    const shareData = await validatePortalToken(token);
+    const db = admin.firestore();
+
+    try {
+        // Fetch Audit
+        const auditDoc = await db.collection('audits').doc(shareData.auditId).get();
+        if (!auditDoc.exists) throw new HttpsError('not-found', 'Audit not found');
+
+        // Fetch Scope (Risks, Controls, Findings) - Limit sensitive data
+        // For MVP, we fetch basic details
+        const audit = auditDoc.data();
+
+        // Sanitize Audit Data for External Viewer
+        const sanitizedAudit = {
+            id: auditDoc.id,
+            name: audit.name,
+            status: audit.status,
+            type: audit.type,
+            date: audit.date,
+            description: audit.description,
+            scope: audit.scope, // Assuming scope structure
+            checklists: audit.checklists
+        };
+
+        // Fetch related findings
+        const findingsSnap = await db.collection('findings')
+            .where('auditId', '==', shareData.auditId)
+            .get();
+
+        const findings = findingsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Fetch relevant controls (often nested in audit or separate collection? Assuming separate for MVP scalability or part of audit object)
+        // For Sentinel V2, Controls are likely referenced or instantiated. 
+        // We will fetch controls linked to this audit if they are centralized, or defaults.
+        // Assuming 'controls' collection with 'auditId' or specific list.
+        // If controls are embedded in 'audit.checklists', we already have them. 
+        // Let's assume we need to fetch linked 'documents' (Evidence).
+
+        const docsSnap = await db.collection('documents')
+            .where('auditId', '==', shareData.auditId)
+            .get();
+
+        const documents = docsSnap.docs.map(d => {
+            const data = d.data();
+            return {
+                id: d.id,
+                name: data.name,
+                type: data.type,
+                url: data.url, // In a real secure app, this would be a signed URL generated on fly
+                category: data.category
+            };
+        });
+
+        return {
+            audit: sanitizedAudit,
+            findings: findings,
+            documents: documents,
+            permissions: shareData.permissions,
+            auditorEmail: shareData.auditorEmail
+        };
+
+    } catch (error) {
+        logger.error('Error fetching shared audit data', error);
+        throw new HttpsError('internal', 'Failed to load audit data');
+    }
+});
+
+// 3. Submit Finding (External)
+exports.portal_submitFinding = onCall({ enforceAppCheck: false }, async (request) => {
+    const { token, finding } = request.data;
+    const shareData = await validatePortalToken(token);
+
+    if (!shareData.permissions.includes('write_findings')) {
+        throw new HttpsError('permission-denied', 'Write permission denied');
+    }
+
+    const db = admin.firestore();
+
+    try {
+        const findingData = {
+            ...finding,
+            auditId: shareData.auditId,
+            organizationId: shareData.organizationId,
+            createdBy: 'external_auditor', // Marker
+            authorEmail: shareData.auditorEmail,
+            createdAt: new Date().toISOString(),
+            status: 'Ouvert'
+        };
+
+        const ref = await db.collection('findings').add(findingData);
+
+        // Security Audit Log
+        await db.collection('audit_shares').doc(token).collection('logs').add({
+            action: 'submit_finding',
+            findingId: ref.id,
+            timestamp: new Date().toISOString()
+        });
+
+        return { success: true, findingId: ref.id };
+    } catch (error) {
+        logger.error('Portal submit finding error', error);
+        throw new HttpsError('internal', 'Failed to save finding');
+    }
+});
+
+// 4. Update Status / Certify
+exports.portal_updateStatus = onCall({ enforceAppCheck: false }, async (request) => {
+    const { token, status, certificationData } = request.data;
+    const shareData = await validatePortalToken(token);
+
+    if (!shareData.permissions.includes('certify')) {
+        throw new HttpsError('permission-denied', 'Certification permission denied');
+    }
+
+    const db = admin.firestore();
+
+    try {
+        await db.collection('audits').doc(shareData.auditId).update({
+            status: status,
+            certificationData: certificationData || null,
+            lastExternalUpdate: new Date().toISOString()
+        });
+
+        // Log this major action
+        await db.collection('audit_shares').doc(token).collection('logs').add({
+            action: 'update_status',
+            newStatus: status,
+            timestamp: new Date().toISOString()
+        });
+
+        return { success: true };
+    } catch (error) {
+        logger.error('Portal status update error', error);
+        throw new HttpsError('internal', 'Update failed');
+    }
+});
+
+// 5. Revoke Audit Share Link (Internal)
+exports.revokeAuditShare = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
+
+    const { token } = request.data;
+    if (!token) throw new HttpsError('invalid-argument', 'Token required');
+
+    const db = admin.firestore();
+
+    try {
+        // Verify ownership/rights
+        const shareDoc = await db.collection('audit_shares').doc(token).get();
+        if (!shareDoc.exists) throw new HttpsError('not-found', 'Share not found');
+
+        if (shareDoc.data().organizationId !== request.auth.token.organizationId) {
+            throw new HttpsError('permission-denied', 'Unauthorized');
+        }
+
+        await db.collection('audit_shares').doc(token).update({
+            revoked: true,
+            revokedAt: new Date().toISOString(),
+            revokedBy: request.auth.uid
+        });
+
+        return { success: true };
+    } catch (error) {
+        logger.error('Revoke share error', error);
+        throw new HttpsError('internal', 'Revoke failed');
+    }
+});
