@@ -9,9 +9,37 @@ export const MockDataService = {
                         id: 'risk-1',
                         threat: 'Attaque par Phishing',
                         description: 'Compromission des identifiants via email frauduleux',
+                        probability: 4,
+                        impact: 4,
+                        score: 16,
+                        status: 'Ouvert',
+                        owner: 'user-1',
+                        organizationId: 'org_default',
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        assetId: 'asset-1'
+                    },
+                    {
+                        id: 'risk-2',
+                        threat: 'Panne Serveur',
+                        description: 'Interruption de service due à une défaillance matérielle',
                         probability: 3,
-                        impact: 3,
-                        score: 9,
+                        impact: 4,
+                        score: 12,
+                        status: 'Traité',
+                        owner: 'user-1',
+                        organizationId: 'org_default',
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        assetId: 'asset-2'
+                    },
+                    {
+                        id: 'risk-3',
+                        threat: 'Fuite de données',
+                        description: 'Exposition non autorisée de données sensibles',
+                        probability: 3,
+                        impact: 5,
+                        score: 15,
                         status: 'Ouvert',
                         owner: 'user-1',
                         organizationId: 'org_default',
@@ -19,13 +47,13 @@ export const MockDataService = {
                         updatedAt: new Date().toISOString()
                     },
                     {
-                        id: 'risk-2',
-                        threat: 'Panne Serveur',
-                        description: 'Interruption de service due à une défaillance matérielle',
+                        id: 'risk-4',
+                        threat: 'Malware interne',
+                        description: 'Infection malware via vecteur interne',
                         probability: 2,
                         impact: 4,
                         score: 8,
-                        status: 'Traité',
+                        status: 'Ouvert',
                         owner: 'user-1',
                         organizationId: 'org_default',
                         createdAt: new Date().toISOString(),
@@ -42,7 +70,7 @@ export const MockDataService = {
                         owner: 'user-1',
                         lifecycleStatus: 'Active',
                         createdAt: new Date().toISOString(),
-                        purchasePrice: 1500,
+                        purchasePrice: 50000,
                         purchaseDate: '2023-01-01',
                         warrantyEnd: '2026-01-01'
                     },
@@ -54,9 +82,21 @@ export const MockDataService = {
                         owner: 'user-1',
                         lifecycleStatus: 'Active',
                         createdAt: new Date().toISOString(),
-                        purchasePrice: 0,
-                        purchaseDate: new Date().toISOString(),
-                        warrantyEnd: ''
+                        purchasePrice: 75000,
+                        purchaseDate: '2023-06-01',
+                        warrantyEnd: '2026-06-01'
+                    },
+                    {
+                        id: 'asset-3',
+                        name: 'Infrastructure Cloud',
+                        type: 'Cloud',
+                        confidentiality: 'Critical',
+                        owner: 'user-1',
+                        lifecycleStatus: 'Active',
+                        createdAt: new Date().toISOString(),
+                        purchasePrice: 25000,
+                        purchaseDate: '2023-03-01',
+                        warrantyEnd: '2026-03-01'
                     }
                 ];
             case 'incidents':
@@ -66,13 +106,40 @@ export const MockDataService = {
                         title: 'Ransomware detected',
                         description: 'Ransomware detected on HR server',
                         severity: 'Critical',
-                        status: 'Nouveau',
+                        status: 'En cours',
                         reporter: 'user-1',
                         dateReported: new Date().toISOString(),
                         organizationId: 'org_default',
                         impact: 'Major',
                         isSignificant: true,
                         category: 'Ransomware'
+                    },
+                    {
+                        id: 'incident-2',
+                        title: 'Tentative d\'intrusion',
+                        description: 'Suspicious activity detected on network perimeter',
+                        severity: 'High',
+                        status: 'En cours',
+                        reporter: 'user-1',
+                        dateReported: new Date(Date.now() - 86400000).toISOString(),
+                        organizationId: 'org_default',
+                        impact: 'Minor',
+                        isSignificant: false,
+                        category: 'Network'
+                    },
+                    {
+                        id: 'incident-3',
+                        title: 'Défaillance matérielle',
+                        description: 'Disk failure on backup server',
+                        severity: 'Medium',
+                        status: 'Fermé',
+                        reporter: 'user-1',
+                        dateReported: new Date(Date.now() - 172800000).toISOString(),
+                        dateResolved: new Date(Date.now() - 86400000).toISOString(),
+                        organizationId: 'org_default',
+                        impact: 'Minor',
+                        isSignificant: false,
+                        category: 'Hardware'
                     }
                 ];
             case 'controls':
