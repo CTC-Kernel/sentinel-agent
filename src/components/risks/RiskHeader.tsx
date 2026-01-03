@@ -5,6 +5,7 @@ import {
     Loader2, Plus, BrainCircuit, ShieldAlert, Copy
 } from 'lucide-react';
 import { PageHeader } from '../ui/PageHeader';
+import { Button } from '../ui/button';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { ObsidianService } from '../../services/ObsidianService'; // Import might need adjustment
 import { Risk } from '../../types';
@@ -57,7 +58,7 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
             actions={
                 <>
                     <Menu as="div" className="relative inline-block text-left">
-                        <Menu.Button className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors shadow-sm">
+                        <Menu.Button as={Button} variant="ghost" size="icon" className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 shadow-sm h-9 w-9">
                             <MoreVertical className="h-5 w-5" />
                         </Menu.Button>
                         <Transition
@@ -179,25 +180,25 @@ export const RiskHeader: React.FC<RiskHeaderProps> = ({
                     {canEdit && (
                         <>
                             <CustomTooltip content="Lancer l'analyse IA">
-                                <button
+                                <Button
                                     aria-label="Lancer l'analyse IA"
                                     onClick={onAIAnalysis}
                                     disabled={isAnalyzing}
-                                    className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-indigo-500/20 font-bold text-sm"
                                 >
                                     {isAnalyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BrainCircuit className="h-4 w-4 mr-2" />}
                                     <span className="hidden md:inline">{isAnalyzing ? 'Analyse...' : 'Analyse IA'}</span>
-                                </button>
+                                </Button>
                             </CustomTooltip>
                             <CustomTooltip content="Créer un nouveau risque">
-                                <button
+                                <Button
                                     aria-label="Créer un nouveau risque"
                                     onClick={onNewRisk}
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                    className="flex items-center gap-2 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 shadow-lg shadow-brand-500/20"
                                 >
                                     <Plus className="h-4 w-4" />
                                     <span className="hidden sm:inline">Nouveau Risque</span>
-                                </button>
+                                </Button>
                             </CustomTooltip>
                         </>
                     )}

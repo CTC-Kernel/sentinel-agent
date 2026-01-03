@@ -326,7 +326,7 @@ export const Audits: React.FC = () => {
             {
                 activeTab === 'list' && (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible" className="space-y-6">
-                        <div className="glass-panel overflow-hidden rounded-2xl border border-white/20 dark:border-white/5">
+                        <div className="glass-premium overflow-hidden rounded-2xl">
                             <AuditsList
                                 audits={filteredAudits}
                                 isLoading={loading}
@@ -390,6 +390,10 @@ export const Audits: React.FC = () => {
                     onClose={() => setSelectedAudit(null)}
                     controls={controls}
                     documents={documents}
+                    assets={assets}
+                    risks={risks}
+                    projects={projects}
+                    usersList={usersList}
                     refreshAudits={refreshAudits}
                     canEdit={canEdit}
                     onDelete={(id, name) => {

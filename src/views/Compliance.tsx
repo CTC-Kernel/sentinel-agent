@@ -360,8 +360,8 @@ export const Compliance: React.FC = () => {
                     {creationMode === 'audit' && (
                         <AuditForm
                             onCancel={handleDrawerClose}
-                            onSubmit={() => {
-                                toast.info(t('compliance.auditSim'));
+                            onSubmit={async (data) => {
+                                await complianceActions.createAudit(data);
                                 handleDrawerClose();
                             }}
                             assets={assets}

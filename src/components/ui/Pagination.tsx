@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ChevronRight, ChevronDown } from './Icons';
+import { Button } from './button';
 
 interface PaginationProps {
     currentPage: number;
@@ -63,7 +64,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     }
 
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/5">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 glass-premium rounded-2xl border border-white/60 dark:border-white/5">
             <div className="flex items-center gap-4">
                 <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
                     {startItem} à {endItem} sur {totalItems}
@@ -89,14 +90,16 @@ export const Pagination: React.FC<PaginationProps> = ({
             </div>
 
             <div className="flex items-center gap-1">
-                <button
+                <Button
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    size="icon"
+                    variant="ghost"
+                    className="rounded-xl disabled:opacity-30"
                     aria-label="Page précédente"
                 >
                     <ChevronRight className="h-4 w-4 rotate-180 text-slate-600 dark:text-slate-400" />
-                </button>
+                </Button>
 
                 <div className="flex items-center gap-1">
                     {getPageNumbers().map((page, index) => {
@@ -112,28 +115,31 @@ export const Pagination: React.FC<PaginationProps> = ({
                         const isActive = pageNum === currentPage;
 
                         return (
-                            <button
+                            <Button
                                 key={pageNum}
                                 onClick={() => onPageChange(pageNum)}
+                                variant={isActive ? 'default' : 'ghost'}
                                 className={`min-w-[36px] px-3 py-1.5 rounded-xl text-sm font-bold transition-all ${isActive
                                     ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg'
-                                    : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
+                                    : 'text-slate-600 dark:text-slate-400'
                                     }`}
                             >
                                 {pageNum}
-                            </button>
+                            </Button>
                         );
                     })}
                 </div>
 
-                <button
+                <Button
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    size="icon"
+                    variant="ghost"
+                    className="rounded-xl disabled:opacity-30"
                     aria-label="Page suivante"
                 >
                     <ChevronRight className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                </button>
+                </Button>
             </div>
         </div>
     );

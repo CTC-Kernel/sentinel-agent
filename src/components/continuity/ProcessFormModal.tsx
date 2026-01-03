@@ -1,18 +1,17 @@
-
 import React, { useState } from 'react';
+import { Button } from '../ui/button';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { businessProcessSchema, BusinessProcessFormData } from '../../schemas/continuitySchema';
 import { Modal } from '../ui/Modal';
 import { aiService } from '../../services/aiService';
-import { Sparkles, Plus, Trash2, Server, Truck } from 'lucide-react'; // Using Lucide directly or Icons if customized
+import { Sparkles, Plus, Trash2, Server, Truck } from 'lucide-react';
 import { useStore } from '../../store';
 import { ErrorLogger } from '../../services/errorLogger';
 import { Asset, Supplier, Risk, UserProfile } from '../../types';
 
 import { CustomSelect } from '../ui/CustomSelect';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
-import { Button } from '../ui/button';
 
 const TEMPLATES = [
     { name: 'Systèmes d\'Information (IT)', description: 'Maintenance et support des infrastructures critiques.', rto: '4h', rpo: '1h', priority: 'Critique' as const },
@@ -328,9 +327,14 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                 <div>
                     <div className="flex justify-between items-center mb-3">
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-600">{t('continuity.recoveryPlan')}</label>
-                        <button type="button" onClick={addRecoveryTask} className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2" aria-label={t('common.addStep')}>
-                            <Plus className="h-3 w-3" /> {t('common.addStep')}
-                        </button>
+                        <Button
+                            variant="ghost"
+                            onClick={addRecoveryTask}
+                            className="text-xs font-bold text-brand-600 hover:text-brand-700 hover:bg-brand-50"
+                        >
+                            <Plus className="h-3 w-3 mr-1" />
+                            {t('common.addStep')}
+                        </Button>
                     </div>
                     <div className="space-y-3">
                         {watchedRecoveryTasks?.map((_, index) => (
@@ -377,9 +381,14 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                         />
                                     </div>
                                 </div>
-                                <button type="button" onClick={() => removeRecoveryTask(index)} className="mt-2 text-slate-500 hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2" aria-label={`Supprimer l'étape ${index + 1}`}>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => removeRecoveryTask(index)}
+                                    className="mt-2 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    aria-label={`Supprimer l'étape ${index + 1}`}
+                                >
                                     <Trash2 className="h-4 w-4" />
-                                </button>
+                                </Button>
                             </div>
                         ))}
                         {(!watchedRecoveryTasks || watchedRecoveryTasks.length === 0) && (

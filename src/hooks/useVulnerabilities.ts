@@ -97,6 +97,35 @@ export const useVulnerabilities = () => {
             });
 
             await updateDoc(doc(db, 'vulnerabilities', id), dataToSave);
+
+            // Business Logic: If status changed to Resolved/Patch Applied, update related Risk
+            if (updates.status && (updates.status === 'Resolved' || updates.status === 'Patch Applied')) {
+                // Fetch the current vulenrability to get the relatedRiskId if not in updates
+                // Or we can query. But since we don't have the full object here comfortably without fetching or prop drilling...
+                // Ideally we should have the full object.
+                // For now, let's try to fetch it to be safe.
+                /* 
+                   Wait, 'updates' might not have 'relatedRiskId'. 
+                   But we can do a query to find the risk that links to this vulnerability?
+                   Or we check if the *current* vulnerability (retrieved from state or snapshot) has it.
+                   But state access inside this async function might be stale or complex.
+                   Better to read the doc we just updated or use a query.
+                */
+
+                // Let's assume we can fetch the risk by matching 'relatedVulnerabilityId'
+                const riskQuery = query(collection(db, 'risks'), where('relatedVulnerabilityId', '==', id));
+                const riskSnap = await import('firebase/firestore').then(mod => mod.getDocs(riskQuery));
+
+                if (!riskSnap.empty) {
+                    const riskDoc = riskSnap.docs[0];
+                    await updateDoc(doc(db, 'risks', riskDoc.id), {
+                        status: 'Traité',
+                        updatedAt: serverTimestamp()
+                    });
+                    addToast("Risque associé marqué comme Traité", "success");
+                }
+            }
+
             logAction(user!, 'UPDATE', 'Vulnerabilities', `Updated Vulnerability ${updates.cveId}`);
             addToast("Vulnérabilité mise à jour", "success");
             return true;

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 // Form validation: schema-based validation via VulnerabilityForm component
 import { useStore } from '../store';
-import { Vulnerability } from '../types';
+import { Vulnerability, UserProfile } from '../types';
 import { VulnerabilityDashboard } from '../components/vulnerabilities/VulnerabilityDashboard';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { useVulnerabilities } from '../hooks/useVulnerabilities';
@@ -12,6 +12,7 @@ import { useVulnerabilitiesData } from '../hooks/vulnerabilities/useVulnerabilit
 import { PageHeader } from '../components/ui/PageHeader';
 import { Bug, Plus, Upload, MoreVertical } from '../components/ui/Icons';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
+import { Button } from '../components/ui/button';
 
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 
@@ -50,6 +51,7 @@ export const Vulnerabilities: React.FC = () => {
         addVulnerability,
         updateVulnerability,
         deleteVulnerability,
+        importVulnerabilities,
         loading: loadingAction
     } = useVulnerabilities();
 
@@ -77,6 +79,18 @@ export const Vulnerabilities: React.FC = () => {
             setSelectedVulnerability(vuln);
         }
     }, [location.state, loading, vulnerabilities]);
+
+    // Auto-seed if empty
+    const initialSeedRef = React.useRef(false);
+    useEffect(() => {
+        if (!loadingData && vulnerabilities.length === 0 && !initialSeedRef.current) {
+            initialSeedRef.current = true;
+            // Attempt to seed
+            import('../services/ThreatFeedService').then(({ ThreatFeedService }) => {
+                ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo').catch(console.error);
+            });
+        }
+    }, [loadingData, vulnerabilities.length, user]);
 
     const handleCreate = useCallback(async (data: Partial<Vulnerability>) => {
         if (!user?.organizationId) return;
@@ -132,11 +146,16 @@ export const Vulnerabilities: React.FC = () => {
     const handleCancelEdit = useCallback(() => setSelectedVulnerability(null), []);
     const handleImportModalClose = useCallback(() => setImportModalOpen(false), []);
     const handleConfirmClose = useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
-    const handleImportMock = useCallback(async () => {
-        // Logic for file handling usually in component or hook
-    }, []);
+    const handleImportMock = useCallback(async (importData: Partial<Vulnerability>[]) => {
+        try {
+            await importVulnerabilities(importData);
+            setImportModalOpen(false);
+        } catch {
+            ErrorLogger.warn('Import handled in hook');
+        }
+    }, [importVulnerabilities]);
 
-    const canEdit = canEditResource(user, 'Vulnerability');
+    const canEdit = canEditResource(user as UserProfile, 'Vulnerability');
 
     return (
         <motion.div
@@ -169,7 +188,7 @@ export const Vulnerabilities: React.FC = () => {
                 />
             </motion.div>
 
-            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-lg relative overflow-hidden">
+            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-lg relative overflow-hidden">
                 <VulnerabilityDashboard vulnerabilities={vulnerabilities} />
             </motion.div>
 
@@ -200,8 +219,8 @@ export const Vulnerabilities: React.FC = () => {
                                             <div className="p-1">
                                                 <Menu.Item>
                                                     {({ active }) => (
-                                                        <button
-                                                            type="button"
+                                                        <Button
+                                                            variant="ghost"
                                                             aria-label="Import Scan"
                                                             onClick={handleImportClick}
                                                             className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
@@ -209,7 +228,7 @@ export const Vulnerabilities: React.FC = () => {
                                                         >
                                                             <Upload className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
                                                             Import Scan
-                                                        </button>
+                                                        </Button>
                                                     )}
                                                 </Menu.Item>
                                             </div>
@@ -218,15 +237,14 @@ export const Vulnerabilities: React.FC = () => {
                                 </Menu>
 
                                 <CustomTooltip content="Create new vulnerability">
-                                    <button
-                                        type="button"
+                                    <Button
                                         onClick={handleCreateClick}
                                         className="flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-brand-600/20"
                                         aria-label="Create new vulnerability"
                                     >
                                         <Plus className="h-5 w-5 mr-2" />
                                         <span className="hidden sm:inline">{t('vulnerabilities.declare')}</span>
-                                    </button>
+                                    </Button>
                                 </CustomTooltip>
                             </div>
                         </>

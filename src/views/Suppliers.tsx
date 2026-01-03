@@ -671,7 +671,7 @@ export const Suppliers: React.FC = () => {
             </motion.div>
 
             {viewMode === 'list' ? (
-                <motion.div variants={slideUpVariants} className="glass-panel rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-200 dark:border-white/5">
+                <motion.div variants={slideUpVariants} className="glass-premium rounded-[2.5rem] overflow-hidden shadow-sm">
                     <DataTable
                         columns={columns}
                         data={filteredSuppliers}

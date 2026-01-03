@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { BackupService, BackupMetadata } from '../services/backupService';
 import { Save, RotateCcw, Clock, CheckCircle2, AlertTriangle, FileText, Shield, Users, Database, Download, Trash2, RefreshCw, HardDrive, Calendar, CalendarDays } from '../components/ui/Icons';
+import { Button } from '../components/ui/button';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
@@ -267,27 +268,29 @@ export const BackupRestore: React.FC = () => {
         icon={<Database className="h-6 w-6 text-white" strokeWidth={2.5} />}
         actions={
           <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl max-w-full overflow-x-auto">
-            <button
+            <Button
+              variant="ghost"
               aria-label="Mode Sauvegarde"
               onClick={() => setActiveTab('backup')}
               className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${activeTab === 'backup' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'}`}
             >
               Sauvegarder
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
               aria-label="Mode Restauration"
               onClick={() => setActiveTab('restore')}
               className={`px-4 py-2 rounded-lg text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${activeTab === 'restore' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-700 dark:hover:text-slate-300'}`}
             >
               Restaurer
-            </button>
+            </Button>
           </div>
         }
       />
 
       {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-xl relative overflow-hidden group">
+        <div className="glass-premium p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-colors"></div>
           <div className="flex items-center relative z-10">
             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl text-blue-600 dark:text-blue-400 mr-4 border border-blue-100 dark:border-blue-500/20">
@@ -300,7 +303,7 @@ export const BackupRestore: React.FC = () => {
           </div>
         </div>
 
-        <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-xl relative overflow-hidden group">
+        <div className="glass-premium p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-emerald-500/20 transition-colors"></div>
           <div className="flex items-center relative z-10">
             <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl text-emerald-600 dark:text-emerald-400 mr-4 border border-emerald-100 dark:border-emerald-500/20">
@@ -313,7 +316,7 @@ export const BackupRestore: React.FC = () => {
           </div>
         </div>
 
-        <div className="glass-panel p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-xl relative overflow-hidden group">
+        <div className="glass-premium p-6 rounded-3xl border border-white/50 dark:border-white/5 shadow-xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-purple-500/20 transition-colors"></div>
           <div className="flex items-center relative z-10">
             <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-2xl text-purple-600 dark:text-purple-400 mr-4 border border-purple-100 dark:border-purple-500/20">
@@ -333,7 +336,7 @@ export const BackupRestore: React.FC = () => {
         {/* Left Panel: Actions */}
         <div className="lg:col-span-2 space-y-6 min-w-0">
           {activeTab === 'backup' ? (
-            <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50">
+            <div className="glass-premium p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                 <Save className="h-5 w-5 text-indigo-500" /> Nouvelle Sauvegarde
               </h2>
@@ -373,25 +376,26 @@ export const BackupRestore: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mr-2">Planifier :</span>
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                      <button type="button" aria-label="Programmer une sauvegarde quotidienne" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Quotidien</button>
-                      <button type="button" aria-label="Programmer une sauvegarde hebdomadaire" onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Hebdo</button>
-                      <button type="button" aria-label="Programmer une sauvegarde mensuelle" onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Mensuel</button>
+                      <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde quotidienne" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Quotidien</Button>
+                      <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde hebdomadaire" onClick={() => handleScheduleBackup('weekly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Hebdo</Button>
+                      <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde mensuelle" onClick={() => handleScheduleBackup('monthly')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Mensuel</Button>
                     </div>
                   </div>
-                  <button
+                  <Button
                     type="submit"
                     aria-label="Lancer la sauvegarde"
                     disabled={loading}
-                    className="btn-primary px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-500/20 w-full sm:w-auto justify-center"
+                    isLoading={loading}
+                    className="px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-500/20 w-full sm:w-auto justify-center"
                   >
-                    {loading ? <RefreshCw className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+                    {!loading && <Save className="h-5 w-5 mr-2" />}
                     Lancer la sauvegarde
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
           ) : (
-            <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50">
+            <div className="glass-premium p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                 <RotateCcw className="h-5 w-5 text-indigo-500" /> Restauration
               </h2>
@@ -459,15 +463,16 @@ export const BackupRestore: React.FC = () => {
                   </div>
 
                   <div className="flex justify-end pt-4">
-                    <button
+                    <Button
                       type="submit"
                       aria-label="Lancer la restauration"
                       disabled={loading}
+                      isLoading={loading}
                       className={`px-6 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg transition-all ${restoreForm.watch('dryRun') ? 'bg-slate-800 text-white hover:bg-slate-900' : 'bg-red-600 text-white hover:bg-red-700 shadow-red-500/20'}`}
                     >
-                      {loading ? <RefreshCw className="h-5 w-5 animate-spin" /> : <RotateCcw className="h-5 w-5" />}
+                      {!loading && <RotateCcw className="h-5 w-5 mr-2" />}
                       {restoreForm.watch('dryRun') ? 'Lancer la simulation' : 'Restaurer les données'}
-                    </button>
+                    </Button>
                   </div>
                 </form>
               )}
@@ -477,7 +482,7 @@ export const BackupRestore: React.FC = () => {
 
         {/* Right Panel: History */}
         <div className="space-y-6 min-w-0">
-          <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50 h-full max-h-[800px] flex flex-col">
+          <div className="glass-premium p-6 rounded-3xl border border-slate-200 dark:border-slate-700/50 h-full max-h-[800px] flex flex-col">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
               <Clock className="h-5 w-5 text-indigo-500" /> Historique
             </h2>
@@ -507,18 +512,22 @@ export const BackupRestore: React.FC = () => {
                       </div>
                       <div className="flex gap-1">
                         {backup.status === 'completed' && (
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             aria-label="Télécharger le backup"
-                            onClick={(e) => { e.stopPropagation(); handleDownloadBackup(backup.id); }}
+                            onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleDownloadBackup(backup.id); }}
                             className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             title="Télécharger"
                           >
                             <Download className="h-4 w-4" />
-                          </button>
+                          </Button>
                         )}
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           aria-label="Supprimer le backup"
-                          onClick={(e) => {
+                          onClick={(e: React.MouseEvent) => {
                             e.stopPropagation();
                             setConfirmData({
                               isOpen: true,
@@ -531,7 +540,7 @@ export const BackupRestore: React.FC = () => {
                           title="Supprimer"
                         >
                           <Trash2 className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 mb-3">

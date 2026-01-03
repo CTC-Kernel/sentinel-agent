@@ -93,7 +93,8 @@ export const ThreatIntelligence: React.FC = () => {
             addToast(`Flux mis à jour : ${stats.threats} nouvelles menaces`, "success");
             logAction(user, 'REFRESH_THREAT_FEED', 'ThreatIntelligence', `Manual feed refresh: ${stats.threats} new, ${stats.vulns} vulnerabilities`);
         } catch (e) {
-            ErrorLogger.error(e as Error, 'ThreatIntelligence.seedLiveThreats');
+            ErrorLogger.error(e instanceof Error ? e : new Error(String(e)), 'ThreatIntelligence.seedLiveThreats');
+
             addToast("Passage en mode simulation (Hors-ligne).", "info");
             // Fallback to simulation
             ThreatFeedService.useSimulation = true;

@@ -1,4 +1,5 @@
 import { Sparkles, Loader2 } from 'lucide-react';
+import { Button } from './button';
 
 export interface BaseTemplate {
     name: string;
@@ -40,15 +41,16 @@ export const AIAssistantHeader = <TTemplate extends BaseTemplate>({
                         <option value="">Choisir un modèle...</option>
                         {templates.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
                     </select>
-                    <button
+                    <Button
                         type="button"
                         onClick={onAutoGenerate}
                         disabled={isGenerating || readOnly}
-                        className="flex-1 sm:flex-none text-xs font-bold bg-white dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 px-3 py-1.5 rounded-lg border border-brand-200 dark:border-brand-900/30 hover:bg-brand-50 transition-colors flex items-center justify-center gap-2 h-9 disabled:opacity-50 disabled:cursor-not-allowed"
+                        variant="outline"
+                        className="flex-1 sm:flex-none text-xs font-bold bg-white dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 border-brand-200 dark:border-brand-900/30 hover:bg-brand-50 flex items-center justify-center gap-2 h-9"
                     >
                         {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
                         {isGenerating ? 'IA...' : 'Auto-complétion IA'}
-                    </button>
+                    </Button>
                 </div>
             </div>
             <p className="text-xs text-brand-600/80 dark:text-brand-400 leading-relaxed">

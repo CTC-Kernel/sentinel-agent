@@ -267,7 +267,7 @@ export const Documents: React.FC = () => {
             />
 
             {/* Metrics Dashboard */}
-            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group min-w-0">
+            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group min-w-0">
                 <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-70"></div>
                 </div>
@@ -348,7 +348,7 @@ export const Documents: React.FC = () => {
 
             <div className="flex flex-col lg:flex-row gap-6 lg:min-h-[calc(100vh-200px)] min-h-0">
                 {/* Folder Tree Sidebar */}
-                <div className="w-full lg:w-64 flex-shrink-0 glass-panel rounded-2xl border border-white/50 dark:border-white/5 shadow-sm overflow-hidden flex flex-col min-w-0">
+                <div className="w-full lg:w-64 flex-shrink-0 glass-premium rounded-2xl border border-white/50 dark:border-white/5 shadow-sm overflow-hidden flex flex-col min-w-0">
                     <FolderTree
                         folders={folders}
                         selectedFolderId={selectedFolderId}
@@ -537,7 +537,7 @@ const MemoizedDocumentCard = React.memo(({ doc, viewMode, onSelect }: { doc: Doc
     return (
         <div
             onClick={handleClick}
-            className={`glass-panel p-4 rounded-xl border border-white/50 dark:border-white/5 hover:border-brand-500/50 transition-all cursor-pointer group relative overflow-hidden flex flex-col gap-3 ${viewMode === 'list' ? 'flex-row items-center' : ''}`}
+            className={`glass-premium p-4 rounded-xl border border-white/50 dark:border-white/5 hover:border-brand-500/50 transition-all cursor-pointer group relative overflow-hidden flex flex-col gap-3 ${viewMode === 'list' ? 'flex-row items-center' : ''}`}
         >
             <div className="flex-1">
                 <h4 className="font-bold text-slate-800 dark:text-white truncate">{doc.title}</h4>

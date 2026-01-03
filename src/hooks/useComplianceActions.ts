@@ -144,6 +144,29 @@ export const useComplianceActions = (user: UserProfile | null) => {
         }
     };
 
+    const createAudit = async (auditData: Record<string, unknown>) => {
+        setUpdating(true);
+        try {
+            const { addDoc, collection } = await import('firebase/firestore');
+            const ref = await addDoc(collection(db, 'audits'), sanitizeData({
+                ...auditData,
+                status: 'Planned',
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                createdBy: user?.uid
+            }));
+            toast.success("Audit planifié avec succès");
+            logAction(user, 'CREATE_AUDIT', 'audit', `Created audit ${auditData.name}`, undefined, ref.id);
+            return ref.id;
+        } catch (error) {
+            console.error("Audit creation failed", error);
+            toast.error("Erreur lors de la création de l'audit");
+            return null;
+        } finally {
+            setUpdating(false);
+        }
+    };
+
     return {
         updating,
         handleStatusChange,
@@ -159,6 +182,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
         updateJustification,
         handleApplicabilityChange,
         createRisk,
+        createAudit,
         updateControl
     };
 };

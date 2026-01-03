@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, X, Filter, Calendar, User as UserIcon } from './Icons';
+import { Button } from './button';
 
 export interface SearchFilters {
     query: string;
@@ -40,7 +41,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
 
     return (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/50 backdrop-blur-sm animate-fade-in">
-            <div className="w-full max-w-3xl mx-4 glass-panel rounded-3xl shadow-2xl border border-white/20 dark:border-white/10 overflow-hidden animate-slide-up">
+            <div className="w-full max-w-3xl mx-4 glass-premium rounded-3xl shadow-2xl border border-white/20 dark:border-white/10 overflow-hidden animate-slide-up">
                 {/* Header */}
                 <div className="p-6 border-b border-slate-200 dark:border-white/10 bg-gradient-to-r from-brand-500/10 to-purple-500/10">
                     <div className="flex items-center justify-between mb-4">
@@ -48,13 +49,14 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
                             <Search className="h-6 w-6 text-brand-600 dark:text-brand-400" />
                             Recherche Avancée
                         </h2>
-                        <button
+                        <Button
                             aria-label="Fermer la recherche avancée"
                             onClick={onClose}
-                            className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors"
+                            variant="ghost"
+                            size="icon"
                         >
                             <X className="h-5 w-5 text-slate-600" />
-                        </button>
+                        </Button>
                     </div>
 
                     {/* Main Search Input */}
@@ -74,14 +76,16 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
 
                 {/* Filters Toggle */}
                 <div className="px-6 py-3 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50">
-                    <button
+                    <Button
                         aria-label={showFilters ? 'Masquer les filtres' : 'Afficher les filtres'}
                         onClick={() => setShowFilters(!showFilters)}
-                        className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400"
                     >
                         <Filter className="h-4 w-4" />
                         {showFilters ? 'Masquer les filtres' : 'Afficher les filtres'}
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Filters Panel */}
@@ -187,28 +191,30 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, onClos
 
                 {/* Actions */}
                 <div className="p-6 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
-                    <button
+                    <Button
                         aria-label="Réinitialiser les filtres"
                         onClick={handleReset}
-                        className="px-6 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                        variant="ghost"
+                        className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     >
                         Réinitialiser
-                    </button>
+                    </Button>
                     <div className="flex gap-3">
-                        <button
+                        <Button
                             aria-label="Annuler la recherche"
                             onClick={onClose}
-                            className="px-6 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-colors"
+                            variant="secondary"
+                            className="text-slate-600 dark:text-slate-400"
                         >
                             Annuler
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             aria-label="Lancer la recherche"
                             onClick={handleSearch}
-                            className="px-8 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                            className="bg-brand-600 hover:bg-brand-700 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105"
                         >
                             Rechercher
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

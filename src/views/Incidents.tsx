@@ -345,7 +345,7 @@ export const Incidents: React.FC = () => {
             />
 
             {/* Carte de synthèse Incidents */}
-            <motion.div variants={slideUpVariants} className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
+            <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2.5rem] flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                 <div className="space-y-2 relative z-10">
                     <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">

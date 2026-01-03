@@ -23,7 +23,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
     };
 
     return (
-        <div className="relative group/chart flex items-center justify-center w-full h-full min-h-[320px]">
+        <div className="relative group/chart flex justify-center pt-2 w-full h-full min-h-[320px]">
             <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-purple-500/5 rounded-full blur-2xl opacity-0 group-hover/chart:opacity-100 transition-opacity duration-700"></div>
             <div
                 className="relative w-[260px] h-[260px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-500 hover:scale-[1.02] bg-card/40 backdrop-blur-sm rounded-full border border-border shadow-inner p-4 flex items-center justify-center overflow-hidden"
@@ -44,7 +44,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                         </div>
                     ) : (
                         <ResponsiveContainer width="100%" height="100%">
-                            <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                            <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
                                 <defs>
                                     <linearGradient id={radarGradientId} x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor={chartColors.fill} stopOpacity={0.5} />

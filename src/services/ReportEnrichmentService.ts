@@ -32,6 +32,19 @@ export class ReportEnrichmentService {
      * Ported from MCP Server RiskManagementTools
      */
     static calculateMetrics(risks: Risk[]): ReportMetrics {
+        if (!Array.isArray(risks)) {
+            console.warn('ReportEnrichmentService.calculateMetrics: risks is not an array', risks);
+            return {
+                total_risks: 0,
+                critical_risks: 0,
+                high_risks: 0,
+                medium_risks: 0,
+                low_risks: 0,
+                risk_score: 0,
+                treated_percentage: 0
+            };
+        }
+
         const total = risks.length;
         let critical = 0;
         let high = 0;
@@ -40,8 +53,8 @@ export class ReportEnrichmentService {
         let treated = 0;
 
         risks.forEach(r => {
-            const prob = r.probability || 0;
-            const imp = r.impact || 0;
+            const prob = Number(r.probability) || 0;
+            const imp = Number(r.impact) || 0;
             const level = prob * imp;
             if (level >= 20) critical++;
             else if (level >= 15) high++;
@@ -56,7 +69,7 @@ export class ReportEnrichmentService {
         // Calculate weighted risk score (0-100)
         // Max possible score per risk is 25. 
         // Normalized score = (Sum of levels / (Count * 25)) * 100
-        const sumLevels = risks.reduce((acc, r) => acc + ((r.probability || 0) * (r.impact || 0)), 0);
+        const sumLevels = risks.reduce((acc, r) => acc + ((Number(r.probability) || 0) * (Number(r.impact) || 0)), 0);
         const riskScore = total > 0 ? Math.round((sumLevels / (total * 25)) * 100) : 0;
 
         return {
@@ -97,9 +110,9 @@ export class ReportEnrichmentService {
         }
 
         // Sort risks by severity for "Top Risks"
-        const topRisks = [...risks]
-            .sort((a, b) => ((b.probability || 0) * (b.impact || 0)) - ((a.probability || 0) * (a.impact || 0)))
-            .slice(0, 5);
+        const topRisks = Array.isArray(risks) ? [...risks]
+            .sort((a, b) => ((Number(b.probability) || 0) * (Number(b.impact) || 0)) - ((Number(a.probability) || 0) * (Number(a.impact) || 0)))
+            .slice(0, 5) : [];
 
         // Trend analysis based on creation date
         const recentCount = risks.filter(r => {

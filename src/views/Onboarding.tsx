@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { useStore } from '../store';
 import { ArrowRight, User as UserIcon, Briefcase, Lock, AlertTriangle, Check, Search, Users, Plus, ShieldCheck, Mail, Trash2, Server, Loader2, BrainCircuit } from '../components/ui/Icons';
+import { Button } from '../components/ui/button';
 import { motion } from 'framer-motion';
 import { PLANS } from '../config/plans';
 import { PlanType, UserProfile } from '../types';
@@ -365,7 +366,7 @@ export const Onboarding: React.FC = () => {
             />
 
             <div className="w-full max-w-xl p-6 relative z-10 animate-scale-in">
-                <div className="glass-panel rounded-[2.5rem] p-10 md:p-12 shadow-2xl">
+                <div className="glass-premium rounded-[2.5rem] p-10 md:p-12 shadow-2xl">
                     {/* ... (Header and UI structure) ... */}
                     <div className="text-center mb-10">
                         <div className="w-16 h-16 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-xl mb-6 ring-1 ring-black/5 mx-auto">
@@ -391,38 +392,40 @@ export const Onboarding: React.FC = () => {
 
                     {mode === 'select' && (
                         <div className="grid grid-cols-1 gap-4">
-                            <button
+                            <Button
+                                variant="ghost"
                                 aria-label={t('onboarding.actions.createOrg')}
                                 onClick={() => setMode('create')}
-                                className="group relative p-6 rounded-3xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-500 dark:hover:border-brand-400 hover:shadow-lg transition-all text-left"
+                                className="group relative p-6 h-auto rounded-3xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-brand-500 dark:hover:border-brand-400 hover:shadow-lg transition-all text-left w-full justify-start whitespace-normal"
                             >
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-4 w-full">
                                     <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <Plus className="h-6 w-6" />
                                     </div>
                                     <div>
                                         {/* Heading hierarchy: h2 for action card title (follows h1) */}
-                                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('onboarding.actions.createOrg')}</h2>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{t('onboarding.actions.createDesc')}</p>
+                                        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('onboarding.actions.createOrg')}</h2>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 font-normal">{t('onboarding.actions.createDesc')}</p>
                                     </div>
                                 </div>
-                            </button>
+                            </Button>
 
-                            <button
+                            <Button
+                                variant="ghost"
                                 aria-label={t('onboarding.actions.joinOrg')}
                                 onClick={() => setMode('join')}
-                                className="group relative p-6 rounded-3xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:border-brand-500 dark:hover:border-brand-400 hover:shadow-lg transition-all text-left"
+                                className="group relative p-6 h-auto rounded-3xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-brand-500 dark:hover:border-brand-400 hover:shadow-lg transition-all text-left w-full justify-start whitespace-normal"
                             >
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-4 w-full">
                                     <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-slate-900/20 text-brand-600 dark:text-brand-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <Users className="h-6 w-6" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('onboarding.actions.joinOrg')}</h3>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{t('onboarding.actions.joinDesc')}</p>
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('onboarding.actions.joinOrg')}</h3>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 font-normal">{t('onboarding.actions.joinDesc')}</p>
                                     </div>
                                 </div>
-                            </button>
+                            </Button>
                         </div>
                     )}
 
@@ -439,14 +442,16 @@ export const Onboarding: React.FC = () => {
                                             placeholder={t('onboarding.actions.search') + "..."}
                                             onChange={e => setSearchQuery(e.target.value)}
                                         />
-                                        <button
+                                        <Button
                                             aria-label={t('onboarding.actions.search')}
                                             type="submit"
                                             disabled={loading || !searchQuery}
-                                            className="absolute right-2 top-2 px-4 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs shadow-lg disabled:opacity-50"
+                                            isLoading={loading}
+                                            size="sm"
+                                            className="absolute right-2 top-2 px-4 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs shadow-lg disabled:opacity-50 h-auto"
                                         >
-                                            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('onboarding.actions.search')}
-                                        </button>
+                                            {!loading && t('onboarding.actions.search')}
+                                        </Button>
                                     </form>
                                     {/* Results Logic */}
                                     <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
@@ -456,14 +461,16 @@ export const Onboarding: React.FC = () => {
                                                     <h4 className="font-bold text-slate-900 dark:text-white">{org.name}</h4>
                                                     <p className="text-xs text-slate-600">{org.industry || 'Non spécifié'}</p>
                                                 </div>
-                                                <button
+                                                <Button
                                                     aria-label={t('onboarding.actions.join')}
                                                     onClick={() => handleJoinRequest(org.id, org.name)}
-                                                    disabled={loading}
-                                                    className="px-4 py-2 bg-brand-50 dark:bg-slate-900 text-brand-600 dark:bg-slate-900/20 dark:text-brand-400 rounded-xl text-sm font-bold hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors disabled:opacity-50"
+                                                    disabled={loading || joinRequestSent}
+                                                    isLoading={loading}
+                                                    size="sm"
+                                                    className="px-4 py-2 bg-brand-50 dark:bg-slate-900 text-brand-600 dark:bg-slate-900/20 dark:text-brand-400 rounded-xl text-sm font-bold hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors disabled:opacity-50 h-auto"
                                                 >
-                                                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('onboarding.actions.join')}
-                                                </button>
+                                                    {!loading && t('onboarding.actions.join')}
+                                                </Button>
                                             </div>
                                         ))}
                                         {searchResults.length === 0 && searchQuery && !loading && (
@@ -481,23 +488,25 @@ export const Onboarding: React.FC = () => {
                                     <p className="text-slate-600 dark:text-slate-400">
                                         {t('onboarding.actions.sentDesc')}
                                     </p>
-                                    <button
+                                    <Button
                                         aria-label={t('onboarding.actions.home')}
                                         onClick={() => window.location.reload()}
-                                        className="mt-8 px-6 py-3 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
+                                        variant="outline"
+                                        className="mt-8 px-6 py-3 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-white/20 transition-colors h-auto"
                                     >
                                         {t('onboarding.actions.home')}
-                                    </button>
+                                    </Button>
                                 </div>
                             )}
                             {!joinRequestSent && (
-                                <button
+                                <Button
+                                    variant="ghost"
                                     aria-label={t('onboarding.actions.back')}
                                     onClick={() => setMode('select')}
-                                    className="w-full py-4 text-slate-600 hover:text-slate-700 dark:hover:text-slate-300 font-bold transition-colors"
+                                    className="w-full py-4 text-slate-600 hover:text-slate-700 dark:hover:text-slate-300 font-bold transition-colors h-auto"
                                 >
                                     {t('onboarding.actions.back')}
-                                </button>
+                                </Button>
                             )}
                         </div>
                     )}
@@ -576,21 +585,30 @@ export const Onboarding: React.FC = () => {
                                         </div>
                                     </div>
                                     <label htmlFor="terms" className="text-sm text-slate-600 dark:text-slate-400">
-                                        {t('onboarding.form.terms')} <button aria-label="Lire les conditions générales" type="button" onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="text-brand-600 dark:text-brand-400 font-bold hover:underline">{t('onboarding.form.conditions')}</button>...
+                                        {t('onboarding.form.terms')} <Button variant="link" size="sm" aria-label="Lire les conditions générales" type="button" onClick={() => { setLegalTab('terms'); setShowLegalModal(true); }} className="text-brand-600 dark:text-brand-400 font-bold hover:underline px-0 h-auto">{t('onboarding.form.conditions')}</Button>...
                                     </label>
 
                                     <div className="pt-4 flex gap-3">
-                                        <button
-                                            aria-label="Retour à l'étape précédente"
-                                            type="button"
-                                            onClick={() => setMode('select')}
-                                            className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                                        >
-                                            {t('onboarding.actions.back')}
-                                        </button>
-                                        <button aria-label="Continuer vers l'étape suivante" type="submit" disabled={loading || (!user?.organizationId && !form.watch('organizationName')) || !termsAccepted} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed">
-                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
-                                        </button>
+                                        <div className="pt-4 flex gap-3">
+                                            <Button
+                                                variant="ghost"
+                                                aria-label="Retour à l'étape précédente"
+                                                type="button"
+                                                onClick={() => setMode('select')}
+                                                className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors h-auto"
+                                            >
+                                                {t('onboarding.actions.back')}
+                                            </Button>
+                                            <Button
+                                                aria-label="Continuer vers l'étape suivante"
+                                                type="submit"
+                                                disabled={loading || (!user?.organizationId && !form.watch('organizationName')) || !termsAccepted}
+                                                isLoading={loading}
+                                                className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 card-hover transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed h-auto"
+                                            >
+                                                {!loading && <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
+                                            </Button>
+                                        </div>
                                     </div>
                                 </form>
                             )}
@@ -660,21 +678,25 @@ export const Onboarding: React.FC = () => {
                                         })}
                                     </div>
                                     <div className="pt-4 flex gap-3">
-                                        <button
-                                            aria-label="Retour à l'étape 1"
-                                            onClick={() => setStep(1)}
-                                            className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                                        >
-                                            {t('onboarding.actions.back')}
-                                        </button>
-                                        <button
-                                            aria-label="Valider le plan et continuer"
-                                            onClick={() => setStep(3)}
-                                            disabled={loading}
-                                            className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                                        >
-                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
-                                        </button>
+                                        <div className="pt-4 flex gap-3">
+                                            <Button
+                                                aria-label="Retour à l'étape 1"
+                                                onClick={() => setStep(1)}
+                                                variant="ghost"
+                                                className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors h-auto"
+                                            >
+                                                {t('onboarding.actions.back')}
+                                            </Button>
+                                            <Button
+                                                aria-label="Valider le plan et continuer"
+                                                onClick={() => setStep(3)}
+                                                disabled={loading}
+                                                isLoading={loading}
+                                                className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/20 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none h-auto"
+                                            >
+                                                {!loading && <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -713,10 +735,12 @@ export const Onboarding: React.FC = () => {
                                         />
                                     </div>
                                     <div className="pt-4 flex gap-3">
-                                        <button aria-label="Retour à l'étape 2" onClick={() => setStep(2)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
-                                        <button aria-label="Valider le périmètre et continuer" onClick={handleStep3} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
-                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
-                                        </button>
+                                        <div className="pt-4 flex gap-3">
+                                            <Button aria-label="Retour à l'étape 2" onClick={() => setStep(2)} variant="ghost" className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors h-auto">{t('onboarding.actions.back')}</Button>
+                                            <Button aria-label="Valider le périmètre et continuer" onClick={handleStep3} disabled={loading} isLoading={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50 h-auto">
+                                                {!loading && <>{t('onboarding.actions.continue')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -754,9 +778,9 @@ export const Onboarding: React.FC = () => {
                                                     label=""
                                                 />
                                             </div>
-                                            <button aria-label="Inviter l'utilisateur" onClick={handleInviteUser} className="px-4 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold hover:opacity-90 transition-opacity h-[56px] flex items-center justify-center">
+                                            <Button aria-label="Inviter l'utilisateur" onClick={handleInviteUser} className="px-4 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold hover:opacity-90 transition-opacity h-[56px] flex items-center justify-center">
                                                 <Plus className="h-5 w-5" />
-                                            </button>
+                                            </Button>
                                         </div>
                                     </div>
                                     {invitedUsers.length > 0 && (
@@ -772,18 +796,20 @@ export const Onboarding: React.FC = () => {
                                                             <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{userInvite.role}</span>
                                                         </div>
                                                     </div>
-                                                    <button aria-label="Retirer l'invitation" onClick={() => handleRemoveInvite(userInvite.email)} className="text-slate-500 hover:text-red-500 transition-colors">
+                                                    <Button variant="ghost" size="icon" aria-label="Retirer l'invitation" onClick={() => handleRemoveInvite(userInvite.email)} className="text-slate-500 hover:text-red-500 transition-colors">
                                                         <Trash2 className="h-4 w-4" />
-                                                    </button>
+                                                    </Button>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
                                     <div className="pt-4 flex gap-3">
-                                        <button aria-label="Retour à l'étape 3" onClick={() => setStep(3)} className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
-                                        <button aria-label="Continuer vers l'étape 5" onClick={handleStep4} disabled={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
-                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{invitedUsers.length > 0 ? t('onboarding.actions.inviteContinue') : t('onboarding.actions.skip')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
-                                        </button>
+                                        <div className="pt-4 flex gap-3">
+                                            <Button aria-label="Retour à l'étape 3" onClick={() => setStep(3)} variant="ghost" className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors h-auto">{t('onboarding.actions.back')}</Button>
+                                            <Button aria-label="Continuer vers l'étape 5" onClick={handleStep4} disabled={loading} isLoading={loading} className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50 h-auto">
+                                                {!loading && <>{invitedUsers.length > 0 ? t('onboarding.actions.inviteContinue') : t('onboarding.actions.skip')} <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" strokeWidth={2.5} /></>}
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -846,11 +872,11 @@ export const Onboarding: React.FC = () => {
                                                                 placeholder="Type"
                                                             />
                                                         </div>
-                                                        <button onClick={handleAddAsset} aria-label="Ajouter l'actif" className="p-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold h-[56px] w-[56px] flex items-center justify-center hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 duration-200">
+                                                        <Button onClick={handleAddAsset} aria-label="Ajouter l'actif" className="p-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold h-[56px] w-[56px] flex items-center justify-center hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 duration-200">
                                                             <Plus className="h-5 w-5" />
-                                                        </button>
+                                                        </Button>
                                                     </div>
-                                                    <button onClick={() => setManualMode(false)} aria-label="Passer au scan automatique" className="text-xs text-slate-500 hover:text-slate-700 underline">Switch to auto scan</button>
+                                                    <Button variant="link" size="sm" onClick={() => setManualMode(false)} aria-label="Passer au scan automatique" className="text-xs text-slate-500 hover:text-slate-700 underline h-auto px-0">Switch to auto scan</Button>
                                                 </div>
                                             ) : (
                                                 initialAssets.length === 0 && (
@@ -867,7 +893,7 @@ export const Onboarding: React.FC = () => {
                                                         <h3 className="font-bold text-slate-900 dark:text-white">{t('onboarding.actions.autoScan')}</h3>
                                                         <p className="text-xs text-slate-500 mt-1">{t('onboarding.actions.autoScanDesc')}</p>
                                                         <div className="mt-4">
-                                                            <button onClick={(e) => { e.stopPropagation(); setManualMode(true); }} aria-label="Ajouter manuellement un actif" className="text-xs text-brand-600 font-bold hover:underline">{t('onboarding.actions.manualAdd')}</button>
+                                                            <Button variant="link" size="sm" onClick={(e) => { e.stopPropagation(); setManualMode(true); }} aria-label="Ajouter manuellement un actif" className="text-xs text-brand-600 font-bold hover:underline h-auto px-0">{t('onboarding.actions.manualAdd')}</Button>
                                                         </div>
                                                     </div>
                                                 )
@@ -886,9 +912,9 @@ export const Onboarding: React.FC = () => {
                                                                 <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{asset.type}</span>
                                                             </div>
                                                         </div>
-                                                        <button onClick={() => handleRemoveAsset(i)} aria-label="Supprimer l'actif" className="text-slate-500 hover:text-red-500 transition-colors">
+                                                        <Button variant="ghost" size="icon" onClick={() => handleRemoveAsset(i)} aria-label="Supprimer l'actif" className="text-slate-500 hover:text-red-500 transition-colors">
                                                             <Trash2 className="h-4 w-4" />
-                                                        </button>
+                                                        </Button>
                                                     </div>
                                                 ))}
                                             </div>
@@ -896,10 +922,12 @@ export const Onboarding: React.FC = () => {
                                     </div>
 
                                     <div className="pt-4 flex gap-3">
-                                        <button onClick={() => setStep(4)} aria-label="Retour à l'étape 4" className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{t('onboarding.actions.back')}</button>
-                                        <button onClick={handleStep5} disabled={loading} aria-label="Finaliser l'inscription" className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50">
-                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{t('onboarding.actions.finalize')} <Check className="ml-2 h-5 w-5 group-hover:scale-110 transition-transform" strokeWidth={3} /></>}
-                                        </button>
+                                        <div className="pt-4 flex gap-3">
+                                            <Button onClick={() => setStep(4)} variant="ghost" aria-label="Retour à l'étape 4" className="w-1/3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors h-auto">{t('onboarding.actions.back')}</Button>
+                                            <Button onClick={handleStep5} disabled={loading} isLoading={loading} aria-label="Finaliser l'inscription" className="w-2/3 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-center group disabled:opacity-50 h-auto">
+                                                {!loading && <>{t('onboarding.actions.finalize')} <Check className="ml-2 h-5 w-5 group-hover:scale-110 transition-transform" strokeWidth={3} /></>}
+                                            </Button>
+                                        </div>
                                     </div>
                                 </motion.div>
                             )}

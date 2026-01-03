@@ -18,6 +18,7 @@ import {
     Settings,
     X
 } from 'lucide-react';
+import { Button } from '../components/ui/button';
 import { ContactModal } from '../components/ui/ContactModal';
 import { FeedbackModal } from '../components/ui/FeedbackModal';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -171,7 +172,7 @@ export const Help: React.FC = () => {
                 icon={<HelpCircle className="h-6 w-6 text-white" strokeWidth={2.5} />}
             />
 
-            <div className="flex h-[calc(100vh-16rem)] animate-fade-in overflow-hidden rounded-[2.5rem] glass-panel border border-slate-200 dark:border-slate-800 shadow-2xl relative">
+            <div className="flex h-[calc(100vh-16rem)] animate-fade-in overflow-hidden rounded-[2.5rem] glass-premium border border-slate-200 dark:border-slate-800 shadow-2xl relative">
 
                 {/* Mobile Menu Overlay */}
                 {mobileMenuOpen && (
@@ -200,15 +201,16 @@ export const Help: React.FC = () => {
 
                         <nav className="flex-1 overflow-y-auto space-y-1 custom-scrollbar pr-2">
                             {filteredContent.map(category => (
-                                <button
+                                <Button
                                     key={category.id}
+                                    variant="ghost"
                                     aria-label={category.title}
                                     onClick={() => {
                                         setSelectedCategory(category.id);
                                         setSelectedArticle(null);
                                         setMobileMenuOpen(false);
                                     }}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group ${selectedCategory === category.id
+                                    className={`w-full flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group ${selectedCategory === category.id
                                         ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400'
                                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'
                                         }`}
@@ -223,27 +225,28 @@ export const Help: React.FC = () => {
                                     {selectedCategory === category.id && (
                                         <ChevronRight className="w-4 h-4 ml-auto" />
                                     )}
-                                </button>
+                                </Button>
                             ))}
                         </nav>
 
                         <div className="mt-auto pt-6 border-t border-slate-200 dark:border-slate-800 space-y-3">
-                            <button
+                            <Button
+                                variant="outline"
                                 aria-label="Donner mon avis"
                                 onClick={() => setIsFeedbackOpen(true)}
                                 className="w-full py-3 bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 rounded-xl text-sm font-bold border border-brand-200 dark:border-brand-500/20 hover:bg-brand-100 dark:hover:bg-brand-500/20 transition-all flex items-center justify-center gap-2"
                             >
-                                <MessageSquare className="w-4 h-4" />
+                                <MessageSquare className="w-4 h-4 mr-2" />
                                 Donner mon avis
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 aria-label="Contacter le support"
                                 onClick={() => setIsContactOpen(true)}
                                 className="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
                             >
-                                <HelpCircle className="w-4 h-4" />
+                                <HelpCircle className="w-4 h-4 mr-2" />
                                 Support
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -287,10 +290,17 @@ export const Help: React.FC = () => {
                                                 : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-lg hover:shadow-brand-500/5'
                                                 }`}
                                         >
-                                            <button
+                                            <div
                                                 aria-label={`Voir l'article ${article.title}`}
                                                 onClick={() => setSelectedArticle(selectedArticle === article.id ? null : article.id)}
-                                                className="w-full flex items-start gap-4 p-6 text-left"
+                                                className="w-full flex items-start gap-4 p-6 text-left cursor-pointer"
+                                                role="button"
+                                                tabIndex={0}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        setSelectedArticle(selectedArticle === article.id ? null : article.id);
+                                                    }
+                                                }}
                                             >
                                                 <div className={`p-2 rounded-xl shrink-0 transition-colors ${selectedArticle === article.id
                                                     ? 'bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400'
@@ -311,7 +321,7 @@ export const Help: React.FC = () => {
                                                         {article.description}
                                                     </p>
                                                 </div>
-                                            </button>
+                                            </div>
 
                                             <div className={`grid transition-all duration-300 ease-in-out ${selectedArticle === article.id ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                                                 }`}>

@@ -66,7 +66,11 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ rece
                             </span>
                             <div className="flex justify-between items-start bg-card/60 p-3 rounded-xl border border-transparent hover:border-border transition-colors">
                                 <div>
-                                    <p className="text-sm font-bold text-foreground">{log.action}</p>
+                                    <p className="text-sm font-bold text-foreground">
+                                        {t(`dashboard.actions.${log.action}`) !== `dashboard.actions.${log.action}`
+                                            ? t(`dashboard.actions.${log.action}`)
+                                            : log.action.replace(/_/g, ' ')}
+                                    </p>
                                     <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[500px] font-medium leading-relaxed">{log.details}</p>
                                 </div>
                                 <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wide bg-accent px-2 py-1 rounded-md ml-4 whitespace-nowrap">

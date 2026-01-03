@@ -141,7 +141,7 @@ export const Notifications: React.FC = () => {
             ) : (
                 <div className="space-y-4">
                     {filteredNotifications.map(notif => (
-                        <div key={notif.id} className="glass-panel p-5 rounded-2xl border border-white/50 dark:border-white/5 shadow-sm hover:shadow-md transition-all flex gap-4 group">
+                        <div key={notif.id} className="glass-premium p-5 rounded-2xl shadow-sm hover:shadow-md transition-all flex gap-4 group">
                             <div className={`p-3 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-gray-100 dark:border-white/5 h-fit`}>
                                 {getIcon(notif.type)}
                             </div>

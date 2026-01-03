@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button } from '../ui/button';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Incident, UserProfile, BusinessProcess, Asset, Risk, Criticality } from '../../types';
 import { Siren, BookOpen, CalendarDays, BrainCircuit, Activity, Server, AlertTriangle, Trash2 } from '../ui/Icons';
@@ -76,19 +77,21 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                     {!isEditing && canEdit && (
                         <>
                             {onDelete && (
-                                <button
+                                <Button
                                     onClick={() => onDelete(incident.id)}
-                                    className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                                 >
                                     <Trash2 className="h-5 w-5" />
-                                </button>
+                                </Button>
                             )}
-                            <button
+                            <Button
                                 onClick={() => setIsEditing(true)}
-                                className="bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                                className="bg-brand-600 hover:bg-brand-700 text-white"
                             >
                                 Modifier
-                            </button>
+                            </Button>
                         </>
                     )}
                 </div>
@@ -114,7 +117,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                 <div className="lg:col-span-2 space-y-8">
                                     {/* Description */}
-                                    <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                    <div className="glass-premium p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                                         <div className="relative z-10">
                                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
@@ -133,7 +136,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
 
                                     {/* Badges & Status */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                        <div className="p-4 glass-premium rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                                             <div className="relative z-10">
                                                 <span className="text-xs text-slate-500 block mb-1">Sévérité</span>
@@ -145,7 +148,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                                                 </Badge>
                                             </div>
                                         </div>
-                                        <div className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                        <div className="p-4 glass-premium rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                                             <div className="relative z-10">
                                                 <span className="text-xs text-slate-500 block mb-1">Statut</span>
@@ -154,14 +157,14 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                                                 </Badge>
                                             </div>
                                         </div>
-                                        <div className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                        <div className="p-4 glass-premium rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                                             <div className="relative z-10">
                                                 <span className="text-xs text-slate-500 block mb-1">Impact Financier</span>
                                                 <span className="font-bold text-slate-900 dark:text-white">{incident.financialImpact ? `${incident.financialImpact} €` : '-'}</span>
                                             </div>
                                         </div>
-                                        <div className="p-4 glass-panel rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                        <div className="p-4 glass-premium rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                                             <div className="relative z-10">
                                                 <span className="text-xs text-slate-500 block mb-1">Reporter</span>
@@ -172,7 +175,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
 
                                     {/* Impact & Assets */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                        <div className="glass-premium p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                                             <div className="relative z-10">
                                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
@@ -197,7 +200,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                                             </div>
                                         </div>
 
-                                        <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                                        <div className="glass-premium p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                                             <div className="relative z-10">
                                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
@@ -221,7 +224,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                                             </div>
                                         </div>
 
-                                        <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden md:col-span-2">
+                                        <div className="glass-premium p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden md:col-span-2">
                                             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                                             <div className="relative z-10">
                                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
@@ -258,7 +261,7 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
 
                                 <div className="space-y-6">
                                     {/* Meta Info */}
-                                    <div className="glass-panel p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm space-y-4 relative overflow-hidden">
+                                    <div className="glass-premium p-6 rounded-2xl border border-white/60 dark:border-white/10 shadow-sm space-y-4 relative overflow-hidden">
                                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
                                         <div className="relative z-10">
                                             <div>
@@ -286,12 +289,12 @@ export const IncidentInspector: React.FC<IncidentInspectorProps> = ({
                         </div>
                     )}
                     {activeTab === 'playbook' && (
-                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                        <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                             <IncidentPlaybook incident={incident} />
                         </div>
                     )}
                     {activeTab === 'timeline' && (
-                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                        <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                             <IncidentTimeline selectedIncident={incident} getTimeToResolve={getTimeToResolve} />
                         </div>
                     )}

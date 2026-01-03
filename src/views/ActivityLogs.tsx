@@ -6,6 +6,7 @@ import { ActivityLogList } from '../components/activity/ActivityLogList';
 import { PageHeader } from '../components/ui/PageHeader';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { Activity, RefreshCw, Download, Shield, AlertTriangle } from 'lucide-react';
+import { Button } from '../components/ui/button';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../components/ui/animationVariants';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
@@ -25,21 +26,24 @@ export const ActivityLogs: React.FC = () => {
                     icon={<Activity className="h-6 w-6 text-white" />}
                     actions={
                         <div className="flex items-center gap-2">
-                            <button
+                            <Button
+                                variant="outline"
                                 aria-label={t('activity.exportCsv')}
                                 onClick={exportLogs}
                                 className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                             >
                                 <Download className="h-4 w-4" />
                                 <span>{t('activity.exportCsv')}</span>
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={refresh}
                                 className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                 title={t('activity.refresh')}
                             >
                                 <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
-                            </button>
+                            </Button>
                         </div>
                     }
                 />
@@ -57,7 +61,7 @@ export const ActivityLogs: React.FC = () => {
                             { label: t('activity.stats.critical'), value: stats?.criticalAlerts || 0, icon: AlertTriangle, color: 'text-red-500' },
                             { label: t('activity.stats.admins'), value: stats?.activeAdmins || 0, icon: Shield, color: 'text-emerald-500' },
                         ].map((stat) => (
-                            <div key={stat.label} className="glass-panel p-5 rounded-2xl flex items-center gap-4">
+                            <div key={stat.label} className="glass-premium p-5 rounded-2xl flex items-center gap-4">
                                 <div className={`p-3 rounded-xl bg-white/50 dark:bg-white/5 ${stat.color}`}>
                                     <stat.icon className="h-6 w-6" />
                                 </div>
@@ -105,7 +109,7 @@ export const ActivityLogs: React.FC = () => {
                         }
                     />
 
-                    <div className="glass-panel p-6 rounded-2xl">
+                    <div className="glass-premium p-6 rounded-2xl">
                         <ActivityLogList
                             logs={logs}
                             loading={loading}

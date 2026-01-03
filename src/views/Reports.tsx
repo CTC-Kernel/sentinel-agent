@@ -22,10 +22,11 @@ import { ErrorLogger } from '../services/errorLogger';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { useReportsData } from '../hooks/reports/useReportsData';
+import { Button } from '../components/ui/button';
 import { SEO } from '../components/SEO';
 
 export const Reports: React.FC = () => {
-    const { user, t, organization } = useStore();
+    const { user, t, organization, addToast } = useStore();
     const [activeTab, setActiveTab] = useState('templates');
     const [loadingAction, setLoadingAction] = useState(false);
 
@@ -54,20 +55,21 @@ export const Reports: React.FC = () => {
         setLoadingAction(true);
         try {
             console.log('🔄 Generating PDF:', { templateId, title, risksCount: risks?.length, controlsCount: controls?.length });
-            
+
             if (templateId === 'iso27001' || templateId === 'gdpr') {
                 console.log('📦 Generating compliance pack...');
                 await CompliancePackService.generatePack({
                     organizationName: organization?.name || 'Organization',
-                    risks,
-                    audits,
-                    assets,
-                    documents,
-                    controls,
-                    incidents,
-                    projects
+                    risks: risks || [],
+                    audits: audits || [],
+                    assets: assets || [],
+                    documents: documents || [],
+                    controls: controls || [],
+                    incidents: incidents || [],
+                    projects: projects || []
                 });
                 console.log('✅ Compliance pack generated successfully');
+                addToast(t('reports.success'), 'success');
             } else if (templateId === 'custom') {
                 console.log('📊 Generating custom executive report...');
                 // Generate Global Executive Report
@@ -150,12 +152,14 @@ export const Reports: React.FC = () => {
                     }
                 );
                 console.log('✅ Custom report generated successfully');
+                addToast(t('reports.success'), 'success');
 
             } else {
                 const doc = new jsPDF();
                 doc.text(title, 10, 10);
                 doc.save(`${title}.pdf`);
                 console.log('✅ Simple PDF generated successfully');
+                addToast(t('reports.success'), 'success');
             }
 
         } catch (error) {
@@ -164,6 +168,7 @@ export const Reports: React.FC = () => {
                 name: error instanceof Error ? error.name : 'Unknown',
                 message: error instanceof Error ? error.message : String(error),
                 stack: error instanceof Error ? error.stack : 'No stack available',
+                fullError: typeof error === 'object' ? JSON.stringify(error) : error,
                 templateId,
                 title
             });
@@ -208,84 +213,131 @@ export const Reports: React.FC = () => {
             </motion.div>
 
             {activeTab === 'templates' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Template Cards Demo */}
-                    <div
-                        className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group"
-                        onClick={() => generatePDF('iso27001', t('reports.templateCards.iso27001.title'))}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                generatePDF('iso27001', t('reports.templateCards.iso27001.title'));
-                            }
-                        }}
-                    >
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 bg-brand-100 dark:bg-brand-900/30 rounded-xl text-brand-600 group-hover:scale-110 transition-transform">
-                                <ShieldCheck className="h-6 w-6" />
+                <div className="space-y-8">
+                    {/* Compliance Section */}
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                            <ShieldCheck className="h-6 w-6 text-brand-500" />
+                            {t('reports.categories.compliance')}
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div
+                                className="glass-premium p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group relative overflow-hidden"
+                                onClick={() => generatePDF('iso27001', t('reports.templateCards.iso27001.title'))}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        generatePDF('iso27001', t('reports.templateCards.iso27001.title'));
+                                    }
+                                }}
+                            >
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-brand-500/20 transition-colors"></div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="p-3 bg-brand-100 dark:bg-brand-900/30 rounded-xl text-brand-600 group-hover:scale-110 transition-transform">
+                                            <ShieldCheck className="h-8 w-8" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('reports.templateCards.iso27001.title')}</h3>
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 mt-1">
+                                                Recommandé
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 min-h-[40px]">
+                                        {t('reports.templateCards.iso27001.desc')}
+                                    </p>
+                                    <Button
+                                        className="w-full justify-center group-hover:bg-brand-600 group-hover:text-white dark:group-hover:text-white transition-colors"
+                                        variant="outline"
+                                    >
+                                        {t('reports.templateCards.iso27001.action')}
+                                    </Button>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="font-bold text-slate-900 dark:text-white">{t('reports.templateCards.iso27001.title')}</h3>
-                                <p className="text-xs text-slate-500">{t('reports.templateCards.iso27001.desc')}</p>
+
+                            <div
+                                className="glass-premium p-6 rounded-2xl border border-white/10 hover:border-blue-500 transition-all cursor-pointer group relative overflow-hidden"
+                                onClick={() => generatePDF('gdpr', t('reports.templateCards.gdpr.title'))}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        generatePDF('gdpr', t('reports.templateCards.gdpr.title'));
+                                    }
+                                }}
+                            >
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-colors"></div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600 group-hover:scale-110 transition-transform">
+                                            <Lock className="h-8 w-8" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('reports.templateCards.gdpr.title')}</h3>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 min-h-[40px]">
+                                        {t('reports.templateCards.gdpr.desc')}
+                                    </p>
+                                    <Button
+                                        className="w-full justify-center group-hover:bg-blue-600 group-hover:text-white dark:group-hover:text-white transition-colors"
+                                        variant="outline"
+                                    >
+                                        {t('reports.templateCards.gdpr.action')}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                        <button aria-label={t('reports.templateCards.iso27001.button')} className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                            {t('reports.templateCards.iso27001.action')}
-                        </button>
                     </div>
 
-                    <div
-                        className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group"
-                        onClick={() => generatePDF('gdpr', t('reports.templateCards.gdpr.title'))}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                generatePDF('gdpr', t('reports.templateCards.gdpr.title'));
-                            }
-                        }}
-                    >
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600 group-hover:scale-110 transition-transform">
-                                <Lock className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-slate-900 dark:text-white">{t('reports.templateCards.gdpr.title')}</h3>
-                                <p className="text-xs text-slate-500">{t('reports.templateCards.gdpr.desc')}</p>
-                            </div>
-                        </div>
-                        <button aria-label={t('reports.templateCards.gdpr.button')} className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                            {t('reports.templateCards.gdpr.action')}
-                        </button>
-                    </div>
-
-                    <div
-                        className="glass-panel p-6 rounded-2xl border border-white/10 hover:border-brand-500 transition-all cursor-pointer group"
-                        onClick={() => generatePDF('custom', t('reports.templateCards.custom.title'))}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                generatePDF('custom', t('reports.templateCards.custom.title'));
-                            }
-                        }}
-                    >
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600 group-hover:scale-110 transition-transform">
-                                <Settings className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-slate-900 dark:text-white">{t('reports.templateCards.custom.title')}</h3>
-                                <p className="text-xs text-slate-500">{t('reports.templateCards.custom.desc')}</p>
+                    {/* Executive Section */}
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                            <FileText className="h-6 w-6 text-purple-500" />
+                            {t('reports.categories.executive')}
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div
+                                className="glass-premium p-6 rounded-2xl border border-white/10 hover:border-purple-500 transition-all cursor-pointer group relative overflow-hidden"
+                                onClick={() => generatePDF('custom', t('reports.templateCards.custom.title'))}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        generatePDF('custom', t('reports.templateCards.custom.title'));
+                                    }
+                                }}
+                            >
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-purple-500/20 transition-colors"></div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600 group-hover:scale-110 transition-transform">
+                                            <Settings className="h-8 w-8" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('reports.templateCards.custom.title')}</h3>
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 mt-1">
+                                                Complet
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 min-h-[40px]">
+                                        {t('reports.templateCards.custom.desc')}
+                                    </p>
+                                    <Button
+                                        className="w-full justify-center group-hover:bg-purple-600 group-hover:text-white dark:group-hover:text-white transition-colors"
+                                        variant="outline"
+                                    >
+                                        {t('reports.templateCards.custom.action')}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                        <button aria-label={t('reports.templateCards.custom.button')} className="w-full py-2 bg-slate-100 dark:bg-white/5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                            {t('reports.templateCards.custom.action')}
-                        </button>
                     </div>
                 </div>
             )}
@@ -294,30 +346,42 @@ export const Reports: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {documents.filter(d => d.type === 'Rapport').length > 0 ? (
                         documents.filter(d => d.type === 'Rapport').map(doc => (
-                            <div key={doc.id} className="glass-panel p-6 rounded-2xl border border-white/10">
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600">
+                            <div key={doc.id} className="glass-premium p-6 rounded-2xl border border-white/50 dark:border-white/5 hover:border-brand-500/50 transition-all group">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400">
                                         <FileText className="h-6 w-6" />
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-slate-900 dark:text-white">{doc.title}</h3>
-                                        <p className="text-xs text-slate-500">v{doc.version}</p>
-                                    </div>
+                                    <span className={`px-2 py-1 rounded-lg text-xs font-bold ${doc.status === 'Publié' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-600'}`}>
+                                        {doc.status}
+                                    </span>
                                 </div>
+                                <h3 className="font-bold text-slate-900 dark:text-white mb-1 truncate" title={doc.title}>{doc.title}</h3>
+                                <p className="text-xs text-slate-500 mb-4">v{doc.version} • {new Date(doc.createdAt).toLocaleDateString()}</p>
+                                <Button size="sm" variant="ghost" className="w-full justify-between group-hover:bg-slate-100 dark:group-hover:bg-slate-800">
+                                    Télécharger <Archive className="h-4 w-4" />
+                                </Button>
                             </div>
                         ))
                     ) : (
-                        <div className="col-span-full text-center py-12 text-slate-500">
-                            Aucun rapport généré pour le moment.
+                        <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-500 glass-panel rounded-3xl border-dashed">
+                            <Archive className="h-12 w-12 opacity-20 mb-4" />
+                            <p className="font-medium">Aucun rapport généré pour le moment.</p>
+                            <Button variant="link" onClick={() => setActiveTab('templates')}>
+                                Créer un nouveau rapport
+                            </Button>
                         </div>
                     )}
                 </div>
             )}
 
             {activeTab === 'scheduled' && (
-                <div className="text-center py-12 text-slate-500 font-medium bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10">
-                    <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Aucun rapport planifié.</p>
+                <div className="text-center py-16 text-slate-500 font-medium glass-panel rounded-3xl border-dashed">
+                    <History className="h-16 w-16 mx-auto mb-6 opacity-20" />
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Aucun rapport planifié</h3>
+                    <p className="max-w-md mx-auto mb-6">Automatisez la génération de vos rapports pour recevoir des mises à jour régulières directement dans votre boîte mail.</p>
+                    <Button variant="outline" disabled>
+                        Planifier un rapport (Bientôt)
+                    </Button>
                 </div>
             )}
 

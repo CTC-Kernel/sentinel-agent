@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button } from '../../components/ui/button';
 import { Control, UserProfile, Asset, Supplier, Risk, Project, Document, Finding } from '../../types';
 import { ScrollableTabs } from '../../components/ui/ScrollableTabs';
 import { ComplianceAIAssistant } from './ComplianceAIAssistant';
@@ -86,15 +87,16 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                             <Link className="h-4 w-4 mr-2" />
                             <span className="font-medium">Lier ce contrôle au projet <strong>{linkingToProjectName}</strong> ?</span>
                         </div>
-                        <button
+                        <Button
                             aria-label={`Lier le contrôle au projet ${linkingToProjectName}`}
                             onClick={() => handleLinkProject(control, linkingToProjectId)}
                             disabled={updating || (control.relatedProjectIds || []).includes(linkingToProjectId)}
-                            className="text-xs bg-brand-600 hover:bg-brand-700 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center shadow-sm disabled:opacity-50"
+                            size="sm"
+                            className="text-xs font-bold shadow-sm"
                         >
                             {updating ? <Loader2 className="h-3 w-3 animate-spin mr-1.5" /> : <Link className="h-3 w-3 mr-1.5" />}
                             {(control.relatedProjectIds || []).includes(linkingToProjectId) ? 'Déjà lié' : 'Lier maintenant'}
-                        </button>
+                        </Button>
                     </div>
                 )}
 
@@ -118,25 +120,23 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
 
                         {/* Status & Assignment */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                            <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                                 <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Statut d'implémentation</h3>
                                 {canEdit ? (
                                     <div className="grid grid-cols-2 gap-2">
                                         {(['Non commencé', 'Partiel', 'Implémenté', 'En revue', 'Non applicable', 'Exclu'] as Control['status'][]).map((s) => (
-                                            <button
+                                            <Button
                                                 key={s}
                                                 aria-label={`Changer le statut à ${s}`}
                                                 aria-pressed={control.status === s}
                                                 onClick={() => handleStatusChange(control, s)}
                                                 disabled={updating}
-                                                className={`px-2 py-2 rounded-lg text-[10px] font-bold border transition-all duration-200 flex items-center justify-center ${control.status === s
-                                                    ? 'bg-brand-600 text-white border-brand-600 shadow-md'
-                                                    : 'bg-slate-50 dark:bg-slate-800/50 border-transparent text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700'
-                                                    } ${updating ? 'opacity-50 cursor-wait' : ''}`}
+                                                variant={control.status === s ? 'default' : 'outline'}
+                                                className={`h-auto py-2 text-[10px] font-bold justify-center whitespace-normal ${control.status === s ? 'bg-brand-600 hover:bg-brand-700' : 'text-slate-600 dark:text-slate-400'}`}
                                             >
                                                 {updating && control.status === s ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
                                                 {s}
-                                            </button>
+                                            </Button>
                                         ))}
                                     </div>
                                 ) : (
@@ -144,7 +144,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                 )}
                             </div>
 
-                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
+                            <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
                                 <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Responsable</h3>
                                 {canEdit ? (
                                     <CustomSelect
@@ -169,7 +169,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                         </div>
 
                         {/* Justification Area */}
-                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                        <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                             <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Justification / Politique</h3>
                             {canEdit ? (
                                 <textarea
@@ -193,7 +193,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                         {/* Use 2 columns grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Assets */}
-                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                            <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                                 <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Actifs Liés</h3>
                                 <div className="space-y-2 mb-4">
                                     {control.relatedAssetIds?.map(assetId => {
@@ -201,7 +201,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                         return asset ? (
                                             <div key={assetId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
                                                 <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{asset.name}</span>
-                                                {canEdit && <button aria-label="Délier l'actif" onClick={() => handleUnlinkAsset(control, assetId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
+                                                {canEdit && <Button variant="ghost" size="icon" aria-label="Délier l'actif" onClick={() => handleUnlinkAsset(control, assetId)} disabled={updating} className="h-6 w-6 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
                                             </div>
                                         ) : null;
                                     })}
@@ -220,7 +220,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                             </div>
 
                             {/* Suppliers */}
-                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                            <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                                 <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Fournisseurs Liés</h3>
                                 <div className="space-y-2 mb-4">
                                     {control.relatedSupplierIds?.map(supplierId => {
@@ -228,7 +228,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                         return supplier ? (
                                             <div key={supplierId} className="flex items-center justify-between p-2 bg-white/40 dark:bg-white/5 rounded-lg text-sm border border-white/10 shadow-sm">
                                                 <span className="truncate flex-1 font-medium text-slate-700 dark:text-slate-200">{supplier.name}</span>
-                                                {canEdit && <button aria-label="Délier le fournisseur" onClick={() => handleUnlinkSupplier(control, supplierId)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
+                                                {canEdit && <Button variant="ghost" size="icon" aria-label="Délier le fournisseur" onClick={() => handleUnlinkSupplier(control, supplierId)} disabled={updating} className="h-6 w-6 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
                                             </div>
                                         ) : null;
                                     })}
@@ -248,7 +248,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                         </div>
 
                         {/* Projects (Full Width) */}
-                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                        <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                             <h3 className="text-xs font-bold uppercase text-slate-500 mb-4 tracking-widest">Projets Liés</h3>
                             <div className="space-y-2 mb-4">
                                 {control.relatedProjectIds?.map(pid => {
@@ -264,7 +264,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                                     <span className="text-xs text-slate-500">{project.status}</span>
                                                 </div>
                                             </div>
-                                            {canEdit && <button aria-label="Délier le projet" onClick={() => handleUnlinkProject(control, pid)} disabled={updating} className="text-slate-500 hover:text-red-500 disabled:opacity-50"><X className="h-3.5 w-3.5" /></button>}
+                                            {canEdit && <Button variant="ghost" size="icon" aria-label="Délier le projet" onClick={() => handleUnlinkProject(control, pid)} disabled={updating} className="h-6 w-6 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><X className="h-3.5 w-3.5" /></Button>}
                                         </div>
                                     ) : null;
                                 })}
@@ -284,7 +284,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
 
                         {/* Risks & Findings Display (Read Only) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 bg-red-50/30 dark:bg-red-900/10">
+                            <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 bg-red-50/30 dark:bg-red-900/10">
                                 <div className="flex items-center gap-3 mb-4">
                                     <ShieldAlert className="h-5 w-5 text-red-500" />
                                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">Risques ({riskCount})</h3>
@@ -299,7 +299,7 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                     {riskCount === 0 && <p className="text-xs text-slate-500">Aucun risque atténué par ce contrôle.</p>}
                                 </div>
                             </div>
-                            <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 bg-orange-50/30 dark:bg-orange-900/10">
+                            <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 bg-orange-50/30 dark:bg-orange-900/10">
                                 <div className="flex items-center gap-3 mb-4">
                                     <AlertOctagon className="h-5 w-5 text-orange-500" />
                                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">Non-conformités ({findingsCount})</h3>
@@ -333,17 +333,18 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
 
                 {activeTab === 'evidence' && (
                     <div className="max-w-3xl mx-auto space-y-6">
-                        <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
+                        <div className="glass-premium p-6 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm">
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="font-bold text-slate-900 dark:text-white">Preuves documentaires</h3>
                                 {canEdit && (
-                                    <button
+                                    <Button
                                         onClick={() => handlers.onUploadEvidence(control)}
-                                        className="text-xs bg-brand-600 hover:bg-brand-700 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center shadow-sm"
+                                        size="sm"
+                                        className="text-xs font-bold shadow-sm"
                                     >
                                         <Upload className="h-3 w-3 mr-1.5" />
                                         Ajouter une preuve
-                                    </button>
+                                    </Button>
                                 )}
                             </div>
                             <div className="space-y-3">
@@ -364,9 +365,9 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
                                                     <ExternalLink className="h-4 w-4" />
                                                 </a>
                                                 {canEdit && (
-                                                    <button aria-label="Délier le document" onClick={() => handleUnlinkDocument(control, docId)} className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                                                    <Button variant="ghost" size="icon" aria-label="Délier le document" onClick={() => handleUnlinkDocument(control, docId)} className="h-8 w-8 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                                                         <X className="h-4 w-4" />
-                                                    </button>
+                                                    </Button>
                                                 )}
                                             </div>
                                         </div>

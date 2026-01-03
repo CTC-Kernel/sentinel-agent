@@ -6,6 +6,7 @@ import { useFirestoreCollection } from '../hooks/useFirestore';
 import { UserProfile } from '../types';
 import { useStore } from '../store';
 import { ShieldAlert, Users, Building, Activity, Search } from 'lucide-react';
+import { Button } from '../components/ui/button';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
@@ -122,7 +123,7 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Stats Cards */}
             <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="glass-panel p-6 rounded-2xl border border-white/10">
+                <div className="glass-premium p-6 rounded-2xl border border-white/10">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600">
                             <Building className="h-6 w-6" />
@@ -133,7 +134,7 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="glass-panel p-6 rounded-2xl border border-white/10">
+                <div className="glass-premium p-6 rounded-2xl border border-white/10">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600">
                             <Users className="h-6 w-6" />
@@ -144,7 +145,7 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="glass-panel p-6 rounded-2xl border border-white/10">
+                <div className="glass-premium p-6 rounded-2xl border border-white/10">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl text-purple-600">
                             <Activity className="h-6 w-6" />
@@ -172,7 +173,7 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="glass-panel rounded-2xl overflow-hidden border border-white/10">
+                <div className="glass-premium rounded-2xl overflow-hidden border border-white/10">
                     <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-50/50 dark:bg-white/5">
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('admin.orgs.title')} ({filteredOrgs.length})</h2>
                     </div>
@@ -202,14 +203,16 @@ export const AdminDashboard: React.FC = () => {
                                             {org.createdAt ? new Date(org.createdAt).toLocaleDateString() : '-'}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
                                                 aria-label={switchingOrg === org.id ? t('admin.orgs.switching') : t('admin.orgs.manage')}
                                                 onClick={() => handleManage(org.id, org.name)}
                                                 disabled={switchingOrg === org.id}
-                                                className="px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-slate-600 dark:text-slate-300 text-sm font-bold hover:bg-brand-50 dark:hover:bg-brand-500/20 hover:text-brand-600 dark:hover:text-brand-400 hover:border-brand-200 dark:hover:border-brand-500/30 transition-all disabled:opacity-50 shadow-sm"
+                                                className="px-4 py-2 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-bold hover:bg-brand-50 dark:hover:bg-brand-500/20 hover:text-brand-600 dark:hover:text-brand-400 hover:border-brand-200 dark:hover:border-brand-500/30 transition-all shadow-sm"
                                             >
                                                 {switchingOrg === org.id ? t('admin.orgs.switching') : t('admin.orgs.manage')}
-                                            </button>
+                                            </Button>
                                         </td>
                                     </tr>
                                 ))}

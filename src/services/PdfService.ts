@@ -234,13 +234,22 @@ export class PdfService {
         // Optional: AI Generated Cover Image Placeholder
         if (options.coverImage) {
             try {
-                doc.addImage(options.coverImage, 'JPEG', contentStartX, 20, contentWidth, 80);
+                // Validate if it is base64 or url (basic check)
+                if (options.coverImage.startsWith('data:image') || options.coverImage.startsWith('http')) {
+                    doc.addImage(options.coverImage, 'JPEG', contentStartX, 20, contentWidth, 80);
+                } else {
+                    console.warn('Invalid image format for cover image');
+                    throw new Error('Invalid format');
+                }
             } catch (e) {
-                // ErrorLogger is a static class, we need to import it or rely on fail-safe
-                // Since this is a service, let's just log safely if we can, or keep console.warn if import is tricky
-                // Assuming ErrorLogger is imported or available.
-                // Wait, I need to check imports.
-                console.warn('Failed to add cover image', e);
+                console.warn('Failed to add cover image, using fallback graphic', e);
+                // Fallback Graphic
+                doc.setDrawColor(this.BRAND_PRIMARY);
+                doc.setLineWidth(2);
+                doc.line(contentStartX, 40, contentStartX + 20, 40);
+                doc.setFontSize(10);
+                doc.setTextColor(this.TEXT_SECONDARY);
+                doc.text("Génération automatique", contentStartX, 45);
             }
         } else {
             // Decorative Graphic Element

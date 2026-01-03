@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X } from './Icons';
+import { Button } from './button';
 
 interface ModalProps {
     isOpen: boolean;
@@ -46,19 +47,21 @@ export const Modal: React.FC<ModalProps> = ({
                             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
-                            <Dialog.Panel className={`relative transform overflow-hidden rounded-[2rem] bg-white dark:bg-slate-900 text-left shadow-xl transition-all w-full border border-white/60 dark:border-white/5 glass-panel ${maxWidth}`}>
+                            <Dialog.Panel className={`relative transform overflow-hidden rounded-[2rem] bg-white dark:bg-slate-900 text-left shadow-xl transition-all w-full border border-white/60 dark:border-white/5 glass-premium ${maxWidth}`}>
                                 {title && (
                                     <div className="flex items-center justify-between p-6 border-b border-slate-200/60 dark:border-white/5 shrink-0 transition-colors">
                                         <Dialog.Title as="h3" className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                                             {title}
                                         </Dialog.Title>
-                                        <button
+                                        <Button
                                             onClick={onClose}
-                                            className="p-2 rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="rounded-full hover:bg-slate-500/10 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                                             aria-label="Fermer"
                                         >
                                             <X className="w-5 h-5" />
-                                        </button>
+                                        </Button>
                                     </div>
                                 )}
                                 <div className="p-0 overflow-y-auto custom-scrollbar max-h-[calc(90vh-80px)]">

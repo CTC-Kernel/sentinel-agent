@@ -341,25 +341,28 @@ export const Projects: React.FC = () => {
             {/* KANBAN TAB */}
             {activeTab === 'board' && (
                 <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-300px)] min-h-[500px] overflow-x-auto pb-4">
-                    {['todo', 'inProgress', 'done'].map((statusKey) => {
+                    {(['todo', 'inProgress', 'done'] as const).map((statusKey) => {
                         const statusLabel = t(`projects.kanban.${statusKey}`);
-                        const columnProjects = filteredProjects.filter(p =>
-                            statusKey === 'todo' ? (p.status !== 'En cours' && p.status !== 'Terminé') :
-                                statusKey === 'inProgress' ? p.status === 'En cours' :
-                                    p.status === 'Terminé'
-                        );
+                        const columnProjects = filteredProjects.filter(p => {
+                            // Map project status to Kanban columns (Explicit Mapping)
+                            const category =
+                                (p.status === 'En cours') ? 'inProgress' :
+                                    (p.status === 'Terminé') ? 'done' :
+                                        'todo'; // 'Planifié', 'Suspendu' fallback to Todo
+                            return category === statusKey;
+                        });
 
                         return (
-                            <div key={statusKey} className="flex flex-col glass-panel rounded-2xl p-4 border border-white/20 h-full">
-                                <h4 className="text-sm font-bold uppercase text-slate-600 dark:text-slate-400 mb-4 flex justify-between tracking-wider px-1">
+                            <div key={statusKey} className="flex flex-col glass-premium rounded-2xl p-4 h-full">
+                                <h4 className="flex justify-between px-1 mb-4 text-sm font-bold tracking-wider uppercase text-slate-600 dark:text-slate-400">
                                     {statusLabel}
                                     <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg text-xs shadow-sm border border-slate-200 dark:border-white/5">
                                         {columnProjects.length}
                                     </span>
                                 </h4>
-                                <div className="space-y-4 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
+                                <div className="flex-1 pr-2 space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
                                     {columnProjects.length === 0 ? (
-                                        <div className="h-32 border-2 border-dashed border-slate-200 dark:border-white/5 rounded-xl flex items-center justify-center text-slate-400 text-xs font-medium">
+                                        <div className="flex items-center justify-center h-32 text-xs font-medium border-2 border-dashed border-slate-200 dark:border-white/5 rounded-xl text-slate-400">
                                             {t('projects.emptyTitle')}
                                         </div>
                                     ) : (
@@ -369,6 +372,7 @@ export const Projects: React.FC = () => {
                                                 project={p}
                                                 canEdit={canEdit}
                                                 user={user}
+                                                usersList={usersList} // Added missing prop relative to line 317
                                                 onEdit={onEditProject}
                                                 onDelete={onDeleteRequest}
                                                 onClick={setSelectedProject}

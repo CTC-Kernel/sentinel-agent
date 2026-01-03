@@ -10,6 +10,7 @@ interface DatePickerProps {
     className?: string;
     required?: boolean;
     placeholder?: string;
+    disabled?: boolean;
 }
 
 export const DatePicker: React.FC<DatePickerProps> = ({
@@ -19,7 +20,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     error,
     className = '',
     required = false,
-    placeholder = "Sélectionner une date..."
+    placeholder = "Sélectionner une date...",
+    disabled = false
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -38,12 +40,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     const handleSelect = (date: Date | undefined) => {
         setIsOpen(false);
         if (date) {
-            // Adjust for timezone to ensure we store just the date part correctly as ISO string or whatever the app expects
-            // The app currently seems to expect YYYY-MM-DD strings based on previous code
-            // But react-day-picker returns a Date object at 00:00 local usually? no, it returns Date.
-            // Let's safe-guard the string conversion to YYYY-MM-DD
-
-            // To be safe with timezones, we can just use the components
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
@@ -62,17 +58,17 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     const selectedDate = value ? new Date(value) : undefined;
 
     return (
-        <div className={`relative ${className}`} ref={containerRef}>
+        <div className={`relative ${className} ${disabled ? 'opacity-70 cursor-not-allowed pointer-events-none' : ''}`} ref={containerRef}>
             <div
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={() => !disabled && setIsOpen(!isOpen)}
                 onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+                    if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
                         e.preventDefault();
                         setIsOpen(!isOpen);
                     }
                 }}
                 role="button"
-                tabIndex={0}
+                tabIndex={disabled ? -1 : 0}
                 className={`
                     relative flex items-center w-full rounded-2xl border transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
                     ${error
@@ -104,7 +100,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                 </label>
             </div>
 
-            {isOpen && (
+            {isOpen && !disabled && (
                 <div className="absolute z-tooltip mt-2 p-2 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-white/10 w-auto min-w-[300px] animate-fade-in">
                     <Calendar
                         mode="single"

@@ -49,7 +49,7 @@ export const CardSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={`card-skeleton-${i}`} className="glass-panel p-6 rounded-[2rem] space-y-4">
+        <div key={`card-skeleton-${i}`} className="glass-premium p-6 rounded-[2rem] space-y-4">
           <div className="flex justify-between items-start">
             <Skeleton variant="circular" className="w-12 h-12" />
             <Skeleton className="w-16 h-6" />
@@ -67,7 +67,7 @@ export const ListSkeleton: React.FC<{ items?: number }> = ({ items = 5 }) => {
   return (
     <div className="space-y-3">
       {Array.from({ length: items }).map((_, i) => (
-        <div key={`list-item-skeleton-${i}`} className="glass-panel p-4 rounded-2xl flex items-center space-x-4">
+        <div key={`list-item-skeleton-${i}`} className="glass-premium p-4 rounded-2xl flex items-center space-x-4">
           <Skeleton variant="circular" className="w-12 h-12 flex-shrink-0" />
           <div className="flex-1 space-y-2">
             <Skeleton variant="text" className="w-3/4" />

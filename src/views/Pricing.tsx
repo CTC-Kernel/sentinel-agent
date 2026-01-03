@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
 import { useStore } from '../store';
 import { Check, ChevronRight, Shield, Zap, Building2, HelpCircle, Info, ChevronDown, type LucideIcon } from 'lucide-react';
+import { Button } from '../components/ui/button';
 import { motion } from 'framer-motion';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { SEO } from '../components/SEO';
@@ -223,7 +224,7 @@ const Pricing = () => {
       </div>
 
       {/* Comparison Table - Minimalist */}
-      <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm min-w-0">
+      <div className="glass-premium p-0 rounded-[2.5rem] overflow-hidden min-w-0">
         <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
           <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{t('pricing.compare')}</h3>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{t('pricing.compareDesc')}</p>
@@ -299,7 +300,7 @@ const Pricing = () => {
       </div>
 
       {/* FAQ - Clean Accordion */}
-      <div className="glass-panel p-0 rounded-[2.5rem] overflow-hidden border border-white/60 dark:border-white/5 shadow-sm">
+      <div className="glass-premium p-0 rounded-[2.5rem] overflow-hidden">
         <div className="px-10 pt-10 pb-6 bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
           <div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{t('pricing.faq')}</h3>
@@ -344,13 +345,13 @@ const Pricing = () => {
       <div className="text-center pt-8 pb-4">
         <p className="text-sm text-slate-500 font-medium">
           {t('pricing.contact.text')}
-          <button
-            aria-label={t('pricing.contact.link')}
+          <Button
+            variant="link"
             onClick={() => setIsContactOpen(true)}
-            className="ml-1 text-slate-900 dark:text-white hover:underline font-bold focus:outline-none"
+            className="ml-1 text-slate-900 dark:text-white hover:underline font-bold h-auto p-0"
           >
             {t('pricing.contact.link')}
-          </button>
+          </Button>
         </p>
       </div>
 
@@ -361,9 +362,9 @@ const Pricing = () => {
       />
 
       <div className="flex flex-wrap gap-4 justify-center items-center text-xs font-medium text-slate-500 pb-8">
-        <button aria-label="Conditions Générales de Vente" onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors">CGV</button>
-        <button aria-label="Politique de Confidentialité" onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors">Confidentialité</button>
-        <button aria-label="Mentions Légales" onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors">Mentions Légales</button>
+        <Button variant="ghost" size="sm" onClick={() => { setLegalTab('cgv'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors h-auto py-1">CGV</Button>
+        <Button variant="ghost" size="sm" onClick={() => { setLegalTab('privacy'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors h-auto py-1">Confidentialité</Button>
+        <Button variant="ghost" size="sm" onClick={() => { setLegalTab('mentions'); setShowLegalModal(true); }} className="hover:text-slate-900 dark:hover:text-white transition-colors h-auto py-1">Mentions Légales</Button>
       </div>
 
       <LegalModal

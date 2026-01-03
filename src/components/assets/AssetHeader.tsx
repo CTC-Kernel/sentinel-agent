@@ -4,6 +4,7 @@ import { PageHeader } from '../ui/PageHeader';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDown, Link, FileSpreadsheet, Plus, Box } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
+import { Button } from '../ui/button';
 
 interface AssetHeaderProps {
     onGenerateLink: () => void;
@@ -30,7 +31,7 @@ export const AssetHeader: React.FC<AssetHeaderProps> = ({
             actions={(
                 <>
                     <Menu as="div" className="relative inline-block text-left mr-3">
-                        <Menu.Button className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-slate-50 dark:hover:bg-white/10 transition-all flex items-center">
+                        <Menu.Button as={Button} variant="outline" className="text-slate-700 dark:text-slate-200 font-bold shadow-sm hover:bg-slate-50 dark:hover:bg-white/10 transition-all flex items-center">
                             Actions <ChevronDown className="ml-2 h-4 w-4" />
                         </Menu.Button>
                         <Transition
@@ -52,7 +53,7 @@ export const AssetHeader: React.FC<AssetHeaderProps> = ({
                                             <button
                                                 onClick={onGenerateLink}
                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors duration-150`}
                                             >
                                                 <Link className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-brand-500'}`} />
                                                 Lien Kiosque
@@ -64,7 +65,7 @@ export const AssetHeader: React.FC<AssetHeaderProps> = ({
                                             <button
                                                 onClick={onExportCSV}
                                                 className={`${active ? 'bg-brand-500 text-white' : 'text-slate-900 dark:text-slate-200'
-                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm`}
+                                                    } group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors duration-150`}
                                             >
                                                 <FileSpreadsheet className={`mr-2 h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`} />
                                                 Export CSV
@@ -78,12 +79,12 @@ export const AssetHeader: React.FC<AssetHeaderProps> = ({
 
                     {canEdit && (
                         <CustomTooltip content="Créer un nouvel actif">
-                            <button
+                            <Button
                                 onClick={onNewAsset}
                                 className="flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
                             >
                                 <Plus className="h-4 w-4 mr-2" /> Nouvel Actif
-                            </button>
+                            </Button>
                         </CustomTooltip>
                     )}
                 </>
