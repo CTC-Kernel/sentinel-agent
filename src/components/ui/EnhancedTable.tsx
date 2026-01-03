@@ -1,13 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  ChevronUp, 
-  ChevronDown, 
-  Search, 
-  Filter, 
-  Download, 
+import {
+  Search,
+  Filter,
+  Download,
   MoreHorizontal,
-  ArrowUpDown,
   ArrowUp,
   ArrowDown
 } from 'lucide-react';
@@ -19,7 +16,7 @@ interface Column<T> {
   sortable?: boolean;
   filterable?: boolean;
   width?: string;
-  render?: (value: any, row: T) => React.ReactNode;
+  render?: (value: unknown, row: T) => React.ReactNode;
 }
 
 interface EnhancedTableProps<T> {
@@ -36,7 +33,7 @@ interface EnhancedTableProps<T> {
   };
 }
 
-export function EnhancedTable<T extends Record<string, any>>({
+export function EnhancedTable<T extends Record<string, unknown>>({
   data,
   columns,
   className = '',
@@ -49,9 +46,9 @@ export function EnhancedTable<T extends Record<string, any>>({
     key: keyof T | null;
     direction: 'asc' | 'desc';
   }>({ key: null, direction: 'asc' });
-  
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<Record<string, string>>({});
+  // const filters: Record<string, string> = {}; // Filters removed
   const [selectedRows, setSelectedRows] = useState<Set<string | number>>(new Set());
 
   // Filter and sort data
@@ -67,21 +64,15 @@ export function EnhancedTable<T extends Record<string, any>>({
       );
     }
 
-    // Apply filters
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        filtered = filtered.filter(row =>
-          String(row[key]).toLowerCase().includes(value.toLowerCase())
-        );
-      }
-    });
+    // Filters removed as they were not implemented correctly
+    // Object.entries(filters).forEach...
 
     // Apply sorting
     if (sortConfig.key) {
       filtered = [...filtered].sort((a, b) => {
         const aValue = a[sortConfig.key!];
         const bValue = b[sortConfig.key!];
-        
+
         if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
         if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
@@ -89,12 +80,12 @@ export function EnhancedTable<T extends Record<string, any>>({
     }
 
     return filtered;
-  }, [data, searchQuery, filters, sortConfig]);
+  }, [data, searchQuery, sortConfig]);
 
   // Pagination
   const paginatedData = useMemo(() => {
     if (!pagination) return processedData;
-    
+
     const startIndex = pagination.currentPage * pagination.pageSize;
     return processedData.slice(startIndex, startIndex + pagination.pageSize);
   }, [processedData, pagination]);
@@ -110,7 +101,7 @@ export function EnhancedTable<T extends Record<string, any>>({
     if (selectedRows.size === paginatedData.length) {
       setSelectedRows(new Set());
     } else {
-      setSelectedRows(new Set(paginatedData.map((row, index) => row.id || index)));
+      setSelectedRows(new Set(paginatedData.map((row, index) => (row as { id?: string | number }).id ?? index)));
     }
   };
 
@@ -127,7 +118,7 @@ export function EnhancedTable<T extends Record<string, any>>({
   const handleExport = () => {
     const csv = [
       columns.map(col => col.title).join(','),
-      ...processedData.map(row => 
+      ...processedData.map(row =>
         columns.map(col => {
           const value = row[col.key];
           return typeof value === 'object' ? JSON.stringify(value) : String(value);
@@ -161,14 +152,14 @@ export function EnhancedTable<T extends Record<string, any>>({
               />
             </div>
           )}
-          
+
           {filterable && (
             <button className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
               <Filter className="w-4 h-4" />
               Filtres
             </button>
           )}
-          
+
           {exportable && (
             <button
               onClick={handleExport}
@@ -246,34 +237,37 @@ export function EnhancedTable<T extends Record<string, any>>({
               </tr>
             </thead>
             <tbody>
-              {paginatedData.map((row, index) => (
-                <motion.tr
-                  key={row.id || index}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-                >
-                  <td className="p-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedRows.has(row.id || index)}
-                      onChange={() => handleSelectRow(row.id || index)}
-                      className="rounded border-slate-300 dark:border-slate-600"
-                    />
-                  </td>
-                  {columns.map((column) => (
-                    <td key={String(column.key)} className="p-4">
-                      {column.render ? column.render(row[column.key], row) : row[column.key]}
+              {paginatedData.map((row, index) => {
+                const rowId = (row as { id?: string | number }).id ?? index;
+                return (
+                  <motion.tr
+                    key={rowId}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  >
+                    <td className="p-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedRows.has(rowId)}
+                        onChange={() => handleSelectRow(rowId)}
+                        className="rounded border-slate-300 dark:border-slate-600"
+                      />
                     </td>
-                  ))}
-                  <td className="p-4">
-                    <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
-                      <MoreHorizontal className="w-4 h-4 text-slate-400" />
-                    </button>
-                  </td>
-                </motion.tr>
-              ))}
+                    {columns.map((column) => (
+                      <td key={String(column.key)} className="p-4">
+                        {column.render ? column.render(row[column.key], row) : (row[column.key] as React.ReactNode)}
+                      </td>
+                    ))}
+                    <td className="p-4">
+                      <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
+                        <MoreHorizontal className="w-4 h-4 text-slate-400" />
+                      </button>
+                    </td>
+                  </motion.tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

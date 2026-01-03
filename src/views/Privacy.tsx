@@ -5,7 +5,7 @@ import { useForm, FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { processingActivitySchema, ProcessingActivityFormData } from '../schemas/privacySchema';
 import { ProcessingActivity } from '../types';
-import { Plus, Fingerprint, Trash2, Edit, GlobeLock, FileSpreadsheet, Upload, X, Save } from '../components/ui/Icons';
+import { Plus, Fingerprint, Trash2, Edit, FileSpreadsheet, Upload, X, Save } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { ConfirmModal } from '../components/ui/ConfirmModal';

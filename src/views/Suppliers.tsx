@@ -5,7 +5,7 @@ import { SEO } from '../components/SEO';
 import { canEditResource } from '../utils/permissions';
 
 import { Supplier, Criticality, UserProfile } from '../types';
-import { Plus, Building, Trash2, Handshake, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, ShieldAlert } from '../components/ui/Icons';
+import { Plus, Building, Trash2, FileSpreadsheet, ClipboardList, Upload, Loader2, MoreVertical, ShieldAlert } from '../components/ui/Icons';
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { useStore } from '../store';
 import { useSuppliers } from '../hooks/useSuppliers';

@@ -1,85 +1,107 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle, XCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
-
-type NotificationType = 'success' | 'error' | 'warning' | 'info';
-
-interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message?: string;
-  duration?: number;
-  persistent?: boolean;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
-  timestamp: number;
-}
-
-interface NotificationContextType {
-  notifications: Notification[];
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void;
-  removeNotification: (id: string) => void;
-  clearNotifications: () => void;
-}
-
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+import { Notification, NotificationContext, NotificationType } from '../../contexts/NotificationContext';
+import { useNotifications } from '../../hooks/useNotifications';
+import { setGlobalNotificationContext } from '../../lib/toast';
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const loading = false;
 
-  const addNotification = (notification: Omit<Notification, 'id' | 'timestamp'>) => {
-    const id = Math.random().toString(36).substring(7);
+  const removeNotification = useCallback((id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
+
+  const clearNotifications = useCallback(() => {
+    setNotifications([]);
+  }, []);
+
+  const markAsRead = useCallback((id: string) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  }, []);
+
+  const markAllAsRead = useCallback(() => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  }, []);
+
+  const toggle = useCallback(() => setIsOpen(prev => !prev), []);
+
+  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read' | 'createdAt'>) => {
+    const id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(7) + Date.now().toString(36);
     const timestamp = Date.now();
-    
+
     const newNotification: Notification = {
       ...notification,
       id,
       timestamp,
+      createdAt: timestamp,
+      read: false,
       duration: notification.duration ?? 5000
     };
 
-    setNotifications(prev => [...prev, newNotification]);
+    setNotifications(prev => [newNotification, ...prev]);
 
-    // Auto-remove if not persistent
     if (!notification.persistent) {
       setTimeout(() => {
         removeNotification(id);
       }, newNotification.duration);
     }
 
-    return id; // Retourner l'ID pour le nettoyage
-  };
+    return id;
+  }, [removeNotification]);
 
-  const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-  };
+  const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
 
-  const clearNotifications = () => {
-    setNotifications([]);
-  };
+  const contextValue = useMemo(() => ({
+    notifications,
+    unreadCount,
+    loading,
+    isOpen,
+    toggle,
+    setIsOpen,
+    addNotification,
+    removeNotification,
+    clearNotifications,
+    markAsRead,
+    markAllAsRead
+  }), [notifications, unreadCount, loading, isOpen, toggle, setIsOpen, addNotification, removeNotification, clearNotifications, markAsRead, markAllAsRead]);
+
+  useEffect(() => {
+    setGlobalNotificationContext(contextValue);
+    return () => {
+      setGlobalNotificationContext(null);
+    };
+  }, [contextValue]);
 
   return (
-    <NotificationContext.Provider value={{ notifications, addNotification, removeNotification, clearNotifications }}>
+    <NotificationContext.Provider value={contextValue}>
       {children}
       <NotificationContainer />
     </NotificationContext.Provider>
   );
 };
 
-export const useNotifications = () => {
-  const context = useContext(NotificationContext);
-  if (context === undefined) {
-    throw new Error('useNotifications must be used within a NotificationProvider');
-  }
-  return context;
-};
-
 const NotificationContainer: React.FC = () => {
   const { notifications, removeNotification } = useNotifications();
+
+  // Filter only for "toast" notifications (transient or explicitly toast)
+  // But wait, our logic deletes transient notifications from state.
+  // So all notifications in state ARE in the center.
+  // If we want Toasts to show up, we just render them.
+  // The persistent ones? They stay in state.
+  // Should persistent notifications show as toasts? Usually yes.
+  // Should read notifications show as toasts? No.
+  // We can filter by !read for toasts? No, what if I read it in center but want toast?
+  // Let's assume NotificationContainer shows ALL notifications currently in state.
+  // Transient ones are removed quickly.
+  // Persistent ones stay. If they stay, do they stay on SCREEN?
+  // If a notification is persistent, it would clutter the screen.
+  // So NotificationContainer should probably filter out old persistent notifications?
+  // Or persistent notifications are "alerts" that MUST be dismissed manually?
+  // Let's assume existing behavior: everything in state is shown.
 
   const getIcon = (type: NotificationType) => {
     switch (type) {
@@ -129,7 +151,7 @@ const NotificationContainer: React.FC = () => {
             <div className="flex-shrink-0 mt-0.5">
               {getIcon(notification.type)}
             </div>
-            
+
             <div className="flex-1 min-w-0">
               <h4 className="font-medium text-sm">{notification.title}</h4>
               {notification.message && (
@@ -144,7 +166,7 @@ const NotificationContainer: React.FC = () => {
                 </button>
               )}
             </div>
-            
+
             <button
               onClick={() => removeNotification(notification.id)}
               className="flex-shrink-0 p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded transition-colors"
@@ -156,47 +178,4 @@ const NotificationContainer: React.FC = () => {
       </AnimatePresence>
     </div>
   );
-};
-
-// Toast Notifications
-export const toast = {
-  success: (title: string, message?: string) => {
-    const { addNotification } = useNotifications();
-    addNotification({ type: 'success', title, message });
-  },
-  error: (title: string, message?: string) => {
-    const { addNotification } = useNotifications();
-    addNotification({ type: 'error', title, message });
-  },
-  warning: (title: string, message?: string) => {
-    const { addNotification } = useNotifications();
-    addNotification({ type: 'warning', title, message });
-  },
-  info: (title: string, message?: string) => {
-    const { addNotification } = useNotifications();
-    addNotification({ type: 'info', title, message });
-  },
-  persistent: (type: NotificationType, title: string, message?: string) => {
-    const { addNotification } = useNotifications();
-    addNotification({ type, title, message, persistent: true });
-  }
-};
-
-// Hook for auto-notifications
-export const useAutoNotification = (
-  condition: boolean,
-  notification: Omit<Notification, 'id' | 'timestamp'>
-) => {
-  const { addNotification, removeNotification } = useNotifications();
-
-  useEffect(() => {
-    if (condition) {
-      const id = addNotification(notification);
-      return () => {
-        if (typeof id === 'string') {
-          removeNotification(id);
-        }
-      };
-    }
-  }, [condition, notification, addNotification, removeNotification]);
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Command, Clock, TrendingUp, FileText, Users, Shield, Database } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -25,7 +25,6 @@ const mockResults: SearchResult[] = [
 export const UniversalSearch: React.FC<{ className?: string }> = ({ className = '' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -46,30 +45,37 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  useEffect(() => {
+  const filteredResults = useMemo(() => {
     if (query.length > 0) {
-      const filtered = mockResults.filter(result =>
+      return mockResults.filter(result =>
         result.title.toLowerCase().includes(query.toLowerCase()) ||
         result.category?.toLowerCase().includes(query.toLowerCase())
       );
-      setResults(filtered);
-      setSelectedIndex(0);
     } else {
-      setResults(mockResults.slice(0, 5));
+      return mockResults.slice(0, 5);
     }
   }, [query]);
+
+  // Track previous results to reset index when they change
+  const [prevFilteredResults, setPrevFilteredResults] = useState(filteredResults);
+  if (filteredResults !== prevFilteredResults) {
+    setPrevFilteredResults(filteredResults);
+    setSelectedIndex(0);
+  }
+
+  // Note: useEffect removed as state update happens during render
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setSelectedIndex(prev => (prev + 1) % results.length);
+      setSelectedIndex(prev => (prev + 1) % filteredResults.length);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setSelectedIndex(prev => (prev - 1 + results.length) % results.length);
+      setSelectedIndex(prev => (prev - 1 + filteredResults.length) % filteredResults.length);
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (results[selectedIndex]) {
-        navigate(results[selectedIndex].url);
+      if (filteredResults[selectedIndex]) {
+        navigate(filteredResults[selectedIndex].url);
         setIsOpen(false);
         setQuery('');
       }
@@ -131,8 +137,8 @@ export const UniversalSearch: React.FC<{ className?: string }> = ({ className = 
               </div>
 
               <div className="mt-4 space-y-1 max-h-96 overflow-y-auto">
-                {results.length > 0 ? (
-                  results.map((result, index) => (
+                {filteredResults.length > 0 ? (
+                  filteredResults.map((result, index) => (
                     <motion.button
                       key={result.id}
                       initial={{ opacity: 0, x: -10 }}

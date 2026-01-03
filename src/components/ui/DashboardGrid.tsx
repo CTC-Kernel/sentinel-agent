@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, useDragControls } from 'framer-motion';
-import { GripVertical, Settings, Maximize2, Minimize2, X } from 'lucide-react';
+import { GripVertical, Settings, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface Widget {
@@ -35,7 +35,6 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
   className = ''
 }) => {
   const [draggedWidget, setDraggedWidget] = useState<string | null>(null);
-  const [resizingWidget, setResizingWidget] = useState<string | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
   const handleDragStart = (widgetId: string) => {
@@ -55,7 +54,6 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
     if (widget) {
       onWidgetUpdate({ ...widget, size: newSize });
     }
-    setResizingWidget(null);
   };
 
   return (
@@ -86,7 +84,6 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
           onResize={handleResize}
           onRemove={onWidgetRemove}
           isDragging={draggedWidget === widget.id}
-          isResizing={resizingWidget === widget.id}
         />
       ))}
 
@@ -111,7 +108,6 @@ interface DraggableWidgetProps {
   onResize: (id: string, size: 'small' | 'medium' | 'large' | 'full') => void;
   onRemove?: (id: string) => void;
   isDragging: boolean;
-  isResizing: boolean;
 }
 
 const DraggableWidget: React.FC<DraggableWidgetProps> = ({
@@ -121,41 +117,14 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   onResize,
   onRemove,
   isDragging,
-  isResizing
+  // isResizing // Unused
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const dragControls = useDragControls();
   const config = sizeConfig[widget.size];
 
-  const handleDrag = (event: React.MouseEvent) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    
-    onDragStart(widget.id);
-    
-    const handleMouseMove = (e: MouseEvent) => {
-      const newX = e.clientX - x;
-      const newY = e.clientY - y;
-      
-      // Snap to grid
-      const gridSize = 32; // 2rem in pixels
-      const snappedX = Math.round(newX / gridSize) * gridSize;
-      const snappedY = Math.round(newY / gridSize) * gridSize;
-      
-      dragControls.set({ x: snappedX, y: snappedY });
-    };
 
-    const handleMouseUp = () => {
-      onDragEnd(widget.id, dragControls.get());
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
 
   return (
     <motion.div
@@ -164,7 +133,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
       dragMomentum={false}
       dragElastic={0.1}
       onDragStart={() => onDragStart(widget.id)}
-      onDragEnd={() => onDragEnd(widget.id, dragControls.get())}
+      onDragEnd={(_, info) => onDragEnd(widget.id, info.point)}
       style={{
         position: 'absolute',
         left: widget.position.x,
@@ -193,7 +162,7 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
             {widget.title}
           </h3>
         </div>
-        
+
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: isHovered ? 1 : 0, scale: isHovered ? 1 : 0.8 }}

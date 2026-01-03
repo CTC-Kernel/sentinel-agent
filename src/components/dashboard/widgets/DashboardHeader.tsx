@@ -40,7 +40,7 @@ interface DashboardHeaderProps {
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
-    user, organizationName, scoreGrade, loading, isEmpty,
+    user, organizationName, loading, isEmpty,
     navigate = () => { },
     t = (k) => k,
     insight,
@@ -50,14 +50,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     isEditing = false,
     onToggleEdit
 }) => {
-    // Determine gradient based on score
-    const getGradeColor = (g?: string) => {
-        if (!g) return 'from-slate-500 to-slate-600';
-        if (g === 'A') return 'from-emerald-400 to-emerald-600';
-        if (g === 'B') return 'from-blue-400 to-blue-600';
-        if (g === 'C') return 'from-orange-400 to-orange-600';
-        return 'from-red-500 to-red-700';
-    };
+
 
     type Role = 'admin' | 'rssi' | 'direction' | 'auditor' | 'project_manager' | 'user';
     const rawRole = user?.role;
@@ -146,9 +139,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         <div className="absolute inset-0 bg-gradient-to-t from-white/15 dark:from-white/8 to-transparent opacity-0 group-hover/orb:opacity-20 transition-opacity duration-500" />
                                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent opacity-0 group-hover/orb:opacity-15 transition-opacity duration-500" />
                                         <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-slate-200/25 via-slate-100/15 to-transparent opacity-0 group-hover/orb:opacity-25 transition-opacity duration-500" />
-                                        <img 
-                                            src="/images/pilotage.png" 
-                                            alt="PILOTAGE" 
+                                        <img
+                                            src="/images/pilotage.png"
+                                            alt="PILOTAGE"
                                             className="w-full h-full object-contain relative z-10"
                                         />
                                         {/* Holographic ring */}

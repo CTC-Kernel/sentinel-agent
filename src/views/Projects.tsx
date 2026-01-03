@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 
 import { useStore } from '../store';
 import { Project, ProjectTemplate, UserProfile } from '../types';
@@ -71,13 +71,12 @@ export const Projects: React.FC = () => {
     }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
     // Filter Logic
-    // Filter Logic
     const filteredProjects = useMemo(() => projects.filter(p =>
         p.name.toLowerCase().includes(filter.toLowerCase()) ||
-        p.description?.toLowerCase().includes(filter.toLowerCase())
+        p.description?.toLowerCase().includes(filter.toLowerCase()) ||
+        p.status.toLowerCase().includes(filter.toLowerCase())
     ), [projects, filter]);
 
-    // Handlers
     // Handlers
     const onEditProject = useCallback((project: Project) => {
         setEditingProject(project);
@@ -183,8 +182,21 @@ export const Projects: React.FC = () => {
         setCsvImportOpen(false);
     }, [importProjects]);
 
+    // Debug: Monitor activeTab changes
+    useEffect(() => {
+        console.log('activeTab changed to:', activeTab);
+    }, [activeTab]);
+
     // UI Checks
-    const handleTabChange = useCallback((id: string) => setActiveTab(id as 'overview' | 'list' | 'board' | 'gantt'), [setActiveTab]);
+    const handleTabChange = useCallback((id: string) => {
+        console.log('Tab change requested:', id, 'current activeTab:', activeTab);
+        if (id !== activeTab) {
+            setActiveTab(id as 'overview' | 'list' | 'board' | 'gantt');
+            console.log(' setActiveTab called with:', id);
+        } else {
+            console.log('Tab is already active, no change needed');
+        }
+    }, [activeTab, setActiveTab]);
     const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as 'list' | 'grid' | 'matrix' | 'kanban'), []);
     const handleNewProjectClick = useCallback(() => { setCreationMode(true); setEditingProject(null); }, []);
     const handleOpenTemplateModal = useCallback(() => setShowTemplateModal(true), []);

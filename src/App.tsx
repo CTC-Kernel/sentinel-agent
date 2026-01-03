@@ -41,6 +41,7 @@ import { RouteProgressBar } from './components/ui/RouteProgressBar';
 import { NavigationLoader } from './components/ui/NavigationLoader';
 
 // Features
+import { NotificationProvider } from './components/ui/NotificationSystem';
 import { OnboardingTrigger } from './components/onboarding/OnboardingTrigger';
 import { GeminiAssistant } from './components/ai/GeminiAssistant';
 import { VersionCheck } from './components/VersionCheck';
@@ -254,7 +255,9 @@ const AppInner: React.FC = () => {
                         {/* Main App Route - Handles all paths and sub-routes */}
                         <Route path="/*" element={
                             <AuthGuard>
-                                <AppLayout />
+                                <NotificationProvider>
+                                    <AppLayout />
+                                </NotificationProvider>
                             </AuthGuard>
                         } />
                     </Routes>
