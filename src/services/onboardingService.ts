@@ -389,6 +389,14 @@ export class OnboardingService {
     /**
      * Tour guidé pour le module Risques
      */
+
+    /**
+     * Vérifie si l'utilisateur a déjà vu le tour principal
+     */
+    static hasSeenTour(): boolean {
+        return localStorage.getItem('tour-seen') === 'true';
+    }
+
     /**
      * Vérifie si l'utilisateur a déjà vu le tour d'un module spécifique
      */
