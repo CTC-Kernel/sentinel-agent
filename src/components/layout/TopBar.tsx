@@ -177,8 +177,8 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
 
                         {/* Dropdown Menu */}
                         {showUserMenu && (
-                            <div className="absolute right-0 mt-3 w-64 bg-gradient-to-br from-brand-50 to-brand-100 dark:from-brand-900/50 dark:to-brand-800/50 backdrop-blur-xl border border-brand-200/50 dark:border-brand-700/50 rounded-2xl overflow-hidden z-50 animate-scale-in origin-top-right shadow-[0_-10px_40px_-15px_rgba(59,130,246,0.15)]">
-                                <div className="p-4 bg-brand-100/50 dark:bg-brand-800/30 border-b border-brand-200/30 dark:border-brand-700/30">
+                            <div className="absolute right-0 mt-3 w-64 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden z-50 animate-scale-in origin-top-right shadow-[0_20px_40px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.4)] ring-1 ring-white/20 dark:ring-white/5">
+                                <div className="p-4 bg-gradient-to-br from-slate-50/50 to-white/30 dark:from-slate-800/30 dark:to-slate-900/20 border-b border-slate-200/50 dark:border-white/10">
                                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.displayName}</p>
                                     <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5">{user?.email}</p>
                                 </div>
@@ -188,7 +188,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                             setLanguage(language === 'fr' ? 'en' : 'fr');
                                             setShowUserMenu(false);
                                         }}
-                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-colors"
+                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
                                     >
                                         <Globe className="h-4 w-4 mr-3 text-slate-500" />
                                         {language === 'fr' ? 'Switch to English' : 'Passer en Français'}
@@ -196,7 +196,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                     <Link
                                         to="/settings"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
                                     >
                                         <User className="h-4 w-4 mr-3 text-slate-500" />
                                         {t('settings.myProfile')}
@@ -204,7 +204,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                     <Link
                                         to="/settings"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
                                     >
                                         <SettingsIcon className="h-4 w-4 mr-3 text-slate-500" />
                                         {t('common.settings.title')}
@@ -212,7 +212,7 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                     <Link
                                         to="/pricing"
                                         onClick={() => setShowUserMenu(false)}
-                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/10 rounded-xl transition-colors"
+                                        className="flex items-center px-3 py-2.5 text-sm font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50/50 dark:hover:bg-brand-900/20 rounded-xl transition-colors"
                                     >
                                         <span className="w-4 h-4 mr-3 flex items-center justify-center font-serif italic font-black border border-current rounded-full text-[10px]">€</span>
                                         {t('settings.plansAndBilling')}
@@ -220,18 +220,18 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                     <button
                                         aria-label="Donner un avis"
                                         onClick={() => { setShowUserMenu(false); setShowFeedback(true); }}
-                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-colors"
+                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-xl transition-colors"
                                     >
                                         <MessageSquare className="h-4 w-4 mr-3 text-slate-500" />
                                         Donner un avis
                                     </button>
                                 </div>
-                                <div className="h-px bg-brand-200/30 dark:bg-brand-700/30 mx-2"></div>
+                                <div className="h-px bg-slate-200/50 dark:bg-white/10 mx-2"></div>
                                 <div className="p-2">
                                     <button
                                         aria-label="Se déconnecter"
                                         onClick={() => { handleLogout(); setShowUserMenu(false); }}
-                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors"
+                                        className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                                     >
                                         <LogOut className="h-4 w-4 mr-3" />
                                         {t('common.logout')}

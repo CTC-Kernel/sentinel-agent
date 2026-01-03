@@ -44,7 +44,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({ isOpen, onClose,
                         <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/5 shrink-0">
                             <div>
                                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('dashboard.addWidget')}</h2>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Personnalisez votre tableau de bord</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('dashboard.customizeDashboard')}</p>
                             </div>
                             <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                                 <X className="w-6 h-6" />
@@ -77,7 +77,7 @@ export const AddWidgetModal: React.FC<AddWidgetModalProps> = ({ isOpen, onClose,
                                         <div>
                                             <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">{t(config.titleKey)}</h3>
                                             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                                                {t(`dashboard.widgets.${id}.description`, { defaultValue: "Ajouter ce widget au tableau de bord." })}
+                                                {t(`dashboard.widgets.${id}.description`, { defaultValue: t('dashboard.addWidgetToDashboard') })}
                                             </p>
                                         </div>
                                     </div>
