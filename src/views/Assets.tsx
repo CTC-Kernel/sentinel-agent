@@ -346,7 +346,13 @@ const Assets: React.FC = () => {
                     <PageHeader
                         title={t('assets.title')}
                         subtitle={t('assets.description')}
-                        icon={<Database className="h-6 w-6 text-brand-500" />}
+                        icon={
+                        <img 
+                            src="/images/referentiel.png" 
+                            alt="RÉFÉRENTIEL" 
+                            className="w-full h-full object-contain"
+                        />
+                    }
                         breadcrumbs={[
                             { label: t('sidebar.dashboard'), path: '/' },
                             { label: t('assets.title'), path: '/assets' }

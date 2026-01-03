@@ -141,12 +141,19 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             {/* Left: Organization & Welcome */}
                             <div className="flex items-center gap-5 min-w-[280px]">
                                 <div className="relative shrink-0 group/orb cursor-default">
-                                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${getGradeColor(scoreGrade)} flex items-center justify-center shadow-lg shadow-brand-500/30 relative overflow-hidden transition-all duration-500 group-hover/orb:scale-110 group-hover/orb:rotate-3`}>
-                                        <div className="absolute inset-0 bg-white/30 animate-pulse" />
-                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/50 to-transparent opacity-0 group-hover/orb:opacity-100 transition-opacity duration-500" />
-                                        <span className="text-3xl font-black text-white font-display relative z-10 drop-shadow-md">{scoreGrade || '-'}</span>
+                                    <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 via-slate-800 dark:to-slate-950 shadow-2xl shadow-slate-300/20 dark:shadow-slate-800/30 relative overflow-hidden transition-all duration-500 group-hover/orb:scale-110 group-hover/orb:rotate-3 group-hover/orb:-translate-y-1 ring-2 ring-slate-200/60 dark:ring-slate-700/40 backdrop-blur-sm">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-brand-500/8 via-transparent to-transparent opacity-0 group-hover/orb:opacity-40 transition-opacity duration-500" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-white/15 dark:from-white/8 to-transparent opacity-0 group-hover/orb:opacity-20 transition-opacity duration-500" />
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent opacity-0 group-hover/orb:opacity-15 transition-opacity duration-500" />
+                                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-slate-200/25 via-slate-100/15 to-transparent opacity-0 group-hover/orb:opacity-25 transition-opacity duration-500" />
+                                        <img 
+                                            src="/images/pilotage.png" 
+                                            alt="PILOTAGE" 
+                                            className="w-full h-full object-contain relative z-10"
+                                        />
                                         {/* Holographic ring */}
-                                        <div className="absolute inset-0 border-2 border-white/20 rounded-2xl animate-spin-slow" />
+                                        <div className="absolute inset-0 border-2 border-slate-200/40 dark:border-slate-700/40 rounded-3xl animate-spin-slow" />
+                                        <div className="absolute inset-0 border border-white/20 dark:border-white/10 rounded-3xl animate-spin-slow-reverse" />
                                     </div>
                                     <div className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-background/50 backdrop-blur-sm flex items-center justify-center shadow-sm border border-white/10">
                                         <div className="w-3 h-3 rounded-full bg-emerald-500 animate-monitoring-ping absolute" />
@@ -154,13 +161,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight leading-none mb-1">
+                                    <h1 className="text-2xl sm:text-3xl font-bold font-display text-slate-900 dark:text-white tracking-tight leading-none mb-3 drop-shadow-sm">
                                         {organizationName || user?.organizationName || t('sidebar.dashboard')}
                                     </h1>
-                                    <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                                    <div className="flex items-center gap-3 text-xs font-medium text-slate-500 dark:text-slate-400 drop-shadow-xs">
                                         <span>{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
-                                        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                                        <span className="uppercase tracking-wide">{t('dashboard.workspace')}</span>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+                                        <span className="uppercase tracking-wider font-semibold">{t('dashboard.workspace')}</span>
                                     </div>
                                 </div>
                             </div>

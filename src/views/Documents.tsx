@@ -261,7 +261,13 @@ export const Documents: React.FC = () => {
                 breadcrumbs={[
                     { label: t('sidebar.documents') }
                 ]}
-                icon={<FileText className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                icon={
+                    <img 
+                        src="/images/referentiel.png" 
+                        alt="RÉFÉRENTIEL" 
+                        className="w-full h-full object-contain"
+                    />
+                }
                 trustType="storage"
                 actions={undefined}
             />

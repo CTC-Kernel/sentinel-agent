@@ -222,7 +222,13 @@ export const Continuity: React.FC = () => {
                 <PageHeader
                     title={t('continuity.title')}
                     subtitle={t('continuity.subtitle')}
-                    icon={<Activity className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                    icon={
+                    <img 
+                        src="/images/gouvernance.png" 
+                        alt="GOUVERNANCE" 
+                        className="w-full h-full object-contain"
+                    />
+                }
                     trustType="availability"
                     actions={undefined}
                 />

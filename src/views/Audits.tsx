@@ -183,6 +183,13 @@ export const Audits: React.FC = () => {
             <PageHeader
                 title={auditsTitle}
                 subtitle={auditsSubtitle}
+                icon={
+                    <img 
+                        src="/images/gouvernance.png" 
+                        alt="GOUVERNANCE" 
+                        className="w-full h-full object-contain"
+                    />
+                }
             />
 
             <div className="mb-6">

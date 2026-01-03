@@ -22,15 +22,38 @@ export const slideUpVariants: Variants = {
     visible: {
         opacity: 1,
         y: 0,
-        transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+        transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
     },
-    in: {
-        opacity: 1,
-        y: 0,
-        transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+    exit: { opacity: 0, y: -20, transition: { duration: 0.3 } }
+};
+
+export const premiumHoverVariants: Variants = {
+    initial: { scale: 1, y: 0 },
+    hover: { 
+        scale: 1.05, 
+        y: -4,
+        transition: { 
+            duration: 0.4, 
+            ease: [0.22, 1, 0.36, 1],
+            type: "spring",
+            stiffness: 300,
+            damping: 20
+        } 
     },
-    exit: { opacity: 0, y: -20, transition: { duration: 0.3 } },
-    out: { opacity: 0, y: -20, transition: { duration: 0.3 } }
+    tap: { scale: 0.98, transition: { duration: 0.1 } }
+};
+
+export const glowVariants: Variants = {
+    initial: { opacity: 0, scale: 0.8 },
+    animate: { 
+        opacity: [0, 1, 0], 
+        scale: [0.8, 1.2, 0.8],
+        transition: { 
+            duration: 3, 
+            repeat: Infinity,
+            ease: "easeInOut"
+        } 
+    }
 };
 
 export const staggerContainerVariants: Variants = {

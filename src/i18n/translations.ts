@@ -288,6 +288,7 @@ export const translations = {
             setupProgress: 'Progression de la Configuration',
             progression: 'Progression',
             addWidget: 'Ajouter un widget',
+            customizeDashboard: 'Personnalisez votre tableau de bord',
             allWidgetsAdded: 'Tous les widgets sont déjà ajoutés.',
             statsOverview: 'Vue d\'ensemble',
             myWorkspace: 'Mon Espace',

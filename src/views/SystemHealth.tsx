@@ -40,7 +40,13 @@ export const SystemHealth: React.FC = () => {
             <PageHeader
                 title="État du Système"
                 subtitle="Tableau de bord de supervision technique et disponibilité des services."
-                icon={<Activity className="h-6 w-6 text-white" />}
+                icon={
+                    <img 
+                        src="/images/administration.png" 
+                        alt="ADMINISTRATION" 
+                        className="w-full h-full object-contain"
+                    />
+                }
                 breadcrumbs={[{ label: 'Administration' }, { label: 'Santé Système' }]}
                 trustType="admin"
             />
