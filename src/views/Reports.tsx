@@ -164,14 +164,14 @@ export const Reports: React.FC = () => {
 
         } catch (error) {
             console.error('❌ PDF Generation Error:', error);
-            console.error('Error details:', {
-                name: error instanceof Error ? error.name : 'Unknown',
-                message: error instanceof Error ? error.message : String(error),
-                stack: error instanceof Error ? error.stack : 'No stack available',
-                fullError: typeof error === 'object' ? JSON.stringify(error) : error,
-                templateId,
-                title
-            });
+            // Enhanced error logging for debugging
+            if (error instanceof Error) {
+                console.error('Stack:', error.stack);
+                console.error('Message:', error.message);
+            }
+            // Log to console for user to provide if needed
+            console.error('Context:', { templateId, title, organization });
+
             ErrorLogger.handleErrorWithToast(error, 'Reports.generatePDF', 'CREATE_FAILED');
         } finally {
             setLoadingAction(false);
