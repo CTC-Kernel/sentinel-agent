@@ -12,6 +12,21 @@ export class CompliancePackService {
     /**
      * Generate a full Compliance Pack (ZIP) containing evidence
      */
+    // Helper for safe date formatting
+    static safeFormatDate(date: string | number | Date | undefined | null): string {
+        if (!date) return 'N/A';
+        try {
+            const d = new Date(date);
+            if (isNaN(d.getTime())) return 'Date invalide';
+            return format(d, 'dd/MM/yyyy');
+        } catch (e) {
+            return 'N/A';
+        }
+    }
+
+    /**
+     * Generate a full Compliance Pack (ZIP) containing evidence
+     */
     static async generatePack(
         data: {
             organizationName: string;
@@ -25,6 +40,8 @@ export class CompliancePackService {
         }
     ): Promise<void> {
         const zip = new JSZip();
+        // Use safe replacement for filenames
+        const safeOrgName = (data.organizationName || 'Organization').replace(/[^a-z0-9]/gi, '_');
         const dateStr = format(new Date(), 'yyyy-MM-dd');
         const rootFolder = zip.folder(`Conformité_${dateStr}`);
 
@@ -145,7 +162,7 @@ L'intégrité de ces données est garantie par le système.
                         r.score.toString(),
                         r.strategy,
                         (r.residualScore || r.score).toString(),
-                        r.treatmentDeadline ? format(new Date(r.treatmentDeadline), 'dd/MM/yyyy') : 'N/A'
+                        this.safeFormatDate(r.treatmentDeadline)
                     ]);
 
                     doc.autoTable({
@@ -250,7 +267,7 @@ L'intégrité de ces données est garantie par le système.
                     d.type,
                     d.version,
                     d.status,
-                    d.updatedAt ? format(new Date(d.updatedAt), 'dd/MM/yyyy') : 'N/A'
+                    this.safeFormatDate(d.updatedAt)
                 ])
             );
             docFolder.file("00_Index_Documentaire.pdf", indexDoc.output('blob'));
@@ -297,7 +314,7 @@ L'intégrité de ces données est garantie par le système.
             const incDoc = PdfService.generateTableReport(
                 { title: "Registre des Incidents", organizationName: data.organizationName, save: false, orientation: 'landscape' },
                 ['Titre', 'Sévérité', 'Statut', 'Date', 'Impact'],
-                data.incidents.map(i => [i.title, i.severity, i.status, format(new Date(i.dateReported), 'dd/MM/yyyy'), i.impact || 'N/A'])
+                data.incidents.map(i => [i.title, i.severity, i.status, this.safeFormatDate(i.dateReported), i.impact || 'N/A'])
             );
             incidentFolder.file("Registre_Incidents.pdf", incDoc.output('blob'));
 
@@ -315,13 +332,13 @@ L'intégrité de ces données est garantie par le système.
             const auditDoc = PdfService.generateTableReport(
                 { title: "Programme d'Audit", organizationName: data.organizationName, save: false },
                 ['Audit', 'Date', 'Auditeur', 'Statut', 'Conformité'],
-                data.audits.map(a => [a.name, format(new Date(a.dateScheduled), 'dd/MM/yyyy'), a.auditor, a.status, `${a.score || 0}%`])
+                data.audits.map(a => [a.name, this.safeFormatDate(a.dateScheduled), a.auditor, a.status, `${a.score || 0}%`])
             );
             auditFolder.file("Suivi_Audits.pdf", auditDoc.output('blob'));
         }
 
         // Generate and Save Final Zip
         const content = await zip.generateAsync({ type: "blob" });
-        saveAs(content, `Compliance_Pack_${data.organizationName.replace(/\s+/g, '_')}_${dateStr}.zip`);
+        saveAs(content, `Compliance_Pack_${safeOrgName}_${dateStr}.zip`);
     }
 }
