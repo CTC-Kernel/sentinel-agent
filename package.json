@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-version.js && node scripts/generate-sitemap.js && vite build",
+    "build": "NODE_OPTIONS=\"--max-old-space-size=4096\" node scripts/generate-version.js && NODE_OPTIONS=\"--max-old-space-size=4096\" node scripts/generate-sitemap.js && NODE_OPTIONS=\"--max-old-space-size=4096\" vite build",
     "lint": "eslint .",
     "test": "vitest run",
     "test:ui": "vitest --ui",
