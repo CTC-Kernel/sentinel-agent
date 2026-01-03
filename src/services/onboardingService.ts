@@ -389,45 +389,64 @@ export class OnboardingService {
     /**
      * Tour guidé pour le module Risques
      */
+
+    /**
+     * Vérifie si l'utilisateur a déjà vu le tour principal
+     */
+    static hasSeenTour(): boolean {
+        return localStorage.getItem('tour-seen') === 'true';
+    }
+
+    /**
+     * Vérifie si l'utilisateur a déjà vu le tour d'un module spécifique
+     */
+    static hasSeenModuleTour(module: string): boolean {
+        return localStorage.getItem(`tour-seen-${module}`) === 'true';
+    }
+
+    /**
+     * Marque le tour d'un module comme vu
+     */
+    static markModuleTourSeen(module: string) {
+        localStorage.setItem(`tour-seen-${module}`, 'true');
+    }
+
+    /**
+     * Tour guidé pour le module Risques
+     */
     static startRisksTour() {
+        if (this.hasSeenModuleTour('risks')) return;
+
         this.driverInstance.setConfig({
             ...this.driverInstance.getConfig(),
-            nextBtnText: i18n.t('common.actions.next') || "Suivant",
-            prevBtnText: i18n.t('common.actions.prev') || "Précédent",
-            doneBtnText: i18n.t('common.actions.finish') || "Terminer"
+            onDestroyed: () => this.markModuleTourSeen('risks'),
+            steps: [
+                {
+                    element: '[data-tour="risks-create"]',
+                    popover: {
+                        title: i18n.t('tour.risks.create.title') || "Créer un Risque",
+                        description: i18n.t('tour.risks.create.desc') || "Démarrez ici pour ajouter un nouveau risque au registre.",
+                        side: 'bottom', align: 'start'
+                    }
+                },
+                {
+                    element: '[data-tour="risks-stats"]',
+                    popover: {
+                        title: i18n.t('tour.risks.stats.title') || "Vue d'ensemble",
+                        description: i18n.t('tour.risks.stats.desc') || "Suivez la répartition (Brut vs Net) et la couverture des risques.",
+                        side: 'left', align: 'start'
+                    }
+                },
+                {
+                    element: '[data-tour="risks-filters"]',
+                    popover: {
+                        title: i18n.t('tour.risks.filters.title') || "Filtres Avancés",
+                        description: i18n.t('tour.risks.filters.desc') || "Filtrez par scénario, gravité ou statut pour cibler l'essentiel.",
+                        side: 'bottom', align: 'start'
+                    }
+                }
+            ]
         });
-
-        const steps: DriveStep[] = [
-            {
-                element: '[data-tour="risks-create"]',
-                popover: {
-                    title: i18n.t('tour.risks.create.title'),
-                    description: i18n.t('tour.risks.create.desc'),
-                    side: 'bottom',
-                    align: 'start'
-                }
-            },
-            {
-                element: '[data-tour="risks-stats"]',
-                popover: {
-                    title: i18n.t('tour.risks.stats.title'),
-                    description: i18n.t('tour.risks.stats.desc'),
-                    side: 'left',
-                    align: 'start'
-                }
-            },
-            {
-                element: '[data-tour="risks-filters"]',
-                popover: {
-                    title: i18n.t('tour.risks.filters.title'),
-                    description: i18n.t('tour.risks.filters.desc'),
-                    side: 'bottom',
-                    align: 'start'
-                }
-            }
-        ];
-
-        this.driverInstance.setSteps(steps);
         this.driverInstance.drive();
     }
 
@@ -435,44 +454,38 @@ export class OnboardingService {
      * Tour guidé pour le module Actifs
      */
     static startAssetsTour() {
+        if (this.hasSeenModuleTour('assets')) return;
+
         this.driverInstance.setConfig({
             ...this.driverInstance.getConfig(),
-            nextBtnText: i18n.t('common.actions.next') || "Suivant",
-            prevBtnText: i18n.t('common.actions.prev') || "Précédent",
-            doneBtnText: i18n.t('common.actions.finish') || "Terminer"
+            onDestroyed: () => this.markModuleTourSeen('assets'),
+            steps: [
+                {
+                    element: '[data-tour="assets-add"]',
+                    popover: {
+                        title: i18n.t('tour.assets.add.title') || "Ajouter un Actif",
+                        description: i18n.t('tour.assets.add.desc') || "Déclarez vos serveurs, applications ou locaux ici.",
+                        side: 'bottom', align: 'start'
+                    }
+                },
+                {
+                    element: '[data-tour="assets-export"]',
+                    popover: {
+                        title: i18n.t('tour.assets.export.title') || "Export & Rapports",
+                        description: i18n.t('tour.assets.export.desc') || "Générez un inventaire complet PDF ou CSV en un clic.",
+                        side: 'bottom', align: 'center'
+                    }
+                },
+                {
+                    element: '[data-tour="assets-list"]',
+                    popover: {
+                        title: i18n.t('tour.assets.list.title') || "Inventaire",
+                        description: i18n.t('tour.assets.list.desc') || "Visualisez, modifiez et classez vos actifs par criticité.",
+                        side: 'top', align: 'start'
+                    }
+                }
+            ]
         });
-
-        const steps: DriveStep[] = [
-            {
-                element: '[data-tour="assets-add"]',
-                popover: {
-                    title: i18n.t('tour.assets.add.title'),
-                    description: i18n.t('tour.assets.add.desc'),
-                    side: 'bottom',
-                    align: 'start'
-                }
-            },
-            {
-                element: '[data-tour="assets-export"]',
-                popover: {
-                    title: i18n.t('tour.assets.export.title'),
-                    description: i18n.t('tour.assets.export.desc'),
-                    side: 'bottom',
-                    align: 'center'
-                }
-            },
-            {
-                element: '[data-tour="assets-list"]',
-                popover: {
-                    title: i18n.t('tour.assets.list.title'),
-                    description: i18n.t('tour.assets.list.desc'),
-                    side: 'top',
-                    align: 'start'
-                }
-            }
-        ];
-
-        this.driverInstance.setSteps(steps);
         this.driverInstance.drive();
     }
 
@@ -480,116 +493,61 @@ export class OnboardingService {
      * Tour guidé pour le module Conformité
      */
     static startComplianceTour() {
+        if (this.hasSeenModuleTour('compliance')) return;
+
         this.driverInstance.setConfig({
             ...this.driverInstance.getConfig(),
-            nextBtnText: i18n.t('common.actions.next') || "Suivant",
-            prevBtnText: i18n.t('common.actions.prev') || "Précédent",
-            doneBtnText: i18n.t('common.actions.finish') || "Terminer"
+            onDestroyed: () => this.markModuleTourSeen('compliance'),
+            steps: [
+                {
+                    element: '[data-tour="compliance-scorecard"]',
+                    popover: {
+                        title: i18n.t('tour.compliance.score.title') || "Score de Conformité",
+                        description: i18n.t('tour.compliance.score.desc') || "Votre progression en temps réel vers l'objectif (ex: ISO 27001).",
+                        side: 'bottom', align: 'start'
+                    }
+                },
+                {
+                    element: '[data-tour="compliance-controls"]',
+                    popover: {
+                        title: i18n.t('tour.compliance.controls.title') || "Contrôles",
+                        description: i18n.t('tour.compliance.controls.desc') || "Gérez les preuves et l'efficacité de chaque mesure de sécurité.",
+                        side: 'left', align: 'start'
+                    }
+                },
+                {
+                    element: '[data-tour="compliance-soa"]',
+                    popover: {
+                        title: i18n.t('tour.compliance.soa.title') || "Déclaration d'Applicabilité",
+                        description: i18n.t('tour.compliance.soa.desc') || "Générez votre SoA (Statement of Applicability) automatiquement.",
+                        side: 'bottom', align: 'start'
+                    }
+                }
+            ]
         });
-
-        const steps: DriveStep[] = [
-            {
-                element: '[data-tour="compliance-scorecard"]',
-                popover: {
-                    title: i18n.t('tour.compliance.score.title'),
-                    description: i18n.t('tour.compliance.score.desc'),
-                    side: 'bottom',
-                    align: 'start'
-                }
-            },
-            {
-                element: '[data-tour="compliance-controls"]',
-                popover: {
-                    title: i18n.t('tour.compliance.controls.title'),
-                    description: i18n.t('tour.compliance.controls.desc'),
-                    side: 'left',
-                    align: 'start'
-                }
-            },
-            {
-                element: '[data-tour="compliance-soa"]',
-                popover: {
-                    title: i18n.t('tour.compliance.soa.title'),
-                    description: i18n.t('tour.compliance.soa.desc'),
-                    side: 'bottom',
-                    align: 'start'
-                }
-            }
-        ];
-
-        this.driverInstance.setSteps(steps);
         this.driverInstance.drive();
-    }
-
-    /**
-     * Tour guidé pour les raccourcis clavier
-     */
-    static startShortcutsTour() {
-        const event = new CustomEvent('open-shortcuts-help');
-        window.dispatchEvent(event);
-    }
-
-    /**
-     * Vérifie si l'utilisateur a déjà vu le tour
-     */
-    static hasSeenTour(): boolean {
-        return localStorage.getItem('tour-seen') === 'true';
-    }
-
-    /**
-     * Vérifie si l'utilisateur a déjà complété l'onboarding (Setup)
-     */
-    static hasCompletedOnboarding(): boolean {
-        // We rely on the caller to check User Store, but this can check localStorage as well.
-        return localStorage.getItem('onboarding-completed') === 'true';
-    }
-
-    /**
-     * Réinitialise le tour
-     */
-    static resetTour() {
-        localStorage.removeItem('tour-seen');
-    }
-
-    /**
-     * Réinitialise l'onboarding (Dev only)
-     */
-    static resetOnboarding() {
-        localStorage.removeItem('onboarding-completed');
-    }
-
-    /**
-     * Affiche un highlight sur un élément spécifique
-     */
-    static highlightElement(selector: string, message: string) {
-        this.driverInstance.highlight({
-            element: selector,
-            popover: {
-                title: '💡 Astuce',
-                description: message,
-                side: 'bottom',
-                align: 'center'
-            }
-        });
     }
 
     /**
      * Tour guidé pour le module Analytics
      */
     static startAnalyticsTour() {
-        // ... (can be localized later if needed)
-        const steps: DriveStep[] = [
-            {
-                element: '[data-tour="analytics-trends"]',
-                popover: {
-                    title: '📈 Tendances',
-                    description: 'Analysez l\'évolution.',
-                    side: 'bottom',
-                    align: 'center'
+        if (this.hasSeenModuleTour('analytics')) return;
+
+        this.driverInstance.setConfig({
+            ...this.driverInstance.getConfig(),
+            onDestroyed: () => this.markModuleTourSeen('analytics'),
+            steps: [
+                {
+                    element: '[data-tour="analytics-trends"]',
+                    popover: {
+                        title: '📈 Tendances',
+                        description: 'Analysez l\'évolution de vos risques et incidents sur la durée.',
+                        side: 'bottom', align: 'center'
+                    }
                 }
-            }
-        ];
-        this.driverInstance.setSteps(steps);
+            ]
+        });
         this.driverInstance.drive();
     }
 
@@ -597,18 +555,30 @@ export class OnboardingService {
      * Tour guidé pour le module Incidents
      */
     static startIncidentsTour() {
-        const steps: DriveStep[] = [
-            {
-                element: '[data-tour="incidents-timeline"]',
-                popover: {
-                    title: '⏱️ Timeline Visuelle',
-                    description: 'Suivez le cycle de vie.',
-                    side: 'left',
-                    align: 'center'
+        if (this.hasSeenModuleTour('incidents')) return;
+
+        this.driverInstance.setConfig({
+            ...this.driverInstance.getConfig(),
+            onDestroyed: () => this.markModuleTourSeen('incidents'),
+            steps: [
+                {
+                    element: '[data-tour="incidents-add"]',
+                    popover: {
+                        title: 'Nouveau Signalement',
+                        description: 'Signalez un incident de sécurité ou une violation de données.',
+                        side: 'bottom', align: 'start'
+                    }
+                },
+                {
+                    element: '[data-tour="incidents-timeline"]',
+                    popover: {
+                        title: '⏱️ Timeline Visuelle',
+                        description: 'Suivez le cycle de vie de l\'incident, de la détection à la clôture.',
+                        side: 'left', align: 'center'
+                    }
                 }
-            }
-        ];
-        this.driverInstance.setSteps(steps);
+            ]
+        });
         this.driverInstance.drive();
     }
 
@@ -616,18 +586,177 @@ export class OnboardingService {
      * Tour guidé pour le module Backup
      */
     static startBackupTour() {
-        const steps: DriveStep[] = [
-            {
-                element: '[data-tour="backup-schedule"]',
-                popover: {
-                    title: '📅 Planification',
-                    description: 'Configurez des sauvegardes.',
-                    side: 'bottom',
-                    align: 'center'
+        if (this.hasSeenModuleTour('backup')) return;
+
+        this.driverInstance.setConfig({
+            ...this.driverInstance.getConfig(),
+            onDestroyed: () => this.markModuleTourSeen('backup'),
+            steps: [
+                {
+                    element: '[data-tour="backup-schedule"]',
+                    popover: {
+                        title: '📅 Planification',
+                        description: 'Configurez la fréquence et la rétention de vos sauvegardes.',
+                        side: 'bottom', align: 'center'
+                    }
                 }
-            }
-        ];
-        this.driverInstance.setSteps(steps);
+            ]
+        });
+        this.driverInstance.drive();
+    }
+
+    /**
+     * Tour guidé pour le module Audits
+     */
+    static startAuditsTour() {
+        if (this.hasSeenModuleTour('audits')) return;
+
+        this.driverInstance.setConfig({
+            ...this.driverInstance.getConfig(),
+            onDestroyed: () => this.markModuleTourSeen('audits'),
+            steps: [
+                {
+                    element: '[data-tour="audits-new"]',
+                    popover: {
+                        title: 'Planifier un Audit',
+                        description: 'Créez un nouvel audit interne, externe ou de certification.',
+                        side: 'bottom', align: 'start'
+                    }
+                },
+                {
+                    element: '[data-tour="audits-dashboard"]',
+                    popover: {
+                        title: 'Vue d\'ensemble',
+                        description: 'Suivez l\'avancement de vos audits et les non-conformités détectées.',
+                        side: 'bottom', align: 'center'
+                    }
+                }
+            ]
+        });
+        this.driverInstance.drive();
+    }
+
+    /**
+     * Tour guidé pour le module Fournisseurs
+     */
+    static startSuppliersTour() {
+        if (this.hasSeenModuleTour('suppliers')) return;
+
+        this.driverInstance.setConfig({
+            ...this.driverInstance.getConfig(),
+            onDestroyed: () => this.markModuleTourSeen('suppliers'),
+            steps: [
+                {
+                    element: '[data-tour="suppliers-new"]',
+                    popover: {
+                        title: 'Nouveau Fournisseur',
+                        description: 'Ajoutez un tiers à votre inventaire pour l\'évaluer.',
+                        side: 'bottom', align: 'start'
+                    }
+                },
+                {
+                    element: '[data-tour="suppliers-dashboard"]',
+                    popover: {
+                        title: 'Gestion des Tiers',
+                        description: 'Analysez la criticité et le score de sécurité de vos fournisseurs (DORA).',
+                        side: 'bottom', align: 'center'
+                    }
+                }
+            ]
+        });
+        this.driverInstance.drive();
+    }
+
+    /**
+     * Tour guidé pour le module Continuité
+     */
+    static startContinuityTour() {
+        if (this.hasSeenModuleTour('continuity')) return;
+
+        this.driverInstance.setConfig({
+            ...this.driverInstance.getConfig(),
+            onDestroyed: () => this.markModuleTourSeen('continuity'),
+            steps: [
+                {
+                    element: '[data-tour="continuity-dashboard"]',
+                    popover: {
+                        title: 'Continuité d\'Activité',
+                        description: 'Gérez vos plans de continuité (PCA/PRA) et visualisez vos indicateurs de résilience.',
+                        side: 'bottom', align: 'center'
+                    }
+                },
+                {
+                    element: '[data-tour="continuity-tabs"]',
+                    popover: {
+                        title: 'Navigation BIA et Stratégies',
+                        description: 'Accédez aux analyses d\'impact (BIA), aux stratégies de secours et à la gestion de crise via ces onglets.',
+                        side: 'bottom', align: 'center'
+                    }
+                }
+            ]
+        });
+        this.driverInstance.drive();
+    }
+
+    /**
+     * Tour guidé pour le module Documents
+     */
+    static startDocumentsTour() {
+        if (this.hasSeenModuleTour('documents')) return;
+
+        this.driverInstance.setConfig({
+            ...this.driverInstance.getConfig(),
+            onDestroyed: () => this.markModuleTourSeen('documents'),
+            steps: [
+                {
+                    element: '[data-tour="documents-upload"]',
+                    popover: {
+                        title: 'Importer des Documents',
+                        description: 'Stockez vos politiques, procédures et preuves ici.',
+                        side: 'bottom', align: 'start'
+                    }
+                },
+                {
+                    element: '[data-tour="documents-folders"]',
+                    popover: {
+                        title: 'Organisation',
+                        description: 'Classez vos fichiers par dossiers pour une meilleure gestion.',
+                        side: 'right', align: 'start'
+                    }
+                }
+            ]
+        });
+        this.driverInstance.drive();
+    }
+
+    /**
+     * Tour guidé pour le module Projets
+     */
+    static startProjectsTour() {
+        if (this.hasSeenModuleTour('projects')) return;
+
+        this.driverInstance.setConfig({
+            ...this.driverInstance.getConfig(),
+            onDestroyed: () => this.markModuleTourSeen('projects'),
+            steps: [
+                {
+                    element: '[data-tour="projects-create"]',
+                    popover: {
+                        title: 'Nouveau Projet',
+                        description: 'Lancez un projet de mise en conformité ou de sécurisation.',
+                        side: 'bottom', align: 'start'
+                    }
+                },
+                {
+                    element: '[data-tour="projects-kanban"]',
+                    popover: {
+                        title: 'Suivi Kanban',
+                        description: 'Gérez l\'avancement des tâches visuellement.',
+                        side: 'bottom', align: 'center'
+                    }
+                }
+            ]
+        });
         this.driverInstance.drive();
     }
 }

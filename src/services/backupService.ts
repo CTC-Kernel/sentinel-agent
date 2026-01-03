@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, updateDoc, doc, writeBatch, setDoc, getDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where, updateDoc, doc, writeBatch, setDoc, getDoc, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref, getDownloadURL, deleteObject, uploadBytes } from 'firebase/storage';
 import { db, storage } from '../firebase';
 import { logAction } from './logger';
@@ -121,7 +121,13 @@ export class BackupService {
     const backupDoc = await getDoc(doc(db, this.BACKUP_COLLECTION, config.backupId));
     if (!backupDoc.exists()) throw new Error('Backup introuvable');
 
-    const backupMetadata = backupDoc.data() as BackupMetadata;
+    const data = backupDoc.data();
+    const backupMetadata = {
+      ...data,
+      createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
+      collections: Array.isArray(data.collections) ? data.collections : []
+    } as BackupMetadata;
+
     if (backupMetadata.organizationId !== user.organizationId) {
       throw new Error('Accès non autorisé à ce backup');
     }
@@ -213,7 +219,15 @@ export class BackupService {
       const snapshot = await getDocs(
         query(collection(db, this.BACKUP_COLLECTION), where('organizationId', '==', organizationId))
       );
-      return snapshot.docs.map(doc => doc.data() as BackupMetadata);
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: doc.id,
+          createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
+          collections: Array.isArray(data.collections) ? data.collections : []
+        } as BackupMetadata;
+      });
 
     } catch (error) {
       ErrorLogger.error(error, 'BackupService.listBackups');

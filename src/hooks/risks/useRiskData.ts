@@ -36,7 +36,7 @@ export const useRiskData = () => {
     );
 
     const { data: rawProcesses, loading: processesLoading } = useFirestoreCollection<Process>(
-        'processes',
+        'business_processes',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
         { enabled: !!user?.organizationId }
     );

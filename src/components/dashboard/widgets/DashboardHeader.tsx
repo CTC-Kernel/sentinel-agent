@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Server, ClipboardCheck, FileText, ArrowRight, CalendarDays, Loader2, Activity, ShieldCheck, Users, AlertTriangle, LayoutDashboard, Check } from '../../ui/Icons';
+import { Rocket } from 'lucide-react';
 import { ShinyText } from '../../ui/ShinyText';
 
 
@@ -37,6 +38,8 @@ interface DashboardHeaderProps {
     isGeneratingReport?: boolean;
     isEditing?: boolean;
     onToggleEdit?: () => void;
+    onShowGettingStarted?: () => void;
+    isGettingStartedClosed?: boolean;
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -48,7 +51,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     generateExecutiveReport = () => { },
     isGeneratingReport = false,
     isEditing = false,
-    onToggleEdit
+    onToggleEdit,
+    onShowGettingStarted,
+    isGettingStartedClosed
 }) => {
 
 
@@ -237,6 +242,18 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                         >
                                             <Users className="h-4 w-4" />
                                             <span className="hidden xl:inline">{t('dashboard.inviteMember')}</span>
+                                        </button>
+                                    </Tooltip>
+                                )}
+
+                                {isGettingStartedClosed && onShowGettingStarted && (
+                                    <Tooltip content={t('dashboard.showGettingStarted')} position="bottom">
+                                        <button
+                                            onClick={onShowGettingStarted}
+                                            className="p-2 text-muted-foreground hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/10 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                            aria-label={t('dashboard.showGettingStarted')}
+                                        >
+                                            <Rocket className="h-4 w-4" />
                                         </button>
                                     </Tooltip>
                                 )}

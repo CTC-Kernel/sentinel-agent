@@ -29,6 +29,7 @@ import { CustomSelect } from '../components/ui/CustomSelect';
 import { CsvParser } from '../utils/csvUtils';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { Upload } from 'lucide-react';
+import { OnboardingService } from '../services/onboardingService';
 
 export const Audits: React.FC = () => {
     const {
@@ -38,6 +39,14 @@ export const Audits: React.FC = () => {
     } = useAudits();
 
     const { user, t } = useStore();
+
+    // Start module tour
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            OnboardingService.startAuditsTour();
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, []);
 
     // Local UI State
     const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'calendar' | 'findings'>('audits-active-tab', 'overview');
@@ -184,9 +193,9 @@ export const Audits: React.FC = () => {
                 title={auditsTitle}
                 subtitle={auditsSubtitle}
                 icon={
-                    <img 
-                        src="/images/gouvernance.png" 
-                        alt="GOUVERNANCE" 
+                    <img
+                        src="/images/gouvernance.png"
+                        alt="GOUVERNANCE"
                         className="w-full h-full object-contain"
                     />
                 }
@@ -303,6 +312,7 @@ export const Audits: React.FC = () => {
                                 <Button
                                     onClick={() => { setEditingAudit(null); setCreationMode(true); }}
                                     className="gap-2 bg-brand-600 text-white hover:bg-brand-700 font-bold shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 transition-all"
+                                    data-tour="audits-new"
                                 >
                                     <Plus className="w-4 h-4" />
                                     <span className="hidden sm:inline">{t('audits.newAudit')}</span>
@@ -316,16 +326,18 @@ export const Audits: React.FC = () => {
             {
                 activeTab === 'overview' && (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible">
-                        <AuditDashboard
-                            audits={filteredAudits}
-                            findings={filteredAudits.flatMap(a => a.findings || [])}
-                            onFilterChange={(f) => {
-                                if (f?.type === 'status') {
-                                    setFilter(f.value);
-                                    setActiveTab('list');
-                                }
-                            }}
-                        />
+                        <div data-tour="audits-dashboard">
+                            <AuditDashboard
+                                audits={filteredAudits}
+                                findings={filteredAudits.flatMap(a => a.findings || [])}
+                                onFilterChange={(f) => {
+                                    if (f?.type === 'status') {
+                                        setFilter(f.value);
+                                        setActiveTab('list');
+                                    }
+                                }}
+                            />
+                        </div>
                     </motion.div>
                 )
             }

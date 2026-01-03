@@ -37,6 +37,14 @@ const Assets: React.FC = () => {
     const { limits } = usePlanLimits();
     const reachedAssetLimit = assets.length >= limits.maxAssets;
 
+    // Start module tour
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            OnboardingService.startAssetsTour();
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, []);
+
     // UI State
     const [viewMode, setViewMode] = usePersistedState<'grid' | 'list' | 'matrix' | 'kanban'>('assets-view-mode', 'grid');
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
@@ -209,10 +217,24 @@ const Assets: React.FC = () => {
     const [importModalOpen, setImportModalOpen] = useState(false);
 
     const assetGuidelines = useMemo(() => ({
-        required: ['name', 'type', 'owner', 'confidentiality'],
-        optional: ['notes', 'availability', 'integrity', 'lifecycleStatus', 'location', 'purchasePrice', 'purchaseDate', 'warrantyEnd'],
+        required: [
+            t('common.columns.name'),
+            t('common.columns.type'),
+            t('common.columns.owner'),
+            t('common.columns.confidentiality')
+        ],
+        optional: [
+            t('common.columns.notes'),
+            t('common.columns.availability'),
+            t('common.columns.integrity'),
+            t('common.columns.lifecycleStatus'),
+            t('common.columns.location'),
+            t('common.columns.purchasePrice'),
+            t('common.columns.purchaseDate'),
+            t('common.columns.warrantyEnd')
+        ],
         format: 'CSV'
-    }), []);
+    }), [t]);
 
     const handleImportAssets = React.useCallback(async (file: File) => {
         const text = await file.text();
@@ -279,24 +301,34 @@ const Assets: React.FC = () => {
 
         // Process sequentially to avoid overwhelming Firestore
         for (const row of parsed) {
+            // Helper to get value from multiple possible header keys (English or French or Key)
+            const getVal = (keys: string[]) => {
+                for (const k of keys) {
+                    if (row[k] !== undefined && row[k] !== '') return row[k];
+                }
+                return undefined;
+            };
+
+            const name = getVal(['name', 'Name', 'Nom']);
+            const type = getVal(['type', 'Type']);
+
             // Basic validation
-            if (!row.name || !row.type) continue;
+            if (!name || !type) continue;
 
             // Map CSV row to AssetFormData
-            // Ensure types match schema (some might need casting or fallback)
             const assetData: AssetFormData = {
-                name: row.name,
-                type: resolveAssetType(row.type),
-                notes: row.notes || row.description || '',
-                owner: row.owner || user?.displayName || 'Unknown',
-                confidentiality: resolveCriticality(row.criticality || row.confidentiality),
-                integrity: resolveCriticality(row.integrity),
-                availability: resolveCriticality(row.availability),
-                lifecycleStatus: resolveLifecycleStatus(row.status || row.lifecycleStatus),
-                location: row.location || '',
-                purchasePrice: row.purchasePrice ? Number(row.purchasePrice) : undefined,
-                purchaseDate: row.purchaseDate,
-                warrantyEnd: row.warrantyEnd
+                name,
+                type: resolveAssetType(type),
+                notes: getVal(['notes', 'description', 'Notes', 'Description']) || '',
+                owner: getVal(['owner', 'Owner', 'Propriétaire']) || user?.displayName || 'Unknown',
+                confidentiality: resolveCriticality(getVal(['criticality', 'confidentiality', 'Criticality', 'Criticité', 'Confidentiality', 'Confidentialité'])),
+                integrity: resolveCriticality(getVal(['integrity', 'Integrity', 'Intégrité'])),
+                availability: resolveCriticality(getVal(['availability', 'Availability', 'Disponibilité'])),
+                lifecycleStatus: resolveLifecycleStatus(getVal(['status', 'lifecycleStatus', 'Status', 'Statut', 'Lifecycle Status', 'Statut Cycle de Vie'])),
+                location: getVal(['location', 'Location', 'Localisation']) || '',
+                purchasePrice: getVal(['purchasePrice', 'Purchase Price', 'Prix Achat', 'Valeur']) ? Number(getVal(['purchasePrice', 'Purchase Price', 'Prix Achat', 'Valeur'])) : undefined,
+                purchaseDate: getVal(['purchaseDate', 'Purchase Date', 'Date Achat']),
+                warrantyEnd: getVal(['warrantyEnd', 'Warranty End', 'Fin Garantie'])
             };
 
             await createAsset(assetData, null);
@@ -312,22 +344,23 @@ const Assets: React.FC = () => {
 
     const handleDownloadTemplate = React.useCallback(() => {
         const headers = [...assetGuidelines.required, ...assetGuidelines.optional];
+        // Construct example row using the same localized keys
         const exampleRow = {
-            name: "Server DB-01",
-            type: "Hardware",
-            owner: "John Doe",
-            confidentiality: "High",
-            description: "Main database server",
-            availability: "High",
-            integrity: "High",
-            lifecycleStatus: "Active",
-            location: "Data Center A",
-            purchasePrice: "5000",
-            purchaseDate: "2024-01-01",
-            warrantyEnd: "2027-01-01"
+            [t('common.columns.name')]: "Server DB-01",
+            [t('common.columns.type')]: "Matériel", // Use localized value if possible, or mapping key
+            [t('common.columns.owner')]: "Jean Dupont",
+            [t('common.columns.confidentiality')]: "High",
+            [t('common.columns.notes')]: "Main database server",
+            [t('common.columns.availability')]: "High",
+            [t('common.columns.integrity')]: "High",
+            [t('common.columns.lifecycleStatus')]: "En service",
+            [t('common.columns.location')]: "Data Center A",
+            [t('common.columns.purchasePrice')]: "5000",
+            [t('common.columns.purchaseDate')]: "2024-01-01",
+            [t('common.columns.warrantyEnd')]: "2027-01-01"
         };
         CsvParser.downloadCSV(headers, [exampleRow], `template_assets.csv`);
-    }, [assetGuidelines]);
+    }, [assetGuidelines, t]);
 
 
     return (
@@ -347,12 +380,12 @@ const Assets: React.FC = () => {
                         title={t('assets.title')}
                         subtitle={t('assets.description')}
                         icon={
-                        <img 
-                            src="/images/referentiel.png" 
-                            alt="RÉFÉRENTIEL" 
-                            className="w-full h-full object-contain"
-                        />
-                    }
+                            <img
+                                src="/images/referentiel.png"
+                                alt="RÉFÉRENTIEL"
+                                className="w-full h-full object-contain"
+                            />
+                        }
                         breadcrumbs={[
                             { label: t('sidebar.dashboard'), path: '/' },
                             { label: t('assets.title'), path: '/assets' }

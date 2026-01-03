@@ -84,7 +84,13 @@ vi.mock('firebase/firestore', () => ({
 }));
 
 vi.mock('../../firebase', () => ({
-    db: {}
+    db: {},
+    analytics: {
+        logEvent: vi.fn()
+    },
+    auth: {},
+    storage: {},
+    functions: {}
 }));
 
 // Mock Child Components

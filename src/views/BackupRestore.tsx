@@ -21,9 +21,19 @@ import { SEO } from '../components/SEO';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { hasPermission } from '../utils/permissions';
 
+import { OnboardingService } from '../services/onboardingService';
+
 export const BackupRestore: React.FC = () => {
   const { user, addToast } = useStore();
   // hasPermission check
+
+  // Start module tour
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      OnboardingService.startBackupTour();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -266,9 +276,9 @@ export const BackupRestore: React.FC = () => {
         subtitle="Gérez vos points de restauration et la sécurité de vos données."
         breadcrumbs={[{ label: 'Sauvegardes' }]}
         icon={
-          <img 
-            src="/images/administration.png" 
-            alt="ADMINISTRATION" 
+          <img
+            src="/images/administration.png"
+            alt="ADMINISTRATION"
             className="w-full h-full object-contain"
           />
         }
@@ -379,7 +389,7 @@ export const BackupRestore: React.FC = () => {
                   ))}
                 </div>
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2" data-tour="backup-schedule">
                     <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mr-2">Planifier :</span>
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
                       <Button type="button" variant="ghost" size="sm" aria-label="Programmer une sauvegarde quotidienne" onClick={() => handleScheduleBackup('daily')} className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 rounded-md transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">Quotidien</Button>

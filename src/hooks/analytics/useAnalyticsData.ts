@@ -31,7 +31,7 @@ export const useAnalyticsData = () => {
   );
 
   const { data: controls, loading: loadingControls } = useFirestoreCollection<Control>(
-    'compliance_controls',
+    'controls',
     [where('organizationId', '==', user?.organizationId || 'ignore')],
     { enabled: !!user?.organizationId }
   );

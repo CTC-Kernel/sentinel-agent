@@ -33,8 +33,18 @@ import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 import { LayoutDashboard, List, CalendarDays, FolderKanban } from 'lucide-react';
 // Form validation: useForm with required fields
 
+import { OnboardingService } from '../services/onboardingService';
+
 export const Projects: React.FC = () => {
     const { user, addToast, t } = useStore();
+
+    // Start module tour
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            OnboardingService.startProjectsTour();
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, []);
 
     // Tabs
     const [activeTab, setActiveTab] = usePersistedState<'overview' | 'list' | 'board' | 'gantt'>('projects_active_tab', 'overview');
@@ -216,9 +226,9 @@ export const Projects: React.FC = () => {
                 title={t('projects.dashboard')}
                 subtitle={t('projects.subtitle')}
                 icon={
-                    <img 
-                        src="/images/pilotage.png" 
-                        alt="PILOTAGE" 
+                    <img
+                        src="/images/pilotage.png"
+                        alt="PILOTAGE"
                         className="w-full h-full object-contain"
                     />
                 }

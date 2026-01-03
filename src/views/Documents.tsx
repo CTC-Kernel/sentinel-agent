@@ -34,10 +34,20 @@ import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { Menu, Transition } from '@headlessui/react';
 import { Upload, MoreVertical, FileSpreadsheet } from 'lucide-react';
 
+import { OnboardingService } from '../services/onboardingService';
+
 export const Documents: React.FC = () => {
     const { user, t } = useStore();
     const location = useLocation();
     const canCreate = canEditResource(user, 'Document');
+
+    // Start module tour
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            OnboardingService.startDocumentsTour();
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, []);
 
     // --- Data Fetching ---
     const {
@@ -262,9 +272,9 @@ export const Documents: React.FC = () => {
                     { label: t('sidebar.documents') }
                 ]}
                 icon={
-                    <img 
-                        src="/images/referentiel.png" 
-                        alt="RÉFÉRENTIEL" 
+                    <img
+                        src="/images/referentiel.png"
+                        alt="RÉFÉRENTIEL"
                         className="w-full h-full object-contain"
                     />
                 }

@@ -2,47 +2,17 @@ import React from 'react';
 import { Rocket } from 'lucide-react';
 import { useStore } from '../../../store';
 
-// Import the same hook used by GettingStartedWidget
-const useWidgetState = (userId: string | undefined) => {
-    const storageKey = `getting-started-widget-${userId}`;
-    
-    const [state, setState] = React.useState<'expanded' | 'retracted' | 'closed'>(() => {
-        if (!userId) return 'expanded';
-        try {
-            const saved = localStorage.getItem(storageKey);
-            return saved ? (JSON.parse(saved) as 'expanded' | 'retracted' | 'closed') : 'expanded';
-        } catch {
-            return 'expanded';
-        }
-    });
-
-    React.useEffect(() => {
-        if (!userId) return;
-        try {
-            localStorage.setItem(storageKey, JSON.stringify(state));
-        } catch (error) {
-            console.error('Error setting local storage:', error);
-        }
-    }, [state, userId, storageKey]);
-
-    return [state, setState] as const;
-};
-
 interface GettingStartedButtonProps {
     onShow: () => void;
 }
 
 export const GettingStartedButton: React.FC<GettingStartedButtonProps> = ({ onShow }) => {
-    const { user, t } = useStore();
-    const [widgetState, setWidgetState] = useWidgetState(user?.uid);
-
-    // Only show button if widget is closed
-    if (widgetState !== 'closed') return null;
+    const { t } = useStore();
 
     const handleShow = () => {
-        setWidgetState('expanded');
         onShow();
     };
+
 
     return (
         <button

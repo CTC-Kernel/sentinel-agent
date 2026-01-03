@@ -62,11 +62,13 @@ export const ContinuityContent: React.FC<ContinuityContentProps> = ({
                 transition={{ duration: 0.2 }}
             >
                 {activeTab === 'overview' && (
-                    <ContinuityDashboard
-                        processes={filteredProcesses}
-                        drills={drills}
-                        loading={loading}
-                    />
+                    <div data-tour="continuity-dashboard">
+                        <ContinuityDashboard
+                            processes={filteredProcesses}
+                            drills={drills}
+                            loading={loading}
+                        />
+                    </div>
                 )}
 
                 {activeTab === 'bia' && (
