@@ -604,6 +604,20 @@ service cloud.firestore {
       allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
       allow delete: if canDelete(resource.data.organizationId);
     }
+    
+    // Partnerships (Certifier Ecosystem) - Managed by Cloud Functions
+    match /partnerships/{partnershipId} {
+      allow read: if belongsToOrganization(resource.data.tenantId) || 
+                   (isAuthenticated() && resource.data.certifierId == getUserData().organizationId);
+      allow write: if false; 
+    }
+
+    // Audit Shares (External Access Links) - Managed by Cloud Functions
+    match /audit_shares/{shareId} {
+      allow read: if belongsToOrganization(resource.data.organizationId);
+      // External access via token is handled by Cloud Functions / backend validation
+      allow write: if false; 
+    }
 
     // Secure Storage
     match /secure_storage/{docId} {

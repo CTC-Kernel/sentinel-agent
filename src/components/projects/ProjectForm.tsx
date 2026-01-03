@@ -3,7 +3,7 @@ import { Project, Risk, Control, Asset, UserProfile } from '../../types';
 import { AIAssistButton } from '../ai/AIAssistButton';
 import { CustomSelect } from '../ui/CustomSelect';
 import { DatePicker } from '../ui/DatePicker';
-import { useForm, Controller, useWatch, Resolver, FieldErrors } from 'react-hook-form';
+import { useForm, Controller, useWatch, FieldErrors, DefaultValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectSchema, ProjectFormData } from '../../schemas/projectSchema';
 import { FloatingLabelInput } from '../ui/FloatingLabelInput';
@@ -17,7 +17,10 @@ import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
 
 import { PROJECT_STATUSES } from '../../data/projectConstants';
+
+type ProjectStatus = typeof PROJECT_STATUSES[number];
 import { toast } from 'sonner';
+import { Loader2 } from '../ui/Icons';
 
 type ProjectTemplate = BaseTemplate & { status: string; priority: string };
 
@@ -51,9 +54,9 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     availableAssets = [],
     initialData,
     isLoading = false,
-    formId,
     hideActions = false,
 }) => {
+    const [isGenerating, setIsGenerating] = React.useState(false);
     const formRef = useRef<HTMLFormElement | null>(null);
     const dueDateSectionRef = useRef<HTMLDivElement | null>(null);
 
@@ -65,50 +68,44 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
         })), [usersList]);
 
     const { register, handleSubmit, reset, control, setValue, getValues, formState: { errors } } = useForm<ProjectFormData>({
-        resolver: zodResolver(projectSchema) as Resolver<ProjectFormData>,
-        shouldUnregister: true,
+        // @ts-expect-error - Resolver type mismatch with RHF version
+        resolver: zodResolver(projectSchema),
         defaultValues: {
-            name: '',
-            description: '',
-            manager: '',
-            managerId: '',
-            status: 'Planifié',
-            startDate: '',
-            dueDate: '',
-            relatedRiskIds: [],
-            relatedControlIds: [],
-            relatedAssetIds: [],
-            relatedAuditIds: [],
-            members: [],
-            framework: undefined,
-        }
+            name: initialData?.name || '',
+            description: initialData?.description || '',
+            manager: initialData?.manager || '',
+            managerId: initialData?.managerId || '',
+            status: (initialData?.status || 'Planifié'),
+            startDate: initialData?.startDate || '',
+            dueDate: initialData?.dueDate || '',
+            relatedRiskIds: initialData?.relatedRiskIds || [],
+            relatedControlIds: initialData?.relatedControlIds || [],
+            relatedAssetIds: initialData?.relatedAssetIds || [],
+            relatedAuditIds: initialData?.relatedAuditIds || [],
+            members: initialData?.members || [],
+            framework: initialData?.framework,
+        } as DefaultValues<ProjectFormData>
     });
 
-    const [isGenerating, setIsGenerating] = React.useState(false);
-
-    const handleSelectTemplate = (templateName: string) => {
-        const t = PROJECT_TEMPLATES.find(t => t.name === templateName);
-        if (t) {
-            setValue('name', t.name);
-            setValue('description', t.description);
-            if (
-                t.status === 'Planifié' ||
-                t.status === 'En cours' ||
-                t.status === 'Terminé' ||
-                t.status === 'Suspendu'
-            ) {
-                setValue('status', t.status);
-            }
-            if (!getValues('dueDate')) {
-                const defaultDue = new Date();
-                defaultDue.setDate(defaultDue.getDate() + 90);
-                const isoDate = defaultDue.toISOString().split('T')[0];
-                setValue('dueDate', isoDate);
+    const scrollToFirstError = (fieldErrors: FieldErrors<ProjectFormData>) => {
+        const firstErrorKey = Object.keys(fieldErrors)[0];
+        if (firstErrorKey) {
+            const el = formRef.current?.querySelector(`[name="${firstErrorKey}"]`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                (el as HTMLElement).focus?.();
             }
         }
     };
 
-    const handleAutoGenerate = async () => {
+    const onInvalid = (fieldErrors: FieldErrors<ProjectFormData>) => {
+        const missingFields = Object.keys(fieldErrors).join(', ');
+        toast.error(`Formulaire incomplet. Champs manquants : ${missingFields}`);
+        scrollToFirstError(fieldErrors);
+    };
+
+    // Generate description with AI
+    const handleGenerateDescription = async () => {
         const currentName = getValues('name');
         if (!currentName) return;
 
@@ -132,6 +129,32 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
         } finally {
             setIsGenerating(false);
         }
+    };
+
+    const handleSelectTemplate = (templateName: string) => {
+        const t = PROJECT_TEMPLATES.find(t => t.name === templateName);
+        if (t) {
+            setValue('name', t.name);
+            setValue('description', t.description);
+            if (
+                t.status === 'Planifié' ||
+                t.status === 'En cours' ||
+                t.status === 'Terminé' ||
+                t.status === 'Suspendu'
+            ) {
+                setValue('status', t.status as ProjectStatus); // Cast to valid status
+            }
+            if (!getValues('dueDate')) {
+                const defaultDue = new Date();
+                defaultDue.setDate(defaultDue.getDate() + 90);
+                const isoDate = defaultDue.toISOString().split('T')[0];
+                setValue('dueDate', isoDate);
+            }
+        }
+    };
+
+    const handleAutoGenerate = async () => {
+        await handleGenerateDescription(); // reuse existing function
     };
 
     const isEditing = !!existingProject;
@@ -174,21 +197,6 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
 
     const watchedName = useWatch({ control, name: 'name' });
     const relatedRiskIds = useWatch({ control, name: 'relatedRiskIds' });
-    const scrollToFirstError = (fieldErrors: FieldErrors<ProjectFormData>) => {
-        const fieldOrder: (keyof ProjectFormData)[] = [
-            'name', 'description', 'managerId', 'dueDate'
-        ];
-        for (const field of fieldOrder) {
-            if (fieldErrors[field]) {
-                const el = formRef.current?.querySelector(`[data-field="${field}"]`);
-                if (el && 'scrollIntoView' in el) {
-                    (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    (el as HTMLElement).focus?.({ preventScroll: true });
-                }
-                break;
-            }
-        }
-    };
 
     const onFormSubmit = (data: ProjectFormData) => {
         onSubmit({
@@ -197,29 +205,29 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
         });
     };
 
-    const onInvalid = (formErrors: FieldErrors<ProjectFormData>) => {
-        const missingFields = Object.keys(formErrors).join(', ');
-        toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
-        scrollToFirstError(formErrors);
-    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const submitHandler = handleSubmit(onFormSubmit as any, onInvalid);
 
     return (
-        <form
-            id={formId}
-            ref={formRef}
-            onSubmit={handleSubmit(onFormSubmit, onInvalid)}
-            className="p-4 sm:p-6 md:p-8 space-y-8 overflow-y-auto custom-scrollbar h-full"
-        >
-            {!isEditing && (
-                <AIAssistantHeader
-                    templates={PROJECT_TEMPLATES}
-                    onSelectTemplate={handleSelectTemplate}
-                    onAutoGenerate={handleAutoGenerate}
-                    isGenerating={isGenerating}
-                    title="Assistant Projet"
-                    description="Démarrez votre projet avec un modèle standard ou généré par l'IA."
-                />
+        <form ref={formRef} onSubmit={submitHandler} className="space-y-8 animate-fade-in relative">
+            {isGenerating && (
+                <div className="absolute inset-0 bg-white/50 dark:bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm rounded-xl">
+                    <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
+                </div>
             )}
+
+            {
+                !isEditing && (
+                    <AIAssistantHeader
+                        templates={PROJECT_TEMPLATES}
+                        onSelectTemplate={handleSelectTemplate}
+                        onAutoGenerate={handleAutoGenerate}
+                        isGenerating={isGenerating}
+                        title="Assistant Projet"
+                        description="Démarrez votre projet avec un modèle standard ou généré par l'IA."
+                    />
+                )
+            }
             <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-10">
                 <div className="space-y-6">
                     <div className="relative">
@@ -264,7 +272,6 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                         />
                     </div>
                 </div>
-
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6" data-field="managerId">
                         <Controller
@@ -398,26 +405,28 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 </div>
             </div>
 
-            {!hideActions && (
-                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100 dark:border-white/5">
-                    <Button
-                        type="button"
-                        onClick={onCancel}
-                        variant="ghost"
-                        disabled={isLoading}
-                        className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
-                    >
-                        Annuler
-                    </Button>
-                    <Button
-                        type="submit"
-                        isLoading={isLoading}
-                        className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
-                    >
-                        {existingProject ? 'Enregistrer' : 'Créer le Projet'}
-                    </Button>
-                </div>
-            )}
-        </form>
+            {
+                !hideActions && (
+                    <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100 dark:border-white/5">
+                        <Button
+                            type="button"
+                            onClick={onCancel}
+                            variant="ghost"
+                            disabled={isLoading}
+                            className="px-6 py-3 text-sm font-bold text-slate-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            type="submit"
+                            isLoading={isLoading}
+                            className="px-8 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl hover:scale-105 transition-transform shadow-lg shadow-brand-500/20 font-bold text-sm"
+                        >
+                            {existingProject ? 'Enregistrer' : 'Créer le Projet'}
+                        </Button>
+                    </div>
+                )
+            }
+        </form >
     );
 };

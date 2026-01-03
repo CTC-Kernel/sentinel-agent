@@ -588,6 +588,23 @@ exports.auditSuppliers = generateAuditTrigger('suppliers/{docId}', 'name');
 exports.auditUsers = generateAuditTrigger('users/{docId}', 'email');
 exports.auditIncidents = generateAuditTrigger('incidents/{docId}', 'title');
 
+// --- B2B2C AUDIT PORTAL TRIGGERS ---
+const auditPortal = require('./auditPortal');
+exports.generateAuditShareLink = auditPortal.generateAuditShareLink;
+exports.getSharedAuditData = auditPortal.getSharedAuditData;
+exports.portal_submitFinding = auditPortal.portal_submitFinding;
+exports.portal_updateStatus = auditPortal.portal_updateStatus;
+exports.revokeAuditShare = auditPortal.revokeAuditShare;
+
+// --- CERTIFIER ECOSYSTEM ---
+const certifierPortal = require('./certifierPortal');
+exports.inviteCertifier = certifierPortal.inviteCertifier;
+exports.createCertifierOrganization = certifierPortal.createCertifierOrganization;
+exports.acceptPartnership = certifierPortal.acceptPartnership;
+exports.getCertifierDashboard = certifierPortal.getCertifierDashboard;
+exports.assignAuditToPartner = certifierPortal.assignAuditToPartner;
+
+
 // Imports moved to top
 
 // Set custom claims when user document is created/updated

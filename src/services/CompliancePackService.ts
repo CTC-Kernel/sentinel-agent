@@ -13,21 +13,23 @@ export class CompliancePackService {
      * Generate a full Compliance Pack (ZIP) containing evidence
      */
     // Helper for safe date formatting
-    static safeFormatDate(date: any): string {
+    static safeFormatDate(date: unknown): string {
         if (!date) return 'N/A';
         try {
             // Handle Firestore Timestamp
-            if (date && typeof date.toDate === 'function') {
-                return format(date.toDate(), 'dd/MM/yyyy');
+            const d = date as { toDate?: () => Date; seconds?: number } | number | string | Date;
+
+            if (d && typeof (d as { toDate?: () => Date }).toDate === 'function') {
+                return format((d as { toDate: () => Date }).toDate(), 'dd/MM/yyyy');
             }
             // Handle object with seconds (serialized Timestamp)
-            if (date && typeof date.seconds === 'number') {
-                return format(new Date(date.seconds * 1000), 'dd/MM/yyyy');
+            if (d && typeof (d as { seconds?: number }).seconds === 'number') {
+                return format(new Date((d as { seconds: number }).seconds * 1000), 'dd/MM/yyyy');
             }
 
-            const d = new Date(date);
-            if (isNaN(d.getTime())) return 'Date invalide';
-            return format(d, 'dd/MM/yyyy');
+            const dateObj = new Date(d as string | number | Date);
+            if (isNaN(dateObj.getTime())) return 'Date invalide';
+            return format(dateObj, 'dd/MM/yyyy');
         } catch (e) {
             console.warn('Date formatting error:', e);
             return 'N/A';

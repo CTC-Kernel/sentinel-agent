@@ -66,8 +66,7 @@ export class ThreatFeedService {
     /**
      * Helper to fetch with proxy failover
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private static async fetchViaProxy(targetUrl: string): Promise<any> {
+    private static async fetchViaProxy(targetUrl: string): Promise<unknown> {
         // Validation basique de l'URL pour éviter des appels inutiles
         if (!targetUrl || !targetUrl.startsWith('http')) {
             return { vulnerabilities: [], urls: [] };
@@ -77,7 +76,7 @@ export class ThreatFeedService {
         try {
             const result = await fetchThreatFeed({ url: targetUrl });
             // Type safe access to data
-            const data = (result.data as any);
+            const data = result.data as { vulnerabilities?: unknown[]; urls?: unknown[] };
             if (data) {
                 return data;
             }
@@ -171,7 +170,7 @@ export class ThreatFeedService {
      */
     static async fetchCisaKev(): Promise<Vulnerability[]> {
         try {
-            const data = await this.fetchViaProxy('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json');
+            const data = await this.fetchViaProxy('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json') as { vulnerabilities?: CisaVulnerability[] };
             const vulnerabilities: CisaVulnerability[] = data.vulnerabilities || [];
 
             if (vulnerabilities.length === 0) {
@@ -204,7 +203,7 @@ export class ThreatFeedService {
      */
     static async fetchUrlHaus(): Promise<Threat[]> {
         try {
-            const data = await this.fetchViaProxy('https://urlhaus-api.abuse.ch/v1/urls/recent/');
+            const data = await this.fetchViaProxy('https://urlhaus-api.abuse.ch/v1/urls/recent/') as { urls?: UrlHausEntry[] };
             const urls: UrlHausEntry[] = data.urls || [];
 
             if (urls.length === 0) {

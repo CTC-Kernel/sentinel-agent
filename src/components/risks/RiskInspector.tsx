@@ -21,6 +21,8 @@ import { Risk, Asset, Control, Project, Audit, Supplier, MitreTechnique, UserPro
 import { integrationService } from '../../services/integrationService';
 // import { useAuth } from '../../hooks/useAuth';
 import { toast } from 'sonner';
+import { Button } from '../ui/button';
+import { ConfirmModal } from '../ui/ConfirmModal';
 // Form validation: useForm with required fields
 
 interface RiskInspectorProps {
@@ -53,6 +55,8 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
     const [updating, setUpdating] = useState(false);
     const [mitreQuery, setMitreQuery] = useState('');
     const [mitreResults, setMitreResults] = useState<MitreTechnique[]>([]);
+    const [confirmClose, setConfirmClose] = useState(false);
+    const [pendingStatus, setPendingStatus] = useState<Risk['status'] | null>(null);
 
     // Reset state when risk changes
     const handleClose = React.useCallback(() => {
@@ -60,6 +64,8 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         setIsEditing(false);
         setMitreQuery('');
         setMitreResults([]);
+        setConfirmClose(false);
+        setPendingStatus(null);
         onClose();
     }, [onClose]);
 
@@ -72,6 +78,23 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
         setUpdating(false);
         if (success && isEditing) setIsEditing(false);
     }, [risk, onUpdate, isEditing]);
+
+    const handleStatusChangeRequest = (status: Risk['status']) => {
+        if (status === 'Fermé') {
+            setPendingStatus(status);
+            setConfirmClose(true);
+        } else {
+            handleStatusChange(status);
+        }
+    };
+
+    const handleConfirmStatusChange = async () => {
+        if (pendingStatus) {
+            await handleStatusChange(pendingStatus);
+            setConfirmClose(false);
+            setPendingStatus(null);
+        }
+    };
 
     const handleStatusChange = React.useCallback(async (newStatus: Risk['status']) => {
         if (!canEdit || !risk) return;
@@ -152,23 +175,39 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
             onTabChange={handleTabChange}
             actions={
                 !isEditing && canEdit ? (
-                    <>
+                    <div className="flex gap-2">
                         <CustomTooltip content="Dupliquer">
-                            <button aria-label="Dupliquer le risque" onClick={handleDuplicate} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                                <Copy className="h-5 w-5" />
-                            </button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={handleDuplicate}
+                                aria-label="Dupliquer le risque"
+                            >
+                                <Copy className="h-4 w-4" />
+                            </Button>
                         </CustomTooltip>
                         <CustomTooltip content="Modifier">
-                            <button aria-label="Modifier le risque" onClick={handleEditStart} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                                <Edit className="h-5 w-5" />
-                            </button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={handleEditStart}
+                                aria-label="Modifier le risque"
+                            >
+                                <Edit className="h-4 w-4" />
+                            </Button>
                         </CustomTooltip>
                         <CustomTooltip content="Supprimer">
-                            <button aria-label="Supprimer le risque" onClick={handleDeleteRisk} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                                <Trash2 className="h-5 w-5" />
-                            </button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={handleDeleteRisk}
+                                className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                aria-label="Supprimer le risque"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
                         </CustomTooltip>
-                    </>
+                    </div>
                 ) : null
             }
             disableContentPadding={isEditing}
@@ -193,15 +232,25 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                     {inspectorTab === 'details' && (
                         <div className="space-y-8">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <div className="p-6 bg-red-50/80 dark:bg-red-900/10 rounded-[2rem] border border-red-100 dark:border-red-900/30 shadow-sm">
-                                    <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4">Risque Brut</h4>
-                                    <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{risk.score}</div>
-                                    <div className="text-xs font-medium text-slate-600">Prob: {risk.probability} × Impact: {risk.impact}</div>
+                                <div className="p-6 bg-white/40 dark:bg-white/5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/20 pointer-events-none" />
+                                    <div className="relative z-10">
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4 flex items-center gap-2">
+                                            <ShieldAlert className="h-4 w-4" /> Risque Brut
+                                        </h4>
+                                        <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{risk.score}</div>
+                                        <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Prob: {risk.probability} × Impact: {risk.impact}</div>
+                                    </div>
                                 </div>
-                                <div className="p-6 bg-emerald-50/80 dark:bg-emerald-900/10 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
-                                    <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4">Risque Résiduel</h4>
-                                    <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{risk.residualScore || risk.score}</div>
-                                    <div className="text-xs font-medium text-slate-600">Prob: {risk.residualProbability || risk.probability} × Impact: {risk.residualImpact || risk.impact}</div>
+                                <div className="p-6 bg-white/40 dark:bg-white/5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent dark:from-emerald-900/20 pointer-events-none" />
+                                    <div className="relative z-10">
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4 flex items-center gap-2">
+                                            <CheckCircle2 className="h-4 w-4" /> Risque Résiduel
+                                        </h4>
+                                        <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">{risk.residualScore || risk.score}</div>
+                                        <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Prob: {risk.residualProbability || risk.probability} × Impact: {risk.residualImpact || risk.impact}</div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -247,7 +296,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                                 <button
                                                     aria-label={`Changer le statut à ${s}`}
                                                     key={s}
-                                                    onClick={() => handleStatusChange(s as Risk['status'])}
+                                                    onClick={() => handleStatusChangeRequest(s as Risk['status'])}
                                                     disabled={updating}
                                                     className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex-1 sm:flex-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${risk.status === s ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md' : 'bg-transparent border-gray-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-gray-50'} ${updating ? 'opacity-50 cursor-wait' : ''}`}
                                                 >
@@ -385,8 +434,17 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                         </div>
                     )}
                 </div>
-            )
-            }
+            )}
+            <ConfirmModal
+                isOpen={confirmClose}
+                onClose={() => setConfirmClose(false)}
+                onConfirm={handleConfirmStatusChange}
+                title="Clôturer le risque ?"
+                message="Êtes-vous sûr de vouloir considérer ce risque comme traité (Fermé) ? Assurez-vous que tous les contrôles nécessaires sont en place."
+                confirmText="Oui, fermer le risque"
+                cancelText="Annuler"
+                type="info"
+            />
         </InspectorLayout >
     );
 };

@@ -48,6 +48,15 @@ import { VersionCheck } from './components/VersionCheck';
 const Login = React.lazy(() => import('./views/Login').then(module => ({ default: module.Login })));
 const Onboarding = React.lazy(() => import('./views/Onboarding').then(module => ({ default: module.Onboarding })));
 const VerifyEmail = React.lazy(() => import('./views/VerifyEmail').then(module => ({ default: module.VerifyEmail })));
+const ExternalAuditPortal = React.lazy(() => import('./views/portal/ExternalAuditPortal').then(module => ({ default: module.ExternalAuditPortal })));
+const ExternalAuditLayout = React.lazy(() => import('./views/layouts/ExternalAuditLayout').then(module => ({ default: module.ExternalAuditLayout })));
+const CertifierLogin = React.lazy(() => import('@/views/portal/certifier/CertifierLogin').then(module => ({ default: module.CertifierLogin })));
+const CertifierRegister = React.lazy(() => import('@/views/portal/certifier/CertifierRegister').then(module => ({ default: module.CertifierRegister })));
+const CertifierDashboard = React.lazy(() => import('@/views/portal/certifier/CertifierDashboard').then(module => ({ default: module.CertifierDashboard })));
+
+
+
+// Route wrapper that decides whether to show Landing Page or App logic
 
 
 
@@ -230,6 +239,17 @@ const AppInner: React.FC = () => {
                                 <VerifyEmail />
                             </AuthGuard>
                         } />
+
+                        {/* Public Portal Routes - No AuthGuard, Token protected */}
+                        <Route path="/portal" element={<ExternalAuditLayout />}>
+                            <Route path="audit/:token" element={<ExternalAuditPortal />} />
+
+                            {/* Certifier Ecosystem Routes */}
+                            <Route path="login" element={<CertifierLogin />} />
+                            <Route path="register" element={<CertifierRegister />} />
+                            <Route path="dashboard" element={<CertifierDashboard />} />
+                        </Route>
+
 
                         {/* Main App Route - Handles all paths and sub-routes */}
                         <Route path="/*" element={

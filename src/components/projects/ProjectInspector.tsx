@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 // Form validation: schema-based validation with useForm resolver
@@ -18,6 +17,7 @@ import { TaskFormModal } from './TaskFormModal';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { useProjectMilestones } from '../../hooks/projects/useProjectMilestones';
 import { ConfirmModal } from '../ui/ConfirmModal';
+import { Button } from '../ui/button';
 
 import './gantt.css';
 // Form validation: useForm with required fields
@@ -182,7 +182,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
         const startDate = task.startDate ? new Date(task.startDate) : new Date();
         const endDate = task.dueDate ? new Date(task.dueDate) : new Date(startDate.getTime() + 60 * 60 * 1000);
         const ics = generateICS([{
-            title: `Tâche: ${task.title}`,
+            title: `Tâche: ${task.title} `,
             description: task.description || '',
             startTime: startDate,
             endTime: endDate,
@@ -241,27 +241,33 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                 actions={
                     <>
                         <CustomTooltip content="Générer un rapport exécutif PDF">
-                            <button aria-label="Générer un rapport exécutif PDF" onClick={onExportExecutiveReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><FileText className="h-5 w-5 text-brand-500" /></button>
+                            <Button variant="outline" size="icon" onClick={onExportExecutiveReport} aria-label="Générer un rapport exécutif PDF">
+                                <FileText className="h-4 w-4 text-brand-500" />
+                            </Button>
                         </CustomTooltip>
                         <CustomTooltip content="Télécharger le rapport">
-                            <button aria-label="Télécharger le rapport" onClick={onGenerateReport} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Download className="h-5 w-5" /></button>
+                            <Button variant="outline" size="icon" onClick={onGenerateReport} aria-label="Télécharger le rapport">
+                                <Download className="h-4 w-4" />
+                            </Button>
                         </CustomTooltip>
                         {canEdit && (
                             <CustomTooltip content="Dupliquer le projet">
-                                <button aria-label="Dupliquer le projet" onClick={handleDuplicateClick} disabled={isSubmitting} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                                    {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Copy className="h-5 w-5" />}
-                                </button>
+                                <Button variant="outline" size="icon" onClick={handleDuplicateClick} disabled={isSubmitting} aria-label="Dupliquer le projet">
+                                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
+                                </Button>
                             </CustomTooltip>
                         )}
                         {canEdit && (
                             <CustomTooltip content="Modifier le projet">
-                                <button aria-label="Modifier le projet" onClick={handleEditClick} className="p-2.5 text-slate-600 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Edit className="h-5 w-5" /></button>
+                                <Button variant="outline" size="icon" onClick={handleEditClick} aria-label="Modifier le projet">
+                                    <Edit className="h-4 w-4" />
+                                </Button>
                             </CustomTooltip>
                         )}
-                        {/* Delete handled by parent via onDeleteProject which likely triggers ConfirmModal */}
-                        {/* Delete handled by parent via onDeleteProject which likely triggers ConfirmModal */}
                         <CustomTooltip content="Supprimer le projet">
-                            <button aria-label="Supprimer le projet" onClick={handleDeleteClick} className="p-2.5 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><Trash2 className="h-5 w-5" /></button>
+                            <Button variant="ghost" size="icon" onClick={handleDeleteClick} className="text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" aria-label="Supprimer le projet">
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
                         </CustomTooltip>
                     </>
                 }
@@ -280,10 +286,35 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     </div>
                                 </div>
                                 {/* Stats Grid */}
+                                {/* Stats Grid */}
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                    <InspectorStatCard label="Actifs Concernés" value={project.relatedAssetIds?.length || 0} />
-                                    <InspectorStatCard label="Risques Traités" value={project.relatedRiskIds?.length || 0} />
-                                    <InspectorStatCard label="Contrôles Implémentés" value={project.relatedControlIds?.length || 0} />
+                                    <div className="p-6 bg-white/40 dark:bg-white/5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent dark:from-indigo-900/20 pointer-events-none" />
+                                        <div className="relative z-10">
+                                            <h4 className="text-xs font-bold uppercase tracking-widest text-indigo-600/80 mb-4 flex items-center gap-2">
+                                                <Server className="h-4 w-4" /> Actifs Concernés
+                                            </h4>
+                                            <div className="text-4xl font-black text-slate-900 dark:text-white mb-2">{project.relatedAssetIds?.length || 0}</div>
+                                        </div>
+                                    </div>
+                                    <div className="p-6 bg-white/40 dark:bg-white/5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-transparent dark:from-red-900/20 pointer-events-none" />
+                                        <div className="relative z-10">
+                                            <h4 className="text-xs font-bold uppercase tracking-widest text-red-600/80 mb-4 flex items-center gap-2">
+                                                <ShieldAlert className="h-4 w-4" /> Risques Traités
+                                            </h4>
+                                            <div className="text-4xl font-black text-slate-900 dark:text-white mb-2">{project.relatedRiskIds?.length || 0}</div>
+                                        </div>
+                                    </div>
+                                    <div className="p-6 bg-white/40 dark:bg-white/5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent dark:from-emerald-900/20 pointer-events-none" />
+                                        <div className="relative z-10">
+                                            <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-600/80 mb-4 flex items-center gap-2">
+                                                <ClipboardCheck className="h-4 w-4" /> Contrôles Implémentés
+                                            </h4>
+                                            <div className="text-4xl font-black text-slate-900 dark:text-white mb-2">{project.relatedControlIds?.length || 0}</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -292,23 +323,23 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                             <div className="space-y-6 h-full flex flex-col">
                                 <div className="flex justify-between items-center">
                                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700">
-                                        <button aria-label="Vue Liste" onClick={handleViewModeList} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'}`}>Liste</button>
-                                        <button aria-label="Vue Tableau" onClick={handleViewModeBoard} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${viewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'}`}>Tableau</button>
+                                        <button aria-label="Vue Liste" onClick={handleViewModeList} className={`px - 4 py - 1.5 rounded - lg text - xs font - bold transition - all focus - visible: outline - none focus - visible: ring - 2 focus - visible: ring - brand - 500 ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'} `}>Liste</button>
+                                        <button aria-label="Vue Tableau" onClick={handleViewModeBoard} className={`px - 4 py - 1.5 rounded - lg text - xs font - bold transition - all focus - visible: outline - none focus - visible: ring - 2 focus - visible: ring - brand - 500 ${viewMode === 'board' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-600 hover:text-slate-900 dark:hover:text-slate-300'} `}>Tableau</button>
                                     </div>
                                     {canEdit && (
-                                        <button aria-label="Nouvelle tâche" onClick={handleNewTask} className="flex items-center gap-2 px-4 py-2 text-xs font-bold bg-brand-600 text-white rounded-xl hover:bg-brand-700 hover:scale-105 transition-all shadow-lg shadow-brand-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                                        <Button onClick={handleNewTask} className="flex items-center gap-2">
                                             <Plus className="h-4 w-4" /> Nouvelle tâche
-                                        </button>
+                                        </Button>
                                     )}
                                 </div>
                                 {viewMode === 'list' ? (
                                     <div className="space-y-2">
                                         {project.tasks?.map(task => (
                                             <div key={task.id} className="flex items-center p-3 glass-panel rounded-xl border border-white/60 dark:border-white/10 group hover:shadow-apple transition-all">
-                                                <button aria-label={`Marquer comme ${task.status === 'Terminé' ? 'à faire' : 'terminé'}`} onClick={() => toggleTaskStatus(task.id)} disabled={!canEdit} className={`flex-shrink-0 w-5 h-5 rounded-full border mr-3 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-green-500'}`}>
+                                                <button aria-label={`Marquer comme ${task.status === 'Terminé' ? 'à faire' : 'terminé'} `} onClick={() => toggleTaskStatus(task.id)} disabled={!canEdit} className={`flex - shrink - 0 w - 5 h - 5 rounded - full border mr - 3 flex items - center justify - center transition - colors focus - visible: outline - none focus - visible: ring - 2 focus - visible: ring - brand - 500 ${task.status === 'Terminé' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 hover:border-green-500'} `}>
                                                     {task.status === 'Terminé' && <CheckSquare className="w-3.5 h-3.5" />}
                                                 </button>
-                                                <span className={`text-sm font-medium flex-1 ${task.status === 'Terminé' ? 'text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'}`}>{task.title}</span>
+                                                <span className={`text - sm font - medium flex - 1 ${task.status === 'Terminé' ? 'text-slate-500 line-through' : 'text-slate-700 dark:text-slate-200'} `}>{task.title}</span>
                                                 {canEdit && (
                                                     <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <button aria-label="Télécharger l'ICS de la tâche" onClick={() => handleDownloadICS(task)} className="p-1.5 text-slate-500 hover:text-brand-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"><CalendarDays className="h-3.5 w-3.5" /></button>
@@ -373,7 +404,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     </div>
                                 ) : (
                                     linkedRisks.map(risk => (
-                                        <LinkedRiskItem key={risk.id} risk={risk} onClick={() => navigate(`/risks?id=${risk.id}`)} />
+                                        <LinkedRiskItem key={risk.id} risk={risk} onClick={() => navigate(`/ risks ? id = ${risk.id} `)} />
                                     ))
                                 )}
                             </div>
@@ -411,7 +442,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     </div>
                                 ) : (
                                     linkedAssets.map(asset => (
-                                        <LinkedAssetItem key={asset.id} asset={asset} onClick={() => navigate(`/assets?id=${asset.id}`)} />
+                                        <LinkedAssetItem key={asset.id} asset={asset} onClick={() => navigate(`/ assets ? id = ${asset.id} `)} />
                                     ))
                                 )}
                             </div>
@@ -426,7 +457,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     </div>
                                 ) : (
                                     linkedAuditsList.map(audit => (
-                                        <LinkedAuditItem key={audit.id} audit={audit} onClick={() => navigate(`/audits?id=${audit.id}`)} />
+                                        <LinkedAuditItem key={audit.id} audit={audit} onClick={() => navigate(`/ audits ? id = ${audit.id} `)} />
                                     ))
                                 )}
                             </div>
@@ -493,15 +524,7 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     );
 };
 
-const InspectorStatCard = ({ label, value }: { label: string, value: number }) => (
-    <div className="glass-panel p-5 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-        <div className="relative z-10">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">{label}</p>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{value}</p>
-        </div>
-    </div>
-);
+
 
 const LinkedRiskItem = React.memo(({ risk, onClick }: { risk: Risk, onClick: () => void }) => {
     const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
@@ -522,7 +545,7 @@ const LinkedRiskItem = React.memo(({ risk, onClick }: { risk: Risk, onClick: () 
             <div>
                 <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors">{risk.threat}</h4>
                 <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${risk.score >= 12 ? 'bg-red-100 text-red-600' : risk.score >= 5 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>Score: {risk.score}</span>
+                    <span className={`text - xs px - 2 py - 0.5 rounded - full font - bold ${risk.score >= 12 ? 'bg-red-100 text-red-600' : risk.score >= 5 ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'} `}>Score: {risk.score}</span>
                     <span className="text-xs text-slate-500">{risk.category}</span>
                 </div>
             </div>
