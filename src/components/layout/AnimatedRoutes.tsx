@@ -6,6 +6,7 @@ import { RoleGuard } from '../auth/RoleGuard';
 
 // Lazy Imports (Copied from App.tsx)
 const Dashboard = React.lazy(() => import('../../views/Dashboard').then(module => ({ default: module.Dashboard })));
+const DashboardWithQuickActions = React.lazy(() => import('../../views/Dashboard').then(module => ({ default: module.DashboardWithQuickActions })));
 const Assets = React.lazy(() => import('../../views/Assets'));
 const Risks = React.lazy(() => import('../../views/Risks').then(module => ({ default: module.Risks })));
 const Compliance = React.lazy(() => import('../../views/Compliance').then(module => ({ default: module.Compliance })));
@@ -47,7 +48,7 @@ export const AnimatedRoutes: React.FC = () => {
     return (
         <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
-                <Route path="/" element={<AnimatedPage><Dashboard /></AnimatedPage>} />
+                <Route path="/" element={<AnimatedPage><DashboardWithQuickActions /></AnimatedPage>} />
                 <Route path="/analytics" element={<AnimatedPage><AnalyticsDashboard /></AnimatedPage>} />
                 <Route path="/timeline" element={<AnimatedPage><InteractiveTimeline /></AnimatedPage>} />
                 <Route path="/audit-trail" element={<AnimatedPage><ActivityLogs /></AnimatedPage>} />

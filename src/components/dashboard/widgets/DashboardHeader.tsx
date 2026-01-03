@@ -78,7 +78,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <div className="relative overflow-hidden rounded-[2.5rem] bg-card text-card-foreground shadow-2xl dark:shadow-none border border-border p-8 md:p-16 text-center animate-fade-in group">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500/20 via-slate-50/50 to-white dark:from-indigo-900/40 dark:via-slate-900/50 dark:to-slate-900 pointer-events-none" />
                 <div className="relative z-10 flex flex-col items-center max-w-5xl mx-auto">
-                    <div className="inline-flex items-center px-4 py-2 rounded-full bg-background/60 border border-border mb-8 backdrop-blur-md shadow-sm">
+                    <div className="inline-flex items-center px-4 py-2 rounded-full bg-background/60 border border-border mb-4 backdrop-blur-md shadow-sm">
                         <span className="relative flex h-2.5 w-2.5 mr-3">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
@@ -86,7 +86,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{organizationName || t('dashboard.operationalSystem')}</span>
                     </div>
 
-                    <div className="mb-8">
+                    <div className="mb-4">
                         {/* Welcome Text with Shiny Effect */}
                         <h2 className="text-4xl sm:text-5xl font-black font-display text-foreground tracking-tight mb-3">
                             {t(welcomeKey).split(',')[0]}, <ShinyText speed={3} className="text-foreground">{user?.displayName || 'Utilisateur'}</ShinyText>
@@ -103,7 +103,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             }} className="group/card relative p-8 rounded-3xl bg-card/60 border border-border hover:border-brand-500/50 dark:hover:border-brand-400/50 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label={card.title}>
                                 <div className={`absolute -right-10 -bottom-10 w-40 h-40 bg-${card.color}-500/10 rounded-full blur-3xl group-hover/card:bg-${card.color}-500/20 transition-all duration-500`} />
 
-                                <div className={`w-14 h-14 rounded-2xl bg-${card.color}-50 dark:bg-${card.color}-500/10 flex items-center justify-center mb-6 group-hover/card:scale-110 transition-transform duration-500 shadow-sm`}>
+                                <div className={`w-14 h-14 rounded-2xl bg-${card.color}-50 dark:bg-${card.color}-500/10 flex items-center justify-center mb-3 group-hover/card:scale-110 transition-transform duration-500 shadow-sm`}>
                                     <card.icon className={`h-7 w-7 text-${card.color}-600 dark:text-${card.color}-400`} />
                                 </div>
                                 <h3 className="text-lg font-bold text-foreground mb-2 tracking-tight group-hover/card:text-brand-600 dark:group-hover/card:text-brand-400 transition-colors">{card.title}</h3>
@@ -133,9 +133,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 <div className="absolute inset-0 bg-grid-slate-900/5 dark:bg-grid-white/5 opacity-50 pointer-events-none" />
 
                 {/* Inner Content Container */}
-                <div className="relative z-10 p-6 md:p-8">
+                <div className="relative z-10 p-4 md:p-6">
 
-                    <div className="relative z-10 px-6 py-5">
+                    <div className="relative z-10 px-6 py-3">
                         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
 
                             {/* Left: Organization & Welcome */}
