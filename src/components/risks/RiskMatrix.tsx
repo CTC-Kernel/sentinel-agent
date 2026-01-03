@@ -52,21 +52,23 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                 <div className="min-w-[700px] grid grid-cols-[auto_1fr] gap-4 lg:gap-8 justify-items-center">
 
                     {/* Y-Axis Label */}
-                    <div className="flex flex-col justify-center items-center w-8 md:w-16 lg:w-24 space-y-8 lg:space-y-12 py-8">
-                        <div className="-rotate-90 font-bold text-xs text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap absolute -left-4 lg:-left-2 top-1/2">
+                    <div className="flex flex-col justify-center items-center w-8 md:w-16 lg:w-24 relative">
+                        <div className="-rotate-90 font-bold text-xs text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap absolute -left-8 lg:-left-6 top-1/2 -translate-y-1/2">
                             Probabilité
                         </div>
-                        {PROBABILITY_LABELS.map(label => (
-                            <div key={label.val} className="h-full flex flex-col justify-center items-end w-full pr-4">
-                                <span className="text-xs lg:text-sm font-bold text-slate-700 dark:text-slate-300 text-right leading-tight">{label.label}</span>
-                                {label.sub && <span className="text-[10px] text-slate-400 text-right">{label.sub}</span>}
-                            </div>
-                        ))}
+                        <div className="grid grid-rows-5 gap-3 md:gap-4 w-full h-full">
+                            {PROBABILITY_LABELS.map(label => (
+                                <div key={label.val} className="flex flex-col justify-center items-end w-full pr-4">
+                                    <span className="text-xs lg:text-sm font-bold text-slate-700 dark:text-slate-300 text-right leading-tight">{label.label}</span>
+                                    {label.sub && <span className="text-[10px] text-slate-400 text-right">{label.sub}</span>}
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="flex flex-col w-full items-center">
                         {/* Grid */}
-                        <div className="grid grid-rows-5 grid-cols-5 gap-3 md:gap-4 w-full max-w-2xl min-h-[500px]">
+                        <div className="grid grid-rows-5 grid-cols-5 gap-3 md:gap-4 w-full max-w-2xl">
                             {PROBABILITY_LABELS.map(probObj => {
                                 const prob = probObj.val;
                                 return (
@@ -92,7 +94,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                                                     <div
                                                         onClick={() => hasRisks && setMatrixFilter(isSelected ? null : { p: prob, i: impact })}
                                                         className={`
-                                                                relative rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 border cursor-pointer
+                                                                relative rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 border cursor-pointer aspect-square
                                                                 ${bgClass} ${borderClass}
                                                                 ${hasRisks ? 'hover:scale-105 hover:z-10 hover:shadow-lg cursor-pointer' : 'opacity-60 cursor-default'}
                                                                 ${isSelected ? 'ring-2 ring-brand-500 scale-105 z-20 shadow-xl opacity-100' : matrixFilter && hasRisks ? 'opacity-40' : ''}
