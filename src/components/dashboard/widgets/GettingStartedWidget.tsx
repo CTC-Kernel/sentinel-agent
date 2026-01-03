@@ -16,10 +16,39 @@ interface Step {
     isCompleted: boolean;
 }
 
+type WidgetState = 'expanded' | 'retracted' | 'closed';
+
+// Hook for persisting widget state
+const useWidgetState = (userId: string | undefined) => {
+    const storageKey = `getting-started-widget-${userId}`;
+    
+    const [state, setState] = React.useState<WidgetState>(() => {
+        if (!userId) return 'expanded';
+        try {
+            const saved = localStorage.getItem(storageKey);
+            return saved ? (JSON.parse(saved) as WidgetState) : 'expanded';
+        } catch {
+            return 'expanded';
+        }
+    });
+
+    React.useEffect(() => {
+        if (!userId) return;
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(state));
+        } catch (error) {
+            ErrorLogger.warn('Failed to save widget state', 'GettingStartedWidget', { metadata: { error } });
+        }
+    }, [state, userId, storageKey]);
+
+    return [state, setState] as const;
+};
+
 export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const navigate = useNavigate();
     const { user, t } = useStore();
-    const [isExpanded, setIsExpanded] = React.useState(true);
+    const [widgetState, setWidgetState] = useWidgetState(user?.uid);
+    const [isExpanded, setIsExpanded] = React.useState(widgetState === 'expanded');
 
     const inFlightKeyRef = React.useRef(false);
 
@@ -167,9 +196,21 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
     const completedCount = steps.filter(s => s.isCompleted).length;
 
     if (completedCount === steps.length) return null;
+    if (widgetState === 'closed') return null;
+
+    const handleToggleExpand = () => {
+        const newExpandedState = !isExpanded;
+        setIsExpanded(newExpandedState);
+        setWidgetState(newExpandedState ? 'expanded' : 'retracted');
+    };
+
+    const handleClose = () => {
+        setWidgetState('closed');
+        onClose();
+    };
 
     return createPortal(
-        <div className="fixed bottom-0 left-6 lg:left-[284px] z-[9999] bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-6 rounded-t-2xl rounded-b-none border border-slate-200 dark:border-slate-800 border-b-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
+        <div className="fixed bottom-0 left-6 lg:left-[284px] z-[9999] bg-gradient-to-r from-brand-50 to-brand-100 dark:from-brand-900/50 dark:to-brand-800/50 backdrop-blur-md p-6 rounded-t-2xl rounded-b-none border border-brand-200/50 dark:border-brand-700/50 border-b-0 shadow-[0_-10px_40px_-15px_rgba(59,130,246,0.15)] w-[320px] max-w-[calc(100vw-48px)] animate-slide-up">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-gradient-to-r from-brand-500/10 to-brand-600/10 rounded-xl text-brand-600 dark:text-brand-400 shadow-lg border border-brand-200/20">
@@ -182,13 +223,13 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
                 </div>
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={() => setIsExpanded(!isExpanded)}
+                        onClick={handleToggleExpand}
                         className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
                     >
                         <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                     </button>
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"
                     >
                         <X className="h-4 w-4" />

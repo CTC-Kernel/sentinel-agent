@@ -19,6 +19,17 @@ interface StatsOverviewProps {
 }
 
 export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, navigate, t }) => {
+    // Debug logging
+    React.useEffect(() => {
+        if (process.env.NODE_ENV === 'development') {
+            console.log('DashboardStats Props Debug:', {
+                stats,
+                loading,
+                statsKeys: stats ? Object.keys(stats) : 'no stats'
+            });
+        }
+    }, [stats, loading]);
+
     const calculateHealthScore = () => {
         if (!stats) return 100;
         let score = 100;

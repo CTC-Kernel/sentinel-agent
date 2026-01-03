@@ -12,7 +12,6 @@ import { SecuritySettings } from '../components/settings/SecuritySettings';
 import { OrganizationSettings } from '../components/settings/OrganizationSettings';
 import { PartnerManagement } from '../components/settings/PartnerManagement';
 import { IntegrationSettings } from '../components/settings/IntegrationSettings';
-import { SystemSettings } from '../components/settings/SystemSettings';
 
 import { SEO } from '../components/SEO';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
@@ -36,10 +35,6 @@ const Settings: React.FC = () => {
                     ? <PartnerManagement />
                     : <ProfileSettings />;
             case 'integrations': return <IntegrationSettings />;
-            case 'system':
-                return hasPermission(user, 'Settings', 'read')
-                    ? <SystemSettings />
-                    : <ProfileSettings />;
             default: return <ProfileSettings />;
         }
     };

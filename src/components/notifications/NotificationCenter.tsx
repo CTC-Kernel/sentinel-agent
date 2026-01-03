@@ -52,10 +52,10 @@ export const NotificationCenter: React.FC = () => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 10 }}
                         transition={{ duration: 0.1 }}
-                        className="absolute right-0 mt-2 w-96 max-h-[80vh] bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 flex flex-col origin-top-right ring-1 ring-black/5"
+                        className="absolute right-0 mt-2 w-96 max-h-[80vh] bg-gradient-to-br from-brand-50 to-brand-100 dark:from-brand-900/50 dark:to-brand-800/50 rounded-xl shadow-xl border border-brand-200/50 dark:border-brand-700/50 overflow-hidden z-50 flex flex-col origin-top-right ring-1 ring-brand-500/10"
                     >
                         {/* Header */}
-                        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-900 shrink-0">
+                        <div className="p-4 border-b border-brand-200/30 dark:border-brand-700/30 flex items-center justify-between bg-brand-100/50 dark:bg-brand-800/30 shrink-0">
                             <h3 className="font-semibold text-slate-900 dark:text-white">Notifications</h3>
                             <div className="flex gap-2">
                                 <Tooltip content={filter === 'unread' ? 'Afficher tout' : 'Filtrer les non-lus'}>
@@ -65,7 +65,7 @@ export const NotificationCenter: React.FC = () => {
                                             "p-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
                                             filter === 'unread'
                                                 ? "bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"
-                                                : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+                                                : "text-slate-500 hover:bg-brand-50 dark:hover:bg-brand-900/20"
                                         )}
                                     >
                                         <Filter className="h-3.5 w-3.5" />
@@ -75,7 +75,7 @@ export const NotificationCenter: React.FC = () => {
                                 <Tooltip content="Tout marquer comme lu">
                                     <button
                                         onClick={() => markAllAsRead()}
-                                        className="p-1.5 text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                                        className="p-1.5 text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                                     >
                                         <CheckCheck className="h-4 w-4" />
                                     </button>
@@ -93,8 +93,8 @@ export const NotificationCenter: React.FC = () => {
                                 </div>
                             ) : filteredNotifications.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center p-8 text-center">
-                                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
-                                        <Bell className="h-6 w-6 text-slate-400" />
+                                    <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-800/50 flex items-center justify-center mb-3">
+                                        <Bell className="h-6 w-6 text-brand-600 dark:text-brand-400" />
                                     </div>
                                     <p className="text-slate-900 dark:text-white font-medium mb-1">Aucune notification</p>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 max-w-[200px]">

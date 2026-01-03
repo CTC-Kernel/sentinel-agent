@@ -17,6 +17,7 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { DashboardHeader } from '../components/dashboard/widgets/DashboardHeader';
 import { QuickActions } from '../components/dashboard/widgets/QuickActions';
 import { GettingStartedWidget } from '../components/dashboard/widgets/GettingStartedWidget';
+import { GettingStartedButton } from '../components/dashboard/widgets/GettingStartedButton';
 import { ApprovalsWidget } from '../components/dashboard/ApprovalsWidget';
 import { DashboardSkeleton } from '../components/skeletons/DashboardSkeleton';
 import { motion } from 'framer-motion';
@@ -201,6 +202,8 @@ export const Dashboard: React.FC = () => {
                         <GettingStartedWidget onClose={() => setShowGettingStarted(false)} />
                     </motion.div>
                 )}
+
+                <GettingStartedButton onShow={() => setShowGettingStarted(true)} />
 
                 {pendingReviews && pendingReviews.length > 0 && (
                     <motion.div variants={slideUpVariants}>

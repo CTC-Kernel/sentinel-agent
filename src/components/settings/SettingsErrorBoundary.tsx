@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '../ui/button';
+import { ErrorLogger } from '../../services/errorLogger';
 
 interface Props {
     children: ReactNode;
@@ -24,6 +25,13 @@ export class SettingsErrorBoundary extends Component<Props, State> {
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error('Uncaught error in Settings tab:', error, errorInfo);
+        ErrorLogger.error(error, 'SettingsErrorBoundary', { 
+            metadata: { 
+                componentStack: errorInfo.componentStack,
+                errorBoundary: 'Settings',
+                timestamp: new Date().toISOString()
+            } 
+        });
     }
 
     private handleReset = () => {
@@ -71,7 +79,10 @@ export class SettingsErrorBoundary extends Component<Props, State> {
 
                     {process.env.NODE_ENV === 'development' && this.state.error && (
                         <div className="mt-8 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg text-left w-full max-w-lg overflow-auto text-xs font-mono text-slate-600 dark:text-slate-400">
-                            {this.state.error.toString()}
+                            <div className="mb-2 font-bold">Error Details:</div>
+                            <div className="mb-2">{this.state.error.toString()}</div>
+                            <div className="font-bold mb-1">Component Stack:</div>
+                            <div className="whitespace-pre-wrap">{this.state.error.stack}</div>
                         </div>
                     )}
                 </div>

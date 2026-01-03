@@ -284,6 +284,8 @@ export const translations = {
             stepAudit: 'Planifier un audit',
             gettingStartedTitle: 'Bienvenue sur Sentinel GRC ! 🚀',
             gettingStartedSubtitle: 'Suivez ces étapes pour configurer votre espace et garantir votre conformité.',
+            gettingStarted: 'Bienvenue sur Sentinel',
+            setupProgress: 'Progression de la Configuration',
             progression: 'Progression',
             addWidget: 'Ajouter un widget',
             allWidgetsAdded: 'Tous les widgets sont déjà ajoutés.',
@@ -304,6 +306,8 @@ export const translations = {
             assetStats: 'Statistiques Actifs',
             suppliersStats: 'Statistiques Fournisseurs',
             continuityPlans: 'Plans de Continuité',
+            systemHealth: 'Santé du Système',
+            addWidgetToDashboard: 'Ajouter ce widget au tableau de bord.',
             widgets: {
                 'stats-overview': { description: 'Vue globale des indicateurs clés.' },
                 'my-workspace': { description: 'Vos tâches et actions immédiates.' },
@@ -321,7 +325,8 @@ export const translations = {
                 'compliance-progress': { description: 'Progression de la mise en conformité.' },
                 'asset-stats': { description: 'Répartition et criticité des actifs.' },
                 'suppliers-stats': { description: 'Suivi des fournisseurs et de leur conformité.' },
-                'continuity-plans': { description: 'État des plans de continuité et exercices.' }
+                'continuity-plans': { description: 'État des plans de continuité et exercices.' },
+                'system-health': { description: 'État de santé global du système.' }
             },
         },
         settings: {
@@ -850,6 +855,8 @@ export const translations = {
             assetStats: 'Asset Stats',
             suppliersStats: 'Suppliers Stats',
             continuityPlans: 'Continuity Plans',
+            systemHealth: 'System Health',
+            addWidgetToDashboard: 'Add this widget to the dashboard.',
             widgets: {
                 'stats-overview': { description: 'Global view of key indicators.' },
                 'my-workspace': { description: 'Your immediate tasks and actions.' },
@@ -867,7 +874,8 @@ export const translations = {
                 'compliance-progress': { description: 'Compliance implementation progress.' },
                 'asset-stats': { description: 'Asset distribution and criticality.' },
                 'suppliers-stats': { description: 'Supplier tracking and compliance.' },
-                'continuity-plans': { description: 'Continuity plans status and drills.' }
+                'continuity-plans': { description: 'Continuity plans status and drills.' },
+                'system-health': { description: 'Overall system health status.' }
             },
             welcomeTitle: 'Bienvenue sur Sentinel GRC',
             welcomeSubtitle1: 'La plateforme tout-en-un pour piloter votre conformité ISO 27001.',
@@ -975,6 +983,8 @@ export const translations = {
             stepAudit: 'Plan an audit',
             gettingStartedTitle: 'Welcome to Sentinel GRC! 🚀',
             gettingStartedSubtitle: 'Follow these steps to configure your workspace and ensure compliance.',
+            gettingStarted: 'Welcome to Sentinel',
+            setupProgress: 'Configuration Progress',
             progression: 'Progress',
 
             reportFilename: 'executive-report.pdf'
