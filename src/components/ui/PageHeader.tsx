@@ -37,6 +37,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
               <div className="absolute inset-0 bg-gradient-to-t from-white/10 dark:from-white/5 to-transparent opacity-0 group-hover:opacity-15 transition-opacity duration-500"></div>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
               <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-slate-200/20 via-slate-100/10 to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/8 to-transparent opacity-0 group-hover:opacity-8 transition-opacity duration-500"></div>
+              <div className="absolute -inset-1 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-sm"></div>
               {icon}
             </div>
           )}
