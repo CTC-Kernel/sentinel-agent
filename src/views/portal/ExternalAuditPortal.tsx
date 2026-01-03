@@ -64,7 +64,7 @@ export const ExternalAuditPortal: React.FC = () => {
         };
 
         loadAudit();
-    }, [token]);
+    }, [token, t]);
 
     if (loading) {
         return (

@@ -21,7 +21,7 @@ const useWidgetState = (userId: string | undefined) => {
         try {
             localStorage.setItem(storageKey, JSON.stringify(state));
         } catch (error) {
-            // Silently fail for localStorage errors
+            console.error('Error setting local storage:', error);
         }
     }, [state, userId, storageKey]);
 

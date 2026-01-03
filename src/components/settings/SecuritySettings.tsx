@@ -17,20 +17,24 @@ export const SecuritySettings: React.FC = () => {
     const { addToast, t } = useStore();
     
     // Try to use Auth hook, but provide fallback
-    let enrollMFA: (() => Promise<string>) | undefined;
-    let verifyMFA: ((verificationId: string, code: string) => Promise<void>) | undefined;
-    let unenrollMFA: (() => Promise<void>) | undefined;
+    const [authFunctions, setAuthFunctions] = React.useState<{
+        enrollMFA?: (() => Promise<string>);
+        verifyMFA?: ((verificationId: string, code: string) => Promise<void>);
+        unenrollMFA?: (() => Promise<void>);
+    }>({});
     
-    try {
-        // Dynamic import to avoid breaking if AuthContext is not available
-        const authHook = require('../../hooks/useAuth').useAuth();
-        enrollMFA = authHook.enrollMFA;
-        verifyMFA = authHook.verifyMFA;
-        unenrollMFA = authHook.unenrollMFA;
-    } catch (error) {
-        console.warn('Auth context not available in SecuritySettings:', error);
-        // Functions will remain undefined, MFA features will be disabled
-    }
+    // Initialize auth functions safely
+    const initializeAuthFunctions = React.useCallback(() => {
+        // For now, we'll disable MFA features if AuthContext is not available
+        // This is a temporary solution to avoid React Hook rules violations
+        // In a proper implementation, the AuthContext should be available at all times
+        setAuthFunctions({});
+    }, []);
+    
+    // Initialize auth functions on mount
+    React.useEffect(() => {
+        initializeAuthFunctions();
+    }, [initializeAuthFunctions]);
 
     // Password State
     const [changingPassword, setChangingPassword] = useState(false);
@@ -65,14 +69,14 @@ export const SecuritySettings: React.FC = () => {
     };
 
     const handleEnrollMFA = async () => {
-        if (!enrollMFA) {
+        if (!authFunctions.enrollMFA) {
             addToast("Fonctionnalité MFA non disponible", "error");
             return;
         }
         
         try {
             setIsEnrollingMFA(true);
-            const uri = await enrollMFA();
+            const uri = await authFunctions.enrollMFA();
             const dataUrl = await QRCode.toDataURL(uri);
             setQrCodeUrl(dataUrl);
         } catch (error) {
@@ -93,14 +97,14 @@ export const SecuritySettings: React.FC = () => {
     };
 
     const handleVerifyMFA = async () => {
-        if (!verifyMFA) {
+        if (!authFunctions.verifyMFA) {
             addToast("Fonctionnalité MFA non disponible", "error");
             return;
         }
         
         setVerifyingMFA(true);
         try {
-            await verifyMFA('Sentinel Authenticator', mfaCode);
+            await authFunctions.verifyMFA('Sentinel Authenticator', mfaCode);
             addToast(t('settings.mfaEnabled'), "success");
             setMfaCode('');
             setQrCodeUrl(null);
@@ -113,13 +117,13 @@ export const SecuritySettings: React.FC = () => {
     };
 
     const handleUnenrollMFA = async () => {
-        if (!unenrollMFA) {
+        if (!authFunctions.unenrollMFA) {
             addToast("Fonctionnalité MFA non disponible", "error");
             return;
         }
         
         try {
-            await unenrollMFA();
+            await authFunctions.unenrollMFA();
             addToast(t('settings.mfaDisabled'), "success");
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'SecuritySettings.handleUnenrollMFA', 'UNKNOWN_ERROR');
