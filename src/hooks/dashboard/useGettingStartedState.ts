@@ -19,33 +19,25 @@ export const useGettingStartedState = (userId: string | undefined) => {
         }
     });
 
-    // Effect to read from storage when userId changes (e.g., login loads)
-    useEffect(() => {
-        if (!userId) {
-            // Reset to default or keep current? 
-            // If we logout, maybe reset? But for now, just do nothing.
-            return;
-        }
+    const [lastUserId, setLastUserId] = useState(userId);
 
-        try {
-            const saved = localStorage.getItem(storageKey);
-            if (saved) {
-                // We found a saved state for this user, apply it
-                const parsed = JSON.parse(saved) as WidgetState;
-                setState(parsed);
-            } else {
-                // No saved state for this user, ensure we are expanded by default
-                // But do NOT write yet, let the user action or next effect handle it
-                // Actually, if it's a new user, 'expanded' is correct.
-                // If we switched users, we need to ensure we don't keep the previous user's state in memory if it differs
-                // But the useState initializer only ran once.
-                // So we MUST explicitly set state here if storage is empty.
+    // Handle user change - update state immediately to prevent cascading renders
+    if (userId !== lastUserId) {
+        setLastUserId(userId);
+        if (userId) {
+            try {
+                const saved = localStorage.getItem(storageKey);
+                if (saved) {
+                    setState(JSON.parse(saved) as WidgetState);
+                } else {
+                    setState('expanded');
+                }
+            } catch (error) {
+                ErrorLogger.warn('Failed to read widget state', 'useGettingStartedState', { metadata: { error } });
                 setState('expanded');
             }
-        } catch (error) {
-            ErrorLogger.warn('Failed to read widget state', 'useGettingStartedState', { metadata: { error } });
         }
-    }, [userId, storageKey]);
+    }
 
     // Effect to write to storage when state changes
     useEffect(() => {
