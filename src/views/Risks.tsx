@@ -390,7 +390,13 @@ export const Risks: React.FC = () => {
             <PageHeader
                 title={risksTitle}
                 subtitle={risksSubtitle}
-                icon={<ShieldAlert className="h-6 w-6 text-brand-500" strokeWidth={2.5} />}
+                icon={
+                    <img 
+                        src="/images/gouvernance.png" 
+                        alt="GOUVERNANCE" 
+                        className="w-full h-full object-contain"
+                    />
+                }
                 breadcrumbs={[{ label: t('commandPalette.nav.risks') }]}
                 trustType="integrity"
             />

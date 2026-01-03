@@ -203,7 +203,13 @@ export const Projects: React.FC = () => {
             <PageHeader
                 title={t('projects.dashboard')}
                 subtitle={t('projects.subtitle')}
-                icon={<LayoutDashboard className="h-6 w-6 text-brand-500" />}
+                icon={
+                    <img 
+                        src="/images/pilotage.png" 
+                        alt="PILOTAGE" 
+                        className="w-full h-full object-contain"
+                    />
+                }
                 breadcrumbs={[{ label: t('common.pilotage') }, { label: t('sidebar.projects') }]}
                 trustType="integrity"
             />

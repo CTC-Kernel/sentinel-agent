@@ -211,7 +211,13 @@ export const Reports: React.FC = () => {
                 <PageHeader
                     title={t('reports.title')}
                     subtitle={t('reports.subtitle')}
-                    icon={<FileText className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                    icon={
+                    <img 
+                        src="/images/pilotage.png" 
+                        alt="PILOTAGE" 
+                        className="w-full h-full object-contain"
+                    />
+                }
 
                 />
             </motion.div>

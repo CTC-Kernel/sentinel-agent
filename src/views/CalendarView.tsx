@@ -2,7 +2,6 @@ import React from 'react';
 
 import { CalendarDashboard } from '../components/calendar/CalendarDashboard';
 import { PageHeader } from '../components/ui/PageHeader';
-import { Calendar as CalendarIcon } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
@@ -26,7 +25,13 @@ export const CalendarView: React.FC = () => {
                 title="Calendrier"
                 subtitle="Vue d'ensemble des échéances, audits et maintenances."
                 breadcrumbs={[{ label: 'Calendrier' }]}
-                icon={<CalendarIcon className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                icon={
+                    <img 
+                        src="/images/pilotage.png" 
+                        alt="PILOTAGE" 
+                        className="w-full h-full object-contain"
+                    />
+                }
             />
             <div className="flex-1 min-h-0">
                 <CalendarDashboard />

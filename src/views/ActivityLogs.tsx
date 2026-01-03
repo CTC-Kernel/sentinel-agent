@@ -23,7 +23,13 @@ export const ActivityLogs: React.FC = () => {
                 <PageHeader
                     title={t('activity.title')}
                     subtitle={t('activity.subtitle')}
-                    icon={<Activity className="h-6 w-6 text-white" />}
+                    icon={
+                    <img 
+                        src="/images/administration.png" 
+                        alt="ADMINISTRATION" 
+                        className="w-full h-full object-contain"
+                    />
+                }
                     actions={
                         <div className="flex items-center gap-2">
                             <Button

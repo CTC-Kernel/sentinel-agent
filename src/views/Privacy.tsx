@@ -179,7 +179,13 @@ export const Privacy: React.FC = () => {
                 breadcrumbs={[
                     { label: 'RGPD' }
                 ]}
-                icon={<GlobeLock className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                icon={
+                    <img 
+                        src="/images/gouvernance.png" 
+                        alt="GOUVERNANCE" 
+                        className="w-full h-full object-contain"
+                    />
+                }
                 actions={canEdit && (
                     <>
                         <div className="flex gap-2 mb-2">

@@ -217,8 +217,14 @@ export const ThreatIntelligence: React.FC = () => {
             <PageHeader
                 title="Threat Intelligence"
                 subtitle="Veille collaborative et cartographie mondiale"
-                icon={<Globe className="h-6 w-6 text-white" />}
-                breadcrumbs={[{ label: 'Pilotage' }, { label: 'Threat Intel' }]}
+                icon={
+                    <img 
+                        src="/images/operations.png" 
+                        alt="OPÉRATIONS" 
+                        className="w-full h-full object-contain"
+                    />
+                }
+                breadcrumbs={[{ label: 'Opérations' }, { label: 'Threat Intel' }]}
                 actions={
                     <div className="flex gap-2">
                         <button

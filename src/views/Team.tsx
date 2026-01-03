@@ -235,7 +235,13 @@ const Team: React.FC = () => {
                 breadcrumbs={[
                     { label: t('team.title') }
                 ]}
-                icon={<Users className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                icon={
+                    <img 
+                        src="/images/administration.png" 
+                        alt="ADMINISTRATION" 
+                        className="w-full h-full object-contain"
+                    />
+                }
                 actions={undefined}
             />
 

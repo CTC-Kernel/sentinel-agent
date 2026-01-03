@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { hasPermission } from '../utils/permissions';
+import { PageHeader } from '../components/ui/PageHeader';
 import { SettingsLayout } from '../components/settings/SettingsLayout';
 import { SettingsErrorBoundary } from '../components/settings/SettingsErrorBoundary';
 import { ProfileSettings } from '../components/settings/ProfileSettings';
@@ -48,8 +49,19 @@ const Settings: React.FC = () => {
         >
             <MasterpieceBackground />
             <SEO title={t('settings.title')} />
-
-
+            
+            <PageHeader
+                title={t('settings.title')}
+                subtitle="Gérez vos préférences et configuration"
+                breadcrumbs={[{ label: 'Support' }, { label: 'Paramètres' }]}
+                icon={
+                    <img 
+                        src="/images/support.png" 
+                        alt="SUPPORT" 
+                        className="w-full h-full object-contain"
+                    />
+                }
+            />
 
             <SettingsLayout currentTab={activeTab} onTabChange={setActiveTab}>
                 <SettingsErrorBoundary onReset={() => setActiveTab('profile')}>

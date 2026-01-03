@@ -182,9 +182,15 @@ export const Vulnerabilities: React.FC = () => {
                 <PageHeader
                     title={t('vulnerabilities.title')}
                     subtitle={t('vulnerabilities.subtitle')}
-                    icon={<Bug className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                    icon={
+                    <img 
+                        src="/images/operations.png" 
+                        alt="OPÉRATIONS" 
+                        className="w-full h-full object-contain"
+                    />
+                }
                     trustType="integrity"
-                    breadcrumbs={[{ label: t('common.pilotage') }, { label: t('sidebar.vulnerabilities') }]}
+                    breadcrumbs={[{ label: t('common.operations') }, { label: t('sidebar.vulnerabilities') }]}
                 />
             </motion.div>
 

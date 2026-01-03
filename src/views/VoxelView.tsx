@@ -716,9 +716,16 @@ export const VoxelView: React.FC = () => {
         title="CTC Engine"
         subtitle="Visualisation interactive de votre écosystème de sécurité."
         breadcrumbs={[
+          { label: 'Opérations' },
           { label: 'CTC Engine' }
         ]}
-        icon={<Network className="h-6 w-6 text-white" strokeWidth={2.5} />}
+        icon={
+                    <img 
+                        src="/images/operations.png" 
+                        alt="OPÉRATIONS" 
+                        className="w-full h-full object-contain"
+                    />
+                }
         actions={
           <div className="flex flex-wrap items-center gap-3 min-w-0">
             {/* Counters */}

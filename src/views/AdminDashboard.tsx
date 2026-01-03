@@ -118,7 +118,13 @@ export const AdminDashboard: React.FC = () => {
                 title={t('admin.dashboard')}
                 subtitle={t('admin.subtitle')}
                 breadcrumbs={[{ label: 'Admin', path: '/admin' }]}
-                icon={<ShieldAlert className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                icon={
+                    <img 
+                        src="/images/administration.png" 
+                        alt="ADMINISTRATION" 
+                        className="w-full h-full object-contain"
+                    />
+                }
             />
 
             {/* Stats Cards */}

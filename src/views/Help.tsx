@@ -757,7 +757,13 @@ export const Help: React.FC = () => {
                 title="Centre d'Aide"
                 subtitle="Documentation, guides et support pour Sentinel GRC"
                 breadcrumbs={[{ label: 'Aide' }]}
-                icon={<HelpCircle className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                icon={
+                    <img 
+                        src="/images/support.png" 
+                        alt="SUPPORT" 
+                        className="w-full h-full object-contain"
+                    />
+                }
             />
 
             <div className="flex h-[calc(100vh-16rem)] animate-fade-in overflow-hidden rounded-[2.5rem] glass-premium border border-slate-200 dark:border-slate-800 shadow-2xl relative">

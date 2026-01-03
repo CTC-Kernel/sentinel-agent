@@ -141,12 +141,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                             {/* Left: Organization & Welcome */}
                             <div className="flex items-center gap-5 min-w-[280px]">
                                 <div className="relative shrink-0 group/orb cursor-default">
-                                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${getGradeColor(scoreGrade)} flex items-center justify-center shadow-lg shadow-brand-500/30 relative overflow-hidden transition-all duration-500 group-hover/orb:scale-110 group-hover/orb:rotate-3`}>
-                                        <div className="absolute inset-0 bg-white/30 animate-pulse" />
-                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/50 to-transparent opacity-0 group-hover/orb:opacity-100 transition-opacity duration-500" />
-                                        <span className="text-3xl font-black text-white font-display relative z-10 drop-shadow-md">{scoreGrade || '-'}</span>
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center shadow-lg shadow-slate-200/25 dark:shadow-slate-900/25 relative overflow-hidden transition-all duration-500 group-hover/orb:scale-110 group-hover/orb:rotate-3">
+                                        <div className="absolute inset-0 bg-white/20 dark:bg-white/10 animate-pulse" />
+                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/30 dark:from-white/20 to-transparent opacity-0 group-hover/orb:opacity-100 transition-opacity duration-500" />
+                                        <img 
+                                            src="/images/pilotage.png" 
+                                            alt="PILOTAGE" 
+                                            className="w-full h-full object-contain relative z-10"
+                                        />
                                         {/* Holographic ring */}
-                                        <div className="absolute inset-0 border-2 border-white/20 rounded-2xl animate-spin-slow" />
+                                        <div className="absolute inset-0 border-2 border-slate-200/30 dark:border-slate-700/30 rounded-2xl animate-spin-slow" />
                                     </div>
                                     <div className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-background/50 backdrop-blur-sm flex items-center justify-center shadow-sm border border-white/10">
                                         <div className="w-3 h-3 rounded-full bg-emerald-500 animate-monitoring-ping absolute" />
@@ -154,12 +158,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight leading-none mb-1">
+                                    <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-none mb-2">
                                         {organizationName || user?.organizationName || t('sidebar.dashboard')}
                                     </h1>
-                                    <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                                    <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
                                         <span>{new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
-                                        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                                        <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
                                         <span className="uppercase tracking-wide">{t('dashboard.workspace')}</span>
                                     </div>
                                 </div>

@@ -164,7 +164,13 @@ export const Compliance: React.FC = () => {
                     <PageHeader
                         title={t('compliance.title')}
                         subtitle={t('compliance.subtitle')}
-                        icon={<ShieldCheck className="h-6 w-6 text-white" />}
+                        icon={
+                            <img 
+                                src="/images/gouvernance.png" 
+                                alt="GOUVERNANCE" 
+                                className="w-full h-full object-contain"
+                            />
+                        }
                         actions={undefined}
                     />
 

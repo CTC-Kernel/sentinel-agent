@@ -552,7 +552,13 @@ export const Suppliers: React.FC = () => {
                     breadcrumbs={[
                         { label: t('suppliers.title') }
                     ]}
-                    icon={<Handshake className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                    icon={
+                    <img 
+                        src="/images/referentiel.png" 
+                        alt="RÉFÉRENTIEL" 
+                        className="w-full h-full object-contain"
+                    />
+                }
                     actions={undefined}
                 />
             </motion.div>

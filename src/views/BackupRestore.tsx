@@ -265,7 +265,13 @@ export const BackupRestore: React.FC = () => {
         title="Sauvegardes & Restauration"
         subtitle="Gérez vos points de restauration et la sécurité de vos données."
         breadcrumbs={[{ label: 'Sauvegardes' }]}
-        icon={<Database className="h-6 w-6 text-white" strokeWidth={2.5} />}
+        icon={
+          <img 
+            src="/images/administration.png" 
+            alt="ADMINISTRATION" 
+            className="w-full h-full object-contain"
+          />
+        }
         actions={
           <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl max-w-full overflow-x-auto">
             <Button

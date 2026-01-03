@@ -322,9 +322,15 @@ export const Incidents: React.FC = () => {
                 <PageHeader
                     title={t('incidents.title')}
                     subtitle={t('incidents.subtitle')}
-                    icon={<Siren className="h-6 w-6 text-white" strokeWidth={2.5} />}
+                    icon={
+                    <img 
+                        src="/images/operations.png" 
+                        alt="OPÉRATIONS" 
+                        className="w-full h-full object-contain"
+                    />
+                }
                     trustType="confidentiality"
-                    breadcrumbs={[{ label: t('common.pilotage') }, { label: t('sidebar.incidents') }]}
+                    breadcrumbs={[{ label: t('common.operations') }, { label: t('sidebar.incidents') }]}
                 />
             </motion.div>
 
