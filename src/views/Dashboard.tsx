@@ -33,21 +33,29 @@ import { OperationalDashboardView } from '../components/dashboard/views/Operatio
 
 
 
+import { useGettingStartedState } from '../hooks/dashboard/useGettingStartedState';
+
 export const Dashboard: React.FC = () => {
     // useTour removed in favor of OnboardingTrigger
     const [organizationName, setOrganizationName] = useState<string>('');
     const [organizationLogo, setOrganizationLogo] = useState<string | undefined>(undefined);
     const [error, setError] = useState<string | null>(null);
 
-    const [showGettingStarted, setShowGettingStarted] = useState(true);
+    const { user, theme, addToast, t } = useStore();
+    // Use new hook for persistence
+    const [gettingStartedState, setGettingStartedState] = useGettingStartedState(user?.uid);
+
+    // Derived state for visibility
+    const showGettingStarted = gettingStartedState !== 'closed';
+
     const [isEditing, setIsEditing] = useState(false);
 
-    const { user, theme, addToast, t } = useStore();
     const navigate = useNavigate();
 
     // Use centralized data hook
     const {
         controls,
+
         recentActivity,
         historyStats,
         allRisks,
@@ -195,15 +203,19 @@ export const Dashboard: React.FC = () => {
                     isGeneratingReport={isGeneratingReport}
                     isEditing={isEditing}
                     onToggleEdit={() => setIsEditing(!isEditing)}
+                    onShowGettingStarted={() => setGettingStartedState('expanded')}
+                    isGettingStartedClosed={!showGettingStarted}
                 />
 
                 {showGettingStarted && (
                     <motion.div variants={slideUpVariants}>
-                        <GettingStartedWidget onClose={() => setShowGettingStarted(false)} />
+                        <GettingStartedWidget onClose={() => setGettingStartedState('closed')} />
                     </motion.div>
                 )}
 
-                <GettingStartedButton onShow={() => setShowGettingStarted(true)} />
+                {!showGettingStarted && (
+                    <GettingStartedButton onShow={() => setGettingStartedState('expanded')} />
+                )}
 
                 {pendingReviews && pendingReviews.length > 0 && (
                     <motion.div variants={slideUpVariants}>
@@ -288,7 +300,7 @@ export const Dashboard: React.FC = () => {
                     })()}
                 </motion.div>
             </motion.div>
-            
+
             {/* QuickActions Panel - Fixed Position Outside Main Container */}
             <QuickActions navigate={navigate} t={t} stats={stats} />
         </div>
@@ -317,7 +329,7 @@ export const DashboardWithQuickActions: React.FC = () => {
         loading,
         error: dataError
     } = useDashboardData();
-    
+
     const [organizationName, setOrganizationName] = useState<string>('');
     const [organizationLogo, setOrganizationLogo] = useState<string | undefined>(undefined);
     const [error, setError] = useState<string | null>(null);
@@ -540,10 +552,10 @@ export const DashboardWithQuickActions: React.FC = () => {
                     </motion.div>
                 </motion.div>
             </div>
-            <QuickActions 
-                navigate={navigate} 
-                t={t} 
-                stats={stats} 
+            <QuickActions
+                navigate={navigate}
+                t={t}
+                stats={stats}
             />
         </>
     );

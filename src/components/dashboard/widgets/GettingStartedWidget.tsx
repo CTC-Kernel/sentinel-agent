@@ -9,6 +9,7 @@ let lastStatusFetchAt = 0;
 let lastStatusOrgId: string | null = null;
 let lastStatusValue: { hasTeam: boolean; hasAssets: boolean; hasRisks: boolean; hasControls: boolean; hasPolicies: boolean; hasAudits: boolean } | null = null;
 
+
 interface Step {
     id: string;
     label: string;
@@ -16,39 +17,14 @@ interface Step {
     isCompleted: boolean;
 }
 
-type WidgetState = 'expanded' | 'retracted' | 'closed';
-
-// Hook for persisting widget state
-const useWidgetState = (userId: string | undefined) => {
-    const storageKey = `getting-started-widget-${userId}`;
-    
-    const [state, setState] = React.useState<WidgetState>(() => {
-        if (!userId) return 'expanded';
-        try {
-            const saved = localStorage.getItem(storageKey);
-            return saved ? (JSON.parse(saved) as WidgetState) : 'expanded';
-        } catch {
-            return 'expanded';
-        }
-    });
-
-    React.useEffect(() => {
-        if (!userId) return;
-        try {
-            localStorage.setItem(storageKey, JSON.stringify(state));
-        } catch (error) {
-            ErrorLogger.warn('Failed to save widget state', 'GettingStartedWidget', { metadata: { error } });
-        }
-    }, [state, userId, storageKey]);
-
-    return [state, setState] as const;
-};
 
 export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const navigate = useNavigate();
     const { user, t } = useStore();
-    const [widgetState, setWidgetState] = useWidgetState(user?.uid);
-    const [isExpanded, setIsExpanded] = React.useState(widgetState === 'expanded');
+    // State is now managed by parent, but we keep local expansion state for UI toggle
+    const [isExpanded, setIsExpanded] = React.useState(true);
+
+
 
     const inFlightKeyRef = React.useRef(false);
 
@@ -195,17 +171,15 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
 
     const completedCount = steps.filter(s => s.isCompleted).length;
 
+    // Parent handles visibility based on completedCount and closed state
     if (completedCount === steps.length) return null;
-    if (widgetState === 'closed') return null;
+
 
     const handleToggleExpand = () => {
-        const newExpandedState = !isExpanded;
-        setIsExpanded(newExpandedState);
-        setWidgetState(newExpandedState ? 'expanded' : 'retracted');
+        setIsExpanded(!isExpanded);
     };
 
     const handleClose = () => {
-        setWidgetState('closed');
         onClose();
     };
 
