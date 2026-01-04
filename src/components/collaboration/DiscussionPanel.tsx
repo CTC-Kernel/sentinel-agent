@@ -241,7 +241,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
     const renderComment = (comment: Comment, isReply = false, level = 0) => {
         const isHighlighted = comment.id === highlightedComment;
         const isExpanded = expandedComments.has(comment.id);
-        const hasReplies = (comment as any).replies && (comment as any).replies.length > 0;
+        const hasReplies = Boolean((comment as Comment & { replies?: Comment[] }).replies?.length);
         const isMe = comment.userId === user?.uid;
 
         return (
@@ -295,7 +295,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                                         className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                                     >
                                         {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                                        {(comment as any).replies?.length || 0}
+                                        {(comment as Comment & { replies?: Comment[] }).replies?.length || 0}
                                     </button>
                                 )}
                             </div>
@@ -500,7 +500,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
                     sortedComments.map((root) => (
                         <div key={root.id}>
                             {renderComment(root)}
-                            {expandedComments.has(root.id) && (root as any).replies?.map((reply: Comment) => 
+                            {expandedComments.has(root.id) && (root as Comment & { replies?: Comment[] }).replies?.map((reply: Comment) => 
                                 renderComment(reply, true, 1)
                             )}
                         </div>
