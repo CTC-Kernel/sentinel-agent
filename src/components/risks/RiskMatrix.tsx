@@ -15,7 +15,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
 
     // Helper within the component to count risks per cell
     const getRisksForCell = (prob: number, impact: number) =>
-        risks.filter(r => r.probability === prob && r.impact === impact && (!frameworkFilter || r.framework === frameworkFilter));
+        risks.filter(r => (Number(r.probability) === prob) && (Number(r.impact) === impact) && (!frameworkFilter || r.framework === frameworkFilter));
 
     const PROBABILITY_LABELS = [
         { val: 5, label: "Très Élevé", sub: "Certain" },
@@ -84,11 +84,11 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                 <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
-                <div className="relative z-10 overflow-x-auto pb-6">
-                    <div className="min-w-[700px] mx-auto max-w-5xl grid grid-cols-[auto_repeat(5,1fr)] gap-4">
+                <div className="relative z-10 overflow-x-auto pb-6 scrollbar-hide">
+                    <div className="min-w-[600px] md:min-w-[700px] mx-auto max-w-5xl grid grid-cols-[auto_auto_repeat(5,1fr)] gap-2 md:gap-4">
 
                         {/* Y-Axis Label */}
-                        <div className="row-span-6 flex items-center justify-center -mr-4">
+                        <div className="row-span-5 flex items-center justify-center -mr-4">
                             <div className="-rotate-90 text-xs font-bold uppercase tracking-[0.3em] text-slate-400 whitespace-nowrap">
                                 Probabilité
                             </div>
@@ -197,7 +197,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                         ))}
 
                         {/* X-Axis Labels */}
-                        <div /> {/* Spacer */}
+                        <div className="col-span-2" /> {/* Spacer for Y-Axis and Row Labels */}
                         {IMPACT_LABELS.map(label => (
                             <div key={label.val} className="flex flex-col items-center pt-4">
                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{label.label}</span>
@@ -206,7 +206,7 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks, matrixFilter, set
                         ))}
 
                         {/* X-Axis Title */}
-                        <div /> {/* Spacer */}
+                        <div className="col-span-2" /> {/* Spacer for Y-Axis and Row Labels */}
                         <div className="col-span-5 text-center mt-6">
                             <span className="text-xs font-bold uppercase tracking-[0.3em] text-slate-400">
                                 Impact

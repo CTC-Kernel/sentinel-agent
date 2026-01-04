@@ -14,7 +14,7 @@ import { RiskForm } from './RiskForm';
 import { RiskDashboard } from './RiskDashboard';
 import { RelationshipGraph } from '../RelationshipGraph';
 // import { CustomSelect } from '../ui/CustomSelect';
-import { CommentSection } from '../collaboration/CommentSection';
+import { DiscussionPanel } from '../collaboration/DiscussionPanel';
 import { RiskTreatmentPlan } from './RiskTreatmentPlan';
 import { TimelineView } from '../shared/TimelineView';
 import { Risk, Asset, Control, Project, Audit, Supplier, MitreTechnique, UserProfile, BusinessProcess } from '../../types';
@@ -246,9 +246,9 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                             <ShieldAlert className="h-4 w-4" /> Risque Brut
                                         </h4>
                                         <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">
-                                            {Number(risk.score) || (risk.probability * risk.impact)}
+                                            {Number(risk.score) || (Number(risk.probability) * Number(risk.impact)) || 0}
                                         </div>
-                                        <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Prob: {risk.probability} × Impact: {risk.impact}</div>
+                                        <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Prob: {risk.probability || 0} × Impact: {risk.impact || 0}</div>
                                     </div>
                                 </div>
                                 <div className="p-6 bg-white/40 dark:bg-white/5 rounded-[2rem] border border-white/60 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
@@ -258,9 +258,9 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                                             <CheckCircle2 className="h-4 w-4" /> Risque Résiduel
                                         </h4>
                                         <div className="text-5xl font-black text-slate-900 dark:text-white mb-2">
-                                            {Number(risk.residualScore) || ((risk.residualProbability || risk.probability) * (risk.residualImpact || risk.impact))}
+                                            {Number(risk.residualScore) || ((Number(risk.residualProbability) || Number(risk.probability)) * (Number(risk.residualImpact) || Number(risk.impact))) || 0}
                                         </div>
-                                        <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Prob: {risk.residualProbability || risk.probability} × Impact: {risk.residualImpact || risk.impact}</div>
+                                        <div className="text-xs font-medium text-slate-600 dark:text-slate-400">Prob: {risk.residualProbability || risk.probability || 0} × Impact: {risk.residualImpact || risk.impact || 0}</div>
                                     </div>
                                 </div>
                             </div>
@@ -359,7 +359,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                         />
                     )}
 
-                    {inspectorTab === 'dashboard' && <RiskDashboard risks={[risk]} assets={assets} />}
+                    {inspectorTab === 'dashboard' && <RiskDashboard risks={[risk]} />}
 
                     {inspectorTab === 'projects' && (
                         <div className="space-y-8">
@@ -411,7 +411,19 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                         </div>
                     )}
 
-                    {inspectorTab === 'comments' && <div className="h-[400px]"><CommentSection collectionName="risks" documentId={risk.id} /></div>}
+                    {inspectorTab === 'comments' && (
+                    <div className="h-full">
+                        <DiscussionPanel 
+                            collectionName="risks" 
+                            documentId={risk.id}
+                            title={`Discussion - ${risk.threat}`}
+                            enableSearch={true}
+                            enableFilters={true}
+                            enableExport={true}
+                            enableNotifications={true}
+                        />
+                    </div>
+                )}
 
                     {inspectorTab === 'graph' && <div className="h-[500px]"><RelationshipGraph rootId={risk.id} rootType="Risk" /></div>}
 

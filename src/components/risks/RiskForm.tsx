@@ -65,23 +65,23 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     const [activeTab, setActiveTab] = useState('context');
     const { control, handleSubmit, reset, formState: { errors }, setValue, getValues } = useForm<RiskFormData>({
         resolver: zodResolver(riskSchema),
-        shouldUnregister: true,
+        shouldUnregister: false,
         defaultValues: {
-            assetId: '',
-            threat: '',
-            scenario: '',
-            framework: 'ISO27005',
-            vulnerability: '',
-            probability: 3,
-            impact: 3,
-            residualProbability: 3,
-            residualImpact: 3,
-            strategy: 'Atténuer',
-            status: 'Ouvert',
-            ownerId: '',
-            mitigationControlIds: [],
-            affectedProcessIds: [],
-            relatedSupplierIds: [],
+            assetId: initialData?.assetId || '',
+            threat: initialData?.threat || '',
+            scenario: initialData?.scenario || '',
+            framework: initialData?.framework || 'ISO27005',
+            vulnerability: initialData?.vulnerability || '',
+            probability: initialData?.probability || 3,
+            impact: initialData?.impact || 3,
+            residualProbability: initialData?.residualProbability || 3,
+            residualImpact: initialData?.residualImpact || 3,
+            strategy: initialData?.strategy || 'Atténuer',
+            status: initialData?.status || 'Ouvert',
+            ownerId: initialData?.ownerId || '',
+            mitigationControlIds: initialData?.mitigationControlIds || [],
+            affectedProcessIds: initialData?.affectedProcessIds || [],
+            relatedSupplierIds: initialData?.relatedSupplierIds || [],
             ...initialData
         }
     });
@@ -242,6 +242,9 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             }
             reset({
                 ...existingRisk,
+                assetId: existingRisk.assetId || '',
+                threat: existingRisk.threat || '',
+                vulnerability: existingRisk.vulnerability || '',
                 ownerId: resolvedOwnerId,
                 scenario: existingRisk.scenario || '',
                 framework: existingRisk.framework || 'ISO27005',

@@ -8,7 +8,7 @@ import { FloatingLabelInput } from '../ui/FloatingLabelInput';
 import { CustomSelect } from '../ui/CustomSelect';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '../ui/EmptyState';
-import { CommentSection } from '../collaboration/CommentSection';
+import { DiscussionPanel } from '../collaboration/DiscussionPanel';
 // Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 
@@ -238,8 +238,16 @@ export const PrivacyInspector: React.FC<PrivacyInspectorProps> = ({
                 )}
 
                 {inspectorTab === 'comments' && (
-                    <div className="h-full flex flex-col">
-                        <CommentSection collectionName="processing_activities" documentId={selectedActivity.id} />
+                    <div className="h-full">
+                        <DiscussionPanel 
+                            collectionName="processing_activities" 
+                            documentId={selectedActivity.id}
+                            title={`Discussion - ${selectedActivity.name}`}
+                            enableSearch={true}
+                            enableFilters={true}
+                            enableExport={true}
+                            enableNotifications={true}
+                        />
                     </div>
                 )}
 

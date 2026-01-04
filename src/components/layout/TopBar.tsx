@@ -13,6 +13,7 @@ import { FeedbackModal } from '../ui/FeedbackModal';
 import { Tooltip } from '../ui/Tooltip';
 import { SyncIndicator } from '../ui/SyncIndicator';
 import { PlanIndicator } from '../ui/PlanIndicator';
+import { getDefaultAvatarUrl } from '../../utils/avatarUtils';
 
 interface TopBarProps {
     setMobileOpen: (open: boolean) => void;
@@ -163,16 +164,16 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-none">{user?.displayName}</span>
                                 <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide mt-0.5">{user?.role || 'User'}</span>
                             </div>
-                            {user?.photoURL ? (
-                                <img alt="Profile"
-                                    src={user.photoURL}
-                                    className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md group-hover:scale-105 transition-transform"
-                                />
-                            ) : (
-                                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md ring-2 ring-white dark:ring-slate-800 group-hover:scale-105 transition-transform">
-                                    {user?.displayName?.charAt(0).toUpperCase()}
-                                </div>
-                            )}
+                            <img 
+                                alt="Profile"
+                                src={getDefaultAvatarUrl()}
+                                className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md group-hover:scale-105 transition-transform"
+                                onError={(e) => {
+                                    console.error('TopBar avatar failed to load:', e);
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = getDefaultAvatarUrl();
+                                }}
+                            />
                         </button>
 
                         {/* Dropdown Menu */}

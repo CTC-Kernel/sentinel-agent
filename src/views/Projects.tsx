@@ -244,7 +244,13 @@ export const Projects: React.FC = () => {
 
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
-                <motion.div variants={slideUpVariants} className="space-y-6">
+                <motion.div
+                    variants={slideUpVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="space-y-6"
+                >
                     <PortfolioDashboard projects={projects} />
                 </motion.div>
             )}
@@ -314,7 +320,13 @@ export const Projects: React.FC = () => {
 
             {/* LIST TAB */}
             {activeTab === 'list' && (
-                <motion.div variants={slideUpVariants} className="space-y-6">
+                <motion.div
+                    variants={slideUpVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="space-y-6"
+                >
                     {viewMode === 'list' ? (
                         <ProjectList
                             projects={filteredProjects}
@@ -357,7 +369,13 @@ export const Projects: React.FC = () => {
 
             {/* PLANNING TAB */}
             {activeTab === 'gantt' && (
-                <motion.div variants={slideUpVariants} className="space-y-6">
+                <motion.div
+                    variants={slideUpVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="space-y-6"
+                >
                     <GanttChart
                         tasks={filteredProjects.flatMap(p => p.tasks || [])}
                         viewMode={ganttViewMode}
@@ -368,7 +386,13 @@ export const Projects: React.FC = () => {
 
             {/* KANBAN TAB */}
             {activeTab === 'board' && (
-                <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-300px)] min-h-[500px] overflow-x-auto pb-4">
+                <motion.div
+                    variants={slideUpVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-300px)] min-h-[500px] overflow-x-auto pb-4"
+                >
                     {(['todo', 'inProgress', 'done'] as const).map((statusKey) => {
                         const statusLabel = t(`projects.kanban.${statusKey}`);
                         const columnProjects = filteredProjects.filter(p => {

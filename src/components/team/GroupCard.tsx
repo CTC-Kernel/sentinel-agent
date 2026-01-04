@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserGroup, UserProfile } from '../../types';
+import { getDefaultAvatarUrl } from '../../utils/avatarUtils';
 import { Edit, Trash2, Users } from '../ui/Icons';
 import { ConfirmModal } from '../ui/ConfirmModal'; // Keyboard: Escape key supported
 
@@ -49,12 +50,17 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
                     const member = users.find(u => u.uid === memberId);
                     if (!member) return null;
                     return (
-                        <div key={memberId} className="relative inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-600 overflow-hidden" title={member.displayName}>
-                            {member.photoURL ? (
-                                <img src={member.photoURL} alt={member.displayName} className="h-full w-full object-cover" />
-                            ) : (
-                                member.displayName?.charAt(0).toUpperCase()
-                            )}
+                        <div className="relative inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-600 overflow-hidden" title={member.displayName}>
+                            <img 
+                                src={getDefaultAvatarUrl()} 
+                                alt={member.displayName} 
+                                className="h-full w-full object-cover" 
+                                onError={(e) => {
+                                    console.error('GroupCard avatar failed to load:', e);
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = getDefaultAvatarUrl();
+                                }}
+                            />
                         </div>
                     );
                 })}

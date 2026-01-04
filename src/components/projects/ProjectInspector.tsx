@@ -6,6 +6,7 @@ import { Badge } from '../ui/Badge';
 import { Project, ProjectTask, UserProfile, Risk, Control, Asset, Audit } from '../../types';
 import { CalendarDays, LayoutDashboard, CheckSquare, Target, FileSpreadsheet, ShieldAlert, Server, ClipboardCheck, BrainCircuit, History, MessageSquare, FileText, Download, Copy, Edit, Trash2, Plus, Loader2, Users } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
+import { getUserAvatarUrl } from '../../utils/avatarUtils';
 import { ProjectDashboard } from './ProjectDashboard';
 import { ProjectMilestones } from './ProjectMilestones';
 import { ProjectAIAssistant } from './ProjectAIAssistant';
@@ -473,12 +474,12 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         {usersList.filter(u => project.members?.includes(u.uid)).map(member => (
                                             <div key={member.uid} className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex items-center gap-4 group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
-                                                <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-lg border-2 border-white dark:border-white/5 shadow-sm group-hover:scale-110 transition-transform">
-                                                    {member.photoURL ? (
-                                                        <img src={member.photoURL} alt={member.displayName} className="h-full w-full rounded-full object-cover" />
-                                                    ) : (
-                                                        member.displayName?.charAt(0) || member.email.charAt(0).toUpperCase()
-                                                    )}
+                                                <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/40 dark:to-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-lg border-2 border-white dark:border-white/5 shadow-sm group-hover:scale-110 transition-transform overflow-hidden">
+                                                    <img 
+                                                        src={getUserAvatarUrl(member.photoURL)} 
+                                                        alt={member.displayName} 
+                                                        className="h-full w-full rounded-full object-cover" 
+                                                    />
                                                 </div>
                                                 <div className="min-w-0">
                                                     <h4 className="font-bold text-slate-900 dark:text-white truncate">{member.displayName || 'Utilisateur'}</h4>

@@ -1,5 +1,6 @@
 
 import JSZip from 'jszip';
+import 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { PdfService } from './PdfService';
 import { Risk, Control, Document as GRCDocument, Audit, Incident, Asset, Project } from '../types';

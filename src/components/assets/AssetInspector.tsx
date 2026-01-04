@@ -6,7 +6,7 @@ import { AssetFormData } from '../../schemas/assetSchema';
 import { AssetForm } from './AssetForm';
 import { RelationshipGraph } from '../RelationshipGraph';
 import { AssetAIAssistant } from './AssetAIAssistant';
-import { CommentSection } from '../collaboration/CommentSection';
+import { DiscussionPanel } from '../collaboration/DiscussionPanel';
 import { ResourceHistory } from '../shared/ResourceHistory';
 import { AssetInspectorSecurity } from './inspector/AssetInspectorSecurity';
 import { AssetInspectorLifecycle } from './inspector/AssetInspectorLifecycle';
@@ -387,8 +387,16 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                 )}
 
                 {inspectorTab === 'comments' && selectedAsset && (
-                    <div className="h-full flex flex-col">
-                        <CommentSection collectionName="assets" documentId={selectedAsset.id} />
+                    <div className="h-full">
+                        <DiscussionPanel 
+                            collectionName="assets" 
+                            documentId={selectedAsset.id}
+                            title={`Discussion - ${selectedAsset.name}`}
+                            enableSearch={true}
+                            enableFilters={true}
+                            enableExport={true}
+                            enableNotifications={true}
+                        />
                     </div>
                 )}
             </div>

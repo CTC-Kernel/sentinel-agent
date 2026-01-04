@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { Project } from '../../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ChartTooltip } from '../ui/ChartTooltip';
-import { TrendingUp } from '../ui/Icons';
 import { EmptyChartState } from '../ui/EmptyChartState';
 
 interface PortfolioDashboardProps {
@@ -43,6 +42,36 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
         });
         return Object.entries(ranges).map(([name, value]) => ({ name, value }));
     }, [projects]);
+
+    // Upcoming Deadlines (Next 6 Months)
+    const deadlineData = React.useMemo(() => {
+        const months = new Array(6).fill(0).map((_, i) => {
+            const d = new Date();
+            d.setMonth(d.getMonth() + i);
+            return {
+                name: d.toLocaleString('default', { month: 'short' }),
+                date: d,
+                count: 0
+            };
+        });
+
+        projects.forEach(p => {
+            if (p.dueDate && p.status !== 'Terminé' && p.status !== 'Suspendu') {
+                const due = new Date(p.dueDate);
+                const monthIndex = months.findIndex(m =>
+                    m.date.getMonth() === due.getMonth() &&
+                    m.date.getFullYear() === due.getFullYear()
+                );
+                if (monthIndex !== -1) {
+                    months[monthIndex].count++;
+                }
+            }
+        });
+
+        return months.map(m => ({ name: m.name, value: m.count }));
+    }, [projects]);
+
+    // ... (Stats and other memos remain same, just ensure they are clean)
 
     if (projects.length === 0) {
         return (
@@ -119,17 +148,19 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                                         data={statusData}
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius="60%"
-                                        outerRadius="80%"
-                                        paddingAngle={5}
+                                        innerRadius={45}
+                                        outerRadius={65}
+                                        paddingAngle={4}
                                         dataKey="value"
+                                        cornerRadius={4}
+                                        stroke="none"
                                     >
                                         {statusData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(255,255,255,0.05)" />
+                                            <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(255,255,255,0.1)" strokeWidth={2} />
                                         ))}
                                     </Pie>
-                                    <Tooltip content={<ChartTooltip />} />
-                                    <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
+                                    <Tooltip content={<ChartTooltip />} wrapperStyle={{ outline: 'none' }} />
+                                    <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
                                 </PieChart>
                             </ResponsiveContainer>
                         )}
@@ -137,29 +168,68 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
                 </div>
             </div>
 
-            {/* Secondary Charts - Progress Distribution */}
+            {/* Secondary Charts */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Progress Distribution */}
                 <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5">
                     <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Distribution de l'Avancement</h3>
-                    <div className="h-[200px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={progressData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-                                <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={40} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                    <div className="h-[250px] w-full">
+                        {progressData.every(d => d.value === 0) ? (
+                            <EmptyChartState
+                                variant="bar"
+                                message="Pas de données d'avancement"
+                                description="Mettez à jour les projets pour voir la distribution."
+                                className="scale-75 origin-top"
+                            />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={progressData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                                            <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.3} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} wrapperStyle={{ outline: 'none' }} />
+                                    <Bar dataKey="value" fill="url(#progressGradient)" radius={[6, 6, 0, 0]} barSize={40} animationDuration={1500} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
                 </div>
-                {/* Placeholder for Task Distribution or other metric */}
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 flex flex-col justify-center items-center text-center">
-                    <div className="p-4 bg-brand-500/10 rounded-full mb-4">
-                        <TrendingUp className="h-8 w-8 text-brand-500" />
+
+                {/* Deadlines Chart (Replaces Placeholder) */}
+                <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5">
+                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Échéances à Venir (6 mois)</h3>
+                    <div className="h-[250px] w-full">
+                        {deadlineData.every(d => d.value === 0) ? (
+                            <EmptyChartState
+                                variant="bar"
+                                message="Aucune échéance proche"
+                                description="Vous êtes à jour !"
+                                className="scale-75 origin-top"
+                            />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={deadlineData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="deadlineGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8} />
+                                            <stop offset="100%" stopColor="#ef4444" stopOpacity={0.3} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.3} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} allowDecimals={false} />
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} wrapperStyle={{ outline: 'none' }} />
+                                    <Bar dataKey="value" fill="url(#deadlineGradient)" radius={[6, 6, 0, 0]} barSize={40} animationDuration={1500} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
                     </div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Performance Apprentissage</h3>
-                    <p className="text-sm text-slate-500 mt-2 max-w-xs">L'IA analyse les délais de vos projets pour optimiser les échéances futures.</p>
                 </div>
             </div>
         </div>

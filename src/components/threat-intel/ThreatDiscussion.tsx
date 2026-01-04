@@ -2,7 +2,7 @@
 import React from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X } from 'lucide-react';
-import { CommentSection } from '../collaboration/CommentSection';
+import { DiscussionPanel } from '../collaboration/DiscussionPanel';
 
 interface ThreatDiscussionProps {
     threatId: string;
@@ -63,10 +63,16 @@ export const ThreatDiscussion: React.FC<ThreatDiscussionProps> = ({ threatId, th
                                             </div>
                                         </div>
                                         <div className="relative flex-1 px-4 py-6 sm:px-6">
-                                            <CommentSection
-                                                collectionName="threats"
+                                            <DiscussionPanel 
+                                                collectionName="threats" 
                                                 documentId={threatId}
-                                                className="h-full"
+                                                title={threatTitle}
+                                                showHeader={false}
+                                                enableSearch={true}
+                                                enableFilters={true}
+                                                enableExport={true}
+                                                enableNotifications={true}
+                                                compact={true}
                                             />
                                         </div>
                                     </div>

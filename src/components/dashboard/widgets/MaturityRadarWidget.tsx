@@ -2,6 +2,7 @@ import React from 'react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartsRadar, ResponsiveContainer, Tooltip } from 'recharts';
 import { ChartTooltip } from '../../ui/ChartTooltip';
 import { EmptyChartState } from '../../ui/EmptyChartState';
+import { SENTINEL_PALETTE, CHART_STYLES } from '../../../theme/chartTheme';
 
 interface MaturityRadarWidgetProps {
     radarData: { subject: string; A: number; fullMark?: number }[];
@@ -10,17 +11,9 @@ interface MaturityRadarWidgetProps {
     theme: string;
 }
 
-export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarData, t, navigate, theme }) => {
+export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarData, t, navigate }) => {
     const radarGradientId = React.useId();
-    const isDark = theme === 'dark';
 
-    const chartColors = {
-        stroke: 'hsl(var(--primary))',
-        fill: 'hsl(var(--primary))',
-        grid: isDark ? '#334155' : 'hsl(var(--border) / 0.3)', // slate-700 vs border
-        text: isDark ? '#94a3b8' : 'hsl(var(--muted-foreground))', // slate-400 vs muted
-        cursor: isDark ? 'hsl(var(--foreground) / 0.1)' : 'hsl(var(--muted-foreground) / 0.1)'
-    };
 
     return (
         <div className="relative group/chart flex justify-center pt-1 w-full h-full min-h-[320px]">
@@ -47,18 +40,15 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                             <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
                                 <defs>
                                     <linearGradient id={radarGradientId} x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor={chartColors.fill} stopOpacity={0.5} />
-                                        <stop offset="95%" stopColor={chartColors.fill} stopOpacity={0.05} />
+                                        <stop offset="5%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0.5} />
+                                        <stop offset="95%" stopColor={SENTINEL_PALETTE.primary} stopOpacity={0.05} />
                                     </linearGradient>
                                 </defs>
-                                <PolarGrid
-                                    stroke={chartColors.grid}
-                                    strokeDasharray="4 4"
-                                />
+                                <PolarGrid stroke={CHART_STYLES.grid.stroke} strokeDasharray={CHART_STYLES.grid.strokeDasharray} />
                                 <PolarAngleAxis
                                     dataKey="subject"
                                     tick={{
-                                        fill: chartColors.text,
+                                        fill: CHART_STYLES.axis.stroke,
                                         fontSize: 11,
                                         fontWeight: 700,
                                         fontFamily: 'var(--font-sans)'
@@ -68,7 +58,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                                 <RechartsRadar
                                     name={t('dashboard.maturity')}
                                     dataKey="A"
-                                    stroke={chartColors.stroke}
+                                    stroke={SENTINEL_PALETTE.primary}
                                     strokeWidth={3}
                                     fill={`url(#${radarGradientId})`}
                                     fillOpacity={1}
@@ -76,7 +66,7 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                                 />
                                 <Tooltip
                                     content={<ChartTooltip />}
-                                    cursor={{ stroke: chartColors.cursor, strokeWidth: 1 }}
+                                    cursor={{ stroke: CHART_STYLES.cursor, strokeWidth: 1 }}
                                 />
                             </RadarChart>
                         </ResponsiveContainer>

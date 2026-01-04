@@ -4,6 +4,7 @@ import "gantt-task-react/dist/index.css";
 import { ProjectTask, UserProfile } from '../../types';
 import { CalendarDays, User } from 'lucide-react';
 import { EmptyChartState } from '../ui/EmptyChartState';
+import { getUserAvatarUrl } from '../../utils/avatarUtils';
 
 interface GanttChartProps {
     tasks: ProjectTask[];
@@ -130,13 +131,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
     const getUserAvatar = (assigneeName?: string) => {
         if (!assigneeName) return null;
         const user = users.find(u => u.displayName === assigneeName || u.email === assigneeName);
-        if (user?.photoURL) {
-            return <img src={user.photoURL} alt={assigneeName} className="w-6 h-6 rounded-full border border-white dark:border-slate-700 shadow-sm object-cover" />;
-        }
         return (
-            <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center border border-white dark:border-slate-600 shadow-sm text-[10px] font-bold text-slate-600 dark:text-slate-300">
-                {assigneeName.charAt(0).toUpperCase()}
-            </div>
+            <img 
+                src={getUserAvatarUrl(user?.photoURL)} 
+                alt={assigneeName} 
+                className="w-6 h-6 rounded-full border border-white dark:border-slate-700 shadow-sm object-cover" 
+            />
         );
     };
 

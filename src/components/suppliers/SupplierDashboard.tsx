@@ -1,11 +1,13 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
 import { Supplier, Criticality } from '../../types';
-import { Building, ShieldAlert, FileText, CheckCircle2 } from '../ui/Icons';
+import { Building, ShieldAlert, FileText, CheckCircle2, PieChart as PieChartIcon, BarChart3 as BarChartIcon } from '../ui/Icons';
 import {
     PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 
 interface SupplierDashboardProps {
     suppliers: Supplier[];
@@ -19,8 +21,6 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
     const avgScore = totalSuppliers > 0 ? Math.round(suppliers.reduce((acc, s) => acc + (s.securityScore || 0), 0) / totalSuppliers) : 0;
     const expiredContracts = suppliers.filter(s => s.contractEnd && new Date(s.contractEnd) < new Date()).length;
     const compliantSuppliers = suppliers.filter(s => (s.securityScore || 0) >= 80).length;
-
-
 
     // Chart Data
     const criticalityData = [
@@ -37,15 +37,42 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
         }, {} as Record<string, number>)
     ).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 5);
 
+    if (totalSuppliers === 0) {
+        return (
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+            >
+                <EmptyChartState
+                    message="Aucun fournisseur"
+                    description="Commencez par ajouter des fournisseurs pour voir apparaître des métriques et des analyses détaillées."
+                    className="glass-premium rounded-[2.5rem] min-h-[400px]"
+                    variant="default"
+                    icon={<Building className="h-10 w-10 text-brand-500" />}
+                />
+            </motion.div>
+        );
+    }
+
     return (
-        <div className="space-y-6">
+        <motion.div
+            variants={staggerContainerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-6"
+        >
             {/* Top Summary Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* 1. Main Score Card (Glass + Gradient) */}
-                <div className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm relative overflow-hidden group">
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 rounded-[2rem] shadow-lg relative overflow-hidden group hover:shadow-apple transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
 
-                    <div className="flex items-center gap-6 relative z-10">
+                    {/* Tech Corners */}
+                    <svg className="absolute top-5 left-5 w-4 h-4 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h20v2H2z" /><path fill="currentColor" d="M2 2v20h2V2z" /></svg>
+                    <svg className="absolute bottom-5 right-5 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h20v2H2z" /><path fill="currentColor" d="M2 2v20h2V2z" /></svg>
+
+                    <div className="flex items-center gap-6 relative z-10 h-full">
                         <div className="relative">
                             <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
                                 <defs>
@@ -83,62 +110,72 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                             </div>
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Score Moyen</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 uppercase tracking-wider">Score Moyen</h3>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 font-mono leading-relaxed">
                                 Niveau de conformité global du parc fournisseurs.
                             </p>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* 2. Key Metrics Grid */}
-                <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <motion.div variants={slideUpVariants} className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
                     {/* Metric 1 */}
-                    <div className="glass-panel p-5 rounded-3xl border border-white/50 dark:border-white/5 flex flex-col items-center justify-center text-center hover:bg-white/50 dark:hover:bg-white/5 transition-colors group">
-                        <div className="p-3 bg-indigo-50 dark:bg-slate-800 rounded-2xl mb-3 group-hover:scale-110 transition-transform">
+                    <div className="glass-premium p-5 rounded-[2rem] flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group shadow-sm">
+                        <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl mb-3 group-hover:scale-110 transition-transform">
                             <Building className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                         </div>
-                        <span className="text-2xl font-black text-slate-900 dark:text-white mb-1">{totalSuppliers}</span>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Total</span>
+                        <span className="text-2xl font-black text-slate-900 dark:text-white mb-1 font-mono">{totalSuppliers}</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total</span>
                     </div>
 
                     {/* Metric 2 */}
-                    <div className="glass-panel p-5 rounded-3xl border border-white/50 dark:border-white/5 flex flex-col items-center justify-center text-center hover:bg-white/50 dark:hover:bg-white/5 transition-colors group">
-                        <div className="p-3 bg-orange-50 dark:bg-slate-800 rounded-2xl mb-3 group-hover:scale-110 transition-transform">
+                    <div className="glass-premium p-5 rounded-[2rem] flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group shadow-sm">
+                        <div className="p-3 bg-orange-50 dark:bg-orange-500/10 rounded-2xl mb-3 group-hover:scale-110 transition-transform">
                             <ShieldAlert className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                         </div>
-                        <span className="text-2xl font-black text-slate-900 dark:text-white mb-1">{criticalSuppliers}</span>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Critiques</span>
+                        <span className={`text-2xl font-black mb-1 font-mono ${criticalSuppliers > 0 ? 'text-orange-500' : 'text-slate-900 dark:text-white'}`}>{criticalSuppliers}</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Critiques</span>
                     </div>
 
                     {/* Metric 3 */}
                     <div
                         onClick={() => onFilterChange?.({ type: 'contract', value: 'expired' })}
-                        className="glass-panel p-5 rounded-3xl border border-red-100 dark:border-red-900/30 flex flex-col items-center justify-center text-center hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors cursor-pointer group"
+                        className="glass-premium p-5 rounded-[2rem] flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 cursor-pointer group shadow-sm border-l-2 border-red-500/50"
                     >
-                        <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-2xl mb-3 group-hover:scale-110 transition-transform">
+                        <div className="p-3 bg-red-50 dark:bg-red-500/10 rounded-2xl mb-3 group-hover:scale-110 transition-transform">
                             <FileText className="h-5 w-5 text-red-600 dark:text-red-400" />
                         </div>
-                        <span className="text-2xl font-black text-slate-900 dark:text-white mb-1">{expiredContracts}</span>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Expirés</span>
+                        <span className={`text-2xl font-black mb-1 font-mono ${expiredContracts > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>{expiredContracts}</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Expirés</span>
                     </div>
 
                     {/* Metric 4 */}
-                    <div className="glass-panel p-5 rounded-3xl border border-white/50 dark:border-white/5 flex flex-col items-center justify-center text-center hover:bg-white/50 dark:hover:bg-white/5 transition-colors group">
-                        <div className="p-3 bg-emerald-50 dark:bg-slate-800 rounded-2xl mb-3 group-hover:scale-110 transition-transform">
+                    <div className="glass-premium p-5 rounded-[2rem] flex flex-col items-center justify-center text-center hover:shadow-apple hover:-translate-y-1 transition-all duration-300 group shadow-sm">
+                        <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl mb-3 group-hover:scale-110 transition-transform">
                             <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                         </div>
-                        <span className="text-2xl font-black text-slate-900 dark:text-white mb-1">{compliantSuppliers}</span>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Conformes</span>
+                        <span className="text-2xl font-black text-slate-900 dark:text-white mb-1 font-mono">{compliantSuppliers}</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Conformes</span>
                     </div>
-                </div>
+                </motion.div>
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
                 {/* Distribution Chart */}
-                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm">
-                    <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-6 px-2">Distribution par Criticité</h4>
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2rem] shadow-sm relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                    {/* Tech Corners Generic */}
+                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
+                    <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
+                        <PieChartIcon className="w-4 h-4 text-brand-500" />
+                        Distribution par Criticité
+                    </h4>
                     <div className="h-[300px] w-full">
                         {criticalityData.length === 0 ? (
                             <EmptyChartState
@@ -187,11 +224,21 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                             </ResponsiveContainer>
                         )}
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Top Categories Chart */}
-                <div className="glass-panel p-6 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm">
-                    <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-6 px-2">Top Catégories</h4>
+                <motion.div variants={slideUpVariants} className="glass-premium p-6 md:p-8 rounded-[2rem] shadow-sm relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                    {/* Tech Corners Generic */}
+                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none rounded-[2rem]" />
+                    <h4 className="text-sm font-bold text-foreground mb-6 uppercase tracking-wider relative z-10 flex items-center gap-2">
+                        <BarChartIcon className="w-4 h-4 text-brand-500" />
+                        Top Catégories
+                    </h4>
                     <div className="h-[300px] w-full">
                         {categoryData.length === 0 ? (
                             <EmptyChartState
@@ -237,8 +284,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
                             </ResponsiveContainer>
                         )}
                     </div>
-                </div>
+                </motion.div>
             </div>
-        </div>
+        </motion.div>
     );
 };

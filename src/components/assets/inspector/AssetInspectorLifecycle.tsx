@@ -9,6 +9,8 @@ import { Asset, MaintenanceRecord } from '../../../types';
 
 import { sanitizeData } from '../../../utils/dataSanitizer';
 import { EmptyChartState } from '../../ui/EmptyChartState';
+import { SENTINEL_PALETTE, CHART_STYLES } from '../../../theme/chartTheme';
+import { ChartTooltip } from '../../ui/ChartTooltip';
 
 interface AssetInspectorLifecycleProps {
     selectedAsset: Asset;
@@ -124,15 +126,25 @@ export const AssetInspectorLifecycle: React.FC<AssetInspectorLifecycleProps> = (
                                         <AreaChart data={getDepreciationData()}>
                                             <defs>
                                                 <linearGradient id="colorValueLifecycle" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                                    <stop offset="5%" stopColor={SENTINEL_PALETTE.success} stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor={SENTINEL_PALETTE.success} stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.2} />
-                                            <XAxis dataKey="year" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                                            <CartesianGrid {...CHART_STYLES.grid} />
+                                            <XAxis dataKey="year" {...CHART_STYLES.axis} />
                                             <YAxis hide />
-                                            <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }} itemStyle={{ color: '#fff' }} formatter={(val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)} />
-                                            <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorValueLifecycle)" />
+                                            <RechartsTooltip
+                                                content={<ChartTooltip formatter={(val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)} />}
+                                                cursor={{ stroke: CHART_STYLES.cursor, strokeWidth: 1, strokeDasharray: '3 3' }}
+                                            />
+                                            <Area
+                                                type="monotone"
+                                                dataKey="value"
+                                                stroke={SENTINEL_PALETTE.success}
+                                                strokeWidth={2}
+                                                fillOpacity={1}
+                                                fill="url(#colorValueLifecycle)"
+                                            />
                                         </AreaChart>
                                     )}
                                 </ResponsiveContainer>

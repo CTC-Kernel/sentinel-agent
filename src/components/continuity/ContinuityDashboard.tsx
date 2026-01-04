@@ -1,15 +1,15 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
-    PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip,
-    BarChart, Bar, Legend
+    PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
+    BarChart, Bar, Legend, CartesianGrid, XAxis, YAxis
 } from 'recharts';
 import { Activity, ShieldCheck, Zap, TrendingUp, History } from '../ui/Icons';
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { slideUpVariants, staggerContainerVariants } from '../ui/animationVariants';
 import { BusinessProcess, BcpDrill } from '../../types';
 import { EmptyChartState } from '../ui/EmptyChartState';
-import { EmptyState } from '../ui/EmptyState';
+import { SEVERITY_COLORS } from '../../theme/chartTheme';
 
 interface ContinuityDashboardProps {
     processes: BusinessProcess[];
@@ -54,10 +54,10 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
             }
         });
         return [
-            { name: 'Critique', value: counts.Critique, color: '#ef4444' }, // Red
-            { name: 'Elevée', value: counts.Elevée, color: '#f97316' },   // Orange
-            { name: 'Moyenne', value: counts.Moyenne, color: '#eab308' },  // Yellow
-            { name: 'Faible', value: counts.Faible, color: '#22c55e' }    // Green
+            { name: 'Critique', value: counts.Critique, color: SEVERITY_COLORS.critical },
+            { name: 'Elevée', value: counts.Elevée, color: SEVERITY_COLORS.high },
+            { name: 'Moyenne', value: counts.Moyenne, color: SEVERITY_COLORS.medium },
+            { name: 'Faible', value: counts.Faible, color: SEVERITY_COLORS.low }
         ].filter(d => d.value > 0);
     }, [processes]);
 
@@ -70,159 +70,164 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
             else if (d.result === 'Échec') counts.Échec++;
         });
         return [
-            { name: 'Succès', value: counts.Succès, color: '#22c55e' },
+            { name: 'Succès', value: counts.Succès, color: '#10b981' },
             { name: 'Partiel', value: counts.Partiel, color: '#f59e0b' },
             { name: 'Échec', value: counts.Échec, color: '#ef4444' }
         ];
     }, [drills]);
 
+    // 4. Chart Data: Drills Evolution (Last 12 Months)
+    const drillsEvolutionData = useMemo(() => {
+        const months = new Array(12).fill(0).map((_, i) => {
+            const d = new Date();
+            d.setMonth(d.getMonth() - 11 + i);
+            return {
+                name: d.toLocaleString('default', { month: 'short' }),
+                date: d,
+                success: 0,
+                failure: 0,
+                partial: 0
+            };
+        });
+
+        drills.forEach(d => {
+            const drillDate = new Date(d.date);
+            const monthIndex = months.findIndex(m =>
+                m.date.getMonth() === drillDate.getMonth() &&
+                m.date.getFullYear() === drillDate.getFullYear()
+            );
+
+            if (monthIndex !== -1) {
+                if (d.result === 'Succès') months[monthIndex].success++;
+                else if (d.result === 'Échec') months[monthIndex].failure++;
+                else months[monthIndex].partial++;
+            }
+        });
+
+        return months;
+    }, [drills]);
+
     return (
-        <motion.div variants={staggerContainerVariants} initial="hidden" animate="visible" className="space-y-6 mb-8">
+        <motion.div variants={staggerContainerVariants} initial="hidden" animate="visible" className="space-y-6 mb-8 animate-fade-in">
 
             {/* Top Row: Global Health & KPIs */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/5 flex flex-col xl:flex-row gap-8 relative group overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+                {/* Tech Corners Generic */}
+                <svg className="absolute top-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                <svg className="absolute top-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                <svg className="absolute bottom-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                <svg className="absolute bottom-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
+                <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
+                </div>
 
                 {/* 1. Global Coverage Gauge (Radial) */}
-                <motion.div variants={slideUpVariants} className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] border border-white/50 dark:border-white/5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative group overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
-
-                    <div className="flex items-center gap-8 relative z-10">
-                        <div className="relative">
-                            <svg className="w-32 h-32 transform -rotate-90" viewBox="-15 -15 158 158">
-                                <circle
-                                    className="text-slate-100 dark:text-slate-800"
-                                    strokeWidth="10"
-                                    stroke="currentColor"
-                                    fill="transparent"
-                                    r="56"
-                                    cx="64"
-                                    cy="64"
-                                />
-                                <circle
-                                    className={`${stats.coverageRate >= 80 ? 'text-emerald-500' : stats.coverageRate >= 50 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
-                                    strokeWidth="10"
-                                    strokeDasharray={351}
-                                    strokeDashoffset={351 - (351 * stats.coverageRate) / 100}
-                                    strokeLinecap="round"
-                                    stroke="currentColor"
-                                    fill="transparent"
-                                    r="56"
-                                    cx="64"
-                                    cy="64"
-                                />
-                            </svg>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-3xl font-black text-slate-900 dark:text-white">{stats.coverageRate}%</span>
-                                <span className="text-[10px] uppercase font-bold text-slate-400">Couverture</span>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Santé de la Continuité</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-[250px] leading-relaxed">
-                                Pourcentage de processus critiques testés et validés au cours des 12 derniers mois.
-                            </p>
+                <div className="flex items-center gap-8 relative z-10 min-w-[300px]">
+                    <div className="relative group/ring">
+                        <svg className="w-24 h-24 transform -rotate-90 overflow-visible" viewBox="0 0 96 96">
+                            <circle
+                                className="text-slate-100 dark:text-slate-800"
+                                strokeWidth="8"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="40"
+                                cx="48"
+                                cy="48"
+                            />
+                            <circle
+                                className={`${stats.coverageRate >= 80 ? 'text-emerald-500' : stats.coverageRate >= 50 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
+                                strokeWidth="8"
+                                strokeDasharray={251.2}
+                                strokeDashoffset={251.2 - (251.2 * stats.coverageRate) / 100}
+                                strokeLinecap="round"
+                                stroke="currentColor"
+                                fill="transparent"
+                                r="40"
+                                cx="48"
+                                cy="48"
+                                style={{ filter: 'drop-shadow(0 0 4px currentColor)' }}
+                            />
+                        </svg>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                            <span className="text-2xl font-black text-foreground tracking-tighter">{stats.coverageRate}%</span>
                         </div>
                     </div>
 
-                    {/* Quick Stats Grid inside the main card */}
-                    <div className="flex-1 grid grid-cols-2 gap-4 border-l border-slate-200 dark:border-white/10 pl-6 lg:ml-6">
-                        <div>
-                            <div className="flex items-center gap-2 mb-1 text-slate-500">
-                                <History className="h-4 w-4" />
-                                <span className="text-xs font-bold uppercase">Tests Expirés</span>
-                            </div>
-                            <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.overdueTests}</div>
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2 mb-1 text-slate-500">
-                                <Activity className="h-4 w-4" />
-                                <span className="text-xs font-bold uppercase">Processus Total</span>
-                            </div>
-                            <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.total}</div>
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2 mb-1 text-slate-500">
-                                <ShieldCheck className="h-4 w-4" />
-                                <span className="text-xs font-bold uppercase">Critiques</span>
-                            </div>
-                            <div className="text-2xl font-black text-rose-600 dark:text-rose-400">{stats.critical}</div>
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2 mb-1 text-slate-500">
-                                <Zap className="h-4 w-4" />
-                                <span className="text-xs font-bold uppercase">Exercices</span>
-                            </div>
-                            <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{stats.totalDrills}</div>
-                        </div>
-                    </div>
-                </motion.div>
-
-                {/* 2. Drill Success Rate Card */}
-                <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5 flex flex-col justify-between relative overflow-hidden group">
-                    <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Zap className="h-20 w-20 text-brand-500" />
-                    </div>
                     <div>
-                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Succès des Exercices</h3>
-                        <div className="text-4xl font-black text-slate-900 dark:text-white mb-2">{stats.successRate}%</div>
-                        <div className="flex items-center gap-2 text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg w-fit">
-                            <TrendingUp className="h-3 w-3" />
-                            <span>Taux de réussite global</span>
+                        <h3 className="text-lg font-bold text-foreground mb-1 uppercase tracking-wide font-mono">Santé BCP</h3>
+                        <p className="text-xs text-muted-foreground max-w-[200px]">
+                            Couverture des tests et validité des plans.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Quick Stats Grid inside the main card */}
+                <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4 border-l border-r border-border/50 px-6 mx-2 relative z-10">
+                    <div className="text-center group/metric">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                            <History className="h-4 w-4 text-slate-500 group-hover/metric:text-amber-500 transition-colors" />
+                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Expirés</div>
+                        </div>
+                        <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.overdueTests}</div>
+                    </div>
+                    <div className="text-center group/metric">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                            <Activity className="h-4 w-4 text-slate-500 group-hover/metric:text-brand-500 transition-colors" />
+                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Processus</div>
+                        </div>
+                        <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.total}</div>
+                    </div>
+                    <div className="text-center group/metric">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                            <ShieldCheck className="h-4 w-4 text-slate-500 group-hover/metric:text-rose-500 transition-colors" />
+                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Critiques</div>
+                        </div>
+                        <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.critical}</div>
+                    </div>
+                    <div className="text-center group/metric">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                            <Zap className="h-4 w-4 text-slate-500 group-hover/metric:text-blue-500 transition-colors" />
+                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Exercices</div>
+                        </div>
+                        <div className="text-2xl font-black text-foreground group-hover/metric:scale-110 transition-transform duration-300">{stats.totalDrills}</div>
+                    </div>
+                </div>
+
+                {/* Drill Success Rate Mini-Card */}
+                <div className="min-w-[200px] flex flex-col justify-center relative z-10 pl-4">
+                    <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-colors cursor-default mb-2">
+                        <div className="flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide font-mono">Succès Drills</span>
                         </div>
                     </div>
-
-                    <div className="h-[100px] w-full mt-4">
-                        <ResponsiveContainer width="100%" height="100%">
-                            {drillResultsData.length === 0 ? (
-                                <EmptyChartState
-                                    variant="bar"
-                                    message="Aucune donnée"
-                                    // className="scale-[0.6] origin-top" // Adjusting scale for small container
-                                    className="!min-h-[100px] !p-0" // Compacting the empty state
-                                    description=""
-                                    actionLabel=""
-                                />
-                            ) : (
-                                <BarChart data={drillResultsData}>
-                                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                                        {drillResultsData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                        ))}
-                                    </Bar>
-                                    {/* Tooltip disabled for empty state if wrapper doesn't catch it, but here we conditional render */}
-                                    <RechartsTooltip
-                                        cursor={{ fill: 'transparent' }}
-                                        content={({ active, payload }) => {
-                                            if (active && payload && payload.length) {
-                                                return (
-                                                    <div className="bg-slate-900 text-white text-xs py-1 px-2 rounded shadow-xl">
-                                                        <span className="font-bold">{payload[0].payload.name}:</span> {payload[0].value}
-                                                    </div>
-                                                );
-                                            }
-                                            return null;
-                                        }}
-                                    />
-                                </BarChart>
-                            )}
-                        </ResponsiveContainer>
+                    <div className="text-center">
+                        <div className="text-3xl font-black text-foreground">{stats.successRate}%</div>
+                        <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Taux de réussite</div>
                     </div>
-                </motion.div>
+                </div>
             </div>
 
-            {/* Bottom Row: Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {/* 3. Distribution by Criticality (Pie) */}
-                <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5">
-                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Distribution par Criticité</h3>
+                <motion.div variants={slideUpVariants} className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                    {/* Tech Corners Generic */}
+                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
+                    <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Criticité des Processus</h3>
                     <div className="h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             {criticalityData.length === 0 ? (
                                 <EmptyChartState
                                     variant="pie"
                                     message="Aucun processus"
-                                    className="scale-90"
+                                    description="Définissez vos processus business."
+                                    className="scale-75 origin-top"
                                 />
                             ) : (
                                 <PieChart>
@@ -230,24 +235,24 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
                                         data={criticalityData}
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius="60%"
-                                        outerRadius="80%"
+                                        innerRadius={60}
+                                        outerRadius={80}
                                         paddingAngle={5}
                                         dataKey="value"
+                                        stroke="none"
+                                        cornerRadius={4}
                                     >
                                         {criticalityData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                                            <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(255,255,255,0.05)" strokeWidth={2} />
                                         ))}
                                     </Pie>
-                                    <RechartsTooltip content={<ChartTooltip />} />
+                                    <Tooltip content={<ChartTooltip />} wrapperStyle={{ outline: 'none' }} />
                                     <Legend
-                                        verticalAlign="middle"
-                                        align="right"
-                                        layout="vertical"
+                                        verticalAlign="bottom"
+                                        height={36}
                                         iconType="circle"
-                                        formatter={(value) => (
-                                            <span className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-2">{value}</span>
-                                        )}
+                                        iconSize={8}
+                                        formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>}
                                     />
                                 </PieChart>
                             )}
@@ -255,42 +260,75 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
                     </div>
                 </motion.div>
 
-                {/* 4. Placeholder for Timeline or future chart */}
-                <motion.div variants={slideUpVariants} className="glass-panel p-6 rounded-[2rem] border border-white/50 dark:border-white/5">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Derniers Exercices</h3>
-                        <Zap className="h-5 w-5 text-slate-400" />
-                    </div>
+                {/* 4. Drills Results (Donut/Bar) */}
+                <motion.div variants={slideUpVariants} className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                    {/* Tech Corners Generic */}
+                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
 
-                    <div className="space-y-4">
-                        {drills.slice(0, 5).map(drill => (
-                            <div key={drill.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-2 h-2 rounded-full ${drill.result === 'Succès' ? 'bg-emerald-500' : drill.result === 'Échec' ? 'bg-red-500' : 'bg-amber-500'}`} />
-                                    <div>
-                                        <p className="font-bold text-sm text-slate-900 dark:text-white">{drill.type}</p>
-                                        <p className="text-xs text-slate-500">{new Date(drill.date).toLocaleDateString()}</p>
-                                    </div>
-                                </div>
-                                <span className={`text-xs font-bold px-2 py-1 rounded-md ${drill.result === 'Succès' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' :
-                                    drill.result === 'Échec' ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300' :
-                                        'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
-                                    }`}>
-                                    {drill.result}
-                                </span>
-                            </div>
-                        ))}
-
-                        {drills.length === 0 && (
-                            <div className="py-4">
-                                <EmptyState
-                                    compact
-                                    icon={History}
-                                    title="Aucun exercice"
-                                    description="Aucun exercice récent."
+                    <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Résultats des Exercices</h3>
+                    <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            {drillResultsData.length === 0 ? (
+                                <EmptyChartState
+                                    variant="bar"
+                                    message="Aucun exercice"
+                                    description="Lancez des exercices de continuité."
+                                    className="scale-75 origin-top"
                                 />
-                            </div>
-                        )}
+                            ) : (
+                                <BarChart data={drillResultsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={32}>
+                                        {drillResultsData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Bar>
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} wrapperStyle={{ outline: 'none' }} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} allowDecimals={false} />
+                                </BarChart>
+                            )}
+                        </ResponsiveContainer>
+                    </div>
+                </motion.div>
+
+                {/* 5. Drills Timeline (New) */}
+                <motion.div variants={slideUpVariants} className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                    <h3 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Historique (12 Mois)</h3>
+                    <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            {drillsEvolutionData.every(m => m.success === 0 && m.failure === 0 && m.partial === 0) ? (
+                                <EmptyChartState
+                                    variant="bar"
+                                    message="Aucun historique"
+                                    description="L'historique des exercices apparaîtra ici."
+                                    className="scale-75 origin-top"
+                                />
+                            ) : (
+                                <BarChart data={drillsEvolutionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="gradientSuccess" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
+                                            <stop offset="100%" stopColor="#10b981" stopOpacity={0.3} />
+                                        </linearGradient>
+                                        <linearGradient id="gradientFail" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8} />
+                                            <stop offset="100%" stopColor="#ef4444" stopOpacity={0.3} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.3)" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} allowDecimals={false} />
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} wrapperStyle={{ outline: 'none' }} />
+                                    <Bar dataKey="success" name="Succès" stackId="a" fill="url(#gradientSuccess)" radius={[0, 0, 0, 0]} barSize={20} />
+                                    <Bar dataKey="partial" name="Partiel" stackId="a" fill="hsl(var(--warning))" radius={[0, 0, 0, 0]} barSize={20} />
+                                    <Bar dataKey="failure" name="Échec" stackId="a" fill="url(#gradientFail)" radius={[4, 4, 0, 0]} barSize={20} />
+                                    <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                                </BarChart>
+                            )}
+                        </ResponsiveContainer>
                     </div>
                 </motion.div>
             </div>
