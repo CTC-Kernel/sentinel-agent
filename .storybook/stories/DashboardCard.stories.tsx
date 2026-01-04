@@ -1,1 +1,141 @@
-import type { Meta, StoryObj } from '@storybook/react';\nimport { DashboardCard } from '../components/dashboard/DashboardCard';\n\nconst meta: Meta<typeof DashboardCard> = {\n  title: 'Components/DashboardCard',\n  component: DashboardCard,\n  parameters: {\n    layout: 'centered',\n    docs: {\n      description: 'Carte de dashboard avec expansion et accessibilité complète.',\n    },\n  },\n  tags: ['autodocs'],\n  argTypes: {\n    title: {\n      control: 'text',\n      description: 'Titre de la carte',\n    },\n    subtitle: {\n      control: 'text',\n      description: 'Sous-titre de la carte',\n    },\n    expandable: {\n      control: 'boolean',\n      description: 'Permet l\\'expansion en plein écran',\n    },\n    loading: {\n      control: 'boolean',\n      description: 'Affiche l\\'état de chargement',\n    },\n  },\n};\n\nexport default meta;\ntype Story = StoryObj<typeof meta>;\n\nexport const Default: Story = {\n  args: {\n    title: 'Risques Critiques',\n    subtitle: '5 risques identifiés',\n    expandable: true,\n    children: (\n      <div className=\"p-6\">\n        <div className=\"space-y-4\">\n          <div className=\"p-4 bg-red-50 rounded-lg border border-red-200\">\n            <h4 className=\"font-semibold text-red-800\">Risque Élevé</h4>\n            <p className=\"text-sm text-red-600 mt-1\">Données sensibles exposées</p>\n          </div>\n          <div className=\"p-4 bg-yellow-50 rounded-lg border border-yellow-200\">\n            <h4 className=\"font-semibold text-yellow-800\">Risque Moyen</h4>\n            <p className=\"text-sm text-yellow-600 mt-1\">Mise à jour requise</p>\n          </div>\n        </div>\n      </div>\n    ),\n  },\n};\n\nexport const WithoutExpansion: Story = {\n  args: {\n    title: 'Statistiques',\n    subtitle: 'Vue d\\'ensemble',\n    expandable: false,\n    children: (\n      <div className=\"p-6\">\n        <div className=\"grid grid-cols-2 gap-4\">\n          <div className=\"text-center\">\n            <div className=\"text-2xl font-bold text-blue-600\">87%</div>\n            <div className=\"text-sm text-gray-600\">Conformité</div>\n          </div>\n          <div className=\"text-center\">\n            <div className=\"text-2xl font-bold text-green-600\">12</div>\n            <div className=\"text-sm text-gray-600\">Actifs</div>\n          </div>\n        </div>\n      </div>\n    ),\n  },\n};\n\nexport const Loading: Story = {\n  args: {\n    title: 'Chargement...',\n    subtitle: 'Récupération des données',\n    loading: true,\n  },\n};\n\nexport const WithIcon: Story = {\n  args: {\n    title: 'Sécurité',\n    subtitle: 'État des contrôles',\n    expandable: true,\n    icon: (\n      <div className=\"p-2 rounded-lg bg-blue-100\">\n        <span className=\"text-blue-600 text-xl\">🛡️</span>\n      </div>\n    ),\n    children: (\n      <div className=\"p-6\">\n        <div className=\"space-y-3\">\n          <div className=\"flex items-center justify-between\">\n            <span>Contrôle d\\'accès</span>\n            <span className=\"text-green-600\">✓ Actif</span>\n          </div>\n          <div className=\"flex items-center justify-between\">\n            <span>Chiffrement</span>\n            <span className=\"text-green-600\">✓ Actif</span>\n          </div>\n          <div className=\"flex items-center justify-between\">\n            <span>Audit logs</span>\n            <span className=\"text-yellow-600\">⚠ Vérifier</span>\n          </div>\n        </div>\n      </div>\n    ),\n  },\n};\n\nexport const WithHeaderAction: Story = {\n  args: {\n    title: 'Rapports',\n    subtitle: 'Génération en cours',\n    expandable: true,\n    headerAction: (\n      <button className=\"p-2 hover:bg-gray-100 rounded-lg transition-colors\">\n        <span className=\"text-gray-600\">⚙️</span>\n      </button>\n    ),\n    children: (\n      <div className=\"p-6\">\n        <div className=\"space-y-4\">\n          <div className=\"p-4 bg-blue-50 rounded-lg\">\n            <h4 className=\"font-semibold text-blue-800\">Rapport Mensuel</h4>\n            <p className=\"text-sm text-blue-600 mt-1\">Généré le 1er janvier</p>\n          </div>\n        </div>\n      </div>\n    ),\n  },\n};
+import type { Meta, StoryObj } from '@storybook/react';
+import { DashboardCard } from '../components/dashboard/DashboardCard';
+
+const meta: Meta<typeof DashboardCard> = {
+  title: 'Components/DashboardCard',
+  component: DashboardCard,
+  parameters: {
+    layout: 'centered',
+    docs: {
+      description: 'Carte de dashboard avec expansion et accessibilité complète.',
+    },
+  },
+  tags: ['autodocs'],
+  argTypes: {
+    title: {
+      control: 'text',
+      description: 'Titre de la carte',
+    },
+    subtitle: {
+      control: 'text',
+      description: 'Sous-titre de la carte',
+    },
+    expandable: {
+      control: 'boolean',
+      description: 'Permet l\'expansion en plein écran',
+    },
+    loading: {
+      control: 'boolean',
+      description: 'Affiche l\'état de chargement',
+    },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
+  args: {
+    title: 'Risques Critiques',
+    subtitle: '5 risques identifiés',
+    expandable: true,
+    children: (
+      <div className=\"p-6\">
+        <div className=\"space-y-4\">
+          <div className=\"p-4 bg-red-50 rounded-lg border border-red-200\">
+            <h4 className=\"font-semibold text-red-800\">Risque Élevé</h4>
+            <p className=\"text-sm text-red-600 mt-1\">Données sensibles exposées</p>
+          </div>
+          <div className=\"p-4 bg-yellow-50 rounded-lg border border-yellow-200\">
+            <h4 className=\"font-semibold text-yellow-800\">Risque Moyen</h4>
+            <p className=\"text-sm text-yellow-600 mt-1\">Mise à jour requise</p>
+          </div>
+        </div>
+      </div>
+    ),
+  },
+};
+
+export const WithoutExpansion: Story = {
+  args: {
+    title: 'Statistiques',
+    subtitle: 'Vue d\'ensemble',
+    expandable: false,
+    children: (
+      <div className=\"p-6\">
+        <div className=\"grid grid-cols-2 gap-4\">
+          <div className=\"text-center\">
+            <div className=\"text-2xl font-bold text-blue-600\">87%</div>
+            <div className=\"text-sm text-gray-600\">Conformité</div>
+          </div>
+          <div className=\"text-center\">
+            <div className=\"text-2xl font-bold text-green-600\">12</div>
+            <div className=\"text-sm text-gray-600\">Actifs</div>
+          </div>
+        </div>
+      </div>
+    ),
+  },
+};
+
+export const Loading: Story = {
+  args: {
+    title: 'Chargement...',
+    subtitle: 'Récupération des données',
+    loading: true,
+  },
+};
+
+export const WithIcon: Story = {
+  args: {
+    title: 'Sécurité',
+    subtitle: 'État des contrôles',
+    expandable: true,
+    icon: (
+      <div className=\"p-2 rounded-lg bg-blue-100\">
+        <span className=\"text-blue-600 text-xl\">🛡️</span>
+      </div>
+    ),
+    children: (
+      <div className=\"p-6\">
+        <div className=\"space-y-3\">
+          <div className=\"flex items-center justify-between\">
+            <span>Contrôle d\'accès</span>
+            <span className=\"text-green-600\">✓ Actif</span>
+          </div>
+          <div className=\"flex items-center justify-between\">
+            <span>Chiffrement</span>
+            <span className=\"text-green-600\">✓ Actif</span>
+          </div>
+          <div className=\"flex items-center justify-between\">
+            <span>Audit logs</span>
+            <span className=\"text-yellow-600\">⚠ Vérifier</span>
+          </div>
+        </div>
+      </div>
+    ),
+  },
+};
+
+export const WithHeaderAction: Story = {
+  args: {
+    title: 'Rapports',
+    subtitle: 'Génération en cours',
+    expandable: true,
+    headerAction: (
+      <button className=\"p-2 hover:bg-gray-100 rounded-lg transition-colors\">
+        <span className=\"text-gray-600\">⚙️</span>
+      </button>
+    ),
+    children: (
+      <div className=\"p-6\">
+        <div className=\"space-y-4\">
+          <div className=\"p-4 bg-blue-50 rounded-lg\">
+            <h4 className=\"font-semibold text-blue-800\">Rapport Mensuel</h4>
+            <p className=\"text-sm text-blue-600 mt-1\">Généré le 1er janvier</p>
+          </div>
+        </div>
+      </div>
+    ),
+  },
+};

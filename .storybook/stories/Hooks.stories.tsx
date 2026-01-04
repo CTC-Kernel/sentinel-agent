@@ -1,1 +1,154 @@
-import type { Meta, StoryObj } from '@storybook/react';\nimport { useAccessibility } from '../hooks/useAccessibility';\nimport { useErrorHandler } from '../hooks/useErrorHandler';\nimport { useDoubleSubmitPrevention } from '../hooks/useDoubleSubmitPrevention';\n\nconst meta: Meta = {\n  title: 'Hooks/Accessibility',\n  parameters: {\n    layout: 'centered',\n    docs: {\n      description: 'Hooks utilitaires pour accessibilité et gestion d\\'erreurs.',\n    },\n  },\n  tags: ['autodocs'],\n};\n\nexport default meta;\ntype Story = StoryObj<typeof meta>;\n\nexport const AccessibilityDemo: Story = {\n  render: () => {\n    const { generateId, getIconButtonProps, getFormProps, keyboardHandlers } = useAccessibility();\n    \n    const buttonId = generateId('btn');\n    const formProps = getFormProps('Formulaire de contact', 'Remplissez les champs ci-dessous');\n    \n    return (\n      <div className=\"p-6 max-w-md mx-auto space-y-4\">\n        <h2 className=\"text-xl font-bold\">Démonstration Accessibilité</h2>\n        \n        <button\n          {...getIconButtonProps('Bouton d\\'action', buttonId)}\n          className=\"px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700\"\n        >\n          Action\n        </button>\n        \n        <form\n          {...formProps}\n          className=\"space-y-4 p-4 border rounded-lg\"\n        >\n          <div>\n            <label htmlFor={formProps.titleProps.id} className=\"block text-sm font-medium mb-1\">\n              {formProps.titleProps.id}\n            </label>\n            <input\n              type=\"text\"\n              id={formProps.titleProps.id}\n              className=\"w-full px-3 py-2 border rounded-md\"\n              placeholder=\"Entrez le titre\"\n            />\n          </div>\n          \n          <button\n            type=\"submit\"\n            className=\"px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700\"\n          >\n            Soumettre\n          </button>\n        </form>\n        \n        <div className=\"text-sm text-gray-600\">\n          <p>✅ IDs uniques générés</p>\n          <p>✅ Labels ARIA ajoutés</p>\n          <p>✅ Navigation clavier supportée</p>\n        </div>\n      </div>\n    );\n  },\n};\n\nexport const ErrorHandlerDemo: Story = {\n  render: () => {\n    const { handleError } = useErrorHandler();\n    \n    const handleNetworkError = () => {\n      const error = new Error('Échec de connexion au serveur');\n      error.name = 'NetworkError';\n      handleError(error, 'Demo Network Error');\n    };\n    \n    const handleValidationError = () => {\n      const error = new Error('Le champ email est requis');\n      error.name = 'ValidationError';\n      handleError(error, 'Demo Validation Error');\n    };\n    \n    return (\n      <div className=\"p-6 max-w-md mx-auto space-y-4\">\n        <h2 className=\"text-xl font-bold\">Démonstration Gestion d\\'Erreurs</h2>\n        \n        <div className=\"space-y-3\">\n          <button\n            onClick={handleNetworkError}\n            className=\"px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700\"\n          >\n            Simuler Erreur Réseau\n          </button>\n          \n          <button\n            onClick={handleValidationError}\n            className=\"px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700\"\n          >\n            Simuler Erreur Validation\n          </button>\n        </div>\n        \n        <div className=\"text-sm text-gray-600\">\n          <p>✅ Types d\\'erreurs structurés</p>\n          <p>✅ Messages utilisateurs contextuels</p>\n          <p>✅ Logging intelligent</p>\n        </div>\n      </div>\n    );\n  },\n};\n\nexport const DoubleSubmitDemo: Story = {\n  render: () => {\n    const { isSubmitting, handleSubmit } = useDoubleSubmitPrevention();\n    \n    const simulateSubmit = async () => {\n      await new Promise(resolve => setTimeout(resolve, 2000));\n      console.log('Formulaire soumis!');\n    };\n    \n    return (\n      <div className=\"p-6 max-w-md mx-auto space-y-4\">\n        <h2 className=\"text-xl font-bold\">Démonstration Anti Double-Submit</h2>\n        \n        <button\n          onClick={() => handleSubmit(simulateSubmit)}\n          disabled={isSubmitting}\n          className=\"px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed\"\n        >\n          {isSubmitting ? (\n            <span className=\"flex items-center\">\n              <span className=\"animate-spin mr-2\">⟳</span>\n              Soumission en cours...\n            </span>\n          ) : (\n            'Soumettre le Formulaire'\n          )}\n        </button>\n        \n        <div className=\"text-sm text-gray-600\">\n          <p>🔄 Cliquez rapidement pour tester</p>\n          <p>✅ Protection automatique activée</p>\n          <p>⏱️ Timeout de sécurité intégré</p>\n        </div>\n      </div>\n    );\n  },\n};
+import type { Meta, StoryObj } from '@storybook/react';
+import { useAccessibility } from '../hooks/useAccessibility';
+import { useErrorHandler } from '../hooks/useErrorHandler';
+import { useDoubleSubmitPrevention } from '../hooks/useDoubleSubmitPrevention';
+
+const meta: Meta = {
+  title: 'Hooks/Accessibility',
+  parameters: {
+    layout: 'centered',
+    docs: {
+      description: 'Hooks utilitaires pour accessibilité et gestion d\'erreurs.',
+    },
+  },
+  tags: ['autodocs'],
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const AccessibilityDemo: Story = {
+  render: () => {
+    const { generateId, getIconButtonProps, getFormProps, keyboardHandlers } = useAccessibility();
+    
+    const buttonId = generateId('btn');
+    const formProps = getFormProps('Formulaire de contact', 'Remplissez les champs ci-dessous');
+    
+    return (
+      <div className=\"p-6 max-w-md mx-auto space-y-4\">
+        <h2 className=\"text-xl font-bold\">Démonstration Accessibilité</h2>
+        
+        <button
+          {...getIconButtonProps('Bouton d\'action', buttonId)}
+          className=\"px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700\"
+        >
+          Action
+        </button>
+        
+        <form
+          {...formProps}
+          className=\"space-y-4 p-4 border rounded-lg\"
+        >
+          <div>
+            <label htmlFor={formProps.titleProps.id} className=\"block text-sm font-medium mb-1\">
+              {formProps.titleProps.id}
+            </label>
+            <input
+              type=\"text\"
+              id={formProps.titleProps.id}
+              className=\"w-full px-3 py-2 border rounded-md\"
+              placeholder=\"Entrez le titre\"
+            />
+          </div>
+          
+          <button
+            type=\"submit\"
+            className=\"px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700\"
+          >
+            Soumettre
+          </button>
+        </form>
+        
+        <div className=\"text-sm text-gray-600\">
+          <p>✅ IDs uniques générés</p>
+          <p>✅ Labels ARIA ajoutés</p>
+          <p>✅ Navigation clavier supportée</p>
+        </div>
+      </div>
+    );
+  },
+};
+
+export const ErrorHandlerDemo: Story = {
+  render: () => {
+    const { handleError } = useErrorHandler();
+    
+    const handleNetworkError = () => {
+      const error = new Error('Échec de connexion au serveur');
+      error.name = 'NetworkError';
+      handleError(error, 'Demo Network Error');
+    };
+    
+    const handleValidationError = () => {
+      const error = new Error('Le champ email est requis');
+      error.name = 'ValidationError';
+      handleError(error, 'Demo Validation Error');
+    };
+    
+    return (
+      <div className=\"p-6 max-w-md mx-auto space-y-4\">
+        <h2 className=\"text-xl font-bold\">Démonstration Gestion d\'Erreurs</h2>
+        
+        <div className=\"space-y-3\">
+          <button
+            onClick={handleNetworkError}
+            className=\"px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700\"
+          >
+            Simuler Erreur Réseau
+          </button>
+          
+          <button
+            onClick={handleValidationError}
+            className=\"px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700\"
+          >
+            Simuler Erreur Validation
+          </button>
+        </div>
+        
+        <div className=\"text-sm text-gray-600\">
+          <p>✅ Types d\'erreurs structurés</p>
+          <p>✅ Messages utilisateurs contextuels</p>
+          <p>✅ Logging intelligent</p>
+        </div>
+      </div>
+    );
+  },
+};
+
+export const DoubleSubmitDemo: Story = {
+  render: () => {
+    const { isSubmitting, handleSubmit } = useDoubleSubmitPrevention();
+    
+    const simulateSubmit = async () => {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('Formulaire soumis!');
+    };
+    
+    return (
+      <div className=\"p-6 max-w-md mx-auto space-y-4\">
+        <h2 className=\"text-xl font-bold\">Démonstration Anti Double-Submit</h2>
+        
+        <button
+          onClick={() => handleSubmit(simulateSubmit)}
+          disabled={isSubmitting}
+          className=\"px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed\"
+        >
+          {isSubmitting ? (
+            <span className=\"flex items-center\">
+              <span className=\"animate-spin mr-2\">⟳</span>
+              Soumission en cours...
+            </span>
+          ) : (
+            'Soumettre le Formulaire'
+          )}
+        </button>
+        
+        <div className=\"text-sm text-gray-600\">
+          <p>🔄 Cliquez rapidement pour tester</p>
+          <p>✅ Protection automatique activée</p>
+          <p>⏱️ Timeout de sécurité intégré</p>
+        </div>
+      </div>
+    );
+  },
+};

@@ -1,1 +1,136 @@
-import type { Meta, StoryObj } from '@storybook/react';\nimport { Button } from './button';\n\nconst meta: Meta<typeof Button> = {\n  title: 'UI/Button',\n  component: Button,\n  parameters: {\n    layout: 'centered',\n    docs: {\n      description: 'Bouton principal avec protection double-submit intégrée et variants standardisés.',\n    },\n  },\n  tags: ['autodocs'],\n  argTypes: {\n    children: {\n      control: 'text',\n      description: 'Contenu du bouton',\n    },\n    variant: {\n      control: 'select',\n      options: ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link', 'glass', 'premium'],\n      description: 'Variant visuel du bouton',\n    },\n    size: {\n      control: 'select',\n      options: ['default', 'sm', 'lg', 'icon', 'xl'],\n      description: 'Taille du bouton',\n    },\n    disabled: {\n      control: 'boolean',\n      description: 'Désactive le bouton',\n    },\n    isLoading: {\n      control: 'boolean',\n      description: 'Affiche l\\'état de chargement',\n    },\n  },\n};\n\nexport default meta;\ntype Story = StoryObj<typeof meta>;\n\nexport const Default: Story = {\n  args: {\n    children: 'Bouton principal',\n  },\n};\n\nexport const Secondary: Story = {\n  args: {\n    children: 'Bouton secondaire',\n    variant: 'secondary',\n  },\n};\n\nexport const Destructive: Story = {\n  args: {\n    children: 'Supprimer',\n    variant: 'destructive',\n  },\n};\n\nexport const Outline: Story = {\n  args: {\n    children: 'Bouton outline',\n    variant: 'outline',\n  },\n};\n\nexport const Ghost: Story = {\n  args: {\n    children: 'Bouton fantôme',\n    variant: 'ghost',\n  },\n};\n\nexport const Glass: Story = {\n  args: {\n    children: 'Bouton glass',\n    variant: 'glass',\n  },\n};\n\nexport const Premium: Story = {\n  args: {\n    children: 'Bouton premium',\n    variant: 'premium',\n  },\n};\n\nexport const Small: Story = {\n  args: {\n    children: 'Petit',\n    size: 'sm',\n  },\n};\n\nexport const Large: Story = {\n  args: {\n    children: 'Grand',\n    size: 'lg',\n  },\n};\n\nexport const Icon: Story = {\n  args: {\n    children: '🔍',\n    size: 'icon',\n  },\n};\n\nexport const Disabled: Story = {\n  args: {\n    children: 'Désactivé',\n    disabled: true,\n  },\n};\n\nexport const Loading: Story = {\n  args: {\n    children: 'Chargement...',\n    isLoading: true,\n  },\n};\n\nexport const WithAccessibility: Story = {\n  args: {\n    children: 'Bouton accessible',\n    'aria-label': 'Action principale',\n  },\n  parameters: {\n    docs: {\n      description: 'Bouton avec attributs ARIA pour accessibilité complète.',\n    },\n  },\n};
+import type { Meta, StoryObj } from '@storybook/react';
+import { Button } from './button';
+
+const meta: Meta<typeof Button> = {
+  title: 'UI/Button',
+  component: Button,
+  parameters: {
+    layout: 'centered',
+    docs: {
+      description: 'Bouton principal avec protection double-submit intégrée et variants standardisés.',
+    },
+  },
+  tags: ['autodocs'],
+  argTypes: {
+    children: {
+      control: 'text',
+      description: 'Contenu du bouton',
+    },
+    variant: {
+      control: 'select',
+      options: ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link', 'glass', 'premium'],
+      description: 'Variant visuel du bouton',
+    },
+    size: {
+      control: 'select',
+      options: ['default', 'sm', 'lg', 'icon', 'xl'],
+      description: 'Taille du bouton',
+    },
+    disabled: {
+      control: 'boolean',
+      description: 'Désactive le bouton',
+    },
+    isLoading: {
+      control: 'boolean',
+      description: 'Affiche l\'état de chargement',
+    },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
+  args: {
+    children: 'Bouton principal',
+  },
+};
+
+export const Secondary: Story = {
+  args: {
+    children: 'Bouton secondaire',
+    variant: 'secondary',
+  },
+};
+
+export const Destructive: Story = {
+  args: {
+    children: 'Supprimer',
+    variant: 'destructive',
+  },
+};
+
+export const Outline: Story = {
+  args: {
+    children: 'Bouton outline',
+    variant: 'outline',
+  },
+};
+
+export const Ghost: Story = {
+  args: {
+    children: 'Bouton fantôme',
+    variant: 'ghost',
+  },
+};
+
+export const Glass: Story = {
+  args: {
+    children: 'Bouton glass',
+    variant: 'glass',
+  },
+};
+
+export const Premium: Story = {
+  args: {
+    children: 'Bouton premium',
+    variant: 'premium',
+  },
+};
+
+export const Small: Story = {
+  args: {
+    children: 'Petit',
+    size: 'sm',
+  },
+};
+
+export const Large: Story = {
+  args: {
+    children: 'Grand',
+    size: 'lg',
+  },
+};
+
+export const Icon: Story = {
+  args: {
+    children: '🔍',
+    size: 'icon',
+  },
+};
+
+export const Disabled: Story = {
+  args: {
+    children: 'Désactivé',
+    disabled: true,
+  },
+};
+
+export const Loading: Story = {
+  args: {
+    children: 'Chargement...',
+    isLoading: true,
+  },
+};
+
+export const WithAccessibility: Story = {
+  args: {
+    children: 'Bouton accessible',
+    'aria-label': 'Action principale',
+  },
+  parameters: {
+    docs: {
+      description: 'Bouton avec attributs ARIA pour accessibilité complète.',
+    },
+  },
+};
