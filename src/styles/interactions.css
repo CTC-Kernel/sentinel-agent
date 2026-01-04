@@ -1,37 +1,48 @@
 /* Standardized Interaction States for Sentinel GRC */
 
-/* Base transition styles */
+/* Base transition styles - using design tokens */
 .interactive-element {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-normal) var(--ease-out);
 }
 
-/* Hover states */
+.interactive-element-fast {
+  transition: all var(--transition-fast) var(--ease-out);
+}
+
+.interactive-element-slow {
+  transition: all var(--transition-slow) var(--ease-out);
+}
+
+/* Hover states - standardized */
 .hover-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .hover-secondary:hover {
   background-color: rgba(59, 130, 246, 0.05);
   border-color: rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
 }
 
 .hover-danger:hover {
   background-color: rgba(239, 68, 68, 0.05);
   border-color: rgba(239, 68, 68, 0.2);
   color: rgb(239, 68, 68);
+  transform: translateY(-1px);
 }
 
 .hover-success:hover {
   background-color: rgba(34, 197, 94, 0.05);
   border-color: rgba(34, 197, 94, 0.2);
   color: rgb(34, 197, 94);
+  transform: translateY(-1px);
 }
 
-/* Focus states */
+/* Focus states - standardized */
 .focus-ring:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .focus-ring:focus-visible {
@@ -39,7 +50,7 @@
   outline-offset: 2px;
 }
 
-/* Active states */
+/* Active states - standardized */
 .active-scale:active {
   transform: scale(0.98);
 }
@@ -48,14 +59,15 @@
   filter: brightness(0.95);
 }
 
-/* Disabled states */
+/* Disabled states - standardized */
 .disabled-state {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
+  transition: none;
 }
 
-/* Loading states */
+/* Loading states - standardized */
 .loading-state {
   position: relative;
   overflow: hidden;
@@ -82,14 +94,15 @@
   100% { left: 100%; }
 }
 
-/* Button-specific states */
+/* Button-specific states - standardized */
 .btn-interactive {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-normal) var(--ease-out);
   outline: none;
+  border-radius: var(--radius-xl);
 }
 
 .btn-interactive:focus {
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .btn-interactive:focus-visible {
@@ -106,8 +119,8 @@
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .btn-secondary {
@@ -117,6 +130,7 @@
 .btn-secondary:hover {
   background-color: rgba(59, 130, 246, 0.05);
   border-color: rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
 }
 
 .btn-danger {
@@ -127,6 +141,7 @@
   background-color: rgba(239, 68, 68, 0.05);
   border-color: rgba(239, 68, 68, 0.2);
   color: rgb(239, 68, 68);
+  transform: translateY(-1px);
 }
 
 .btn-success {
@@ -137,20 +152,23 @@
   background-color: rgba(34, 197, 94, 0.05);
   border-color: rgba(34, 197, 94, 0.2);
   color: rgb(34, 197, 94);
+  transform: translateY(-1px);
 }
 
-/* Card hover effects */
+/* Card hover effects - standardized */
 .card-interactive {
   @apply interactive-element hover-primary;
+  border-radius: var(--radius-2xl);
 }
 
 .card-interactive:hover {
   border-color: rgba(59, 130, 246, 0.2);
 }
 
-/* Input field states */
+/* Input field states - standardized */
 .input-interactive {
   @apply interactive-element focus-ring;
+  border-radius: var(--radius-lg);
 }
 
 .input-interactive:focus {
@@ -158,7 +176,7 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Table row states */
+/* Table row states - standardized */
 .table-row-interactive {
   @apply interactive-element hover-secondary;
 }
@@ -167,9 +185,10 @@
   background-color: rgba(59, 130, 246, 0.02);
 }
 
-/* Navigation states */
+/* Navigation states - standardized */
 .nav-item-interactive {
   @apply interactive-element hover-secondary;
+  border-radius: var(--radius-lg);
 }
 
 .nav-item-interactive:hover {
@@ -181,33 +200,36 @@
   border-left: 3px solid rgb(59, 130, 246);
 }
 
-/* Modal overlay states */
+/* Modal overlay states - standardized */
 .modal-overlay {
   backdrop-filter: blur(4px);
   background-color: rgba(0, 0, 0, 0.5);
+  transition: all var(--transition-normal) var(--ease-out);
 }
 
-/* Tooltip states */
+/* Tooltip states - standardized */
 .tooltip-interactive {
-  @apply interactive-element;
+  @apply interactive-element-fast;
 }
 
 .tooltip-interactive:hover {
   transform: scale(1.05);
 }
 
-/* Dropdown states */
+/* Dropdown states - standardized */
 .dropdown-item-interactive {
   @apply interactive-element hover-secondary;
+  border-radius: var(--radius-lg);
 }
 
 .dropdown-item-interactive:hover {
   background-color: rgba(59, 130, 246, 0.05);
 }
 
-/* Tab states */
+/* Tab states - standardized */
 .tab-interactive {
   @apply interactive-element hover-secondary;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .tab-interactive:hover {
@@ -219,23 +241,26 @@
   color: rgb(59, 130, 246);
 }
 
-/* Form validation states */
+/* Form validation states - standardized */
 .input-error {
   border-color: rgb(239, 68, 68);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  border-radius: var(--radius-lg);
 }
 
 .input-success {
   border-color: rgb(34, 197, 94);
   box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+  border-radius: var(--radius-lg);
 }
 
 .input-warning {
   border-color: rgb(245, 158, 11);
   box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  border-radius: var(--radius-lg);
 }
 
-/* Accessibility improvements */
+/* Accessibility improvements - standardized */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -248,13 +273,13 @@
   border: 0;
 }
 
-/* Focus visible for keyboard navigation */
+/* Focus visible for keyboard navigation - standardized */
 .focus-visible-only:focus-visible {
   outline: 2px solid rgba(59, 130, 246, 0.5);
   outline-offset: 2px;
 }
 
-/* High contrast mode support */
+/* High contrast mode support - standardized */
 @media (prefers-contrast: high) {
   .hover-primary:hover {
     outline: 2px solid currentColor;
@@ -265,13 +290,18 @@
   }
 }
 
-/* Reduced motion support */
+/* Reduced motion support - standardized */
 @media (prefers-reduced-motion: reduce) {
-  .interactive-element {
+  .interactive-element,
+  .interactive-element-fast,
+  .interactive-element-slow {
     transition: none;
   }
   
-  .hover-primary:hover {
+  .hover-primary:hover,
+  .hover-secondary:hover,
+  .hover-danger:hover,
+  .hover-success:hover {
     transform: none;
   }
   

@@ -26,9 +26,15 @@ export const useDashboardMetrics = ({
     useMemo(() => {
         if (process.env.NODE_ENV === 'development') {
             // Log sample data for debugging
-            );
-            );
-            );
+            console.log('Dashboard Metrics Debug:', {
+                controlsCount: controls.length,
+                risksCount: allRisks.length,
+                assetsCount: allAssets.length,
+                incidentsCount: activeIncidentsCount,
+                auditsCount: openAuditsCount,
+                projectsCount: myProjectsLength,
+                orgId: userOrgId
+            });
         }
     }, [controls, allRisks, allAssets, activeIncidentsCount, openAuditsCount, myProjectsLength, userOrgId]);
 
@@ -115,7 +121,8 @@ export const useDashboardMetrics = ({
 
         // Debug financial exposure calculation
         if (process.env.NODE_ENV === 'development') {
-            .length,
+            console.log('Financial Exposure Debug:', {
+                criticalRisksCount,
                 risksWithAssets: allRisks.filter(r => r.score >= 10 && r.assetId).length,
                 risksWithoutAssets: allRisks.filter(r => r.score >= 10 && !r.assetId).length,
                 avgAssetValue: allAssets.length > 0 

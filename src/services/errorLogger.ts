@@ -63,7 +63,8 @@ class ErrorLoggerService {
    */
   warn(message: string, context?: string, additionalContext?: ErrorContext): void {
     if (this.isDevelopment) {
-      }
+      console.warn(`[WARN] ${context ? `${context}: ` : ''}${message}`, additionalContext);
+    }
 
     this.logToExternal('warning', {
       timestamp: new Date().toISOString(),

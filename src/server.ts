@@ -15,7 +15,7 @@ const requiredEnvVars = [
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
-  );
+  console.error('Variables d\'environnement manquantes:', missingVars.join(', '));
   process.exit(1);
 }
 

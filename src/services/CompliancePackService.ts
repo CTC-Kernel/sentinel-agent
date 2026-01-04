@@ -96,8 +96,9 @@ Ce pack contient des preuves extraites du système Sentinel GRC.
 L'intégrité de ces données est garantie par le système.
             `;
             rootFolder.file("00_LISEZ_MOI.txt", readmeContent.trim());
-        } catch (e) {
-            }
+        } catch {
+            // README creation failed, but continue with other files
+        }
 
         // 2. Risk Management
         try {
@@ -269,8 +270,9 @@ L'intégrité de ces données est garantie par le système.
                 );
                 soaFolder.file("SoA_Enrichi.pdf", soaDoc.output('blob'));
             }
-        } catch (e) {
-            }
+        } catch {
+            // README creation failed, but continue with other files
+        }
 
         // 4. Policies (Generated from content)
         try {
@@ -327,13 +329,15 @@ L'intégrité de ces données est garantie par le système.
                             // Sanitize filename
                             const safeName = (docItem.title || 'Doc').replace(/[^a-z0-9]/gi, '_').substring(0, 50);
                             docFolder.file(`${safeName}_v${docItem.version}.pdf`, policyPdf.output('blob'));
-                        } catch (innerE) {
-                            }
+                        } catch {
+                            // Policy PDF generation failed, but continue
+                        }
                     }
                 });
             }
-        } catch (e) {
-            }
+        } catch {
+            // README creation failed, but continue with other files
+        }
 
         // 5. Incidents
         try {
@@ -353,8 +357,9 @@ L'intégrité de ces données est garantie par le système.
                 );
                 incidentFolder.file("Inventaire_Actifs.pdf", assetDoc.output('blob'));
             }
-        } catch (e) {
-            }
+        } catch {
+            // README creation failed, but continue with other files
+        }
 
         // 6. Audits
         try {
@@ -367,8 +372,9 @@ L'intégrité de ces données est garantie par le système.
                 );
                 auditFolder.file("Suivi_Audits.pdf", auditDoc.output('blob'));
             }
-        } catch (e) {
-            }
+        } catch {
+            // README creation failed, but continue with other files
+        }
 
         // Generate and Save Final Zip
         try {

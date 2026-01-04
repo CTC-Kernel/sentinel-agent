@@ -16,8 +16,9 @@ export const useConnectivity = () => {
             try {
                 const db = getFirestore();
                 enableNetwork(db);
-            } catch (e) {
-                }
+            } catch {
+                // Network enable failed, but continue
+            }
         };
 
         const handleOffline = () => {
@@ -28,8 +29,9 @@ export const useConnectivity = () => {
             try {
                 const db = getFirestore();
                 disableNetwork(db);
-            } catch (e) {
-                }
+            } catch {
+                // Network disable failed, but continue
+            }
         };
 
         window.addEventListener('online', handleOnline);

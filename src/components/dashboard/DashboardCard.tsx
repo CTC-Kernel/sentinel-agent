@@ -69,8 +69,17 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
                                 e.stopPropagation();
                                 onToggleExpand();
                             }}
-                            className="p-2 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                            aria-label={isExpanded ? "Minimize" : "Maximize"}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    onToggleExpand();
+                                }
+                            }}
+                            className="p-2 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-foreground transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                            aria-label={isExpanded ? "Réduire la carte" : "Agrandir la carte"}
+                            aria-expanded={isExpanded}
+                            role="button"
+                            tabIndex={0}
                         >
                             {isExpanded ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-4 h-4" />}
                         </button>

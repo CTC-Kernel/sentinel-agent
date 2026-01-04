@@ -198,8 +198,8 @@ export const Projects: React.FC = () => {
     const handleTabChange = useCallback((id: string) => {
         if (id !== activeTab) {
             setActiveTab(id as 'overview' | 'list' | 'board' | 'gantt');
-            } else {
-            }
+        }
+        // If same tab, no action needed
     }, [activeTab, setActiveTab]);
     const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as 'list' | 'grid' | 'matrix' | 'kanban'), []);
     const handleNewProjectClick = useCallback(() => { setCreationMode(true); setEditingProject(null); }, []);

@@ -170,7 +170,11 @@ export const Reports: React.FC = () => {
         } catch (error) {
             // Enhanced error logging for debugging
             if (error instanceof Error) {
-                }
+                console.error('PDF Generation Error:', {
+                    message: error.message,
+                    stack: error.stack
+                });
+            }
             // Log to console for user to provide if needed
             ErrorLogger.handleErrorWithToast(error, 'Reports.generatePDF', 'CREATE_FAILED');
         } finally {

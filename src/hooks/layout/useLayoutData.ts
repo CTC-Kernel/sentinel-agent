@@ -54,8 +54,15 @@ export const useLayoutData = () => {
   };
 
   if (loadingNotifications || loadingDocuments || loadingRisks || loadingIncidents || loadingAssets || loadingProjects) {
-    .filter(([, v]) => v === true).map(([k]) => k).join(', ')
-    );
+    const loadingStates = [
+      ['notifications', loadingNotifications],
+      ['documents', loadingDocuments],
+      ['risks', loadingRisks],
+      ['incidents', loadingIncidents],
+      ['assets', loadingAssets],
+      ['projects', loadingProjects]
+    ];
+    console.log('Loading states:', loadingStates.filter(([, v]) => v === true).map(([k]) => k).join(', '));
   }
 
   return {

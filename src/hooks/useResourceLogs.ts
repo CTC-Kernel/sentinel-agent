@@ -59,7 +59,8 @@ export const useResourceLogs = (_resourceType: string, resourceId?: string, limi
             // Silent error or specific handling? 
             // For a history tab, we might want to show empty state rather than error toast if it's just index missing
             if ((error as { code?: string })?.code === 'failed-precondition') {
-                } else {
+                // Index missing - silent fail for better UX
+            } else {
                 toast.error('Impossible de charger l\'historique');
             }
         } finally {
