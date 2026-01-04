@@ -1,18 +1,14 @@
-
 import { useState, useMemo, useEffect } from 'react';
-import { where, collection, addDoc, doc, updateDoc, deleteDoc, arrayUnion, increment, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
 import { Asset, UserProfile, Supplier, BusinessProcess } from '../../types';
 import { AssetFormData } from '../../schemas/assetSchema';
-import { logAction } from '../../services/logger';
-import { sanitizeData } from '../../utils/dataSanitizer';
-import { assetSchema } from '../../schemas/assetSchema';
-import { z } from 'zod';
 import { ErrorLogger } from '../../services/errorLogger';
 import { usePlanLimits } from '../usePlanLimits';
 import { DependencyService } from '../../services/dependencyService';
+import { AssetService } from '../../services/AssetService';
+import { z } from 'zod';
 
 export function useAssets() {
     const { user, addToast, demoMode } = useStore();
@@ -44,7 +40,6 @@ export function useAssets() {
                 setMockUsers(users);
                 setMockSuppliers(suppliers);
                 setMockProcesses(processes);
-                setMockLoading(false);
                 setMockLoading(false);
             }).catch(_err => {
                 if (mounted) setMockLoading(false);
@@ -78,8 +73,7 @@ export function useAssets() {
         return [];
     }, [usersList, user]);
 
-    // Firestore Calls for dependencies (suppliers/processes also need hooks if we want them robust)
-    // For now, implementing demo logic inline for what's here.
+    // Firestore Calls for dependencies
     const { data: firestoreSuppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId)],
@@ -95,21 +89,11 @@ export function useAssets() {
     const suppliers = isDemo ? mockSuppliers : firestoreSuppliers;
     const processes = isDemo ? mockProcesses : firestoreProcesses;
 
-    // Calculations
-    const calculateDepreciation = (price: number, purchaseDate: string) => {
-        if (!price || !purchaseDate) return price;
-        const start = new Date(purchaseDate);
-        const now = new Date();
-        const ageInYears = (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
-        // Amortissement linéaire sur 5 ans
-        const value = price * (1 - (ageInYears / 5));
-        return Math.max(0, Math.round(value));
-    };
-
     const assets = useMemo(() => {
         return rawAssets.map(a => ({
             ...a,
-            currentValue: calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || '')
+            // Use Service for calculation
+            currentValue: AssetService.calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || '')
         })).sort((a, b) => a.name.localeCompare(b.name));
     }, [rawAssets]);
 
@@ -129,38 +113,10 @@ export function useAssets() {
         }
         setIsSubmitting(true);
         try {
-            const validatedData = assetSchema.parse(data);
-            const cleanData = sanitizeData(validatedData);
-            const newDoc = {
-                ...cleanData,
-                organizationId: user.organizationId,
-                createdAt: serverTimestamp(),
-                relatedProjectIds: preSelectedProjectId ? [preSelectedProjectId] : []
-            };
-            const docRef = await addDoc(collection(db, 'assets'), newDoc);
-
-            // track storage usage if size provided
-            if ((cleanData as Partial<AssetFormData> & { estimatedSizeMB?: number }).estimatedSizeMB && user.organizationId) {
-                const estSize = (cleanData as Partial<AssetFormData> & { estimatedSizeMB?: number }).estimatedSizeMB || 0;
-                const orgRef = doc(db, 'organizations', user.organizationId);
-                await updateDoc(orgRef, {
-                    storageUsed: increment(estSize * 1024 * 1024)
-                }).catch((error) => {
-                    ErrorLogger.warn('Failed to increment storage usage', 'useAssets.createAsset', { metadata: { error } });
-                });
-            }
-
-            if (preSelectedProjectId) {
-                const projectRef = doc(db, 'projects', preSelectedProjectId);
-                await updateDoc(projectRef, {
-                    relatedAssetIds: arrayUnion(docRef.id)
-                });
-            }
-
-            await logAction(user, 'CREATE', 'Asset', `Création Actif: ${cleanData.name}`);
+            const assetId = await AssetService.create(data, user, preSelectedProjectId);
             addToast("Actif créé avec succès", "success");
             refreshAssets();
-            return docRef.id;
+            return assetId;
         } catch (e) {
             if (e instanceof z.ZodError) {
                 addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
@@ -177,15 +133,7 @@ export function useAssets() {
         if (!user?.organizationId) return false;
         setIsSubmitting(true);
         try {
-            const validatedData = assetSchema.parse(data);
-            const cleanData = sanitizeData(validatedData);
-
-            await updateDoc(doc(db, 'assets', id), {
-                ...cleanData,
-                updatedAt: serverTimestamp()
-            });
-
-            await logAction(user, 'UPDATE', 'Asset', `Mise à jour Actif: ${cleanData.name}`);
+            await AssetService.update(id, data, user);
             addToast("Actif mis à jour avec succès", "success");
             refreshAssets();
             return true;
@@ -203,8 +151,6 @@ export function useAssets() {
 
     const checkDependencies = async (assetId: string) => {
         if (!user?.organizationId) return { hasDependencies: false, dependencies: [], canDelete: true, blockingReasons: [] };
-        // Use global DependencyService
-        // Note: The service returns 'dependencies' array, logic is same
         return await DependencyService.checkAssetDependencies(assetId, user.organizationId);
     };
 
@@ -219,8 +165,7 @@ export function useAssets() {
         }
 
         try {
-            await deleteDoc(doc(db, 'assets', id));
-            await logAction(user, 'DELETE', 'Asset', `Suppression Actif: ${name}`);
+            await AssetService.delete(id, name, user);
             addToast("Actif supprimé avec succès", "success");
             refreshAssets();
             return true;
@@ -234,7 +179,6 @@ export function useAssets() {
         if (!user?.organizationId) return false;
 
         // Pre-check all assets for dependencies
-        // We do this in parallel to be fast
         const checks = await Promise.all(ids.map(async (id) => {
             const check = await DependencyService.checkAssetDependencies(id, user.organizationId!);
             return { id, check };
@@ -247,9 +191,7 @@ export function useAssets() {
         }
 
         try {
-            await Promise.all(ids.map(id => deleteDoc(doc(db, 'assets', id))));
-
-            await logAction(user, 'DELETE', 'Asset', `Suppression en masse de ${ids.length} actifs`);
+            await AssetService.bulkDelete(ids, user);
             addToast(`${ids.length} actifs supprimés avec succès`, "success");
             refreshAssets();
             return true;

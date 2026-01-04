@@ -74,8 +74,8 @@ export class DependencyService {
             return {
                 hasDependencies: dependencies.length > 0,
                 dependencies,
-                canDelete: true, // We will allow delete but with cleanup warnings/actions
-                blockingReasons: dependencies.length > 0 ? [`Ce risque est lié à ${dependencies.length} éléments.`] : []
+                canDelete: dependencies.length === 0, // STRICT BLOCK: Cannot delete if risk has dependencies
+                blockingReasons: dependencies.length > 0 ? [`Ce risque est lié à ${dependencies.length} élément(s). Veuillez supprimer ou détacher ces liens avant la suppression.`] : []
             };
 
         } catch (error) {
@@ -112,8 +112,8 @@ export class DependencyService {
             return {
                 hasDependencies: dependencies.length > 0,
                 dependencies,
-                canDelete: true,
-                blockingReasons: dependencies.length > 0 ? [`Cet actif est lié à ${dependencies.length} risques.`] : []
+                canDelete: dependencies.length === 0, // STRICT BLOCK
+                blockingReasons: dependencies.length > 0 ? [`Cet actif est lié à ${dependencies.length} risque(s). Veuillez d'abord supprimer ces risques.`] : []
             };
         } catch (error) {
             ErrorLogger.error(error, 'DependencyService.checkAssetDependencies');
@@ -153,8 +153,8 @@ export class DependencyService {
             return {
                 hasDependencies: dependencies.length > 0,
                 dependencies,
-                canDelete: true,
-                blockingReasons: dependencies.length > 0 ? [`Ce contrôle est lié à ${dependencies.length} éléments.`] : []
+                canDelete: dependencies.length === 0, // STRICT BLOCK
+                blockingReasons: dependencies.length > 0 ? [`Ce contrôle est lié à ${dependencies.length} élément(s).`] : []
             };
         } catch (error) {
             ErrorLogger.error(error, 'DependencyService.checkControlDependencies');

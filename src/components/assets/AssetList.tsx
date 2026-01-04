@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Asset, Criticality, UserProfile } from '../../types';
 import { DataTable } from '../ui/DataTable';
 import { Server, Edit, Trash2, Tag } from '../ui/Icons';
-import { TableSkeleton } from '../ui/Skeleton';
+import { TableSkeleton, CardSkeleton } from '../ui/Skeleton';
 import { EmptyState } from '../ui/EmptyState';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { canDeleteResource } from '../../utils/permissions';
@@ -142,7 +142,7 @@ export const AssetList = React.memo<AssetListProps>(({
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {loading ? (
-                <div className="col-span-full"><TableSkeleton rows={3} columns={1} /></div>
+                <div className="col-span-full"><CardSkeleton count={6} /></div>
             ) : assets.length === 0 ? (
                 <div className="col-span-full">
                     <EmptyState

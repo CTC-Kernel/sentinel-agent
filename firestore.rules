@@ -54,6 +54,14 @@ service cloud.firestore {
     function isValidIncidentSeverity(severity) {
       return severity in ['Critical', 'High', 'Medium', 'Low', 'Info'];
     }
+
+    function isValidCriticality(val) {
+      return val in ['Faible', 'Moyenne', 'Élevée', 'Critique'];
+    }
+
+    function isValidAssetType(val) {
+      return val in ['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'];
+    }
     
     // --- PERMISSION LOGIC ---
 
@@ -205,10 +213,18 @@ service cloud.firestore {
         request.resource.data.organizationId == getUserData().organizationId &&
         canWrite(request.resource.data.organizationId) &&
         isValidString(request.resource.data.name, 1, 200) &&
+        isValidAssetType(request.resource.data.type) &&
+        isValidCriticality(request.resource.data.confidentiality) &&
+        isValidCriticality(request.resource.data.integrity) &&
+        isValidCriticality(request.resource.data.availability) &&
         (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
 
       allow update: if canWrite(resource.data.organizationId) &&
         (!('name' in request.resource.data) || isValidString(request.resource.data.name, 1, 200)) &&
+        isValidAssetType(request.resource.data.type) &&
+        isValidCriticality(request.resource.data.confidentiality) &&
+        isValidCriticality(request.resource.data.integrity) &&
+        isValidCriticality(request.resource.data.availability) &&
         (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
       allow delete: if canDelete(resource.data.organizationId);
       

@@ -24,6 +24,7 @@ import { usePlanLimits } from '../hooks/usePlanLimits';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { CsvParser } from '../utils/csvUtils';
 import { OnboardingService } from '../services/onboardingService';
+import { ImportService } from '../services/ImportService';
 import { aiService } from '../services/aiService';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { usePersistedState } from '../hooks/usePersistedState';
@@ -236,106 +237,27 @@ const Assets: React.FC = () => {
 
     const handleImportAssets = React.useCallback(async (file: File) => {
         const text = await file.text();
-        const parsed = CsvParser.parseCSV(text);
+        const { data, errors } = ImportService.parseAssets(text, user?.displayName || 'Unknown');
 
         let successCount = 0;
 
-        const resolveCriticality = (value?: string): Criticality => {
-            const normalized = (value || '').toLowerCase();
-            const mapping: Record<string, Criticality> = {
-                'critique': Criticality.CRITICAL,
-                'critical': Criticality.CRITICAL,
-                'élevé': Criticality.HIGH,
-                'eleve': Criticality.HIGH,
-                'high': Criticality.HIGH,
-                'moyen': Criticality.MEDIUM,
-                'moyenne': Criticality.MEDIUM,
-                'medium': Criticality.MEDIUM,
-                'faible': Criticality.LOW,
-                'low': Criticality.LOW,
-                'public': Criticality.LOW
-            };
-            return mapping[normalized] ?? Criticality.MEDIUM;
-        };
-
-        const resolveAssetType = (value?: string): AssetFormData['type'] => {
-            const normalized = (value || '').toLowerCase();
-            const mapping: Record<string, AssetFormData['type']> = {
-                'matériel': 'Matériel',
-                'materiel': 'Matériel',
-                'hardware': 'Matériel',
-                'logiciel': 'Logiciel',
-                'software': 'Logiciel',
-                'données': 'Données',
-                'donnees': 'Données',
-                'data': 'Données',
-                'service': 'Service',
-                'humain': 'Humain',
-                'human': 'Humain'
-            };
-            return mapping[normalized] ?? 'Logiciel';
-        };
-
-        const resolveLifecycleStatus = (value?: string): AssetFormData['lifecycleStatus'] => {
-            if (!value) return undefined;
-            const normalized = value.toLowerCase();
-            const mapping: Record<string, AssetFormData['lifecycleStatus']> = {
-                'neuf': 'Neuf',
-                'new': 'Neuf',
-                'en service': 'En service',
-                'active': 'En service',
-                'activee': 'En service',
-                'en réparation': 'En réparation',
-                'en reparation': 'En réparation',
-                'repair': 'En réparation',
-                'fin de vie': 'Fin de vie',
-                'endoflife': 'Fin de vie',
-                'end_of_life': 'Fin de vie',
-                'rebut': 'Rebut',
-                'retired': 'Rebut'
-            };
-            return mapping[normalized] ?? 'En service';
-        };
-
         // Process sequentially to avoid overwhelming Firestore
-        for (const row of parsed) {
-            // Helper to get value from multiple possible header keys (English or French or Key)
-            const getVal = (keys: string[]) => {
-                for (const k of keys) {
-                    if (row[k] !== undefined && row[k] !== '') return row[k];
-                }
-                return undefined;
-            };
-
-            const name = getVal(['name', 'Name', 'Nom']);
-            const type = getVal(['type', 'Type']);
-
-            // Basic validation
-            if (!name || !type) continue;
-
-            // Map CSV row to AssetFormData
-            const assetData: AssetFormData = {
-                name,
-                type: resolveAssetType(type),
-                notes: getVal(['notes', 'description', 'Notes', 'Description']) || '',
-                owner: getVal(['owner', 'Owner', 'Propriétaire']) || user?.displayName || 'Unknown',
-                confidentiality: resolveCriticality(getVal(['criticality', 'confidentiality', 'Criticality', 'Criticité', 'Confidentiality', 'Confidentialité'])),
-                integrity: resolveCriticality(getVal(['integrity', 'Integrity', 'Intégrité'])),
-                availability: resolveCriticality(getVal(['availability', 'Availability', 'Disponibilité'])),
-                lifecycleStatus: resolveLifecycleStatus(getVal(['status', 'lifecycleStatus', 'Status', 'Statut', 'Lifecycle Status', 'Statut Cycle de Vie'])),
-                location: getVal(['location', 'Location', 'Localisation']) || '',
-                purchasePrice: getVal(['purchasePrice', 'Purchase Price', 'Prix Achat', 'Valeur']) ? Number(getVal(['purchasePrice', 'Purchase Price', 'Prix Achat', 'Valeur'])) : undefined,
-                purchaseDate: getVal(['purchaseDate', 'Purchase Date', 'Date Achat']),
-                warrantyEnd: getVal(['warrantyEnd', 'Warranty End', 'Fin Garantie'])
-            };
-
+        for (const assetData of data) {
             await createAsset(assetData, null);
             successCount++;
         }
 
         if (successCount > 0) {
-            toast.success(t('common.import.summary', { count: successCount, total: parsed.length }));
-        } else {
+            toast.success(t('common.import.summary', { count: successCount, total: data.length + errors.length }));
+        }
+
+        if (errors.length > 0) {
+            toast.warning(t('common.import.partialErrors'), {
+                description: `${errors.length} erreurs: ` + errors.slice(0, 3).join(', ') + (errors.length > 3 ? '...' : '')
+            });
+        }
+
+        if (successCount === 0 && errors.length === 0) {
             toast.warning(t('common.import.noData'));
         }
     }, [createAsset, user, t]);
