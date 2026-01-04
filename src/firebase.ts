@@ -10,7 +10,6 @@ import { getFunctions } from 'firebase/functions';
 import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken, type AppCheck } from "firebase/app-check";
 
-
 import { ErrorLogger } from './services/errorLogger';
 
 const firebaseConfig = {
@@ -47,7 +46,6 @@ if (typeof window !== 'undefined') {
   // Expose App Check instance for diagnostics and downstream usage.
   // Not exported directly to avoid changing public API shape at module level.
   let appCheckInstance: AppCheck | null = null;
-
 
   if (appCheckDebugToken && (isLocal || !import.meta.env.PROD)) {
     // SECURITY: debug tokens must never be used from production origins.
@@ -109,8 +107,6 @@ export const debugGetAppCheckTokenSnippet = async (): Promise<string | null> => 
   if (!tokenResult?.token) return null;
   return `${tokenResult.token.slice(0, 12)}...`;
 };
-
-
 
 // Use getAuth for immediate instance, which works reliably on Web
 export const auth = getAuth(app);

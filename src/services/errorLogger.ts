@@ -28,10 +28,7 @@ class ErrorLoggerService {
     // En développement : console détaillé
     if (this.isDevelopment) {
       console.group(`🔴 ERROR [${context}]`);
-      console.error('Message:', errorMessage);
-      if (errorStack) console.error('Stack:', errorStack);
-      if (additionalContext) console.error('Context:', additionalContext);
-      console.groupEnd();
+      if (errorStack) if (additionalContext) console.groupEnd();
     }
 
     // En production : envoyer à Sentry (si configuré)
@@ -66,8 +63,7 @@ class ErrorLoggerService {
    */
   warn(message: string, context?: string, additionalContext?: ErrorContext): void {
     if (this.isDevelopment) {
-      console.warn(`⚠️ WARNING [${context || 'General'}]:`, message, additionalContext);
-    }
+      }
 
     this.logToExternal('warning', {
       timestamp: new Date().toISOString(),
@@ -194,15 +190,13 @@ class ErrorLoggerService {
             const analyticsSdk = await import('firebase/analytics');
             analyticsSdk.logEvent(analyticsInstance, type, data);
           } catch (e) { // silent
-            if (this.isDevelopment) console.warn('Analytics failed:', e);
-          }
+            if (this.isDevelopment) }
         }).catch(() => {
           // Ignore import errors in tests/offline
         });
       } catch (e) { // silent
         // Fail silently if analytics fails (e.g. ad blocker)
-        if (this.isDevelopment) console.warn('Analytics failed:', e);
-      }
+        if (this.isDevelopment) }
 
       // Stockage local en développement pour debug
       if (this.isDevelopment) {

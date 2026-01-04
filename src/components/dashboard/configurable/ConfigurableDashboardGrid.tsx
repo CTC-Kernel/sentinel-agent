@@ -4,9 +4,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStr
 import { WidgetLayout } from '../../../hooks/useDashboardPreferences';
 import { WIDGET_REGISTRY } from './WidgetRegistry';
 
-
 import { SortableWidget } from './SortableWidget';
-
 
 // --- Main Grid Component ---
 

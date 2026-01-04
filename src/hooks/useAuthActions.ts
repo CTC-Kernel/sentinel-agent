@@ -107,7 +107,6 @@ export const useAuthActions = () => {
             }
             return true;
         } catch (error: unknown) {
-            console.error('Auth Error Details:', error);
             const err = error as { code?: string; message?: string };
             if (err.code === 'auth/multi-factor-auth-required') {
                 const resolver = getMultiFactorResolver(auth, error as MultiFactorError);

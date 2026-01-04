@@ -20,7 +20,6 @@ import { hasPermission } from '../../utils/permissions';
 import { UserProfile } from '../../types';
 import { getDefaultAvatarUrl } from '../../utils/avatarUtils';
 
-
 export const ProfileSettings: React.FC = () => {
     const { user, setUser, addToast, t, language, setLanguage } = useStore();
     const { updateUser } = useTeamData();
@@ -169,7 +168,6 @@ export const ProfileSettings: React.FC = () => {
                                     alt={user?.displayName || 'User'} 
                                     className="w-full h-full object-cover" 
                                     onError={(e) => {
-                                        console.error('Image failed to load:', e);
                                         const target = e.target as HTMLImageElement;
                                         target.src = getDefaultAvatarUrl();
                                     }}

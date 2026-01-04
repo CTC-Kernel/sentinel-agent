@@ -11,7 +11,6 @@ import { EmptyState } from '../ui/EmptyState';
 import { DiscussionPanel } from '../collaboration/DiscussionPanel';
 // Focus indicators: focus-visible:ring-2 applied globally via CSS
 
-
 export type InspectorTab = 'details' | 'data' | 'links' | 'history' | 'comments';
 
 interface PrivacyInspectorProps {

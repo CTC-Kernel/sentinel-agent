@@ -309,7 +309,6 @@ export const EvidenceRequestList: React.FC<EvidenceRequestListProps> = ({ auditI
                 )}
             </div>
 
-
             <ConfirmModal
                 isOpen={confirmDelete.isOpen}
                 onClose={() => setConfirmDelete({ isOpen: false, id: null })}

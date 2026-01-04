@@ -17,7 +17,6 @@ import { Skeleton } from './Skeleton';
 import { Tooltip } from './Tooltip';
 import { ConfirmModal } from './ConfirmModal';
 
-
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];

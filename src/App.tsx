@@ -55,14 +55,9 @@ const CertifierLogin = React.lazy(() => import('@/views/portal/certifier/Certifi
 const CertifierRegister = React.lazy(() => import('@/views/portal/certifier/CertifierRegister').then(module => ({ default: module.CertifierRegister })));
 const CertifierDashboard = React.lazy(() => import('@/views/portal/certifier/CertifierDashboard').then(module => ({ default: module.CertifierDashboard })));
 
-
-
 // Route wrapper that decides whether to show Landing Page or App logic
 
-
-
 // Route wrapper that decides whether to show Landing Page or App logic
-
 
 // Wrapper to activate global shortcuts inside Router context
 const GlobalShortcutsWrapper: React.FC = () => {
@@ -206,8 +201,6 @@ const AppContent: React.FC = () => {
     );
 };
 
-
-
 const AppInner: React.FC = () => {
     const { isBlocked } = useAuth();
 
@@ -250,7 +243,6 @@ const AppInner: React.FC = () => {
                             <Route path="register" element={<CertifierRegister />} />
                             <Route path="dashboard" element={<CertifierDashboard />} />
                         </Route>
-
 
                         {/* Main App Route - Handles all paths and sub-routes */}
                         <Route path="/*" element={

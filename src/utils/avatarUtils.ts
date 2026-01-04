@@ -16,7 +16,6 @@ export const getDefaultAvatarUrl = (): string => {
 export const getUserAvatarUrl = (photoURL?: string | null): string => {
   const defaultUrl = getDefaultAvatarUrl();
   const result = photoURL || defaultUrl;
-  console.log('Avatar URL:', { photoURL, defaultUrl, result });
   return result;
 };
 

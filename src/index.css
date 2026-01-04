@@ -5,6 +5,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import standardized interaction styles */
+@import './styles/interactions.css';
+
 /* Focus Indicators & Accessibility */
 
 /* Hide reCAPTCHA badge - improve UX while maintaining security */

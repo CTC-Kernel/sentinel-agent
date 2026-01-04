@@ -19,7 +19,6 @@ export class EncryptionService {
         }
 
         // Warn in development
-        console.warn('SECURITY WARNING: Using insecure fallback encryption key. Please set VITE_ENCRYPTION_KEY in your .env file.');
         return DEV_FALLBACK_KEY;
     }
 
@@ -60,7 +59,6 @@ export class EncryptionService {
 
             if (!plaintext) {
                 // Malformed or wrong key
-                console.error('Decryption produced empty result');
                 return '[Decryption Failed]';
             }
             return plaintext;

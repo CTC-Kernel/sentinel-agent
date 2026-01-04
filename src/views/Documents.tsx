@@ -229,7 +229,6 @@ export const Documents: React.FC = () => {
         setConfirmData(prev => ({ ...prev, isOpen: false }));
     }, [setConfirmData]);
 
-
     if (loading) {
         return <LoadingScreen />;
     }

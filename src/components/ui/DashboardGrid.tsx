@@ -116,15 +116,21 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
   onDragEnd,
   onResize,
   onRemove,
-  isDragging,
-  // isResizing // Unused
+  isDragging
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const dragControls = useDragControls();
   const config = sizeConfig[widget.size];
 
+  const handleDragStart = () => {
+    onDragStart(widget.id);
+  };
 
+  const handleDragEnd = (event: any) => {
+    const newPosition = { x: event.point.x, y: event.point.y };
+    onDragEnd(widget.id, newPosition);
+  };
 
   return (
     <motion.div
@@ -132,8 +138,8 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
       dragControls={dragControls}
       dragMomentum={false}
       dragElastic={0.1}
-      onDragStart={() => onDragStart(widget.id)}
-      onDragEnd={(_, info) => onDragEnd(widget.id, info.point)}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       style={{
         position: 'absolute',
         left: widget.position.x,

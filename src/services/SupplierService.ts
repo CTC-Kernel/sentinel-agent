@@ -78,8 +78,6 @@ export class SupplierService {
 
             // Also map to criticalities for the main status
 
-
-
             await updateDoc(supplierRef, sanitizeData({
                 securityScore: assessmentScore,
                 riskLevel: riskLevel,

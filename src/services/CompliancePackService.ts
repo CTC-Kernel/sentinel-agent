@@ -7,7 +7,6 @@ import { Risk, Control, Document as GRCDocument, Audit, Incident, Asset, Project
 import { format } from 'date-fns';
 import { ReportEnrichmentService } from './ReportEnrichmentService';
 
-
 export class CompliancePackService {
 
     /**
@@ -32,7 +31,6 @@ export class CompliancePackService {
             if (isNaN(dateObj.getTime())) return 'Date invalide';
             return format(dateObj, 'dd/MM/yyyy');
         } catch (e) {
-            console.warn('Date formatting error:', e);
             return 'N/A';
         }
     }
@@ -61,8 +59,6 @@ export class CompliancePackService {
         if (!rootFolder) {
             throw new Error('Failed to create root folder in ZIP');
         }
-
-        console.log('Generating Compliance Pack for:', data.organizationName);
 
         // 1. Executive Summary & ReadMe
         try {
@@ -101,8 +97,7 @@ L'intégrité de ces données est garantie par le système.
             `;
             rootFolder.file("00_LISEZ_MOI.txt", readmeContent.trim());
         } catch (e) {
-            console.error('Error generating ReadMe:', e);
-        }
+            }
 
         // 2. Risk Management
         try {
@@ -167,7 +162,6 @@ L'intégrité de ces données est garantie par le système.
                             recY += (splitRec.length * 5) + 2;
                         });
 
-
                         currentY += 90; // Move past matrix
 
                         // Risk Table
@@ -201,7 +195,6 @@ L'intégrité de ces données est garantie par le système.
                 riskFolder.file("Registre_Risques_Enrichi.pdf", riskDoc.output('blob'));
             }
         } catch (e) {
-            console.error('Error in Risk generation:', e);
             // Continue with other sections
         }
 
@@ -277,8 +270,7 @@ L'intégrité de ces données est garantie par le système.
                 soaFolder.file("SoA_Enrichi.pdf", soaDoc.output('blob'));
             }
         } catch (e) {
-            console.error('Error in SoA generation:', e);
-        }
+            }
 
         // 4. Policies (Generated from content)
         try {
@@ -336,14 +328,12 @@ L'intégrité de ces données est garantie par le système.
                             const safeName = (docItem.title || 'Doc').replace(/[^a-z0-9]/gi, '_').substring(0, 50);
                             docFolder.file(`${safeName}_v${docItem.version}.pdf`, policyPdf.output('blob'));
                         } catch (innerE) {
-                            console.warn(`Failed to generate PDF for document ${docItem.id}`, innerE);
-                        }
+                            }
                     }
                 });
             }
         } catch (e) {
-            console.error('Error in Documents generation:', e);
-        }
+            }
 
         // 5. Incidents
         try {
@@ -364,8 +354,7 @@ L'intégrité de ces données est garantie par le système.
                 incidentFolder.file("Inventaire_Actifs.pdf", assetDoc.output('blob'));
             }
         } catch (e) {
-            console.error('Error in Incidents generation:', e);
-        }
+            }
 
         // 6. Audits
         try {
@@ -379,15 +368,13 @@ L'intégrité de ces données est garantie par le système.
                 auditFolder.file("Suivi_Audits.pdf", auditDoc.output('blob'));
             }
         } catch (e) {
-            console.error('Error in Audits generation:', e);
-        }
+            }
 
         // Generate and Save Final Zip
         try {
             const content = await zip.generateAsync({ type: "blob" });
             saveAs(content, `Compliance_Pack_${safeOrgName}_${dateStr}.zip`);
         } catch (e) {
-            console.error('Error generating final ZIP:', e);
             throw new Error('Failed to create ZIP file: ' + e);
         }
     }

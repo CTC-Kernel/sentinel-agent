@@ -1,0 +1,73 @@
+import { User } from 'firebase/auth';
+import { UserProfile, Organization } from '../types';
+import { ErrorLogger } from './errorLogger';
+
+/**
+ * E2E Authentication Service
+ * Extracted from AuthContext to simplify the main authentication flow
+ */
+export class E2EAuthService {
+  private static readonly E2E_USER_KEY = 'E2E_TEST_USER';
+  
+  static isE2EMode(): boolean {
+    return import.meta.env.DEV && localStorage.getItem(this.E2E_USER_KEY) !== null;
+  }
+
+  static getE2EUser(): UserProfile | null {
+    if (!this.isE2EMode()) return null;
+    
+    try {
+      const e2eUserStr = localStorage.getItem(this.E2E_USER_KEY);
+      return e2eUserStr ? JSON.parse(e2eUserStr) : null;
+    } catch (error) {
+      ErrorLogger.error(error, 'E2EAuthService.getE2EUser');
+      return null;
+    }
+  }
+
+  static createMockFirebaseUser(user: UserProfile): User {
+    return {
+      ...user,
+      getIdToken: async () => "mock-token",
+      getIdTokenResult: async () => ({ 
+        claims: { organizationId: user.organizationId || 'org_default' } 
+      }),
+      reload: async () => {},
+      toJSON: () => user
+    } as unknown as User;
+  }
+
+  static createMockOrganization(user: UserProfile): Organization | null {
+    if (!user.organizationId) return null;
+
+    return {
+      id: user.organizationId,
+      name: 'Sentinel Demo Org',
+      siret: '00000000000000',
+      subscriptionPlan: 'enterprise',
+      members: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      slug: 'sentinel-demo',
+      ownerId: user.uid,
+      subscription: {
+        status: 'active',
+        planId: 'enterprise',
+        currentPeriodEnd: new Date(2099, 11, 31).toISOString(),
+        stripeCustomerId: 'cus_demo',
+        cancelAtPeriodEnd: false
+      }
+    } as Organization;
+  }
+
+  static validateE2EUser(firebaseUser: User): boolean {
+    const e2eUser = this.getE2EUser();
+    return e2eUser !== null && firebaseUser.uid === e2eUser.uid;
+  }
+
+  static cleanup(): void {
+    if (this.isE2EMode()) {
+      localStorage.removeItem(this.E2E_USER_KEY);
+    }
+  }
+}

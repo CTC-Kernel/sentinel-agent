@@ -21,8 +21,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireOnboardin
         return <LoadingScreen />;
     }
 
-
-
     if (!firebaseUser) {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }

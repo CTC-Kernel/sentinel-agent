@@ -52,8 +52,6 @@ export const Integrations: React.FC = () => {
         }
     }, [user?.organizationId, loadProviders]);
 
-
-
     const handleConnect = async (provider: IntegrationProvider) => {
         if (!user?.organizationId) {
             toast.error("Impossible de connecter : ID d'organisation manquant.");
@@ -106,7 +104,6 @@ export const Integrations: React.FC = () => {
             toast.success(`Connecté à ${selectedProvider.name} avec succès`);
             setApiKeyModalOpen(false);
         } catch (error) {
-            console.error(error);
             ErrorLogger.error(error as Error, 'Integrations.confirmConnect');
             toast.error(`Échec de la connexion à ${selectedProvider.name}`);
         } finally {
@@ -246,7 +243,6 @@ export const Integrations: React.FC = () => {
                             ))}
                         </div>
                     )}
-
 
                     {/* API Key Modal */}
                     <Modal

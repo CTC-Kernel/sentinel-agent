@@ -95,7 +95,6 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         }
     }, [confirmDelete.id, onDeleteFolder]);
 
-
     const handleCreateRoot = React.useCallback(() => {
         setCreateParentId(undefined);
         setShowCreateModal(true);

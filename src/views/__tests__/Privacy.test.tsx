@@ -16,14 +16,12 @@ vi.mock('../../store', () => ({
     }),
 }));
 
-
 vi.mock('../../hooks/usePersistedState', async () => {
     const React = await vi.importActual<typeof import('react')>('react');
     return {
         usePersistedState: (_key: string, defaultVal: unknown) => React.useState(defaultVal)
     };
 });
-
 
 // Mock usePrivacy
 vi.mock('../../hooks/usePrivacy', () => {
@@ -199,7 +197,6 @@ describe('Privacy View', () => {
         expect(screen.getByText('Gestion RH')).toBeInTheDocument();
         expect(screen.getByText('Newsletter')).toBeInTheDocument();
     });
-
 
     it('opens create modal when clicking new treatment', async () => {
         const { usePrivacy } = await import('../../hooks/usePrivacy');

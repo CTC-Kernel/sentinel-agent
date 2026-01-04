@@ -47,7 +47,6 @@ export function useAssets() {
                 setMockLoading(false);
                 setMockLoading(false);
             }).catch(err => {
-                console.error('Failed to load mock data module', err);
                 if (mounted) setMockLoading(false);
             });
         }

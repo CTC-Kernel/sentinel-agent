@@ -31,7 +31,6 @@ interface AppState {
   demoMode: boolean;
   toggleDemoMode: () => void;
 
-
 }
 
 import i18n from './i18n';
@@ -104,6 +103,5 @@ export const useStore = create<AppState>((set) => ({
     }
     return { demoMode: next };
   }),
-
 
 }));

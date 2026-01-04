@@ -84,7 +84,6 @@ export const SecurityBadge: React.FC<SecurityBadgeProps> = ({ feature, className
                 <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">{config.label}</span>
             </div>
 
-
         </div>
     );
 };

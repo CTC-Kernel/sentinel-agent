@@ -17,8 +17,7 @@ export const useConnectivity = () => {
                 const db = getFirestore();
                 enableNetwork(db);
             } catch (e) {
-                console.error("Error enabling network", e);
-            }
+                }
         };
 
         const handleOffline = () => {
@@ -30,8 +29,7 @@ export const useConnectivity = () => {
                 const db = getFirestore();
                 disableNetwork(db);
             } catch (e) {
-                console.error("Error disabling network", e);
-            }
+                }
         };
 
         window.addEventListener('online', handleOnline);
@@ -44,7 +42,6 @@ export const useConnectivity = () => {
             // It's a rough proxy for "Auth Service is responsive"
             setAuthConnected(true);
         }, (error) => {
-            console.error("Auth connection error", error);
             setAuthConnected(false);
         });
 

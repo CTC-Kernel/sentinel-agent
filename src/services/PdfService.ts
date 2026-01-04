@@ -34,7 +34,6 @@ export class PdfService {
     // Chart Colors
     private static readonly CHART_COLORS = ['#0F172A', '#3B82F6', '#10B981', '#F59E0B', '#EF4444'];
 
-
     /**
      * Initialize a new PDF document with standard settings
      */
@@ -248,11 +247,9 @@ export class PdfService {
                 if (options.coverImage.startsWith('data:image') || options.coverImage.startsWith('http')) {
                     doc.addImage(options.coverImage, 'JPEG', contentStartX, 20, contentWidth, 80);
                 } else {
-                    console.warn('Invalid image format for cover image');
                     throw new Error('Invalid format');
                 }
             } catch (e) {
-                console.warn('Failed to add cover image, using fallback graphic', e);
                 // Fallback Graphic
                 doc.setDrawColor(this.BRAND_PRIMARY);
                 doc.setLineWidth(2);
@@ -847,7 +844,6 @@ export class PdfService {
             doc.triangle(cx, cy, x1, y1, x2, y2, 'F');
         }
     }
-
 
     /**
      * Helper to draw arc border for enhanced styling
@@ -1609,7 +1605,6 @@ export class PdfService {
             ]
         }, (doc, startY) => {
             let currentY = startY;
-
 
             // 1. Findings Summary Table
             doc.setFontSize(14);

@@ -21,8 +21,6 @@ import { useDocumentVersions } from '../../hooks/documents/useDocumentVersions';
 // If so, we don't need FilePreview directly in Inspector.
 // DocumentInspector is independent.
 
-
-
 interface DocumentInspectorProps {
     isOpen: boolean;
     onClose: () => void;

@@ -4,7 +4,6 @@ import { PageHeader } from '../ui/PageHeader';
 import { Button } from '../ui/button';
 import { useTranslation } from 'react-i18next';
 
-
 interface AuditsHeaderProps {
     title: string;
     subtitle: string;

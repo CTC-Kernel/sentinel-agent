@@ -93,8 +93,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ resourceId, classNam
                 try {
                     dateObj = new Date(log.timestamp);
                 } catch {
-                    console.error('Invalid date', log.timestamp);
-                }
+                    }
 
                 return {
                     id: log.id,

@@ -76,7 +76,6 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         onClose();
     };
 
-
     const progress = useWatch({ control, name: 'progress' });
     const watchedTitle = useWatch({ control, name: 'title' });
     const watchedDescription = useWatch({ control, name: 'description' });
@@ -342,6 +341,5 @@ export const TaskFormModal: React.FC<TaskFormModalProps> = ({
         document.body
     );
 };
-
 
 // Headless UI handles FocusTrap and keyboard navigation

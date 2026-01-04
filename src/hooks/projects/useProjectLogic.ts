@@ -57,7 +57,6 @@ export const useProjectLogic = () => {
                     });
                 })
                 .catch(err => {
-                    console.error('Failed to load mock data module', err);
                     if (!isMounted) return;
                     setMockData({ projects: [], risks: [], controls: [], assets: [], audits: [], users: [] });
                 });

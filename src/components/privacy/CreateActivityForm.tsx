@@ -49,7 +49,6 @@ export const CreateActivityForm: React.FC<CreateActivityFormProps> = ({
     });
 
     const onInvalid = (errors: FieldErrors<ProcessingActivityFormData>) => {
-        console.error("Form Validation Errors:", errors);
         const missingFields = Object.keys(errors).join(', ');
         toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
     };

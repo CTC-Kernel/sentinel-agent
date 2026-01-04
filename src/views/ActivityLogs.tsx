@@ -129,4 +129,3 @@ export const ActivityLogs: React.FC = () => {
     );
 };
 
-

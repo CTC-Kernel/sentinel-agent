@@ -50,7 +50,6 @@ vi.mock('../../store', () => ({
     }),
 }));
 
-
 vi.mock('../../hooks/usePersistedState', async () => {
     const React = await vi.importActual<typeof import('react')>('react');
     return {

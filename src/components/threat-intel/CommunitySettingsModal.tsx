@@ -67,7 +67,6 @@ export const CommunitySettingsModal: React.FC<CommunitySettingsModalProps> = ({ 
             addToast("Paramètres de confidentialité mis à jour", "success");
             onClose();
         } catch (error) {
-            console.error("Error saving settings:", error);
             addToast("Erreur lors de la sauvegarde", "error");
         } finally {
             setIsSubmitting(false);

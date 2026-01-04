@@ -76,7 +76,6 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     });
 
     const onInvalid = (errors: FieldErrors<DocumentFormData>) => {
-        console.error("Form Validation Errors:", errors);
         const missingFields = Object.keys(errors).join(', ');
         toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
     };

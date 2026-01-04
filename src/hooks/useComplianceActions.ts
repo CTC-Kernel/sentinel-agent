@@ -28,7 +28,6 @@ export const useComplianceActions = (user: UserProfile | null) => {
             if (successMessage) toast.success(successMessage);
             return true;
         } catch (error) {
-            console.error("Update failed", error);
             if (error instanceof z.ZodError) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const zodError = error as any;
@@ -136,7 +135,6 @@ export const useComplianceActions = (user: UserProfile | null) => {
             logAction(user, 'CREATE_RISK', 'risk', `Created risk ${riskData.threat}`, undefined, ref.id);
             return ref.id;
         } catch (error) {
-            console.error("Creation failed", error);
             toast.error("Erreur lors de la création du risque");
             return null;
         } finally {
@@ -159,7 +157,6 @@ export const useComplianceActions = (user: UserProfile | null) => {
             logAction(user, 'CREATE_AUDIT', 'audit', `Created audit ${auditData.name}`, undefined, ref.id);
             return ref.id;
         } catch (error) {
-            console.error("Audit creation failed", error);
             toast.error("Erreur lors de la création de l'audit");
             return null;
         } finally {

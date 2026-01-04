@@ -66,7 +66,6 @@ export const useDashboardReports = () => {
                     summary = 'Résumé non disponible.';
                 }
             } catch (error) {
-                console.warn('AI Summary generation failed, using fallback.', error);
                 summary = 'Résumé non disponible (Service IA indisponible).';
             }
 
@@ -112,7 +111,6 @@ export const useDashboardReports = () => {
                             r.status || 'N/A'
                         ]);
 
-
                         doc.autoTable({
                             startY: y,
                             head: [[
@@ -128,11 +126,9 @@ export const useDashboardReports = () => {
                             margin: { left: 14, right: 14 }
                         });
 
-
                         const lastAutoTable = doc.lastAutoTable;
                         y = (lastAutoTable?.finalY ?? y) + 15;
                     }
-
 
                     // Compliance Summary -- Check if we have radar data
                     if (radarData && radarData.length > 0) {
@@ -141,7 +137,6 @@ export const useDashboardReports = () => {
                         y += 5;
 
                         const complianceData = radarData.map(d => [d.subject, `${d.A}%`]);
-
 
                         doc.autoTable({
                             startY: y,

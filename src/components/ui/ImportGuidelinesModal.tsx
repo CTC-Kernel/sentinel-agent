@@ -70,7 +70,6 @@ export const ImportGuidelinesModal: React.FC<ImportGuidelinesModalProps> = ({
             setSelectedFile(null);
             toast.success(t('common.import.success', { entity: entityName }));
         } catch (error) {
-            console.error(error);
             toast.error(t('common.import.error'));
         } finally {
             setIsUploading(false);

@@ -79,7 +79,6 @@ const cspNonceMiddleware = (_req: Request, res: Response, next: NextFunction) =>
     res.locals.cspNonce = randomBytes(16).toString('base64');
     next();
   } catch (error) {
-    console.error('CSP Nonce generation error:', error);
     logger.error({ err: error }, 'Erreur lors de la génération du nonce CSP');
     next(error);
   }

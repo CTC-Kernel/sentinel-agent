@@ -43,8 +43,6 @@ export const configureApp = (): Express => {
 
   // Gestion des erreurs globales
   app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    console.error('Erreur non gérée :', err);
-
     res.status(500).json({
       error: 'Internal Server Error',
       message: 'Une erreur inattendue est survenue.'
@@ -65,7 +63,6 @@ export const startServer = (port: number | string, app: Express): void => {
 
   // Gestion des erreurs non capturées
   process.on('unhandledRejection', (reason: Error) => {
-    console.error('Unhandled Rejection at:', reason.stack || reason);
     // Fermeture propre du serveur
     server.close(() => {
       process.exit(1);

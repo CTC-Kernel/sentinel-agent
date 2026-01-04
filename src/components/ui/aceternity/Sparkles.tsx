@@ -75,7 +75,6 @@ export const SparklesCore = (props: {
         const particles: InstanceType<typeof Particle>[] = [];
         const particleCount = particleDensity;
 
-
         const init = () => {
             for (let i = 0; i < particleCount; i++) {
                 particles.push(new Particle(width, height, minSize, maxSize, speed));

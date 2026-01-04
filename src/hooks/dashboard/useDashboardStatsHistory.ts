@@ -43,8 +43,7 @@ export const useDashboardStatsHistory = ({
                     }, { merge: true }); // Use merge to be safe
                 } catch (e) {
                     // Silent fail or log if needed, but avoiding user disruption
-                    console.error("Failed to save daily stats", e);
-                }
+                    }
             };
             saveStats();
         }

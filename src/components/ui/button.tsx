@@ -6,8 +6,6 @@ import { Spinner } from "./Spinner"
 
 import { cn } from "@/lib/utils"
 
-
-
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
     VariantProps<typeof buttonVariants> & {
         asChild?: boolean

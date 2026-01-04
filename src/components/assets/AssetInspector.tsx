@@ -91,10 +91,6 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
         createRiskFromVuln
     } = useAssetSecurity(selectedAsset || null);
 
-
-
-
-
     const tabs = [
         { id: 'details', label: 'Détails', icon: LayoutDashboard },
         ...(selectedAsset ? [
@@ -159,7 +155,6 @@ export const AssetInspector: React.FC<AssetInspectorProps> = ({
                             onCancel={onClose}
                             readOnly={!canEdit}
                         />
-
 
                     </div>
                 )}

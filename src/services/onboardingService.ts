@@ -249,7 +249,6 @@ export class OnboardingService {
         }
     }
 
-
     // --- Tour Logic Methods ---
 
     /**

@@ -7,7 +7,6 @@ import { Risk, Asset, Control, BusinessProcess as Process, Supplier, Incident, A
 export const useRiskData = () => {
     const { user } = useAuth();
 
-
     const { data: rawRisks, loading: risksLoading } = useFirestoreCollection<Risk>(
         'risks',
         [where('organizationId', '==', user?.organizationId || 'ignore')],

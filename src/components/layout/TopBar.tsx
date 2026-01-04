@@ -169,7 +169,6 @@ export const TopBar: React.FC<TopBarProps> = ({ setMobileOpen }) => {
                                 src={getDefaultAvatarUrl()}
                                 className="h-9 w-9 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-md group-hover:scale-105 transition-transform"
                                 onError={(e) => {
-                                    console.error('TopBar avatar failed to load:', e);
                                     const target = e.target as HTMLImageElement;
                                     target.src = getDefaultAvatarUrl();
                                 }}

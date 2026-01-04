@@ -12,7 +12,6 @@ export const useActivityLogs = (limitCount: number = 50) => {
     const lastDocRef = useRef<QueryDocumentSnapshot<DocumentData> | null>(null);
     const [hasMore, setHasMore] = useState(true);
 
-
     const [filter, setFilter] = useState({
         search: '',
         action: '',
@@ -149,7 +148,6 @@ export const useActivityLogs = (limitCount: number = 50) => {
             setHasMore(snapshot.docs.length === limitCount);
 
         } catch (error) {
-            console.error('Error fetching activity logs:', error);
             toast.error('Impossible de charger le journal d\'activité');
         } finally {
             setLoading(false);

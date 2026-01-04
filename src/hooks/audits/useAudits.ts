@@ -91,7 +91,6 @@ export const useAudits = () => {
                 setMockFindings(findings);
                 setMockLoading(false);
             }).catch(err => {
-                console.error('Failed to load mock data module', err);
                 setMockLoading(false);
             });
         }
@@ -271,7 +270,6 @@ export const useAudits = () => {
         addToast(`${auditsToCreate.length} audits planifiés avec succès.`, "success");
     };
 
-
     const handleExportCSV = async () => {
         if (isExportingCSV) return;
         setIsExportingCSV(true);
@@ -294,7 +292,6 @@ export const useAudits = () => {
             setTimeout(() => setIsExportingCSV(false), 0);
         }
     };
-
 
     const importAudits = useCallback(async (csvContent: string) => {
         if (!user?.organizationId || !user?.uid) return;

@@ -82,8 +82,7 @@ export class ThreatFeedService {
             }
         } catch (error) {
             // Continue to other methods if Firebase proxy fails
-            console.warn("Firebase proxy failed, trying alternatives", error);
-        }
+            }
 
         // List of proxy services to try in order
         const proxies = [
@@ -95,7 +94,6 @@ export class ThreatFeedService {
 
         // Si hors ligne, ne pas tenter de fetch
         if (typeof navigator !== 'undefined' && !navigator.onLine) {
-            console.warn("Offline detected, skipping fetch");
             return { vulnerabilities: [], urls: [] };
         }
 
@@ -160,7 +158,6 @@ export class ThreatFeedService {
         // Instead of throwing, we return empty to trigger fallback logic upstream if needed,
         // OR we can rely on the caller to handle empty results.
         // Given the requirement to be robust:
-        console.warn(`All threat feed proxies failed for ${targetUrl}. Returning empty set.`);
         return { vulnerabilities: [], urls: [] };
     }
 
@@ -192,7 +189,6 @@ export class ThreatFeedService {
             }));
 
         } catch (error) {
-            console.warn('[ThreatFeedService] Failed to fetch CISA KEV:', error);
             return [];
         }
     }
@@ -227,7 +223,6 @@ export class ThreatFeedService {
             }));
 
         } catch (error) {
-            console.warn('[ThreatFeedService] Failed to fetch URLhaus:', error);
             return [];
         }
     }
@@ -258,7 +253,6 @@ export class ThreatFeedService {
             // If live fetch returns nothing/empty, consider falling back to simulation automatically
             // to avoid empty dashboards for the user.
             if (liveThreats.length === 0 && liveVulns.length === 0) {
-                console.warn("Live feeds returned empty. Falling back to simulation for better UX.");
                 return this.seedSimulatedData(organizationId);
             }
 

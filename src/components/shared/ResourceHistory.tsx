@@ -57,7 +57,6 @@ export const ResourceHistory: React.FC<ResourceHistoryProps> = ({ resourceId, re
 
                     const isValidDate = (d: Date) => d instanceof Date && !isNaN(d.getTime());
 
-
                     return (
                         <div key={log.id} className="relative pl-6">
                             {/* Timeline Dot */}

@@ -56,7 +56,6 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
                     loading="lazy" 
                     className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-50 grayscale' : ''}`} 
                     onError={(e) => {
-                        console.error('UserCard avatar failed to load:', e);
                         const target = e.target as HTMLImageElement;
                         target.src = getDefaultAvatarUrl();
                     }}

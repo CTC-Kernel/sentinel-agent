@@ -67,8 +67,7 @@ export function useAssetDetails(asset: Asset | null) {
                 setMaintenanceRecords(snap.docs.map(d => ({ id: d.id, ...d.data() } as MaintenanceRecord)));
             }, (err) => ErrorLogger.handleErrorWithToast(err, 'useAssetDetails.maintenance'));
         } catch (e) {
-            console.error(e);
-        }
+            }
 
         fetchDetails();
 

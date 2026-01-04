@@ -23,8 +23,6 @@ import { Asset, Risk, Project, Audit, Incident, Supplier, Control, AISuggestedLi
 
 type LayerType = 'asset' | 'risk' | 'project' | 'audit' | 'incident' | 'supplier' | 'control';
 
-
-
 const formatSafeDate = (date: unknown): string => {
   if (!date) return '—';
   try {
@@ -67,8 +65,6 @@ const layerOptions: { id: LayerType; label: string; hint: string; color: string 
   { id: 'control', label: 'Contrôles', hint: 'Mesures de sécurité', color: 'bg-teal-500' }
 ];
 
-
-
 export const VoxelView: React.FC = () => {
   const { user } = useAuth();
   const { addToast } = useStore();
@@ -79,7 +75,6 @@ export const VoxelView: React.FC = () => {
     const allowedRoutes = ['/assets', '/risks', '/projects', '/audits', '/incidents', '/suppliers', '/library', '/compliance'];
     return allowedRoutes.some(allowed => path.startsWith(allowed));
   };
-
 
   const {
     loading,
@@ -312,7 +307,6 @@ export const VoxelView: React.FC = () => {
       setIsDetailMinimized(false);
     }
   };
-
 
   const scenarioPresets: { id: string; label: string; description: string; layers: LayerType[] }[] = [
     { id: 'threat', label: 'Flux Menaces', description: 'Actifs critiques + risques associés + incidents', layers: ['asset', 'risk', 'incident'] },
@@ -646,9 +640,6 @@ export const VoxelView: React.FC = () => {
     setSelectedNode(node);
     setFocusedNodeId(node?.id ?? null);
   };
-
-
-
 
   const handleSearchButtonClick = () => {
     setNavCollapsed(false);
@@ -1057,8 +1048,6 @@ export const VoxelView: React.FC = () => {
           setImpactMode={setImpactMode}
         />
 
-
-
         {/* AI Insights Panel */}
         {showInsights && aiInsights.length > 0 && (
           <div className="absolute top-24 left-6 z-50 w-80 max-h-[calc(100%-200px)] overflow-y-auto rounded-2xl border border-white/20 bg-slate-900/90 backdrop-blur-xl shadow-2xl p-4 animate-[slideIn_0.3s_ease-out]">
@@ -1095,7 +1084,6 @@ export const VoxelView: React.FC = () => {
           </div>
         )}
 
-
         {/* Loading overlay for refresh */}
         {loading && (
           <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center">
@@ -1122,8 +1110,6 @@ export const VoxelView: React.FC = () => {
               </button>
             ))}
           </div>
-
-
 
           <div className="text-sm text-slate-600 dark:text-slate-300">
             <p className="font-medium">Légende dynamique</p>

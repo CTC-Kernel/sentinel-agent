@@ -19,8 +19,6 @@ export interface Conversation {
     updatedAt: Date;
 }
 
-
-
 const FAST_MODEL = "gemini-1.5-flash";
 const SMART_MODEL = "gemini-3-pro-preview";
 
@@ -148,8 +146,6 @@ export const aiService = {
         }
     },
 
-
-
     /**
      * Analyzes CSV import data to map columns and identify anomalies.
      */
@@ -205,11 +201,9 @@ export const aiService = {
     async chatWithAI(message: string, context?: Record<string, unknown>): Promise<string> {
         // [DEBUG] Log caller to identify source of unexpected calls
 
-
         // Prevent loops: Rate limit client-side (1 second debounce)
         const now = Date.now();
         if (lastChatCall && (now - lastChatCall < 2000)) {
-            console.warn('[aiService] Rate limit prevented rapid call.');
             return "Veuillez patienter quelques secondes avant de renvoyer un message.";
         }
         lastChatCall = now;
@@ -492,11 +486,9 @@ export const aiService = {
 async function generateContentSafe(prompt: string, modelName: string = FAST_MODEL): Promise<string> {
     // [DEBUG] Log caller for generateContentSafe
 
-
     // Prevent loops: Rate limit client-side (1 second debounce)
     const now = Date.now();
     if (lastGenCall && (now - lastGenCall < 2000)) {
-        console.warn('[aiService] Rate limit prevented rapid generateContentSafe call.');
         return ""; // Return empty string or handle gracefully
     }
     lastGenCall = now;
@@ -535,7 +527,6 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
 
     throw new Error("Impossible de générer le contenu via le service IA.");
 }
-
 
 async function runChatSafe(systemPrompt: string, message: string, modelName: string = FAST_MODEL): Promise<string> {
     try {

@@ -33,7 +33,6 @@ export class ReportEnrichmentService {
      */
     static calculateMetrics(risks: Risk[]): ReportMetrics {
         if (!Array.isArray(risks)) {
-            console.warn('ReportEnrichmentService.calculateMetrics: risks is not an array', risks);
             return {
                 total_risks: 0,
                 critical_risks: 0,

@@ -62,8 +62,7 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                     initial.slaStatus = calculateSLAStatus(formattedDate, initial.status || 'Planifié');
                 }
             } catch (error) {
-                console.warn('Error calculating default SLA date:', error);
-            }
+                }
         }
 
         return initial;

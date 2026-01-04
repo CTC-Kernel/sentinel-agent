@@ -103,10 +103,6 @@ export const Risks: React.FC = () => {
 
     // ... existing code ...
 
-
-
-
-
     // Sanitize risks data centrally to ensure no NaNs propagate to children
     const sanitizedRisks = React.useMemo(() => {
         return risks.map(r => {
@@ -137,8 +133,6 @@ export const Risks: React.FC = () => {
         frameworkFilter, setFrameworkFilter,
         matrixFilter, setMatrixFilter
     } = useRiskFilters(sanitizedRisks);
-
-
 
     // Local UI State
     const [creationMode, setCreationMode] = useState(false);
@@ -184,9 +178,7 @@ export const Risks: React.FC = () => {
         }
     }, [location.state, creationMode]);
 
-
     // Refs
-
 
     // Helper functions
     // Helper functions
@@ -196,8 +188,6 @@ export const Risks: React.FC = () => {
         setInitialFormData(undefined); // Clear initial data when editing existing
         setCreationMode(true);
     }, [user]);
-
-
 
     const handleExportExecutive = React.useCallback(async () => {
         setIsGeneratingReport(true);
@@ -226,8 +216,6 @@ export const Risks: React.FC = () => {
     // Import Logic
     const [importModalOpen, setImportModalOpen] = useState(false);
 
-
-
     const handleDownloadTemplate = React.useCallback(() => {
         const headers = [...riskGuidelines.required, ...riskGuidelines.optional];
         const exampleRow = {
@@ -251,15 +239,11 @@ export const Risks: React.FC = () => {
         }
     };
 
-
     // Callbacks
-
 
     const handleSearchChange = React.useCallback((q: string) => {
         setActiveFilters(prev => ({ ...prev, query: q }));
     }, [setActiveFilters]);
-
-
 
     const handleFrameworkChange = React.useCallback((val: string | string[]) => {
         setFrameworkFilter(val as string);
@@ -348,7 +332,6 @@ export const Risks: React.FC = () => {
         setIsTemplateModalOpen(false);
     }, [createRisk, t]);
 
-
     // Role Logic
     const role = user?.role || 'user';
     let risksTitle = t('risks.title');
@@ -409,7 +392,6 @@ export const Risks: React.FC = () => {
         { id: 'list', label: t('assets.viewList'), icon: List },
         { id: 'grid', label: t('assets.viewGrid'), icon: Grid3x3 }
     ], [t]);
-
 
     const handleStartAiAnalysis = React.useCallback(async () => {
         setIsAnalyzing(true);
@@ -623,7 +605,6 @@ export const Risks: React.FC = () => {
             )}
 
             {/* Hidden Input for Import */}
-
 
             {/* Advanced Search Panel Placeholder */}
             <AnimatePresence>

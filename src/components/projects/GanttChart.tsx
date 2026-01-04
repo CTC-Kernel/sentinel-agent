@@ -20,8 +20,6 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
     // Default to hidden on mobile (< 768px)
     const [showList, setShowList] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
 
-
-
     // Map internal view mode to library ViewMode
     const libraryViewMode = useMemo(() => {
         switch (viewMode) {

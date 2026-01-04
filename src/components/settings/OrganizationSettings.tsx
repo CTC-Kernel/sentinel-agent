@@ -164,7 +164,6 @@ export const OrganizationSettings: React.FC = () => {
         });
     }, [t, handleTransferOwnership]);
 
-
     const handleRemoveUser = React.useCallback(async (targetUserId: string) => {
         if (!hasPermission(user, 'User', 'manage')) return;
         setConfirmRemoveData(prev => ({ ...prev, loading: true }));
@@ -366,5 +365,4 @@ export const OrganizationSettings: React.FC = () => {
         </div>
     );
 };
-
 

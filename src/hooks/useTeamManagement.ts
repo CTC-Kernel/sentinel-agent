@@ -14,7 +14,6 @@ import { SubscriptionService } from '../services/subscriptionService';
 import { CsvParser } from '../utils/csvUtils';
 import { useTranslation } from 'react-i18next';
 
-
 export const useTeamManagement = () => {
     const { t } = useTranslation(); // Added initialization
     const { user, addToast, demoMode } = useStore();
@@ -22,7 +21,6 @@ export const useTeamManagement = () => {
     const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
-
 
     const fetchUsers = useCallback(async () => {
         if (!user?.organizationId) return;
@@ -40,7 +38,6 @@ export const useTeamManagement = () => {
                 setJoinRequests(mockRequests as JoinRequest[]);
                 setLoading(false);
             }).catch(err => {
-                console.error('Failed to load mock data module', err);
                 setLoading(false);
             });
             return;
@@ -94,8 +91,7 @@ export const useTeamManagement = () => {
                 const mock = MockDataService.getCollection('custom_roles');
                 setCustomRoles(mock as CustomRole[]);
             }).catch(err => {
-                console.error('Failed to load mock data module', err);
-            });
+                });
             return;
         }
 

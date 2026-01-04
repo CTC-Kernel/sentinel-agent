@@ -63,8 +63,6 @@ const ThreatMarker: React.FC<{ position: THREE.Vector3; name: string; intensity:
     );
 };
 
-
-
 // We need a scene container that holds the planet and markers in the same coordinate system.
 const ThreatScene: React.FC<{ data: ThreatData[] }> = ({ data }) => {
     const groupRef = useRef<THREE.Group>(null);

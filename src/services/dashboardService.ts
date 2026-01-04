@@ -80,7 +80,6 @@ export class DashboardService {
             }
             return null;
         } catch (error) {
-            console.warn('Silent error in DashboardService.getExecutiveSummary', error);
             return null;
         }
     }

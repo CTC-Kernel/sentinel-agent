@@ -13,7 +13,6 @@ export const GettingStartedButton: React.FC<GettingStartedButtonProps> = ({ onSh
         onShow();
     };
 
-
     return (
         <button
             onClick={handleShow}

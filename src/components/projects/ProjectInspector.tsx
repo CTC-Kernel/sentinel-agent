@@ -525,8 +525,6 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     );
 };
 
-
-
 const LinkedRiskItem = React.memo(({ risk, onClick }: { risk: Risk, onClick: () => void }) => {
     const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {

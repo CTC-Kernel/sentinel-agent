@@ -40,7 +40,6 @@ export const RiskTreatmentChart: React.FC<RiskTreatmentChartProps> = ({ risks })
             }));
     }, [risks]);
 
-
     if (data.length === 0) {
         return <EmptyChartState variant="pie" message="Aucun traitement" description="Définissez des plans de traitement." />;
     }

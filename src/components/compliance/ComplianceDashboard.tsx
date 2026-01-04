@@ -70,7 +70,6 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
         fetchTrend();
     }, [user?.organizationId]);
 
-
     const calculateScore = (fw: string) => {
         const fwControls = controls.filter(c => c.framework === fw);
         if (fwControls.length === 0) return 0;
@@ -166,7 +165,6 @@ export const ComplianceDashboard: React.FC<ComplianceDashboardProps> = ({ contro
             </div>
         );
     }
-
 
     return (
         <div className="space-y-6 w-full min-w-0">

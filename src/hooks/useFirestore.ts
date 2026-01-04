@@ -81,9 +81,7 @@ const stableConstraintKey = (c: QueryConstraint): string => {
     return [type, fieldKey, opKey, valueKey, dirKey, limitKey].join(':');
 };
 
-
 import { useStore } from '../store';
-
 
 export const useFirestoreCollection = <T = DocumentData>(
     collectionName: string,
@@ -150,7 +148,6 @@ export const useFirestoreCollection = <T = DocumentData>(
                 setRealtimeData(mockData);
                 setRealtimeLoading(false);
             }).catch(err => {
-                console.error('Failed to load mock data', err);
                 setRealtimeLoading(false);
             });
         }

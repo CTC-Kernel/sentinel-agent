@@ -104,7 +104,6 @@ export const DocumentUploadWizard: React.FC<DocumentUploadWizardProps> = ({
         }
     }, [initialFile, isOpen, setValue]);
 
-
     // Auto-set owner name
     useEffect(() => {
         if (!ownerId) {

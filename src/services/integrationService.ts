@@ -198,7 +198,6 @@ class IntegrationService {
             // Fallback for calls that might not have passed orgId, though they should have.
             // For safety in this "simulated backend" fix, we'll just return if no orgId to avoid crash,
             // or log error. Better to require it.
-            console.warn("IntegrationService.syncProvider called without organizationId");
             return;
         }
 
@@ -532,7 +531,6 @@ class IntegrationService {
             throw error;
         }
     }
-
 
     async getScannerJobs(organizationId?: string, isDemoMode: boolean = false): Promise<ScannerJob[]> {
         const demoMode = this.normalizeDemoMode(isDemoMode);

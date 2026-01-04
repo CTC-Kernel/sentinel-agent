@@ -15,8 +15,7 @@ const requiredEnvVars = [
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
-  console.error('Erreur : Les variables d\'environnement suivantes sont requises mais manquantes :');
-  console.error(missingVars.join(', '));
+  );
   process.exit(1);
 }
 
@@ -28,15 +27,12 @@ startServer(PORT, app);
 
 // Gestion des erreurs non capturées
 process.on('uncaughtException', (error) => {
-  console.error('Exception non gérée :', error);
   process.exit(1);
 });
 
 // Gestion des rejets de promesse non gérés
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Rejet de promesse non géré :', reason);
-  console.error('Promesse rejetée :', promise);
-});
+  });
 
 // Exporter l'application pour les tests
 export default app;

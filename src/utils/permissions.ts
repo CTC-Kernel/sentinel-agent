@@ -134,7 +134,19 @@ export const hasPermission = (user: UserProfile | null, resource: ResourceType, 
     // Fallback role if missing
     const userRole = user.role || 'user';
 
-    if (userRole === 'admin') return true;
+    // SECURITY FIX: Admin still has full access but with explicit validation
+    if (userRole === 'admin') {
+        // Additional validation for critical actions
+        if (action === 'delete' && ['User', 'Organization'].includes(resource)) {
+            return orgOwnerId ? user.uid === orgOwnerId : true;
+        }
+        return true;
+    }
+
+    // CRITICAL FIX: Restrict auditors from delete operations
+    if (userRole === 'auditor' && action === 'delete') {
+        return false;
+    }
 
     // Get custom roles from store
     const customRoles = useStore.getState().customRoles;
@@ -246,9 +258,7 @@ export const canDeleteResource = (user: UserProfile | null, resource: ResourceTy
         return true;
     }
 
-
     // Project Managers permission is now handled by the matrix (manage = delete)
-
 
     // Auditors generally cannot delete, except maybe Drafts? Rules say NO for risks/Assets/Controls.
     // Rules say YES for Audits?
