@@ -50,8 +50,10 @@ class VoxelErrorBoundary extends Component<{ children: React.ReactNode, fallback
     return { hasError: true };
   }
 
-  componentDidCatch(error: unknown, errorInfo: ErrorInfo) {
-    }
+  componentDidCatch(_error: unknown, _errorInfo: ErrorInfo) {
+    // Error logging could be added here if needed
+    // ErrorLogger.error(_error, 'VoxelStudio.componentDidCatch', { metadata: _errorInfo });
+  }
 
   render() {
     if (this.state.hasError) {

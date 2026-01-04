@@ -75,7 +75,7 @@ export const useAIConversation = (userId: string | undefined, enabled: boolean =
         }
       },
       (error) => {
-        ", error);
+        ErrorLogger.error(error, 'useAIConversation.onSnapshot');
       }
     );
 

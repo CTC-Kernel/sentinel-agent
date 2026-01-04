@@ -190,13 +190,19 @@ class ErrorLoggerService {
             const analyticsSdk = await import('firebase/analytics');
             analyticsSdk.logEvent(analyticsInstance, type, data);
           } catch (e) { // silent
-            if (this.isDevelopment) }
+            if (this.isDevelopment) {
+              console.debug('Analytics event failed:', e);
+            }
+          }
         }).catch(() => {
           // Ignore import errors in tests/offline
         });
       } catch (e) { // silent
         // Fail silently if analytics fails (e.g. ad blocker)
-        if (this.isDevelopment) }
+        if (this.isDevelopment) {
+          console.debug('Analytics import failed:', e);
+        }
+      }
 
       // Stockage local en développement pour debug
       if (this.isDevelopment) {

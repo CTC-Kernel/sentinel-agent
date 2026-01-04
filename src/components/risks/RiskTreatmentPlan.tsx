@@ -61,8 +61,10 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
                     initial.dueDate = formattedDate;
                     initial.slaStatus = calculateSLAStatus(formattedDate, initial.status || 'Planifié');
                 }
-            } catch (error) {
-                }
+            } catch {
+                // ErrorLogger.error(error, 'RiskTreatmentPlan.parseDate');
+                // Keep default date if parsing fails
+            }
         }
 
         return initial;

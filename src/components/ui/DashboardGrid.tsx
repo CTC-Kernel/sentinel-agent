@@ -127,8 +127,8 @@ const DraggableWidget: React.FC<DraggableWidgetProps> = ({
     onDragStart(widget.id);
   };
 
-  const handleDragEnd = (event: any) => {
-    const newPosition = { x: event.point.x, y: event.point.y };
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: { point: { x: number; y: number } }) => {
+    const newPosition = { x: info.point.x, y: info.point.y };
     onDragEnd(widget.id, newPosition);
   };
 
