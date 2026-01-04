@@ -3,15 +3,14 @@ import { Button } from '../ui/button';
 import { Document, Control, UserProfile } from '../../types';
 import { Drawer } from '../ui/Drawer';
 import { ScrollableTabs } from '../ui/ScrollableTabs';
-import { SafeHTML } from '../ui/SafeHTML';
-import { FileText, History, MessageSquare, Eye, ShieldCheck, List, ExternalLink, Link as LinkIcon, Edit, Trash2 } from 'lucide-react';
+import { FileText, History, MessageSquare, Eye, ShieldCheck, List, Edit, Trash2 } from 'lucide-react';
 import { WorkflowStatusBadge } from './WorkflowStatusBadge';
 import { ApprovalFlow } from './ApprovalFlow';
 import { DocumentVersionHistory } from './DocumentVersionHistory';
 import { CommentSection } from '../collaboration/CommentSection';
 import { TimelineView } from '../shared/TimelineView';
 import { useDocumentVersions } from '../../hooks/documents/useDocumentVersions';
-// FilePreview import removed
+import { DocumentDetails } from './inspector/DocumentDetails';
 // FilePreview is imported but intentionally not used via the component tag to avoid auto-modal. 
 // However, we should remove the import if we are not using it at all.
 // Wait, we replaced the usage with a button.
@@ -169,117 +168,11 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
 
                 <div className="mt-6">
                     {activeTab === 'details' && (
-                        <div className="space-y-8 animate-fade-in">
-                            <div className="prose prose-slate dark:prose-invert max-w-none">
-                                <h3 className="text-sm font-bold bg-slate-100 dark:bg-slate-800 p-2 rounded-lg inline-block text-slate-700 dark:text-slate-300 mb-4">
-                                    Description
-                                </h3>
-                                <div className="glass-premium p-6 rounded-2xl border border-white/50 dark:border-white/5">
-                                    <SafeHTML content={selectedDocument.description || '<p className="text-slate-400 italic">Aucune description disponible.</p>'} />
-                                </div>
-                            </div>
-
-                            {/* Linked Controls */}
-                            {linkedControls.length > 0 && (
-                                <div>
-                                    <h3 className="text-sm font-bold bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 p-2 rounded-lg inline-block mb-4">
-                                        Contrôles Associés ({linkedControls.length})
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {linkedControls.map(ctrl => (
-                                            <div
-                                                key={ctrl.id}
-                                                className="p-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-between group hover:border-brand-200 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
-                                                role="button"
-                                                tabIndex={0}
-                                            // Assuming we might want to navigate to control details later, keeping functionality minimal as per original code which didn't verify navigation. 
-                                            // Original didn't have onClick. It was just a display. Adding accessible attributes usually implies interactivity. 
-                                            // The original code had `cursor-pointer` and `hover:border-brand-200` suggesting interactivity intention, but no onClick handler was present in the snippet.
-                                            // I will leave onClick empty or undefined for now if no logic was attached, BUT for a5 to be valid, if it's focusable it should do something.
-                                            // If it's purely informational, it shouldn't be a button. 
-                                            // However, "cursor-pointer" strongly implies it should be clickable. 
-                                            // I'll add the attributes for a generic button essentially.
-                                            // Wait, if it does nothing, tabIndex=0 might be confusing for screen readers "Button, nothing happens".
-                                            // Let's assume it *will* be used for navigation and make it accessible.
-                                            // Actually, if there is no onClick, I should probably NOT make it a button unless I add an onClick. 
-                                            // Let's look at likely intent. It probably should open the Control Inspector.
-                                            // But I don't have the handler here.
-                                            // I will stick to adding focus styles for now on the container but maybe not role="button" if there's no action?
-                                            // No, the instruction is "Make linked controls accessible".
-                                            // I will add role="button" and tabIndex={0} but keep onClick undefined as original.
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-8 w-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 font-bold text-xs">
-                                                        {ctrl.code}
-                                                    </div>
-                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-brand-600 truncate max-w-[200px]">
-                                                        {ctrl.name}
-                                                    </span>
-                                                </div>
-                                                <ExternalLink className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* External Links */}
-                            {selectedDocument.storageProvider !== 'firebase' && selectedDocument.externalUrl && (
-                                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl flex items-center gap-3">
-                                    <LinkIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Lien Externe</p>
-                                        <a
-                                            href={selectedDocument.externalUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-xs text-blue-600 hover:underline break-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
-                                        >
-                                            {selectedDocument.externalUrl}
-                                        </a>
-                                    </div>
-                                    <ExternalLink className="h-4 w-4 text-blue-500" />
-                                </div>
-                            )}
-
-                            {/* File Preview */}
-                            {selectedDocument.url && (
-                                <div>
-                                    <h3 className="text-sm font-bold bg-slate-100 dark:bg-slate-800 p-2 rounded-lg inline-block text-slate-700 dark:text-slate-300 mb-4">Fichier</h3>
-                                    {/* Using FilePreview component here for button/modal approach or check FilePreview usage correctness. 
-                                        FilePreview IS a modal code. Using it inline here will trigger a modal immediately.
-                                        We should render a button/thumbnail that OPENS the modal.
-                                        BUT `DocumentInspector` is already a Drawer.
-                                        Opening a Modal from a Drawer is fine.
-                                        But we shouldn't render `<FilePreview>` unconditionally if we don't want it open.
-                                        We should render a thumbnail loop, and then conditionally render FilePreview.
-                                        
-                                        Wait, line 214 currently renders it unconditionally if selectedDocument.url exists.
-                                        This means as soon as Inspector opens, the FilePreview Modal opens on top of it?
-                                        That seems like a Bug or intended "Preview at bottom" behavior?
-                                        Checking FilePreview.tsx again: It has `fixed inset-0 z-modal`. It is a MODAL.
-                                        So yes, it would obscure the inspector.
-                                        
-                                        Correct Logic: Render a "Voir le fichier" button/card. On click -> set showPreview(true).
-                                    */}
-                                    <div className="flex items-center gap-4 p-4 border rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                                        <div className="h-12 w-12 bg-white dark:bg-slate-700 rounded-lg flex items-center justify-center shadow-sm">
-                                            <FileText className="h-6 w-6 text-brand-500" />
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-slate-900 dark:text-white">{selectedDocument.title}</p>
-                                            <Button
-                                                variant="link"
-                                                onClick={() => onSecureView(selectedDocument)}
-                                                className="text-sm text-brand-600 hover:underline px-1 h-auto py-0"
-                                            >
-                                                Ouvrir l'aperçu
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        <DocumentDetails
+                            document={selectedDocument}
+                            controls={linkedControls}
+                            onSecureView={onSecureView}
+                        />
                     )}
 
                     {activeTab === 'versions' && (

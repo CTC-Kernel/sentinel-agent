@@ -5,7 +5,7 @@ import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { Asset, SystemLog, MaintenanceRecord, Risk, Incident, Project, Audit, Document as GRCDocument, Control } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
-import { AssetService } from '../../services/AssetService';
+import { AssetService } from '../../services/assetService';
 
 export function useAssetDetails(asset: Asset | null) {
     const { user } = useStore();

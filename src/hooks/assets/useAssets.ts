@@ -7,7 +7,7 @@ import { AssetFormData } from '../../schemas/assetSchema';
 import { ErrorLogger } from '../../services/errorLogger';
 import { usePlanLimits } from '../usePlanLimits';
 import { DependencyService } from '../../services/dependencyService';
-import { AssetService } from '../../services/AssetService';
+import { AssetService } from '../../services/assetService';
 import { z } from 'zod';
 
 export function useAssets() {
