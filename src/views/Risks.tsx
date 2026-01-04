@@ -109,15 +109,25 @@ export const Risks: React.FC = () => {
 
     // Sanitize risks data centrally to ensure no NaNs propagate to children
     const sanitizedRisks = React.useMemo(() => {
-        return risks.map(r => ({
-            ...r,
-            score: Number(r.score) || 0,
-            residualScore: Number(r.residualScore) || Number(r.score) || 0,
-            probability: (Number(r.probability) || 1) as Risk['probability'],
-            impact: (Number(r.impact) || 1) as Risk['impact'],
-            residualProbability: (Number(r.residualProbability) || Number(r.probability) || 1) as Risk['probability'],
-            residualImpact: (Number(r.residualImpact) || Number(r.impact) || 1) as Risk['impact']
-        }));
+        return risks.map(r => {
+            const prob = Number(r.probability) || 1;
+            const imp = Number(r.impact) || 1;
+            const computedScore = prob * imp;
+
+            const resProb = Number(r.residualProbability) || prob;
+            const resImp = Number(r.residualImpact) || imp;
+            const computedResScore = resProb * resImp;
+
+            return {
+                ...r,
+                probability: prob as Risk['probability'],
+                impact: imp as Risk['impact'],
+                score: Number(r.score) || computedScore,
+                residualProbability: resProb as Risk['probability'],
+                residualImpact: resImp as Risk['impact'],
+                residualScore: Number(r.residualScore) || computedResScore
+            };
+        });
     }, [risks]);
 
     const {
@@ -243,14 +253,7 @@ export const Risks: React.FC = () => {
 
 
     // Callbacks
-    const handleFilterChange = React.useCallback((filter: { type: string; value: string } | null) => {
-        if (!filter) {
-            setActiveFilters(prev => ({ ...prev, query: '' }));
-            setFrameworkFilter('');
-        } else if (filter.type === 'level') {
-            setFrameworkFilter('');
-        }
-    }, [setActiveFilters, setFrameworkFilter]);
+
 
     const handleSearchChange = React.useCallback((q: string) => {
         setActiveFilters(prev => ({ ...prev, query: q }));
@@ -451,8 +454,6 @@ export const Risks: React.FC = () => {
                 <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="overview-tab" data-tour="risks-stats">
                     <RiskDashboard
                         risks={filteredRisks}
-                        assets={assets}
-                        onFilterChange={handleFilterChange}
                     />
                 </motion.div>
             )}

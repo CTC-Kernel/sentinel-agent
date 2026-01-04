@@ -6,6 +6,7 @@ export const SENTINEL_PALETTE = {
     warning: '#f59e0b',   // Amber 500
     danger: '#ef4444',    // Red 500
     info: '#06b6d4',      // Cyan 500
+    tertiary: '#0ea5e9',  // Sky 500 (Adding for charts)
 
     // Abstract/Data Series Colors
     series1: '#8b5cf6', // Violet
@@ -33,12 +34,16 @@ export const CHART_STYLES = {
         vertical: false
     },
     // Axis
+    // Base Axis Style (Common)
     axis: {
         stroke: 'hsl(var(--muted-foreground))',
         fontSize: 12,
         tickLine: false,
         axisLine: false,
-        tickMargin: 8,
+        tickMargin: 8
+    },
+    // Specific X-Axis Style
+    xAxis: {
         padding: { left: 10, right: 10 }
     },
     // Tooltip (Recharts internal wrapper style)
@@ -70,7 +75,9 @@ export const CHART_STYLES = {
         strokeDasharray: '3 3',
         strokeWidth: 2,
         opacity: 0.7
-    }
+    },
+    // Cursor/Hover Indicator
+    cursor: 'hsl(var(--muted-foreground))' // Simple string for stroke/fill reference
 };
 
 // Helper for Recharts Gradient Definitions (to be used inside <defs>)

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
-    PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip,
+    PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
     BarChart, Bar, Legend
 } from 'recharts';
 import { Activity, ShieldCheck, Zap, TrendingUp, History } from '../ui/Icons';
@@ -10,6 +10,7 @@ import { slideUpVariants, staggerContainerVariants } from '../ui/animationVarian
 import { BusinessProcess, BcpDrill } from '../../types';
 import { EmptyChartState } from '../ui/EmptyChartState';
 import { EmptyState } from '../ui/EmptyState';
+import { SENTINEL_PALETTE, SEVERITY_COLORS } from '../../theme/chartTheme';
 
 interface ContinuityDashboardProps {
     processes: BusinessProcess[];
@@ -54,10 +55,10 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
             }
         });
         return [
-            { name: 'Critique', value: counts.Critique, color: '#ef4444' }, // Red
-            { name: 'Elevée', value: counts.Elevée, color: '#f97316' },   // Orange
-            { name: 'Moyenne', value: counts.Moyenne, color: '#eab308' },  // Yellow
-            { name: 'Faible', value: counts.Faible, color: '#22c55e' }    // Green
+            { name: 'Critique', value: counts.Critique, color: SEVERITY_COLORS.critical },
+            { name: 'Elevée', value: counts.Elevée, color: SEVERITY_COLORS.high },
+            { name: 'Moyenne', value: counts.Moyenne, color: SEVERITY_COLORS.medium },
+            { name: 'Faible', value: counts.Faible, color: SEVERITY_COLORS.low }
         ].filter(d => d.value > 0);
     }, [processes]);
 
@@ -70,9 +71,9 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
             else if (d.result === 'Échec') counts.Échec++;
         });
         return [
-            { name: 'Succès', value: counts.Succès, color: '#22c55e' },
-            { name: 'Partiel', value: counts.Partiel, color: '#f59e0b' },
-            { name: 'Échec', value: counts.Échec, color: '#ef4444' }
+            { name: 'Succès', value: counts.Succès, color: SENTINEL_PALETTE.success },
+            { name: 'Partiel', value: counts.Partiel, color: SENTINEL_PALETTE.warning },
+            { name: 'Échec', value: counts.Échec, color: SENTINEL_PALETTE.danger }
         ];
     }, [drills]);
 
@@ -99,7 +100,7 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
                                     cy="64"
                                 />
                                 <circle
-                                    className={`${stats.coverageRate >= 80 ? 'text-emerald-500' : stats.coverageRate >= 50 ? 'text-blue-500' : 'text-amber-500'} transition-all duration-1000 ease-out`}
+                                    className={`${stats.coverageRate >= 80 ? 'text-emerald-500' : stats.coverageRate >= 50 ? 'text-blue-500' : 'text-amber-500'} transition - all duration - 1000 ease - out`}
                                     strokeWidth="10"
                                     strokeDasharray={351}
                                     strokeDashoffset={351 - (351 * stats.coverageRate) / 100}
@@ -113,7 +114,7 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
                                 <span className="text-3xl font-black text-slate-900 dark:text-white">{stats.coverageRate}%</span>
-                                <span className="text-[10px] uppercase font-bold text-slate-400">Couverture</span>
+                                <span className="text-xs uppercase font-bold text-slate-400">Couverture</span>
                             </div>
                         </div>
 
@@ -187,23 +188,10 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
                                 <BarChart data={drillResultsData}>
                                     <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                                         {drillResultsData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                            <Cell key={`cell - ${index} `} fill={entry.color} />
                                         ))}
                                     </Bar>
-                                    {/* Tooltip disabled for empty state if wrapper doesn't catch it, but here we conditional render */}
-                                    <RechartsTooltip
-                                        cursor={{ fill: 'transparent' }}
-                                        content={({ active, payload }) => {
-                                            if (active && payload && payload.length) {
-                                                return (
-                                                    <div className="bg-slate-900 text-white text-xs py-1 px-2 rounded shadow-xl">
-                                                        <span className="font-bold">{payload[0].payload.name}:</span> {payload[0].value}
-                                                    </div>
-                                                );
-                                            }
-                                            return null;
-                                        }}
-                                    />
+                                    <Tooltip content={<ChartTooltip />} cursor={false} />
                                 </BarChart>
                             )}
                         </ResponsiveContainer>
@@ -230,16 +218,16 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
                                         data={criticalityData}
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius="60%"
-                                        outerRadius="80%"
+                                        innerRadius={60}
+                                        outerRadius={80}
                                         paddingAngle={5}
                                         dataKey="value"
                                     >
                                         {criticalityData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                                            <Cell key={`cell - ${index} `} fill={entry.color} stroke="none" />
                                         ))}
                                     </Pie>
-                                    <RechartsTooltip content={<ChartTooltip />} />
+                                    <Tooltip content={<ChartTooltip />} />
                                     <Legend
                                         verticalAlign="middle"
                                         align="right"
@@ -266,16 +254,16 @@ export const ContinuityDashboard: React.FC<ContinuityDashboardProps> = ({ proces
                         {drills.slice(0, 5).map(drill => (
                             <div key={drill.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-2 h-2 rounded-full ${drill.result === 'Succès' ? 'bg-emerald-500' : drill.result === 'Échec' ? 'bg-red-500' : 'bg-amber-500'}`} />
+                                    <div className={`w - 2 h - 2 rounded - full ${drill.result === 'Succès' ? 'bg-emerald-500' : drill.result === 'Échec' ? 'bg-red-500' : 'bg-amber-500'} `} />
                                     <div>
                                         <p className="font-bold text-sm text-slate-900 dark:text-white">{drill.type}</p>
                                         <p className="text-xs text-slate-500">{new Date(drill.date).toLocaleDateString()}</p>
                                     </div>
                                 </div>
-                                <span className={`text-xs font-bold px-2 py-1 rounded-md ${drill.result === 'Succès' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' :
+                                <span className={`text - xs font - bold px - 2 py - 1 rounded - md ${drill.result === 'Succès' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' :
                                     drill.result === 'Échec' ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300' :
                                         'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
-                                    }`}>
+                                    } `}>
                                     {drill.result}
                                 </span>
                             </div>
