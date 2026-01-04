@@ -48,7 +48,6 @@ export const PartnerManagement: React.FC = () => {
                 setPermissionError(false);
             },
             (error) => {
-                console.error("Partner sync error:", error);
                 if (error.code === 'permission-denied') {
                     setPermissionError(true);
                 } else {

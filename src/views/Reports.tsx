@@ -57,10 +57,7 @@ export const Reports: React.FC = () => {
         if (!checkLimit('reports')) return; // reports feature check
         setLoadingAction(true);
         try {
-            console.log('🔄 Generating PDF:', { templateId, title, risksCount: risks?.length, controlsCount: controls?.length });
-
             if (templateId === 'iso27001' || templateId === 'gdpr') {
-                console.log('📦 Generating compliance pack...');
                 await CompliancePackService.generatePack({
                     organizationName: organization?.name || 'Organization',
                     risks: config?.includeRisks === false ? [] : (risks || []),
@@ -71,10 +68,8 @@ export const Reports: React.FC = () => {
                     incidents: config?.includeIncidents === false ? [] : (incidents || []),
                     projects: config?.includeProjects === false ? [] : (projects || [])
                 });
-                console.log('✅ Compliance pack generated successfully');
                 addToast(t('reports.success'), 'success');
             } else if (templateId === 'custom') {
-                console.log('📊 Generating custom executive report...', config);
                 // Generate Global Executive Report
                 // 1. Calculate all metrics
                 const riskMetrics = config?.includeRisks !== false ? ReportEnrichmentService.calculateMetrics(risks || []) : { total_risks: 0, critical_risks: 0, high_risks: 0, medium_risks: 0, low_risks: 0, avg_score: 0, risk_score: 0, treated_percentage: 0 };
@@ -163,27 +158,24 @@ export const Reports: React.FC = () => {
 
                     }
                 );
-                console.log('✅ Custom report generated successfully');
                 addToast(t('reports.success'), 'success');
 
             } else {
                 const doc = new jsPDF();
                 doc.text(title, 10, 10);
                 doc.save(`${title}.pdf`);
-                console.log('✅ Simple PDF generated successfully');
                 addToast(t('reports.success'), 'success');
             }
 
         } catch (error) {
-            console.error('❌ PDF Generation Error:', error);
             // Enhanced error logging for debugging
             if (error instanceof Error) {
-                console.error('Stack:', error.stack);
-                console.error('Message:', error.message);
+                console.error('PDF Generation Error:', {
+                    message: error.message,
+                    stack: error.stack
+                });
             }
             // Log to console for user to provide if needed
-            console.error('Context:', { templateId, title, organization });
-
             ErrorLogger.handleErrorWithToast(error, 'Reports.generatePDF', 'CREATE_FAILED');
         } finally {
             setLoadingAction(false);

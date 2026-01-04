@@ -24,7 +24,6 @@ export class SettingsErrorBoundary extends Component<Props, State> {
     }
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        console.error('Uncaught error in Settings tab:', error, errorInfo);
         ErrorLogger.error(error, 'SettingsErrorBoundary', { 
             metadata: { 
                 componentStack: errorInfo.componentStack,

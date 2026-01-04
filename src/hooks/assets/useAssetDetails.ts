@@ -66,8 +66,8 @@ export function useAssetDetails(asset: Asset | null) {
             unsubMaint = onSnapshot(maintQ, (snap) => {
                 setMaintenanceRecords(snap.docs.map(d => ({ id: d.id, ...d.data() } as MaintenanceRecord)));
             }, (err) => ErrorLogger.handleErrorWithToast(err, 'useAssetDetails.maintenance'));
-        } catch (e) {
-            console.error(e);
+        } catch {
+            // Error handled by ErrorLogger in onSnapshot callback
         }
 
         fetchDetails();

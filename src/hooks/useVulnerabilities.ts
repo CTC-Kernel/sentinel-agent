@@ -67,7 +67,6 @@ export const useVulnerabilities = () => {
         }
     }, [loading, vulnerabilities.length, user?.organizationId, seedCisaKev]);
 
-
     const addVulnerability = async (vuln: Partial<Vulnerability>) => {
         if (!user?.organizationId) return;
         try {

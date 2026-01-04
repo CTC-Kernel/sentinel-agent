@@ -151,7 +151,6 @@ export const QuestionnaireList: React.FC<QuestionnaireListProps> = ({ auditId, o
                 ))}
             </div>
 
-
             <ConfirmModal
                 isOpen={confirmDelete.isOpen}
                 onClose={() => setConfirmDelete({ isOpen: false, id: null })}

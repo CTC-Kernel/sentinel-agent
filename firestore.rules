@@ -351,8 +351,11 @@ service cloud.firestore {
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
         
+      // UPDATE: Restrict auditor write access - only allow status updates, not full modifications
       allow update: if canWrite(resource.data.organizationId) ||
-        (isAuditor() && belongsToOrganization(resource.data.organizationId)) ||
+        (isAuditor() && belongsToOrganization(resource.data.organizationId) && 
+         request.resource.data.keys().hasAll(['status', 'updatedBy', 'updatedAt']) &&
+         request.resource.data.size() == 3) ||
         (isAuthenticated() && "collaborators" in resource.data && resource.data.collaborators.hasAny([request.auth.uid])) ||
         (isAuthenticated() && "externalAuditors" in resource.data && resource.data.externalAuditors.hasAny([request.auth.token.email]));
         

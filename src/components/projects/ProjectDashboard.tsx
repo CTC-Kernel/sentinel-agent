@@ -78,8 +78,6 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({ project, mil
         return total > 0 ? (achieved / total) * 100 : 0;
     }, [milestones]);
 
-
-
     return (
         <div className="space-y-6">
             {/* Summary Card */}

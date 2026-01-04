@@ -74,4 +74,3 @@ export const useHotkeysHelp = () => {
   return shortcuts;
 };
 
-

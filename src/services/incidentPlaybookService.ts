@@ -6,7 +6,6 @@ import { ErrorLogger } from './errorLogger';
 import { PLAYBOOK_TEMPLATES } from '../data/playbookTemplates';
 import { sanitizeData } from '../utils/dataSanitizer';
 
-
 export interface IncidentPlaybook {
   id: string;
   category: Incident['category'];

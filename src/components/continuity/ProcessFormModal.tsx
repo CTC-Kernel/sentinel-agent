@@ -21,7 +21,6 @@ const TEMPLATES = [
     { name: 'Logistique & Supply Chain', description: 'Gestion des stocks et expéditions.', rto: '12h', rpo: '4h', priority: 'Moyenne' as const },
 ];
 
-
 interface ProcessFormModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -154,7 +153,6 @@ export const ProcessFormModal: React.FC<ProcessFormModalProps> = ({
                                     {!isGenerating && <Sparkles className="h-3 w-3 mr-2" />}
                                     {isGenerating ? 'IA...' : t('continuity.ai.autocomplete')}
                                 </Button>
-
 
                             </div>
                         </div>

@@ -119,7 +119,7 @@ export const SystemSettings: React.FC = () => {
             await deleteUser(auth.currentUser);
             addToast("Compte supprimé avec succès. Au revoir.", "success");
             // AuthContext will handle logout/redirect automatically
-        } catch (error: unknown) {
+        } catch (_error: unknown) {
             if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'auth/requires-recent-login') {
                 setIsDeleteModalOpen(false);
                 setIsReauthModalOpen(true);
@@ -142,7 +142,7 @@ export const SystemSettings: React.FC = () => {
             setReauthPassword('');
             // Retry delete
             await performDelete();
-        } catch (error: unknown) {
+        } catch (_error: unknown) {
             ErrorLogger.handleErrorWithToast(error, 'ReAuth', 'AUTH_FAILED');
             setIsDeleting(false);
         }

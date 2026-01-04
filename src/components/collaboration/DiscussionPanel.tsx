@@ -177,8 +177,7 @@ export const DiscussionPanel: React.FC<DiscussionPanelProps> = ({
             // Send notification if enabled
             if (notificationsEnabled && mentions.length > 0) {
                 // TODO: Implement notification service
-                console.log('Notifications sent to:', mentions);
-            }
+                }
 
             reset();
             setReplyTo(null);

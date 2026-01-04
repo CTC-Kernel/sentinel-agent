@@ -308,7 +308,6 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
         }
     }
 
-
     const importDocuments = async (csvContent: string) => {
         if (!user?.organizationId) return;
         setIsSubmitting(true);

@@ -75,7 +75,7 @@ export const useAIConversation = (userId: string | undefined, enabled: boolean =
         }
       },
       (error) => {
-        console.warn("useAIConversation: Local conversation sync error (likely permission or offline)", error);
+        ErrorLogger.error(error, 'useAIConversation.onSnapshot');
       }
     );
 

@@ -16,7 +16,6 @@ import { Button } from '../components/ui/button';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userSchema, UserFormData } from '../schemas/userSchema';
 
-
 import { RoleManager } from '../components/team/RoleManager';
 import { GroupManager } from '../components/team/GroupManager';
 import { JoinRequestCard } from '../components/team/JoinRequestCard';
@@ -191,7 +190,6 @@ const Team: React.FC = () => {
         URL.revokeObjectURL(url);
     }, [users]);
 
-
     // Calculate activity rate for the visual ring (mock logic for now or based on login)
     const activeUsersLast30Days = React.useMemo(() => users.filter(u => {
         if (!u.lastLogin) return false;
@@ -203,8 +201,6 @@ const Team: React.FC = () => {
     const handleMembersTab = React.useCallback(() => setActiveTab('members'), [setActiveTab]);
     const handleRolesTab = React.useCallback(() => setActiveTab('roles'), [setActiveTab]);
     const handleGroupsTab = React.useCallback(() => setActiveTab('groups'), [setActiveTab]);
-
-
 
     const handleCloseConfirm = React.useCallback(() => {
         setConfirmData(prev => ({ ...prev, isOpen: false }));

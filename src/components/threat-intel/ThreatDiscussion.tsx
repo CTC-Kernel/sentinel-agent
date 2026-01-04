@@ -88,5 +88,4 @@ export const ThreatDiscussion: React.FC<ThreatDiscussionProps> = ({ threatId, th
 
 // Typed helper since generic useState was used in prompt
 
-
 // Headless UI handles FocusTrap and keyboard navigation

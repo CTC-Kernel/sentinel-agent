@@ -9,7 +9,6 @@ let lastStatusFetchAt = 0;
 let lastStatusOrgId: string | null = null;
 let lastStatusValue: { hasTeam: boolean; hasAssets: boolean; hasRisks: boolean; hasControls: boolean; hasPolicies: boolean; hasAudits: boolean } | null = null;
 
-
 interface Step {
     id: string;
     label: string;
@@ -17,14 +16,11 @@ interface Step {
     isCompleted: boolean;
 }
 
-
 export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const navigate = useNavigate();
     const { user, t } = useStore();
     // State is now managed by parent, but we keep local expansion state for UI toggle
     const [isExpanded, setIsExpanded] = React.useState(true);
-
-
 
     const inFlightKeyRef = React.useRef(false);
 
@@ -173,7 +169,6 @@ export const GettingStartedWidget: React.FC<{ onClose: () => void }> = ({ onClos
 
     // Parent handles visibility based on completedCount and closed state
     if (completedCount === steps.length) return null;
-
 
     const handleToggleExpand = () => {
         setIsExpanded(!isExpanded);

@@ -34,7 +34,6 @@ export const ThreatIntelligence: React.FC = () => {
     const { user, addToast } = useStore();
     // hasPermission check: View accessible to all, but actions are restricted in backend or sub-components.
 
-
     // UI State
     const [activeTab, setActiveTab] = usePersistedState<'overview' | 'map' | 'feed' | 'community'>('threat_intelligence_active_tab', 'map');
 
@@ -65,7 +64,6 @@ export const ThreatIntelligence: React.FC = () => {
     } = useThreatIntelligence();
 
     // Explicit loading state for async operations (audit requirement)
-
 
     const initialLoadRef = React.useRef(false);
 
@@ -345,7 +343,6 @@ export const ThreatIntelligence: React.FC = () => {
             {
                 activeTab === 'feed' && (
                     <motion.div variants={slideUpVariants} className="space-y-6">
-
 
                         <div className="grid grid-cols-1 gap-4">
                             {threatsLoading ? (

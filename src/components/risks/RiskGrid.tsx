@@ -8,7 +8,6 @@ import { Button } from '../ui/button';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { Risk, Asset } from '../../types';
 
-
 interface RiskGridProps {
     risks: Risk[];
     loading: boolean;

@@ -53,8 +53,6 @@ vi.mock('../../utils/permissions', () => ({
     hasPermission: vi.fn(),
 }));
 
-
-
 vi.mock('react-helmet-async', () => ({
     Helmet: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     HelmetProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,

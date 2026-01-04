@@ -14,7 +14,6 @@ interface MaturityRadarWidgetProps {
 export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarData, t, navigate }) => {
     const radarGradientId = React.useId();
 
-
     return (
         <div className="relative group/chart flex justify-center pt-1 w-full h-full min-h-[320px]">
             <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-purple-500/5 rounded-full blur-2xl opacity-0 group-hover/chart:opacity-100 transition-opacity duration-700"></div>

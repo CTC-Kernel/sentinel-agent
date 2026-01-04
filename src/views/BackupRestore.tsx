@@ -82,8 +82,6 @@ export const BackupRestore: React.FC = () => {
     }
   });
 
-
-
   const loadBackups = React.useCallback(async () => {
     if (!user?.organizationId) return;
     try {

@@ -20,7 +20,6 @@ import { CsvParser } from '../utils/csvUtils';
 export const useSuppliers = () => {
     const { user, t, addToast } = useStore();
 
-
     const { data: suppliers, loading, error } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId)],

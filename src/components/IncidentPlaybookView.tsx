@@ -439,7 +439,6 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
 
         {/* Minimized Step Cards Logic - applied via CSS classes mainly */}
 
-
         {/* Confirm Modal */}
         {showConfirmModal && (
           <ConfirmModal

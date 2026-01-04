@@ -19,7 +19,6 @@ vi.mock('../../store', () => ({
     }),
 }));
 
-
 vi.mock('../../hooks/usePersistedState', async () => {
     const React = await vi.importActual<typeof import('react')>('react');
     return {
@@ -90,7 +89,6 @@ describe('Settings View', () => {
 
         expect(screen.getByTestId('profile-settings')).toBeInTheDocument();
     });
-
 
     it('switches to organization settings', () => {
         render(

@@ -1,0 +1,315 @@
+/* Standardized Interaction States for Sentinel GRC */
+
+/* Base transition styles - using design tokens */
+.interactive-element {
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.interactive-element-fast {
+  transition: all var(--transition-fast) var(--ease-out);
+}
+
+.interactive-element-slow {
+  transition: all var(--transition-slow) var(--ease-out);
+}
+
+/* Hover states - standardized */
+.hover-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.hover-secondary:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
+}
+
+.hover-danger:hover {
+  background-color: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: rgb(239, 68, 68);
+  transform: translateY(-1px);
+}
+
+.hover-success:hover {
+  background-color: rgba(34, 197, 94, 0.05);
+  border-color: rgba(34, 197, 94, 0.2);
+  color: rgb(34, 197, 94);
+  transform: translateY(-1px);
+}
+
+/* Focus states - standardized */
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* Active states - standardized */
+.active-scale:active {
+  transform: scale(0.98);
+}
+
+.active-brightness:active {
+  filter: brightness(0.95);
+}
+
+/* Disabled states - standardized */
+.disabled-state {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  transition: none;
+}
+
+/* Loading states - standardized */
+.loading-state {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-state::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Button-specific states - standardized */
+.btn-interactive {
+  transition: all var(--transition-normal) var(--ease-out);
+  outline: none;
+  border-radius: var(--radius-xl);
+}
+
+.btn-interactive:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.btn-interactive:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+.btn-interactive:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  @apply btn-interactive;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn-secondary {
+  @apply btn-interactive;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  @apply btn-interactive;
+}
+
+.btn-danger:hover {
+  background-color: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: rgb(239, 68, 68);
+  transform: translateY(-1px);
+}
+
+.btn-success {
+  @apply btn-interactive;
+}
+
+.btn-success:hover {
+  background-color: rgba(34, 197, 94, 0.05);
+  border-color: rgba(34, 197, 94, 0.2);
+  color: rgb(34, 197, 94);
+  transform: translateY(-1px);
+}
+
+/* Card hover effects - standardized */
+.card-interactive {
+  @apply interactive-element hover-primary;
+  border-radius: var(--radius-2xl);
+}
+
+.card-interactive:hover {
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+/* Input field states - standardized */
+.input-interactive {
+  @apply interactive-element focus-ring;
+  border-radius: var(--radius-lg);
+}
+
+.input-interactive:focus {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Table row states - standardized */
+.table-row-interactive {
+  @apply interactive-element hover-secondary;
+}
+
+.table-row-interactive:hover {
+  background-color: rgba(59, 130, 246, 0.02);
+}
+
+/* Navigation states - standardized */
+.nav-item-interactive {
+  @apply interactive-element hover-secondary;
+  border-radius: var(--radius-lg);
+}
+
+.nav-item-interactive:hover {
+  background-color: rgba(59, 130, 246, 0.08);
+}
+
+.nav-item-interactive.active {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid rgb(59, 130, 246);
+}
+
+/* Modal overlay states - standardized */
+.modal-overlay {
+  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.5);
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+/* Tooltip states - standardized */
+.tooltip-interactive {
+  @apply interactive-element-fast;
+}
+
+.tooltip-interactive:hover {
+  transform: scale(1.05);
+}
+
+/* Dropdown states - standardized */
+.dropdown-item-interactive {
+  @apply interactive-element hover-secondary;
+  border-radius: var(--radius-lg);
+}
+
+.dropdown-item-interactive:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Tab states - standardized */
+.tab-interactive {
+  @apply interactive-element hover-secondary;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.tab-interactive:hover {
+  border-bottom-color: rgba(59, 130, 246, 0.3);
+}
+
+.tab-interactive.active {
+  border-bottom-color: rgb(59, 130, 246);
+  color: rgb(59, 130, 246);
+}
+
+/* Form validation states - standardized */
+.input-error {
+  border-color: rgb(239, 68, 68);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  border-radius: var(--radius-lg);
+}
+
+.input-success {
+  border-color: rgb(34, 197, 94);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+  border-radius: var(--radius-lg);
+}
+
+.input-warning {
+  border-color: rgb(245, 158, 11);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  border-radius: var(--radius-lg);
+}
+
+/* Accessibility improvements - standardized */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus visible for keyboard navigation - standardized */
+.focus-visible-only:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support - standardized */
+@media (prefers-contrast: high) {
+  .hover-primary:hover {
+    outline: 2px solid currentColor;
+  }
+  
+  .focus-ring:focus {
+    outline: 3px solid currentColor;
+  }
+}
+
+/* Reduced motion support - standardized */
+@media (prefers-reduced-motion: reduce) {
+  .interactive-element,
+  .interactive-element-fast,
+  .interactive-element-slow {
+    transition: none;
+  }
+  
+  .hover-primary:hover,
+  .hover-secondary:hover,
+  .hover-danger:hover,
+  .hover-success:hover {
+    transform: none;
+  }
+  
+  .active-scale:active {
+    transform: none;
+  }
+  
+  .loading-state::after {
+    animation: none;
+  }
+}

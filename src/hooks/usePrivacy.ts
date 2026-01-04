@@ -6,7 +6,6 @@ import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 import { PrivacyService } from '../services/PrivacyService';
 
-
 export function usePrivacy() {
     const { user, addToast } = useStore();
 
@@ -73,7 +72,6 @@ export function usePrivacy() {
                     setStats({ total, sensitive, dpiaMissing, review });
                     setLoading(false);
                 }).catch(err => {
-                    console.error('Failed to load mock data module', err);
                     setLoading(false);
                 });
                 return;

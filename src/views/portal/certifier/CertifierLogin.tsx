@@ -39,8 +39,7 @@ export const CertifierLogin: React.FC = () => {
 
             navigate('/portal/dashboard');
             toast.success('Connexion réussie');
-        } catch (error: unknown) {
-            console.error('Login error', error);
+        } catch (_error: unknown) {
             // Firebase Auth specific errors
             const firebaseError = error as { code?: string };
             if (firebaseError.code === 'auth/invalid-credential' || firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password') {

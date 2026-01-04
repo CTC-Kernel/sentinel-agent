@@ -89,7 +89,6 @@ export const useDashboardData = (): DashboardData => {
                 setManualLoading(false);
                 setManualLoading(false);
             }).catch(err => {
-                console.error('Failed to load mock data module', err);
                 if (!isMounted) return;
                 setManualLoading(false);
             });

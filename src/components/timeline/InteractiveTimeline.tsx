@@ -256,8 +256,6 @@ export const InteractiveTimeline: React.FC = () => {
         };
     }, [filteredEvents, handleEventClick, zoomLevel, applyZoom]);
 
-
-
     const handleExportPNG = async () => {
         if (!timelineRef.current) return;
 

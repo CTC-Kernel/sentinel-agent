@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { Search, MoreVertical, LayoutGrid, List, LayoutDashboard } from 'lucide-react';
 
-
 interface PremiumPageControlProps {
     searchQuery: string;
     onSearchChange: (query: string) => void;

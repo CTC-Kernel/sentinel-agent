@@ -88,7 +88,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     });
 
     const onInvalid = (errors: FieldErrors<AssetFormData>) => {
-        console.error("Form Validation Errors:", errors);
         const missingFields = Object.keys(errors).join(', ');
         toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
     };

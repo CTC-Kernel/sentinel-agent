@@ -56,7 +56,6 @@ export const GroupCard: React.FC<GroupCardProps> = React.memo(({ group, users, o
                                 alt={member.displayName} 
                                 className="h-full w-full object-cover" 
                                 onError={(e) => {
-                                    console.error('GroupCard avatar failed to load:', e);
                                     const target = e.target as HTMLImageElement;
                                     target.src = getDefaultAvatarUrl();
                                 }}

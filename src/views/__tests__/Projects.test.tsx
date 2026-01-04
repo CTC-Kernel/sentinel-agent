@@ -138,7 +138,6 @@ describe('Projects View', () => {
 
     // Tab switching test removed due to complexity in mocking usePersistedState default value overriding
 
-
     it('renders projects and filter works', () => {
         vi.mocked(usePersistedState).mockReturnValue(['list', vi.fn()]);
 

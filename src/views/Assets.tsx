@@ -168,7 +168,6 @@ const Assets: React.FC = () => {
             const analysis = await aiService.chatWithAI(prompt);
             toast.info(t('assets.analysisComplete'), { description: analysis, duration: 10000 });
         } catch (e) {
-            console.error(e);
             toast.error(t('assets.analysisError'));
         } finally {
             setIsAnalyzing(false);
@@ -184,7 +183,6 @@ const Assets: React.FC = () => {
             );
             toast.success(t('assets.labelGenerated'));
         } catch (e) {
-            console.error(e);
             toast.error(t('assets.labelError'));
         }
     }, [limits.features.whiteLabelReports, user, t]);
@@ -361,7 +359,6 @@ const Assets: React.FC = () => {
         };
         CsvParser.downloadCSV(headers, [exampleRow], `template_assets.csv`);
     }, [assetGuidelines, t]);
-
 
     return (
         <motion.div

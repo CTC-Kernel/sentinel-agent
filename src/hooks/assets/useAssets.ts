@@ -46,8 +46,7 @@ export function useAssets() {
                 setMockProcesses(processes);
                 setMockLoading(false);
                 setMockLoading(false);
-            }).catch(err => {
-                console.error('Failed to load mock data module', err);
+            }).catch(_err => {
                 if (mounted) setMockLoading(false);
             });
         }

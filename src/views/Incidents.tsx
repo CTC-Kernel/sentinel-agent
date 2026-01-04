@@ -11,10 +11,7 @@ import { useIncidentsData } from '../hooks/incidents/useIncidentsData';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Siren, Plus, ShieldAlert, BrainCircuit, Clock, AlertTriangle, MoreVertical } from '../components/ui/Icons';
 
-
 import { PremiumPageControl } from '../components/ui/PremiumPageControl';
-
-
 
 import { ErrorLogger } from '../services/errorLogger';
 import { useLocation } from 'react-router-dom';
@@ -30,7 +27,6 @@ import { IncidentImportModal } from '../components/incidents/IncidentImportModal
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { CsvParser } from '../utils/csvUtils';
 import { SecurityEvent } from '../services/integrationService';
-
 
 import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
@@ -344,7 +340,6 @@ export const Incidents: React.FC = () => {
                 />
             </motion.div>
 
-
             <IncidentImportModal
                 isOpen={importModalOpen}
                 onClose={handleImportModalClose}
@@ -580,7 +575,6 @@ export const Incidents: React.FC = () => {
                     />
                 )}
             </motion.div>
-
 
             {/* Inspector */}
             <IncidentInspector

@@ -12,8 +12,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AdvancedSearch, SearchFilters } from '../components/ui/AdvancedSearch';
 import { useGlobalSearch, SearchResult } from '../hooks/useGlobalSearch';
 
-
-
 export const Search: React.FC = () => {
     const [searchParams] = useSearchParams();
     const [queryText, setQueryText] = useState(searchParams.get('q') || '');
@@ -34,8 +32,6 @@ export const Search: React.FC = () => {
 
         return () => clearTimeout(delayDebounceFn);
     }, [queryText, activeFilter, advancedFilters, performSearch, setResults]);
-
-
 
     const getIcon = (type: string) => {
         switch (type) {

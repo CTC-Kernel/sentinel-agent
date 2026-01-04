@@ -4,7 +4,6 @@ import { db } from '../../firebase';
 import { useStore } from '../../store';
 import { BusinessProcess, BcpDrill, Asset, Risk, Supplier, UserProfile, Incident } from '../../types';
 
-
 export const useContinuityData = (organizationId?: string) => {
     const { demoMode } = useStore();
     const [processes, setProcesses] = useState<BusinessProcess[]>([]);
@@ -29,7 +28,6 @@ export const useContinuityData = (organizationId?: string) => {
         const isDemo = demoMode || window.localStorage.getItem('demoMode') === 'true';
 
         if (isDemo) {
-            console.log('Using Mock Data for Continuity');
             import('../../services/mockDataService').then(module => {
                 if (!mounted) return;
                 setProcesses(module.MockDataService.getCollection('business_processes') as unknown as BusinessProcess[]);
@@ -42,7 +40,6 @@ export const useContinuityData = (organizationId?: string) => {
                 setIncidents(module.MockDataService.getCollection('incidents') as unknown as Incident[]);
                 setLoading(false);
             }).catch(err => {
-                console.error('Failed to load mock data module', err);
                 setLoading(false);
             });
             return () => { mounted = false; };

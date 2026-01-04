@@ -131,7 +131,6 @@ export const Projects: React.FC = () => {
             addToast(t('projects.toastCreated'), "success");
             setShowTemplateModal(false);
         } catch (error) {
-            console.error(error);
             addToast(t('projects.toastError'), "error");
         }
     }, [usersList, user, addToast, t]);
@@ -155,7 +154,6 @@ export const Projects: React.FC = () => {
             });
             addToast(t('projects.toastReportSuccess'), "success");
         } catch (error) {
-            console.error(error);
             addToast(t('projects.toastReportError'), "error");
         }
     }, [selectedProject, user, addToast, t]);
@@ -194,18 +192,14 @@ export const Projects: React.FC = () => {
 
     // Debug: Monitor activeTab changes
     useEffect(() => {
-        console.log('activeTab changed to:', activeTab);
-    }, [activeTab]);
+        }, [activeTab]);
 
     // UI Checks
     const handleTabChange = useCallback((id: string) => {
-        console.log('Tab change requested:', id, 'current activeTab:', activeTab);
         if (id !== activeTab) {
             setActiveTab(id as 'overview' | 'list' | 'board' | 'gantt');
-            console.log(' setActiveTab called with:', id);
-        } else {
-            console.log('Tab is already active, no change needed');
         }
+        // If same tab, no action needed
     }, [activeTab, setActiveTab]);
     const handleViewModeChange = useCallback((mode: string) => setViewMode(mode as 'list' | 'grid' | 'matrix' | 'kanban'), []);
     const handleNewProjectClick = useCallback(() => { setCreationMode(true); setEditingProject(null); }, []);

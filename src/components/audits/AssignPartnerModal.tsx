@@ -42,8 +42,7 @@ export const AssignPartnerModal: React.FC<AssignPartnerModalProps> = ({ isOpen, 
                 );
                 const snap = await getDocs(q);
                 setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() } as Partner)));
-            } catch (error) {
-                console.error('Load partners error', error);
+            } catch {
                 toast.error('Erreur chargement partenaires');
             } finally {
                 setLoading(false);
@@ -71,8 +70,7 @@ export const AssignPartnerModal: React.FC<AssignPartnerModalProps> = ({ isOpen, 
             toast.success(`Audit assigné à ${partner.contactEmail}`);
             onAssigned();
             onClose();
-        } catch (error) {
-            console.error('Assign error', error);
+        } catch {
             toast.error("Échec de l'assignation");
         } finally {
             setAssigning(null);

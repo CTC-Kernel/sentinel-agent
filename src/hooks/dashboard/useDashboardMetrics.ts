@@ -25,20 +25,16 @@ export const useDashboardMetrics = ({
     // Debug logging
     useMemo(() => {
         if (process.env.NODE_ENV === 'development') {
+            // Log sample data for debugging
             console.log('Dashboard Metrics Debug:', {
                 controlsCount: controls.length,
                 risksCount: allRisks.length,
                 assetsCount: allAssets.length,
-                activeIncidentsCount,
-                openAuditsCount,
-                myProjectsLength,
-                userOrgId
+                incidentsCount: activeIncidentsCount,
+                auditsCount: openAuditsCount,
+                projectsCount: myProjectsLength,
+                orgId: userOrgId
             });
-            
-            // Log sample data for debugging
-            console.log('Sample risks:', allRisks.slice(0, 3));
-            console.log('Sample assets:', allAssets.slice(0, 3));
-            console.log('Sample controls:', controls.slice(0, 3));
         }
     }, [controls, allRisks, allAssets, activeIncidentsCount, openAuditsCount, myProjectsLength, userOrgId]);
 
@@ -126,8 +122,7 @@ export const useDashboardMetrics = ({
         // Debug financial exposure calculation
         if (process.env.NODE_ENV === 'development') {
             console.log('Financial Exposure Debug:', {
-                totalRisks: allRisks.length,
-                highScoreRisks: allRisks.filter(r => r.score >= 10).length,
+                criticalRisksCount,
                 risksWithAssets: allRisks.filter(r => r.score >= 10 && r.assetId).length,
                 risksWithoutAssets: allRisks.filter(r => r.score >= 10 && !r.assetId).length,
                 avgAssetValue: allAssets.length > 0 

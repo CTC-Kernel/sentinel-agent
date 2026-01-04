@@ -37,7 +37,6 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
         name: "sections"
     });
 
-
     const [sectionToDelete, setSectionToDelete] = React.useState<number | null>(null);
 
     const onSubmit = async (data: QuestionnaireTemplate) => {
@@ -161,5 +160,4 @@ export const QuestionnaireBuilder: React.FC<Props> = ({ initialData, onSave, onC
         </form >
     );
 };
-
 

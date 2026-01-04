@@ -5,8 +5,8 @@ export interface Document {
     type: 'Politique' | 'Procédure' | 'Preuve' | 'Rapport' | 'Autre';
     description?: string;
     version: string;
-    status: 'Brouillon' | 'En revue' | 'Approuvé' | 'Rejeté' | 'Publié' | 'Obsolète';
-    workflowStatus?: 'Draft' | 'Review' | 'Approved' | 'Rejected';
+    status: 'Brouillon' | 'En revue' | 'Approuvé' | 'Rejeté' | 'Publié' | 'Archivé';
+    workflowStatus?: 'Draft' | 'Review' | 'Approved' | 'Rejected' | 'Archived';
     reviewers?: string[];
     approvers?: string[];
     signatures?: Array<{ userId: string, date: string, role: string, signatureImage?: string }>;
@@ -64,5 +64,5 @@ export interface WorkflowHistoryItem {
     action: 'submit' | 'approve' | 'reject' | 'publish' | 'archive' | 'revert';
     comment?: string;
     version: string;
-    step: 'Draft' | 'Review' | 'Approval' | 'Publication';
+    step: 'Draft' | 'Review' | 'Approval' | 'Publication' | 'Archive';
 }

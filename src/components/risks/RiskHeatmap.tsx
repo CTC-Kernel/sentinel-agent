@@ -19,7 +19,6 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ risks }) => {
         return grid;
     }, [risks]);
 
-
     const getCellColor = (p: number, i: number) => {
         const score = p * i;
         // Using Tailwind classes that match SENTINEL_PALETTE indirectly or SEVERITY_COLORS

@@ -53,8 +53,7 @@ export const ExternalAuditPortal: React.FC = () => {
                 const getAuditFn = httpsCallable(functions, 'getSharedAuditData');
                 const result = await getAuditFn({ token });
                 setAuditData(result.data as SharedAuditData);
-            } catch (err: unknown) {
-                console.error("Portal Error", err);
+            } catch (_err: unknown) {
                 const errorMessage = err instanceof Error ? err.message : t('certifier.portal.defaultError');
                 setError(errorMessage);
                 ErrorLogger.error(err as Error, 'ExternalAuditPortal.load'); // Fixed usage

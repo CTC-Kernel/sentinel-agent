@@ -533,7 +533,6 @@ class IntegrationService {
         }
     }
 
-
     async getScannerJobs(organizationId?: string, isDemoMode: boolean = false): Promise<ScannerJob[]> {
         const demoMode = this.normalizeDemoMode(isDemoMode);
         if (demoMode) {

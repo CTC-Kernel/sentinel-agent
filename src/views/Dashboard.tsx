@@ -29,9 +29,6 @@ import { AuditorDashboardView } from '../components/dashboard/views/AuditorDashb
 import { ProjectManagerDashboardView } from '../components/dashboard/views/ProjectManagerDashboardView';
 import { OperationalDashboardView } from '../components/dashboard/views/OperationalDashboardView';
 
-
-
-
 import { useGettingStartedState } from '../hooks/dashboard/useGettingStartedState';
 
 export const Dashboard: React.FC = () => {
@@ -119,8 +116,6 @@ export const Dashboard: React.FC = () => {
 
     const isEmpty = React.useMemo(() => !loading && allRisks.length === 0 && allAssets.length === 0 && myProjects.length === 0, [loading, allRisks, allAssets, myProjects]);
 
-
-
     const { insight, healthIssues, myActionItems } = useDashboardInsights({
         controls,
         myDocs,
@@ -163,8 +158,6 @@ export const Dashboard: React.FC = () => {
             organizationLogo
         });
     };
-
-
 
     if (error === 'permission-denied') { return (<div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in p-6"> <div className="glass-premium rounded-[2rem] p-8 max-w-2xl w-full relative overflow-hidden border-l-4 border-l-red-500 shadow-xl"> <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('dashboard.accessDenied')}</h2> <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">{t('dashboard.dbLocked')}</p> <Button aria-label={t('dashboard.copyRules')} onClick={copyRules} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('dashboard.copyRules')}</Button> </div> </div>); }
 
@@ -211,8 +204,6 @@ export const Dashboard: React.FC = () => {
                         <GettingStartedWidget onClose={() => setGettingStartedState('closed')} />
                     </motion.div>
                 )}
-
-
 
                 {pendingReviews && pendingReviews.length > 0 && (
                     <motion.div variants={slideUpVariants}>
@@ -470,8 +461,6 @@ export const DashboardWithQuickActions: React.FC = () => {
                             <GettingStartedWidget onClose={() => setGettingStartedState('closed')} />
                         </motion.div>
                     )}
-
-
 
                     {pendingReviews && pendingReviews.length > 0 && (
                         <motion.div variants={slideUpVariants}>

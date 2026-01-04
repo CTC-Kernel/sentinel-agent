@@ -59,7 +59,6 @@ export const RiskMatrixSelector: React.FC<RiskMatrixSelectorProps> = ({
                             {[1, 2, 3, 4, 5].map(i => {
                                 const isSelected = probability === p && impact === i;
 
-
                                 return (
                                     <button
                                         key={`${p}-${i}`}

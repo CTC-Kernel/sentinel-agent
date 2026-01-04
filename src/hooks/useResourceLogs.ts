@@ -56,11 +56,10 @@ export const useResourceLogs = (_resourceType: string, resourceId?: string, limi
             setHasMore(snapshot.docs.length === limitCount);
 
         } catch (error) {
-            console.error('Error fetching resource logs:', error);
             // Silent error or specific handling? 
             // For a history tab, we might want to show empty state rather than error toast if it's just index missing
             if ((error as { code?: string })?.code === 'failed-precondition') {
-                console.warn("Missing index for resource logs query");
+                // Index missing - silent fail for better UX
             } else {
                 toast.error('Impossible de charger l\'historique');
             }

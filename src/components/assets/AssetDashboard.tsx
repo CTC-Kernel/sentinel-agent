@@ -81,8 +81,6 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
         ];
     }, [assets]);
 
-
-
     // Distribution by Scope
     const { scopeChartData, SCOPE_COLORS } = React.useMemo(() => {
         const scopeData = assets.reduce((acc, asset) => {

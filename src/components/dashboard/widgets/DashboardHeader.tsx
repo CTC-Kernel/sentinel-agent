@@ -4,7 +4,6 @@ import { Server, ClipboardCheck, FileText, ArrowRight, CalendarDays, Loader2, Ac
 import { Rocket } from 'lucide-react';
 import { ShinyText } from '../../ui/ShinyText';
 
-
 type DashboardInsight = {
     type?: 'danger' | 'warning' | 'success' | string;
     text?: string;
@@ -20,9 +19,6 @@ type DashboardUserLike = {
     displayName?: string;
     organizationName?: string;
 };
-
-
-
 
 interface DashboardHeaderProps {
     user: DashboardUserLike | null;
@@ -55,7 +51,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     onShowGettingStarted,
     isGettingStartedClosed
 }) => {
-
 
     type Role = 'admin' | 'rssi' | 'direction' | 'auditor' | 'project_manager' | 'user';
     const rawRole = user?.role;
@@ -113,7 +108,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             </div>
         );
     }
-
 
     return (
         <motion.div

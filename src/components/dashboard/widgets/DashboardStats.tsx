@@ -63,7 +63,12 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, n
             setSummary(saved.summary);
             checkAutoRefresh(saved.generatedAt);
         } else {
-            generateSummary();
+            // Only generate if we have meaningful stats
+            if (stats && stats.compliance > 0) {
+                generateSummary();
+            } else {
+                setSummary("Analyse en attente des données de conformité...");
+            }
         }
     }
 
@@ -108,11 +113,11 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, loading, n
 
     // Initial load
     React.useEffect(() => {
-        if (user?.organizationId && stats) {
+        if (user?.organizationId && stats && !loading) {
             getExecutiveSummary();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user?.organizationId]);
+    }, [user?.organizationId, stats, loading]);
 
     if (loading) {
         return <Skeleton className="h-24 w-full rounded-2xl" />;

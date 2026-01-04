@@ -59,7 +59,6 @@ export const useReportsData = (organizationId?: string) => {
         { logError: true, enabled: !!organizationId, realtime: true }
     );
 
-
     const loading = loadingRisks || loadingAudits || loadingAssets || loadingDocuments || loadingControls || loadingIncidents || loadingVulns || loadingProcesses || loadingProjects;
 
     return {

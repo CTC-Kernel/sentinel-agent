@@ -43,20 +43,17 @@ export const useLayoutData = () => {
     { enabled: !!user?.organizationId }
   );
 
-  const debugLoading = {
-    notifications: loadingNotifications,
-    documents: loadingDocuments,
-    risks: loadingRisks,
-    incidents: loadingIncidents,
-    assets: loadingAssets,
-    projects: loadingProjects,
-    userOrg: user?.organizationId
-  };
-
+  
   if (loadingNotifications || loadingDocuments || loadingRisks || loadingIncidents || loadingAssets || loadingProjects) {
-    console.log('[useLayoutData] Loading stuck on:',
-      Object.entries(debugLoading).filter(([, v]) => v === true).map(([k]) => k).join(', ')
-    );
+    const loadingStates = [
+      ['notifications', loadingNotifications],
+      ['documents', loadingDocuments],
+      ['risks', loadingRisks],
+      ['incidents', loadingIncidents],
+      ['assets', loadingAssets],
+      ['projects', loadingProjects]
+    ];
+    console.log('Loading states:', loadingStates.filter(([, v]) => v === true).map(([k]) => k).join(', '));
   }
 
   return {

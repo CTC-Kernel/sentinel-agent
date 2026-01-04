@@ -290,7 +290,6 @@ export const useRiskActions = (onRefresh: () => void) => {
         }
     };
 
-
     const importRisks = async (csvContent: string) => {
         if (!canEditResource(user as UserProfile, 'Risk')) return false;
         setIsImporting(true);

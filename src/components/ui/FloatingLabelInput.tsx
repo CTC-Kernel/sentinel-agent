@@ -25,7 +25,6 @@ export const FloatingLabelInput = React.forwardRef<HTMLInputElement | HTMLTextAr
     const errorId = `${fieldId}-error`;
     const describedBy = [props['aria-describedby'], error ? errorId : null].filter(Boolean).join(' ') || undefined;
 
-
     return (
         <div className={`relative ${className}`}>
             <div className={`

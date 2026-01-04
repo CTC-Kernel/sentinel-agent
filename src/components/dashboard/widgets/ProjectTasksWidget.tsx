@@ -50,7 +50,6 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
         return { overdueCount, activeCount, completedCount, urgentProjects };
     }, [projects]);
 
-
     if (loading) {
         return (
             <div className="h-full flex items-center justify-center min-h-[200px]">
@@ -66,7 +65,6 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
             </div>
         );
     }
-
 
     return (
         <div className="h-full flex flex-col p-4 bg-card rounded-2xl border border-border shadow-sm">

@@ -71,7 +71,6 @@ export const AuditForm: React.FC<AuditFormProps> = ({
     });
 
     const onInvalid = (errors: FieldErrors<AuditFormData>) => {
-        console.error("Form Validation Errors:", errors);
         const missingFields = Object.keys(errors).join(', ');
         toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
     };
@@ -233,8 +232,6 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                         )}
                     />
 
-
-
                     <div className="md:col-span-2">
                         <Controller
                             name="framework"
@@ -251,8 +248,6 @@ export const AuditForm: React.FC<AuditFormProps> = ({
                             )}
                         />
                     </div>
-
-
 
                     <div className="relative">
                         <Controller

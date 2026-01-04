@@ -69,7 +69,6 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     });
 
     const onInvalid = (errors: FieldErrors<SupplierFormData>) => {
-        console.error("Form Validation Errors:", errors);
         const missingFields = Object.keys(errors).join(', ');
         toast.error(`Formulaire invalide. Champs en erreur : ${missingFields}`);
     };

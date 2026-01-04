@@ -80,14 +80,10 @@ export const Suppliers: React.FC = () => {
     const [isExportingCSV, setIsExportingCSV] = useState(false);
     const [isExportingDORA, setIsExportingDORA] = useState(false);
 
-
-
     // Confirm Dialog
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void; loading?: boolean; closeOnConfirm?: boolean }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
-
-
 
     // Data Hooks
     const { suppliers: suppliersRaw, loading: loadingSuppliers, addSupplier, updateSupplier, deleteSupplier, importSuppliers, checkDependencies } = useSuppliers();
@@ -130,17 +126,12 @@ export const Suppliers: React.FC = () => {
         loading: loadingData
     } = useSuppliersData(user?.organizationId);
 
-
     // FIX: Ensure usersList is never empty if logged in
     const effectiveUsers = useMemo(() => {
         if (usersRaw && usersRaw.length > 0) return usersRaw;
         if (user && user.uid) return [user as UserProfile];
         return [];
     }, [usersRaw, user]);
-
-
-
-
 
     // Derived State
     const suppliers = useMemo(() => {
@@ -236,8 +227,6 @@ export const Suppliers: React.FC = () => {
         setViewMode(mode as 'grid' | 'list' | 'matrix' | 'kanban');
     }, [setViewMode]);
 
-
-
     const handleCreationDrawerOpen = useCallback(() => {
         setCreationMode(true);
         setSelectedSupplier(null);
@@ -262,8 +251,6 @@ export const Suppliers: React.FC = () => {
     const handleInspectorClose = useCallback(() => {
         setSelectedSupplier(null);
     }, []);
-
-
 
     const handleStartAssessmentClick = useCallback(() => {
         if (selectedSupplier && templates.length > 0) {
@@ -399,8 +386,6 @@ export const Suppliers: React.FC = () => {
         }
     ], [canEdit, initiateDelete, t, handleMenuClick]);
 
-
-
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
         if (!state.fromVoxel || !state.voxelSelectedId) return;
@@ -411,9 +396,6 @@ export const Suppliers: React.FC = () => {
             setSelectedSupplier(supplier);
         }
     }, [location.state, loadingSuppliers, loadingData, suppliers]);
-
-
-
 
     const handleCreate = useCallback(async (data: SupplierFormData) => {
         if (!canEdit || !user?.organizationId) return;
@@ -464,8 +446,6 @@ export const Suppliers: React.FC = () => {
         });
     }, [canEdit, t, deleteSupplier, setSelectedSupplier]);
 
-
-
     const handleExportCSV = useCallback(async () => {
         if (isExportingCSV) return;
         setIsExportingCSV(true);
@@ -505,8 +485,6 @@ export const Suppliers: React.FC = () => {
             setTimeout(() => setIsExportingDORA(false), 0);
         }
     }, [isExportingDORA, filteredSuppliers]);
-
-
 
     const handleConfirmClose = useCallback(() => {
         setConfirmData(prev => ({ ...prev, isOpen: false }));
@@ -777,5 +755,4 @@ export const Suppliers: React.FC = () => {
         </motion.div>
     );
 };
-
 

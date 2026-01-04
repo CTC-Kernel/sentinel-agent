@@ -87,7 +87,6 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     });
 
     const onInvalid = (errors: FieldErrors<RiskFormData>) => {
-        console.error("Form Validation Errors:", errors);
         const missingFields = Object.keys(errors);
 
         // Map fields to their respective tabs
@@ -143,7 +142,6 @@ export const RiskForm: React.FC<RiskFormProps> = ({
     // Watch for SLA fields
     // const treatmentDeadline = watch('treatmentDeadline');
     // const treatmentOwnerId = watch('treatmentOwnerId');
-
 
     const mapCriticalityToImpact = (crit: Criticality): number => {
         switch (crit) {
@@ -296,8 +294,6 @@ export const RiskForm: React.FC<RiskFormProps> = ({
         t.threat.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-
-
     const toggleControlSelection = (controlId: string) => {
         const currentIds = getValues('mitigationControlIds') || [];
         if (currentIds.includes(controlId)) {
@@ -306,8 +302,6 @@ export const RiskForm: React.FC<RiskFormProps> = ({
             setValue('mitigationControlIds', [...currentIds, controlId], { shouldDirty: true });
         }
     };
-
-
 
     return (
         <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="flex flex-col h-full bg-transparent">

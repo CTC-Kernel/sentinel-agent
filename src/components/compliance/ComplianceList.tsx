@@ -58,8 +58,6 @@ export const ComplianceList: React.FC<ComplianceListProps> = ({
         case 'NIST_CSF': domains = NIST_CSF_DOMAINS; break;
     }
 
-    console.log('ComplianceList: rendering with controls:', controls.length, 'loading:', loading);
-
     if (loading) {
         return (
             <div className="space-y-4">

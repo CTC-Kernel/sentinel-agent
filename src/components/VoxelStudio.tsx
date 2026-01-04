@@ -50,8 +50,9 @@ class VoxelErrorBoundary extends Component<{ children: React.ReactNode, fallback
     return { hasError: true };
   }
 
-  componentDidCatch(error: unknown, errorInfo: ErrorInfo) {
-    console.error("Voxel 3D Error:", error, errorInfo);
+  componentDidCatch(_error: unknown, _errorInfo: ErrorInfo) {
+    // Error logging could be added here if needed
+    // ErrorLogger.error(_error, 'VoxelStudio.componentDidCatch', { metadata: _errorInfo });
   }
 
   render() {
@@ -61,7 +62,6 @@ class VoxelErrorBoundary extends Component<{ children: React.ReactNode, fallback
     return this.props.children;
   }
 }
-
 
 export interface VoxelDetail {
   id: string;
@@ -80,8 +80,6 @@ export interface RelatedElement {
   label: string;
   meta?: string;
 }
-
-
 
 interface VoxelStudioProps {
   assets: Asset[];
@@ -1069,8 +1067,6 @@ const VoxelMesh: React.FC<{
   );
 });
 
-
-
 const ImpactWave: React.FC<{ position: [number, number, number] }> = ({ position }) => {
   const ref = useRef<Mesh>(null);
   const [active, setActive] = useState(true);
@@ -1229,7 +1225,6 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
   // impactMode is now controlled by props
   // impactedNodeIds is now a computed value derived from useMemo
 
-
   const handleOverlayPositionChange = useCallback((x: number, y: number) => {
     setOverlayOffset({ x, y });
   }, []);
@@ -1259,7 +1254,6 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     impactMode, setImpactMode,
     handleOverlayFocusRequest, handleOverlayPositionChange
   ]);
-
 
   const safeAssets = useMemo(() => assets ?? [], [assets]);
   const safeRisks = useMemo(() => risks ?? [], [risks]);
@@ -1638,8 +1632,6 @@ export const VoxelStudio: React.FC<VoxelStudioProps> = ({
     }
     return new Set<string>();
   }, [impactMode, selectedNode, calculateBlastRadius]);
-
-
 
   return (
     <div className={`w-full h-full ${className}`}>

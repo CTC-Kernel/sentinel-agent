@@ -161,7 +161,6 @@ export const Compliance: React.FC = () => {
         }
     };
 
-
     const selectedControl = frameworkControls.find((c: import('../types').Control) => c.id === selectedControlId);
 
     return (
@@ -434,8 +433,7 @@ export const Compliance: React.FC = () => {
                         }
                     } catch (error) {
                         toast.error("Erreur critique lors de la création du document");
-                        console.error(error);
-                    }
+                        }
                 }}
                 users={usersList}
                 controls={frameworkControls}
