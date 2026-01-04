@@ -1,24 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Audit, Control, Document as GRCDocument, Asset, Risk, Project, UserProfile } from '../../types';
-import { EmptyState } from '../ui/EmptyState';
 import { useAuditDetails } from '../../hooks/audits/useAuditDetails';
 import { InspectorLayout } from '../ui/InspectorLayout';
-import { AlertOctagon, ClipboardCheck, BrainCircuit, FileText, Target, Plus, Trash2, CheckCheck, Loader2, Download, History, Upload, ShieldCheck, Link as LinkIcon, ExternalLink } from 'lucide-react';
+import { AlertOctagon, ClipboardCheck, FileText, Target, Trash2, CheckCheck, Loader2, History, ShieldCheck, Download } from 'lucide-react';
 import { ResourceHistory } from '../shared/ResourceHistory';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
-import { FloatingLabelTextarea } from '../ui/FloatingLabelInput';
-import { AIAssistButton } from '../ai/AIAssistButton';
 import { SingleAuditStats } from './SingleAuditStats';
 import { useStore } from '../../store';
 import { canDeleteResource } from '../../utils/permissions';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { findingSchema, FindingFormData } from '../../schemas/findingSchema';
-import { ErrorLogger } from '../../services/errorLogger';
 import { AuditForm } from './AuditForm';
 import { ShareAuditModal } from './ShareAuditModal';
 import { AssignPartnerModal } from './AssignPartnerModal';
 import { toast } from 'sonner';
+
+// Sub-components
+import { AuditFindings } from './inspector/AuditFindings';
+import { AuditChecklist } from './inspector/AuditChecklist';
+import { AuditCertification } from './inspector/AuditCertification';
 
 interface AuditInspectorProps {
     audit: Audit;
@@ -39,7 +37,6 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
     refreshAudits, canEdit, onDelete
 }) => {
     const { user, t } = useStore();
-    // ... existing hooks ...
     const {
         findings, checklist, fetchDetails,
         handleAddFinding, handleDeleteFinding,
@@ -56,33 +53,6 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
     useEffect(() => {
         fetchDetails();
     }, [fetchDetails]);
-
-    // ... findingForm logic ...
-    const findingForm = useForm<FindingFormData>({
-        resolver: zodResolver(findingSchema),
-        defaultValues: { description: '', type: 'Mineure', status: 'Ouvert', relatedControlId: '', evidenceIds: [] }
-    });
-
-    const [uploadingFindingId, setUploadingFindingId] = useState<string | null>(null);
-
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, findingId: string) => {
-        if (!e.target.files || e.target.files.length === 0) return;
-        const file = e.target.files[0];
-        setUploadingFindingId(findingId);
-        try {
-            const fakeUrl = URL.createObjectURL(file);
-            await handleEvidenceUploadForFinding(findingId, fakeUrl, file.name);
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'AuditInspector.handleFileUpload', 'FILE_UPLOAD_FAILED');
-        } finally {
-            setUploadingFindingId(null);
-        }
-    };
-
-    const onSubmitFinding = async (data: FindingFormData) => {
-        await handleAddFinding(data);
-        findingForm.reset();
-    };
 
     const tabs = [
         { id: 'details', label: t('audits.tabs.details'), icon: FileText },
@@ -157,137 +127,24 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
             )}
             <div className="space-y-6 max-w-7xl mx-auto">
                 {activeTab === 'findings' && (
-                    /* ... findings tab content reuse ... */
-                    <>
-                        {canEdit && (
-                            <form onSubmit={findingForm.handleSubmit(onSubmitFinding)} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                                <h3 className="text-sm font-bold uppercase text-slate-500 mb-4 flex items-center gap-2"><Plus className="h-4 w-4" /> {t('audits.findingsSection.newFinding')}</h3>
-                                <div className="space-y-4">
-                                    <div className="flex flex-col gap-2">
-                                        <div className="flex justify-end">
-                                            <AIAssistButton
-                                                context={{ auditName: audit.name, auditType: audit.type }}
-                                                fieldName="description"
-                                                onSuggest={(val) => findingForm.setValue('description', val)}
-                                                prompt={t('audits.findingsSection.form.descriptionPlaceholder')}
-                                            />
-                                        </div>
-                                        <FloatingLabelTextarea label={t('audits.findingsSection.form.description')} {...findingForm.register('description')} required rows={3} />
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <select {...findingForm.register('type')} className="input-field">
-                                            <option value="Mineure">{t('audits.findingsSection.form.type.minor')}</option>
-                                            <option value="Majeure">{t('audits.findingsSection.form.type.major')}</option>
-                                            <option value="Opportunité">{t('audits.findingsSection.form.type.opportunity')}</option>
-                                        </select>
-                                        <select {...findingForm.register('relatedControlId')} className="input-field">
-                                            <option value="">{t('audits.findingsSection.form.linkControl')}</option>
-                                            {controls.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name.substring(0, 30)}...</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="flex justify-end">
-                                        <button type="submit" aria-label={t('audits.findingsSection.add')} className="btn-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{t('audits.findingsSection.add')}</button>
-                                    </div>
-                                </div>
-                            </form>
-                        )}
-
-                        <div className="space-y-4 pt-4">
-                            <h3 className="text-lg font-bold">{t('audits.findingsSection.listTitle', { count: findings.length })}</h3>
-                            {findings.length === 0 ? (
-                                <EmptyState
-                                    icon={AlertOctagon}
-                                    title={t('audits.findingsSection.emptyTitle')}
-                                    description={t('audits.findingsSection.emptyDesc')}
-                                    color="slate"
-                                />
-                            ) : (
-                                findings.map(f => (
-                                    <div key={f.id} className="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm flex justify-between items-start">
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className={`px-2 py-0.5 text-xs font-bold rounded ${f.type === 'Majeure' ? 'bg-red-100 text-red-700' : f.type === 'Opportunité' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
-                                                    {f.type}
-                                                </span>
-                                                <span className="text-xs text-slate-400">{new Date(f.createdAt || '').toLocaleDateString()}</span>
-                                            </div>
-                                            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{f.description}</p>
-                                        </div>
-                                        <div className="flex flex-col gap-2">
-                                            {canEdit && (
-                                                <div className="flex items-center gap-1">
-                                                    <CustomTooltip content={t('audits.findingsSection.uploadEvidence')}>
-                                                        <label htmlFor={`file-upload-${f.id}`} className={`cursor-pointer p-1 transition-colors focus-within:ring-2 focus-within:ring-brand-500 rounded ${uploadingFindingId === f.id ? 'text-indigo-500 animate-pulse' : 'text-slate-400 hover:text-indigo-500'}`}>
-                                                            {uploadingFindingId === f.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                                                            <input type="file"
-                                                                id={`file-upload-${f.id}`}
-                                                                aria-label="Upload de preuve pour le constat"
-                                                                className="hidden"
-                                                                onChange={(e) => handleFileUpload(e, f.id)}
-                                                                disabled={!!uploadingFindingId}
-                                                            />
-                                                        </label>
-                                                    </CustomTooltip>
-                                                    <CustomTooltip content={t('audits.findingsSection.delete')}>
-                                                        <button onClick={() => handleDeleteFinding(f.id)} aria-label={t('audits.findingsSection.delete')} className="text-slate-400 hover:text-red-500 p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </button>
-                                                    </CustomTooltip>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </>
+                    <AuditFindings
+                        audit={audit}
+                        controls={controls}
+                        findings={findings}
+                        canEdit={canEdit}
+                        onAddFinding={handleAddFinding}
+                        onDeleteFinding={handleDeleteFinding}
+                        onUploadEvidence={handleEvidenceUploadForFinding}
+                    />
                 )}
 
                 {activeTab === 'checklist' && (
-                    <div className="space-y-6">
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-bold">{t('audits.checklist.title')}</h3>
-                            {canEdit && (
-                                <button type="button" onClick={generateChecklist} aria-label={t('audits.checklist.generateAI')} className="btn-secondary text-sm flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
-                                    <BrainCircuit className="h-4 w-4" /> {t('audits.checklist.generateAI')}
-                                </button>
-                            )}
-                        </div>
-
-                        {checklist ? (
-                            <div className="space-y-4">
-                                {checklist.questions.map(q => (
-                                    <div key={q.id} className="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/5">
-                                        <p className="font-medium mb-3">{q.question}</p>
-                                        <div className="flex gap-2">
-                                            {(['Conforme', 'Non-conforme', 'Non-applicable'] as const).map(opt => (
-                                                <button
-                                                    type="button"
-                                                    key={opt}
-                                                    onClick={() => handleChecklistAnswer(q.id, opt)}
-                                                    aria-label={`Marquer comme ${opt}`}
-                                                    className={`px-3 py-1 rounded-lg text-sm border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${q.response === opt ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-900/30' : 'border-slate-200 text-slate-600'}`}
-                                                >
-                                                    {opt === 'Conforme' ? t('audits.checklist.responses.compliant') :
-                                                        opt === 'Non-conforme' ? t('audits.checklist.responses.nonCompliant') :
-                                                            t('audits.checklist.responses.notApplicable')}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <EmptyState
-                                icon={ClipboardCheck}
-                                title={t('audits.checklist.emptyTitle')}
-                                description={t('audits.checklist.emptyDesc')}
-                                actionLabel={canEdit ? t('audits.checklist.generateAction') : undefined}
-                                onAction={canEdit ? generateChecklist : undefined}
-                                color="indigo"
-                            />
-                        )}
-                    </div>
+                    <AuditChecklist
+                        checklist={checklist}
+                        canEdit={canEdit}
+                        onGenerate={generateChecklist}
+                        onAnswer={handleChecklistAnswer}
+                    />
                 )}
 
                 {activeTab === 'dashboard' && (
@@ -295,45 +152,11 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                 )}
 
                 {activeTab === 'certification' && (
-                    <div className="space-y-6">
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                <ShieldCheck className="w-5 h-5 text-brand-500" />
-                                Accès Auditeur Externe
-                            </h3>
-                            <p className="text-slate-600 dark:text-slate-400 mb-6">
-                                Créez un lien sécurisé pour permettre à un auditeur externe ou un organisme de certification d'accéder à cet audit, consulter les preuves et valider la conformité.
-                            </p>
-
-                            <button
-                                onClick={() => setIsShareModalOpen(true)}
-                                className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-lg shadow-brand-500/20 flex items-center gap-2 transition-all"
-                            >
-                                <LinkIcon className="w-4 h-4" />
-                                Générer un lien d'accès
-                            </button>
-
-                            {/* Assuming we might fetch active shares in the future, simpler placeholder for now */}
-                            <div className="mt-8 border-t border-slate-100 dark:border-white/5 pt-6">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Partenaires Assignés</h4>
-                                    <button
-                                        onClick={() => setIsAssignModalOpen(true)}
-                                        className="text-sm font-medium text-brand-600 hover:text-brand-700 flex items-center gap-1"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        {t('audits.actions.assignPartner') || "Assigner un partenaire"}
-                                    </button>
-                                </div>
-                                <EmptyState
-                                    icon={ExternalLink}
-                                    title="Aucun auditeur externe actif"
-                                    description="Aucun lien d'accès n'est actuellement actif pour cet audit."
-                                    color="slate"
-                                />
-                            </div>
-                        </div>
-                    </div>
+                    <AuditCertification
+                        canEdit={canEdit}
+                        onOpenShareModal={() => setIsShareModalOpen(true)}
+                        onOpenAssignModal={() => setIsAssignModalOpen(true)}
+                    />
                 )}
 
                 {activeTab === 'history' && (
@@ -355,7 +178,6 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                 auditName={audit.name}
                 onAssigned={() => {
                     toast.success('Partenaire assigné avec succès');
-                    // refresh or update local state if needed
                 }}
             />
         </InspectorLayout>

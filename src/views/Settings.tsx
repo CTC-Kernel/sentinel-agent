@@ -32,7 +32,7 @@ const Settings: React.FC = () => {
                     ? <OrganizationSettings />
                     : <ProfileSettings />;
             case 'partners':
-                return hasPermission(user, 'Settings', 'manage')
+                return hasPermission(user, 'Partner', 'manage')
                     ? <PartnerManagement />
                     : <ProfileSettings />;
             case 'integrations': return <IntegrationSettings />;
@@ -49,15 +49,15 @@ const Settings: React.FC = () => {
         >
             <MasterpieceBackground />
             <SEO title={t('settings.title')} />
-            
+
             <PageHeader
                 title={t('settings.title')}
                 subtitle="Gérez vos préférences et configuration"
                 breadcrumbs={[{ label: 'Support' }, { label: 'Paramètres' }]}
                 icon={
-                    <img 
-                        src="/images/support.png" 
-                        alt="SUPPORT" 
+                    <img
+                        src="/images/support.png"
+                        alt="SUPPORT"
                         className="w-full h-full object-contain"
                     />
                 }

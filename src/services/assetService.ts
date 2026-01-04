@@ -129,14 +129,7 @@ export const AssetService = {
         // Dynamic import to avoid circular dep if needed, but normally unrelated.
         const { getDocs, query, where, orderBy, limit } = await import('firebase/firestore');
         const logsRef = collection(db, 'system_logs');
-        const q = query(
-            logsRef,
-            where('organizationId', '==', organizationId),
-            where('resourceType', '==', 'Asset'),
-            where('details', '>=', `Mise à jour Actif: ${assetName}`), // Very rough, might need improvement
-            orderBy('details'),
-            limit(50)
-        );
+
         // Actually, without resourceId in logs, looking up by name is fragile.
         // Let's assume we want to fix this in the future.
         // For now, let's return [] or implement a proper ID based query if logs have it.

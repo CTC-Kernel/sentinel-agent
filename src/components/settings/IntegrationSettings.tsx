@@ -13,12 +13,11 @@ import { useAuditsActions } from '../../hooks/audits/useAuditsActions';
 // Form validation: zod schema with resolver pattern
 
 export const IntegrationSettings: React.FC = () => {
-    const { user, setUser, addToast, t } = useStore(state => ({
-        user: state.user,
-        setUser: state.setUser,
-        addToast: state.addToast,
-        t: state.t
-    }));
+    // Use individual selectors to prevent unnecessary re-renders
+    const user = useStore(state => state.user);
+    const setUser = useStore(state => state.setUser);
+    const addToast = useStore(state => state.addToast);
+    const t = useStore(state => state.t);
 
     const { projects } = useLayoutData();
     const { audits } = useAuditsActions();

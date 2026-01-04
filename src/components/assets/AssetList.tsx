@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Asset, Criticality, UserProfile } from '../../types';
 import { DataTable } from '../ui/DataTable';
 import { Server, Edit, Trash2, Tag } from '../ui/Icons';
-import { TableSkeleton, CardSkeleton } from '../ui/Skeleton';
+import { CardSkeleton } from '../ui/Skeleton';
 import { EmptyState } from '../ui/EmptyState';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { canDeleteResource } from '../../utils/permissions';

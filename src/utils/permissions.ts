@@ -28,7 +28,8 @@ const ROLE_PERMISSIONS: Record<Role, PermissionMatrix> = {
         CTCEngine: ['read'],
         AuditTrail: ['read'],
         Backup: ['manage'],
-        Integration: ['manage']
+        Integration: ['manage'],
+        Partner: ['manage']
     },
     auditor: {
         Audit: ['read', 'create', 'update'],
