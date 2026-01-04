@@ -37,7 +37,7 @@ export const useTeamManagement = () => {
                 setJoinRequests(mockRequests as JoinRequest[]);
                 setJoinRequests(mockRequests as JoinRequest[]);
                 setLoading(false);
-            }).catch(err => {
+            }).catch(_err => {
                 setLoading(false);
             });
             return;
@@ -90,7 +90,7 @@ export const useTeamManagement = () => {
             import('../services/mockDataService').then(({ MockDataService }) => {
                 const mock = MockDataService.getCollection('custom_roles');
                 setCustomRoles(mock as CustomRole[]);
-            }).catch(err => {
+            }).catch(_err => {
                 });
             return;
         }
