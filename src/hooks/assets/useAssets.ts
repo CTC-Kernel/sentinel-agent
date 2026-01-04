@@ -46,7 +46,7 @@ export function useAssets() {
                 setMockProcesses(processes);
                 setMockLoading(false);
                 setMockLoading(false);
-            }).catch(err => {
+            }).catch(_err => {
                 if (mounted) setMockLoading(false);
             });
         }

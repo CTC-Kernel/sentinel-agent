@@ -43,16 +43,7 @@ export const useLayoutData = () => {
     { enabled: !!user?.organizationId }
   );
 
-  const debugLoading = {
-    notifications: loadingNotifications,
-    documents: loadingDocuments,
-    risks: loadingRisks,
-    incidents: loadingIncidents,
-    assets: loadingAssets,
-    projects: loadingProjects,
-    userOrg: user?.organizationId
-  };
-
+  
   if (loadingNotifications || loadingDocuments || loadingRisks || loadingIncidents || loadingAssets || loadingProjects) {
     const loadingStates = [
       ['notifications', loadingNotifications],

@@ -64,7 +64,7 @@ export const useAuthActions = () => {
                     addToast(t('auth.success'), 'success');
                     window.location.hash = '#/';
                 }
-            } catch (error: unknown) {
+            } catch (_error: unknown) {
                 if (!isMounted) return;
                 ErrorLogger.error(error as Error, 'Login.getRedirectResult');
                 setErrorMsg(t('auth.errors.google'));
@@ -106,7 +106,7 @@ export const useAuthActions = () => {
                 });
             }
             return true;
-        } catch (error: unknown) {
+        } catch (_error: unknown) {
             const err = error as { code?: string; message?: string };
             if (err.code === 'auth/multi-factor-auth-required') {
                 const resolver = getMultiFactorResolver(auth, error as MultiFactorError);
@@ -194,7 +194,7 @@ export const useAuthActions = () => {
                     }
                 }
             }
-        } catch (error: unknown) {
+        } catch (_error: unknown) {
             ErrorLogger.error(error as Error, 'Login.handleGoogleLogin');
             setErrorMsg(t('auth.errors.generic'));
             const code = (error as { code?: string })?.code;
@@ -272,7 +272,7 @@ export const useAuthActions = () => {
                     }
                 }
             }
-        } catch (error: unknown) {
+        } catch (_error: unknown) {
             ErrorLogger.error(error as Error, 'Login.handleAppleLogin');
             setErrorMsg(t('auth.errors.generic'));
             const code = (error as { code?: string })?.code;

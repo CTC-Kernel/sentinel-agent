@@ -148,7 +148,7 @@ export const OrganizationSettings: React.FC = () => {
 
             await logAction(user, 'TRANSFER', 'Organization', `Propriété transférée à ${targetId}`);
             addToast(t('settings.transferSuccess'), 'success');
-        } catch (error: unknown) {
+        } catch (_error: unknown) {
             ErrorLogger.error(error, 'OrganizationSettings.handleTransferOwnership');
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             addToast(t('settings.transferError') + errorMessage, 'error');

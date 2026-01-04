@@ -347,7 +347,7 @@ export const Onboarding: React.FC = () => {
             setStep(2);
             addToast(t('onboarding.toasts.orgCreated'), "success");
 
-        } catch (error: unknown) {
+        } catch (_error: unknown) {
             ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleStep1', 'CREATE_FAILED');
             const errorMessage = error instanceof Error ? error.message : String(error);
             setError(errorMessage || t('onboarding.toasts.createError'));

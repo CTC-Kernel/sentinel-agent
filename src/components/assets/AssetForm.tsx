@@ -15,7 +15,6 @@ import { ASSET_TYPES, ASSET_LIFECYCLE_STATUSES, COMPLIANCE_SCOPES } from '../../
 import { AIAssistantHeader, BaseTemplate } from '../ui/AIAssistantHeader';
 import { AssetClassificationService } from '../../services/AssetClassificationService';
 import { useStore } from '../../store';
-import { useDoubleSubmitPrevention } from '../../hooks/useDoubleSubmitPrevention';
 
 type AssetTemplate = BaseTemplate & {
     type: string;
@@ -52,7 +51,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     isLoading = false,
     readOnly = false
 }) => {
-    const { isSubmitting, handleSubmit: protectedSubmit } = useDoubleSubmitPrevention();
     const { control, handleSubmit, reset, formState: { errors }, setValue, watch, getValues, register } = useForm<AssetFormData>({
         resolver: zodResolver(assetSchema) as Resolver<AssetFormData>,
         shouldUnregister: true, // IMPORTANT: Remove hidden fields from data to avoid validation errors on invisible fields

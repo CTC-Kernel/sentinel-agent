@@ -1,75 +1,10 @@
-import React, { useState, useCallback } from 'react';
-
-/**
- * Hook pour prévenir les double-soumissions dans les formulaires
- */
-export const useDoubleSubmitPrevention = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitCount, setSubmitCount] = useState(0);
-
-  const handleSubmit = useCallback(async (
-    submitFunction: () => Promise<void>,
-    options?: {
-      timeout?: number;
-      resetOnSuccess?: boolean;
-      onSuccess?: () => void;
-      onError?: (error: Error) => void;
-    }
-  ) => {
-    // Prévenir le double-submit
-    if (isSubmitting) {
-      console.warn('Double submit prevented');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setSubmitCount(prev => prev + 1);
-
-    const {
-      timeout = 30000, // 30 secondes par défaut
-      resetOnSuccess = true,
-      onSuccess,
-      onError
-    } = options || {};
-
-    // Timeout de sécurité
-    const timeoutId = setTimeout(() => {
-      console.error('Submit timeout - resetting submitting state');
-      setIsSubmitting(false);
-    }, timeout);
-
-    try {
-      await submitFunction();
-      
-      if (resetOnSuccess) {
-        setIsSubmitting(false);
-      }
-      onSuccess?.();
-    } catch (error) {
-      setIsSubmitting(false);
-      onError?.(error as Error);
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  }, [isSubmitting]);
-
-  const reset = useCallback(() => {
-    setIsSubmitting(false);
-    setSubmitCount(0);
-  }, []);
-
-  return {
-    isSubmitting,
-    submitCount,
-    handleSubmit,
-    reset
-  };
-};
+import { useState, useCallback } from 'react';
+import { useDoubleSubmitPrevention } from './useDoubleSubmitPrevention';
 
 /**
  * Hook pour la protection des formulaires avec validation
  */
-export const useFormProtection = <T extends Record<string, any>>(initialData: T) => {
+export const useFormProtection = <T extends Record<string, unknown>>(initialData: T) => {
   const [formData, setFormData] = useState<T>(initialData);
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
   const [touched, setTouched] = useState<Partial<Record<keyof T, boolean>>>({});
@@ -78,7 +13,7 @@ export const useFormProtection = <T extends Record<string, any>>(initialData: T)
 
   const { handleSubmit } = useDoubleSubmitPrevention();
 
-  const validateField = useCallback((name: keyof T, value: any) => {
+  const validateField = useCallback((_name: keyof T, value: unknown) => {
     // Validation basique - à personnaliser selon les besoins
     if (!value && value !== 0) {
       return 'Ce champ est requis';
@@ -89,7 +24,7 @@ export const useFormProtection = <T extends Record<string, any>>(initialData: T)
     return null;
   }, []);
 
-  const setFieldValue = useCallback((name: keyof T, value: any) => {
+  const setFieldValue = useCallback((name: keyof T, value: unknown) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     
     // Valider le champ s'il a déjà été touché

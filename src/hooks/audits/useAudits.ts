@@ -90,7 +90,7 @@ export const useAudits = () => {
                 setMockLoading(false);
                 setMockFindings(findings);
                 setMockLoading(false);
-            }).catch(err => {
+            }).catch(_err => {
                 setMockLoading(false);
             });
         }

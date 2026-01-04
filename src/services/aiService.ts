@@ -504,7 +504,7 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
         if (typeof text === 'string' && text.trim().length > 0) {
             return text;
         }
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
         // ErrorLogger context
         const anyError = error as { code?: unknown; message?: unknown };
         const code = typeof anyError.code === 'string' ? anyError.code : undefined;
@@ -540,7 +540,7 @@ async function runChatSafe(systemPrompt: string, message: string, modelName: str
         if (typeof text === 'string' && text.trim().length > 0) {
             return text;
         }
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
         // ErrorLogger context
         const anyError = error as { code?: unknown; message?: unknown };
         const code = typeof anyError.code === 'string' ? anyError.code : undefined;

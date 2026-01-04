@@ -216,7 +216,7 @@ export const useFirestoreCollection = <T = DocumentData>(
                 await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
             }
             return docRef.id;
-        } catch (err: unknown) {
+        } catch (_err: unknown) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.add.${collectionName}`);
             throw errorObj;
@@ -231,7 +231,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (!realtime) {
                 await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
             }
-        } catch (err: unknown) {
+        } catch (_err: unknown) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.update.${collectionName}`);
             throw errorObj;
@@ -246,7 +246,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             if (!realtime) {
                 await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
             }
-        } catch (err: unknown) {
+        } catch (_err: unknown) {
             const errorObj = err instanceof Error ? err : new Error(String(err));
             if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.remove.${collectionName}`);
             throw errorObj;

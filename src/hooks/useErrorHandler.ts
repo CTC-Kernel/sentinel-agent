@@ -65,16 +65,18 @@ export const useErrorHandler = () => {
     
     // Logger l'erreur
     if (logToService) {
-      ErrorLogger.handleError(structuredError.message, context, {
-        type: structuredError.type,
-        code: structuredError.code,
-        technicalDetails: structuredError.technicalDetails
+      ErrorLogger.error(structuredError.message, context, {
+        component: 'useErrorHandler',
+        action: structuredError.type,
+        metadata: {
+          code: structuredError.code,
+          technicalDetails: structuredError.technicalDetails
+        }
       });
     }
     
     // Afficher un toast si demandé
     if (showToast) {
-      const toastType = structuredError.type === ErrorType.VALIDATION ? 'warning' : 'error';
       toast(structuredError.userMessage, {
         duration: structuredError.type === ErrorType.NETWORK ? 6000 : 4000,
         action: structuredError.type === ErrorType.NETWORK ? {
@@ -155,7 +157,7 @@ export const useErrorHandler = () => {
     if (error instanceof Error) {
       message = error.message;
       technicalDetails = {
-        name: error.name,
+        errorName: error.name,
         stack: error.stack,
         ...error
       };
@@ -181,7 +183,7 @@ export const useErrorHandler = () => {
    * Génère un message utilisateur approprié
    */
   const generateUserMessage = (structuredError: StructuredError): string => {
-    const { type, code, message, context } = structuredError;
+    const { type, message } = structuredError;
     
     switch (type) {
       case ErrorType.NETWORK:
@@ -191,13 +193,13 @@ export const useErrorHandler = () => {
         return 'Le serveur met trop temps à répondre. Veuillez réessayer dans un instant.';
       
       case ErrorType.PERMISSION:
-        return 'Vous n\\'avez pas les permissions nécessaires pour effectuer cette action.';
+        return 'Vous n\'avez pas les permissions nécessaires pour effectuer cette action.';
       
       case ErrorType.VALIDATION:
         return 'Les données fournies ne sont pas valides. Veuillez vérifier les champs du formulaire.';
       
       case ErrorType.NOT_FOUND:
-        return 'La ressource demandée n\\'existe pas ou a été supprimée.';
+        return 'La ressource demandée n\'existe pas ou a été supprimée.';
       
       case ErrorType.CONFLICT:
         return 'Un conflit a été détecté. Les données ont peut-être été modifiées par un autre utilisateur.';

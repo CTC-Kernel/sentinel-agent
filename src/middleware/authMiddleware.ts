@@ -46,7 +46,7 @@ export const authenticate = (requiredRole?: string) => {
         };
 
         next();
-      } catch (error: unknown) {
+      } catch (_error: unknown) {
         // Gestion des erreurs spécifiques
         ErrorLogger.warn(error instanceof Error ? error.message : String(error), 'authMiddleware.validateToken');
         if (error instanceof Error && error.message === 'Invalid or expired token') {

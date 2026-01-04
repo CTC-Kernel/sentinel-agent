@@ -401,7 +401,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 ErrorLogger.info('E2E Test Mode: Bypass Auth enabled', 'AuthContext');
                 handleUser(mockUser as unknown as User);
-            } catch (e) {
+            } catch (_e) {
                 ErrorLogger.error("Failed to parse E2E user", 'AuthContext');
                 unsubscribeAuth = onIdTokenChanged(auth, async (user) => {
                     const currentUid = firebaseUserUidRef.current;

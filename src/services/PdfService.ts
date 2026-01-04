@@ -1013,8 +1013,8 @@ export class PdfService {
      */
     static generateAIRecommendations(
         domain: 'risks' | 'compliance' | 'audits' | 'projects',
-        metrics: any,
-        context?: any
+        metrics: Record<string, any>,
+        context?: Record<string, any>
     ): { recommendation: string; priority: 'Critical' | 'High' | 'Medium' | 'Low'; confidence: number; timeframe: string }[] {
         const recommendations = [];
 
@@ -1255,7 +1255,7 @@ export class PdfService {
         y: number,
         width: number,
         framework: 'ISO27001' | 'GDPR' | 'SOC2' | 'NIS2',
-        _data: any
+        _data: Record<string, any>
     ): number {
         let currentY = y;
         

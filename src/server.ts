@@ -26,12 +26,12 @@ const app = configureApp();
 startServer(PORT, app);
 
 // Gestion des erreurs non capturées
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', (_error) => {
   process.exit(1);
 });
 
 // Gestion des rejets de promesse non gérés
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (_reason, _promise) => {
   });
 
 // Exporter l'application pour les tests
