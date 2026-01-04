@@ -48,8 +48,46 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
     const canDelete = !!user && hasPermission(user, 'Incident', 'delete');
 
     const filteredIncidents = useMemo(() => {
-        return incidents.filter(i => i.title.toLowerCase().includes(filter.toLowerCase()));
+        if (!filter) return incidents;
+        return incidents.filter(inc => 
+            inc.title.toLowerCase().includes(filter.toLowerCase()) ||
+            inc.description.toLowerCase().includes(filter.toLowerCase()) ||
+            inc.category?.toLowerCase().includes(filter.toLowerCase())
+        );
     }, [incidents, filter]);
+
+    // Memoized category data for pie chart
+    const categoryData = useMemo(() => {
+        const data = incidents.reduce((acc, inc) => {
+            const cat = inc.category || 'Non catégorisé';
+            acc[cat] = (acc[cat] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        return Object.entries(data).map(([name, value]) => ({ name, value }));
+    }, [incidents]);
+
+    // Memoized timeline data for bar chart
+    const timelineData = useMemo(() => {
+        const months = new Array(6).fill(0).map((_, i) => {
+            const d = new Date();
+            d.setMonth(d.getMonth() - 5 + i);
+            return {
+                name: d.toLocaleString('default', { month: 'short' }),
+                date: d,
+                count: 0
+            };
+        });
+
+        incidents.forEach(inc => {
+            const d = new Date(inc.dateReported);
+            const monthIndex = months.findIndex(m =>
+                m.date.getMonth() === d.getMonth() &&
+                m.date.getFullYear() === d.getFullYear()
+            );
+            if (monthIndex !== -1) months[monthIndex].count++;
+        });
+        return months.every(m => m.count === 0) ? [] : months;
+    }, [incidents]);
 
     // Metrics for Summary Card
     const columns = useMemo<ColumnDef<Incident>[]>(() => [
@@ -244,27 +282,13 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 <div className="glass-premium p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Par Catégorie</h4>
                     <div className="h-[250px] w-full">
-                        {useMemo(() => {
-                            const data = incidents.reduce((acc, inc) => {
-                                const cat = inc.category || 'Non catégorisé';
-                                acc[cat] = (acc[cat] || 0) + 1;
-                                return acc;
-                            }, {} as Record<string, number>);
-                            return Object.entries(data).map(([name, value]) => ({ name, value }));
-                        }, [incidents]).length === 0 ? (
+                        {categoryData.length === 0 ? (
                             <EmptyChartState variant="pie" message="Aucune catégorie" />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
-                                        data={useMemo(() => {
-                                            const data = incidents.reduce((acc, inc) => {
-                                                const cat = inc.category || 'Non catégorisé';
-                                                acc[cat] = (acc[cat] || 0) + 1;
-                                                return acc;
-                                            }, {} as Record<string, number>);
-                                            return Object.entries(data).map(([name, value]) => ({ name, value }));
-                                        }, [incidents])}
+                                        data={categoryData}
                                         cx="50%"
                                         cy="50%"
                                         innerRadius={65}
@@ -274,14 +298,7 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                                         stroke="none"
                                         cornerRadius={4}
                                     >
-                                        {useMemo(() => {
-                                            const data = incidents.reduce((acc, inc) => {
-                                                const cat = inc.category || 'Non catégorisé';
-                                                acc[cat] = (acc[cat] || 0) + 1;
-                                                return acc;
-                                            }, {} as Record<string, number>);
-                                            return Object.entries(data).map(([name, value]) => ({ name, value }));
-                                        }, [incidents]).map((_, index) => (
+                                        {categoryData.map((_, index) => (
                                             <Cell key={`cell-${index}`} fill={['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#10b981'][index % 5]} stroke="rgba(255,255,255,0.05)" strokeWidth={2} />
                                         ))}
                                     </Pie>
@@ -297,52 +314,12 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                 <div className="glass-premium p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
                     <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Historique (6 mois)</h4>
                     <div className="h-[250px] w-full">
-                        {useMemo(() => {
-                            const months = new Array(6).fill(0).map((_, i) => {
-                                const d = new Date();
-                                d.setMonth(d.getMonth() - 5 + i);
-                                return {
-                                    name: d.toLocaleString('default', { month: 'short' }),
-                                    date: d,
-                                    count: 0
-                                };
-                            });
-
-                            incidents.forEach(inc => {
-                                const d = new Date(inc.dateReported);
-                                const monthIndex = months.findIndex(m =>
-                                    m.date.getMonth() === d.getMonth() &&
-                                    m.date.getFullYear() === d.getFullYear()
-                                );
-                                if (monthIndex !== -1) months[monthIndex].count++;
-                            });
-                            return months.every(m => m.count === 0) ? [] : months;
-                        }, [incidents]).length === 0 ? (
+                        {timelineData.length === 0 ? (
                             <EmptyChartState variant="bar" message="Aucun historique récent" />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart
-                                    data={useMemo(() => {
-                                        const months = new Array(6).fill(0).map((_, i) => {
-                                            const d = new Date();
-                                            d.setMonth(d.getMonth() - 5 + i);
-                                            return {
-                                                name: d.toLocaleString('default', { month: 'short' }),
-                                                date: d,
-                                                count: 0
-                                            };
-                                        });
-
-                                        incidents.forEach(inc => {
-                                            const d = new Date(inc.dateReported);
-                                            const monthIndex = months.findIndex(m =>
-                                                m.date.getMonth() === d.getMonth() &&
-                                                m.date.getFullYear() === d.getFullYear()
-                                            );
-                                            if (monthIndex !== -1) months[monthIndex].count++;
-                                        });
-                                        return months;
-                                    }, [incidents])}
+                                    data={timelineData}
                                     margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                                 >
                                     <defs>

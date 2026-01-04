@@ -6,7 +6,7 @@ import { ComplianceAIAssistant } from './ComplianceAIAssistant';
 import { CustomSelect } from '../../components/ui/CustomSelect';
 import { Loader2, Link, FileText, Paperclip, MessageSquare, User, X, ShieldAlert, AlertOctagon, ExternalLink, FolderKanban, Upload } from '../../components/ui/Icons';
 import { formatDate } from '@/utils/date';
-import { CommentSection } from '../collaboration/CommentSection';
+import { DiscussionPanel } from '../collaboration/DiscussionPanel';
 import { TimelineView } from '../shared/TimelineView';
 import { EmptyState } from '../../components/ui/EmptyState';
 
@@ -321,7 +321,15 @@ export const ComplianceInspector: React.FC<ComplianceInspectorProps> = ({
 
                 {activeTab === 'comments' && (
                     <div className="max-w-3xl mx-auto">
-                        <CommentSection collectionName="controls" documentId={control.id} />
+                        <DiscussionPanel 
+                            collectionName="controls" 
+                            documentId={control.id}
+                            title={`Discussion - ${control.code} ${control.name}`}
+                            enableSearch={true}
+                            enableFilters={true}
+                            enableExport={true}
+                            enableNotifications={true}
+                        />
                     </div>
                 )}
 

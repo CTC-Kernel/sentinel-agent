@@ -14,7 +14,7 @@ import { RiskForm } from './RiskForm';
 import { RiskDashboard } from './RiskDashboard';
 import { RelationshipGraph } from '../RelationshipGraph';
 // import { CustomSelect } from '../ui/CustomSelect';
-import { CommentSection } from '../collaboration/CommentSection';
+import { DiscussionPanel } from '../collaboration/DiscussionPanel';
 import { RiskTreatmentPlan } from './RiskTreatmentPlan';
 import { TimelineView } from '../shared/TimelineView';
 import { Risk, Asset, Control, Project, Audit, Supplier, MitreTechnique, UserProfile, BusinessProcess } from '../../types';
@@ -411,7 +411,19 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                         </div>
                     )}
 
-                    {inspectorTab === 'comments' && <div className="h-[400px]"><CommentSection collectionName="risks" documentId={risk.id} /></div>}
+                    {inspectorTab === 'comments' && (
+                    <div className="h-full">
+                        <DiscussionPanel 
+                            collectionName="risks" 
+                            documentId={risk.id}
+                            title={`Discussion - ${risk.threat}`}
+                            enableSearch={true}
+                            enableFilters={true}
+                            enableExport={true}
+                            enableNotifications={true}
+                        />
+                    </div>
+                )}
 
                     {inspectorTab === 'graph' && <div className="h-[500px]"><RelationshipGraph rootId={risk.id} rootType="Risk" /></div>}
 
