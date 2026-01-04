@@ -39,7 +39,7 @@ export const useContinuityData = (organizationId?: string) => {
                 setIncidents(module.MockDataService.getCollection('incidents') as unknown as Incident[]);
                 setIncidents(module.MockDataService.getCollection('incidents') as unknown as Incident[]);
                 setLoading(false);
-            }).catch(err => {
+            }).catch(_err => {
                 setLoading(false);
             });
             return () => { mounted = false; };

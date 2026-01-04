@@ -18,7 +18,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const AccessibilityDemoComponent = () => {
-  const { generateId, getIconButtonProps, getFormProps, keyboardHandlers: _keyboardHandlers } = useAccessibility();
+  const { generateId, getIconButtonProps, getFormProps } = useAccessibility();
   
   const buttonId = generateId('btn');
   const formProps = getFormProps('Formulaire de contact', 'Remplissez les champs ci-dessous');

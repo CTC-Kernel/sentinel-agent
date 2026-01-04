@@ -36,7 +36,7 @@ export const useDashboardReports = () => {
             projectsSnap.forEach(doc => { const d = doc.data(); const date = d.dueDate ? d.dueDate.replace(/-/g, '') : ''; if (date) icsContent += `BEGIN:VEVENT\nSUMMARY:${t('dashboard.icsProject')}: ${d.name}\nDTSTART;VALUE=DATE:${date}\nDTEND;VALUE=DATE:${date}\nDESCRIPTION:${t('dashboard.icsManager')}: ${d.manager}\nEND:VEVENT\n`; });
             icsContent += "END:VCALENDAR";
             const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })); link.download = 'sentinel_calendar.ics'; link.click(); addToast(t('dashboard.calendarExported'), "success");
-        } catch (err) { ErrorLogger.handleErrorWithToast(err, 'Dashboard.generateICal', 'UNKNOWN_ERROR'); }
+        } catch (_err) { ErrorLogger.handleErrorWithToast(_err, 'Dashboard.generateICal', 'UNKNOWN_ERROR'); }
     };
 
     const generateExecutiveReport = async (context: ReportContext) => {
@@ -65,7 +65,7 @@ export const useDashboardReports = () => {
                 } else {
                     summary = 'Résumé non disponible.';
                 }
-            } catch (error) {
+            } catch {
                 summary = 'Résumé non disponible (Service IA indisponible).';
             }
 
@@ -151,8 +151,8 @@ export const useDashboardReports = () => {
                 }
             );
             addToast(t('dashboard.reportGenerated'), "success");
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Dashboard.generateExecutiveReport', 'REPORT_GENERATION_FAILED');
+        } catch (_error) {
+            ErrorLogger.handleErrorWithToast(_error, 'Dashboard.generateExecutiveReport', 'REPORT_GENERATION_FAILED');
             addToast(t('dashboard.reportError'), "error");
         } finally {
             setIsGeneratingReport(false);

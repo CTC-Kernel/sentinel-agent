@@ -56,7 +56,7 @@ export const useProjectLogic = () => {
                         users: MockDataService.getCollection('users') as unknown as UserProfile[]
                     });
                 })
-                .catch(err => {
+                .catch(_err => {
                     if (!isMounted) return;
                     setMockData({ projects: [], risks: [], controls: [], assets: [], audits: [], users: [] });
                 });

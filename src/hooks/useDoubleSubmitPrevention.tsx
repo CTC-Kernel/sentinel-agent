@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 /**
  * Hook pour prévenir les double-soumissions dans les formulaires
@@ -40,7 +40,7 @@ export const useDoubleSubmitPrevention = () => {
 
     try {
       await submitFunction();
-      
+
       if (resetOnSuccess) {
         setIsSubmitting(false);
       }
@@ -67,73 +67,9 @@ export const useDoubleSubmitPrevention = () => {
 };
 
 /**
- * Composant Button avec protection double-submit intégrée
- */
-interface ProtectedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  isSubmitting?: boolean;
-  loadingText?: string;
-  children: React.ReactNode;
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-}
-
-export const ProtectedButton: React.FC<ProtectedButtonProps> = ({
-  isSubmitting = false,
-  loadingText = 'Chargement...',
-  children,
-  disabled,
-  className,
-  onClick,
-  ...props
-}) => {
-  const [clickCount, setClickCount] = useState(0);
-  const [lastClickTime, setLastClickTime] = useState(0);
-
-  const handleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    const now = Date.now();
-    const timeSinceLastClick = now - lastClickTime;
-    
-    // Ignorer les clics multiples rapides (< 500ms)
-    if (timeSinceLastClick < 500 && clickCount > 0) {
-      e.preventDefault();
-      console.warn('Rapid multiple clicks prevented');
-      return;
-    }
-
-    setClickCount(prev => prev + 1);
-    setLastClickTime(now);
-
-    // Réinitialiser le compteur après 2 secondes
-    setTimeout(() => {
-      setClickCount(0);
-    }, 2000);
-
-    onClick?.(e);
-  }, [onClick, lastClickTime, clickCount]);
-
-  return (
-    <button
-      {...props}
-      onClick={handleClick}
-      disabled={disabled || isSubmitting}
-      className={className}
-      aria-busy={isSubmitting}
-      aria-disabled={disabled || isSubmitting}
-    >
-      {isSubmitting ? (
-        <>
-          <span className="animate-spin mr-2">⟳</span>
-          {loadingText}
-        </>
-      ) : (
-        children
-      )}
-    </button>
-  );
-};
-
-/**
  * Hook pour la protection des formulaires avec validation
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const useFormProtection = <T extends Record<string, any>>(initialData: T) => {
   const [formData, setFormData] = useState<T>(initialData);
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
@@ -143,7 +79,8 @@ export const useFormProtection = <T extends Record<string, any>>(initialData: T)
 
   const { handleSubmit } = useDoubleSubmitPrevention();
 
-  const validateField = useCallback((name: keyof T, value: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const validateField = useCallback((_name: keyof T, value: any) => {
     // Validation basique - à personnaliser selon les besoins
     if (!value && value !== 0) {
       return 'Ce champ est requis';
@@ -154,9 +91,10 @@ export const useFormProtection = <T extends Record<string, any>>(initialData: T)
     return null;
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const setFieldValue = useCallback((name: keyof T, value: any) => {
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Valider le champ s'il a déjà été touché
     if (touched[name]) {
       const error = validateField(name, value);

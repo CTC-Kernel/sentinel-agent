@@ -129,8 +129,8 @@ export const Onboarding: React.FC = () => {
             if (selectedPlan === 'discovery') {
                 navigate('/');
             }
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleFinalize', 'UPDATE_FAILED');
+        } catch (_error) {
+            ErrorLogger.handleErrorWithToast(_error, 'Onboarding.handleFinalize', 'UPDATE_FAILED');
             setLoading(false);
         }
     };
@@ -143,8 +143,8 @@ export const Onboarding: React.FC = () => {
         try {
             await OnboardingService.updateOrganizationConfiguration(user.organizationId, standards, scope);
             setStep(4);
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'Onboarding.step3', 'UPDATE_FAILED');
+        } catch (_e) {
+            ErrorLogger.handleErrorWithToast(_e, 'Onboarding.step3', 'UPDATE_FAILED');
         } finally {
             setLoading(false);
         }
@@ -194,8 +194,8 @@ export const Onboarding: React.FC = () => {
 
                 await OnboardingService.sendInvites(currentUserProfile, invitedUsers);
                 addToast(t('onboarding.toasts.invitesSent', { count: invitedUsers.length }), "success");
-            } catch (e) {
-                ErrorLogger.handleErrorWithToast(e, 'Onboarding.step4', 'INVITE_FAILED');
+            } catch (_e) {
+                ErrorLogger.handleErrorWithToast(_e, 'Onboarding.step4', 'INVITE_FAILED');
             } finally {
                 setLoading(false);
             }
@@ -229,8 +229,8 @@ export const Onboarding: React.FC = () => {
 
                 await OnboardingService.createInitialAssets(currentUserProfile, initialAssets);
                 addToast(t('onboarding.toasts.assetsCreated', { count: initialAssets.length }), "success");
-            } catch (e) {
-                ErrorLogger.handleErrorWithToast(e, 'Onboarding.step5', 'CREATE_FAILED');
+            } catch (_e) {
+                ErrorLogger.handleErrorWithToast(_e, 'Onboarding.step5', 'CREATE_FAILED');
             } finally {
                 setLoading(false);
             }
@@ -257,8 +257,8 @@ export const Onboarding: React.FC = () => {
                         await refreshSession();
                         setUser({ ...user, onboardingCompleted: true });
                         navigate('/', { replace: true });
-                    } catch (error) {
-                        ErrorLogger.handleErrorWithToast(error, 'Onboarding.autoComplete', 'UPDATE_FAILED');
+                    } catch (_error) {
+                        ErrorLogger.handleErrorWithToast(_error, 'Onboarding.autoComplete', 'UPDATE_FAILED');
                     }
                 };
                 completeOnboarding();
@@ -280,8 +280,8 @@ export const Onboarding: React.FC = () => {
         try {
             const results = await OnboardingService.searchOrganizations(searchQuery);
             setSearchResults(results);
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleSearchOrg', 'FETCH_FAILED');
+        } catch (_error) {
+            ErrorLogger.handleErrorWithToast(_error, 'Onboarding.handleSearchOrg', 'FETCH_FAILED');
         } finally {
             setLoading(false);
         }
@@ -302,8 +302,8 @@ export const Onboarding: React.FC = () => {
             await OnboardingService.sendJoinRequest(userProfile, orgId, orgName, form.getValues('displayName'));
             setJoinRequestSent(true);
             addToast(t('onboarding.toasts.joinSent'), 'success');
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleJoinRequest', 'CREATE_FAILED');
+        } catch (_error) {
+            ErrorLogger.handleErrorWithToast(_error, 'Onboarding.handleJoinRequest', 'CREATE_FAILED');
         } finally {
             setLoading(false);
         }
@@ -348,8 +348,8 @@ export const Onboarding: React.FC = () => {
             addToast(t('onboarding.toasts.orgCreated'), "success");
 
         } catch (_error: unknown) {
-            ErrorLogger.handleErrorWithToast(error, 'Onboarding.handleStep1', 'CREATE_FAILED');
-            const errorMessage = error instanceof Error ? error.message : String(error);
+            ErrorLogger.handleErrorWithToast(_error, 'Onboarding.handleStep1', 'CREATE_FAILED');
+            const errorMessage = _error instanceof Error ? _error.message : String(_error);
             setError(errorMessage || t('onboarding.toasts.createError'));
         } finally {
             setLoading(false);

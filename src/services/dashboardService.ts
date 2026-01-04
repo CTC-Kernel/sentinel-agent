@@ -27,9 +27,9 @@ export class DashboardService {
                 };
             }
             return null;
-        } catch (error) {
-            ErrorLogger.error(error, 'DashboardService.getOrganizationDetails');
-            throw error;
+        } catch (_error) {
+            ErrorLogger.error(_error, 'DashboardService.getOrganizationDetails');
+            throw _error;
         }
     }
 
@@ -60,9 +60,9 @@ export class DashboardService {
                 activeIncidentsCount: incCount.data().count,
                 openAuditsCount: auditCount.data().count
             };
-        } catch (error) {
-            ErrorLogger.error(error, 'DashboardService.getDashboardCounts');
-            throw error;
+        } catch (_error) {
+            ErrorLogger.error(_error, 'DashboardService.getDashboardCounts');
+            throw _error;
         }
     }
     /**
@@ -79,7 +79,7 @@ export class DashboardService {
                 };
             }
             return null;
-        } catch (error) {
+        } catch {
             return null;
         }
     }
@@ -95,8 +95,8 @@ export class DashboardService {
                 generatedAt,
                 updatedAt: new Date().toISOString()
             }, { merge: true });
-        } catch (error) {
-            ErrorLogger.error(error, 'DashboardService.saveExecutiveSummary');
+        } catch (_error) {
+            ErrorLogger.error(_error, 'DashboardService.saveExecutiveSummary');
         }
     }
 }

@@ -41,9 +41,9 @@ export const useDashboardStatsHistory = ({
                         timestamp: serverTimestamp(),
                         frameworks: Object.entries(radarData).reduce((acc, [_, data]: [string, { subject: string; A: number }]) => ({ ...acc, [data.subject || 'Unknown']: data.A }), {})
                     }, { merge: true }); // Use merge to be safe
-                } catch (e) {
+                } catch {
                     // Silent fail or log if needed, but avoiding user disruption
-                    }
+                }
             };
             saveStats();
         }

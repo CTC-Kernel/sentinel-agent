@@ -167,7 +167,7 @@ const Assets: React.FC = () => {
             const prompt = t('assets.aiPrompt', { count: filteredAssets.length });
             const analysis = await aiService.chatWithAI(prompt);
             toast.info(t('assets.analysisComplete'), { description: analysis, duration: 10000 });
-        } catch (e) {
+        } catch {
             toast.error(t('assets.analysisError'));
         } finally {
             setIsAnalyzing(false);
@@ -182,7 +182,7 @@ const Assets: React.FC = () => {
                 { organizationName: limits.features.whiteLabelReports ? user?.displayName || 'Sentinel' : 'Sentinel GRC' }
             );
             toast.success(t('assets.labelGenerated'));
-        } catch (e) {
+        } catch {
             toast.error(t('assets.labelError'));
         }
     }, [limits.features.whiteLabelReports, user, t]);

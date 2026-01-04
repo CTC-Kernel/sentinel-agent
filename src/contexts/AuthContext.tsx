@@ -62,15 +62,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     // Re-rafraîchir après l'appel de la fonction
                     await auth.currentUser.getIdToken(true);
                     setClaimsSynced(true);
-                } catch (e) {
-                    ErrorLogger.warn('Failed to refresh custom claims via Cloud Function', 'AuthContext.refreshSession', { metadata: { error: e } });
+                } catch (_e) {
+                    ErrorLogger.warn('Failed to refresh custom claims via Cloud Function', 'AuthContext.refreshSession', { metadata: { error: _e } });
                 }
             } else {
                 setClaimsSynced(true);
             }
-        } catch (err) {
-            ErrorLogger.error(err, 'AuthContext.refreshSession');
-            setError(err as Error);
+        } catch (_err) {
+            ErrorLogger.error(_err, 'AuthContext.refreshSession');
+            setError(_err as Error);
         }
     }, []);
 
@@ -82,9 +82,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setIsBlocked(false);
             // Nettoyer le stockage local si nécessaire
             localStorage.removeItem('last_org_id');
-        } catch (err) {
-            ErrorLogger.error(err, 'AuthContext.logout');
-            throw err;
+        } catch (_err) {
+            ErrorLogger.error(_err, 'AuthContext.logout');
+            throw _err;
         }
     }, [setUser]);
 
@@ -92,9 +92,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             const provider = new OAuthProvider(providerId);
             await signInWithPopup(auth, provider);
-        } catch (err) {
-            ErrorLogger.error(err, 'AuthContext.loginWithSSO');
-            throw err;
+        } catch (_err) {
+            ErrorLogger.error(_err, 'AuthContext.loginWithSSO');
+            throw _err;
         }
     }, []);
 
@@ -290,8 +290,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                                 // On laisse isSynced à false, ce qui bloquera l'accès via AuthGuard
                                             }
                                         }
-                                    } catch (e) {
-                                        ErrorLogger.warn('Failed to sync claims', 'AuthContext.sync', { metadata: { error: e } });
+                                    } catch (_e) {
+                                        ErrorLogger.warn('Failed to sync claims', 'AuthContext.sync', { metadata: { error: _e } });
                                     }
                                 }
                             }
@@ -338,9 +338,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             await setDoc(userRef, initialData, { merge: Boolean(true) });
                             setUser(initialData as UserProfile);
                             setLoading(false);
-                        } catch (err) {
-                            ErrorLogger.error(err, 'AuthContext.createUserProfile');
-                            setError(err as Error);
+                        } catch (_err) {
+                            ErrorLogger.error(_err, 'AuthContext.createUserProfile');
+                            setError(_err as Error);
                             setLoading(false);
                         }
                     }
@@ -369,16 +369,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setLoading(false);
                 });
 
-            } catch (err) {
+            } catch (_err) {
                 // CRITICAL FIX: If we get a 401 or similar auth error here, we must log out
                 // otherwise the user is stuck in a half-authenticated state with a spinner
-                const firebaseErr = err as { code?: string; message?: string };
+                const firebaseErr = _err as { code?: string; message?: string };
                 if (firebaseErr?.code === 'auth/internal-error' || firebaseErr?.code === 'permission-denied') {
-                    ErrorLogger.warn("Critical Auth Error - Force Logout", 'AuthContext.handleUser', { metadata: { error: err } });
+                    ErrorLogger.warn("Critical Auth Error - Force Logout", 'AuthContext.handleUser', { metadata: { error: _err } });
                     await logout();
                 } else {
-                    ErrorLogger.error(err, 'AuthContext.handleUser');
-                    setError(err as Error);
+                    ErrorLogger.error(_err, 'AuthContext.handleUser');
+                    setError(_err as Error);
                 }
                 setLoading(false);
             }
@@ -401,7 +401,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 ErrorLogger.info('E2E Test Mode: Bypass Auth enabled', 'AuthContext');
                 handleUser(mockUser as unknown as User);
-            } catch (_e) {
+            } catch {
                 ErrorLogger.error("Failed to parse E2E user", 'AuthContext');
                 unsubscribeAuth = onIdTokenChanged(auth, async (user) => {
                     const currentUid = firebaseUserUidRef.current;

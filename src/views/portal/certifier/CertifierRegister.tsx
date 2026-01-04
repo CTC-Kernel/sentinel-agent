@@ -48,7 +48,7 @@ export const CertifierRegister: React.FC = () => {
             navigate('/portal/dashboard');
 
         } catch (_error: unknown) {
-            const firebaseError = error as { code?: string };
+            const firebaseError = _error as { code?: string };
             if (firebaseError?.code === 'auth/email-already-in-use') {
                 toast.error('Cet email est déjà utilisé');
             } else {

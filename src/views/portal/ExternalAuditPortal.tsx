@@ -54,9 +54,9 @@ export const ExternalAuditPortal: React.FC = () => {
                 const result = await getAuditFn({ token });
                 setAuditData(result.data as SharedAuditData);
             } catch (_err: unknown) {
-                const errorMessage = err instanceof Error ? err.message : t('certifier.portal.defaultError');
+                const errorMessage = _err instanceof Error ? _err.message : t('certifier.portal.defaultError');
                 setError(errorMessage);
-                ErrorLogger.error(err as Error, 'ExternalAuditPortal.load'); // Fixed usage
+                ErrorLogger.error(_err as Error, 'ExternalAuditPortal.load'); // Fixed usage
             } finally {
                 setLoading(false);
             }

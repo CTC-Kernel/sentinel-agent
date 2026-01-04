@@ -249,7 +249,7 @@ export class PdfService {
                 } else {
                     throw new Error('Invalid format');
                 }
-            } catch (e) {
+            } catch {
                 // Fallback Graphic
                 doc.setDrawColor(this.BRAND_PRIMARY);
                 doc.setLineWidth(2);
@@ -501,7 +501,7 @@ export class PdfService {
             doc.setTextColor(this.TEXT_PRIMARY);
             doc.setFont('helvetica', 'bold');
             doc.text(title, x, y - 8);
-            
+
             // Add subtitle with trend indicator
             if (showTrend && data.length > 0) {
                 const avgTrend = data.reduce((sum, item) => sum + (item.trend || 0), 0) / data.length;
@@ -521,13 +521,13 @@ export class PdfService {
         doc.setDrawColor(this.BORDER_COLOR);
         doc.setLineWidth(0.05);
         for (let i = 0; i <= 5; i++) {
-            const gridY = y + (height * (1 - i/5));
+            const gridY = y + (height * (1 - i / 5));
             doc.line(x, gridY, x + width, gridY);
-            
+
             // Add value labels on Y axis
             doc.setFontSize(7);
             doc.setTextColor(this.TEXT_SECONDARY);
-            doc.text(Math.round(maxValue * (i/5)).toString(), x - 5, gridY + 1, { align: 'right' });
+            doc.text(Math.round(maxValue * (i / 5)).toString(), x - 5, gridY + 1, { align: 'right' });
         }
 
         // Draw Axis Line
@@ -548,7 +548,7 @@ export class PdfService {
                 // Main bar
                 doc.setFillColor(color);
                 doc.roundedRect(currentX, y + height - barHeight, barWidth, barHeight, 1, 1, 'F');
-                
+
                 // Add top highlight for 3D effect
                 doc.setFillColor(255, 255, 255, 0.3);
                 doc.roundedRect(currentX + 1, y + height - barHeight, barWidth - 2, 2, 1, 1, 'F');
@@ -573,12 +573,12 @@ export class PdfService {
             doc.setFont('helvetica', 'bold');
             const valueText = item.value.toString();
             const valueY = y + height - barHeight - 3;
-            
+
             // Add background for value
             const valueBgWidth = doc.getTextWidth(valueText) + 4;
             doc.setFillColor(255, 255, 255, 0.9);
             doc.roundedRect(currentX + (barWidth - valueBgWidth) / 2, valueY - 4, valueBgWidth, 6, 1, 1, 'F');
-            
+
             doc.text(valueText, currentX + barWidth / 2, valueY, { align: 'center' });
 
             // Trend indicator
@@ -748,19 +748,19 @@ export class PdfService {
             // Draw main segment
             doc.setFillColor(item.color);
             this.drawArc(doc, centerX, centerY, radius, startAngle, endAngle);
-            
+
             // Draw segment border
             doc.setDrawColor(255, 255, 255, 0.3);
             doc.setLineWidth(0.5);
             this.drawArcBorder(doc, centerX, centerY, radius, startAngle, endAngle);
-            
+
             startAngle = endAngle;
         });
 
         // Draw inner circle with gradient effect
         doc.setFillColor(255, 255, 255);
         doc.circle(centerX, centerY, radius * 0.6, 'F');
-        
+
         // Add inner shadow
         doc.setFillColor(240, 240, 240, 0.3);
         doc.circle(centerX, centerY, radius * 0.55, 'F');
@@ -771,7 +771,7 @@ export class PdfService {
             doc.setTextColor(this.TEXT_PRIMARY);
             doc.setFont('helvetica', 'bold');
             doc.text(centerText, centerX, centerY - 3, { align: 'center', baseline: 'middle' });
-            
+
             // Add subtitle
             if (showPercentage) {
                 doc.setFontSize(10);
@@ -789,11 +789,11 @@ export class PdfService {
 
         data.forEach((item) => {
             if (item.value === 0) return;
-            
+
             // Draw color indicator
             doc.setFillColor(item.color);
             doc.circle(legendX, legendY, 3, 'F');
-            
+
             // Draw trend indicator
             if (item.trend !== undefined) {
                 doc.setFontSize(6);
@@ -808,7 +808,7 @@ export class PdfService {
             doc.setFont('helvetica', 'normal');
             const percentage = Math.round((item.value / total) * 100);
             const label = `${item.label} (${percentage}%)`;
-            
+
             // Truncate if too long
             if (doc.getTextWidth(label) > legendWidth) {
                 const truncated = item.label.length > 12 ? item.label.substring(0, 10) + '...' : item.label;
@@ -867,14 +867,14 @@ export class PdfService {
      */
     private static drawCompactLegend(doc: jsPDF, x: number, y: number, width: number, data: { label: string; color: string }[]) {
         const itemWidth = width / data.length;
-        
+
         data.forEach((item, index) => {
             const itemX = x + (index * itemWidth);
-            
+
             // Color box
             doc.setFillColor(item.color);
             doc.rect(itemX, y, 8, 4, 'F');
-            
+
             // Label
             doc.setFontSize(6);
             doc.setTextColor(this.TEXT_SECONDARY);
@@ -908,12 +908,12 @@ export class PdfService {
         doc.setTextColor(this.BRAND_SECONDARY);
         doc.setFont('helvetica', 'bold');
         doc.text("Matrice des Risques avec Analyse de Tendance", x, y - 15);
-        
+
         // Add risk density KPI
         const totalRisks = risks.length;
         const highRiskCount = risks.filter(r => r.probability >= 4 && r.impact >= 4).length;
         const riskDensity = ((highRiskCount / totalRisks) * 100).toFixed(1);
-        
+
         doc.setFontSize(9);
         doc.setTextColor(this.TEXT_SECONDARY);
         doc.text(`Densité de risque élevé: ${riskDensity}% (${highRiskCount}/${totalRisks})`, x, y - 8);
@@ -948,7 +948,7 @@ export class PdfService {
                     doc.setFontSize(10);
                     doc.setTextColor(this.TEXT_PRIMARY);
                     doc.setFont('helvetica', 'bold');
-                    
+
                     // Add background for count
                     const countText = count.toString();
                     const textWidth = doc.getTextWidth(countText);
@@ -962,9 +962,9 @@ export class PdfService {
                         2,
                         'F'
                     );
-                    
+
                     doc.text(countText, cellX + cellSize / 2, cellY + cellSize / 2, { align: 'center', baseline: 'middle' });
-                    
+
                     // Add trend indicator if multiple risks
                     if (count > 1) {
                         const avgTrend = cellRisks.reduce((sum, r) => sum + (r.trend || 0), 0) / count;
@@ -981,7 +981,7 @@ export class PdfService {
         doc.setFontSize(7);
         doc.setTextColor(this.TEXT_SECONDARY);
         const labels = ['Faible', 'Moyen', 'Fort', 'Critique', 'Catastrophique'];
-        
+
         labels.forEach((_, i) => {
             // X-axis labels
             doc.text((i + 1).toString(), x + (i * cellSize) + cellSize / 2, y + height + 3, { align: 'center' });
@@ -995,7 +995,7 @@ export class PdfService {
             doc.setFontSize(8);
             doc.setTextColor(this.TEXT_SECONDARY);
             doc.text("Catégories principales:", x, y + height + 15);
-            
+
             let catX = x + 50;
             categories.slice(0, 4).forEach(cat => {
                 const catCount = risks.filter(r => r.category === cat).length;
@@ -1013,15 +1013,15 @@ export class PdfService {
      */
     static generateAIRecommendations(
         domain: 'risks' | 'compliance' | 'audits' | 'projects',
-        metrics: Record<string, any>,
-        context?: Record<string, any>
+        metrics: Record<string, number | string | boolean>,
+        context?: Record<string, unknown>
     ): { recommendation: string; priority: 'Critical' | 'High' | 'Medium' | 'Low'; confidence: number; timeframe: string }[] {
         const recommendations = [];
 
         switch (domain) {
             case 'risks':
                 // Risk-specific AI recommendations
-                if (metrics.critical_risks > 0) {
+                if (Number(metrics.critical_risks || 0) > 0) {
                     recommendations.push({
                         recommendation: `Urgence : Déployer un plan d'action immédiat pour les ${metrics.critical_risks} risques critiques. Allouer les ressources nécessaires et établir un suivi quotidien.`,
                         priority: 'Critical',
@@ -1029,8 +1029,8 @@ export class PdfService {
                         timeframe: '0-7 jours'
                     });
                 }
-                
-                if (metrics.risk_score > 60) {
+
+                if (Number(metrics.risk_score || 0) > 60) {
                     recommendations.push({
                         recommendation: `L'exposition au risque (${metrics.risk_score}%) dépasse le seuil acceptable. Recommandons une réévaluation complète de l'appétence au risque et un renforcement des contrôles préventifs.`,
                         priority: 'High',
@@ -1038,8 +1038,8 @@ export class PdfService {
                         timeframe: '15-30 jours'
                     });
                 }
-                
-                if (metrics.treated_percentage < 50) {
+
+                if (Number(metrics.treated_percentage || 0) < 50) {
                     recommendations.push({
                         recommendation: `Seulement ${metrics.treated_percentage}% des risques ont un plan de traitement. Mettre en place un programme structuré avec des objectifs hebdomadaires pour atteindre 80% dans 90 jours.`,
                         priority: 'High',
@@ -1047,7 +1047,7 @@ export class PdfService {
                         timeframe: '30-90 jours'
                     });
                 }
-                
+
                 // Predictive recommendation
                 recommendations.push({
                     recommendation: `Basé sur les tendances actuelles, nous anticipons une augmentation de 15% des risques cyber dans les 6 prochains mois. Préparez des mesures proactives dès maintenant.`,
@@ -1059,7 +1059,7 @@ export class PdfService {
 
             case 'compliance':
                 // Compliance-specific AI recommendations
-                if (metrics.compliance_coverage < 50) {
+                if (Number(metrics.compliance_coverage || 0) < 50) {
                     recommendations.push({
                         recommendation: `Couverture de conformité insuffisante (${metrics.compliance_coverage}%). Priorisez l'implémentation des contrôles critiques pour les domaines A.9 et A.12 de l'ISO 27001.`,
                         priority: 'Critical',
@@ -1067,8 +1067,8 @@ export class PdfService {
                         timeframe: '30-60 jours'
                     });
                 }
-                
-                if (metrics.not_started > 10) {
+
+                if (Number(metrics.not_started || 0) > 10) {
                     recommendations.push({
                         recommendation: `${metrics.not_started} contrôles n'ont pas démarré. Constituez une task force dédiée avec un objectif de 5 contrôles par semaine.`,
                         priority: 'High',
@@ -1076,7 +1076,7 @@ export class PdfService {
                         timeframe: '45-90 jours'
                     });
                 }
-                
+
                 recommendations.push({
                     recommendation: `Préparez-vous à l'audit certification : documentez toutes les preuves d'implémentation et effectuez une revue interne complète dans 60 jours.`,
                     priority: 'Medium',
@@ -1087,7 +1087,7 @@ export class PdfService {
 
             case 'audits':
                 // Audit-specific AI recommendations
-                if (metrics.major_findings > 0) {
+                if (Number(metrics.major_findings || 0) > 0) {
                     recommendations.push({
                         recommendation: `${metrics.major_findings} non-conformités majeures détectées. Établissez un plan de correction immédiat avec validation par la direction.`,
                         priority: 'Critical',
@@ -1095,8 +1095,8 @@ export class PdfService {
                         timeframe: '0-15 jours'
                     });
                 }
-                
-                if (metrics.conformity_score < 70) {
+
+                if (Number(metrics.conformity_score || 0) < 70) {
                     recommendations.push({
                         recommendation: `Score de conformité (${metrics.conformity_score}%) en dessous des standards. Mettez en œuvre un programme d'amélioration continue avec des revues mensuelles.`,
                         priority: 'High',
@@ -1116,8 +1116,8 @@ export class PdfService {
                         timeframe: '0-7 jours'
                     });
                 }
-                
-                if (metrics.completion_percentage < 50 && context?.dueDate) {
+
+                if (Number(metrics.completion_percentage || 0) < 50 && context?.dueDate) {
                     recommendations.push({
                         recommendation: `Progression insuffisante (${metrics.completion_percentage}%). Analysez les blocages et optimisez le plan de charge pour respecter l'échéance.`,
                         priority: 'High',
@@ -1152,23 +1152,23 @@ export class PdfService {
         // Executive Header
         doc.setFillColor(this.BRAND_PRIMARY);
         doc.roundedRect(x, currentY, width, 25, 3, 3, 'F');
-        
+
         doc.setTextColor('#FFFFFF');
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
         doc.text(data.title, x + 10, currentY + 10);
-        
+
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
         doc.text(`Note: ${data.grade} (${data.score}/100)`, x + 10, currentY + 20);
-        
+
         // Trend indicator
         const trendX = x + width - 30;
         doc.setTextColor(data.trend > 0 ? '#10B981' : data.trend < 0 ? '#EF4444' : '#FFFFFF');
         const trendSymbol = data.trend > 0 ? '↗' : data.trend < 0 ? '↘' : '→';
         doc.setFontSize(10);
         doc.text(`${trendSymbol} ${Math.abs(data.trend)}%`, trendX, currentY + 15, { align: 'center' });
-        
+
         currentY += 35;
 
         // Key Metrics Dashboard
@@ -1182,27 +1182,27 @@ export class PdfService {
         const cardWidth = (width - 20) / 3;
         const cardHeight = 30;
         let cardX = x;
-        
+
         data.keyMetrics.forEach((metric, index) => {
             // Card background
             doc.setFillColor(255, 255, 255);
             doc.setDrawColor(this.BORDER_COLOR);
             doc.roundedRect(cardX, currentY, cardWidth - 5, cardHeight, 2, 2, 'FD');
-            
+
             // Accent bar
             doc.setFillColor(metric.change > 0 ? '#10B981' : metric.change < 0 ? '#EF4444' : '#64748B');
             doc.rect(cardX, currentY, 2, cardHeight, 'F');
-            
+
             // Metric content
             doc.setFontSize(8);
             doc.setTextColor(this.TEXT_SECONDARY);
             doc.text(metric.label, cardX + 8, currentY + 10);
-            
+
             doc.setFontSize(14);
             doc.setTextColor(this.TEXT_PRIMARY);
             doc.setFont('helvetica', 'bold');
             doc.text(metric.value, cardX + 8, currentY + 20);
-            
+
             // Change indicator
             if (metric.change !== 0) {
                 doc.setFontSize(7);
@@ -1210,7 +1210,7 @@ export class PdfService {
                 const changeSymbol = metric.change > 0 ? '+' : '';
                 doc.text(`${changeSymbol}${metric.change}%`, cardX + cardWidth - 15, currentY + 20);
             }
-            
+
             cardX += cardWidth;
             if (index % 3 === 2) {
                 cardX = x;
@@ -1232,7 +1232,7 @@ export class PdfService {
         doc.setFontSize(9);
         doc.setTextColor(this.TEXT_PRIMARY);
         doc.setFont('helvetica', 'normal');
-        
+
         data.strategicInsights.forEach((insight) => {
             const bulletText = `• ${insight}`;
             const lines = doc.splitTextToSize(bulletText, width - 20);
@@ -1255,10 +1255,10 @@ export class PdfService {
         y: number,
         width: number,
         framework: 'ISO27001' | 'GDPR' | 'SOC2' | 'NIS2',
-        _data: Record<string, any>
+        _data: Record<string, unknown>
     ): number {
         let currentY = y;
-        
+
         const frameworks = {
             ISO27001: {
                 name: 'ISO/IEC 27001:2022',
@@ -1283,7 +1283,7 @@ export class PdfService {
         };
 
         const selectedFramework = frameworks[framework];
-        
+
         // Framework Header
         doc.setFillColor(selectedFramework.color);
         doc.roundedRect(x, currentY, width, 20, 2, 2, 'F');
@@ -1291,7 +1291,7 @@ export class PdfService {
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text(selectedFramework.name, x + 10, currentY + 13);
-        
+
         currentY += 25;
 
         // Domain Coverage Analysis
@@ -1305,34 +1305,34 @@ export class PdfService {
             const coverage = Math.random() * 100; // Replace with actual data
             const progressWidth = width - 60;
             const progressHeight = 6;
-            
+
             // Domain label
             doc.setFontSize(8);
             doc.setTextColor(this.TEXT_SECONDARY);
             doc.text(domain, x + 10, currentY + 4);
-            
+
             // Progress bar background
             doc.setFillColor(this.BORDER_COLOR);
             doc.roundedRect(x + 50, currentY, progressWidth, progressHeight, 3, 3, 'F');
-            
+
             // Progress bar fill
             const fillWidth = (coverage / 100) * progressWidth;
             doc.setFillColor(coverage > 80 ? '#10B981' : coverage > 50 ? '#F59E0B' : '#EF4444');
             doc.roundedRect(x + 50, currentY, fillWidth, progressHeight, 3, 3, 'F');
-            
+
             // Percentage
             doc.setFontSize(7);
             doc.setTextColor(this.TEXT_PRIMARY);
             doc.text(`${Math.round(coverage)}%`, x + width - 15, currentY + 4, { align: 'right' });
-            
+
             currentY += 10;
         });
 
         return currentY + 10;
     }
-        /**
-    * Generate Unified Global Report
-    */
+    /**
+* Generate Unified Global Report
+*/
     static generateGlobalReport(
         data: {
             risks: Risk[];

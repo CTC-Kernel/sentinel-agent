@@ -147,7 +147,7 @@ export const useActivityLogs = (limitCount: number = 50) => {
             setLogs(prev => isLoadMore ? [...prev, ...newLogs] : newLogs);
             setHasMore(snapshot.docs.length === limitCount);
 
-        } catch (error) {
+        } catch {
             toast.error('Impossible de charger le journal d\'activité');
         } finally {
             setLoading(false);

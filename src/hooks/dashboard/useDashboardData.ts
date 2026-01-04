@@ -88,7 +88,7 @@ export const useDashboardData = (): DashboardData => {
                 setOpenAuditsCount(2);
                 setManualLoading(false);
                 setManualLoading(false);
-            }).catch(err => {
+            }).catch(_err => {
                 if (!isMounted) return;
                 setManualLoading(false);
             });

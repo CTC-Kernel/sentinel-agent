@@ -52,9 +52,9 @@ export const aiService = {
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             }, { merge: Boolean(true) });
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.initConversation');
-            throw error;
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.initConversation');
+            throw _error;
         }
     },
 
@@ -71,9 +71,9 @@ export const aiService = {
                 })),
                 updatedAt: serverTimestamp()
             }, { merge: Boolean(true) });
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.saveMessages');
-            throw error;
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.saveMessages');
+            throw _error;
         }
     },
 
@@ -140,8 +140,8 @@ export const aiService = {
                 suggestions: parsed.suggestions.map((s: Omit<AISuggestedLink, 'id'>, i: number) => ({ ...s, id: `ai-link-${i}` })),
                 insights: parsed.insights.map((s: Omit<AIInsight, 'id'>, i: number) => ({ ...s, id: `ai-insight-${i}` })),
             };
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.analyzeGraph');
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.analyzeGraph');
             throw new Error("Failed to analyze graph with Sentinel AI.");
         }
     },
@@ -169,8 +169,8 @@ export const aiService = {
             const text = await generateContentSafe(prompt);
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.analyzeImportData');
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.analyzeImportData');
             return { mappings: {}, confidence: 0 };
         }
     },
@@ -189,8 +189,8 @@ export const aiService = {
             const text = await generateContentSafe(prompt);
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.suggestField', { metadata: { fieldName } });
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.suggestField', { metadata: { fieldName } });
             return { value: '', reasoning: 'Error generating suggestion' };
         }
     },
@@ -214,9 +214,9 @@ export const aiService = {
 
         try {
             return await runChatSafe(systemPrompt, message, FAST_MODEL);
-        } catch (error) {
-            const msg = error instanceof Error ? error.message : String(error);
-            ErrorLogger.error(error, 'aiService.chatWithAI');
+        } catch (_error) {
+            const msg = _error instanceof Error ? _error.message : String(_error);
+            ErrorLogger.error(_error, 'aiService.chatWithAI');
 
             // If it's a specific backend error or rate limit message, return it to the user
             if (msg.includes('Erreur IA:') || msg.includes('L\'IA est très sollicitée') || msg.includes('Daily AI limit')) {
@@ -249,8 +249,8 @@ export const aiService = {
             `;
 
             return await generateContentSafe(prompt, SMART_MODEL);
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.generatePolicy', { metadata: { type, topic } });
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.generatePolicy', { metadata: { type, topic } });
             throw new Error("Échec de la génération de politique.");
         }
     },
@@ -286,8 +286,8 @@ export const aiService = {
             const text = await generateContentSafe(prompt, SMART_MODEL);
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.generateAuditChecklist');
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.generateAuditChecklist');
             // Fallback to generic
             return controls.map(c => ({ controlCode: c.code, questions: [`Le contrôle ${c.code} est-il implémenté ?`] }));
         }
@@ -318,8 +318,8 @@ export const aiService = {
             `;
 
             return await generateContentSafe(prompt, SMART_MODEL);
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.generateAuditExecutiveSummary');
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.generateAuditExecutiveSummary');
             return "Impossible de générer le résumé exécutif.";
         }
     },
@@ -345,8 +345,8 @@ export const aiService = {
             `;
 
             return await generateContentSafe(prompt, SMART_MODEL);
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.evaluateQuestionnaire');
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.evaluateQuestionnaire');
             return "<p>L'analyse IA n'a pas pu être générée.</p>";
         }
     },
@@ -372,8 +372,8 @@ export const aiService = {
             `;
 
             return await generateContentSafe(prompt, SMART_MODEL);
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.generateRTPSummary');
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.generateRTPSummary');
             return "Impossible de générer le résumé RTP.";
         }
     },
@@ -399,8 +399,8 @@ export const aiService = {
             `;
 
             return await generateContentSafe(prompt, SMART_MODEL);
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.generateExecutiveDashboardSummary');
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.generateExecutiveDashboardSummary');
             return "Impossible de générer le résumé exécutif du tableau de bord.";
         }
     },
@@ -426,8 +426,8 @@ export const aiService = {
             `;
 
             return await generateContentSafe(prompt, SMART_MODEL);
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.generateContinuityReportSummary');
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.generateContinuityReportSummary');
             return "Impossible de générer le résumé du rapport de continuité.";
         }
     },
@@ -438,8 +438,8 @@ export const aiService = {
     async generateText(prompt: string): Promise<string> {
         try {
             return await generateContentSafe(prompt);
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.generateText');
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.generateText');
             return "";
         }
     },
@@ -475,8 +475,8 @@ export const aiService = {
             const text = await generateContentSafe(prompt, SMART_MODEL);
             const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(jsonString);
-        } catch (error) {
-            ErrorLogger.error(error, 'aiService.suggestContinuityPlan', { metadata: { processName } });
+        } catch (_error) {
+            ErrorLogger.error(_error, 'aiService.suggestContinuityPlan', { metadata: { processName } });
             throw new Error("Impossible de générer une suggestion de continuité.");
         }
     }
@@ -506,7 +506,7 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
         }
     } catch (_error: unknown) {
         // ErrorLogger context
-        const anyError = error as { code?: unknown; message?: unknown };
+        const anyError = _error as { code?: unknown; message?: unknown };
         const code = typeof anyError.code === 'string' ? anyError.code : undefined;
         const message = typeof anyError.message === 'string' ? anyError.message : '';
 
@@ -521,7 +521,7 @@ async function generateContentSafe(prompt: string, modelName: string = FAST_MODE
             });
             throw new Error("Le service IA est temporairement indisponible (Erreur d'authentification).");
         } else {
-            throw error;
+            throw _error;
         }
     }
 
@@ -542,7 +542,7 @@ async function runChatSafe(systemPrompt: string, message: string, modelName: str
         }
     } catch (_error: unknown) {
         // ErrorLogger context
-        const anyError = error as { code?: unknown; message?: unknown };
+        const anyError = _error as { code?: unknown; message?: unknown };
         const code = typeof anyError.code === 'string' ? anyError.code : undefined;
         const message = typeof anyError.message === 'string' ? anyError.message : '';
 
@@ -569,7 +569,7 @@ async function runChatSafe(systemPrompt: string, message: string, modelName: str
             });
             throw new Error("Le chat IA est temporairement indisponible.");
         } else {
-            throw error;
+            throw _error;
         }
     }
 

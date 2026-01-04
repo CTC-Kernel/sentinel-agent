@@ -130,7 +130,7 @@ export const Projects: React.FC = () => {
             await createProjectFromTemplate(template, customName, startDate, managerPayload, user?.organizationId || '');
             addToast(t('projects.toastCreated'), "success");
             setShowTemplateModal(false);
-        } catch (error) {
+        } catch {
             addToast(t('projects.toastError'), "error");
         }
     }, [usersList, user, addToast, t]);
@@ -153,7 +153,7 @@ export const Projects: React.FC = () => {
                 organizationName: user?.organizationId || 'Sentinel'
             });
             addToast(t('projects.toastReportSuccess'), "success");
-        } catch (error) {
+        } catch {
             addToast(t('projects.toastReportError'), "error");
         }
     }, [selectedProject, user, addToast, t]);
@@ -192,7 +192,7 @@ export const Projects: React.FC = () => {
 
     // Debug: Monitor activeTab changes
     useEffect(() => {
-        }, [activeTab]);
+    }, [activeTab]);
 
     // UI Checks
     const handleTabChange = useCallback((id: string) => {

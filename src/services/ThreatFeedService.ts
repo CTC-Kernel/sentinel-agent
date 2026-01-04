@@ -80,9 +80,9 @@ export class ThreatFeedService {
             if (data) {
                 return data;
             }
-        } catch (error) {
+        } catch {
             // Continue to other methods if Firebase proxy fails
-            }
+        }
 
         // List of proxy services to try in order
         const proxies = [
@@ -188,7 +188,7 @@ export class ThreatFeedService {
                 remediationPlan: v.requiredAction
             }));
 
-        } catch (error) {
+        } catch {
             return [];
         }
     }
@@ -222,7 +222,7 @@ export class ThreatFeedService {
                 coordinates: [(Math.random() * 360) - 180, (Math.random() * 160) - 80]
             }));
 
-        } catch (error) {
+        } catch {
             return [];
         }
     }
@@ -256,8 +256,8 @@ export class ThreatFeedService {
                 return this.seedSimulatedData(organizationId);
             }
 
-        } catch (e) {
-            ErrorLogger.error(e, 'ThreatFeedService.seedLiveThreats');
+        } catch (_e) {
+            ErrorLogger.error(_e, 'ThreatFeedService.seedLiveThreats');
             // Fallback to simulation on error
             return this.seedSimulatedData(organizationId);
         }
@@ -304,8 +304,8 @@ export class ThreatFeedService {
                     threatsAdded++;
                 }
             }
-        } catch (error) {
-            ErrorLogger.error(error, 'ThreatFeedService.processLiveFeeds');
+        } catch {
+            // ErrorLogger.error(_error, 'ThreatFeedService.processLiveFeeds');
         }
 
         return { threats: threatsAdded, vulns: vulnsAdded };
@@ -364,8 +364,8 @@ export class ThreatFeedService {
             // Simulate processing delay
             await new Promise(resolve => setTimeout(resolve, 800));
 
-        } catch (error) {
-            ErrorLogger.error(error, 'ThreatFeedService.seedSimulatedData');
+        } catch (_error) {
+            ErrorLogger.error(_error, 'ThreatFeedService.seedSimulatedData');
         }
 
         return { threats: threatsAdded, vulns: vulnsAdded };

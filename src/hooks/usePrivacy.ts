@@ -71,7 +71,7 @@ export function usePrivacy() {
                     setStats({ total, sensitive, dpiaMissing, review });
                     setStats({ total, sensitive, dpiaMissing, review });
                     setLoading(false);
-                }).catch(err => {
+                }).catch(_err => {
                     setLoading(false);
                 });
                 return;
@@ -119,8 +119,8 @@ export function usePrivacy() {
 
             setStats({ total, sensitive, dpiaMissing, review });
 
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'usePrivacy.fetchData');
+        } catch (_error) {
+            ErrorLogger.handleErrorWithToast(_error, 'usePrivacy.fetchData');
         } finally {
             setLoading(false);
         }
@@ -131,8 +131,8 @@ export function usePrivacy() {
         try {
             const logs = await PrivacyService.fetchActivityHistory(user.organizationId, activityId, selectedActivity?.name);
             setActivityHistory(logs);
-        } catch (error) {
-            ErrorLogger.error(error, 'usePrivacy.fetchHistory');
+        } catch (_error) {
+            ErrorLogger.error(_error, 'usePrivacy.fetchHistory');
         }
     }, [user?.organizationId, selectedActivity?.name]);
 
@@ -298,8 +298,8 @@ export function usePrivacy() {
             } else {
                 handleStartDPIA(activity);
             }
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'Privacy.handleViewDPIA');
+        } catch (_error) {
+            ErrorLogger.handleErrorWithToast(_error, 'Privacy.handleViewDPIA');
         }
     };
 

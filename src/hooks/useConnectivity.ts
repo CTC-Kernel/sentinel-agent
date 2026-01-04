@@ -43,7 +43,7 @@ export const useConnectivity = () => {
             // If this fires, we have some connection to Auth (or local state is valid)
             // It's a rough proxy for "Auth Service is responsive"
             setAuthConnected(true);
-        }, (error) => {
+        }, (_error) => {
             setAuthConnected(false);
         });
 

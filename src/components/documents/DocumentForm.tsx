@@ -189,7 +189,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <CustomSelect
                         label="Statut"
-                        options={['Brouillon', 'En revue', 'Approuvé', 'Rejeté', 'Publié', 'Obsolète'].map(s => ({ value: s, label: s }))}
+                        options={['Brouillon', 'En revue', 'Approuvé', 'Rejeté', 'Publié', 'Obsolète', 'Archivé'].map(s => ({ value: s, label: s }))}
                         value={status || 'Brouillon'}
                         onChange={(val) => setValue('status', (typeof val === 'string' ? val : 'Brouillon') as DocumentFormData['status'])}
                         error={errors.status?.message}
