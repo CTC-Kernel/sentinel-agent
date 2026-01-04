@@ -1,0 +1,51 @@
+
+> sentinel-grc@2.0.0 lint
+> eslint .
+
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/useDoubleSubmitPrevention.tsx
+    6:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  137:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  137:60  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+  146:60  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+  157:60  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/hooks/useErrorHandler.ts
+   27:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   41:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   98:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  146:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  155:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/PdfService.ts
+    86:22  warning  '_e' is defined but never used            @typescript-eslint/no-unused-vars
+   184:22  warning  '_e' is defined but never used            @typescript-eslint/no-unused-vars
+   252:22  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+  1016:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1017:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1258:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/ThreatFeedService.ts
+   83:18  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+  191:18  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+  225:18  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/services/dashboardService.ts
+  82:18  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Assets.tsx
+  170:18  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+  185:18  warning  '_e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Compliance.tsx
+  434:30  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/Projects.tsx
+  133:18  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+  156:18  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thibaultllopis/sentinel-grc-v2-prod/sentinel-grc-v2-prod/src/views/portal/certifier/CertifierDashboard.tsx
+  45:22  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 26 problems (0 errors, 26 warnings)
+
