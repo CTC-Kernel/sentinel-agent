@@ -18,6 +18,7 @@ import { ErrorLogger } from '../../services/errorLogger';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { hasPermission } from '../../utils/permissions';
 import { UserProfile } from '../../types';
+import { getDefaultAvatarUrl } from '../../utils/avatarUtils';
 
 
 export const ProfileSettings: React.FC = () => {
@@ -163,13 +164,16 @@ export const ProfileSettings: React.FC = () => {
                     <div className="flex-shrink-0 w-full md:w-auto flex flex-col items-center space-y-4">
                         <div className="relative group mx-auto">
                             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl ring-4 ring-slate-100 dark:ring-white/5">
-                                {user?.photoURL ? (
-                                    <img src={user.photoURL} alt={user?.displayName || 'User'} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full bg-gradient-to-br from-brand-100 to-brand-50 dark:from-brand-900/50 dark:to-brand-800/30 flex items-center justify-center text-4xl font-bold text-brand-600 dark:text-brand-400">
-                                        {(user?.displayName || 'U').charAt(0).toUpperCase()}
-                                    </div>
-                                )}
+                                <img 
+                                    src={getDefaultAvatarUrl()} 
+                                    alt={user?.displayName || 'User'} 
+                                    className="w-full h-full object-cover" 
+                                    onError={(e) => {
+                                        console.error('Image failed to load:', e);
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = getDefaultAvatarUrl();
+                                    }}
+                                />
                                 <div
                                     className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
                                     onClick={() => fileInputRef.current?.click()}

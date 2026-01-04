@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog } from '@headlessui/react';
-import { X, Handshake, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
+import { X, Handshake, Loader2, Search, Building2 } from 'lucide-react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functions } from '../../firebase';
@@ -27,6 +27,7 @@ export const AssignPartnerModal: React.FC<AssignPartnerModalProps> = ({ isOpen, 
     const [partners, setPartners] = useState<Partner[]>([]);
     const [loading, setLoading] = useState(true);
     const [assigning, setAssigning] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         if (!isOpen || !user?.organizationId) return;
@@ -52,7 +53,7 @@ export const AssignPartnerModal: React.FC<AssignPartnerModalProps> = ({ isOpen, 
         loadPartners();
     }, [isOpen, user?.organizationId]);
 
-    const handleAssign = async (partner: { id: string; contactEmail: string; certifierId?: string; tenantName?: string }) => {
+    const handleAssign = async (partner: Partner) => {
         if (!partner.certifierId) {
             toast.error("Ce partenaire n'a pas encore finalisé son compte Certifieur.");
             return;
@@ -64,7 +65,7 @@ export const AssignPartnerModal: React.FC<AssignPartnerModalProps> = ({ isOpen, 
             await assignFn({
                 auditId,
                 partnerId: partner.certifierId,
-                partnerName: partner.tenantName // name of certifier in partnership doc
+                partnerName: partner.tenantName || partner.contactEmail
             });
 
             toast.success(`Audit assigné à ${partner.contactEmail}`);
@@ -78,65 +79,120 @@ export const AssignPartnerModal: React.FC<AssignPartnerModalProps> = ({ isOpen, 
         }
     };
 
+    const filteredPartners = partners.filter(p =>
+        p.contactEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.tenantName?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
-        <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
-            <div className="fixed inset-0 flex items-center justify-center p-4">
-                <Dialog.Panel className="mx-auto max-w-lg w-full rounded-2xl bg-white dark:bg-slate-800 p-6 shadow-xl border border-slate-200 dark:border-white/10">
-                    <div className="flex justify-between items-start mb-6">
-                        <Dialog.Title className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <Handshake className="w-5 h-5 text-brand-500" />
-                            Assigner à un partenaire
-                        </Dialog.Title>
-                        <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
+        <Transition appear show={isOpen} as={Fragment}>
+            <Dialog as="div" className="relative z-50" onClose={onClose}>
+                <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                >
+                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+                </Transition.Child>
 
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-                        Sélectionnez un partenaire certifié pour lui donner accès à l'audit <strong>{auditName}</strong> directement sur son portail.
-                    </p>
+                <div className="fixed inset-0 overflow-y-auto">
+                    <div className="flex min-h-full items-center justify-center p-4 text-center">
+                        <Transition.Child
+                            as={Fragment}
+                            enter="ease-out duration-300"
+                            enterFrom="opacity-0 scale-95"
+                            enterTo="opacity-100 scale-100"
+                            leave="ease-in duration-200"
+                            leaveFrom="opacity-100 scale-100"
+                            leaveTo="opacity-0 scale-95"
+                        >
+                            <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white dark:bg-slate-900 p-6 text-left align-middle shadow-xl transition-all border border-slate-200 dark:border-white/10">
+                                <div className="flex justify-between items-start mb-6">
+                                    <Dialog.Title as="h3" className="text-lg font-bold leading-6 text-slate-900 dark:text-white flex items-center gap-2">
+                                        <Handshake className="w-5 h-5 text-brand-500" />
+                                        Assigner à un partenaire
+                                    </Dialog.Title>
+                                    <button
+                                        onClick={onClose}
+                                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
 
-                    {loading ? (
-                        <div className="py-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-brand-600" /></div>
-                    ) : partners.length === 0 ? (
-                        <div className="text-center py-8 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
-                            <p className="text-slate-500 text-sm">Aucun partenaire actif trouvé.</p>
-                            <button onClick={onClose} className="mt-2 text-brand-600 text-sm font-medium hover:underline">
-                                Gérer les partenaires dans les réglages
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                            {partners.map(partner => (
-                                <button
-                                    key={partner.id}
-                                    onClick={() => handleAssign(partner)}
-                                    disabled={!!assigning}
-                                    className="w-full flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left group"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-600 flex items-center justify-center font-bold text-xs">
-                                            {partner.contactEmail.substring(0, 2).toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-slate-900 dark:text-white text-sm">{partner.contactEmail}</p>
-                                            <p className="text-xs text-slate-500">Partenaire Certifié</p>
-                                        </div>
+                                <div className="mb-6">
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                        Sélectionnez un partenaire certifié pour lui donner accès à l'audit <strong className="text-slate-900 dark:text-white">{auditName}</strong>.
+                                    </p>
+
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                        <input
+                                            type="text"
+                                            placeholder="Rechercher un partenaire..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                                        />
                                     </div>
-                                    {assigning === partner.id ? (
-                                        <Loader2 className="w-4 h-4 animate-spin text-brand-600" />
-                                    ) : (
-                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity text-brand-600 text-xs font-medium bg-brand-50 px-2 py-1 rounded">
-                                            Assigner
-                                        </div>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </Dialog.Panel>
-            </div>
-        </Dialog>
+                                </div>
+
+                                {loading ? (
+                                    <div className="py-12 flex justify-center">
+                                        <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+                                    </div>
+                                ) : filteredPartners.length === 0 ? (
+                                    <div className="text-center py-12 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
+                                        <Building2 className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                                        <p className="text-slate-600 dark:text-slate-400 font-medium">Aucun partenaire trouvé</p>
+                                        {partners.length === 0 && (
+                                            <p className="text-xs text-slate-400 mt-1 max-w-[200px] mx-auto">
+                                                Invitez des partenaires depuis les réglages pour les voir apparaître ici.
+                                            </p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2 max-h-[280px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {filteredPartners.map(partner => (
+                                            <button
+                                                key={partner.id}
+                                                onClick={() => handleAssign(partner)}
+                                                disabled={!!assigning}
+                                                className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-white/5 hover:border-brand-500/50 dark:hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all text-left group"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20">
+                                                        {partner.tenantName?.substring(0, 1).toUpperCase() || partner.contactEmail.substring(0, 1).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-semibold text-slate-900 dark:text-white text-sm">
+                                                            {partner.tenantName || partner.contactEmail}
+                                                        </h4>
+                                                        <p className="text-xs text-slate-500 truncate max-w-[180px]">
+                                                            {partner.contactEmail}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {assigning === partner.id ? (
+                                                    <Loader2 className="w-5 h-5 animate-spin text-brand-600" />
+                                                ) : (
+                                                    <span className="text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1.5 rounded-lg group-hover:bg-brand-50 group-hover:text-brand-600 dark:group-hover:bg-brand-900/30 dark:group-hover:text-brand-400 transition-colors">
+                                                        Assigner
+                                                    </span>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </Dialog.Panel>
+                        </Transition.Child>
+                    </div>
+                </div>
+            </Dialog>
+        </Transition>
     );
 };

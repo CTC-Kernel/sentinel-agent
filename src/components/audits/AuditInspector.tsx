@@ -17,6 +17,8 @@ import { findingSchema, FindingFormData } from '../../schemas/findingSchema';
 import { ErrorLogger } from '../../services/errorLogger';
 import { AuditForm } from './AuditForm';
 import { ShareAuditModal } from './ShareAuditModal';
+import { AssignPartnerModal } from './AssignPartnerModal';
+import { toast } from 'sonner';
 
 interface AuditInspectorProps {
     audit: Audit;
@@ -49,6 +51,7 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
 
     const [activeTab, setActiveTab] = useState('details');
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
     useEffect(() => {
         fetchDetails();
@@ -312,7 +315,16 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
 
                             {/* Assuming we might fetch active shares in the future, simpler placeholder for now */}
                             <div className="mt-8 border-t border-slate-100 dark:border-white/5 pt-6">
-                                <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">Accès actifs</h4>
+                                <div className="flex justify-between items-center mb-4">
+                                    <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Partenaires Assignés</h4>
+                                    <button
+                                        onClick={() => setIsAssignModalOpen(true)}
+                                        className="text-sm font-medium text-brand-600 hover:text-brand-700 flex items-center gap-1"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        {t('audits.actions.assignPartner') || "Assigner un partenaire"}
+                                    </button>
+                                </div>
                                 <EmptyState
                                     icon={ExternalLink}
                                     title="Aucun auditeur externe actif"
@@ -334,6 +346,17 @@ export const AuditInspector: React.FC<AuditInspectorProps> = ({
                 onClose={() => setIsShareModalOpen(false)}
                 auditId={audit.id}
                 auditName={audit.name}
+            />
+
+            <AssignPartnerModal
+                isOpen={isAssignModalOpen}
+                onClose={() => setIsAssignModalOpen(false)}
+                auditId={audit.id}
+                auditName={audit.name}
+                onAssigned={() => {
+                    toast.success('Partenaire assigné avec succès');
+                    // refresh or update local state if needed
+                }}
             />
         </InspectorLayout>
     );

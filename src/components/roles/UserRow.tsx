@@ -1,5 +1,6 @@
 import React from 'react';
 import { UserProfile } from '../../types';
+import { getUserAvatarUrl } from '../../utils/avatarUtils';
 import { Role, getRoleName } from '../../utils/permissions';
 import { Save, X, Edit } from '../ui/Icons';
 
@@ -28,16 +29,11 @@ export const UserRow: React.FC<UserRowProps> = ({
         <tr className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
             <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center gap-3">
-                    {user.photoURL ? (
-                        <img alt={user.displayName || 'User'}
-                            src={user.photoURL}
-                            className="h-10 w-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800"
-                        />
-                    ) : (
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-brand-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                            {user.displayName?.charAt(0).toUpperCase()}
-                        </div>
-                    )}
+                    <img 
+                        alt={user.displayName || 'User'}
+                        src={getUserAvatarUrl(user.photoURL)}
+                        className="h-10 w-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800"
+                    />
                     <div>
                         <div className="text-sm font-bold text-slate-900 dark:text-white">
                             {user.displayName}

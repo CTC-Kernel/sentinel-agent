@@ -2,6 +2,7 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const { logger } = require("firebase-functions");
 const sgMail = require("@sendgrid/mail");
+const { getCertifierInvitationHtml, getAuditAssignmentHtml } = require('./services/emailTemplates');
 
 // Helper to send email safely
 const sendEmail = async (to, subject, html, text) => {
@@ -68,17 +69,8 @@ exports.inviteCertifier = onCall(async (request) => {
 
         // Send Email
         const link = `https://sentinel-grc.web.app/#/portal/register?invite=${docRef.id}`;
-        const htmlContent = `
-            <div style="font-family: sans-serif; padding: 20px;">
-                <h2>Invitation à collaborer</h2>
-                <p>Bonjour,</p>
-                <p>L'organisation <strong>${inviteData.tenantName}</strong> vous invite à rejoindre son écosystème de certification sur Sentinel GRC.</p>
-                ${message ? `<blockquote style="background: #f9f9f9; padding: 10px; border-left: 4px solid #ccc;">${message}</blockquote>` : ''}
-                <p>Cliquez sur le lien ci-dessous pour créer votre compte Auditeur/Certifieur :</p>
-                <a href="${link}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Accepter l'invitation</a>
-                <p style="margin-top: 20px; font-size: 12px; color: #888;">Si ce lien ne fonctionne pas, copiez-collez : ${link}</p>
-            </div>
-        `;
+        // Send Email
+        const htmlContent = getCertifierInvitationHtml(inviteData.tenantName, message, link);
 
         await sendEmail(email, 'Invitation de Partenariat - Sentinel GRC', htmlContent, message);
 
@@ -271,14 +263,7 @@ exports.assignAuditToPartner = onCall(async (request) => {
 
         if (partnerEmail) {
             const link = `https://sentinel-grc.web.app/#/portal/audit/${token}`; // Or dashboard link
-            const htmlContent = `
-                <div style="font-family: sans-serif; padding: 20px;">
-                    <h2>Nouvel Audit Assigné</h2>
-                    <p>L'organisation <strong>${shareData.organizationId}</strong> vous a assigné un audit sur Sentinel GRC.</p>
-                    <p>Connectez-vous à votre tableau de bord auditeur pour y accéder.</p>
-                    <a href="https://sentinel-grc.web.app/#/portal/dashboard" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Accéder au Tableau de Bord</a>
-                </div>
-            `;
+            const htmlContent = getAuditAssignmentHtml(shareData.organizationId, link);
             await sendEmail(partnerEmail, 'Nouvel Audit Assigné - Sentinel GRC', htmlContent, `Un nouvel audit vous a été assigné.`);
         } else {
             logger.warn(`No email found for partner ${partnerId}`);

@@ -247,6 +247,8 @@ export const translations = {
             issueControls: 'Mesures sans preuves',
             issueAudits: 'Audits en retard',
             reportTitle: 'Rapport Exécutif',
+            reportError: 'Erreur lors de la génération du rapport.',
+            reportGenerated: 'Rapport généré avec succès.',
             generatedOn: 'Généré le {date}',
             keyIndicators: 'Indicateurs Clés',
             complianceScore: 'Score de Conformité',
@@ -645,7 +647,9 @@ export const translations = {
             generateDemoDataTitle: 'Generate demo data?',
             generateDemoDataMessage: 'This will add a complete set of dummy data (Assets, Risks, Projects, etc.) to your current organization. This action is irreversible (unless manually deleted).',
             demoDataGenerated: 'Demo data generated successfully!',
-            generateData: 'Generate Data'
+            generateData: 'Generate Data',
+            reportError: 'Error generating report.',
+            reportGenerated: 'Report generated successfully.',
         },
         sidebar: {
             dashboard: 'Dashboard',

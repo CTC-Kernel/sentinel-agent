@@ -105,13 +105,28 @@ export const Risks: React.FC = () => {
 
 
 
+
+
+    // Sanitize risks data centrally to ensure no NaNs propagate to children
+    const sanitizedRisks = React.useMemo(() => {
+        return risks.map(r => ({
+            ...r,
+            score: Number(r.score) || 0,
+            residualScore: Number(r.residualScore) || Number(r.score) || 0,
+            probability: (Number(r.probability) || 1) as Risk['probability'],
+            impact: (Number(r.impact) || 1) as Risk['impact'],
+            residualProbability: (Number(r.residualProbability) || Number(r.probability) || 1) as Risk['probability'],
+            residualImpact: (Number(r.residualImpact) || Number(r.impact) || 1) as Risk['impact']
+        }));
+    }, [risks]);
+
     const {
         activeFilters, setActiveFilters,
         filteredRisks,
         showAdvancedSearch, setShowAdvancedSearch,
         frameworkFilter, setFrameworkFilter,
         matrixFilter, setMatrixFilter
-    } = useRiskFilters(risks);
+    } = useRiskFilters(sanitizedRisks);
 
 
 
@@ -120,7 +135,8 @@ export const Risks: React.FC = () => {
     const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
     const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
     const [confirmData, setConfirmData] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
-    const [viewMode, setViewMode] = usePersistedState<'list' | 'grid'>('risks-view-mode', 'grid');
+    const [viewMode, setViewMode] = usePersistedState<'list' | 'grid' | 'matrix'>('risks-view-mode', 'grid');
+
     const [activeTab, setActiveTab] = useState<'overview' | 'list' | 'matrix'>('overview');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -278,17 +294,30 @@ export const Risks: React.FC = () => {
     }, [t, createRisk]);
 
     const handleFormSubmit = React.useCallback(async (data: RiskFormData) => {
+        // Safe number conversion
+        const prob = Number(data.probability) || 1;
+        const imp = Number(data.impact) || 1;
+        const resProb = Number(data.residualProbability) || prob;
+        const resImp = Number(data.residualImpact) || imp;
+
+        const calculatedScore = prob * imp;
+        const calculatedResidualScore = resProb * resImp;
+
+        const cleanedData = {
+            ...data,
+            probability: prob as Risk['probability'],
+            impact: imp as Risk['impact'],
+            residualProbability: resProb as Risk['probability'],
+            residualImpact: resImp as Risk['impact'],
+            score: calculatedScore,
+            residualScore: calculatedResidualScore,
+            aiAnalysis: data.aiAnalysis || undefined
+        };
+
         if (editingRisk) {
-            await updateRisk(editingRisk.id, {
-                ...data,
-                probability: data.probability as Risk['probability'],
-                impact: data.impact as Risk['impact'],
-                residualProbability: data.residualProbability as Risk['probability'],
-                residualImpact: data.residualImpact as Risk['impact'],
-                aiAnalysis: data.aiAnalysis || undefined
-            }, editingRisk);
+            await updateRisk(editingRisk.id, cleanedData, editingRisk);
         } else {
-            await createRisk(data as Risk);
+            await createRisk(cleanedData as Risk);
         }
         setCreationMode(false);
         setEditingRisk(null);
@@ -335,7 +364,7 @@ export const Risks: React.FC = () => {
         setMatrixFilter(filter);
         if (filter) setActiveTab('list');
     }, [setMatrixFilter, setActiveTab]);
-    const handleViewModeChange = React.useCallback((mode: string) => setViewMode(mode as 'list' | 'grid'), [setViewMode]);
+    const handleViewModeChange = React.useCallback((mode: string) => setViewMode(mode as 'list' | 'grid' | 'matrix'), [setViewMode]);
     const handleAdvancedSearchClose = React.useCallback(() => setShowAdvancedSearch(false), [setShowAdvancedSearch]);
     const handleAdvancedSearchToggle = React.useCallback(() => setShowAdvancedSearch(prev => !prev), [setShowAdvancedSearch]);
     const handleResetMatrixFilter = React.useCallback(() => setMatrixFilter(null), [setMatrixFilter]);
@@ -346,6 +375,7 @@ export const Risks: React.FC = () => {
     const handleTemplateModalClose = React.useCallback(() => setIsTemplateModalOpen(false), []);
     const handleConfirmClose = React.useCallback(() => setConfirmData(prev => ({ ...prev, isOpen: false })), []);
     const handleNewRiskClick = React.useCallback(() => { setEditingRisk(null); setCreationMode(true); }, []);
+    const handleRiskSelect = React.useCallback((risk: Risk) => setSelectedRisk(risk), []);
 
     // Dynamic Empty State Logic
     const hasAssets = assets.length > 0;
@@ -418,7 +448,7 @@ export const Risks: React.FC = () => {
 
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
-                <motion.div variants={slideUpVariants} data-tour="risks-stats">
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="overview-tab" data-tour="risks-stats">
                     <RiskDashboard
                         risks={filteredRisks}
                         assets={assets}
@@ -429,7 +459,7 @@ export const Risks: React.FC = () => {
 
             {/* FILTER BAR (Visible for List & Matrix) */}
             {activeTab !== 'overview' && (
-                <motion.div variants={slideUpVariants}>
+                <motion.div variants={slideUpVariants} initial="initial" animate="visible" exit="exit" key="filter-bar">
                     <PremiumPageControl
                         searchQuery={activeFilters.query}
                         onSearchChange={handleSearchChange}
@@ -613,38 +643,46 @@ export const Risks: React.FC = () => {
 
             {/* LIST TAB CONTENT */}
             {activeTab === 'list' && (
-                <motion.div variants={slideUpVariants} className="">
+                <motion.div
+                    key="risk-matrix"
+                    variants={slideUpVariants}
+                    initial="initial"
+                    animate="visible"
+                    exit="exit"
+                    className="mt-8"
+                >
                     {viewMode === 'list' ? (
                         <RiskList
                             risks={filteredRisks}
                             loading={loading}
+                            canEdit={canEditResource(user as UserProfile, 'Risk')}
                             onEdit={handleEdit}
                             onDelete={handleDeleteRiskItem}
-                            onSelect={setSelectedRisk}
-                            canEdit={canEdit}
                             onBulkDelete={bulkDeleteRisks}
+                            onSelect={handleRiskSelect}
+                            users={[]} // TODO: Pass actual users if needed for avatars
                             assets={assets}
-                            users={usersList}
                             emptyStateTitle={emptyStateTitle}
                             emptyStateDescription={emptyStateDescription}
-                            emptyStateActionLabel={canEdit ? emptyStateActionLabel : undefined}
-                            onEmptyStateAction={canEdit ? handleEmptyAction : undefined}
+                            emptyStateActionLabel={!activeFilters.query ? emptyStateActionLabel : undefined}
+                            onEmptyStateAction={!activeFilters.query ? handleEmptyAction : undefined}
                         />
                     ) : (
                         <RiskGrid
                             risks={filteredRisks}
                             loading={loading}
+                            onSelect={handleRiskSelect}
                             assets={assets}
-                            onSelect={setSelectedRisk}
                             emptyStateIcon={ShieldAlert}
                             emptyStateTitle={emptyStateTitle}
                             emptyStateDescription={emptyStateDescription}
-                            emptyStateActionLabel={canEdit ? emptyStateActionLabel : undefined}
-                            onEmptyStateAction={canEdit ? handleEmptyAction : undefined}
+                            emptyStateActionLabel={!activeFilters.query ? emptyStateActionLabel : undefined}
+                            onEmptyStateAction={!activeFilters.query ? handleEmptyAction : undefined}
+                            canEdit={canEditResource(user as UserProfile, 'Risk')}
                             onEdit={handleEdit}
                             onDelete={handleDeleteRiskItem}
-                            canEdit={canEdit}
                         />
+
                     )}
                 </motion.div>
             )}

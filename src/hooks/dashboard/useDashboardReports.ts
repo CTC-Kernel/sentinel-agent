@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import 'jspdf-autotable';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { PdfService } from '../../services/PdfService';
@@ -50,33 +51,44 @@ export const useDashboardReports = () => {
                 complianceScore,
                 activeIncidents: activeIncidentsCount,
                 openAudits: openAuditsCount,
-                riskCount: allRisks.length,
-                highRisks: topRisks.filter(r => r.score >= 15).length,
-                financialRisk: financialRisk,
-                criticalRisks: topRisks.slice(0, 3).map(r => ({ threat: r.threat, score: r.score }))
+                riskCount: allRisks?.length || 0,
+                highRisks: (topRisks || []).filter(r => r.score >= 15).length,
+                financialRisk: financialRisk || 0,
+                criticalRisks: (topRisks || []).slice(0, 3).map(r => ({ threat: r.threat, score: r.score }))
             };
 
-            const summary = await aiService.generateExecutiveDashboardSummary(aiContext);
+            let summary = '';
+            try {
+                // Only try AI generation if we have basic context
+                if (organizationName) {
+                    summary = await aiService.generateExecutiveDashboardSummary(aiContext);
+                } else {
+                    summary = 'Résumé non disponible.';
+                }
+            } catch (error) {
+                console.warn('AI Summary generation failed, using fallback.', error);
+                summary = 'Résumé non disponible (Service IA indisponible).';
+            }
 
             const metrics = [
-                { label: t('dashboard.complianceScore'), value: `${complianceScore}%` },
-                { label: t('dashboard.criticalRisks'), value: topRisks.filter(r => r.score >= 15).length.toString() },
-                { label: t('dashboard.activeIncidents'), value: activeIncidentsCount.toString() },
-                { label: t('dashboard.openAudits'), value: openAuditsCount.toString() }
+                { label: t('dashboard.complianceScore') || 'Conformité', value: `${complianceScore || 0}%` },
+                { label: t('dashboard.criticalRisks') || 'Risques Critiques', value: (topRisks || []).filter(r => r.score >= 15).length.toString() },
+                { label: t('dashboard.activeIncidents') || 'Incidents Actifs', value: (activeIncidentsCount || 0).toString() },
+                { label: t('dashboard.openAudits') || 'Audits Ouverts', value: (openAuditsCount || 0).toString() }
             ];
 
-            const chartStats = radarData.map((d, i) => ({
+            const chartStats = (radarData || []).map((d, i) => ({
                 label: d.subject,
                 value: d.A,
-                color: ['#0F172A', '#334155', '#475569', '#64748B'][i % 4]
+                color: ['#0F172A', '#334155', '#475569', '#64748B'][i % 4] || '#334155'
             }));
 
             PdfService.generateExecutiveReport(
                 {
-                    title: t('dashboard.reportTitle'),
-                    subtitle: t('dashboard.generatedOn').replace('{date}', new Date().toLocaleDateString()),
-                    filename: `Rapport_Executif_${organizationName}_${new Date().toISOString().split('T')[0]}.pdf`,
-                    organizationName,
+                    title: t('dashboard.reportTitle') || 'Rapport Exécutif',
+                    subtitle: (t('dashboard.generatedOn') || 'Généré le {date}').replace('{date}', new Date().toLocaleDateString()),
+                    filename: `Rapport_Executif_${organizationName || 'Sentinel'}_${new Date().toISOString().split('T')[0]}.pdf`,
+                    organizationName: organizationName || 'Sentinel GRC',
                     organizationLogo,
                     summary,
                     metrics,
@@ -87,40 +99,60 @@ export const useDashboardReports = () => {
                 (doc, startY) => {
                     let y = startY;
 
-                    // Top Risks Table
-                    doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
-                    doc.text(t('dashboard.top5Risks'), 14, y);
-                    y += 5;
+                    // Top Risks Table -- Check if we have risks
+                    if (topRisks && topRisks.length > 0) {
+                        doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
+                        doc.text(t('dashboard.top5Risks') || 'Top 5 des Risques Prioritaires', 14, y);
+                        y += 5;
 
-                    const riskData = topRisks.map(r => [r.threat, r.score.toString(), r.strategy, r.status]);
-                    doc.autoTable({
-                        startY: y,
-                        head: [[t('dashboard.threat'), t('dashboard.score'), t('dashboard.strategy'), t('dashboard.status')]],
-                        body: riskData,
-                        theme: 'grid',
-                        headStyles: { fillColor: [79, 70, 229] },
-                        styles: { fontSize: 8, cellPadding: 2 },
-                        margin: { left: 14, right: 14 }
-                    });
+                        const riskData = topRisks.map(r => [
+                            r.threat || 'N/A',
+                            (r.score || 0).toString(),
+                            r.strategy || 'N/A',
+                            r.status || 'N/A'
+                        ]);
 
-                    const lastAutoTable = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable;
-                    y = (lastAutoTable?.finalY ?? y) + 15;
+                        // @ts-ignore - autotable type definition might be missing in some setups
+                        doc.autoTable({
+                            startY: y,
+                            head: [[
+                                t('dashboard.threat') || 'Menace',
+                                t('dashboard.score') || 'Score',
+                                t('dashboard.strategy') || 'Stratégie',
+                                t('dashboard.status') || 'Statut'
+                            ]],
+                            body: riskData,
+                            theme: 'grid',
+                            headStyles: { fillColor: [79, 70, 229] },
+                            styles: { fontSize: 8, cellPadding: 2 },
+                            margin: { left: 14, right: 14 }
+                        });
 
-                    // Compliance Summary
-                    doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
-                    doc.text(t('dashboard.complianceByDomain'), 14, y);
-                    y += 5;
+                        // @ts-ignore
+                        const lastAutoTable = doc.lastAutoTable;
+                        y = (lastAutoTable?.finalY ?? y) + 15;
+                    }
 
-                    const complianceData = radarData.map(d => [d.subject, `${d.A}%`]);
-                    doc.autoTable({
-                        startY: y,
-                        head: [[t('dashboard.domain'), t('dashboard.score')]],
-                        body: complianceData,
-                        theme: 'grid',
-                        headStyles: { fillColor: [79, 70, 229] },
-                        styles: { fontSize: 8, cellPadding: 2 },
-                        margin: { left: 14, right: 14 }
-                    });
+
+                    // Compliance Summary -- Check if we have radar data
+                    if (radarData && radarData.length > 0) {
+                        doc.setFontSize(12); doc.setTextColor(30, 41, 59); doc.setFont('helvetica', 'bold');
+                        doc.text(t('dashboard.complianceByDomain') || 'Conformité par Domaine', 14, y);
+                        y += 5;
+
+                        const complianceData = radarData.map(d => [d.subject, `${d.A}%`]);
+
+                        // @ts-ignore
+                        doc.autoTable({
+                            startY: y,
+                            head: [[t('dashboard.domain') || 'Domaine', t('dashboard.score') || 'Score']],
+                            body: complianceData,
+                            theme: 'grid',
+                            headStyles: { fillColor: [79, 70, 229] },
+                            styles: { fontSize: 8, cellPadding: 2 },
+                            margin: { left: 14, right: 14 }
+                        });
+                    }
                 }
             );
             addToast(t('dashboard.reportGenerated'), "success");

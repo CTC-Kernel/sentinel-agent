@@ -48,15 +48,22 @@ export const RiskTreatmentPlan: React.FC<RiskTreatmentPlanProps> = ({ risk, onUp
 
         // Calculate default due date if not present
         if (!initial.dueDate && risk.createdAt) {
-            const days = SLA_DAYS[risk.score >= 15 ? Criticality.CRITICAL :
-                risk.score >= 10 ? Criticality.HIGH :
-                    risk.score >= 5 ? Criticality.MEDIUM : Criticality.LOW];
+            try {
+                const days = SLA_DAYS[risk.score >= 15 ? Criticality.CRITICAL :
+                    risk.score >= 10 ? Criticality.HIGH :
+                        risk.score >= 5 ? Criticality.MEDIUM : Criticality.LOW] || 90;
 
-            const suggestedDate = addDays(parseISO(risk.createdAt), days);
-            const formattedDate = format(suggestedDate, 'yyyy-MM-dd');
+                const createdAtDate = parseISO(risk.createdAt);
+                if (!isNaN(createdAtDate.getTime())) {
+                    const suggestedDate = addDays(createdAtDate, days);
+                    const formattedDate = format(suggestedDate, 'yyyy-MM-dd');
 
-            initial.dueDate = formattedDate;
-            initial.slaStatus = calculateSLAStatus(formattedDate, initial.status || 'Planifié');
+                    initial.dueDate = formattedDate;
+                    initial.slaStatus = calculateSLAStatus(formattedDate, initial.status || 'Planifié');
+                }
+            } catch (error) {
+                console.warn('Error calculating default SLA date:', error);
+            }
         }
 
         return initial;

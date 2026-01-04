@@ -333,9 +333,13 @@ export const DashboardWithQuickActions: React.FC = () => {
     const [organizationName, setOrganizationName] = useState<string>('');
     const [organizationLogo, setOrganizationLogo] = useState<string | undefined>(undefined);
     const [error, setError] = useState<string | null>(null);
-    const [showGettingStarted, setShowGettingStarted] = useState(true);
-    const [isEditing, setIsEditing] = useState(false);
     const { user, theme, addToast, t } = useStore();
+    // Use persistent state hook
+    const [gettingStartedState, setGettingStartedState] = useGettingStartedState(user?.uid);
+    const showGettingStarted = gettingStartedState !== 'closed';
+
+    const [isEditing, setIsEditing] = useState(false);
+
     const navigate = useNavigate();
 
     // Update local state when hook data changes
@@ -460,12 +464,18 @@ export const DashboardWithQuickActions: React.FC = () => {
                         isGeneratingReport={isGeneratingReport}
                         isEditing={isEditing}
                         onToggleEdit={() => setIsEditing(!isEditing)}
+                        onShowGettingStarted={() => setGettingStartedState('expanded')}
+                        isGettingStartedClosed={!showGettingStarted}
                     />
 
                     {showGettingStarted && (
                         <motion.div variants={slideUpVariants}>
-                            <GettingStartedWidget onClose={() => setShowGettingStarted(false)} />
+                            <GettingStartedWidget onClose={() => setGettingStartedState('closed')} />
                         </motion.div>
+                    )}
+
+                    {!showGettingStarted && (
+                        <GettingStartedButton onShow={() => setGettingStartedState('expanded')} />
                     )}
 
                     {pendingReviews && pendingReviews.length > 0 && (

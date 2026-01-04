@@ -4,6 +4,7 @@ import { UserProfile } from '../../types';
 import { Edit, Trash2, Mail, Timer, Building, Clock } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { RoleBadge } from '../ui/RoleBadge';
+import { getDefaultAvatarUrl } from '../../utils/avatarUtils';
 
 interface UserCardProps {
     user: UserProfile;
@@ -49,13 +50,17 @@ export const UserCard = React.memo(({ user, canAdmin, onEdit, onDelete }: UserCa
             )}
 
             <div className="relative mb-4 mt-2">
-                {user.photoURL ? (
-                    <img src={user.photoURL} alt={user.displayName} loading="lazy" className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-50 grayscale' : ''}`} />
-                ) : (
-                    <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-3xl font-bold text-slate-600 dark:text-slate-300 shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-50' : ''}`}>
-                        {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
-                    </div>
-                )}
+                <img 
+                    src={getDefaultAvatarUrl()} 
+                    alt={user.displayName} 
+                    loading="lazy" 
+                    className={`w-24 h-24 rounded-full object-cover shadow-xl ring-4 ring-white dark:ring-slate-800 ${user.isPending ? 'opacity-50 grayscale' : ''}`} 
+                    onError={(e) => {
+                        console.error('UserCard avatar failed to load:', e);
+                        const target = e.target as HTMLImageElement;
+                        target.src = getDefaultAvatarUrl();
+                    }}
+                />
                 <div className="absolute bottom-0 right-0 transform translate-x-2 translate-y-1">
                     <RoleBadge role={user.role} />
                 </div>
