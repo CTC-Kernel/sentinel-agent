@@ -112,7 +112,7 @@ export const useDashboardReports = () => {
                             r.status || 'N/A'
                         ]);
 
-                        // @ts-ignore - autotable type definition might be missing in some setups
+
                         doc.autoTable({
                             startY: y,
                             head: [[
@@ -128,7 +128,7 @@ export const useDashboardReports = () => {
                             margin: { left: 14, right: 14 }
                         });
 
-                        // @ts-ignore
+
                         const lastAutoTable = doc.lastAutoTable;
                         y = (lastAutoTable?.finalY ?? y) + 15;
                     }
@@ -142,7 +142,7 @@ export const useDashboardReports = () => {
 
                         const complianceData = radarData.map(d => [d.subject, `${d.A}%`]);
 
-                        // @ts-ignore
+
                         doc.autoTable({
                             startY: y,
                             head: [[t('dashboard.domain') || 'Domaine', t('dashboard.score') || 'Score']],

@@ -182,7 +182,7 @@ export const RiskList = React.memo<RiskListProps>(({
                 </div>
             ),
         },
-    ], [canEdit, assets, onEdit, handleDelete, deletingIds]);
+    ], [canEdit, assets, onEdit, handleDelete, deletingIds, getOwnerName]);
 
     return (
         <motion.div variants={slideUpVariants} className="glass-premium w-full max-w-full rounded-[2.5rem] overflow-hidden relative">

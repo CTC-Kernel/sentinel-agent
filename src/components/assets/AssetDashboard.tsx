@@ -81,19 +81,7 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
         ];
     }, [assets]);
 
-    // Distribution by Location
-    const locationChartData = React.useMemo(() => {
-        const locationData = assets.reduce((acc, asset) => {
-            const loc = asset.location || 'Non défini';
-            acc[loc] = (acc[loc] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
 
-        return Object.entries(locationData)
-            .map(([name, value]) => ({ name, value }))
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 8); // Top 8 locations
-    }, [assets]);
 
     // Distribution by Scope
     const { scopeChartData, SCOPE_COLORS } = React.useMemo(() => {
@@ -124,10 +112,40 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
         };
     }, [assets]);
 
+    // Acquisition Trend (Last 12 Months)
+    const acquisitionData = React.useMemo(() => {
+        const months = new Array(12).fill(0).map((_, i) => {
+            const d = new Date();
+            d.setMonth(d.getMonth() - 11 + i);
+            return {
+                name: d.toLocaleString('default', { month: 'short' }),
+                date: d,
+                count: 0,
+                value: 0
+            };
+        });
+
+        assets.forEach(a => {
+            if (a.purchaseDate) {
+                const pDate = new Date(a.purchaseDate);
+                const monthIndex = months.findIndex(m =>
+                    m.date.getMonth() === pDate.getMonth() &&
+                    m.date.getFullYear() === pDate.getFullYear()
+                );
+                if (monthIndex !== -1) {
+                    months[monthIndex].count++;
+                    months[monthIndex].value += a.purchasePrice || 0;
+                }
+            }
+        });
+
+        return months.map(m => ({ name: m.name, count: m.count, value: m.value }));
+    }, [assets]);
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
             {/* Summary Card */}
-            <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/5 flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden shadow-lg dark:shadow-none bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+            <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/5 flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative group mb-10 overflow-hidden bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
                 {/* Tech Corners Generic */}
                 <svg className="absolute top-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
                 <svg className="absolute top-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
@@ -234,185 +252,174 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
                     </div>
                 </div>
             </div>
-            {/* Charts */}
+            {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Criticality Distribution */}
-                <div className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
-                    {/* Tech Corners Generic */}
-                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-decorator">
-                        <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Distribution par Criticité</h4>
-                        <ResponsiveContainer width="100%" height={250}>
-                            {assets.length === 0 ? (
-                                <EmptyChartState
-                                    variant="pie"
-                                    message="Aucune donnée"
-                                    description="Ajoutez des actifs pour voir la répartition."
+                <div className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                    <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Distribution par Criticité</h4>
+                    <ResponsiveContainer width="100%" height={250}>
+                        {assets.length === 0 ? (
+                            <EmptyChartState
+                                variant="pie"
+                                message="Aucune donnée"
+                                description="Ajoutez des actifs pour voir la répartition."
+                                className="scale-75 origin-top"
+                            />
+                        ) : (
+                            <PieChart>
+                                <Pie
+                                    data={distributionData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={55}
+                                    outerRadius={75}
+                                    paddingAngle={4}
+                                    dataKey="value"
+                                    stroke="none"
+                                    cornerRadius={4}
+                                >
+                                    {distributionData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(255,255,255,0.05)" strokeWidth={2} className="drop-shadow-sm" />
+                                    ))}
+                                </Pie>
+                                <Tooltip content={<ChartTooltip />} wrapperStyle={{ outline: 'none' }} />
+                                <Legend
+                                    verticalAlign="bottom"
+                                    height={36}
+                                    iconType="circle"
+                                    iconSize={8}
+                                    formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>}
                                 />
-                            ) : (
-                                <PieChart>
-                                    <Pie
-                                        data={distributionData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={65}
-                                        outerRadius={85}
-                                        paddingAngle={4}
-                                        dataKey="value"
-                                        stroke="none"
-                                    >
-                                        {distributionData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} className="drop-shadow-sm" />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip content={<ChartTooltip />} cursor={false} />
-                                    <Legend
-                                        verticalAlign="bottom"
-                                        height={36}
-                                        iconType="circle"
-                                        formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>}
-                                    />
-                                </PieChart>
-                            )}
-                        </ResponsiveContainer>
-                    </div>
+                            </PieChart>
+                        )}
+                    </ResponsiveContainer>
                 </div>
 
                 {/* Type Distribution */}
-                <div className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
-                    {/* Tech Corners Generic */}
-                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-decorator">
-                        <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Top Types d'Actifs</h4>
-                        <ResponsiveContainer width="100%" height={250}>
-                            {typeChartData.length === 0 ? (
-                                <EmptyChartState
-                                    variant="bar"
-                                    message="Aucun type"
-                                    description="Les types d'actifs s'afficheront ici."
+                <div className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                    <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Top Types d'Actifs</h4>
+                    <ResponsiveContainer width="100%" height={250}>
+                        {typeChartData.length === 0 ? (
+                            <EmptyChartState
+                                variant="bar"
+                                message="Aucun type"
+                                description="Les types d'actifs s'afficheront ici."
+                                className="scale-75 origin-top"
+                            />
+                        ) : (
+                            <BarChart data={typeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="typeGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.8} />
+                                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.4)'} vertical={false} />
+                                <XAxis
+                                    dataKey="name"
+                                    stroke={'hsl(var(--muted-foreground) / 0.8)'}
+                                    fontSize={10}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dy={10}
+                                    tickFormatter={(value) => value.length > 10 ? `${value.substring(0, 10)}...` : value}
                                 />
-                            ) : (
-                                <BarChart data={typeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.4)'} vertical={false} />
-                                    <XAxis
-                                        dataKey="name"
-                                        stroke={'hsl(var(--muted-foreground) / 0.8)'}
-                                        fontSize={10}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        dy={10}
-                                        tickFormatter={(value) => value.length > 10 ? `${value.substring(0, 10)}...` : value}
-                                    />
-                                    <YAxis
-                                        stroke={'hsl(var(--muted-foreground) / 0.8)'}
-                                        fontSize={11}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        dx={-10}
-                                    />
-                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.1)', radius: 4 }} />
-                                    <Bar dataKey="value" fill="hsl(var(--primary))" name="Nombre d'actifs" radius={[6, 6, 0, 0]} barSize={24} animationDuration={1000} />
-                                </BarChart>
-                            )}
-                        </ResponsiveContainer>
-                    </div>
+                                <YAxis
+                                    stroke={'hsl(var(--muted-foreground) / 0.8)'}
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dx={-10}
+                                />
+                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} wrapperStyle={{ outline: 'none' }} />
+                                <Bar dataKey="value" fill="url(#typeGradient)" name="Nombre d'actifs" radius={[6, 6, 0, 0]} barSize={24} animationDuration={1000} />
+                            </BarChart>
+                        )}
+                    </ResponsiveContainer>
                 </div>
 
                 {/* Scope Distribution */}
-                <div className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
-                    {/* Tech Corners Generic */}
-                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-decorator">
-                        <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Distribution par Périmètre (Scope)</h4>
-                        <ResponsiveContainer width="100%" height={250}>
-                            {scopeChartData.length === 0 ? (
-                                <EmptyChartState
-                                    variant="pie"
-                                    message="Aucun périmètre"
-                                    description="Définissez le périmètre de vos actifs."
+                <div className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                    <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Distribution par Périmètre</h4>
+                    <ResponsiveContainer width="100%" height={250}>
+                        {scopeChartData.length === 0 ? (
+                            <EmptyChartState
+                                variant="pie"
+                                message="Aucun périmètre"
+                                description="Définissez le périmètre de vos actifs."
+                                className="scale-75 origin-top"
+                            />
+                        ) : (
+                            <PieChart>
+                                <Pie
+                                    data={scopeChartData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={55}
+                                    outerRadius={75}
+                                    paddingAngle={4}
+                                    dataKey="value"
+                                    stroke="none"
+                                    cornerRadius={4}
+                                >
+                                    {scopeChartData.map((_, index) => (
+                                        <Cell key={`cell-${index}`} fill={SCOPE_COLORS[index % SCOPE_COLORS.length]} stroke="rgba(255,255,255,0.05)" strokeWidth={2} className="drop-shadow-sm" />
+                                    ))}
+                                </Pie>
+                                <Tooltip content={<ChartTooltip />} wrapperStyle={{ outline: 'none' }} />
+                                <Legend
+                                    verticalAlign="bottom"
+                                    height={36}
+                                    iconType="circle"
+                                    iconSize={8}
+                                    formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>}
                                 />
-                            ) : (
-                                <PieChart>
-                                    <Pie
-                                        data={scopeChartData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={65}
-                                        outerRadius={85}
-                                        paddingAngle={4}
-                                        dataKey="value"
-                                        stroke="none"
-                                    >
-                                        {scopeChartData.map((_, index) => (
-                                            <Cell key={`cell-${index}`} fill={SCOPE_COLORS[index % SCOPE_COLORS.length]} className="drop-shadow-sm" />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip content={<ChartTooltip />} cursor={false} />
-                                    <Legend
-                                        verticalAlign="bottom"
-                                        height={36}
-                                        iconType="circle"
-                                        formatter={(value) => <span className="text-xs font-bold text-muted-foreground ml-1 uppercase tracking-wide">{value}</span>}
-                                    />
-                                </PieChart>
-                            )}
-                        </ResponsiveContainer>
-                    </div>
+                            </PieChart>
+                        )}
+                    </ResponsiveContainer>
                 </div>
 
-                {/* Location Distribution */}
-                <div className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
-                    {/* Tech Corners Generic */}
-                    <svg className="absolute top-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute top-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 left-5 w-3 h-3 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-                    <svg className="absolute bottom-5 right-5 w-3 h-3 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
-
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
-                    <div className="relative z-decorator">
-                        <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Actifs par Localisation</h4>
-                        <ResponsiveContainer width="100%" height={250}>
-                            {locationChartData.length === 0 ? (
-                                <EmptyChartState
-                                    variant="bar"
-                                    message="Aucune localisation"
-                                    description="Les localisations s'afficheront ici."
+                {/* Acquisition Trend (New) */}
+                <div className="glass-premium text-card-foreground p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                    <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Acquisitions (12 derniers mois)</h4>
+                    <ResponsiveContainer width="100%" height={250}>
+                        {acquisitionData.every(d => d.count === 0) ? (
+                            <EmptyChartState
+                                variant="bar"
+                                message="Pas d'acquisitions récentes"
+                                description="L'historique des achats s'affichera ici."
+                                className="scale-75 origin-top"
+                            />
+                        ) : (
+                            <BarChart data={acquisitionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="acquisitionGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="hsl(var(--cyan-500))" stopOpacity={0.8} />
+                                        <stop offset="100%" stopColor="hsl(var(--cyan-500))" stopOpacity={0.3} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.4)'} vertical={false} />
+                                <XAxis
+                                    dataKey="name"
+                                    stroke={'hsl(var(--muted-foreground) / 0.8)'}
+                                    fontSize={10}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dy={10}
                                 />
-                            ) : (
-                                <BarChart data={locationChartData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke={'hsl(var(--border) / 0.4)'} horizontal={false} />
-                                    <XAxis type="number" hide />
-                                    <YAxis
-                                        dataKey="name"
-                                        type="category"
-                                        stroke={'hsl(var(--muted-foreground) / 0.8)'}
-                                        fontSize={11}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        width={100}
-                                        tickFormatter={(value) => value.length > 12 ? `${value.substring(0, 12)}...` : value}
-                                    />
-                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'hsl(var(--muted-foreground) / 0.1)', radius: 4 }} />
-                                    <Bar dataKey="value" fill="hsl(var(--emerald-500))" name="Nombre d'actifs" radius={[0, 4, 4, 0]} barSize={20} animationDuration={1000} />
-                                </BarChart>
-                            )}
-                        </ResponsiveContainer>
-                    </div>
+                                <YAxis
+                                    stroke={'hsl(var(--muted-foreground) / 0.8)'}
+                                    fontSize={11}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dx={-10}
+                                    allowDecimals={false}
+                                />
+                                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} wrapperStyle={{ outline: 'none' }} />
+                                <Bar dataKey="count" name="Actifs acquis" fill="url(#acquisitionGradient)" radius={[6, 6, 0, 0]} barSize={24} animationDuration={1000} />
+                            </BarChart>
+                        )}
+                    </ResponsiveContainer>
                 </div>
             </div>
         </div>

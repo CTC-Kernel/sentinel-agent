@@ -8,6 +8,9 @@ import { CardSkeleton } from '../ui/Skeleton';
 import { hasPermission } from '../../utils/permissions';
 import { DataTable } from '../ui/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
+import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { EmptyChartState } from '../ui/EmptyChartState';
+import { ChartTooltip } from '../ui/ChartTooltip';
 
 interface IncidentDashboardProps {
     incidents: Incident[];
@@ -137,8 +140,16 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
     return (
         <div className="space-y-8 animate-fade-in pb-10">
             {/* Summary Card */}
-            <div className="glass-panel p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/10 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none" />
+            <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] border border-white/60 dark:border-white/5 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-8 relative overflow-hidden group bg-gradient-to-br from-white/40 to-white/10 dark:from-white/5 dark:to-transparent">
+                {/* Tech Corners Generic */}
+                <svg className="absolute top-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                <svg className="absolute top-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                <svg className="absolute bottom-6 left-6 w-4 h-4 text-slate-400/30 dark:text-white/20 -rotate-90" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+                <svg className="absolute bottom-6 right-6 w-4 h-4 text-slate-400/30 dark:text-white/20 rotate-180" viewBox="0 0 24 24"><path fill="currentColor" d="M2 2h6v2H2z" /><path fill="currentColor" d="M2 2v6h2V2z" /></svg>
+
+                <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
+                </div>
 
                 {/* Global Score */}
                 <div className="flex items-center gap-6 relative z-decorator">
@@ -224,6 +235,131 @@ export const IncidentDashboard: React.FC<IncidentDashboardProps> = ({ incidents,
                             <span>Aucun incident actif</span>
                         </div>
                     )}
+                </div>
+            </div>
+
+            {/* Graphs Section (Added for "Overview" request) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Incidents by Category */}
+                <div className="glass-premium p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                    <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Par Catégorie</h4>
+                    <div className="h-[250px] w-full">
+                        {useMemo(() => {
+                            const data = incidents.reduce((acc, inc) => {
+                                const cat = inc.category || 'Non catégorisé';
+                                acc[cat] = (acc[cat] || 0) + 1;
+                                return acc;
+                            }, {} as Record<string, number>);
+                            return Object.entries(data).map(([name, value]) => ({ name, value }));
+                        }, [incidents]).length === 0 ? (
+                            <EmptyChartState variant="pie" message="Aucune catégorie" />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={useMemo(() => {
+                                            const data = incidents.reduce((acc, inc) => {
+                                                const cat = inc.category || 'Non catégorisé';
+                                                acc[cat] = (acc[cat] || 0) + 1;
+                                                return acc;
+                                            }, {} as Record<string, number>);
+                                            return Object.entries(data).map(([name, value]) => ({ name, value }));
+                                        }, [incidents])}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={65}
+                                        outerRadius={85}
+                                        paddingAngle={4}
+                                        dataKey="value"
+                                        stroke="none"
+                                        cornerRadius={4}
+                                    >
+                                        {useMemo(() => {
+                                            const data = incidents.reduce((acc, inc) => {
+                                                const cat = inc.category || 'Non catégorisé';
+                                                acc[cat] = (acc[cat] || 0) + 1;
+                                                return acc;
+                                            }, {} as Record<string, number>);
+                                            return Object.entries(data).map(([name, value]) => ({ name, value }));
+                                        }, [incidents]).map((_, index) => (
+                                            <Cell key={`cell-${index}`} fill={['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#10b981'][index % 5]} stroke="rgba(255,255,255,0.05)" strokeWidth={2} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={<ChartTooltip />} wrapperStyle={{ outline: 'none' }} />
+                                    <Legend iconSize={8} iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
+                </div>
+
+                {/* Incidents Timeline (Last 6 Months) */}
+                <div className="glass-premium p-6 rounded-[2.5rem] border border-white/60 dark:border-white/5 relative overflow-hidden group hover:shadow-apple hover:-translate-y-1 transition-all duration-300">
+                    <h4 className="text-sm font-bold text-foreground mb-4 uppercase tracking-wide font-mono text-muted-foreground">Historique (6 mois)</h4>
+                    <div className="h-[250px] w-full">
+                        {useMemo(() => {
+                            const months = new Array(6).fill(0).map((_, i) => {
+                                const d = new Date();
+                                d.setMonth(d.getMonth() - 5 + i);
+                                return {
+                                    name: d.toLocaleString('default', { month: 'short' }),
+                                    date: d,
+                                    count: 0
+                                };
+                            });
+
+                            incidents.forEach(inc => {
+                                const d = new Date(inc.dateReported);
+                                const monthIndex = months.findIndex(m =>
+                                    m.date.getMonth() === d.getMonth() &&
+                                    m.date.getFullYear() === d.getFullYear()
+                                );
+                                if (monthIndex !== -1) months[monthIndex].count++;
+                            });
+                            return months.every(m => m.count === 0) ? [] : months;
+                        }, [incidents]).length === 0 ? (
+                            <EmptyChartState variant="bar" message="Aucun historique récent" />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={useMemo(() => {
+                                        const months = new Array(6).fill(0).map((_, i) => {
+                                            const d = new Date();
+                                            d.setMonth(d.getMonth() - 5 + i);
+                                            return {
+                                                name: d.toLocaleString('default', { month: 'short' }),
+                                                date: d,
+                                                count: 0
+                                            };
+                                        });
+
+                                        incidents.forEach(inc => {
+                                            const d = new Date(inc.dateReported);
+                                            const monthIndex = months.findIndex(m =>
+                                                m.date.getMonth() === d.getMonth() &&
+                                                m.date.getFullYear() === d.getFullYear()
+                                            );
+                                            if (monthIndex !== -1) months[monthIndex].count++;
+                                        });
+                                        return months;
+                                    }, [incidents])}
+                                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                                >
+                                    <defs>
+                                        <linearGradient id="incidentGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.8} />
+                                            <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.3} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} allowDecimals={false} />
+                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'currentColor', opacity: 0.05 }} wrapperStyle={{ outline: 'none' }} />
+                                    <Bar dataKey="count" fill="url(#incidentGradient)" radius={[6, 6, 0, 0]} barSize={32} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
                 </div>
             </div>
 

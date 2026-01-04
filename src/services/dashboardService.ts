@@ -65,4 +65,39 @@ export class DashboardService {
             throw error;
         }
     }
+    /**
+     * Fetch saved executive summary
+     */
+    static async getExecutiveSummary(organizationId: string): Promise<{ summary: string; generatedAt: string } | null> {
+        try {
+            const docSnap = await getDoc(doc(db, 'dashboard_summaries', organizationId));
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                return {
+                    summary: data.summary,
+                    generatedAt: data.generatedAt
+                };
+            }
+            return null;
+        } catch (error) {
+            console.warn('Silent error in DashboardService.getExecutiveSummary', error);
+            return null;
+        }
+    }
+
+    /**
+     * Save executive summary
+     */
+    static async saveExecutiveSummary(organizationId: string, summary: string, generatedAt: string): Promise<void> {
+        try {
+            const { setDoc } = await import('firebase/firestore');
+            await setDoc(doc(db, 'dashboard_summaries', organizationId), {
+                summary,
+                generatedAt,
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
+        } catch (error) {
+            ErrorLogger.error(error, 'DashboardService.saveExecutiveSummary');
+        }
+    }
 }
