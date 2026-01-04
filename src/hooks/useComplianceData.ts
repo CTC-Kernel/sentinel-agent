@@ -42,7 +42,7 @@ export const useComplianceData = (currentFramework?: Framework) => {
                 setProjects(module.MockDataService.getCollection('projects') as unknown as Project[]);
                 setFindings([]);
                 setLoading(false);
-            }).catch(err => {
+            }).catch(_err => {
                 setLoading(false);
             });
             return;

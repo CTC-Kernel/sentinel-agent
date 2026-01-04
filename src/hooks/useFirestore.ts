@@ -129,8 +129,8 @@ export const useFirestoreCollection = <T = DocumentData>(
                 const q = query(collection(db, collectionName), ...constraints);
                 const snapshot = await getDocs(q);
                 return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T & { id: string }));
-            } catch (err) {
-                const errorObj = err instanceof Error ? err : new Error(String(err));
+            } catch (_err) {
+                const errorObj = _err instanceof Error ? _err : new Error(String(_err));
                 if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.fetchData.${collectionName}`);
                 throw errorObj;
             }
@@ -147,7 +147,7 @@ export const useFirestoreCollection = <T = DocumentData>(
                 const mockData = module.MockDataService.getCollection(collectionName) as (T & { id: string })[];
                 setRealtimeData(mockData);
                 setRealtimeLoading(false);
-            }).catch(err => {
+            }).catch(_err => {
                 setRealtimeLoading(false);
             });
         }
@@ -217,7 +217,7 @@ export const useFirestoreCollection = <T = DocumentData>(
             }
             return docRef.id;
         } catch (_err: unknown) {
-            const errorObj = err instanceof Error ? err : new Error(String(err));
+            const errorObj = _err instanceof Error ? _err : new Error(String(_err));
             if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.add.${collectionName}`);
             throw errorObj;
         }
@@ -232,7 +232,7 @@ export const useFirestoreCollection = <T = DocumentData>(
                 await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
             }
         } catch (_err: unknown) {
-            const errorObj = err instanceof Error ? err : new Error(String(err));
+            const errorObj = _err instanceof Error ? _err : new Error(String(_err));
             if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.update.${collectionName}`);
             throw errorObj;
         }
@@ -247,7 +247,7 @@ export const useFirestoreCollection = <T = DocumentData>(
                 await queryClient.invalidateQueries({ queryKey: ['firestore', collectionName] });
             }
         } catch (_err: unknown) {
-            const errorObj = err instanceof Error ? err : new Error(String(err));
+            const errorObj = _err instanceof Error ? _err : new Error(String(_err));
             if (logError) ErrorLogger.error(errorObj, `useFirestoreCollection.remove.${collectionName}`);
             throw errorObj;
         }
@@ -317,8 +317,8 @@ export const useFirestoreDocument = <T extends { id: string }>(
                     return { id: snapshot.id, ...snapshot.data() } as T;
                 }
                 return null;
-            } catch (err) {
-                const errorObj = err instanceof Error ? err : new Error(String(err));
+            } catch (_err) {
+                const errorObj = _err instanceof Error ? _err : new Error(String(_err));
                 if (logError) {
                     ErrorLogger.error(errorObj, `useFirestoreDocument.fetchData.${collectionName}.${docId}`);
                 }

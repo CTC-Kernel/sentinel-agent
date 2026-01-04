@@ -156,8 +156,8 @@ export const Compliance: React.FC = () => {
                 projectContext || undefined
             );
             closeProjectDrawer();
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error as Error, 'Compliance.handleProjectCreation');
+        } catch (_error) {
+            ErrorLogger.handleErrorWithToast(_error as Error, 'Compliance.handleProjectCreation');
         }
     };
 
@@ -431,9 +431,9 @@ export const Compliance: React.FC = () => {
                         if (docId) {
                             setUploadWizardOpen(false);
                         }
-                    } catch (error) {
+                    } catch {
                         toast.error("Erreur critique lors de la création du document");
-                        }
+                    }
                 }}
                 users={usersList}
                 controls={frameworkControls}

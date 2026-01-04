@@ -42,7 +42,7 @@ export const CertifierDashboard: React.FC = () => {
                 const getDashboardFn = httpsCallable(functions, 'getCertifierDashboard');
                 const result = await getDashboardFn();
                 setData(result.data as { clients: Client[], assignments: AssignedAudit[] });
-            } catch (error) {
+            } catch {
                 toast.error('Impossible de charger le tableau de bord');
             } finally {
                 setLoading(false);

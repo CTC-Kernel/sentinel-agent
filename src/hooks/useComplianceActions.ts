@@ -27,10 +27,10 @@ export const useComplianceActions = (user: UserProfile | null) => {
             }));
             if (successMessage) toast.success(successMessage);
             return true;
-        } catch (error) {
-            if (error instanceof z.ZodError) {
+        } catch (_error) {
+            if (_error instanceof z.ZodError) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const zodError = error as any;
+                const zodError = _error as any;
                 toast.error(zodError.errors[0].message);
             } else {
                 toast.error("Erreur lors de la mise à jour");
@@ -134,7 +134,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
             toast.success("Risque créé avec succès");
             logAction(user, 'CREATE_RISK', 'risk', `Created risk ${riskData.threat}`, undefined, ref.id);
             return ref.id;
-        } catch (error) {
+        } catch {
             toast.error("Erreur lors de la création du risque");
             return null;
         } finally {
@@ -156,7 +156,7 @@ export const useComplianceActions = (user: UserProfile | null) => {
             toast.success("Audit planifié avec succès");
             logAction(user, 'CREATE_AUDIT', 'audit', `Created audit ${auditData.name}`, undefined, ref.id);
             return ref.id;
-        } catch (error) {
+        } catch {
             toast.error("Erreur lors de la création de l'audit");
             return null;
         } finally {

@@ -71,7 +71,7 @@ export const useComplianceDataSeeder = () => {
             await batch.commit();
             toast.success(`${count} contrôles ${framework} importés avec succès`);
 
-        } catch (error) {
+        } catch {
             toast.error("Erreur lors de l'import des données");
         } finally {
             setSeeding(false);

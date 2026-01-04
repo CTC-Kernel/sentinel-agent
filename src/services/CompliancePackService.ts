@@ -30,7 +30,7 @@ export class CompliancePackService {
             const dateObj = new Date(d as string | number | Date);
             if (isNaN(dateObj.getTime())) return 'Date invalide';
             return format(dateObj, 'dd/MM/yyyy');
-        } catch (e) {
+        } catch {
             return 'N/A';
         }
     }
@@ -195,7 +195,7 @@ L'intégrité de ces données est garantie par le système.
                 );
                 riskFolder.file("Registre_Risques_Enrichi.pdf", riskDoc.output('blob'));
             }
-        } catch (e) {
+        } catch {
             // Continue with other sections
         }
 
@@ -380,8 +380,8 @@ L'intégrité de ces données est garantie par le système.
         try {
             const content = await zip.generateAsync({ type: "blob" });
             saveAs(content, `Compliance_Pack_${safeOrgName}_${dateStr}.zip`);
-        } catch (e) {
-            throw new Error('Failed to create ZIP file: ' + e);
+        } catch (_e) {
+            throw new Error('Failed to create ZIP file: ' + _e);
         }
     }
 }

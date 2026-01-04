@@ -76,8 +76,8 @@ export const OrganizationSettings: React.FC = () => {
 
             await logAction(user, 'UPDATE', 'Organization', `Mise à jour organisation: ${data.orgName}`);
             addToast(t('settings.orgUpdated'), "success");
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'OrganizationSettings.handleUpdateOrg', 'UPDATE_FAILED');
+        } catch (_e) {
+            ErrorLogger.handleErrorWithToast(_e, 'OrganizationSettings.handleUpdateOrg', 'UPDATE_FAILED');
         } finally {
             setSavingOrg(false);
         }
@@ -95,8 +95,8 @@ export const OrganizationSettings: React.FC = () => {
             } else {
                 await SubscriptionService.manageSubscription(user.organizationId);
             }
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'OrganizationSettings.handleManageSubscription', 'UNKNOWN_ERROR');
+        } catch (_error) {
+            ErrorLogger.handleErrorWithToast(_error, 'OrganizationSettings.handleManageSubscription', 'UNKNOWN_ERROR');
         } finally {
             setSubLoading(false);
         }
@@ -124,8 +124,8 @@ export const OrganizationSettings: React.FC = () => {
             await updateUser(targetUserId, sanitizeData({ role: newRole }));
             await logAction(user, 'UPDATE', 'User', `Rôle mis à jour pour ${targetUserId}: ${newRole}`);
             addToast(t('settings.success.roleUpdated'), 'success');
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'OrganizationSettings.handleUpdateUserRole', 'UPDATE_FAILED');
+        } catch (_e) {
+            ErrorLogger.handleErrorWithToast(_e, 'OrganizationSettings.handleUpdateUserRole', 'UPDATE_FAILED');
         } finally {
             setUpdatingUserIds(prev => {
                 const next = new Set(prev);
@@ -148,7 +148,7 @@ export const OrganizationSettings: React.FC = () => {
 
             await logAction(user, 'TRANSFER', 'Organization', `Propriété transférée à ${targetId}`);
             addToast(t('settings.transferSuccess'), 'success');
-        } catch (_error: unknown) {
+        } catch (error: unknown) {
             ErrorLogger.error(error, 'OrganizationSettings.handleTransferOwnership');
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             addToast(t('settings.transferError') + errorMessage, 'error');
@@ -172,8 +172,8 @@ export const OrganizationSettings: React.FC = () => {
             await logAction(user, 'DELETE', 'User', `Utilisateur retiré de l'organisation: ${targetUserId}`);
             addToast(t('settings.userRemoved'), 'success');
             setConfirmRemoveData(prev => ({ ...prev, isOpen: false }));
-        } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'OrganizationSettings.handleRemoveUser', 'DELETE_FAILED');
+        } catch (_e) {
+            ErrorLogger.handleErrorWithToast(_e, 'OrganizationSettings.handleRemoveUser', 'DELETE_FAILED');
         } finally {
             setConfirmRemoveData(prev => ({ ...prev, loading: false }));
         }

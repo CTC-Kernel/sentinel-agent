@@ -5,7 +5,7 @@ export interface Document {
     type: 'Politique' | 'Procédure' | 'Preuve' | 'Rapport' | 'Autre';
     description?: string;
     version: string;
-    status: 'Brouillon' | 'En revue' | 'Approuvé' | 'Rejeté' | 'Publié' | 'Archivé';
+    status: 'Brouillon' | 'En revue' | 'Approuvé' | 'Rejeté' | 'Publié' | 'Archivé' | 'Obsolète';
     workflowStatus?: 'Draft' | 'Review' | 'Approved' | 'Rejected' | 'Archived';
     reviewers?: string[];
     approvers?: string[];

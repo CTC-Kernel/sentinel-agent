@@ -66,7 +66,7 @@ export const useAuthActions = () => {
                 }
             } catch (_error: unknown) {
                 if (!isMounted) return;
-                ErrorLogger.error(error as Error, 'Login.getRedirectResult');
+                ErrorLogger.error(_error as Error, 'Login.getRedirectResult');
                 setErrorMsg(t('auth.errors.google'));
             }
         })();
@@ -107,16 +107,16 @@ export const useAuthActions = () => {
             }
             return true;
         } catch (_error: unknown) {
-            const err = error as { code?: string; message?: string };
+            const err = _error as { code?: string; message?: string };
             if (err.code === 'auth/multi-factor-auth-required') {
-                const resolver = getMultiFactorResolver(auth, error as MultiFactorError);
+                const resolver = getMultiFactorResolver(auth, _error as MultiFactorError);
                 setMfaResolver(resolver);
                 setShowMfaModal(true);
                 return false;
             }
 
             let msg = t('auth.errors.auth');
-            const code = (error as { code?: string })?.code;
+            const code = (err as { code?: string })?.code;
             if (code === 'auth/invalid-credential') msg = t('auth.errors.invalid');
             if (code === 'auth/email-already-in-use') msg = t('auth.errors.emailInUse');
             if (code === 'auth/weak-password') msg = t('auth.errors.weak');
@@ -195,9 +195,9 @@ export const useAuthActions = () => {
                 }
             }
         } catch (_error: unknown) {
-            ErrorLogger.error(error as Error, 'Login.handleGoogleLogin');
+            ErrorLogger.error(_error as Error, 'Login.handleGoogleLogin');
             setErrorMsg(t('auth.errors.generic'));
-            const code = (error as { code?: string })?.code;
+            const code = (_error as { code?: string })?.code;
             safeLogAuthEvent({
                 provider: 'google',
                 status: 'failure',
@@ -273,9 +273,9 @@ export const useAuthActions = () => {
                 }
             }
         } catch (_error: unknown) {
-            ErrorLogger.error(error as Error, 'Login.handleAppleLogin');
+            ErrorLogger.error(_error as Error, 'Login.handleAppleLogin');
             setErrorMsg(t('auth.errors.generic'));
-            const code = (error as { code?: string })?.code;
+            const code = (_error as { code?: string })?.code;
             safeLogAuthEvent({
                 provider: 'apple',
                 status: 'failure',

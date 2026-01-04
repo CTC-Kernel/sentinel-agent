@@ -35,8 +35,8 @@ export const SystemSettings: React.FC = () => {
         try {
             await DataExportService.exportOrganizationData(user.organizationId);
             addToast("Export réussi ! Le téléchargement a démarré.", "success");
-        } catch (error) {
-            ErrorLogger.handleErrorWithToast(error, 'SystemSettings.handleExportData', 'UNKNOWN_ERROR');
+        } catch (_error) {
+            ErrorLogger.handleErrorWithToast(_error, 'SystemSettings.handleExportData', 'UNKNOWN_ERROR');
         } finally {
             setExporting(false);
         }
@@ -119,7 +119,7 @@ export const SystemSettings: React.FC = () => {
             await deleteUser(auth.currentUser);
             addToast("Compte supprimé avec succès. Au revoir.", "success");
             // AuthContext will handle logout/redirect automatically
-        } catch (_error: unknown) {
+        } catch (error: unknown) {
             if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'auth/requires-recent-login') {
                 setIsDeleteModalOpen(false);
                 setIsReauthModalOpen(true);
@@ -142,7 +142,7 @@ export const SystemSettings: React.FC = () => {
             setReauthPassword('');
             // Retry delete
             await performDelete();
-        } catch (_error: unknown) {
+        } catch (error: unknown) {
             ErrorLogger.handleErrorWithToast(error, 'ReAuth', 'AUTH_FAILED');
             setIsDeleting(false);
         }
@@ -237,8 +237,8 @@ export const SystemSettings: React.FC = () => {
                                             const { DemoDataService } = await import('../../services/demoDataService');
                                             const result = await DemoDataService.generateDemoData(user.organizationId, user);
                                             addToast(`Succès ! ${result.count} éléments générés.`, "success");
-                                        } catch (e) {
-                                            ErrorLogger.handleErrorWithToast(e, 'GenerateDemoData', 'UNKNOWN_ERROR');
+                                        } catch (_e) {
+                                            ErrorLogger.handleErrorWithToast(_e, 'GenerateDemoData', 'UNKNOWN_ERROR');
                                         } finally {
                                             setExporting(false);
                                         }

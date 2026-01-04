@@ -128,7 +128,7 @@ export const GeminiAssistant: React.FC = () => {
             // Save AI message to Firestore
             await addMessage(aiMsg);
 
-        } catch (_error: unknown) {
+        } catch (error: unknown) {
             ErrorLogger.error(error, 'GeminiAssistant.handleSend');
             const err = error as { message?: unknown; code?: unknown };
             const message = typeof err.message === 'string' ? err.message : '';

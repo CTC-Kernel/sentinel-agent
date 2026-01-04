@@ -24,7 +24,7 @@ export interface StructuredError {
   message: string;
   context?: string;
   userMessage?: string;
-  technicalDetails?: any;
+  technicalDetails?: Record<string, unknown>;
   timestamp: Date;
   userId?: string;
   organizationId?: string;
@@ -38,7 +38,7 @@ export const useErrorHandler = () => {
    * Gère une erreur de manière standardisée
    */
   const handleError = (
-    error: Error | any,
+    error: Error | unknown,
     context: string,
     options?: {
       showToast?: boolean;
@@ -53,16 +53,16 @@ export const useErrorHandler = () => {
       customMessage,
       onError
     } = options || {};
-    
+
     // Déterminer le type d'erreur
     const errorType = determineErrorType(error);
-    
+
     // Créer l'erreur structurée
     const structuredError = createStructuredError(error, context, errorType);
-    
+
     // Ajouter le message utilisateur
     structuredError.userMessage = customMessage || generateUserMessage(structuredError);
-    
+
     // Logger l'erreur
     if (logToService) {
       ErrorLogger.error(structuredError.message, context, {
@@ -74,7 +74,7 @@ export const useErrorHandler = () => {
         }
       });
     }
-    
+
     // Afficher un toast si demandé
     if (showToast) {
       toast(structuredError.userMessage, {
@@ -85,57 +85,64 @@ export const useErrorHandler = () => {
         } : undefined
       });
     }
-    
+
     // Callback personnalisé
     onError?.(structuredError);
-    
+
     return structuredError;
   };
 
   /**
    * Détermine le type d'erreur basé sur l'erreur brute
    */
-  const determineErrorType = (error: any): ErrorType => {
+  const determineErrorType = (error: unknown): ErrorType => {
     if (!error) return ErrorType.UNKNOWN;
-    
+
+    // Typage sécurisé pour l'accès aux propriétés
+    const err = error as Record<string, unknown>;
+    const message = typeof err.message === 'string' ? err.message : '';
+    const code = typeof err.code === 'string' ? err.code : '';
+    const name = typeof err.name === 'string' ? err.name : '';
+    const status = typeof err.status === 'number' ? err.status : 0;
+
     // Erreurs réseau
-    if (error.code === 'NETWORK_ERROR' || error.code === 'ECONNABORTED' || 
-        error.message?.includes('fetch') || error.message?.includes('network')) {
+    if (code === 'NETWORK_ERROR' || code === 'ECONNABORTED' ||
+      message.includes('fetch') || message.includes('network')) {
       return ErrorType.NETWORK;
     }
-    
+
     // Erreurs de timeout
-    if (error.code === 'TIMEOUT' || error.message?.includes('timeout')) {
+    if (code === 'TIMEOUT' || message.includes('timeout')) {
       return ErrorType.TIMEOUT;
     }
-    
+
     // Erreurs de permission
-    if (error.code === 'PERMISSION_DENIED' || error.code === 'UNAUTHORIZED' ||
-        error.message?.includes('permission') || error.message?.includes('unauthorized')) {
+    if (code === 'PERMISSION_DENIED' || code === 'UNAUTHORIZED' ||
+      message.includes('permission') || message.includes('unauthorized')) {
       return ErrorType.PERMISSION;
     }
-    
+
     // Erreurs de validation
-    if (error.code === 'VALIDATION_ERROR' || error.name === 'ValidationError' ||
-        error.message?.includes('validation') || error.message?.includes('required')) {
+    if (code === 'VALIDATION_ERROR' || name === 'ValidationError' ||
+      message.includes('validation') || message.includes('required')) {
       return ErrorType.VALIDATION;
     }
-    
+
     // Erreurs 404
-    if (error.code === 'NOT_FOUND' || error.status === 404) {
+    if (code === 'NOT_FOUND' || status === 404) {
       return ErrorType.NOT_FOUND;
     }
-    
+
     // Erreurs de conflit
-    if (error.code === 'CONFLICT' || error.status === 409) {
+    if (code === 'CONFLICT' || status === 409) {
       return ErrorType.CONFLICT;
     }
-    
+
     // Erreurs serveur
-    if (error.status >= 500 || error.code === 'SERVER_ERROR') {
+    if (status >= 500 || code === 'SERVER_ERROR') {
       return ErrorType.SERVER_ERROR;
     }
-    
+
     return ErrorType.UNKNOWN;
   };
 
@@ -143,17 +150,17 @@ export const useErrorHandler = () => {
    * Crée une erreur structurée à partir d'une erreur brute
    */
   const createStructuredError = (
-    error: Error | any,
+    error: Error | unknown,
     context: string,
     type: ErrorType = ErrorType.UNKNOWN
   ): StructuredError => {
     const timestamp = new Date();
-    
+
     // Tenter d'extraire des informations de l'erreur
     let message = 'Une erreur inattendue est survenue';
     let code: string | undefined;
-    let technicalDetails: any;
-    
+    let technicalDetails: Record<string, unknown> | undefined;
+
     if (error instanceof Error) {
       message = error.message;
       technicalDetails = {
@@ -164,11 +171,15 @@ export const useErrorHandler = () => {
     } else if (typeof error === 'string') {
       message = error;
     } else if (error && typeof error === 'object') {
-      message = error.message || error.error || message;
-      code = error.code || error.status;
-      technicalDetails = error;
+      const errObj = error as Record<string, unknown>;
+      message = (typeof errObj.message === 'string' ? errObj.message : undefined) ||
+        (typeof errObj.error === 'string' ? errObj.error : undefined) ||
+        message;
+      code = (typeof errObj.code === 'string' ? errObj.code : undefined) ||
+        (typeof errObj.status === 'string' ? errObj.status : undefined);
+      technicalDetails = errObj;
     }
-    
+
     return {
       type,
       code,
@@ -184,29 +195,29 @@ export const useErrorHandler = () => {
    */
   const generateUserMessage = (structuredError: StructuredError): string => {
     const { type, message } = structuredError;
-    
+
     switch (type) {
       case ErrorType.NETWORK:
         return 'Erreur de connexion. Veuillez vérifier votre connexion internet et réessayer.';
-      
+
       case ErrorType.TIMEOUT:
         return 'Le serveur met trop temps à répondre. Veuillez réessayer dans un instant.';
-      
+
       case ErrorType.PERMISSION:
         return 'Vous n\'avez pas les permissions nécessaires pour effectuer cette action.';
-      
+
       case ErrorType.VALIDATION:
         return 'Les données fournies ne sont pas valides. Veuillez vérifier les champs du formulaire.';
-      
+
       case ErrorType.NOT_FOUND:
         return 'La ressource demandée n\'existe pas ou a été supprimée.';
-      
+
       case ErrorType.CONFLICT:
         return 'Un conflit a été détecté. Les données ont peut-être été modifiées par un autre utilisateur.';
-      
+
       case ErrorType.SERVER_ERROR:
         return 'Une erreur technique est survenue. Nos équipes en ont été informées.';
-      
+
       default:
         return message || 'Une erreur inattendue est survenue.';
     }
