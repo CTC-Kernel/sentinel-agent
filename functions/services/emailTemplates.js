@@ -435,5 +435,48 @@ module.exports = {
     `,
     actionLabel: "Accéder à l'audit",
     actionUrl: link
+  }),
+
+  // Templates added during verification
+  getCertifierInvitationHtml: (tenantName, message, link) => generateEmailHtml({
+    title: 'Invitation à collaborer',
+    content: `
+      <p style="${styles.text}">Bonjour,</p>
+      <p style="${styles.text}">L'organisation <strong>${tenantName}</strong> vous invite à rejoindre son écosystème de certification sur Sentinel GRC.</p>
+      ${message ? `<div style="${styles.highlightBox}; font-style: italic;">"${message}"</div>` : ''}
+      <p style="${styles.text}">Cliquez sur le lien ci-dessous pour créer votre compte Auditeur/Certifieur.</p>
+      <p style="font-size: 12px; color: #94a3b8; margin-top: 12px;">Si le lien ne fonctionne pas : ${link}</p>
+    `,
+    actionLabel: "Accepter l'invitation",
+    actionUrl: link
+  }),
+
+  getAuditAssignmentHtml: (organizationId, link) => generateEmailHtml({
+    title: 'Nouvel Audit Assigné',
+    content: `
+      <p style="${styles.text}">Bonjour,</p>
+      <p style="${styles.text}">L'organisation <strong>${organizationId}</strong> vous a assigné un audit sur Sentinel GRC.</p>
+      <div style="${styles.highlightBox}">
+        <p style="margin: 0; font-size: 14px; color: #64748b;">Connectez-vous à votre tableau de bord auditeur pour y accéder.</p>
+      </div>
+    `,
+    actionLabel: "Accéder au Tableau de Bord",
+    actionUrl: link
+  }),
+
+  getDrillOverdueHtml: (processName, link) => generateEmailHtml({
+    title: 'Exercice PCA Requis',
+    content: `
+      <div style="${styles.alertBox}">
+        <h3 style="margin: 0; font-size: 16px;">Action requise</h3>
+      </div>
+      <p style="${styles.text}">Le processus <strong>"${processName}"</strong> n'a pas été testé depuis plus d'un an.</p>
+      <p style="${styles.text}">La conformité et la résilience exigent des tests réguliers des plans de continuité.</p>
+      <div style="${styles.highlightBox}">
+        <p style="margin: 0; font-size: 14px; color: #64748b;">Veuillez planifier un nouvel exercice ou mettre à jour la date du dernier test.</p>
+      </div>
+    `,
+    actionLabel: "Voir le processus",
+    actionUrl: link
   })
 };
