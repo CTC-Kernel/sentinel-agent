@@ -44,19 +44,26 @@ export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({ r
   );
 };
 
-// Card Skeleton Component
-export const CardSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) => {
+// Single Card Skeleton
+export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className={`glass-premium p-6 rounded-[2rem] space-y-4 ${className}`}>
+      <div className="flex justify-between items-start">
+        <Skeleton variant="circular" className="w-12 h-12" />
+        <Skeleton className="w-16 h-6" />
+      </div>
+      <Skeleton className="h-8 w-20" />
+      <Skeleton variant="text" className="w-32" />
+    </div>
+  );
+};
+
+// Card Skeleton Grid
+export const CardSkeleton: React.FC<{ count?: number; className?: string }> = ({ count = 3, className = '' }) => {
+  return (
+    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${className}`}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={`card-skeleton-${i}`} className="glass-premium p-6 rounded-[2rem] space-y-4">
-          <div className="flex justify-between items-start">
-            <Skeleton variant="circular" className="w-12 h-12" />
-            <Skeleton className="w-16 h-6" />
-          </div>
-          <Skeleton className="h-8 w-20" />
-          <Skeleton variant="text" className="w-32" />
-        </div>
+        <SkeletonCard key={`card-skeleton-${i}`} />
       ))}
     </div>
   );

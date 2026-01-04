@@ -151,7 +151,7 @@ export const GroupManager: React.FC<GroupManagerProps> = ({ users }) => {
                 onClose={handleDrawerClose}
                 title={editingGroup ? "Modifier le groupe" : "Nouveau groupe"}
                 subtitle="Gérez les membres de cette équipe."
-                width="max-w-4xl"
+                width="max-w-6xl"
             >
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

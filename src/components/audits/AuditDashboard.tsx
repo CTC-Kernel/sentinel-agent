@@ -13,9 +13,10 @@ interface AuditDashboardProps {
     audits: Audit[];
     findings: Finding[];
     onFilterChange?: (filter: { type: string; value: string } | null) => void;
+    loading?: boolean;
 }
 
-export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings, onFilterChange }) => {
+export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings, onFilterChange, loading }) => {
     // Metrics Calculation
     const metrics = useMemo(() => {
         const totalAudits = audits.length;
@@ -53,6 +54,27 @@ export const AuditDashboard: React.FC<AuditDashboardProps> = ({ audits, findings
 
         return { statusData, findingsByType };
     }, [audits, findings]);
+
+    if (loading) {
+        return (
+            <motion.div
+                variants={staggerContainerVariants}
+                initial="hidden"
+                animate="visible"
+                className="space-y-6"
+            >
+                {/* Skeleton for AuditScoreCard */}
+                <div className="glass-premium p-6 rounded-[2.5rem] animate-pulse">
+                    <div className="h-40 bg-slate-200 dark:bg-slate-700/50 rounded-2xl"></div>
+                </div>
+                {/* Skeleton for AuditCharts */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="glass-panel p-6 rounded-[2rem] h-[300px] animate-pulse bg-slate-100 dark:bg-white/5"></div>
+                    <div className="glass-panel p-6 rounded-[2rem] h-[300px] animate-pulse bg-slate-100 dark:bg-white/5"></div>
+                </div>
+            </motion.div>
+        );
+    }
 
     if (metrics.totalAudits === 0) {
         return (

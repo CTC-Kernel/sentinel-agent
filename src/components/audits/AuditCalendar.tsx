@@ -4,13 +4,15 @@ import { motion } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Skeleton } from '../ui/Skeleton';
 
 interface AuditCalendarProps {
     audits: Audit[];
     onAuditClick: (audit: Audit) => void;
+    loading?: boolean;
 }
 
-export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditClick }) => {
+export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditClick, loading }) => {
     const { t, i18n } = useTranslation();
     const [currentDate, setCurrentDate] = React.useState(new Date());
 
@@ -68,13 +70,24 @@ export const AuditCalendar: React.FC<AuditCalendarProps> = ({ audits, onAuditCli
                     </div>
                 ))}
 
+                {/* Loading State */}
+                {loading && Array.from({ length: 35 }).map((_, i) => (
+                    <div key={`skeleton-${i}`} className="bg-white dark:bg-slate-900/30 p-2 min-h-[120px]">
+                        <Skeleton className="h-6 w-6 rounded-full mb-2" />
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-full rounded" />
+                            <Skeleton className="h-4 w-2/3 rounded" />
+                        </div>
+                    </div>
+                ))}
+
                 {/* Empty Cells */}
-                {Array.from({ length: firstDay }).map((_, i) => (
+                {!loading && Array.from({ length: firstDay }).map((_, i) => (
                     <div key={`empty-${i}`} className="bg-white dark:bg-slate-900/30 min-h-[120px]" />
                 ))}
 
                 {/* Days */}
-                {days.map(day => {
+                {!loading && days.map(day => {
                     const dayAudits = getAuditsForDay(day);
                     const isToday = new Date().getDate() === day && new Date().getMonth() === currentDate.getMonth() && new Date().getFullYear() === currentDate.getFullYear();
 

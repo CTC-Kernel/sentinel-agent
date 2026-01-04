@@ -64,7 +64,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
             onClose={onClose}
             title={supplier.name}
             subtitle="Détails du fournisseur"
-            width="max-w-4xl"
+            width="max-w-6xl"
             actions={
                 <div className="flex items-center gap-2">
                     {canEdit && (

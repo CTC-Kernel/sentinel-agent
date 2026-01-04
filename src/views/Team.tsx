@@ -29,7 +29,7 @@ import { slideUpVariants, staggerContainerVariants } from '../components/ui/anim
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
-import { CsvParser } from '../utils/csvUtils';
+import { ImportService } from '../services/ImportService';
 import { Upload } from 'lucide-react';
 
 const Team: React.FC = () => {
@@ -67,19 +67,7 @@ const Team: React.FC = () => {
     }), [t]);
 
     const handleDownloadTemplate = React.useCallback(() => {
-        const headers = [
-            t('common.columns.email'),
-            t('common.columns.name'),
-            t('common.columns.role'),
-            t('common.columns.department')
-        ];
-        const rows = [{
-            [t('common.columns.email')]: 'jean.dupont@example.com',
-            [t('common.columns.name')]: 'Jean Dupont',
-            [t('common.columns.role')]: 'user',
-            [t('common.columns.department')]: 'IT'
-        }];
-        CsvParser.downloadCSV(headers, rows, 'template_users.csv');
+        ImportService.downloadUserTemplate(t);
     }, [t]);
 
     const handleImportCsvFile = React.useCallback(async (file: File) => {
@@ -171,23 +159,9 @@ const Team: React.FC = () => {
     const joinRequestsCount = joinRequests.length;
 
     const exportCSV = React.useCallback(() => {
-        const headers = ["Nom", "Email", "Rôle", "Département", "Statut", "Dernière Connexion"];
-        const rows = users.map(u => [
-            u.displayName || '',
-            u.email,
-            u.role,
-            u.department || '',
-            u.isPending ? 'Invité' : 'Actif',
-            u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : ''
-        ]);
-        const csvContent = [headers.join(','), ...rows.map(r => r.map(f => `"${f}"`).join(','))].join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `team_export_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
+        ImportService.exportUsers(
+            users as Record<string, any>[]
+        );
     }, [users]);
 
     // Calculate activity rate for the visual ring (mock logic for now or based on login)
@@ -452,7 +426,7 @@ const Team: React.FC = () => {
                 onClose={handleCloseInvite}
                 title={t('team.invite.title')}
                 subtitle={t('team.invite.subtitle', { org: user?.organizationName || t('common.settings.organization') })}
-                width="max-w-4xl"
+                width="max-w-6xl"
             // Headless UI handles FocusTrap and keyboard navigation for accessibility
             >
                 <form onSubmit={(e) => { e.preventDefault(); inviteForm.handleSubmit(handleAddUser)(e); }} className="p-4 sm:p-8 space-y-6">
@@ -519,7 +493,7 @@ const Team: React.FC = () => {
                 onClose={handleCloseEdit}
                 title={t('team.edit.title')}
                 subtitle={t('team.edit.subtitle')}
-                width="max-w-4xl"
+                width="max-w-6xl"
             >
                 {selectedUser && (
                     <form onSubmit={(e) => { e.preventDefault(); editForm.handleSubmit(handleUpdateUser)(e); }} className="p-4 sm:p-8 space-y-6">

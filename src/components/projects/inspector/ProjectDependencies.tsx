@@ -1,18 +1,36 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Risk, Control, Asset, Audit } from '../../../types';
+import React, { useState } from 'react';
+import { Risk, Control, Asset, Audit, Project, UserProfile, Supplier, BusinessProcess } from '../../../types';
 import { Badge } from '../../ui/Badge';
 import { ShieldAlert, CheckSquare, Server, ClipboardCheck, Edit } from '../../ui/Icons';
+import { RiskInspector } from '../../risks/RiskInspector';
+import { AssetInspector } from '../../assets/AssetInspector';
+import { AuditInspector } from '../../audits/AuditInspector';
+import { ComplianceInspector } from '../../compliance/ComplianceInspector';
 
 type DependencyType = 'risks' | 'controls' | 'assets' | 'audits';
 
 interface ProjectDependenciesProps {
     type: DependencyType;
     items: (Risk | Control | Asset | Audit)[];
+    // Context props for Inspectors
+    project?: Project;
+    usersList?: UserProfile[];
+    assets?: Asset[];
+    controls?: Control[];
+    audits?: Audit[];
+    risks?: Risk[];
+    suppliers?: Supplier[];
+    processes?: BusinessProcess[];
+    canEdit: boolean;
 }
 
-export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({ type, items }) => {
-    const navigate = useNavigate();
+export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({
+    type, items, project, usersList = [], assets = [], controls = [], audits = [], risks = [], suppliers = [], processes = [], canEdit
+}) => {
+    const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
+    const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+    const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
+    const [selectedControl, setSelectedControl] = useState<Control | null>(null);
 
     // Empty State Helpers
     const getEmptyState = () => {
@@ -39,68 +57,154 @@ export const ProjectDependencies: React.FC<ProjectDependenciesProps> = ({ type, 
     }
 
     // Render Items
-    const renderContent = () => {
-        return (
-            <div className="space-y-4">
-                {items.map(item => {
-                    switch (type) {
-                        case 'risks': {
-                            const risk = item as Risk;
-                            return (
-                                <LinkedRiskItem
-                                    key={risk.id}
-                                    risk={risk}
-                                    onClick={() => navigate(`/risks?id=${risk.id}`)}
-                                />
-                            );
-                        }
-
-                        case 'controls': {
-                            const control = item as Control;
-                            return (
-                                <div key={control.id} className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex justify-between items-center bg-white/40 dark:bg-white/5">
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-xs font-mono text-slate-400">{control.code}</span>
-                                            <h4 className="font-bold text-slate-900 dark:text-white">{control.name}</h4>
-                                        </div>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{control.description}</p>
-                                    </div>
-                                </div>
-                            );
-                        }
-
-                        case 'assets': {
-                            const asset = item as Asset;
-                            return (
-                                <LinkedAssetItem
-                                    key={asset.id}
-                                    asset={asset}
-                                    onClick={() => navigate(`/assets?id=${asset.id}`)}
-                                />
-                            );
-                        }
-
-                        case 'audits': {
-                            const audit = item as Audit;
-                            return (
-                                <LinkedAuditItem
-                                    key={audit.id}
-                                    audit={audit}
-                                    onClick={() => navigate(`/audits?id=${audit.id}`)}
-                                />
-                            );
-                        }
-
-                        default: return null;
+    return (
+        <div className="space-y-4">
+            {items.map(item => {
+                switch (type) {
+                    case 'risks': {
+                        const risk = item as Risk;
+                        return (
+                            <LinkedRiskItem
+                                key={risk.id}
+                                risk={risk}
+                                onClick={() => setSelectedRisk(risk)}
+                            />
+                        );
                     }
-                })}
-            </div>
-        );
-    };
 
-    return renderContent();
+                    case 'controls': {
+                        const control = item as Control;
+                        return (
+                            <div key={control.id} className="cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-white/5" onClick={() => setSelectedControl(control)}>
+                                <LinkedControlItem control={control} />
+                            </div>
+                        );
+                    }
+
+                    case 'assets': {
+                        const asset = item as Asset;
+                        return (
+                            <LinkedAssetItem
+                                key={asset.id}
+                                asset={asset}
+                                onClick={() => setSelectedAsset(asset)}
+                            />
+                        );
+                    }
+
+                    case 'audits': {
+                        const audit = item as Audit;
+                        return (
+                            <LinkedAuditItem
+                                key={audit.id}
+                                audit={audit}
+                                onClick={() => setSelectedAudit(audit)}
+                            />
+                        );
+                    }
+
+                    default: return null;
+                }
+            })}
+
+            {/* Embedded Inspectors */}
+            {selectedRisk && (
+                <RiskInspector
+                    isOpen={!!selectedRisk}
+                    onClose={() => setSelectedRisk(null)}
+                    risk={selectedRisk}
+                    assets={assets}
+                    controls={controls}
+                    projects={project ? [project] : []} // Or all projects if available? Usually RiskInspector needs all to link
+                    audits={audits}
+                    suppliers={suppliers}
+                    usersList={usersList}
+                    processes={processes}
+                    canEdit={canEdit}
+                    demoMode={false}
+                    onUpdate={async () => true} // Start with true/dummy
+                    onDelete={() => { }}
+                    onDuplicate={() => { }}
+                />
+            )}
+
+            {selectedAsset && (
+                <AssetInspector
+                    isOpen={!!selectedAsset}
+                    onClose={() => setSelectedAsset(null)}
+                    selectedAsset={selectedAsset}
+                    users={usersList}
+                    suppliers={suppliers}
+                    processes={processes}
+                    canEdit={canEdit}
+                    onUpdate={async () => true}
+                    onCreate={async () => true}
+                    onDelete={() => { }}
+                />
+            )}
+
+            {selectedAudit && (
+                <AuditInspector
+                    onClose={() => setSelectedAudit(null)}
+                    audit={selectedAudit}
+                    canEdit={canEdit}
+                    usersList={usersList}
+                    onDelete={() => { }}
+                    controls={controls}
+                    documents={[]} // Documents default
+                    assets={assets}
+                    risks={risks}
+                    projects={project ? [project] : []}
+                    refreshAudits={() => { }} // Dummy refresh
+                />
+            )}
+
+            {selectedControl && (
+                <ComplianceInspector
+                    control={selectedControl}
+                    canEdit={canEdit}
+                    usersList={usersList}
+                    assets={assets}
+                    suppliers={suppliers}
+                    documents={[]} // Documents not passed yet, might need empty array
+                    risks={risks}
+                    projects={project ? [project] : []}
+                    findings={[]} // Findings not passed
+                    handlers={{
+                        updating: false,
+                        handleStatusChange: async () => { },
+                        handleAssign: async () => { },
+                        handleLinkAsset: async () => { },
+                        handleUnlinkAsset: async () => { },
+                        handleLinkSupplier: async () => { },
+                        handleUnlinkSupplier: async () => { },
+                        handleLinkProject: async () => { },
+                        handleUnlinkProject: async () => { },
+                        handleLinkDocument: async () => { },
+                        handleUnlinkDocument: async () => { },
+                        updateJustification: async () => { },
+                        onUploadEvidence: () => { }
+                    }}
+                />
+            )}
+        </div>
+    );
 };
+
+// Helper Components (Keep existing or redefine if they were missing imports)
+const LinkedControlItem = ({ control }: { control: Control }) => (
+    <div className="glass-panel p-4 rounded-xl border border-white/60 dark:border-white/10 flex justify-between items-center bg-white/40 dark:bg-white/5">
+        <div>
+            <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-mono text-slate-400">{control.code}</span>
+                <h4 className="font-bold text-slate-900 dark:text-white">{control.name}</h4>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{control.description}</p>
+        </div>
+    </div>
+);
+
+
 
 /* --- Internal Components for List Items --- */
 

@@ -16,7 +16,7 @@ interface ProjectTasksProps {
 }
 
 export const ProjectTasks: React.FC<ProjectTasksProps> = ({ project, canEdit, usersList, onUpdateTasks }) => {
-    const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
+    const [viewMode, setViewMode] = useState<'list' | 'board'>('board');
     const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [editingTask, setEditingTask] = useState<ProjectTask | undefined>(undefined);

@@ -4,11 +4,14 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Ba
 import { ChartTooltip } from '../ui/ChartTooltip';
 import { EmptyChartState } from '../ui/EmptyChartState';
 
+import { Skeleton } from '../ui/Skeleton';
+
 interface PortfolioDashboardProps {
     projects: Project[];
+    loading?: boolean;
 }
 
-export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects }) => {
+export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects, loading }) => {
     // Stats Calculations
     const stats = useMemo(() => {
         const total = projects.length;
@@ -72,6 +75,49 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({ projects
     }, [projects]);
 
     // ... (Stats and other memos remain same, just ensure they are clean)
+
+    if (loading) {
+        return (
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Global Health Loading State */}
+                    <div className="lg:col-span-2 glass-panel p-6 md:p-8 rounded-[2rem] shadow-sm flex flex-col md:flex-row gap-6 border border-transparent dark:border-white/5 animate-pulse">
+                        <div className="flex items-center gap-6">
+                            <Skeleton className="h-24 w-24 rounded-full" />
+                            <div className="space-y-2">
+                                <Skeleton className="h-6 w-48 rounded" />
+                                <Skeleton className="h-4 w-32 rounded" />
+                            </div>
+                        </div>
+                        <div className="flex-1 grid grid-cols-3 gap-4 border-l border-slate-200 dark:border-white/10 px-6 mx-2">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="space-y-2">
+                                    <Skeleton className="h-4 w-16 rounded" />
+                                    <Skeleton className="h-8 w-12 rounded" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Status Distribution Loading State */}
+                    <div className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 animate-pulse">
+                        <Skeleton className="h-4 w-32 rounded mb-4" />
+                        <Skeleton className="h-[140px] w-full rounded-full" />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Secondary Charts Loading State */}
+                    {[1, 2].map(i => (
+                        <div key={i} className="glass-panel p-6 rounded-[2rem] border border-white/60 dark:border-white/5 animate-pulse">
+                            <Skeleton className="h-4 w-48 rounded mb-4" />
+                            <Skeleton className="h-[250px] w-full rounded" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     if (projects.length === 0) {
         return (

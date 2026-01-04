@@ -355,7 +355,7 @@ export const Compliance: React.FC = () => {
                     title={creationMode ? (
                         creationMode === 'risk' ? t('compliance.newRisk') : t('compliance.newAudit')
                     ) : (selectedControl ? `${selectedControl.code} - ${selectedControl.name}` : t('commandPalette.select'))}
-                    width={creationMode ? 'max-w-2xl' : 'max-w-7xl'}
+                    width="max-w-6xl"
                 >
                     {creationMode === 'risk' && (
                         <RiskForm

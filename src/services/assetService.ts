@@ -3,7 +3,6 @@ import {
     addDoc,
     doc,
     updateDoc,
-    deleteDoc,
     arrayUnion,
     increment,
     serverTimestamp
@@ -14,6 +13,7 @@ import { logAction } from './logger';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from './errorLogger';
 import { UserProfile } from '../types';
+import { FunctionsService } from './FunctionsService';
 
 export const AssetService = {
     /**
@@ -88,7 +88,7 @@ export const AssetService = {
     async delete(id: string, name: string, user: UserProfile): Promise<void> {
         if (!user.organizationId) throw new Error("User organization ID is missing");
 
-        await deleteDoc(doc(db, 'assets', id));
+        await FunctionsService.deleteResource('assets', id);
         await logAction(user, 'DELETE', 'Asset', `Suppression Actif: ${name}`);
     },
 
@@ -98,7 +98,10 @@ export const AssetService = {
     async bulkDelete(ids: string[], user: UserProfile): Promise<void> {
         if (!user.organizationId) throw new Error("User organization ID is missing");
 
-        await Promise.all(ids.map(id => deleteDoc(doc(db, 'assets', id))));
+        // Use sequential execution to prevent overwhelming the function instance
+        for (const id of ids) {
+            await FunctionsService.deleteResource('assets', id);
+        }
         await logAction(user, 'DELETE', 'Asset', `Suppression en masse de ${ids.length} actifs`);
     },
 

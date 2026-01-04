@@ -8,9 +8,10 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 interface AssetDashboardProps {
     assets: Asset[];
     onFilterChange?: (filter: { type: 'criticality' | 'status' | 'type', value: string } | null) => void;
+    loading?: boolean;
 }
 
-export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilterChange }) => {
+export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilterChange, loading }) => {
     // Calculate metrics
     const { totalAssets, criticalAssets, maintenanceDue, currentValue, depreciation } = React.useMemo(() => {
         const total = assets.length;
@@ -139,6 +140,22 @@ export const AssetDashboard: React.FC<AssetDashboardProps> = ({ assets, onFilter
 
         return months.map(m => ({ name: m.name, count: m.count, value: m.value }));
     }, [assets]);
+
+    if (loading) {
+        return (
+            <div className="space-y-6 animate-fade-in">
+                {/* Summary Card Skeleton */}
+                <div className="glass-premium p-6 md:p-8 rounded-[2.5rem] h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                {/* Charts Grid Skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="glass-premium p-6 rounded-[2.5rem] h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-6 rounded-[2.5rem] h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-6 rounded-[2.5rem] h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-6 rounded-[2.5rem] h-[300px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 animate-fade-in">

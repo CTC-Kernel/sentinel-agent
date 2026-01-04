@@ -172,7 +172,7 @@ export const RiskInspector: React.FC<RiskInspectorProps> = ({
                     <Server className="h-3.5 w-3.5" /> {getAssetName(risk.assetId)}
                 </div>
             }
-            width={isEditing ? "max-w-4xl" : "max-w-6xl"}
+            width="max-w-6xl"
             statusBadge={
                 <Badge status={risk.status === 'Fermé' ? 'success' : risk.status === 'En cours' ? 'warning' : risk.status === 'En attente de validation' ? 'info' : 'error'}>
                     {risk.status}

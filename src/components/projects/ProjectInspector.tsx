@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { InspectorLayout } from '../ui/InspectorLayout';
 import { Badge } from '../ui/Badge';
-import { Project, ProjectTask, UserProfile, Risk, Control, Asset, Audit } from '../../types';
+import { Project, ProjectTask, UserProfile, Risk, Control, Asset, Audit, Supplier, BusinessProcess } from '../../types';
 import { CalendarDays, LayoutDashboard, CheckSquare, Target, FileSpreadsheet, ShieldAlert, Server, ClipboardCheck, BrainCircuit, History, MessageSquare, FileText, Download, Copy, Edit, Trash2, Loader2, Users } from '../ui/Icons';
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { ProjectDashboard } from './ProjectDashboard';
@@ -32,6 +32,8 @@ interface ProjectInspectorProps {
     controls: Control[];
     assets: Asset[];
     audits: Audit[];
+    suppliers?: Supplier[];
+    processes?: BusinessProcess[];
 
     updateTasks: (project: Project, tasks: ProjectTask[]) => Promise<void>;
     onDeleteProject: (id: string, name: string) => void;
@@ -47,7 +49,7 @@ interface ProjectInspectorProps {
 
 export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
     isOpen, project, onClose, canEdit, usersList,
-    risks, controls, assets, audits,
+    risks, controls, assets, audits, suppliers, processes,
     updateTasks, onDeleteProject, onDuplicateProject, onEditProject,
     onExportExecutiveReport, onGenerateReport, isSubmitting
 }) => {
@@ -228,19 +230,44 @@ export const ProjectInspector: React.FC<ProjectInspectorProps> = ({
 
                     {/* Dependencies */}
                     {inspectorTab === 'risks' && (
-                        <ProjectDependencies type="risks" items={linkedRisks} />
+                        <ProjectDependencies
+                            type="risks"
+                            items={linkedRisks}
+                            project={project}
+                            usersList={usersList}
+                            assets={assets}
+                            controls={controls}
+                            audits={audits}
+                            risks={risks}
+                            suppliers={suppliers}
+                            processes={processes}
+                            canEdit={canEdit}
+                        />
                     )}
 
                     {inspectorTab === 'controls' && (
-                        <ProjectDependencies type="controls" items={linkedControls} />
+                        <ProjectDependencies type="controls" items={linkedControls} canEdit={canEdit} />
                     )}
 
                     {inspectorTab === 'assets' && (
-                        <ProjectDependencies type="assets" items={linkedAssets} />
+                        <ProjectDependencies
+                            type="assets"
+                            items={linkedAssets}
+                            usersList={usersList}
+                            suppliers={suppliers}
+                            processes={processes}
+                            canEdit={canEdit}
+                        />
+
                     )}
 
                     {inspectorTab === 'audits' && (
-                        <ProjectDependencies type="audits" items={linkedAuditsList} />
+                        <ProjectDependencies
+                            type="audits"
+                            items={linkedAuditsList}
+                            usersList={usersList}
+                            canEdit={canEdit}
+                        />
                     )}
 
                     {/* Team */}

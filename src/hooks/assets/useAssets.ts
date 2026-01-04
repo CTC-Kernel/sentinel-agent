@@ -4,14 +4,14 @@ import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
 import { Asset, UserProfile, Supplier, BusinessProcess } from '../../types';
 import { AssetFormData } from '../../schemas/assetSchema';
-import { ErrorLogger } from '../../services/errorLogger';
 import { usePlanLimits } from '../usePlanLimits';
 import { DependencyService } from '../../services/dependencyService';
 import { AssetService } from '../../services/assetService';
-import { z } from 'zod';
+// Import Mock Service only once
+// import { MockDataService } from '../../services/mockDataService'; // Dynamic import used
 
 export function useAssets() {
-    const { user, addToast, demoMode } = useStore();
+    const { user, demoMode } = useStore();
     const { limits } = usePlanLimits();
     const [isSubmitting, setIsSubmitting] = useState(false);
     // Harden demoMode
@@ -29,21 +29,21 @@ export function useAssets() {
         let mounted = true;
         if (isDemo) {
             setMockLoading(true);
-            Promise.all([
-                import('../../services/mockDataService').then(m => m.MockDataService.getCollection('assets') as unknown as Asset[]),
-                import('../../services/mockDataService').then(m => m.MockDataService.getCollection('users') as unknown as UserProfile[]),
-                import('../../services/mockDataService').then(m => m.MockDataService.getCollection('suppliers') as unknown as Supplier[]),
-                import('../../services/mockDataService').then(m => m.MockDataService.getCollection('business_processes') as unknown as BusinessProcess[]),
-            ]).then(([assets, users, suppliers, processes]) => {
-                if (!mounted) return;
-                setMockAssets(assets);
-                setMockUsers(users);
-                setMockSuppliers(suppliers);
-                setMockProcesses(processes);
-                setMockLoading(false);
-            }).catch(_err => {
-                if (mounted) setMockLoading(false);
-            });
+            const loadMocks = async () => {
+                try {
+                    const m = await import('../../services/mockDataService');
+                    if (!mounted) return;
+                    setMockAssets(m.MockDataService.getCollection('assets') as unknown as Asset[]);
+                    setMockUsers(m.MockDataService.getCollection('users') as unknown as UserProfile[]);
+                    setMockSuppliers(m.MockDataService.getCollection('suppliers') as unknown as Supplier[]);
+                    setMockProcesses(m.MockDataService.getCollection('business_processes') as unknown as BusinessProcess[]);
+                } catch (err) {
+                    console.error("Failed to load mock data", err);
+                } finally {
+                    if (mounted) setMockLoading(false);
+                }
+            };
+            loadMocks();
         }
         return () => { mounted = false; };
     }, [isDemo]);
@@ -104,46 +104,38 @@ export function useAssets() {
         if (!isDemo) refreshFirestoreAssets();
     };
 
-    // Actions
-    const createAsset = async (data: AssetFormData, preSelectedProjectId?: string | null) => {
-        if (!user?.organizationId) return false;
+    // Actions - Decoupled from UI (No Toasts)
+    const createAsset = async (data: AssetFormData, preSelectedProjectId?: string | null): Promise<{ success: boolean; id?: string; error?: unknown }> => {
+        if (!user?.organizationId) return { success: false, error: 'No organization ID' };
+
+        // Logical Check (moved from UI)
         if (assets.length >= limits.maxAssets) {
-            addToast(`Limite atteinte (${limits.maxAssets} actifs). Passez au plan supérieur pour ajouter plus d'actifs.`, "error");
-            return false;
+            return { success: false, error: 'LIMIT_REACHED' };
         }
+
         setIsSubmitting(true);
         try {
             const assetId = await AssetService.create(data, user, preSelectedProjectId);
-            addToast("Actif créé avec succès", "success");
             refreshAssets();
-            return assetId;
+            return { success: true, id: assetId };
         } catch (e) {
-            if (e instanceof z.ZodError) {
-                addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
-            } else {
-                ErrorLogger.handleErrorWithToast(e, 'useAssets.createAsset', 'CREATE_FAILED');
-            }
-            return false;
+            // Note: Error logging should be consistent, usually services don't toast but hooks might if configured
+            // here we want to return the error to the component to toast
+            return { success: false, error: e };
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const updateAsset = async (id: string, data: AssetFormData) => {
-        if (!user?.organizationId) return false;
+    const updateAsset = async (id: string, data: AssetFormData): Promise<{ success: boolean; error?: unknown }> => {
+        if (!user?.organizationId) return { success: false, error: 'No organization ID' };
         setIsSubmitting(true);
         try {
             await AssetService.update(id, data, user);
-            addToast("Actif mis à jour avec succès", "success");
             refreshAssets();
-            return true;
+            return { success: true };
         } catch (e) {
-            if (e instanceof z.ZodError) {
-                addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
-            } else {
-                ErrorLogger.handleErrorWithToast(e, 'useAssets.updateAsset', 'UPDATE_FAILED');
-            }
-            return false;
+            return { success: false, error: e };
         } finally {
             setIsSubmitting(false);
         }
@@ -154,50 +146,31 @@ export function useAssets() {
         return await DependencyService.checkAssetDependencies(assetId, user.organizationId);
     };
 
-    const deleteAsset = async (id: string, name: string) => {
-        if (!user?.organizationId) return false;
+    const deleteAsset = async (id: string, name: string): Promise<{ success: boolean; error?: unknown }> => {
+        if (!user?.organizationId) return { success: false, error: 'No organization ID' };
 
-        // Check dependencies before delete
-        const depCheck = await DependencyService.checkAssetDependencies(id, user.organizationId);
-        if (depCheck.hasDependencies) {
-            addToast(`Impossible de supprimer ${name}: lié à ${depCheck.dependencies.length} risque(s).`, "error");
-            return false;
-        }
-
+        // Note: Dependency Check should be handled by UI before calling this if seeking confirmation
         try {
             await AssetService.delete(id, name, user);
-            addToast("Actif supprimé avec succès", "success");
             refreshAssets();
-            return true;
+            return { success: true };
         } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'useAssets.deleteAsset', 'DELETE_FAILED');
-            return false;
+            return { success: false, error: e };
         }
     };
 
-    const bulkDeleteAssets = async (ids: string[]) => {
-        if (!user?.organizationId) return false;
-
-        // Pre-check all assets for dependencies
-        const checks = await Promise.all(ids.map(async (id) => {
-            const check = await DependencyService.checkAssetDependencies(id, user.organizationId!);
-            return { id, check };
-        }));
-
-        const blocked = checks.filter(c => c.check.hasDependencies);
-        if (blocked.length > 0) {
-            addToast(`${blocked.length} actif(s) ne peuvent pas être supprimés car ils sont liés à des risques.`, "error");
-            return false;
-        }
+    const bulkDeleteAssets = async (ids: string[]): Promise<{ success: boolean; count: number; error?: unknown }> => {
+        if (!user?.organizationId) return { success: false, count: 0, error: 'No organization ID' };
 
         try {
+            // Note: Service handles individual deletions which might fail if dependencies exist
+            // But here we rely on AssetService.bulkDelete which should be using FunctionsService potentially
+            // Actually AssetService.bulkDelete uses FunctionsService now (Phase 20)
             await AssetService.bulkDelete(ids, user);
-            addToast(`${ids.length} actifs supprimés avec succès`, "success");
             refreshAssets();
-            return true;
+            return { success: true, count: ids.length };
         } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'useAssets.bulkDeleteAssets', 'DELETE_FAILED');
-            return false;
+            return { success: false, count: 0, error: e };
         }
     };
 

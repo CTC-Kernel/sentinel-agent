@@ -128,12 +128,17 @@ const Assets: React.FC = () => {
 
     const handleConfirmDelete = React.useCallback(async () => {
         if (assetToDelete) {
-            await deleteAsset(assetToDelete.id, assetToDelete.name);
+            const result = await deleteAsset(assetToDelete.id, assetToDelete.name);
+            if (result.success) {
+                toast.success(t('assets.deleteSuccess', { name: assetToDelete.name }));
+            } else {
+                toast.error(t('assets.deleteError'));
+            }
             setDeleteModalOpen(false);
             setAssetToDelete(null);
             setDependencies([]);
         }
-    }, [assetToDelete, deleteAsset]);
+    }, [assetToDelete, deleteAsset, t]);
 
     const handleCloseDeleteModal = React.useCallback(() => setDeleteModalOpen(false), []);
 
@@ -207,10 +212,31 @@ const Assets: React.FC = () => {
     }, []);
 
     // CRUD Handlers for Inspector
-    const handleUpdateAsset = React.useCallback(async (id: string, data: Partial<Asset>) => updateAsset(id, data as unknown as AssetFormData), [updateAsset]);
-    // The previous edit didn't change the param type, so it stayed Omit<Asset, 'id'>.
-    // I need to change the param type to match AssetInspector.
-    const handleCreateAsset = React.useCallback(async (data: AssetFormData) => createAsset(data, null), [createAsset]);
+    const handleUpdateAsset = React.useCallback(async (id: string, data: Partial<Asset>) => {
+        const result = await updateAsset(id, data as unknown as AssetFormData);
+        if (result.success) {
+            toast.success(t('assets.updateSuccess'));
+            return true;
+        } else {
+            toast.error(t('assets.updateError'));
+            return false;
+        }
+    }, [updateAsset, t]);
+
+    // Create wrapper
+    const handleCreateAsset = React.useCallback(async (data: AssetFormData) => {
+        const result = await createAsset(data, null);
+        if (result.success) {
+            toast.success(t('assets.createSuccess'));
+            return result.id || true;
+        } else if (result.error === 'LIMIT_REACHED') {
+            toast.error(t('assets.limitReachedError')); // "Upgrade plan..."
+            return false;
+        } else {
+            toast.error(t('assets.createError'));
+            return false;
+        }
+    }, [createAsset, t]);
 
     // Import Handlers
     const [importModalOpen, setImportModalOpen] = useState(false);
@@ -263,24 +289,8 @@ const Assets: React.FC = () => {
     }, [createAsset, user, t]);
 
     const handleDownloadTemplate = React.useCallback(() => {
-        const headers = [...assetGuidelines.required, ...assetGuidelines.optional];
-        // Construct example row using the same localized keys
-        const exampleRow = {
-            [t('common.columns.name')]: "Server DB-01",
-            [t('common.columns.type')]: "Matériel", // Use localized value if possible, or mapping key
-            [t('common.columns.owner')]: "Jean Dupont",
-            [t('common.columns.confidentiality')]: "High",
-            [t('common.columns.notes')]: "Main database server",
-            [t('common.columns.availability')]: "High",
-            [t('common.columns.integrity')]: "High",
-            [t('common.columns.lifecycleStatus')]: "En service",
-            [t('common.columns.location')]: "Data Center A",
-            [t('common.columns.purchasePrice')]: "5000",
-            [t('common.columns.purchaseDate')]: "2024-01-01",
-            [t('common.columns.warrantyEnd')]: "2027-01-01"
-        };
-        CsvParser.downloadCSV(headers, [exampleRow], `template_assets.csv`);
-    }, [assetGuidelines, t]);
+        ImportService.downloadAssetTemplate(t);
+    }, [t]);
 
     return (
         <motion.div
@@ -331,6 +341,7 @@ const Assets: React.FC = () => {
                     <AssetDashboard
                         assets={filteredAssets}
                         onFilterChange={handleFilterChange}
+                        loading={loading}
                     />
                 </motion.div>
 

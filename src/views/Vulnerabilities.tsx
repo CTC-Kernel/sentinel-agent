@@ -183,12 +183,12 @@ export const Vulnerabilities: React.FC = () => {
                     title={t('vulnerabilities.title')}
                     subtitle={t('vulnerabilities.subtitle')}
                     icon={
-                    <img 
-                        src="/images/operations.png" 
-                        alt="OPÉRATIONS" 
-                        className="w-full h-full object-contain"
-                    />
-                }
+                        <img
+                            src="/images/operations.png"
+                            alt="OPÉRATIONS"
+                            className="w-full h-full object-contain"
+                        />
+                    }
                     trustType="integrity"
                     breadcrumbs={[{ label: t('common.operations') }, { label: t('sidebar.vulnerabilities') }]}
                 />
@@ -280,7 +280,7 @@ export const Vulnerabilities: React.FC = () => {
                 onClose={handleCloseCreateDrawer}
                 title={t('vulnerabilities.declare')}
                 subtitle="Nouvealle vulnérabilité"
-                width="max-w-4xl"
+                width="max-w-6xl"
             // Headless UI handles FocusTrap and keyboard navigation
             >
                 <div className="p-6">
@@ -301,7 +301,7 @@ export const Vulnerabilities: React.FC = () => {
                 onClose={handleCloseEditDrawer}
                 title={selectedVulnerability?.title || ''}
                 subtitle="Détails de la vulnérabilité"
-                width="max-w-4xl"
+                width="max-w-6xl"
             >
                 <div className="p-6">
                     {selectedVulnerability && (

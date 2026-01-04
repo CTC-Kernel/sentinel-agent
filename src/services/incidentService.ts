@@ -1,5 +1,6 @@
-import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, writeBatch, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { FunctionsService } from './FunctionsService';
 import { ErrorLogger } from './errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
 
@@ -20,15 +21,12 @@ export class IncidentService {
         const { incidentId, organizationId, userId, userEmail } = options;
 
         try {
-            const batch = writeBatch(db);
+            // 1. Secure Deletion (Backend enforces integrity)
+            await FunctionsService.deleteResource('incidents', incidentId);
 
-            // 1. Delete Incident
-            const incidentRef = doc(db, 'incidents', incidentId);
-            batch.delete(incidentRef);
-
-            // 2. Add Audit Log (Atomic) - Replicating System Log structure
-            const logRef = doc(collection(db, 'system_logs'));
-            const logData = {
+            // 2. Add Audit Log (Non-atomic but ensures trace)
+            // Ideally backend handles this, but we maintain parity with existing 'system_logs' requirement.
+            await addDoc(collection(db, 'system_logs'), {
                 organizationId,
                 timestamp: new Date().toISOString(),
                 action: 'DELETE',
@@ -37,13 +35,10 @@ export class IncidentService {
                 userEmail,
                 details: `Deleted incident ID: ${incidentId}`,
                 metadata: { incidentId },
-                severity: 'critical', // Deletion is always critical
+                severity: 'critical',
                 source: 'Sentinel-Core'
-            };
-            batch.set(logRef, logData);
+            });
 
-            // 3. Commit atomically
-            await batch.commit();
         } catch (error) {
             ErrorLogger.error(error, 'IncidentService.deleteIncidentWithLog');
             throw error;

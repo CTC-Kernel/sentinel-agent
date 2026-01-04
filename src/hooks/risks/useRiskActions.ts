@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { db } from '../../firebase';
-import { collection, addDoc, updateDoc, doc, deleteDoc, writeBatch, arrayRemove, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../../hooks/useAuth';
 import { Risk } from '../../types';
 import { ErrorLogger } from '../../services/errorLogger';
@@ -11,7 +11,7 @@ import { ImportService } from '../../services/ImportService';
 import { NotificationService } from '../../services/notificationService';
 import { DependencyService } from '../../services/dependencyService';
 import { riskSchema } from '../../schemas/riskSchema';
-// Duplicate import removed
+import { FunctionsService } from '../../services/FunctionsService';
 import { sanitizeData } from '../../utils/dataSanitizer';
 import { canEditResource } from '../../utils/permissions';
 import { UserProfile } from '../../types';
@@ -134,23 +134,8 @@ export const useRiskActions = (onRefresh: () => void) => {
         if (!canEditResource(user as UserProfile, 'Risk')) return false;
         setSubmitting(true);
         try {
-            // Cleanup references using service
-            if (!user?.organizationId) throw new Error("No org");
-
-            const check = await DependencyService.checkRiskDependencies(id, user.organizationId);
-
-            if (check.hasDependencies) {
-                const cleanupPromises = [];
-                // Clean references
-                for (const dep of check.dependencies) {
-                    cleanupPromises.push(updateDoc(doc(db, dep.collectionName, dep.id), {
-                        relatedRiskIds: arrayRemove(id)
-                    }));
-                }
-                await Promise.all(cleanupPromises);
-            }
-
-            await deleteDoc(doc(db, 'risks', id));
+            // Secure Deletion (Backend enforces integrity)
+            await FunctionsService.deleteResource('risks', id);
 
             if (user) {
                 logAction(user, 'DELETE_RISK', 'Risk', `Suppression risque: ${name || id}`);
@@ -160,8 +145,15 @@ export const useRiskActions = (onRefresh: () => void) => {
             onRefresh();
             return true;
         } catch (error) {
+            // FunctionsService already handles detailed error messages
+            const err = error as Error;
             ErrorLogger.handleErrorWithToast(error, 'useRiskActions.deleteRisk', 'DELETE_FAILED');
-            toast.error('Erreur lors de la suppression');
+            // If it's a precondition error (dependencies), the toast from ErrorLogger/Service should show it?
+            // FunctionsService throws with message. ErrorLogger might swallow it if generic.
+            // Let's rely on FunctionsService behaving correctly or ErrorLogger showing message.
+            if (err.message.includes('Impossible de supprimer')) {
+                toast.error(err.message);
+            }
             return false;
         } finally {
             setSubmitting(false);
@@ -233,55 +225,36 @@ export const useRiskActions = (onRefresh: () => void) => {
             return;
         }
 
-        const orgId = user.organizationId;
-
         try {
-            // 1. Verify dependencies
-            const checks = await Promise.all(ids.map(id => DependencyService.checkRiskDependencies(id, orgId)));
+            let successCount = 0;
+            let blockedCount = 0;
+            const errors: string[] = [];
 
-            // Check if any has too many dependencies to safe delete automatically?
-            // Current req: "Suppression en masse sans vérification de dépendances -> CORRUPTION DE DONNÉES".
-            // We should Clean them up.
-
-            const batch = writeBatch(db);
-            let cleanedDependenciesCount = 0;
-
-            // Prepare dependency cleanups (cannot use batch for reads, but can for updates if ids known)
-            // DependencyService gave us the IDs.
-
-            // WARNING: Batch limit is 500. If we have many deps, might overflow.
-            // For now, let's process updates individually if too many, or assume reasonable count.
-            // A safer approach for bulk is to simply block if dependencies exist, OR carefully batch update.
-            // Given "Protection en masse", cleaning is better.
-
-            const updateOps: Promise<void>[] = [];
-
-            checks.forEach((check, index) => {
-                const riskId = ids[index];
-                if (check.hasDependencies) {
-                    check.dependencies.forEach(dep => {
-                        // Cannot duplicate refs in batch easily if multiple risks point to same doc.
-                        // Firestore batch supports multiple writes to same doc? No.
-                        // So we must use arrayRemove atomically.
-                        // Safest is independent updates for dependencies.
-                        updateOps.push(updateDoc(doc(db, dep.collectionName, dep.id), {
-                            relatedRiskIds: arrayRemove(riskId)
-                        }));
-                        cleanedDependenciesCount++;
-                    });
+            // Process sequentially or semi-parallel to track individual results
+            // We use Promise.all to attempt all, but catch individual errors
+            await Promise.all(ids.map(async (id) => {
+                try {
+                    await FunctionsService.deleteResource('risks', id);
+                    successCount++;
+                } catch (error: any) {
+                    blockedCount++;
+                    if (error.message) errors.push(error.message);
                 }
-                batch.delete(doc(db, 'risks', riskId));
-            });
+            }));
 
-            await Promise.all(updateOps); // Run dependency updates
-            await batch.commit(); // Run risk deletions
-
-            if (user) {
-                await logAction(user, 'DELETE_RISK', 'Risk', `Suppression multiple: ${ids.length} risques`);
+            if (successCount > 0) {
+                if (user) {
+                    await logAction(user, 'DELETE_RISK', 'Risk', `Suppression multiple: ${successCount} risques`);
+                }
+                toast.success(`${successCount} risques supprimés` + (blockedCount > 0 ? ` (${blockedCount} bloqués)` : ''));
+                onRefresh();
             }
 
-            toast.success(`${ids.length} risques supprimés` + (cleanedDependenciesCount > 0 ? ` (${cleanedDependenciesCount} liens nettoyés)` : ''));
-            onRefresh();
+            if (blockedCount > 0) {
+                // Show first error as example
+                toast.error(`Certains risques n'ont pas pu être supprimés (${blockedCount}). Exemple: ${errors[0] || 'Dépendances existantes'}`);
+            }
+
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'useRiskActions.bulkDeleteRisks', 'DELETE_FAILED');
             toast.error('Erreur suppression multiple');

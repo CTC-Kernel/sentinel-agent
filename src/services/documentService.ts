@@ -1,5 +1,6 @@
-import { collection, doc, writeBatch, getDocs, query, where, deleteDoc, arrayRemove, limit, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { collection, doc, writeBatch, getDocs, query, where, arrayRemove, limit, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { FunctionsService } from './FunctionsService';
 import { Control } from '../types';
 import { ErrorLogger } from './errorLogger';
 import { sanitizeData } from '../utils/dataSanitizer';
@@ -190,9 +191,9 @@ export class DocumentService {
             // Execute all cleanup operations in parallel
             await Promise.all(cleanupPromises);
 
-            // Finally, delete the document itself
+            // Finally, delete the document itself (Server-side permission check)
             try {
-                await deleteDoc(doc(db, 'documents', documentId));
+                await FunctionsService.deleteResource('documents', documentId);
             } catch (err) {
                 ErrorLogger.error(err, 'DocumentService.deleteDocumentWithCascade.finalDelete');
                 throw err;

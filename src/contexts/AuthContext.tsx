@@ -146,6 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Use refs to track subscriptions across async executions and avoid leaks
     const unsubscribeProfileRef = useRef<(() => void) | undefined>(undefined);
     const unsubscribeOrgRef = useRef<(() => void) | undefined>(undefined);
+    const lastVerifiedOrgIdRef = useRef<string | null>(null);
 
     useEffect(() => {
         // Sécurité : Timeout pour éviter le chargement infini
@@ -257,41 +258,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             let isSynced = true;
 
                             if (userData.organizationId) {
-                                // Vérifier si le token actuel a le bon claim
-                                const tokenResult = await auth.currentUser.getIdTokenResult();
-                                const tokenOrgId = tokenResult.claims.organizationId;
+                                // Optimization: Skip check if we already verified this orgId for this session
+                                if (lastVerifiedOrgIdRef.current === userData.organizationId && claimsSynced) {
+                                    // already synced
+                                } else {
+                                    // Vérifier si le token actuel a le bon claim
+                                    const tokenResult = await auth.currentUser.getIdTokenResult();
+                                    const tokenOrgId = tokenResult.claims.organizationId;
 
-                                if (tokenOrgId !== userData.organizationId) {
-                                    ErrorLogger.info('Claims mismatch: SessionKey vs Profile - Syncing...', 'AuthContext.sync');
-                                    isSynced = false;
-                                    setClaimsSynced(false);
+                                    if (tokenOrgId !== userData.organizationId) {
+                                        ErrorLogger.info('Claims mismatch: SessionKey vs Profile - Syncing...', 'AuthContext.sync');
+                                        isSynced = false;
+                                        setClaimsSynced(false);
 
-                                    try {
-                                        // 1. Tenter un refresh simple
-                                        await auth.currentUser.getIdToken(true);
-                                        const newToken = await auth.currentUser.getIdTokenResult();
-
-                                        if (newToken.claims.organizationId === userData.organizationId) {
-                                            isSynced = true;
-                                        } else {
-                                            // 2. Si échec, forcer via Cloud Function
-                                            const functions = getFunctions();
-                                            const refreshUserTokenFn = httpsCallable(functions, 'refreshUserToken');
-                                            await refreshUserTokenFn();
+                                        try {
+                                            // 1. Tenter un refresh simple
                                             await auth.currentUser.getIdToken(true);
+                                            const newToken = await auth.currentUser.getIdTokenResult();
 
-                                            // 3. Vérification finale
-                                            const finalToken = await auth.currentUser.getIdTokenResult();
-                                            if (finalToken.claims.organizationId === userData.organizationId) {
+                                            if (newToken.claims.organizationId === userData.organizationId) {
                                                 isSynced = true;
-                                                ErrorLogger.info('Claims synced successfully.', 'AuthContext.sync');
+                                                lastVerifiedOrgIdRef.current = userData.organizationId;
                                             } else {
-                                                ErrorLogger.warn("Critical: Claims sync failed after retry", "AuthContext.sync");
-                                                // On laisse isSynced à false, ce qui bloquera l'accès via AuthGuard
+                                                // 2. Si échec, forcer via Cloud Function
+                                                const functions = getFunctions();
+                                                const refreshUserTokenFn = httpsCallable(functions, 'refreshUserToken');
+                                                await refreshUserTokenFn();
+                                                await auth.currentUser.getIdToken(true);
+
+                                                // 3. Vérification finale
+                                                const finalToken = await auth.currentUser.getIdTokenResult();
+                                                if (finalToken.claims.organizationId === userData.organizationId) {
+                                                    isSynced = true;
+                                                    lastVerifiedOrgIdRef.current = userData.organizationId;
+                                                    ErrorLogger.info('Claims synced successfully.', 'AuthContext.sync');
+                                                } else {
+                                                    ErrorLogger.warn("Critical: Claims sync failed after retry", "AuthContext.sync");
+                                                    // On laisse isSynced à false, ce qui bloquera l'accès via AuthGuard
+                                                }
                                             }
+                                        } catch (_e) {
+                                            ErrorLogger.warn('Failed to sync claims', 'AuthContext.sync', { metadata: { error: _e } });
                                         }
-                                    } catch (_e) {
-                                        ErrorLogger.warn('Failed to sync claims', 'AuthContext.sync', { metadata: { error: _e } });
+                                    } else {
+                                        lastVerifiedOrgIdRef.current = userData.organizationId;
                                     }
                                 }
                             }
@@ -299,6 +309,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         } else {
                             setClaimsSynced(true);
                         }
+
 
                         if (userData.theme) setTheme(userData.theme);
 

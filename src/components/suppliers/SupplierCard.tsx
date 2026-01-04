@@ -21,6 +21,7 @@ const getScoreColor = (score: number) => {
 interface SupplierCardProps {
     supplier: Supplier;
     onClick: (supplier: Supplier) => void;
+    onDelete?: () => void;
 }
 
 export const SupplierCard = memo(({ supplier, onClick }: SupplierCardProps) => {

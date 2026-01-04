@@ -74,7 +74,7 @@ export const DocumentInspector: React.FC<DocumentInspectorProps> = ({
             isOpen={isOpen}
             onClose={onClose}
             title={selectedDocument.title}
-            width="max-w-4xl"
+            width="max-w-6xl"
             actions={
                 <div className="flex gap-2">
                     {canEdit && (

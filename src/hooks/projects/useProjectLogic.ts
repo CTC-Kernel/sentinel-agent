@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
 import { where, doc, updateDoc, addDoc, collection, writeBatch, limit, serverTimestamp } from 'firebase/firestore';
@@ -14,7 +14,7 @@ import { z } from 'zod';
 import { SubscriptionService } from '../../services/subscriptionService';
 import { canEditResource, canDeleteResource } from '../../utils/permissions';
 import { usePlanLimits } from '../usePlanLimits';
-import { CsvParser } from '../../utils/csvUtils';
+import { ImportService } from '../../services/ImportService';
 
 export const useProjectLogic = () => {
     const { user, addToast, organization, demoMode } = useStore();
@@ -66,222 +66,222 @@ export const useProjectLogic = () => {
         };
     }, [demoMode, mockData]);
 
-// Derived State
-const projects = useMemo(() => {
-    const source = demoMode && mockData ? mockData.projects : rawProjects;
-    return [...source].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-}, [rawProjects, mockData, demoMode]);
+    // Derived State
+    const projects = useMemo(() => {
+        const source = demoMode && mockData ? mockData.projects : rawProjects;
+        return [...source].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+    }, [rawProjects, mockData, demoMode]);
 
-const risks = useMemo(() => {
-    const source = demoMode && mockData ? mockData.risks : rawRisks;
-    return [...source].sort((a, b) => b.score - a.score);
-}, [rawRisks, mockData, demoMode]);
+    const risks = useMemo(() => {
+        const source = demoMode && mockData ? mockData.risks : rawRisks;
+        return [...source].sort((a, b) => b.score - a.score);
+    }, [rawRisks, mockData, demoMode]);
 
-const audits = useMemo(() => {
-    const source = demoMode && mockData ? mockData.audits : rawAudits;
-    return [...source].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime());
-}, [rawAudits, mockData, demoMode]);
+    const audits = useMemo(() => {
+        const source = demoMode && mockData ? mockData.audits : rawAudits;
+        return [...source].sort((a, b) => new Date(b.dateScheduled).getTime() - new Date(a.dateScheduled).getTime());
+    }, [rawAudits, mockData, demoMode]);
 
-const controls = useMemo(() => {
-    const source = demoMode && mockData ? mockData.controls : rawControls;
-    return [...source].sort((a, b) => a.code.localeCompare(b.code));
-}, [rawControls, mockData, demoMode]);
+    const controls = useMemo(() => {
+        const source = demoMode && mockData ? mockData.controls : rawControls;
+        return [...source].sort((a, b) => a.code.localeCompare(b.code));
+    }, [rawControls, mockData, demoMode]);
 
-const assets = useMemo(() => {
-    const source = demoMode && mockData ? mockData.assets : rawAssets;
-    return [...source].sort((a, b) => a.name.localeCompare(b.name));
-}, [rawAssets, mockData, demoMode]);
+    const assets = useMemo(() => {
+        const source = demoMode && mockData ? mockData.assets : rawAssets;
+        return [...source].sort((a, b) => a.name.localeCompare(b.name));
+    }, [rawAssets, mockData, demoMode]);
 
-// Fix: Ensure usersList is never empty if we are logged in (fallback to self)
-// This prevents "Manager Required" validation errors if RBAC prevents listing other users
-const effectiveUsers = useMemo(() => {
-    const source = demoMode && mockData ? mockData.users : usersList;
-    if (source && source.length > 0) return source;
-    if (user && user.uid) return [user];
-    return [];
-}, [usersList, user, mockData, demoMode]);
+    // Fix: Ensure usersList is never empty if we are logged in (fallback to self)
+    // This prevents "Manager Required" validation errors if RBAC prevents listing other users
+    const effectiveUsers = useMemo(() => {
+        const source = demoMode && mockData ? mockData.users : usersList;
+        if (source && source.length > 0) return source;
+        if (user && user.uid) return [user];
+        return [];
+    }, [usersList, user, mockData, demoMode]);
 
-const loading = demoMode ? !mockData : (loadingProjects || loadingRisks || loadingControls || loadingAssets || loadingUsers || loadingAudits);
+    const loading = demoMode ? !mockData : (loadingProjects || loadingRisks || loadingControls || loadingAssets || loadingUsers || loadingAudits);
 
-// Actions
-const [isSubmitting, setIsSubmitting] = useState(false);
+    // Actions
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-const handleProjectFormSubmit = async (
-    projectData: Omit<Project, 'id' | 'organizationId' | 'tasks' | 'progress' | 'createdAt'>,
-    editingProject: Project | null,
-    preSelectedContext?: { type: 'risk' | 'control' | 'asset' | 'audit', id: string } | null
-) => {
-    if (!canEdit || !user?.organizationId) return;
-    setIsSubmitting(true);
-    try {
-        const validatedData = projectSchema.parse(projectData);
-        const cleanData = sanitizeData(validatedData);
-        const batch = writeBatch(db); // Note: batch operations < 500 limit for typical project relationships
+    const handleProjectFormSubmit = async (
+        projectData: Omit<Project, 'id' | 'organizationId' | 'tasks' | 'progress' | 'createdAt'>,
+        editingProject: Project | null,
+        preSelectedContext?: { type: 'risk' | 'control' | 'asset' | 'audit', id: string } | null
+    ) => {
+        if (!canEdit || !user?.organizationId) return;
+        setIsSubmitting(true);
+        try {
+            const validatedData = projectSchema.parse(projectData);
+            const cleanData = sanitizeData(validatedData);
+            const batch = writeBatch(db); // Note: batch operations < 500 limit for typical project relationships
 
-        if (editingProject) {
-            // Update
-            const projectRef = doc(db, 'projects', editingProject.id);
-            batch.update(projectRef, { ...cleanData });
+            if (editingProject) {
+                // Update
+                const projectRef = doc(db, 'projects', editingProject.id);
+                batch.update(projectRef, { ...cleanData });
 
-            // Use ProjectService to sync relationship links
-            ProjectService.syncProjectLinks(batch, {
-                projectId: editingProject.id,
-                relatedRiskIds: validatedData.relatedRiskIds,
-                relatedControlIds: validatedData.relatedControlIds,
-                relatedAssetIds: validatedData.relatedAssetIds,
-                relatedAuditIds: validatedData.relatedAuditIds,
-                oldRiskIds: editingProject.relatedRiskIds,
-                oldControlIds: editingProject.relatedControlIds,
-                oldAssetIds: editingProject.relatedAssetIds,
-                oldAuditIds: editingProject.relatedAuditIds
-            });
+                // Use ProjectService to sync relationship links
+                ProjectService.syncProjectLinks(batch, {
+                    projectId: editingProject.id,
+                    relatedRiskIds: validatedData.relatedRiskIds,
+                    relatedControlIds: validatedData.relatedControlIds,
+                    relatedAssetIds: validatedData.relatedAssetIds,
+                    relatedAuditIds: validatedData.relatedAuditIds,
+                    oldRiskIds: editingProject.relatedRiskIds,
+                    oldControlIds: editingProject.relatedControlIds,
+                    oldAssetIds: editingProject.relatedAssetIds,
+                    oldAuditIds: editingProject.relatedAuditIds
+                });
 
-            await batch.commit();
-            await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${validatedData.name}`);
+                await batch.commit();
+                await logAction(user, 'UPDATE', 'Project', `Mise à jour projet: ${validatedData.name}`);
 
-        } else {
-            // Create
-            const canAddProject = await SubscriptionService.checkLimit(user.organizationId, 'projects', projects.length);
-            if (!canAddProject) {
-                addToast(`Nombre maximum de projets atteint pour votre plan (${projects.length}/${limits?.maxProjects ?? '…'}).`, "error");
-                setIsSubmitting(false);
-                return;
+            } else {
+                // Create
+                const canAddProject = await SubscriptionService.checkLimit(user.organizationId, 'projects', projects.length);
+                if (!canAddProject) {
+                    addToast(`Nombre maximum de projets atteint pour votre plan (${projects.length}/${limits?.maxProjects ?? '…'}).`, "error");
+                    setIsSubmitting(false);
+                    return;
+                }
+                const finalData = { ...cleanData };
+                if (preSelectedContext) {
+                    if (preSelectedContext.type === 'risk') finalData.relatedRiskIds = [...(finalData.relatedRiskIds || []), preSelectedContext.id];
+                    if (preSelectedContext.type === 'control') finalData.relatedControlIds = [...(finalData.relatedControlIds || []), preSelectedContext.id];
+                    if (preSelectedContext.type === 'asset') finalData.relatedAssetIds = [...(finalData.relatedAssetIds || []), preSelectedContext.id];
+                    if (preSelectedContext.type === 'audit') finalData.relatedAuditIds = [...(finalData.relatedAuditIds || []), preSelectedContext.id];
+                }
+
+                const newProjectRef = doc(collection(db, 'projects'));
+                batch.set(newProjectRef, {
+                    ...finalData,
+                    organizationId: user.organizationId,
+                    progress: 0,
+                    tasks: [],
+                    createdAt: serverTimestamp()
+                });
+
+                // Use ProjectService to sync new project links
+                ProjectService.syncNewProjectLinks(
+                    batch,
+                    newProjectRef.id,
+                    finalData.relatedRiskIds,
+                    finalData.relatedControlIds,
+                    finalData.relatedAssetIds,
+                    finalData.relatedAuditIds
+                );
+
+                await batch.commit();
+                await logAction(user, 'CREATE', 'Project', `Nouveau projet: ${validatedData.name}`);
+                addToast("Projet créé avec succès", "success");
             }
-            const finalData = { ...cleanData };
-            if (preSelectedContext) {
-                if (preSelectedContext.type === 'risk') finalData.relatedRiskIds = [...(finalData.relatedRiskIds || []), preSelectedContext.id];
-                if (preSelectedContext.type === 'control') finalData.relatedControlIds = [...(finalData.relatedControlIds || []), preSelectedContext.id];
-                if (preSelectedContext.type === 'asset') finalData.relatedAssetIds = [...(finalData.relatedAssetIds || []), preSelectedContext.id];
-                if (preSelectedContext.type === 'audit') finalData.relatedAuditIds = [...(finalData.relatedAuditIds || []), preSelectedContext.id];
+        } catch (e) {
+            if (e instanceof z.ZodError) {
+                addToast((e as z.ZodError).issues[0].message, "error");
+            } else {
+                ErrorLogger.handleErrorWithToast(e, 'useProjectLogic.submit', 'UPDATE_FAILED');
             }
+            throw e;
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
-            const newProjectRef = doc(collection(db, 'projects'));
-            batch.set(newProjectRef, {
-                ...finalData,
+    const handleDuplicate = async (project: Project) => {
+        if (!canEdit || !user?.organizationId) return;
+        const canAdd = await SubscriptionService.checkLimit(user.organizationId, 'projects', projects.length);
+        if (!canAdd) return 'LIMIT_REACHED';
+
+        setIsSubmitting(true);
+        try {
+            const newProjData = {
+                ...project,
+                name: `${project.name} (Copie)`,
+                createdAt: serverTimestamp(),
                 organizationId: user.organizationId,
                 progress: 0,
-                tasks: [],
-                createdAt: serverTimestamp()
-            });
+                tasks: project.tasks.map(t => ({ ...t, status: 'A faire', id: Date.now() + Math.random().toString() }))
+            };
+            // @ts-expect-error - Timestamp type mismatch with external library
+            delete newProjData.id;
 
-            // Use ProjectService to sync new project links
-            ProjectService.syncNewProjectLinks(
-                batch,
-                newProjectRef.id,
-                finalData.relatedRiskIds,
-                finalData.relatedControlIds,
-                finalData.relatedAssetIds,
-                finalData.relatedAuditIds
+            await addDoc(collection(db, 'projects'), sanitizeData(newProjData));
+            await logAction(user, 'CREATE', 'Project', `Duplication Projet: ${newProjData.name}`);
+            addToast("Projet dupliqué", "success");
+            return 'SUCCESS';
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Projects.handleDuplicate', 'CREATE_FAILED');
+            return 'ERROR';
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const checkDependencies = async (projectId: string) => {
+        if (!user?.organizationId) return { hasDependencies: false, dependencies: [] };
+        // Use ProjectService to check dependencies
+        return await ProjectService.checkDependencies(projectId, user.organizationId);
+    };
+
+    const deleteProject = async (id: string, name?: string) => {
+        if (!canDeleteResource(user, 'Project') || !user?.organizationId) return;
+        try {
+            // Use ProjectService for cascade deletion with dependency cleanup
+            await ProjectService.deleteProjectWithCascade(id, user.organizationId);
+
+            await logAction(user, 'DELETE', 'Project', `Suppression projet: ${name || id}`);
+            addToast("Projet supprimé", "info");
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Projects.deleteProject', 'DELETE_FAILED');
+        }
+    };
+
+    const updateProjectTasks = async (project: Project, tasks: ProjectTask[]) => {
+        if (!canEdit) return;
+        const completed = tasks.filter(t => t.status === 'Terminé').length;
+        const progress = tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0;
+
+        try {
+            await updateDoc(doc(db, 'projects', project.id), { tasks, progress });
+            return { tasks, progress };
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'Projects.updateTasks', 'UPDATE_FAILED');
+            throw e;
+        }
+    };
+
+    const importProjects = useCallback(async (csvContent: string) => {
+        if (!user?.organizationId) return;
+
+        try {
+            const lines = ImportService.parseCSV(csvContent);
+            if (lines.length === 0) {
+                addToast("Fichier vide ou invalide", "error");
+                return;
+            }
+
+            const count = await ProjectService.importProjectsFromCSV(
+                lines,
+                user.organizationId,
+                user.uid,
+                user.displayName || 'Utilisateur'
             );
 
-            await batch.commit();
-            await logAction(user, 'CREATE', 'Project', `Nouveau projet: ${validatedData.name}`);
-            addToast("Projet créé avec succès", "success");
+            await logAction(user, 'IMPORT', 'Project', `Import CSV de ${count} projets`);
+            addToast(`Import de ${count} projets réussi`, "success");
+        } catch (error) {
+            ErrorLogger.handleErrorWithToast(error, 'useProjectLogic.importProjects');
+        } finally {
+            setIsSubmitting(false);
         }
-    } catch (e) {
-        if (e instanceof z.ZodError) {
-            addToast((e as z.ZodError).issues[0].message, "error");
-        } else {
-            ErrorLogger.handleErrorWithToast(e, 'useProjectLogic.submit', 'UPDATE_FAILED');
-        }
-        throw e;
-    } finally {
-        setIsSubmitting(false);
-    }
-};
+    }, [user, addToast]);
 
-const handleDuplicate = async (project: Project) => {
-    if (!canEdit || !user?.organizationId) return;
-    const canAdd = await SubscriptionService.checkLimit(user.organizationId, 'projects', projects.length);
-    if (!canAdd) return 'LIMIT_REACHED';
-
-    setIsSubmitting(true);
-    try {
-        const newProjData = {
-            ...project,
-            name: `${project.name} (Copie)`,
-            createdAt: serverTimestamp(),
-            organizationId: user.organizationId,
-            progress: 0,
-            tasks: project.tasks.map(t => ({ ...t, status: 'A faire', id: Date.now() + Math.random().toString() }))
-        };
-        // @ts-expect-error - Timestamp type mismatch with external library
-        delete newProjData.id;
-
-        await addDoc(collection(db, 'projects'), sanitizeData(newProjData));
-        await logAction(user, 'CREATE', 'Project', `Duplication Projet: ${newProjData.name}`);
-        addToast("Projet dupliqué", "success");
-        return 'SUCCESS';
-    } catch (e) {
-        ErrorLogger.handleErrorWithToast(e, 'Projects.handleDuplicate', 'CREATE_FAILED');
-        return 'ERROR';
-    } finally {
-        setIsSubmitting(false);
-    }
-};
-
-const checkDependencies = async (projectId: string) => {
-    if (!user?.organizationId) return { hasDependencies: false, dependencies: [] };
-    // Use ProjectService to check dependencies
-    return await ProjectService.checkDependencies(projectId, user.organizationId);
-};
-
-const deleteProject = async (id: string, name?: string) => {
-    if (!canDeleteResource(user, 'Project') || !user?.organizationId) return;
-    try {
-        // Use ProjectService for cascade deletion with dependency cleanup
-        await ProjectService.deleteProjectWithCascade(id, user.organizationId);
-
-        await logAction(user, 'DELETE', 'Project', `Suppression projet: ${name || id}`);
-        addToast("Projet supprimé", "info");
-    } catch (e) {
-        ErrorLogger.handleErrorWithToast(e, 'Projects.deleteProject', 'DELETE_FAILED');
-    }
-};
-
-const updateProjectTasks = async (project: Project, tasks: ProjectTask[]) => {
-    if (!canEdit) return;
-    const completed = tasks.filter(t => t.status === 'Terminé').length;
-    const progress = tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0;
-
-    try {
-        await updateDoc(doc(db, 'projects', project.id), { tasks, progress });
-        return { tasks, progress };
-    } catch (e) {
-        ErrorLogger.handleErrorWithToast(e, 'Projects.updateTasks', 'UPDATE_FAILED');
-        throw e;
-    }
-};
-
-const importProjects = async (csvContent: string) => {
-    if (!user?.organizationId) return;
-    setIsSubmitting(true);
-    try {
-        const lines = CsvParser.parseCSV(csvContent);
-        if (lines.length === 0) {
-            addToast("Fichier vide ou invalide", "error");
-            return;
-        }
-
-        const count = await ProjectService.importProjectsFromCSV(
-            lines,
-            user.organizationId,
-            user.uid,
-            user.displayName || 'Utilisateur'
-        );
-
-        await logAction(user, 'IMPORT', 'Project', `Import CSV de ${count} projets`);
-        addToast(`Import de ${count} projets réussi`, "success");
-    } catch (error) {
-        ErrorLogger.handleErrorWithToast(error, 'useProjectLogic.importProjects');
-    } finally {
-        setIsSubmitting(false);
-    }
-};
-
-return {
-    projects, risks, audits, controls, assets, usersList: effectiveUsers, loading,
-    handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks, checkDependencies, importProjects,
-    isSubmitting, role, canEdit, user, organization
-};
+    return {
+        projects, risks, audits, controls, assets, usersList: effectiveUsers, loading,
+        handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks, checkDependencies, importProjects,
+        isSubmitting, role, canEdit, user, organization
+    };
 };
