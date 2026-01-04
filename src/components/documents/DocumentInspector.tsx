@@ -9,8 +9,8 @@ import { ApprovalFlow } from './ApprovalFlow';
 import { DocumentVersionHistory } from './DocumentVersionHistory';
 import { CommentSection } from '../collaboration/CommentSection';
 import { TimelineView } from '../shared/TimelineView';
-import { useDocumentVersions } from '../../hooks/documents/useDocumentVersions';
 import { DocumentDetails } from './inspector/DocumentDetails';
+import { useDocumentVersions } from '../../hooks/documents/useDocumentVersions';
 // FilePreview is imported but intentionally not used via the component tag to avoid auto-modal. 
 // However, we should remove the import if we are not using it at all.
 // Wait, we replaced the usage with a button.
