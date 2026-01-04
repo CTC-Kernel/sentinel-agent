@@ -5,7 +5,8 @@ const {
     getAuditReminderHtml,
     getDocumentReviewHtml,
     getRiskTreatmentDueHtml,
-    getMaintenanceHtml
+    getMaintenanceHtml,
+    getDrillOverdueHtml
 } = require('./emailTemplates');
 
 const appBaseUrl = defineString("APP_BASE_URL", { default: "https://app.cyber-threat-consulting.com" });
@@ -357,7 +358,7 @@ class NotificationManager {
                                 message: `Le processus "${process.name}" n'a pas été testé depuis plus d'un an. Une revue est nécessaire.`,
                                 link: '/continuity',
                                 type: 'DRILL_OVERDUE',
-                                emailHtml: '' // No HTML import for now, keep it simple or implement later
+                                emailHtml: getDrillOverdueHtml(process.name, `${appBaseUrl.value()}/continuity`)
                             });
                             notificationCount++;
                         }
