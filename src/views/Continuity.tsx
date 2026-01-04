@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import {
     Activity, ShieldCheck, Zap, FileText, AlertOctagon
 } from 'lucide-react';
-import { CsvParser } from '../utils/csvUtils';
+import { ImportService } from '../services/ImportService';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { SEO } from '../components/SEO';
@@ -65,17 +65,8 @@ export const Continuity: React.FC = () => {
     };
 
     const handleDownloadTemplate = React.useCallback(() => {
-        const headers = ['Nom', 'Description', 'Responsable', 'Priorite', 'RTO', 'RPO'];
-        const rows = [{
-            Nom: 'Processus Critique A',
-            Description: 'Description du processus',
-            Responsable: user?.displayName || 'Admin',
-            Priorite: 'High',
-            RTO: '4h',
-            RPO: '1h'
-        }];
-        CsvParser.downloadCSV(headers, rows, 'template_processes.csv');
-    }, [user]);
+        ImportService.downloadProcessTemplate();
+    }, []);
 
     const handleImportCsvFile = React.useCallback(async (file: File) => {
         if (!file) return;

@@ -175,9 +175,9 @@ export const Privacy: React.FC = () => {
                     { label: 'RGPD' }
                 ]}
                 icon={
-                    <img 
-                        src="/images/gouvernance.png" 
-                        alt="GOUVERNANCE" 
+                    <img
+                        src="/images/gouvernance.png"
+                        alt="GOUVERNANCE"
                         className="w-full h-full object-contain"
                     />
                 }
@@ -375,7 +375,7 @@ export const Privacy: React.FC = () => {
                 onClose={() => setShowCreateModal(false)}
                 title="Nouveau Traitement"
                 subtitle="Ajoutez une nouvelle activité de traitement au registre."
-                width="max-w-4xl"
+                width="max-w-6xl"
             >
                 <CreateActivityForm
                     usersList={usersList}

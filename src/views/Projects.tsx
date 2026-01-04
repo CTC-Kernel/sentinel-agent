@@ -4,6 +4,7 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useStore } from '../store';
 import { Project, ProjectTemplate, UserProfile } from '../types';
 import { useProjectLogic } from '../hooks/projects/useProjectLogic';
+import { useSuppliers } from '../hooks/useSuppliers';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { ProjectList } from '../components/projects/ProjectList';
 import { ProjectCard } from '../components/projects/ProjectCard';
@@ -18,11 +19,12 @@ import { SEO } from '../components/SEO';
 import { PageHeader } from '../components/ui/PageHeader';
 
 import { Plus, MoreVertical, Zap, FileSpreadsheet, Upload } from '../components/ui/Icons';
+import { CardSkeleton, SkeletonCard } from '../components/ui/Skeleton';
 import { TemplateModal } from '../components/projects/TemplateModal';
 import { PortfolioDashboard } from '../components/projects/PortfolioDashboard';
 import { createProjectFromTemplate } from '../utils/projectTemplates';
 import { GanttChart } from '../components/projects/GanttChart';
-import { CsvParser } from '../utils/csvUtils';
+import { ImportService } from '../services/ImportService';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { PdfService } from '../services/PdfService';
 import { motion } from 'framer-motion';
@@ -62,6 +64,9 @@ export const Projects: React.FC = () => {
         handleProjectFormSubmit, handleDuplicate, deleteProject, updateProjectTasks,
         isSubmitting, canEdit, checkDependencies, importProjects // Destructured
     } = useProjectLogic();
+
+    const { suppliers } = useSuppliers();
+
 
     // UI State
     const [viewMode, setViewMode] = useState<'list' | 'grid' | 'matrix' | 'kanban'>('grid');
@@ -137,10 +142,9 @@ export const Projects: React.FC = () => {
 
     // Exports
     const handleExportCSV = useCallback(() => {
-        CsvParser.exportToCsv(
-            projects as unknown as Record<string, unknown>[],
-            t('projects.filename', { date: new Date().toISOString().split('T')[0] }),
-            ["name", "status", "progress", "manager", "managerId", "dueDate", "createdAt"]
+        ImportService.exportProjects(
+            projects,
+            t('projects.filename', { date: new Date().toISOString().split('T')[0] })
         );
     }, [projects, t]);
 
@@ -171,17 +175,8 @@ export const Projects: React.FC = () => {
     };
 
     const handleDownloadTemplate = React.useCallback(() => {
-        const headers = ['Nom', 'Description', 'Statut', 'Priorité', 'Responsable', 'Echéance'];
-        const rows = [{
-            Nom: 'Projet de certification ISO27001',
-            Description: 'Mise en conformité du SI',
-            Statut: 'Nouveau',
-            Priorité: 'Elevee',
-            Responsable: user?.displayName || 'Admin',
-            Echéance: '2025-12-31'
-        }];
-        CsvParser.downloadCSV(headers, rows, 'template_projets.csv');
-    }, [user]);
+        ImportService.downloadProjectTemplate();
+    }, []);
 
     const handleImportCsvFile = React.useCallback(async (file: File) => {
         if (!file) return;
@@ -336,7 +331,7 @@ export const Projects: React.FC = () => {
                     ) : (
                         <motion.div variants={slideUpVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {loading ? (
-                                <div className="col-span-full text-center py-8">{t('projects.loading')}</div>
+                                <CardSkeleton count={6} className="col-span-full" />
                             ) : filteredProjects.length === 0 ? (
                                 <div className="col-span-full">
                                     <EmptyState icon={FolderKanban} title={t('projects.emptyTitle')} description={t('projects.emptyDesc')} actionLabel={canEdit ? t('projects.createAction') : undefined} onAction={handleNewProjectClick} />
@@ -374,6 +369,7 @@ export const Projects: React.FC = () => {
                         tasks={filteredProjects.flatMap(p => p.tasks || [])}
                         viewMode={ganttViewMode}
                         onViewModeChange={handleGanttViewModeChange}
+                        loading={loading}
                     />
                 </motion.div>
             )}
@@ -407,7 +403,12 @@ export const Projects: React.FC = () => {
                                     </span>
                                 </h4>
                                 <div className="flex-1 pr-2 space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
-                                    {columnProjects.length === 0 ? (
+                                    {loading ? (
+                                        <>
+                                            <SkeletonCard />
+                                            <SkeletonCard />
+                                        </>
+                                    ) : columnProjects.length === 0 ? (
                                         <div className="flex items-center justify-center h-32 text-xs font-medium border-2 border-dashed border-slate-200 dark:border-white/5 rounded-xl text-slate-400">
                                             {t('projects.emptyTitle')}
                                         </div>
@@ -446,6 +447,8 @@ export const Projects: React.FC = () => {
                 controls={controls}
                 assets={assets}
                 audits={audits}
+                suppliers={suppliers}
+                processes={[]}
                 updateTasks={handleInspectorUpdateTasks}
                 onDeleteProject={onDeleteRequest}
                 onDuplicateProject={handleDuplicateWrapper}
@@ -461,7 +464,7 @@ export const Projects: React.FC = () => {
                 onClose={handleCloseDrawer}
                 title={editingProject ? t('projects.editProject') : t('projects.newProject')}
                 subtitle={editingProject ? editingProject.name : t('common.create')}
-                width="max-w-4xl"
+                width="max-w-6xl"
                 disableScroll={true}
             >
                 <ProjectForm

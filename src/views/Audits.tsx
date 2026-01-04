@@ -26,7 +26,7 @@ import { AuditCalendar } from '../components/audits/AuditCalendar';
 import { FindingsList } from '../components/audits/FindingsList';
 
 import { CustomSelect } from '../components/ui/CustomSelect';
-import { CsvParser } from '../utils/csvUtils';
+import { ImportService } from '../services/ImportService';
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
 import { Upload } from 'lucide-react';
 import { OnboardingService } from '../services/onboardingService';
@@ -158,16 +158,7 @@ export const Audits: React.FC = () => {
     };
 
     const handleDownloadTemplate = React.useCallback(() => {
-        const headers = ['Nom', 'Type', 'Statut', 'Auditeur', 'Date', 'Description'];
-        const rows = [{
-            Nom: 'Audit Sécurité 2024',
-            Type: 'Interne',
-            Statut: 'Planifié',
-            Auditeur: 'Jean Dupont',
-            Date: '2024-06-01',
-            Description: 'Audit annuel de sécurité'
-        }];
-        CsvParser.downloadCSV(headers, rows, 'template_audits.csv');
+        ImportService.downloadAuditTemplate();
     }, []);
 
     const handleImportFile = React.useCallback(async (file: File) => {
@@ -330,6 +321,7 @@ export const Audits: React.FC = () => {
                             <AuditDashboard
                                 audits={filteredAudits}
                                 findings={filteredAudits.flatMap(a => a.findings || [])}
+                                loading={loading}
                                 onFilterChange={(f) => {
                                     if (f?.type === 'status') {
                                         setFilter(f.value);
@@ -367,6 +359,7 @@ export const Audits: React.FC = () => {
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible">
                         <AuditCalendar
                             audits={filteredAudits}
+                            loading={loading}
                             onAuditClick={handleOpen}
                         />
                     </motion.div>
@@ -377,7 +370,7 @@ export const Audits: React.FC = () => {
                 activeTab === 'findings' && (
                     <motion.div variants={slideUpVariants} initial="initial" animate="visible">
                         <motion.div variants={slideUpVariants} initial="initial" animate="visible">
-                            <FindingsList audits={filteredAudits} onOpenAudit={handleOpen} />
+                            <FindingsList audits={filteredAudits} loading={loading} onOpenAudit={handleOpen} />
                         </motion.div>
                     </motion.div>
                 )
@@ -388,6 +381,7 @@ export const Audits: React.FC = () => {
                 isOpen={creationMode}
                 onClose={() => { setCreationMode(false); setEditingAudit(null); }}
                 title={editingAudit ? t('audits.editAudit') : t('audits.newAudit')}
+                width="max-w-6xl"
             >
                 <AuditForm
                     initialData={editingAudit || undefined}

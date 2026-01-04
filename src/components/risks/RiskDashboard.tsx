@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { RiskHeatmap } from './RiskHeatmap';
 import { RiskResidualChart } from './RiskResidualChart';
 import { RiskTreatmentChart } from './RiskTreatmentChart';
+import { RiskKPICard } from './dashboard/RiskKPICard';
 
 interface RiskDashboardProps {
     risks: Risk[];
@@ -25,48 +26,42 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
         <div className="space-y-6">
             {/* KPI Cards Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400">
-                            <ShieldAlert className="w-6 h-6" />
-                        </div>
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{criticalRisks}</div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">Risques Critiques</div>
-                </motion.div>
-
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">
-                            <AlertTriangle className="w-6 h-6" />
-                        </div>
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{risksAboveAppetite}</div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">Au-dessus de l'appétence</div>
-                </motion.div>
-
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                            <TrendingUp className="w-6 h-6" />
-                        </div>
-                        <span className="text-xs font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-full">
-                            {riskReduction > 0 ? '-' : ''}{riskReduction.toFixed(0)}%
-                        </span>
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{avgScore.toFixed(1)}</div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">Score Moyen</div>
-                </motion.div>
-
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm hover:shadow-md transition-all">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-3 rounded-xl bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                            <Activity className="w-6 h-6" />
-                        </div>
-                    </div>
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">{totalRisks}</div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Risques</div>
-                </motion.div>
+                <RiskKPICard
+                    title="Risques Critiques"
+                    value={criticalRisks}
+                    subtext="Risques Critiques"
+                    icon={ShieldAlert}
+                    color="red"
+                    delay={0.1}
+                />
+                <RiskKPICard
+                    title="Au-dessus de l'appétence"
+                    value={risksAboveAppetite}
+                    subtext="Au-dessus de l'appétence"
+                    icon={AlertTriangle}
+                    color="orange"
+                    delay={0.2}
+                />
+                <RiskKPICard
+                    title="Score Moyen"
+                    value={avgScore.toFixed(1)}
+                    subtext="Score Moyen"
+                    icon={TrendingUp}
+                    color="blue"
+                    chip={{
+                        label: `${riskReduction > 0 ? '-' : ''}${riskReduction.toFixed(0)}%`,
+                        color: 'emerald'
+                    }}
+                    delay={0.3}
+                />
+                <RiskKPICard
+                    title="Total Risques"
+                    value={totalRisks}
+                    subtext="Total Risques"
+                    icon={Activity}
+                    color="purple"
+                    delay={0.4}
+                />
             </div>
 
             {/* Charts Row 1: Heatmap + Treatment */}
@@ -158,3 +153,4 @@ export const RiskDashboard: React.FC<RiskDashboardProps> = ({ risks }) => {
         </div >
     );
 };
+

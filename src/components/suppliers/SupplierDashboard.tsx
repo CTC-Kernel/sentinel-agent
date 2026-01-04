@@ -12,9 +12,10 @@ import { slideUpVariants, staggerContainerVariants } from '../ui/animationVarian
 interface SupplierDashboardProps {
     suppliers: Supplier[];
     onFilterChange?: (filter: { type: string; value: string } | null) => void;
+    loading?: boolean;
 }
 
-export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers, onFilterChange }) => {
+export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers, onFilterChange, loading }) => {
     // Calculate metrics
     const totalSuppliers = suppliers.length;
     const criticalSuppliers = suppliers.filter(s => s.criticality === Criticality.CRITICAL || s.criticality === Criticality.HIGH).length;
@@ -36,6 +37,28 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ suppliers,
             return acc;
         }, {} as Record<string, number>)
     ).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 5);
+
+    if (loading) {
+        return (
+            <div className="space-y-6 animate-fade-in">
+                {/* Top Summary Section Skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="glass-premium p-6 rounded-[2rem] h-48 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="glass-premium p-5 rounded-[2rem] h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                        <div className="glass-premium p-5 rounded-[2rem] h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                        <div className="glass-premium p-5 rounded-[2rem] h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                        <div className="glass-premium p-5 rounded-[2rem] h-32 animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    </div>
+                </div>
+                {/* Charts Section Skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
+                    <div className="glass-premium p-6 rounded-[2rem] h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                    <div className="glass-premium p-6 rounded-[2rem] h-[350px] animate-pulse bg-slate-100 dark:bg-slate-800/50" />
+                </div>
+            </div>
+        );
+    }
 
     if (totalSuppliers === 0) {
         return (

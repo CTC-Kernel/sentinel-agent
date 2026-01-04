@@ -15,7 +15,7 @@ import { logAction } from '../services/logger';
 import { ErrorLogger } from '../services/errorLogger';
 import { SupplierService } from '../services/SupplierService';
 import { useFirestoreCollection } from './useFirestore';
-import { CsvParser } from '../utils/csvUtils';
+import { ImportService } from '../services/ImportService';
 
 export const useSuppliers = () => {
     const { user, t, addToast } = useStore();
@@ -64,7 +64,7 @@ export const useSuppliers = () => {
         if (!user?.organizationId) return;
         try {
             // Use SupplierService for cascade deletion
-            await SupplierService.deleteSupplierWithCascade(id, user.organizationId);
+            await SupplierService.deleteSupplierWithCascade(id);
 
             await logAction(user, 'DELETE', 'Supplier', `Suppression Fournisseur: ${name || id}`);
             addToast(t('suppliers.toastDeleted'), 'success');
@@ -77,7 +77,7 @@ export const useSuppliers = () => {
     const importSuppliers = useCallback(async (csvContent: string) => {
         if (!user?.organizationId || !user?.uid) return;
         try {
-            const lines = CsvParser.parseCSV(csvContent);
+            const lines = ImportService.parseCSV(csvContent);
             if (lines.length === 0) {
                 addToast("Fichier vide ou invalide", "error");
                 return;

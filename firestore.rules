@@ -54,6 +54,40 @@ service cloud.firestore {
     function isValidIncidentSeverity(severity) {
       return severity in ['Critical', 'High', 'Medium', 'Low', 'Info'];
     }
+
+    function isValidCriticality(val) {
+      return val in ['Faible', 'Moyenne', 'Élevée', 'Critique'];
+    }
+
+    function isValidAssetType(val) {
+      return val in ['Matériel', 'Logiciel', 'Données', 'Service', 'Humain'];
+    }
+
+    // --- PHASE 19 HARDENING HELPERS ---
+    
+    function isValidRiskLevel(val) {
+      return val is int && val >= 1 && val <= 5;
+    }
+
+    function isValidRiskStatus(val) {
+      return val in ['Ouvert', 'En cours', 'Fermé', 'En attente de validation'];
+    }
+
+    function isValidRiskStrategy(val) {
+      return val in ['Accepter', 'Atténuer', 'Transférer', 'Éviter'];
+    }
+
+    function isValidSupplierCategory(val) {
+      return val in ['SaaS', 'Hébergement', 'Matériel', 'Consulting', 'Autre'];
+    }
+
+    function isValidProcessingActivityStatus(val) {
+      return val in ['Actif', 'En projet', 'Archivé'];
+    }
+
+    function isValidLegalBasis(val) {
+      return val in ['Consentement', 'Contrat', 'Obligation Légale', 'Intérêt Légitime', 'Sauvegarde Intérêts', 'Mission Publique'];
+    }
     
     // --- PERMISSION LOGIC ---
 
@@ -205,12 +239,21 @@ service cloud.firestore {
         request.resource.data.organizationId == getUserData().organizationId &&
         canWrite(request.resource.data.organizationId) &&
         isValidString(request.resource.data.name, 1, 200) &&
+        isValidAssetType(request.resource.data.type) &&
+        isValidCriticality(request.resource.data.confidentiality) &&
+        isValidCriticality(request.resource.data.integrity) &&
+        isValidCriticality(request.resource.data.availability) &&
         (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
 
       allow update: if canWrite(resource.data.organizationId) &&
         (!('name' in request.resource.data) || isValidString(request.resource.data.name, 1, 200)) &&
+        isValidAssetType(request.resource.data.type) &&
+        isValidCriticality(request.resource.data.confidentiality) &&
+        isValidCriticality(request.resource.data.integrity) &&
+        isValidCriticality(request.resource.data.availability) &&
         (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
-      allow delete: if canDelete(resource.data.organizationId);
+      // DELETE: Blocked client-side to enforce integrity checks via Cloud Function 'deleteResource'
+      allow delete: if false;
       
       match /maintenance/{maintenanceId} {
         allow read: if canRead(get(/databases/$(database)/documents/assets/$(assetId)).data.organizationId);
@@ -225,11 +268,23 @@ service cloud.firestore {
         request.resource.data.organizationId == getUserData().organizationId &&
         canWrite(request.resource.data.organizationId) &&
         (!('threat' in request.resource.data) || isValidString(request.resource.data.threat, 1, 500)) &&
-        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
+        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000)) &&
+        // Hardening
+        (!('probability' in request.resource.data) || isValidRiskLevel(request.resource.data.probability)) &&
+        (!('impact' in request.resource.data) || isValidRiskLevel(request.resource.data.impact)) &&
+        (!('status' in request.resource.data) || isValidRiskStatus(request.resource.data.status)) &&
+        (!('strategy' in request.resource.data) || isValidRiskStrategy(request.resource.data.strategy));
+
       allow update: if canWrite(resource.data.organizationId) &&
         (!('threat' in request.resource.data) || isValidString(request.resource.data.threat, 1, 500)) &&
-        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
-      allow delete: if canDelete(resource.data.organizationId);
+        (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000)) &&
+        // Hardening
+        (!('probability' in request.resource.data) || isValidRiskLevel(request.resource.data.probability)) &&
+        (!('impact' in request.resource.data) || isValidRiskLevel(request.resource.data.impact)) &&
+        (!('status' in request.resource.data) || isValidRiskStatus(request.resource.data.status)) &&
+        (!('strategy' in request.resource.data) || isValidRiskStrategy(request.resource.data.strategy));
+      
+      allow delete: if false;
     }
 
     // Vulnerabilities
@@ -280,7 +335,7 @@ service cloud.firestore {
         request.resource.data.organizationId == getUserData().organizationId &&
         canWrite(request.resource.data.organizationId);
       allow update: if canWrite(resource.data.organizationId);
-      allow delete: if canDelete(resource.data.organizationId);
+      allow delete: if false;
     }
 
     // Suppliers
@@ -288,9 +343,17 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId);
-      allow update: if canWrite(resource.data.organizationId);
-      allow delete: if canDelete(resource.data.organizationId);
+        canWrite(request.resource.data.organizationId) &&
+        // Hardening
+        (!('category' in request.resource.data) || isValidSupplierCategory(request.resource.data.category)) &&
+        (!('criticality' in request.resource.data) || isValidCriticality(request.resource.data.criticality));
+
+      allow update: if canWrite(resource.data.organizationId) &&
+        // Hardening
+        (!('category' in request.resource.data) || isValidSupplierCategory(request.resource.data.category)) &&
+        (!('criticality' in request.resource.data) || isValidCriticality(request.resource.data.criticality));
+        
+      allow delete: if false;
     }
 
     // Business Processes
@@ -300,7 +363,7 @@ service cloud.firestore {
         request.resource.data.organizationId == getUserData().organizationId &&
         canWrite(request.resource.data.organizationId);
       allow update: if canWrite(resource.data.organizationId);
-      allow delete: if canDelete(resource.data.organizationId);
+      allow delete: if false;
     }
 
     // Processing Activities
@@ -308,9 +371,17 @@ service cloud.firestore {
       allow read: if canRead(resource.data.organizationId);
       allow create: if isAuthenticated() && 
         request.resource.data.organizationId == getUserData().organizationId &&
-        canWrite(request.resource.data.organizationId);
-      allow update: if canWrite(resource.data.organizationId);
-      allow delete: if canDelete(resource.data.organizationId);
+        canWrite(request.resource.data.organizationId) &&
+        // Hardening
+        (!('status' in request.resource.data) || isValidProcessingActivityStatus(request.resource.data.status)) &&
+        (!('legalBasis' in request.resource.data) || isValidLegalBasis(request.resource.data.legalBasis));
+
+      allow update: if canWrite(resource.data.organizationId) &&
+        // Hardening
+        (!('status' in request.resource.data) || isValidProcessingActivityStatus(request.resource.data.status)) &&
+        (!('legalBasis' in request.resource.data) || isValidLegalBasis(request.resource.data.legalBasis));
+        
+      allow delete: if false;
     }
     
     // BCP Drills
@@ -338,7 +409,7 @@ service cloud.firestore {
         (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000)) &&
         (!('status' in request.resource.data) || isValidIncidentStatus(request.resource.data.status)) &&
         (!('severity' in request.resource.data) || isValidIncidentSeverity(request.resource.data.severity));
-      allow delete: if canDelete(resource.data.organizationId);
+      allow delete: if false;
     }
 
     // Audits
@@ -359,7 +430,7 @@ service cloud.firestore {
         (isAuthenticated() && "collaborators" in resource.data && resource.data.collaborators.hasAny([request.auth.uid])) ||
         (isAuthenticated() && "externalAuditors" in resource.data && resource.data.externalAuditors.hasAny([request.auth.token.email]));
         
-      allow delete: if canDelete(resource.data.organizationId);
+      allow delete: if false;
     }
 
     // Evidence Requests
@@ -409,7 +480,7 @@ service cloud.firestore {
       allow update: if canWrite(resource.data.organizationId) || 
         ((isAuditor() || isProjectManager()) && belongsToOrganization(resource.data.organizationId)) ||
         (resource.data.owner == request.auth.token.email && belongsToOrganization(resource.data.organizationId));
-      allow delete: if canDelete(resource.data.organizationId);
+      allow delete: if false;
     }
 
     // Audit Checklists
@@ -429,7 +500,7 @@ service cloud.firestore {
         request.resource.data.organizationId == getUserData().organizationId &&
         (canWrite(request.resource.data.organizationId) || (isAuditor() && belongsToOrganization(request.resource.data.organizationId)));
       allow update: if canWrite(resource.data.organizationId) || (isAuditor() && belongsToOrganization(resource.data.organizationId));
-      allow delete: if canDelete(resource.data.organizationId);
+      allow delete: if false;
     }
 
     // Projects
@@ -443,7 +514,7 @@ service cloud.firestore {
       allow update: if (canWrite(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId))) &&
         (!('name' in request.resource.data) || isValidString(request.resource.data.name, 1, 200)) &&
         (!('description' in request.resource.data) || isValidString(request.resource.data.description, 0, 5000));
-      allow delete: if canDelete(resource.data.organizationId) || (isProjectManager() && belongsToOrganization(resource.data.organizationId));
+      allow delete: if false;
     }
 
     // Project Milestones

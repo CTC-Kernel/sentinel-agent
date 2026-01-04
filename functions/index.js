@@ -596,6 +596,7 @@ exports.portal_submitFinding = auditPortal.portal_submitFinding;
 exports.portal_updateStatus = auditPortal.portal_updateStatus;
 exports.revokeAuditShare = auditPortal.revokeAuditShare;
 
+
 // --- CERTIFIER ECOSYSTEM ---
 const certifierPortal = require('./certifierPortal');
 exports.inviteCertifier = certifierPortal.inviteCertifier;
@@ -603,6 +604,21 @@ exports.createCertifierOrganization = certifierPortal.createCertifierOrganizatio
 exports.acceptPartnership = certifierPortal.acceptPartnership;
 exports.getCertifierDashboard = certifierPortal.getCertifierDashboard;
 exports.assignAuditToPartner = certifierPortal.assignAuditToPartner;
+
+// --- RESOURCE MANAGEMENT (Phase 20) ---
+const resourceManager = require('./services/resourceManager');
+exports.deleteResource = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError('unauthenticated', 'User must be logged in.');
+    }
+    const { collectionName, docId } = request.data;
+    const userId = request.auth.uid;
+    const userRole = request.auth.token.role || 'user';
+    const organizationId = request.auth.token.organizationId; // Secure constraint
+
+    return await resourceManager.deleteResource(collectionName, docId, userId, userRole, organizationId);
+});
+
 
 
 // Imports moved to top

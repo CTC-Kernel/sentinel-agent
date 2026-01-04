@@ -1,21 +1,17 @@
-
 import { useState, useMemo, useEffect } from 'react';
-import { where, collection, addDoc, doc, updateDoc, deleteDoc, arrayUnion, increment, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { where } from 'firebase/firestore';
 import { useFirestoreCollection } from '../useFirestore';
 import { useStore } from '../../store';
 import { Asset, UserProfile, Supplier, BusinessProcess } from '../../types';
 import { AssetFormData } from '../../schemas/assetSchema';
-import { logAction } from '../../services/logger';
-import { sanitizeData } from '../../utils/dataSanitizer';
-import { assetSchema } from '../../schemas/assetSchema';
-import { z } from 'zod';
-import { ErrorLogger } from '../../services/errorLogger';
 import { usePlanLimits } from '../usePlanLimits';
 import { DependencyService } from '../../services/dependencyService';
+import { AssetService } from '../../services/assetService';
+// Import Mock Service only once
+// import { MockDataService } from '../../services/mockDataService'; // Dynamic import used
 
 export function useAssets() {
-    const { user, addToast, demoMode } = useStore();
+    const { user, demoMode } = useStore();
     const { limits } = usePlanLimits();
     const [isSubmitting, setIsSubmitting] = useState(false);
     // Harden demoMode
@@ -33,22 +29,21 @@ export function useAssets() {
         let mounted = true;
         if (isDemo) {
             setMockLoading(true);
-            Promise.all([
-                import('../../services/mockDataService').then(m => m.MockDataService.getCollection('assets') as unknown as Asset[]),
-                import('../../services/mockDataService').then(m => m.MockDataService.getCollection('users') as unknown as UserProfile[]),
-                import('../../services/mockDataService').then(m => m.MockDataService.getCollection('suppliers') as unknown as Supplier[]),
-                import('../../services/mockDataService').then(m => m.MockDataService.getCollection('business_processes') as unknown as BusinessProcess[]),
-            ]).then(([assets, users, suppliers, processes]) => {
-                if (!mounted) return;
-                setMockAssets(assets);
-                setMockUsers(users);
-                setMockSuppliers(suppliers);
-                setMockProcesses(processes);
-                setMockLoading(false);
-                setMockLoading(false);
-            }).catch(_err => {
-                if (mounted) setMockLoading(false);
-            });
+            const loadMocks = async () => {
+                try {
+                    const m = await import('../../services/mockDataService');
+                    if (!mounted) return;
+                    setMockAssets(m.MockDataService.getCollection('assets') as unknown as Asset[]);
+                    setMockUsers(m.MockDataService.getCollection('users') as unknown as UserProfile[]);
+                    setMockSuppliers(m.MockDataService.getCollection('suppliers') as unknown as Supplier[]);
+                    setMockProcesses(m.MockDataService.getCollection('business_processes') as unknown as BusinessProcess[]);
+                } catch (err) {
+                    console.error("Failed to load mock data", err);
+                } finally {
+                    if (mounted) setMockLoading(false);
+                }
+            };
+            loadMocks();
         }
         return () => { mounted = false; };
     }, [isDemo]);
@@ -78,8 +73,7 @@ export function useAssets() {
         return [];
     }, [usersList, user]);
 
-    // Firestore Calls for dependencies (suppliers/processes also need hooks if we want them robust)
-    // For now, implementing demo logic inline for what's here.
+    // Firestore Calls for dependencies
     const { data: firestoreSuppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId)],
@@ -95,21 +89,11 @@ export function useAssets() {
     const suppliers = isDemo ? mockSuppliers : firestoreSuppliers;
     const processes = isDemo ? mockProcesses : firestoreProcesses;
 
-    // Calculations
-    const calculateDepreciation = (price: number, purchaseDate: string) => {
-        if (!price || !purchaseDate) return price;
-        const start = new Date(purchaseDate);
-        const now = new Date();
-        const ageInYears = (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
-        // Amortissement linéaire sur 5 ans
-        const value = price * (1 - (ageInYears / 5));
-        return Math.max(0, Math.round(value));
-    };
-
     const assets = useMemo(() => {
         return rawAssets.map(a => ({
             ...a,
-            currentValue: calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || '')
+            // Use Service for calculation
+            currentValue: AssetService.calculateDepreciation(a.purchasePrice || 0, a.purchaseDate || '')
         })).sort((a, b) => a.name.localeCompare(b.name));
     }, [rawAssets]);
 
@@ -120,82 +104,38 @@ export function useAssets() {
         if (!isDemo) refreshFirestoreAssets();
     };
 
-    // Actions
-    const createAsset = async (data: AssetFormData, preSelectedProjectId?: string | null) => {
-        if (!user?.organizationId) return false;
+    // Actions - Decoupled from UI (No Toasts)
+    const createAsset = async (data: AssetFormData, preSelectedProjectId?: string | null): Promise<{ success: boolean; id?: string; error?: unknown }> => {
+        if (!user?.organizationId) return { success: false, error: 'No organization ID' };
+
+        // Logical Check (moved from UI)
         if (assets.length >= limits.maxAssets) {
-            addToast(`Limite atteinte (${limits.maxAssets} actifs). Passez au plan supérieur pour ajouter plus d'actifs.`, "error");
-            return false;
+            return { success: false, error: 'LIMIT_REACHED' };
         }
+
         setIsSubmitting(true);
         try {
-            const validatedData = assetSchema.parse(data);
-            const cleanData = sanitizeData(validatedData);
-            const newDoc = {
-                ...cleanData,
-                organizationId: user.organizationId,
-                createdAt: serverTimestamp(),
-                relatedProjectIds: preSelectedProjectId ? [preSelectedProjectId] : []
-            };
-            const docRef = await addDoc(collection(db, 'assets'), newDoc);
-
-            // track storage usage if size provided
-            if ((cleanData as Partial<AssetFormData> & { estimatedSizeMB?: number }).estimatedSizeMB && user.organizationId) {
-                const estSize = (cleanData as Partial<AssetFormData> & { estimatedSizeMB?: number }).estimatedSizeMB || 0;
-                const orgRef = doc(db, 'organizations', user.organizationId);
-                await updateDoc(orgRef, {
-                    storageUsed: increment(estSize * 1024 * 1024)
-                }).catch((error) => {
-                    ErrorLogger.warn('Failed to increment storage usage', 'useAssets.createAsset', { metadata: { error } });
-                });
-            }
-
-            if (preSelectedProjectId) {
-                const projectRef = doc(db, 'projects', preSelectedProjectId);
-                await updateDoc(projectRef, {
-                    relatedAssetIds: arrayUnion(docRef.id)
-                });
-            }
-
-            await logAction(user, 'CREATE', 'Asset', `Création Actif: ${cleanData.name}`);
-            addToast("Actif créé avec succès", "success");
+            const assetId = await AssetService.create(data, user, preSelectedProjectId);
             refreshAssets();
-            return docRef.id;
+            return { success: true, id: assetId };
         } catch (e) {
-            if (e instanceof z.ZodError) {
-                addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
-            } else {
-                ErrorLogger.handleErrorWithToast(e, 'useAssets.createAsset', 'CREATE_FAILED');
-            }
-            return false;
+            // Note: Error logging should be consistent, usually services don't toast but hooks might if configured
+            // here we want to return the error to the component to toast
+            return { success: false, error: e };
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const updateAsset = async (id: string, data: AssetFormData) => {
-        if (!user?.organizationId) return false;
+    const updateAsset = async (id: string, data: AssetFormData): Promise<{ success: boolean; error?: unknown }> => {
+        if (!user?.organizationId) return { success: false, error: 'No organization ID' };
         setIsSubmitting(true);
         try {
-            const validatedData = assetSchema.parse(data);
-            const cleanData = sanitizeData(validatedData);
-
-            await updateDoc(doc(db, 'assets', id), {
-                ...cleanData,
-                updatedAt: serverTimestamp()
-            });
-
-            await logAction(user, 'UPDATE', 'Asset', `Mise à jour Actif: ${cleanData.name}`);
-            addToast("Actif mis à jour avec succès", "success");
+            await AssetService.update(id, data, user);
             refreshAssets();
-            return true;
+            return { success: true };
         } catch (e) {
-            if (e instanceof z.ZodError) {
-                addToast((e as unknown as { errors: { message: string }[] }).errors[0].message, "error");
-            } else {
-                ErrorLogger.handleErrorWithToast(e, 'useAssets.updateAsset', 'UPDATE_FAILED');
-            }
-            return false;
+            return { success: false, error: e };
         } finally {
             setIsSubmitting(false);
         }
@@ -203,59 +143,34 @@ export function useAssets() {
 
     const checkDependencies = async (assetId: string) => {
         if (!user?.organizationId) return { hasDependencies: false, dependencies: [], canDelete: true, blockingReasons: [] };
-        // Use global DependencyService
-        // Note: The service returns 'dependencies' array, logic is same
         return await DependencyService.checkAssetDependencies(assetId, user.organizationId);
     };
 
-    const deleteAsset = async (id: string, name: string) => {
-        if (!user?.organizationId) return false;
+    const deleteAsset = async (id: string, name: string): Promise<{ success: boolean; error?: unknown }> => {
+        if (!user?.organizationId) return { success: false, error: 'No organization ID' };
 
-        // Check dependencies before delete
-        const depCheck = await DependencyService.checkAssetDependencies(id, user.organizationId);
-        if (depCheck.hasDependencies) {
-            addToast(`Impossible de supprimer ${name}: lié à ${depCheck.dependencies.length} risque(s).`, "error");
-            return false;
-        }
-
+        // Note: Dependency Check should be handled by UI before calling this if seeking confirmation
         try {
-            await deleteDoc(doc(db, 'assets', id));
-            await logAction(user, 'DELETE', 'Asset', `Suppression Actif: ${name}`);
-            addToast("Actif supprimé avec succès", "success");
+            await AssetService.delete(id, name, user);
             refreshAssets();
-            return true;
+            return { success: true };
         } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'useAssets.deleteAsset', 'DELETE_FAILED');
-            return false;
+            return { success: false, error: e };
         }
     };
 
-    const bulkDeleteAssets = async (ids: string[]) => {
-        if (!user?.organizationId) return false;
-
-        // Pre-check all assets for dependencies
-        // We do this in parallel to be fast
-        const checks = await Promise.all(ids.map(async (id) => {
-            const check = await DependencyService.checkAssetDependencies(id, user.organizationId!);
-            return { id, check };
-        }));
-
-        const blocked = checks.filter(c => c.check.hasDependencies);
-        if (blocked.length > 0) {
-            addToast(`${blocked.length} actif(s) ne peuvent pas être supprimés car ils sont liés à des risques.`, "error");
-            return false;
-        }
+    const bulkDeleteAssets = async (ids: string[]): Promise<{ success: boolean; count: number; error?: unknown }> => {
+        if (!user?.organizationId) return { success: false, count: 0, error: 'No organization ID' };
 
         try {
-            await Promise.all(ids.map(id => deleteDoc(doc(db, 'assets', id))));
-
-            await logAction(user, 'DELETE', 'Asset', `Suppression en masse de ${ids.length} actifs`);
-            addToast(`${ids.length} actifs supprimés avec succès`, "success");
+            // Note: Service handles individual deletions which might fail if dependencies exist
+            // But here we rely on AssetService.bulkDelete which should be using FunctionsService potentially
+            // Actually AssetService.bulkDelete uses FunctionsService now (Phase 20)
+            await AssetService.bulkDelete(ids, user);
             refreshAssets();
-            return true;
+            return { success: true, count: ids.length };
         } catch (e) {
-            ErrorLogger.handleErrorWithToast(e, 'useAssets.bulkDeleteAssets', 'DELETE_FAILED');
-            return false;
+            return { success: false, count: 0, error: e };
         }
     };
 

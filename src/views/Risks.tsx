@@ -19,13 +19,9 @@ import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { ScrollableTabs } from '../components/ui/ScrollableTabs';
 
-const riskGuidelines = {
-    required: ['menace', 'probabilite', 'gravite', 'strategie'],
-    optional: ['description', 'vulnerabilite', 'statut', 'proprietaire'],
-    format: 'CSV'
-};
+
 import { ImportGuidelinesModal } from '../components/ui/ImportGuidelinesModal';
-import { CsvParser } from '../utils/csvUtils';
+import { ImportService } from '../services/ImportService';
 
 import { useRiskData } from '../hooks/risks/useRiskData';
 import { useRiskActions } from '../hooks/risks/useRiskActions';
@@ -217,18 +213,7 @@ export const Risks: React.FC = () => {
     const [importModalOpen, setImportModalOpen] = useState(false);
 
     const handleDownloadTemplate = React.useCallback(() => {
-        const headers = [...riskGuidelines.required, ...riskGuidelines.optional];
-        const exampleRow = {
-            menace: "Ransomware Attack",
-            probabilite: "3",
-            gravite: "4",
-            strategie: "Atténuer",
-            description: "Chiffrement des données par un malware",
-            vulnerabilite: "Patching non à jour",
-            statut: "Ouvert",
-            proprietaire: "john.doe@example.com"
-        };
-        CsvParser.downloadCSV(headers, [exampleRow], `template_risks.csv`);
+        ImportService.downloadRiskTemplate();
     }, []);
 
     const handleImportFile = async (file: File) => {
@@ -713,7 +698,7 @@ export const Risks: React.FC = () => {
                 isOpen={creationMode}
                 onClose={handleCreationClose}
                 title={t('risks.newRisk')}
-                width="max-w-4xl"
+                width="max-w-6xl"
             >
                 <div className="p-6">
                     <RiskForm
@@ -750,7 +735,11 @@ export const Risks: React.FC = () => {
                 isOpen={importModalOpen}
                 onClose={() => setImportModalOpen(false)}
                 entityName={t('risks.title')}
-                guidelines={riskGuidelines}
+                guidelines={{
+                    required: ['menace', 'probabilite', 'gravite', 'strategie'],
+                    optional: ['description', 'vulnerabilite', 'statut', 'proprietaire'],
+                    format: 'CSV'
+                }}
                 onImport={handleImportFile}
                 onDownloadTemplate={handleDownloadTemplate}
             />

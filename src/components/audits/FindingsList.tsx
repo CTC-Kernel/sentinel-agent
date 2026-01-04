@@ -8,12 +8,15 @@ import { PremiumPageControl } from '../ui/PremiumPageControl';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
 
+import { Skeleton } from '../ui/Skeleton';
+
 interface FindingsListProps {
     audits: Audit[];
     onOpenAudit?: (audit: Audit) => void;
+    loading?: boolean;
 }
 
-export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit }) => {
+export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit, loading }) => {
     const [filter, setFilter] = useState('');
     const [typeFilter, setTypeFilter] = useState<string | null>(null);
 
@@ -105,7 +108,17 @@ export const FindingsList: React.FC<FindingsListProps> = ({ audits, onOpenAudit 
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                            {filteredFindings.length === 0 ? (
+                            {loading ? (
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <tr key={`skeleton-${i}`} className="animate-pulse">
+                                        <td className="py-4 px-6"><Skeleton className="h-5 w-20 rounded" /></td>
+                                        <td className="py-4 px-6"><Skeleton className="h-4 w-full rounded" /></td>
+                                        <td className="py-4 px-6"><Skeleton className="h-5 w-24 rounded-full" /></td>
+                                        <td className="py-4 px-6"><Skeleton className="h-4 w-32 rounded" /></td>
+                                        <td className="py-4 px-6"><Skeleton className="h-4 w-24 rounded" /></td>
+                                    </tr>
+                                ))
+                            ) : filteredFindings.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="py-8 text-center text-slate-500 text-sm">
                                         Aucun résultat trouvé pour cette recherche.

@@ -24,6 +24,7 @@ import { usePlanLimits } from '../hooks/usePlanLimits';
 import { MasterpieceBackground } from '../components/ui/MasterpieceBackground';
 import { CsvParser } from '../utils/csvUtils';
 import { OnboardingService } from '../services/onboardingService';
+import { ImportService } from '../services/ImportService';
 import { aiService } from '../services/aiService';
 import { Tooltip as CustomTooltip } from '../components/ui/Tooltip';
 import { usePersistedState } from '../hooks/usePersistedState';
@@ -127,12 +128,17 @@ const Assets: React.FC = () => {
 
     const handleConfirmDelete = React.useCallback(async () => {
         if (assetToDelete) {
-            await deleteAsset(assetToDelete.id, assetToDelete.name);
+            const result = await deleteAsset(assetToDelete.id, assetToDelete.name);
+            if (result.success) {
+                toast.success(t('assets.deleteSuccess', { name: assetToDelete.name }));
+            } else {
+                toast.error(t('assets.deleteError'));
+            }
             setDeleteModalOpen(false);
             setAssetToDelete(null);
             setDependencies([]);
         }
-    }, [assetToDelete, deleteAsset]);
+    }, [assetToDelete, deleteAsset, t]);
 
     const handleCloseDeleteModal = React.useCallback(() => setDeleteModalOpen(false), []);
 
@@ -206,10 +212,31 @@ const Assets: React.FC = () => {
     }, []);
 
     // CRUD Handlers for Inspector
-    const handleUpdateAsset = React.useCallback(async (id: string, data: Partial<Asset>) => updateAsset(id, data as unknown as AssetFormData), [updateAsset]);
-    // The previous edit didn't change the param type, so it stayed Omit<Asset, 'id'>.
-    // I need to change the param type to match AssetInspector.
-    const handleCreateAsset = React.useCallback(async (data: AssetFormData) => createAsset(data, null), [createAsset]);
+    const handleUpdateAsset = React.useCallback(async (id: string, data: Partial<Asset>) => {
+        const result = await updateAsset(id, data as unknown as AssetFormData);
+        if (result.success) {
+            toast.success(t('assets.updateSuccess'));
+            return true;
+        } else {
+            toast.error(t('assets.updateError'));
+            return false;
+        }
+    }, [updateAsset, t]);
+
+    // Create wrapper
+    const handleCreateAsset = React.useCallback(async (data: AssetFormData) => {
+        const result = await createAsset(data, null);
+        if (result.success) {
+            toast.success(t('assets.createSuccess'));
+            return result.id || true;
+        } else if (result.error === 'LIMIT_REACHED') {
+            toast.error(t('assets.limitReachedError')); // "Upgrade plan..."
+            return false;
+        } else {
+            toast.error(t('assets.createError'));
+            return false;
+        }
+    }, [createAsset, t]);
 
     // Import Handlers
     const [importModalOpen, setImportModalOpen] = useState(false);
@@ -236,129 +263,34 @@ const Assets: React.FC = () => {
 
     const handleImportAssets = React.useCallback(async (file: File) => {
         const text = await file.text();
-        const parsed = CsvParser.parseCSV(text);
+        const { data, errors } = ImportService.parseAssets(text, user?.displayName || 'Unknown');
 
         let successCount = 0;
 
-        const resolveCriticality = (value?: string): Criticality => {
-            const normalized = (value || '').toLowerCase();
-            const mapping: Record<string, Criticality> = {
-                'critique': Criticality.CRITICAL,
-                'critical': Criticality.CRITICAL,
-                'élevé': Criticality.HIGH,
-                'eleve': Criticality.HIGH,
-                'high': Criticality.HIGH,
-                'moyen': Criticality.MEDIUM,
-                'moyenne': Criticality.MEDIUM,
-                'medium': Criticality.MEDIUM,
-                'faible': Criticality.LOW,
-                'low': Criticality.LOW,
-                'public': Criticality.LOW
-            };
-            return mapping[normalized] ?? Criticality.MEDIUM;
-        };
-
-        const resolveAssetType = (value?: string): AssetFormData['type'] => {
-            const normalized = (value || '').toLowerCase();
-            const mapping: Record<string, AssetFormData['type']> = {
-                'matériel': 'Matériel',
-                'materiel': 'Matériel',
-                'hardware': 'Matériel',
-                'logiciel': 'Logiciel',
-                'software': 'Logiciel',
-                'données': 'Données',
-                'donnees': 'Données',
-                'data': 'Données',
-                'service': 'Service',
-                'humain': 'Humain',
-                'human': 'Humain'
-            };
-            return mapping[normalized] ?? 'Logiciel';
-        };
-
-        const resolveLifecycleStatus = (value?: string): AssetFormData['lifecycleStatus'] => {
-            if (!value) return undefined;
-            const normalized = value.toLowerCase();
-            const mapping: Record<string, AssetFormData['lifecycleStatus']> = {
-                'neuf': 'Neuf',
-                'new': 'Neuf',
-                'en service': 'En service',
-                'active': 'En service',
-                'activee': 'En service',
-                'en réparation': 'En réparation',
-                'en reparation': 'En réparation',
-                'repair': 'En réparation',
-                'fin de vie': 'Fin de vie',
-                'endoflife': 'Fin de vie',
-                'end_of_life': 'Fin de vie',
-                'rebut': 'Rebut',
-                'retired': 'Rebut'
-            };
-            return mapping[normalized] ?? 'En service';
-        };
-
         // Process sequentially to avoid overwhelming Firestore
-        for (const row of parsed) {
-            // Helper to get value from multiple possible header keys (English or French or Key)
-            const getVal = (keys: string[]) => {
-                for (const k of keys) {
-                    if (row[k] !== undefined && row[k] !== '') return row[k];
-                }
-                return undefined;
-            };
-
-            const name = getVal(['name', 'Name', 'Nom']);
-            const type = getVal(['type', 'Type']);
-
-            // Basic validation
-            if (!name || !type) continue;
-
-            // Map CSV row to AssetFormData
-            const assetData: AssetFormData = {
-                name,
-                type: resolveAssetType(type),
-                notes: getVal(['notes', 'description', 'Notes', 'Description']) || '',
-                owner: getVal(['owner', 'Owner', 'Propriétaire']) || user?.displayName || 'Unknown',
-                confidentiality: resolveCriticality(getVal(['criticality', 'confidentiality', 'Criticality', 'Criticité', 'Confidentiality', 'Confidentialité'])),
-                integrity: resolveCriticality(getVal(['integrity', 'Integrity', 'Intégrité'])),
-                availability: resolveCriticality(getVal(['availability', 'Availability', 'Disponibilité'])),
-                lifecycleStatus: resolveLifecycleStatus(getVal(['status', 'lifecycleStatus', 'Status', 'Statut', 'Lifecycle Status', 'Statut Cycle de Vie'])),
-                location: getVal(['location', 'Location', 'Localisation']) || '',
-                purchasePrice: getVal(['purchasePrice', 'Purchase Price', 'Prix Achat', 'Valeur']) ? Number(getVal(['purchasePrice', 'Purchase Price', 'Prix Achat', 'Valeur'])) : undefined,
-                purchaseDate: getVal(['purchaseDate', 'Purchase Date', 'Date Achat']),
-                warrantyEnd: getVal(['warrantyEnd', 'Warranty End', 'Fin Garantie'])
-            };
-
+        for (const assetData of data) {
             await createAsset(assetData, null);
             successCount++;
         }
 
         if (successCount > 0) {
-            toast.success(t('common.import.summary', { count: successCount, total: parsed.length }));
-        } else {
+            toast.success(t('common.import.summary', { count: successCount, total: data.length + errors.length }));
+        }
+
+        if (errors.length > 0) {
+            toast.warning(t('common.import.partialErrors'), {
+                description: `${errors.length} erreurs: ` + errors.slice(0, 3).join(', ') + (errors.length > 3 ? '...' : '')
+            });
+        }
+
+        if (successCount === 0 && errors.length === 0) {
             toast.warning(t('common.import.noData'));
         }
     }, [createAsset, user, t]);
 
     const handleDownloadTemplate = React.useCallback(() => {
-        const headers = [...assetGuidelines.required, ...assetGuidelines.optional];
-        // Construct example row using the same localized keys
-        const exampleRow = {
-            [t('common.columns.name')]: "Server DB-01",
-            [t('common.columns.type')]: "Matériel", // Use localized value if possible, or mapping key
-            [t('common.columns.owner')]: "Jean Dupont",
-            [t('common.columns.confidentiality')]: "High",
-            [t('common.columns.notes')]: "Main database server",
-            [t('common.columns.availability')]: "High",
-            [t('common.columns.integrity')]: "High",
-            [t('common.columns.lifecycleStatus')]: "En service",
-            [t('common.columns.location')]: "Data Center A",
-            [t('common.columns.purchasePrice')]: "5000",
-            [t('common.columns.purchaseDate')]: "2024-01-01",
-            [t('common.columns.warrantyEnd')]: "2027-01-01"
-        };
-        CsvParser.downloadCSV(headers, [exampleRow], `template_assets.csv`);
-    }, [assetGuidelines, t]);
+        ImportService.downloadAssetTemplate(t);
+    }, [t]);
 
     return (
         <motion.div
@@ -409,6 +341,7 @@ const Assets: React.FC = () => {
                     <AssetDashboard
                         assets={filteredAssets}
                         onFilterChange={handleFilterChange}
+                        loading={loading}
                     />
                 </motion.div>
 

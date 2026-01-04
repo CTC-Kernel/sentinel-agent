@@ -6,7 +6,7 @@ import { ErrorLogger } from '../services/errorLogger';
 import { logAction } from '../services/logger';
 import { BcpDrill } from '../types';
 import { BusinessProcessFormData } from '../schemas/continuitySchema';
-import { CsvParser } from '../utils/csvUtils';
+import { ImportService } from '../services/ImportService';
 import { sanitizeData } from '../utils/dataSanitizer';
 
 export const useContinuity = () => {
@@ -142,7 +142,7 @@ export const useContinuity = () => {
         if (!user?.organizationId) return;
         setLoading(true);
         try {
-            const lines = CsvParser.parseCSV(csvContent);
+            const lines = ImportService.parseCSV(csvContent);
             if (lines.length === 0) {
                 addToast("Fichier vide ou invalide", "error");
                 setLoading(false);

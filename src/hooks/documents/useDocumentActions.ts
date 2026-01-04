@@ -10,7 +10,7 @@ import { DocumentService } from '../../services/documentService';
 import { useStore } from '../../store';
 import { canEditResource } from '../../utils/permissions';
 import { EncryptionService } from '../../services/encryptionService';
-import { CsvParser } from '../../utils/csvUtils';
+import { ImportService } from '../../services/ImportService';
 import { getDocumentReviewTemplate } from '../../services/emailTemplates';
 import { sendEmail } from '../../services/emailService';
 
@@ -295,11 +295,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
                 description: EncryptionService.decrypt(d.description || '')
             }));
 
-            CsvParser.exportToCsv(
-                exportData,
-                `documents_export_${new Date().toISOString().split('T')[0]}`,
-                ['title', 'type', 'version', 'status', 'owner', 'nextReviewDate', 'url']
-            );
+            ImportService.exportDocuments(exportData);
             if (user) await logAction(user, 'EXPORT', 'Documents', `Exported ${documents.length} documents`);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Documents.handleExportCSV');
@@ -312,7 +308,7 @@ export const useDocumentActions = (usersList: UserProfile[] = []) => {
         if (!user?.organizationId) return;
         setIsSubmitting(true);
         try {
-            const lines = CsvParser.parseCSV(csvContent);
+            const lines = ImportService.parseCSV(csvContent);
             if (lines.length === 0) {
                 addToast("Fichier vide ou invalide", "error");
                 return;

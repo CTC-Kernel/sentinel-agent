@@ -102,7 +102,7 @@ describe('Suppliers View', () => {
             </MemoryRouter>
         );
 
-        expect(screen.getByText('suppliers.title_admin')).toBeInTheDocument();
+        expect(screen.getByText('suppliers.title')).toBeInTheDocument();
         expect(screen.getByText('AWS')).toBeInTheDocument();
         expect(screen.getByText('Local Catering')).toBeInTheDocument();
     });

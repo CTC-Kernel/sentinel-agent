@@ -10,10 +10,11 @@ import {
 } from '../ui/Icons';
 import { ResourceHistory } from '../shared/ResourceHistory';
 import { CommentSection } from '../collaboration/CommentSection';
-import { EmptyState } from '../ui/EmptyState';
+
 import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import type { SubmitHandler } from 'react-hook-form';
 import { SupplierFormData } from '../../schemas/supplierSchema';
+import { SupplierAssessments } from './inspector/SupplierAssessments';
 
 interface SupplierInspectorProps {
     supplier: Supplier;
@@ -63,7 +64,7 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
             onClose={onClose}
             title={supplier.name}
             subtitle="Détails du fournisseur"
-            width="max-w-4xl"
+            width="max-w-6xl"
             actions={
                 <div className="flex items-center gap-2">
                     {canEdit && (
@@ -108,27 +109,10 @@ export const SupplierInspector: React.FC<SupplierInspectorProps> = ({
                         />
                     )}
                     {inspectorTab === 'assessment' && (
-                        <div className="p-6 h-full overflow-y-auto">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="font-bold text-lg text-slate-900 dark:text-white">Évaluations</h2>
-                                {canEdit && (
-                                    <button
-                                        aria-label="Nouvelle Évaluation"
-                                        onClick={onStartAssessment}
-                                        className="px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-lg hover:bg-brand-700 shadow-lg shadow-brand-500/20"
-                                    >
-                                        Nouvelle Évaluation
-                                    </button>
-                                )}
-                            </div>
-                            <div className="space-y-4">
-                                <EmptyState
-                                    icon={ClipboardList}
-                                    title="Aucune évaluation"
-                                    description="Lancez une évaluation pour ce fournisseur."
-                                />
-                            </div>
-                        </div>
+                        <SupplierAssessments
+                            canEdit={canEdit}
+                            onStartAssessment={onStartAssessment}
+                        />
                     )}
                     {inspectorTab === 'history' && (
                         <div className="p-6 h-full overflow-y-auto">

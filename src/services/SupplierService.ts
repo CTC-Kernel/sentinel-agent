@@ -1,6 +1,7 @@
 import { db } from '../firebase';
+import { FunctionsService } from './FunctionsService';
 import { Supplier, SupplierQuestionnaireResponse, QuestionnaireTemplate, Criticality } from '../types';
-import { doc, updateDoc, addDoc, collection, query, where, getDocs, deleteDoc, arrayRemove, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, addDoc, collection, query, where, getDocs, deleteDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { ErrorLogger } from './errorLogger';
 
@@ -163,50 +164,16 @@ export class SupplierService {
         }
     }
 
-    /**
-     * Delete supplier with cascade deletion of related data
-     */
     static async deleteSupplierWithCascade(
-        supplierId: string,
-        organizationId: string
+        supplierId: string
     ): Promise<void> {
         try {
-            // 1. Dependencies Cleanup
-            const controlQuery = query(
-                collection(db, 'controls'),
-                where('organizationId', '==', organizationId),
-                where('relatedSupplierIds', 'array-contains', supplierId)
-            );
-            const riskQuery = query(
-                collection(db, 'risks'),
-                where('organizationId', '==', organizationId),
-                where('relatedSupplierIds', 'array-contains', supplierId)
-            );
+            // 1. Attempt Secure Deletion (Blocks if dependencies exist in Risks/Controls/Projects)
+            // This replaces the old behavior of automatically unlinking (arrayRemove), which is unsafe for Audit.
+            await FunctionsService.deleteResource('suppliers', supplierId);
 
-            const [controlsSnap, risksSnap] = await Promise.all([
-                getDocs(controlQuery),
-                getDocs(riskQuery)
-            ]);
-
-            const cleanupPromises: Promise<void>[] = [];
-            controlsSnap.docs.forEach(docSnap => {
-                cleanupPromises.push(
-                    updateDoc(doc(db, 'controls', docSnap.id), {
-                        relatedSupplierIds: arrayRemove(supplierId)
-                    })
-                );
-            });
-            risksSnap.docs.forEach(docSnap => {
-                cleanupPromises.push(
-                    updateDoc(doc(db, 'risks', docSnap.id), {
-                        relatedSupplierIds: arrayRemove(supplierId)
-                    })
-                );
-            });
-
-            await Promise.all(cleanupPromises);
-
-            // 2. Delete related assessments
+            // 2. If successful, clean up "owned" child resources (Assessments, Incidents)
+            // These are not "dependencies" but sub-resources, so we delete them to avoid orphans.
             const assessmentsQuery = query(
                 collection(db, 'supplierAssessments'),
                 where('supplierId', '==', supplierId)
@@ -218,7 +185,6 @@ export class SupplierService {
                 })
             );
 
-            // 3. Delete related incidents
             const incidentsQuery = query(
                 collection(db, 'supplierIncidents'),
                 where('supplierId', '==', supplierId)
@@ -230,15 +196,8 @@ export class SupplierService {
                 })
             );
 
-            // 4. Delete the supplier itself
-            await Promise.all([
-                ...deleteAssessments,
-                ...deleteIncidents,
-                deleteDoc(doc(db, 'suppliers', supplierId)).catch(err => {
-                    ErrorLogger.error(err, 'SupplierService.deleteSupplierWithCascade.finalDelete');
-                    throw err;
-                })
-            ]);
+            await Promise.all([...deleteAssessments, ...deleteIncidents]);
+
         } catch (error) {
             ErrorLogger.error(error, 'SupplierService.deleteSupplierWithCascade');
             throw error;

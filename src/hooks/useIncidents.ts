@@ -11,7 +11,7 @@ import { Incident, Criticality } from '../types';
 import { IncidentFormData } from '../schemas/incidentSchema';
 import { sanitizeData } from '../utils/dataSanitizer';
 import { SecurityEvent } from '../services/integrationService';
-import { CsvParser } from '../utils/csvUtils';
+import { ImportService } from '../services/ImportService';
 
 export const useIncidents = () => {
     const { user, addToast, t } = useStore();
@@ -231,7 +231,7 @@ export const useIncidents = () => {
         if (!user?.organizationId || !user?.uid) return;
         setLoading(true);
         try {
-            const lines = CsvParser.parseCSV(csvContent);
+            const lines = ImportService.parseCSV(csvContent);
             if (lines.length === 0) {
                 addToast("Fichier vide ou invalide", "error");
                 return;

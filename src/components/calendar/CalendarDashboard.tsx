@@ -388,7 +388,7 @@ export const CalendarDashboard: React.FC = () => {
                 isOpen={isDrawerOpen}
                 onClose={() => setIsDrawerOpen(false)}
                 title="Détails"
-                width="max-w-md"
+                width="max-w-6xl"
             >
                 {selectedEvent && (
                     <div className="p-8 space-y-8">

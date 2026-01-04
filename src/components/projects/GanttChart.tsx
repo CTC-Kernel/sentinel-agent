@@ -13,9 +13,10 @@ interface GanttChartProps {
     onTaskUpdate?: (task: ProjectTask, start: Date, end: Date) => void;
     onTaskClick?: (task: ProjectTask) => void;
     users?: UserProfile[];
+    loading?: boolean;
 }
 
-export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewModeChange, onTaskUpdate, onTaskClick, users = [] }) => {
+export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewModeChange, onTaskUpdate, onTaskClick, users = [], loading }) => {
     const ganttRef = useRef<HTMLDivElement>(null);
     // Default to hidden on mobile (< 768px)
     const [showList, setShowList] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
@@ -130,13 +131,24 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
         if (!assigneeName) return null;
         const user = users.find(u => u.displayName === assigneeName || u.email === assigneeName);
         return (
-            <img 
-                src={getUserAvatarUrl(user?.photoURL)} 
-                alt={assigneeName} 
-                className="w-6 h-6 rounded-full border border-white dark:border-slate-700 shadow-sm object-cover" 
+            <img
+                src={getUserAvatarUrl(user?.photoURL)}
+                alt={assigneeName}
+                className="w-6 h-6 rounded-full border border-white dark:border-slate-700 shadow-sm object-cover"
             />
         );
     };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col space-y-4 animate-fade-in">
+                {/* Toolbar Skeleton */}
+                <div className="h-16 w-full bg-slate-100 dark:bg-slate-800/50 rounded-2xl animate-pulse" />
+                {/* Chart Skeleton */}
+                <div className="w-full h-[600px] bg-slate-100 dark:bg-slate-800/50 rounded-3xl animate-pulse" />
+            </div>
+        );
+    }
 
     if (ganttTasks.length === 0) {
         return (

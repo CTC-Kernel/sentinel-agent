@@ -11,7 +11,7 @@ import { sendEmail } from '../services/emailService';
 import { getInvitationTemplate } from '../services/emailTemplates';
 import { logAction } from '../services/logger';
 import { SubscriptionService } from '../services/subscriptionService';
-import { CsvParser } from '../utils/csvUtils';
+import { ImportService } from '../services/ImportService';
 import { useTranslation } from 'react-i18next';
 
 export const useTeamManagement = () => {
@@ -91,7 +91,7 @@ export const useTeamManagement = () => {
                 const mock = MockDataService.getCollection('custom_roles');
                 setCustomRoles(mock as CustomRole[]);
             }).catch(_err => {
-                });
+            });
             return;
         }
 
@@ -248,12 +248,12 @@ export const useTeamManagement = () => {
         }
     };
 
-    const importUsers = async (csvContent: string) => {
-        if (!user?.organizationId) return;
+    const importUsers = useCallback(async (csvData: string) => {
+        if (!user) return;
         setLoading(true);
         try {
-            const lines = CsvParser.parseCSV(csvContent);
-            if (lines.length === 0) {
+            const usersToImport = ImportService.parseCSV(csvData);
+            if (usersToImport.length === 0) {
                 addToast("Fichier vide ou invalide", "error");
                 setLoading(false);
                 return;
@@ -270,7 +270,7 @@ export const useTeamManagement = () => {
                 return (allowedRoles.find(role => role === lowerValue) ?? 'user') as UserFormData['role'];
             };
 
-            for (const row of lines) {
+            for (const row of usersToImport) {
                 if (limitReached) break;
                 const email = row.Email || row.email;
                 if (!email) continue;
@@ -312,7 +312,7 @@ export const useTeamManagement = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user, addToast, fetchUsers, inviteUser]);
 
     return {
         users,
