@@ -120,6 +120,16 @@ vi.mock('framer-motion', () => ({
 // Tests
 // ---------------------------------------------------------------------
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            retry: false,
+        },
+    },
+});
+
 describe('Projects View', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -127,9 +137,11 @@ describe('Projects View', () => {
 
     it('renders the projects dashboard (overview by default)', () => {
         render(
-            <MemoryRouter>
-                <Projects />
-            </MemoryRouter>
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Projects />
+                </MemoryRouter>
+            </QueryClientProvider>
         );
 
         expect(screen.getByTestId('portfolio-dashboard')).toBeInTheDocument();
@@ -142,9 +154,11 @@ describe('Projects View', () => {
         vi.mocked(usePersistedState).mockReturnValue(['list', vi.fn()]);
 
         render(
-            <MemoryRouter>
-                <Projects />
-            </MemoryRouter>
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter>
+                    <Projects />
+                </MemoryRouter>
+            </QueryClientProvider>
         );
 
         const filterInput = screen.getByPlaceholderText('Rechercher...');
