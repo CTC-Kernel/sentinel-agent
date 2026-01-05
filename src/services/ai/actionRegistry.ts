@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { logAction } from '../logger';
-import { canEditResource, canDeleteResource } from '../../utils/permissions';
+import { canEditResource, canDeleteResource, hasPermission } from '../../utils/permissions'; // Added hasPermission
 
 export enum AIActionType {
     CREATE_ASSET = 'CREATE_ASSET',
@@ -54,6 +54,11 @@ export const ActionRegistry: Record<AIActionType, AIActionDefinition> = {
         schema: CreateAssetSchema,
         requiredPermission: 'assets:write',
         execute: async (payload, user) => {
+            // Strict RBAC: Check 'create' permission on 'Asset'
+            if (!hasPermission(user, 'Asset', 'create', user.organizationId)) {
+                throw new Error("Permission refusée pour créer des actifs.");
+            }
+
             const data = CreateAssetSchema.parse(payload);
             /* eslint-disable @typescript-eslint/no-explicit-any */
             const assetData: any = {
