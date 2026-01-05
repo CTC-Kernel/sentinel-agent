@@ -6,7 +6,7 @@ import { Button } from '../ui/button';
 import { EmptyState } from '../ui/EmptyState';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useContinuityActions } from '../../hooks/continuity/useContinuityActions';
-import { StrategyModal } from './StrategyModal';
+import { StrategyInspector } from './inspector/StrategyInspector';
 import { StrategyFormData } from '../../schemas/continuitySchema';
 import { ConfirmModal } from '../ui/ConfirmModal';
 
@@ -130,7 +130,7 @@ export const ContinuityStrategies: React.FC<ContinuityStrategiesProps> = ({ asse
                 )}
             </div>
 
-            <StrategyModal
+            <StrategyInspector
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={onSubmit}

@@ -169,7 +169,7 @@ export const useDashboardData = (): DashboardData => {
     );
 
     const activeIncidents = useMemo(() =>
-        allIncidents.filter(i => i.status !== 'Résolu'),
+        allIncidents.filter(i => i.status !== 'Fermé'),
         [allIncidents]
     );
 

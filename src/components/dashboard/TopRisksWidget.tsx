@@ -8,8 +8,11 @@ interface TopRisksWidgetProps {
 }
 
 export const TopRisksWidget: React.FC<TopRisksWidgetProps> = ({ risks, onMitigate }) => {
-    // Sort by score desc and take top 5
-    const topRisks = [...risks].sort((a, b) => b.score - a.score).slice(0, 5);
+    // Sort by score desc and take top 5, but ONLY high/critical risks (>= 10)
+    const topRisks = [...risks]
+        .filter(r => r.score >= 10)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
 
     return (
         <div className="glass-panel p-6 rounded-[2.5rem] h-full">
