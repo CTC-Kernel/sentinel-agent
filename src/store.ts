@@ -88,14 +88,8 @@ export const useStore = create<AppState>((set) => ({
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 
-  demoMode: (import.meta.env.DEV || !!SecureStorage.getSecureItem('E2E_TEST_USER')) && SecureStorage.getSecureItem('demoMode') === 'true',
+  demoMode: SecureStorage.getSecureItem('demoMode') === 'true',
   toggleDemoMode: () => set((state) => {
-    if (!import.meta.env.DEV) {
-      if (state.demoMode) {
-        SecureStorage.removeSecureItem('demoMode');
-      }
-      return { demoMode: false };
-    }
     const next = !state.demoMode;
     if (next) {
       SecureStorage.setSecureItem('demoMode', next);

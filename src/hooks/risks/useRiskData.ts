@@ -1,93 +1,119 @@
 import React from 'react';
 import { useFirestoreCollection } from '../useFirestore';
 import { where } from 'firebase/firestore';
+import { useStore } from '../../store';
 import { useAuth } from '../useAuth';
 import { Risk, Asset, Control, BusinessProcess as Process, Supplier, Incident, Audit, Project, UserProfile } from '../../types';
 
 export const useRiskData = () => {
     const { user } = useAuth();
+    const { demoMode } = useStore();
+    const [mockData, setMockData] = React.useState<any>({ risks: [], assets: [], controls: [], processes: [], suppliers: [], incidents: [], audits: [], projects: [], users: [] });
+    const [mockLoading, setMockLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        if (demoMode) {
+            setMockLoading(true);
+            import('../../services/mockDataService').then(({ MockDataService }) => {
+                setMockData({
+                    risks: MockDataService.getCollection('risks'),
+                    assets: MockDataService.getCollection('assets'),
+                    controls: MockDataService.getCollection('controls'),
+                    processes: MockDataService.getCollection('business_processes'),
+                    suppliers: MockDataService.getCollection('suppliers'),
+                    incidents: MockDataService.getCollection('incidents'),
+                    audits: MockDataService.getCollection('audits'),
+                    projects: MockDataService.getCollection('projects'),
+                    users: MockDataService.getCollection('users')
+                });
+                setMockLoading(false);
+            });
+        }
+    }, [demoMode]);
 
     const { data: rawRisks, loading: risksLoading } = useFirestoreCollection<Risk>(
         'risks',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { logError: true, realtime: true, enabled: !!user?.organizationId }
+        { logError: true, realtime: true, enabled: !!user?.organizationId && !demoMode }
     );
 
     const risks = React.useMemo(() => {
-        return (rawRisks || []).map(r => ({
+        const source = demoMode ? mockData.risks : (rawRisks || []);
+        return source.map((r: any) => ({
             ...r,
             probability: Number(r.probability) as Risk['probability'],
             impact: Number(r.impact) as Risk['impact'],
             score: Number(r.score)
-        }));
-    }, [rawRisks]);
+        })) as Risk[];
+    }, [rawRisks, demoMode, mockData.risks]);
 
     const { data: assets, loading: assetsLoading } = useFirestoreCollection<Asset>(
         'assets',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { enabled: !!user?.organizationId }
+        { enabled: !!user?.organizationId && !demoMode }
     );
 
     const { data: controls, loading: controlsLoading } = useFirestoreCollection<Control>(
         'controls',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { enabled: !!user?.organizationId }
+        { enabled: !!user?.organizationId && !demoMode }
     );
 
     const { data: rawProcesses, loading: processesLoading } = useFirestoreCollection<Process>(
         'business_processes',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { enabled: !!user?.organizationId }
+        { enabled: !!user?.organizationId && !demoMode }
     );
 
     const { data: suppliers, loading: suppliersLoading } = useFirestoreCollection<Supplier>(
         'suppliers',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { enabled: !!user?.organizationId }
+        { enabled: !!user?.organizationId && !demoMode }
     );
 
     const { data: incidents, loading: incidentsLoading } = useFirestoreCollection<Incident>(
         'incidents',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { enabled: !!user?.organizationId }
+        { enabled: !!user?.organizationId && !demoMode }
     );
 
     const { data: audits, loading: auditsLoading } = useFirestoreCollection<Audit>(
         'audits',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { enabled: !!user?.organizationId }
+        { enabled: !!user?.organizationId && !demoMode }
     );
 
     const { data: projects, loading: projectsLoading } = useFirestoreCollection<Project>(
         'projects',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { enabled: !!user?.organizationId }
+        { enabled: !!user?.organizationId && !demoMode }
     );
 
     const { data: usersList } = useFirestoreCollection<UserProfile>(
         'users',
         [where('organizationId', '==', user?.organizationId || 'ignore')],
-        { enabled: !!user?.organizationId }
+        { enabled: !!user?.organizationId && !demoMode }
     );
 
     // FIX: Ensure usersList is never empty if we are logged in (fallback to self) to prevent validation errors
     const effectiveUsers = React.useMemo(() => {
-        if (usersList && usersList.length > 0) return usersList;
+        const source = demoMode ? mockData.users : usersList;
+        if (source && source.length > 0) return source;
         if (user && user.uid) return [user];
         return [];
-    }, [usersList, user]);
+    }, [usersList, user, demoMode, mockData.users]);
 
-    const loading = risksLoading || assetsLoading || controlsLoading || processesLoading || suppliersLoading || incidentsLoading || auditsLoading || projectsLoading;
+    const loading = demoMode ? mockLoading : (risksLoading || assetsLoading || controlsLoading || processesLoading || suppliersLoading || incidentsLoading || auditsLoading || projectsLoading);
 
     return {
         risks,
-        assets,
-        controls,
-        rawProcesses,
-        suppliers,
-        incidents,
-        audits,
-        projects,
+        assets: demoMode ? mockData.assets : assets,
+        controls: demoMode ? mockData.controls : controls,
+        rawProcesses: demoMode ? mockData.processes : rawProcesses,
+        suppliers: demoMode ? mockData.suppliers : suppliers,
+        incidents: demoMode ? mockData.incidents : incidents,
+        audits: demoMode ? mockData.audits : audits,
+        projects: demoMode ? mockData.projects : projects,
         usersList: effectiveUsers,
         loading,
         refreshRisks: () => { }
