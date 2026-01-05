@@ -125,6 +125,7 @@ export const translations = {
             helpCenter: 'Centre d\'aide',
             collapse: 'Réduire',
             expand: 'Agrandir',
+            operations: 'Opérations',
         },
         sidebar: {
             dashboard: 'Tableau de bord',

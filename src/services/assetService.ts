@@ -166,12 +166,26 @@ export const AssetService = {
     async getAssetRelationships(assetId: string, organizationId: string) {
         const { getDocs, query, where } = await import('firebase/firestore');
 
-        // Helper to fetch
+        // Helper to fetch - Use simpler queries to avoid index requirements
         const fetchRel = async (col: string, field: string) => {
-            const q = query(collection(db, col), where('organizationId', '==', organizationId), where(field, 'array-contains', assetId));
-            const s = await getDocs(q);
-            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-            return s.docs.map(d => ({ id: d.id, ...d.data() } as any));
+            try {
+                // Try composite query first (more efficient)
+                const q = query(collection(db, col), where('organizationId', '==', organizationId), where(field, 'array-contains', assetId));
+                const s = await getDocs(q);
+                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                return s.docs.map(d => ({ id: d.id, ...d.data() } as any));
+            } catch (error: any) {
+                // Fallback to client-side filtering if index is missing
+                if (error.code === 'failed-precondition') {
+                    console.warn(`Index manquant pour ${col}, utilisation du fallback côté client`);
+                    const fallbackQ = query(collection(db, col), where('organizationId', '==', organizationId));
+                    const fallbackSnap = await getDocs(fallbackQ);
+                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    return fallbackSnap.docs.map(d => ({ id: d.id, ...d.data() } as any))
+                        .filter(doc => doc[field] && Array.isArray(doc[field]) && doc[field].includes(assetId));
+                }
+                throw error;
+            }
         };
 
         const [risks, incidents, projects, audits, documents, controls] = await Promise.all([
