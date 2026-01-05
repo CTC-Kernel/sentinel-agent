@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
+import React from 'react';
 import { Compliance } from '../Compliance';
 
 // Mock React Router
@@ -10,7 +14,9 @@ vi.mock('react-router-dom', () => ({
         hash: '',
         state: null,
         key: 'default'
-    })
+    }),
+    useSearchParams: () => [new URLSearchParams(), vi.fn()],
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => children
 }));
 
 // Mock store
@@ -84,6 +90,7 @@ vi.mock('firebase/firestore', () => ({
     limit: vi.fn(() => ({ type: 'constraint' })),
     addDoc: vi.fn(() => Promise.resolve({ id: 'test-doc-id' })),
     memoryLocalCache: vi.fn(),
+    onSnapshot: vi.fn(() => vi.fn())
 }));
 
 // Mock composants
@@ -104,31 +111,52 @@ vi.mock('../../components/compliance/SoAView', () => ({
 }));
 
 describe('Compliance View', () => {
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            queries: {
+                retry: false,
+            },
+        },
+    });
+
+    const renderWithProviders = (component: React.ReactElement) => {
+        return render(
+            <HelmetProvider>
+                <QueryClientProvider client={queryClient}>
+                    <BrowserRouter>
+                        {component}
+                    </BrowserRouter>
+                </QueryClientProvider>
+            </HelmetProvider>
+        );
+    };
+
     beforeEach(() => {
         vi.clearAllMocks();
+        queryClient.clear();
     });
 
     it('renders without crashing', () => {
-        render(<Compliance />);
+        renderWithProviders(<Compliance />);
         expect(screen.getByText('Conformité')).toBeInTheDocument();
     });
 
     it('displays framework selector', () => {
-        render(<Compliance />);
+        renderWithProviders(<Compliance />);
         expect(screen.getByText('ISO 27001 (Sécurité SI)')).toBeInTheDocument();
         expect(screen.getByText('ISO 22301 (Continuité)')).toBeInTheDocument();
         expect(screen.getByText('NIS 2 (Cyber UE)')).toBeInTheDocument();
     });
 
     it('displays navigation tabs', () => {
-        render(<Compliance />);
+        renderWithProviders(<Compliance />);
         expect(screen.getByText('Vue d\'ensemble')).toBeInTheDocument();
         expect(screen.getByText('Contrôles')).toBeInTheDocument();
         expect(screen.getByText('SoA')).toBeInTheDocument();
     });
 
     it('displays dashboard when no controls', () => {
-        render(<Compliance />);
+        renderWithProviders(<Compliance />);
         expect(screen.getByTestId('compliance-dashboard')).toBeInTheDocument();
     });
 });
