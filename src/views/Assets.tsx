@@ -185,7 +185,16 @@ const Assets: React.FC = () => {
     const handleAnalyze = React.useCallback(async () => {
         setIsAnalyzing(true);
         try {
-            const prompt = t('assets.aiPrompt', { count: filteredAssets.length });
+            // Serialize a subset of asset data to avoid huge payloads, but enough for analysis
+            const assetsData = filteredAssets.map(a => ({
+                name: a.name,
+                type: a.type,
+                criticality: a.confidentiality,
+                status: a.lifecycleStatus,
+                owner: a.owner
+            }));
+
+            const prompt = `${t('assets.aiPrompt', { count: filteredAssets.length })}\n\nDATA:\n${JSON.stringify(assetsData)}`;
             const analysis = await aiService.chatWithAI(prompt);
             toast.info(t('assets.analysisComplete'), { description: analysis, duration: 10000 });
         } catch {
