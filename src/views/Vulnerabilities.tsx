@@ -85,22 +85,26 @@ export const Vulnerabilities: React.FC = () => {
             }
         } else if (deepLinkAction === 'create' && !creationMode) {
             setCreationMode(true);
+            // Consume action immediately
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
-    }, [loading, deepLinkVulnId, deepLinkAction, vulnerabilities, selectedVulnerability, setSelectedVulnerability, creationMode]);
+    }, [loading, deepLinkVulnId, deepLinkAction, vulnerabilities, selectedVulnerability, setSelectedVulnerability, creationMode, setSearchParams]);
 
     // Cleanup Effect
     useEffect(() => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
 
-        if (!selectedVulnerability && !creationMode && (deepLinkVulnId || deepLinkAction)) {
+        if (!selectedVulnerability && deepLinkVulnId) {
             setSearchParams(params => {
                 params.delete('id');
-                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [selectedVulnerability, creationMode, deepLinkVulnId, deepLinkAction, setSearchParams, loading]);
+    }, [selectedVulnerability, deepLinkVulnId, setSearchParams, loading]);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string };

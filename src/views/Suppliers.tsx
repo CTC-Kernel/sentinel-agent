@@ -107,22 +107,26 @@ export const Suppliers: React.FC = () => {
             }
         } else if (deepLinkAction === 'create' && !creationMode) {
             setCreationMode(true);
+            // Consume action immediately
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
-    }, [loadingSuppliers, deepLinkSupplierId, deepLinkAction, suppliersRaw, selectedSupplier, setSelectedSupplier, creationMode]);
+    }, [loadingSuppliers, deepLinkSupplierId, deepLinkAction, suppliersRaw, selectedSupplier, setSelectedSupplier, creationMode, setSearchParams]);
 
     // Cleanup Effect
     useEffect(() => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loadingSuppliers) return;
 
-        if (!selectedSupplier && !creationMode && (deepLinkSupplierId || deepLinkAction)) {
+        if (!selectedSupplier && deepLinkSupplierId) {
             setSearchParams(params => {
                 params.delete('id');
-                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [selectedSupplier, creationMode, deepLinkSupplierId, deepLinkAction, setSearchParams, loadingSuppliers]);
+    }, [selectedSupplier, deepLinkSupplierId, setSearchParams, loadingSuppliers]);
 
     // Filtering & Memoization
     const filteredSuppliers = useMemo(() => {

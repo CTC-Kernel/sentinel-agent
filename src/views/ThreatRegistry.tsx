@@ -93,22 +93,26 @@ export const ThreatRegistry: React.FC = () => {
             reset();
             setIsEditing(false);
             setShowModal(true);
+            // Consume action immediately
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
-    }, [loading, deepLinkThreatId, deepLinkAction, threats, selectedThreat, setSelectedThreat, reset, setIsEditing, setShowModal, showModal, isEditing]);
+    }, [loading, deepLinkThreatId, deepLinkAction, threats, selectedThreat, setSelectedThreat, reset, setIsEditing, setShowModal, showModal, isEditing, setSearchParams]);
 
     // Cleanup Effect
     React.useEffect(() => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
 
-        if (!showModal && (deepLinkThreatId || deepLinkAction)) {
+        if (!showModal && deepLinkThreatId) {
             setSearchParams(params => {
                 params.delete('id');
-                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [showModal, deepLinkThreatId, deepLinkAction, setSearchParams, loading]);
+    }, [showModal, deepLinkThreatId, setSearchParams, loading]);
 
     // Confirm Modal State
     const [confirmData, setConfirmData] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({

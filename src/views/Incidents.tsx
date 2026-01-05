@@ -187,22 +187,26 @@ export const Incidents: React.FC = () => {
         // 2. Open Creation Mode
         if (deepLinkAction === 'create' && !creationMode) {
             setCreationMode(true);
+            // Consume action immediately
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
-    }, [loading, deepLinkIncidentId, deepLinkAction, incidents, creationMode, selectedIncident]);
+    }, [loading, deepLinkIncidentId, deepLinkAction, incidents, creationMode, selectedIncident, setSearchParams]);
 
     // Cleanup Effect
     useEffect(() => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
 
-        if (!selectedIncident && !creationMode && (deepLinkIncidentId || deepLinkAction)) {
+        if (!selectedIncident && deepLinkIncidentId) {
             setSearchParams(params => {
                 params.delete('id');
-                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [selectedIncident, creationMode, deepLinkIncidentId, deepLinkAction, setSearchParams, loading]);
+    }, [selectedIncident, deepLinkIncidentId, setSearchParams, loading]);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };

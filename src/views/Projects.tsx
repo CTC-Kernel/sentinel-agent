@@ -104,22 +104,26 @@ export const Projects: React.FC = () => {
             }
         } else if (deepLinkAction === 'create' && !creationMode) {
             setCreationMode(true);
+            // Consume action immediately
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
-    }, [loading, deepLinkProjectId, deepLinkAction, projects, creationMode]);
+    }, [loading, deepLinkProjectId, deepLinkAction, projects, creationMode, setSearchParams]);
 
     // Cleanup URL param when closing inspector
     useEffect(() => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
 
-        if (!selectedProject && !creationMode && (deepLinkProjectId || deepLinkAction)) {
+        if (!selectedProject && deepLinkProjectId) {
             setSearchParams(params => {
                 params.delete('id');
-                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [selectedProject, creationMode, deepLinkProjectId, deepLinkAction, setSearchParams, loading]);
+    }, [selectedProject, deepLinkProjectId, setSearchParams, loading]);
 
     // Filter Logic
     const filteredProjects = useMemo(() => projects.filter(p =>

@@ -144,22 +144,26 @@ export const Documents: React.FC = () => {
         // 2. Open Create Modal
         if (deepLinkAction === 'create' && !showCreateModal) {
             setShowCreateModal(true);
+            // Consume action immediately
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
-    }, [loading, deepLinkDocId, deepLinkAction, documents, selectedDocument, setSelectedDocument, showCreateModal]);
+    }, [loading, deepLinkDocId, deepLinkAction, documents, selectedDocument, setSelectedDocument, showCreateModal, setSearchParams]);
 
     // Cleanup Effect
     React.useEffect(() => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
 
-        if (!selectedDocument && !showCreateModal && (deepLinkDocId || deepLinkAction)) {
+        if (!selectedDocument && deepLinkDocId) {
             setSearchParams(params => {
                 params.delete('id');
-                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [selectedDocument, showCreateModal, deepLinkDocId, deepLinkAction, setSearchParams, loading]);
+    }, [selectedDocument, deepLinkDocId, setSearchParams, loading]);
 
     // Handle Voxel/Link Navigation (Legacy/State based)
     React.useEffect(() => {

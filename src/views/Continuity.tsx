@@ -104,22 +104,26 @@ export const Continuity: React.FC = () => {
             }
         } else if (deepLinkAction === 'create' && !isProcessModalOpen) {
             setIsProcessModalOpen(true);
+            // Consume action immediately
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
-    }, [loadingData, deepLinkProcessId, deepLinkAction, processes, selectedProcess, setSelectedProcess, isProcessModalOpen]);
+    }, [loadingData, deepLinkProcessId, deepLinkAction, processes, selectedProcess, setSelectedProcess, isProcessModalOpen, setSearchParams]);
 
     // Cleanup Effect
     React.useEffect(() => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loadingData) return;
 
-        if (!selectedProcess && !isProcessModalOpen && (deepLinkProcessId || deepLinkAction)) {
+        if (!selectedProcess && deepLinkProcessId) {
             setSearchParams(params => {
                 params.delete('id');
-                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [selectedProcess, isProcessModalOpen, deepLinkProcessId, deepLinkAction, setSearchParams, loadingData]);
+    }, [selectedProcess, deepLinkProcessId, setSearchParams, loadingData]);
 
     // Derived Logic
     const filteredProcesses = useMemo(() => {

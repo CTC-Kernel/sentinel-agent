@@ -207,19 +207,25 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                         <div className="flex flex-col justify-between p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group/item" onClick={() => navigate('/compliance')}>
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Conformité</span>
-                                <ShieldCheck className="w-4 h-4 text-emerald-500 group-hover/item:text-emerald-400 transition-colors" />
+                                <ShieldCheck className={`w-4 h-4 transition-colors ${effectiveComplianceScore >= 80 ? 'text-emerald-500 group-hover/item:text-emerald-400' :
+                                    effectiveComplianceScore >= 50 ? 'text-amber-500 group-hover/item:text-amber-400' :
+                                        'text-red-500 group-hover/item:text-red-400'
+                                    }`} />
                             </div>
                             <div className="flex items-center justify-between mt-auto gap-4">
                                 <div className="relative w-16 h-16 flex items-center justify-center">
                                     {/* Background Circle */}
-                                    <svg className="w-full h-full transform -rotate-90">
+                                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 64 64">
                                         <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-slate-200 dark:text-slate-700" />
                                         <circle
                                             cx="32" cy="32" r="28"
                                             stroke="currentColor" strokeWidth="4" fill="transparent"
                                             strokeDasharray={175.92}
                                             strokeDashoffset={175.92 - (175.92 * effectiveComplianceScore) / 100}
-                                            className="text-emerald-500 transition-all duration-1000 ease-out"
+                                            className={`${effectiveComplianceScore >= 80 ? 'text-emerald-500' :
+                                                effectiveComplianceScore >= 50 ? 'text-amber-500' :
+                                                    'text-red-500'
+                                                } transition-all duration-1000 ease-out`}
                                             strokeLinecap="round"
                                         />
                                     </svg>
@@ -227,7 +233,14 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
                                 </div>
                                 <div className="text-right">
                                     <div className="text-xs text-slate-500 dark:text-slate-400">Score</div>
-                                    <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Excellente</div>
+                                    <div className={`text-sm font-bold ${effectiveComplianceScore >= 80 ? 'text-emerald-600 dark:text-emerald-400' :
+                                        effectiveComplianceScore >= 50 ? 'text-amber-600 dark:text-amber-400' :
+                                            'text-red-600 dark:text-red-400'
+                                        }`}>
+                                        {effectiveComplianceScore >= 80 ? 'Excellente' :
+                                            effectiveComplianceScore >= 50 ? 'Moyenne' :
+                                                'Faible'}
+                                    </div>
                                 </div>
                             </div>
                         </div>

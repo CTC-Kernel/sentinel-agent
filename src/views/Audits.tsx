@@ -76,22 +76,26 @@ export const Audits: React.FC = () => {
         } else if (deepLinkAction === 'create' && !creationMode) {
             setEditingAudit(null);
             setCreationMode(true);
+            // Consume action immediately
+            setSearchParams(params => {
+                params.delete('action');
+                return params;
+            }, { replace: true });
         }
-    }, [loading, deepLinkAuditId, deepLinkAction, audits, creationMode]);
+    }, [loading, deepLinkAuditId, deepLinkAction, audits, creationMode, setSearchParams]);
 
     // Cleanup Effect
     React.useEffect(() => {
         // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
         if (loading) return;
 
-        if (!selectedAudit && !creationMode && (deepLinkAuditId || deepLinkAction)) {
+        if (!selectedAudit && deepLinkAuditId) {
             setSearchParams(params => {
                 params.delete('id');
-                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [selectedAudit, creationMode, deepLinkAuditId, deepLinkAction, setSearchParams, loading]);
+    }, [selectedAudit, deepLinkAuditId, setSearchParams, loading]);
 
     const tabs = [
         { id: 'overview', label: t('audits.dashboard'), icon: LayoutDashboard },
