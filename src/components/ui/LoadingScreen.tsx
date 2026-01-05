@@ -19,10 +19,6 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
                     </div>
                 </div>
 
-                <h3 className="mt-8 text-lg font-bold text-slate-900 dark:text-white tracking-tight animate-pulse">
-                    Sentinel GRC
-                </h3>
-
                 {message && (
                     <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 font-medium animate-fade-in">
                         {message}
