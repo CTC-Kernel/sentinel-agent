@@ -1,0 +1,64 @@
+import { useState, useEffect, useCallback } from 'react';
+
+const STORAGE_KEY = 'sentinel_ai_summary';
+
+interface StoredSummary {
+    content: string;
+    timestamp: number;
+}
+
+export const useAIAnalysisPersistence = () => {
+    const [storedSummary, setStoredSummary] = useState<string | null>(null);
+
+    const getToday7AM = () => {
+        const now = new Date();
+        const sevenAM = new Date(now);
+        sevenAM.setHours(7, 0, 0, 0);
+        return sevenAM.getTime();
+    };
+
+    useEffect(() => {
+        try {
+            const item = localStorage.getItem(STORAGE_KEY);
+            if (item) {
+                const parsed: StoredSummary = JSON.parse(item);
+                const sevenAM = getToday7AM();
+
+                // Valid if created after today's 7 AM
+                if (parsed.timestamp > sevenAM) {
+                    setStoredSummary(parsed.content);
+                }
+            }
+        } catch (error) {
+            console.error('Error reading AI summary from storage:', error);
+        }
+    }, []);
+
+    const saveSummary = useCallback((content: string) => {
+        try {
+            const data: StoredSummary = {
+                content,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            setStoredSummary(content);
+        } catch (error) {
+            console.error('Error saving AI summary to storage:', error);
+        }
+    }, []);
+
+    const clearSummary = useCallback(() => {
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+            setStoredSummary(null);
+        } catch (error) {
+            console.error('Error clearing AI summary:', error);
+        }
+    }, []);
+
+    return {
+        storedSummary,
+        saveSummary,
+        clearSummary
+    };
+};

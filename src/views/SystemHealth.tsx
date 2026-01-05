@@ -27,7 +27,7 @@ export const SystemHealth: React.FC = () => {
         { name: 'Cloud Storage', status: storageStatus, icon: HardDrive, uptime: '99.99%' },
         { name: 'Edge Functions', status: edgeStatus, icon: Zap, uptime: '100%' },
         { name: 'CDN Global', status: 'operational', icon: Globe, uptime: '100%' }, // External check harder, assume operational
-        { name: 'AI Engine (Gemini)', status: 'operational', icon: Cpu, uptime: '99.9%' },
+        { name: 'AI Engine Cyber Threat Consulting', status: 'operational', icon: Cpu, uptime: '99.9%' },
     ];
 
     const getStatusColor = (status: string) => {
@@ -41,9 +41,9 @@ export const SystemHealth: React.FC = () => {
                 title="État du Système"
                 subtitle="Tableau de bord de supervision technique et disponibilité des services."
                 icon={
-                    <img 
-                        src="/images/administration.png" 
-                        alt="ADMINISTRATION" 
+                    <img
+                        src="/images/administration.png"
+                        alt="ADMINISTRATION"
                         className="w-full h-full object-contain"
                     />
                 }
