@@ -18,7 +18,7 @@ export const useRiskData = () => {
         audits: Audit[];
         projects: Project[];
         users: UserProfile[];
-    }>({ risks: [], assets: [], controls: [], processes: [], suppliers: [], incidents: [], audits: [], projects: [], users: [] });
+    }>({ risks: [], assets: [], controls: [], processes: [], suppliers: [], incidents: [], audits: [], projects: [], users: [] } as const);
     const [mockLoading, setMockLoading] = React.useState(true);
 
     React.useEffect(() => {

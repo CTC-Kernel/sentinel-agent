@@ -12,7 +12,7 @@ export const useIncidentsData = (organizationId?: string) => {
         risks: Risk[];
         users: UserProfile[];
         processes: BusinessProcess[];
-    }>({ incidents: [], assets: [], risks: [], users: [], processes: [] });
+    }>({ incidents: [], assets: [], risks: [], users: [], processes: [] } as const);
     const [mockLoading, setMockLoading] = React.useState(true);
 
     React.useEffect(() => {

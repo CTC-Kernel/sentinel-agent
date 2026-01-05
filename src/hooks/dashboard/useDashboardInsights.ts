@@ -38,7 +38,7 @@ const safeDate = (date: unknown): string => {
 
 // Helper to check for Timestamp-like object
 function apiIsTimestamp(x: unknown): x is { toDate: () => Date } {
-    return typeof x === 'object' && x !== null && 'toDate' in x && typeof (x as any).toDate === 'function';
+    return typeof x === 'object' && x !== null && 'toDate' in x && typeof (x as { toDate: unknown }).toDate === 'function';
 }
 
 export const useDashboardInsights = ({
