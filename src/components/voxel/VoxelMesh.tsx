@@ -5,7 +5,8 @@ import { Html, Text, Line } from '@react-three/drei';
 import { Group, Mesh, MeshPhysicalMaterial, Material, DoubleSide, AdditiveBlending } from 'three';
 import { VoxelNode, Risk, Project, Incident } from '../../types';
 import { VoxelDetailOverlay } from '../VoxelDetailOverlay';
-import { useModelLibrary, MODEL_LIBRARY_CONFIG } from '../../context/ModelLibraryContext';
+import { useModelLibrary } from '../../hooks/useModelLibrary';
+import { MODEL_LIBRARY_CONFIG } from '../../context/modelLibraryConstants';
 import { GlassMaterial, EdgesWithColor } from './VoxelMaterials';
 
 // Helper

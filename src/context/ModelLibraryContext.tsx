@@ -1,15 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ModelLibrary, loadSafe } from './modelLibraryConstants';
+import { ModelLibraryContext } from './ModelLibraryContextDefinition';
 
-const ModelLibraryContext = createContext<ModelLibrary | null>(null);
-
-export const useModelLibrary = (): ModelLibrary => {
-    const context = useContext(ModelLibraryContext);
-    if (!context) {
-        throw new Error('ModelLibraryContext must be used within ModelLibraryProvider');
-    }
-    return context;
-};
 
 const assetModelUrl = '/models/lock/lock.obj';
 const riskModelUrl = '/models/warning/warning.obj';
