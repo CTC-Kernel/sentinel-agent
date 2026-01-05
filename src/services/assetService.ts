@@ -41,7 +41,7 @@ export const AssetService = {
         const docRef = await addDoc(collection(db, 'assets'), newDoc);
 
         // Track storage usage if valid estimated size
-        const estSize = (cleanData as any).estimatedSizeMB || 0;
+        const estSize = (cleanData as unknown as Record<string, number>).estimatedSizeMB || 0;
         if (estSize > 0) {
             const orgRef = doc(db, 'organizations', user.organizationId);
             await updateDoc(orgRef, {
@@ -153,6 +153,7 @@ export const AssetService = {
 
         // We filter client side for the name to be safe
         const snap = await getDocs(simpleQ);
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         const logs = snap.docs.map(d => ({ id: d.id, ...d.data() } as any))
             .filter(l => l.details && l.details.includes(assetName));
 
@@ -169,6 +170,7 @@ export const AssetService = {
         const fetchRel = async (col: string, field: string) => {
             const q = query(collection(db, col), where('organizationId', '==', organizationId), where(field, 'array-contains', assetId));
             const s = await getDocs(q);
+            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
             return s.docs.map(d => ({ id: d.id, ...d.data() } as any));
         };
 

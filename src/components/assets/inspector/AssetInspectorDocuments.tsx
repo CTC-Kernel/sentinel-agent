@@ -4,7 +4,7 @@ import { EmptyState } from '../../ui/EmptyState';
 import { Tooltip as CustomTooltip } from '../../ui/Tooltip';
 
 interface AssetInspectorDocumentsProps {
-    linkedDocuments: any[]; // Ideally Document[]
+    linkedDocuments: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export const AssetInspectorDocuments: React.FC<AssetInspectorDocumentsProps> = ({

@@ -5,7 +5,7 @@ import { Asset, BusinessProcess } from '../../../types';
 
 interface AssetInspectorComplianceProps {
     selectedAsset: Asset;
-    linkedControls: any[]; // Ideally strict type Control[]
+    linkedControls: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
     processes: BusinessProcess[];
 }
 

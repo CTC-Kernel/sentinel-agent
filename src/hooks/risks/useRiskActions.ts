@@ -236,9 +236,10 @@ export const useRiskActions = (onRefresh: () => void) => {
                 try {
                     await FunctionsService.deleteResource('risks', id);
                     successCount++;
-                } catch (error: any) {
+                } catch (error) {
                     blockedCount++;
-                    if (error.message) errors.push(error.message);
+                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    if ((error as any).message) errors.push((error as any).message);
                 }
             }));
 

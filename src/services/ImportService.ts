@@ -326,7 +326,7 @@ export class ImportService {
     /**
      * Export Documents to CSV
      */
-    static exportDocuments(documents: any[]) {
+    static exportDocuments(documents: Record<string, unknown>[]) {
         const objectRows = documents.map(doc => ({
             "Titre": doc.title,
             "Type": doc.type,
@@ -372,14 +372,14 @@ export class ImportService {
     /**
      * Export Suppliers to CSV
      */
-    static exportSuppliers(suppliers: any[]) {
+    static exportSuppliers(suppliers: Record<string, unknown>[]) {
         const objectRows = suppliers.map(s => ({
             "Nom": s.name,
             "Catégorie": s.category,
             "Criticité": s.criticality,
             "Score Sécurité": s.securityScore?.toString() || '0',
             "Contact": s.contactEmail,
-            "Fin Contrat": s.contractEnd ? new Date(s.contractEnd).toLocaleDateString() : '',
+            "Fin Contrat": s.contractEnd ? new Date(s.contractEnd as string).toLocaleDateString() : '',
             "Statut": s.status
         }));
         this.downloadCSV(objectRows, `suppliers_export_${new Date().toISOString().split('T')[0]}.csv`);
@@ -388,7 +388,7 @@ export class ImportService {
     /**
      * Export DORA Register to CSV
      */
-    static exportDORARegister(suppliers: any[]) {
+    static exportDORARegister(suppliers: Record<string, unknown>[]) {
         const objectRows = suppliers.filter(s => s.isICTProvider).map(s => ({
             "Nom Fournisseur": s.name,
             "Type Service": s.serviceType || 'N/A',
@@ -396,10 +396,11 @@ export class ImportService {
             "Fonction Critique": s.supportsCriticalFunction ? 'OUI' : 'NON',
             "Criticité DORA": s.doraCriticality || 'None',
             "Localisation Données": 'UE (Simulé)', // Placeholder
-            "Date Contrat": s.contractEnd ? new Date(s.contractEnd).toLocaleDateString() : ''
+            "Date Contrat": s.contractEnd ? new Date(s.contractEnd as string).toLocaleDateString() : ''
         }));
         this.downloadCSV(objectRows, `dora_register_of_information_${new Date().toISOString().split('T')[0]}.csv`);
     }
+
     /**
      * Download CSV template for Business Processes (Continuity)
      */
@@ -448,7 +449,7 @@ export class ImportService {
     /**
      * Export Projects to CSV
      */
-    static exportProjects(projects: any[], filename: string) {
+    static exportProjects(projects: Record<string, unknown>[], filename: string) {
         const objectRows = projects.map(p => ({
             "Nom": p.name,
             "Statut": p.status,
@@ -477,15 +478,15 @@ export class ImportService {
     /**
      * Export Users to CSV
      */
-    static exportUsers(users: any[]) {
+    static exportUsers(users: Record<string, unknown>[]) {
         const objectRows = users.map(user => ({
             "UID": user.uid,
             "Email": user.email || '',
             "Nom": user.displayName || '',
             "Rôle": user.role || 'user',
             "Organisation": user.organizationId || '',
-            "Date de création": user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '',
-            "Dernière connexion": user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : ''
+            "Date de création": user.createdAt ? new Date(user.createdAt as string).toLocaleDateString() : '',
+            "Dernière connexion": user.lastLogin ? new Date(user.lastLogin as string).toLocaleDateString() : ''
         }));
 
         ImportService.downloadCSV(objectRows, `utilisateurs_export_${new Date().toISOString().split('T')[0]}.csv`);

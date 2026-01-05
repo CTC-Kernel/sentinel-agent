@@ -3,7 +3,7 @@ import { CheckSquare, CalendarClock, AlertTriangle } from '../../ui/Icons';
 import { EmptyState } from '../../ui/EmptyState';
 
 interface AssetInspectorAuditsProps {
-    linkedAudits: any[]; // Ideally Audit[]
+    linkedAudits: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export const AssetInspectorAudits: React.FC<AssetInspectorAuditsProps> = ({

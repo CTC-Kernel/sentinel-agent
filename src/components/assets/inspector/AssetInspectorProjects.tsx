@@ -5,7 +5,7 @@ import { Asset } from '../../../types';
 
 interface AssetInspectorProjectsProps {
     selectedAsset: Asset;
-    linkedProjects: any[]; // Ideally Project[]
+    linkedProjects: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export const AssetInspectorProjects: React.FC<AssetInspectorProjectsProps> = ({
