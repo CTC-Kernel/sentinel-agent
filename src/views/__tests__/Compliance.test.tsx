@@ -14,15 +14,16 @@ vi.mock('react-router-dom', () => ({
 }));
 
 // Mock store
-vi.mock('../../store', () => ({
-    useStore: () => ({
-        user: { 
-            organizationId: 'test-org', 
-            role: 'rssi', 
-            uid: 'test-user' 
-        },
+vi.mock('../../store', () => {
+    const mockGetState = vi.fn(() => ({
+        customRoles: [],
+        user: { organizationId: 'test-org', role: 'rssi', uid: 'test-user' }
+    }));
+    
+    const useStore = vi.fn(() => ({
+        user: mockGetState().user,
         addToast: vi.fn(),
-        t: (key: string) => {
+        t: (key: string): string => {
             const translations: Record<string, string> = {
                 'compliance.title': 'Conformité',
                 'compliance.subtitle': 'Gérez votre conformité',
@@ -33,11 +34,15 @@ vi.mock('../../store', () => ({
                 'frameworks.ISO27001': 'ISO 27001 (Sécurité SI)',
                 'frameworks.ISO22301': 'ISO 22301 (Continuité)',
                 'frameworks.NIS2': 'NIS 2 (Cyber UE)'
-            } as Record<string, string>;
+            };
             return translations[key] || key;
         }
-    })
-}));
+    }));
+    
+    (useStore as any).getState = mockGetState;
+    
+    return { useStore };
+});
 
 // Mock hooks
 vi.mock('../../hooks/useComplianceData', () => ({
