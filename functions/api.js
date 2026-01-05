@@ -7,9 +7,37 @@ const admin = require("firebase-admin");
 // Initialize Express app
 const app = express();
 
-// Automatically allow cross-origin requests
-app.use(cors({ origin: true }));
-app.use(express.json());
+// CORS Configuration - Whitelist approach for security
+const ALLOWED_ORIGINS = [
+    'https://app.cyber-threat-consulting.com',
+    'https://cyber-threat-consulting.com',
+    'https://sentinel-grc-a8701.web.app',
+    'https://sentinel-grc-a8701.firebaseapp.com',
+    // Development origins (consider removing in production)
+    process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : null,
+    process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : null,
+].filter(Boolean);
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, curl, etc.)
+        if (!origin) return callback(null, true);
+
+        if (ALLOWED_ORIGINS.includes(origin)) {
+            callback(null, true);
+        } else {
+            logger.warn(`CORS blocked request from unauthorized origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    maxAge: 600 // Cache preflight for 10 minutes
+};
+
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10kb' })); // Limit request body size
 
 // Middleware d'authentification
 const validateFirebaseIdToken = async (req, res, next) => {
