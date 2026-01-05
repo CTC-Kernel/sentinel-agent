@@ -25,6 +25,7 @@ import { CommandPalette } from './components/layout/CommandPalette';
 import { SEO } from './components/SEO';
 import { AuthGuard } from './components/auth/AuthGuard';
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute';
+import { CertifierAuthGuard } from './components/auth/CertifierAuthGuard';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { WifiOff } from './components/ui/Icons';
 import { NotificationPermissionBanner } from './components/ui/NotificationPermissionBanner';
@@ -241,7 +242,11 @@ const AppInner: React.FC = () => {
                             {/* Certifier Ecosystem Routes */}
                             <Route path="login" element={<CertifierLogin />} />
                             <Route path="register" element={<CertifierRegister />} />
-                            <Route path="dashboard" element={<CertifierDashboard />} />
+                            <Route path="dashboard" element={
+                                <CertifierAuthGuard>
+                                    <CertifierDashboard />
+                                </CertifierAuthGuard>
+                            } />
                         </Route>
 
                         {/* Main App Route - Handles all paths and sub-routes */}

@@ -30,11 +30,11 @@ export class OnboardingService {
         showProgress: true,
         animate: true,
         allowClose: true,
-        doneBtnText: "C'est parti !", // Will be overridden dynamically
+        doneBtnText: "Terminer",
         nextBtnText: "Suivant",
         prevBtnText: "Précédent",
-        progressText: "{{current}} sur {{total}}",
-        popoverClass: 'driverjs-theme-masterpiece',
+        progressText: "{{current}} / {{total}}",
+        popoverClass: 'driverjs-theme-sentinel',
         onDestroyed: () => {
             // Callback when tour ends or is skipped
             // Only mark the TOUR as seen locally
@@ -259,9 +259,9 @@ export class OnboardingService {
 
         this.driverInstance.setConfig({
             ...this.driverInstance.getConfig(),
-            doneBtnText: i18n.t('common.actions.finish') || "Terminer",
-            nextBtnText: i18n.t('common.actions.next') || "Suivant",
-            prevBtnText: i18n.t('common.actions.prev') || "Précédent",
+            doneBtnText: "Démarrer",
+            nextBtnText: "Suivant",
+            prevBtnText: "Précédent",
             steps: steps
         });
 
@@ -273,17 +273,17 @@ export class OnboardingService {
             {
                 element: '[data-tour="dashboard"]',
                 popover: {
-                    title: i18n.t('tour.welcome.title'),
-                    description: i18n.t('tour.welcome.desc'),
+                    title: 'Tableau de Bord',
+                    description: "Bienvenue sur Sentinel. Cet écran synthétise votre posture de sécurité en temps réel : conformité, risques critiques et incidents actifs.",
                     side: 'bottom',
                     align: 'center'
                 }
             },
             {
-                element: '[data-tour="sidebar"]', // Changed from sidebar-nav to sidebar
+                element: '[data-tour="sidebar"]',
                 popover: {
-                    title: i18n.t('tour.nav.title'),
-                    description: i18n.t('tour.nav.desc'),
+                    title: 'Navigation Principale',
+                    description: "Accédez à tous vos modules de gestion : Registres, Audits, Conformité et Paramètres. Tout est centralisé ici.",
                     side: 'right',
                     align: 'start'
                 }
@@ -421,26 +421,26 @@ export class OnboardingService {
             onDestroyed: () => this.markModuleTourSeen('risks'),
             steps: [
                 {
-                    element: '[data-tour="risks-create"]',
+                    element: '[data-tour="risks-stats"]',
                     popover: {
-                        title: i18n.t('tour.risks.create.title') || "Créer un Risque",
-                        description: i18n.t('tour.risks.create.desc') || "Démarrez ici pour ajouter un nouveau risque au registre.",
-                        side: 'bottom', align: 'start'
+                        title: "Vue d'Ensemble",
+                        description: "Analysez instantanément votre exposition financière et la répartition de vos risques (Brut vs Net). Ces indicateurs se mettent à jour dynamiquement.",
+                        side: 'left', align: 'start'
                     }
                 },
                 {
-                    element: '[data-tour="risks-stats"]',
+                    element: '[data-tour="risks-create"]',
                     popover: {
-                        title: i18n.t('tour.risks.stats.title') || "Vue d'ensemble",
-                        description: i18n.t('tour.risks.stats.desc') || "Suivez la répartition (Brut vs Net) et la couverture des risques.",
-                        side: 'left', align: 'start'
+                        title: "Ajouter un Risque",
+                        description: "Déclarez un nouveau risque dans votre registre. Plus la description est précise, meilleure sera l'analyse contextuelle de l'IA.",
+                        side: 'bottom', align: 'start'
                     }
                 },
                 {
                     element: '[data-tour="risks-filters"]',
                     popover: {
-                        title: i18n.t('tour.risks.filters.title') || "Filtres Avancés",
-                        description: i18n.t('tour.risks.filters.desc') || "Filtrez par scénario, gravité ou statut pour cibler l'essentiel.",
+                        title: "Filtres et Recherche",
+                        description: "Retrouvez rapidement des menaces spécifiques en filtrant par scénario, impact ou niveau de criticité.",
                         side: 'bottom', align: 'start'
                     }
                 }
@@ -460,27 +460,27 @@ export class OnboardingService {
             onDestroyed: () => this.markModuleTourSeen('assets'),
             steps: [
                 {
+                    element: '[data-tour="assets-list"]',
+                    popover: {
+                        title: "Inventaire des Actifs",
+                        description: "Retrouvez ici la liste complète de vos actifs (Serveurs, Applications, Locaux). Chaque actif doit être classifié selon sa sensibilité (DICP).",
+                        side: 'top', align: 'start'
+                    }
+                },
+                {
                     element: '[data-tour="assets-add"]',
                     popover: {
-                        title: i18n.t('tour.assets.add.title') || "Ajouter un Actif",
-                        description: i18n.t('tour.assets.add.desc') || "Déclarez vos serveurs, applications ou locaux ici.",
+                        title: "Déclarer un Actif",
+                        description: "Ajoutez un nouvel élément à votre inventaire. Lier des actifs entre eux permet de mieux comprendre la propagation des risques.",
                         side: 'bottom', align: 'start'
                     }
                 },
                 {
                     element: '[data-tour="assets-export"]',
                     popover: {
-                        title: i18n.t('tour.assets.export.title') || "Export & Rapports",
-                        description: i18n.t('tour.assets.export.desc') || "Générez un inventaire complet PDF ou CSV en un clic.",
+                        title: "Rapports & Exports",
+                        description: "Exportez votre inventaire au format PDF ou CSV pour vos audits réglementaires ou revues de direction.",
                         side: 'bottom', align: 'center'
-                    }
-                },
-                {
-                    element: '[data-tour="assets-list"]',
-                    popover: {
-                        title: i18n.t('tour.assets.list.title') || "Inventaire",
-                        description: i18n.t('tour.assets.list.desc') || "Visualisez, modifiez et classez vos actifs par criticité.",
-                        side: 'top', align: 'start'
                     }
                 }
             ]
@@ -501,24 +501,24 @@ export class OnboardingService {
                 {
                     element: '[data-tour="compliance-scorecard"]',
                     popover: {
-                        title: i18n.t('tour.compliance.score.title') || "Score de Conformité",
-                        description: i18n.t('tour.compliance.score.desc') || "Votre progression en temps réel vers l'objectif (ex: ISO 27001).",
+                        title: "Score de Conformité",
+                        description: "Suivez votre progression vers les standards cibles (ISO 27001, DORA, NIS 2). L'objectif est d'atteindre 100% de couverture.",
                         side: 'bottom', align: 'start'
                     }
                 },
                 {
                     element: '[data-tour="compliance-controls"]',
                     popover: {
-                        title: i18n.t('tour.compliance.controls.title') || "Contrôles",
-                        description: i18n.t('tour.compliance.controls.desc') || "Gérez les preuves et l'efficacité de chaque mesure de sécurité.",
+                        title: "Contrôles de Sécurité",
+                        description: "Gérez l'implémentation de vos mesures. Chaque contrôle doit être documenté et prouvé pour être valide.",
                         side: 'left', align: 'start'
                     }
                 },
                 {
                     element: '[data-tour="compliance-soa"]',
                     popover: {
-                        title: i18n.t('tour.compliance.soa.title') || "Déclaration d'Applicabilité",
-                        description: i18n.t('tour.compliance.soa.desc') || "Générez votre SoA (Statement of Applicability) automatiquement.",
+                        title: "Déclaration d'Applicabilité (SoA)",
+                        description: "Générez automatiquement votre SoA, document indispensable pour justifier le périmètre de votre certification.",
                         side: 'bottom', align: 'start'
                     }
                 }
@@ -540,8 +540,8 @@ export class OnboardingService {
                 {
                     element: '[data-tour="analytics-trends"]',
                     popover: {
-                        title: '📈 Tendances',
-                        description: 'Analysez l\'évolution de vos risques et incidents sur la durée.',
+                        title: 'Analyse des Tendances',
+                        description: 'Visualisez l\'évolution historique de vos métriques. Idéal pour démontrer l\'amélioration continue lors des revues de direction.',
                         side: 'bottom', align: 'center'
                     }
                 }
@@ -563,16 +563,16 @@ export class OnboardingService {
                 {
                     element: '[data-tour="incidents-add"]',
                     popover: {
-                        title: 'Nouveau Signalement',
-                        description: 'Signalez un incident de sécurité ou une violation de données.',
+                        title: "Signaler un Incident",
+                        description: "Déclarez rapidement toute anomalie ou violation de sécurité. La réactivité est clé pour limiter l'impact.",
                         side: 'bottom', align: 'start'
                     }
                 },
                 {
                     element: '[data-tour="incidents-timeline"]',
                     popover: {
-                        title: '⏱️ Timeline Visuelle',
-                        description: 'Suivez le cycle de vie de l\'incident, de la détection à la clôture.',
+                        title: "Chronologie de l'Incident",
+                        description: "Suivez et documentez chaque étape de la gestion de l'incident, de sa détection jusqu'à sa clôture officielle.",
                         side: 'left', align: 'center'
                     }
                 }
@@ -594,8 +594,8 @@ export class OnboardingService {
                 {
                     element: '[data-tour="backup-schedule"]',
                     popover: {
-                        title: '📅 Planification',
-                        description: 'Configurez la fréquence et la rétention de vos sauvegardes.',
+                        title: 'Politique de Sauvegarde',
+                        description: 'Configurez la fréquence et la rétention de vos sauvegardes pour garantir la résilience de vos données (RPO).',
                         side: 'bottom', align: 'center'
                     }
                 }
@@ -617,16 +617,16 @@ export class OnboardingService {
                 {
                     element: '[data-tour="audits-new"]',
                     popover: {
-                        title: 'Planifier un Audit',
-                        description: 'Créez un nouvel audit interne, externe ou de certification.',
+                        title: 'Nouvel Audit',
+                        description: 'Planifiez une mission d\'audit (Interne, Fournisseur ou de Certification) et assignez un auditeur.',
                         side: 'bottom', align: 'start'
                     }
                 },
                 {
                     element: '[data-tour="audits-dashboard"]',
                     popover: {
-                        title: 'Vue d\'ensemble',
-                        description: 'Suivez l\'avancement de vos audits et les non-conformités détectées.',
+                        title: 'Suivi des Missions',
+                        description: 'Pilotez l\'avancement de vos audits et suivez la résolution des non-conformités détectées.',
                         side: 'bottom', align: 'center'
                     }
                 }
@@ -646,19 +646,19 @@ export class OnboardingService {
             onDestroyed: () => this.markModuleTourSeen('suppliers'),
             steps: [
                 {
-                    element: '[data-tour="suppliers-new"]',
-                    popover: {
-                        title: 'Nouveau Fournisseur',
-                        description: 'Ajoutez un tiers à votre inventaire pour l\'évaluer.',
-                        side: 'bottom', align: 'start'
-                    }
-                },
-                {
                     element: '[data-tour="suppliers-dashboard"]',
                     popover: {
                         title: 'Gestion des Tiers',
-                        description: 'Analysez la criticité et le score de sécurité de vos fournisseurs (DORA).',
+                        description: 'Surveillez le niveau de risque de vos fournisseurs. Un suivi rigoureux est essentiel pour la conformité DORA.',
                         side: 'bottom', align: 'center'
+                    }
+                },
+                {
+                    element: '[data-tour="suppliers-new"]',
+                    popover: {
+                        title: 'Ajout de Fournisseur',
+                        description: 'Référencez un nouveau partenaire et évaluez sa criticité pour votre activité.',
+                        side: 'bottom', align: 'start'
                     }
                 }
             ]
@@ -680,15 +680,15 @@ export class OnboardingService {
                     element: '[data-tour="continuity-dashboard"]',
                     popover: {
                         title: 'Continuité d\'Activité',
-                        description: 'Gérez vos plans de continuité (PCA/PRA) et visualisez vos indicateurs de résilience.',
+                        description: 'Visualisez l\'état de vos plans de continuité (PCA/PRA). Assurez-vous que votre organisation est prête à faire face aux crises.',
                         side: 'bottom', align: 'center'
                     }
                 },
                 {
                     element: '[data-tour="continuity-tabs"]',
                     popover: {
-                        title: 'Navigation BIA et Stratégies',
-                        description: 'Accédez aux analyses d\'impact (BIA), aux stratégies de secours et à la gestion de crise via ces onglets.',
+                        title: 'BIA & Stratégies',
+                        description: 'Naviguez entre vos Analyses d\'Impact (BIA) et vos stratégies de secours définies.',
                         side: 'bottom', align: 'center'
                     }
                 }
@@ -710,8 +710,8 @@ export class OnboardingService {
                 {
                     element: '[data-tour="documents-upload"]',
                     popover: {
-                        title: 'Importer des Documents',
-                        description: 'Stockez vos politiques, procédures et preuves ici.',
+                        title: 'Importer un Document',
+                        description: 'Ajoutez des politiques, procédures ou preuves d\'audit. Vos documents sont sécurisés et versionnés.',
                         side: 'bottom', align: 'start'
                     }
                 },
@@ -719,7 +719,7 @@ export class OnboardingService {
                     element: '[data-tour="documents-folders"]',
                     popover: {
                         title: 'Organisation',
-                        description: 'Classez vos fichiers par dossiers pour une meilleure gestion.',
+                        description: 'Utilisez les dossiers pour structurer votre base documentaire (ex: par chapitre ISO 27001).',
                         side: 'right', align: 'start'
                     }
                 }
@@ -742,7 +742,7 @@ export class OnboardingService {
                     element: '[data-tour="projects-create"]',
                     popover: {
                         title: 'Nouveau Projet',
-                        description: 'Lancez un projet de mise en conformité ou de sécurisation.',
+                        description: 'Lancez un projet de conformité ou de sécurisation. Définissez objectifs, échéances et responsables.',
                         side: 'bottom', align: 'start'
                     }
                 },
@@ -750,7 +750,7 @@ export class OnboardingService {
                     element: '[data-tour="projects-kanban"]',
                     popover: {
                         title: 'Suivi Kanban',
-                        description: 'Gérez l\'avancement des tâches visuellement.',
+                        description: 'Pilotez l\'avancement de vos tâches de manière visuelle et collaborative.',
                         side: 'bottom', align: 'center'
                     }
                 }

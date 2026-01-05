@@ -46,7 +46,11 @@ export const ExternalAuditPortal: React.FC = () => {
 
     useEffect(() => {
         const loadAudit = async () => {
-            if (!token) return;
+            if (!token || token.length < 10) {
+                setError(t('certifier.portal.invalidLink'));
+                setLoading(false);
+                return;
+            }
             try {
                 // Determine if we are in a dev environment and mocking is needed or if real call works
                 // For now, assuming real call
@@ -54,9 +58,16 @@ export const ExternalAuditPortal: React.FC = () => {
                 const result = await getAuditFn({ token });
                 setAuditData(result.data as SharedAuditData);
             } catch (_err: unknown) {
-                const errorMessage = _err instanceof Error ? _err.message : t('certifier.portal.defaultError');
+                let errorMessage = t('certifier.portal.defaultError');
+                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                const err = _err as any;
+
+                if (err.code === 'not-found') errorMessage = t('certifier.portal.notFound');
+                else if (err.code === 'permission-denied') errorMessage = t('certifier.portal.expiredOrInvalid');
+                else if (err.message) errorMessage = err.message;
+
                 setError(errorMessage);
-                ErrorLogger.error(_err as Error, 'ExternalAuditPortal.load'); // Fixed usage
+                ErrorLogger.error(_err as Error, 'ExternalAuditPortal.load');
             } finally {
                 setLoading(false);
             }

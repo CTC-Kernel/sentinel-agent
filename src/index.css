@@ -247,76 +247,76 @@ h6 {
 
 /* Global Scrollbar Hiding - COMPLETE */
 *::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 * {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 /* Firefox */
 * {
-    scrollbar-width: none !important;
+  scrollbar-width: none !important;
 }
 
 /* Modern Styled Scrollbar - When explicitly needed */
 .styled-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
 }
 
 .styled-scrollbar::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+  width: 8px;
+  height: 8px;
 }
 
 .styled-scrollbar::-webkit-scrollbar-track {
-    background: rgba(148, 163, 184, 0.1);
-    border-radius: 4px;
+  background: rgba(148, 163, 184, 0.1);
+  border-radius: 4px;
 }
 
 .styled-scrollbar::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, rgba(148, 163, 184, 0.4), rgba(148, 163, 184, 0.6));
-    border-radius: 4px;
-    border: 2px solid rgba(148, 163, 184, 0.2);
-    background-clip: content-box;
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.4), rgba(148, 163, 184, 0.6));
+  border-radius: 4px;
+  border: 2px solid rgba(148, 163, 184, 0.2);
+  background-clip: content-box;
 }
 
 .styled-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, rgba(148, 163, 184, 0.6), rgba(148, 163, 184, 0.8));
-    border: 2px solid rgba(148, 163, 184, 0.4);
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.6), rgba(148, 163, 184, 0.8));
+  border: 2px solid rgba(148, 163, 184, 0.4);
 }
 
 .styled-scrollbar::-webkit-scrollbar-thumb:active {
-    background: linear-gradient(135deg, rgba(148, 163, 184, 0.8), rgba(148, 163, 184, 0.9));
-    border: 2px solid rgba(148, 163, 184, 0.6);
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.8), rgba(148, 163, 184, 0.9));
+  border: 2px solid rgba(148, 163, 184, 0.6);
 }
 
 /* Dark mode styled scrollbar */
 .dark .styled-scrollbar {
-    scrollbar-color: rgba(30, 41, 59, 0.3) transparent;
+  scrollbar-color: rgba(30, 41, 59, 0.3) transparent;
 }
 
 .dark .styled-scrollbar::-webkit-scrollbar-track {
-    background: rgba(30, 41, 59, 0.1);
+  background: rgba(30, 41, 59, 0.1);
 }
 
 .dark .styled-scrollbar::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(99, 102, 241, 0.6));
-    border: 2px solid rgba(99, 102, 241, 0.2);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(99, 102, 241, 0.6));
+  border: 2px solid rgba(99, 102, 241, 0.2);
 }
 
 .dark .styled-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.6), rgba(99, 102, 241, 0.8));
-    border: 2px solid rgba(99, 102, 241, 0.4);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.6), rgba(99, 102, 241, 0.8));
+  border: 2px solid rgba(99, 102, 241, 0.4);
 }
 
 .dark .styled-scrollbar::-webkit-scrollbar-thumb:active {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(99, 102, 241, 0.9));
-    border: 2px solid rgba(99, 102, 241, 0.6);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(99, 102, 241, 0.9));
+  border: 2px solid rgba(99, 102, 241, 0.6);
 }
 
 /* Ceramic/Glass Panel - Enhanced contrast */
@@ -829,7 +829,111 @@ body.voxel-fullscreen header {
 }
 
 
-/* (Previous Driver.js Theme block removed - Consolidated above) */
+/* Sentinel AI Driver.js Theme */
+.driverjs-theme-sentinel .driver-popover {
+  background-color: rgba(15, 23, 42, 0.95);
+  color: #fff;
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 1rem;
+  box-shadow:
+    0 0 0 1px rgba(124, 58, 237, 0.1),
+    0 20px 25px -5px rgba(0, 0, 0, 0.5),
+    0 8px 10px -6px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(124, 58, 237, 0.15);
+  backdrop-filter: blur(12px);
+  padding: 1.5rem;
+  max-width: 400px;
+}
+
+.driverjs-theme-sentinel .driver-popover-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #a78bfa;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.driverjs-theme-sentinel .driver-popover-title::before {
+  content: "◉";
+  color: #ef4444;
+  font-size: 0.8em;
+  animation: pulse-red 2s infinite;
+}
+
+.driverjs-theme-sentinel .driver-popover-description {
+  font-size: 0.95rem;
+  color: #cbd5e1;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.driverjs-theme-sentinel .driver-popover-footer {
+  margin-top: 1.5rem;
+}
+
+.driverjs-theme-sentinel .driver-popover-btn {
+  background-color: rgba(124, 58, 237, 0.1);
+  color: #a78bfa;
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  text-shadow: none;
+}
+
+.driverjs-theme-sentinel .driver-popover-btn:hover {
+  background-color: rgba(124, 58, 237, 0.2);
+  color: #fff;
+  border-color: rgba(124, 58, 237, 0.4);
+}
+
+.driverjs-theme-sentinel .driver-popover-btn-primary {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.driverjs-theme-sentinel .driver-popover-btn-primary:hover {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+}
+
+.driverjs-theme-sentinel .driver-popover-progress-text {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.driverjs-theme-sentinel .driver-popover-close-btn {
+  color: #64748b;
+}
+
+.driverjs-theme-sentinel .driver-popover-close-btn:hover {
+  color: #cbd5e1;
+}
+
+@keyframes pulse-red {
+  0% {
+    opacity: 1;
+    text-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
+  }
+
+  50% {
+    opacity: 0.5;
+    text-shadow: none;
+  }
+
+  100% {
+    opacity: 1;
+    text-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
+  }
+}
 
 /* SAFETY FIX: Force pointer events on interactive elements to prevent overlay blocking */
 input,
