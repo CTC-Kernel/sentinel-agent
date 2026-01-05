@@ -8,12 +8,22 @@ import { sanitizeData } from '../utils/dataSanitizer';
 import { RISK_TEMPLATES } from '../data/riskTemplates';
 
 export const useThreats = () => {
-    const { user, addToast } = useStore();
+    const { user, addToast, demoMode } = useStore();
     const [threats, setThreats] = useState<ThreatTemplate[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!user?.organizationId) return;
+
+        // Demo Mode Logic
+        if (demoMode) {
+            setLoading(true);
+            import('../services/mockDataService').then(({ MockDataService }) => {
+                setThreats(MockDataService.getCollection('threat_library') as ThreatTemplate[]);
+                setLoading(false);
+            });
+            return;
+        }
 
         setLoading(true);
         const q = query(collection(db, 'threat_library'), where('organizationId', '==', user.organizationId));
@@ -29,10 +39,14 @@ export const useThreats = () => {
         });
 
         return () => unsubscribe();
-    }, [user?.organizationId, addToast]);
+    }, [user?.organizationId, addToast, demoMode]);
 
     const addThreat = async (threat: Partial<ThreatTemplate>) => {
         if (!user?.organizationId) return;
+        if (demoMode) {
+            addToast("Action non disponible en mode démo", "info");
+            return;
+        }
         try {
             const dataToSave = sanitizeData({
                 ...threat,
@@ -51,6 +65,10 @@ export const useThreats = () => {
     };
 
     const updateThreat = async (id: string, updates: Partial<ThreatTemplate>) => {
+        if (demoMode) {
+            addToast("Action non disponible en mode démo", "info");
+            return;
+        }
         try {
             // Ensure ID is not in the update payload
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -66,6 +84,10 @@ export const useThreats = () => {
     };
 
     const deleteThreat = async (id: string) => {
+        if (demoMode) {
+            addToast("Action non disponible en mode démo", "info");
+            return;
+        }
         try {
             await deleteDoc(doc(db, 'threat_library', id));
             addToast("Menace supprimée", "success");
@@ -79,6 +101,10 @@ export const useThreats = () => {
 
     const seedStandardThreats = async () => {
         if (!user?.organizationId) return;
+        if (demoMode) {
+            addToast("Action non disponible en mode démo", "info");
+            return;
+        }
         try {
             const batch = writeBatch(db); // Note: RISK_TEMPLATES is small (<100), no chunk needed
             let count = 0;

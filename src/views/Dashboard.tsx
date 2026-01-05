@@ -37,7 +37,7 @@ export const Dashboard: React.FC = () => {
     const [organizationLogo, setOrganizationLogo] = useState<string | undefined>(undefined);
     const [error, setError] = useState<string | null>(null);
 
-    const { user, theme, addToast, t } = useStore();
+    const { user, theme, addToast, t, demoMode, toggleDemoMode } = useStore();
     // Use new hook for persistence
     const [gettingStartedState, setGettingStartedState] = useGettingStartedState(user?.uid);
 
@@ -181,6 +181,33 @@ export const Dashboard: React.FC = () => {
                     description={t('dashboard.seoDescription')}
                     keywords={t('dashboard.seoKeywords')}
                 />
+
+                {/* Demo Mode Banner */}
+                {demoMode && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="glass-panel p-4 rounded-xl border border-blue-200/50 dark:border-blue-800/50 flex items-center justify-between bg-blue-50/50 dark:bg-blue-900/20"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-slate-900 dark:text-white text-sm">Mode Démo Actif</h4>
+                                <p className="text-xs text-slate-600 dark:text-slate-300">Vous explorez des données fictives. Les modifications ne seront pas sauvegardées.</p>
+                            </div>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={toggleDemoMode}
+                            className="text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                        >
+                            Quitter le mode démo
+                        </Button>
+                    </motion.div>
+                )}
 
                 <DashboardHeader
                     user={user}

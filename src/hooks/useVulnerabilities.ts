@@ -9,7 +9,7 @@ import { ThreatFeedService } from '../services/ThreatFeedService';
 import { logAction } from '../services/logger';
 
 export const useVulnerabilities = () => {
-    const { user, addToast } = useStore();
+    const { user, addToast, demoMode } = useStore();
     const [vulnerabilities, setVulnerabilities] = useState<Vulnerability[]>([]);
     const [loading, setLoading] = useState(true);
     const initialLoadRef = useRef(false);
@@ -17,8 +17,17 @@ export const useVulnerabilities = () => {
     useEffect(() => {
         if (!user?.organizationId) return;
 
-        // setLoading(true); // Can cause cascade render logic error in current React version
+        // Demo Mode Logic
+        if (demoMode) {
+            setLoading(true);
+            import('../services/mockDataService').then(({ MockDataService }) => {
+                setVulnerabilities(MockDataService.getCollection('vulnerabilities') as Vulnerability[]);
+                setLoading(false);
+            });
+            return;
+        }
 
+        // Firestore Logic
         const q = query(collection(db, 'vulnerabilities'), where('organizationId', '==', user.organizationId));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -32,10 +41,10 @@ export const useVulnerabilities = () => {
         });
 
         return () => unsubscribe();
-    }, [user?.organizationId, addToast]);
+    }, [user?.organizationId, addToast, demoMode]);
 
     const seedCisaKev = useCallback(async () => {
-        if (!user?.organizationId) return;
+        if (!user?.organizationId || demoMode) return;
         try {
             const kevVulns = await ThreatFeedService.fetchCisaKev();
             if (kevVulns.length > 0) {
@@ -57,18 +66,22 @@ export const useVulnerabilities = () => {
             ErrorLogger.warn((error as Error).message, 'useVulnerabilities.seedCisaKev');
             // optional: toast
         }
-    }, [user, addToast]);
+    }, [user, addToast, demoMode]);
 
     // Auto-seed CISA KEV
     useEffect(() => {
-        if (!loading && vulnerabilities.length === 0 && !initialLoadRef.current && user?.organizationId) {
+        if (!loading && vulnerabilities.length === 0 && !initialLoadRef.current && user?.organizationId && !demoMode) {
             initialLoadRef.current = true;
             seedCisaKev();
         }
-    }, [loading, vulnerabilities.length, user?.organizationId, seedCisaKev]);
+    }, [loading, vulnerabilities.length, user?.organizationId, seedCisaKev, demoMode]);
 
     const addVulnerability = async (vuln: Partial<Vulnerability>) => {
         if (!user?.organizationId) return;
+        if (demoMode) {
+            addToast("Action non disponible en mode démo", "info");
+            return;
+        }
         try {
             const dataToSave = sanitizeData({
                 ...vuln,
@@ -87,6 +100,10 @@ export const useVulnerabilities = () => {
     };
 
     const updateVulnerability = async (id: string, updates: Partial<Vulnerability>) => {
+        if (demoMode) {
+            addToast("Action non disponible en mode démo", "info");
+            return;
+        }
         try {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { id: _unused, ...safeUpdates } = updates;
@@ -99,19 +116,6 @@ export const useVulnerabilities = () => {
 
             // Business Logic: If status changed to Resolved/Patch Applied, update related Risk
             if (updates.status && (updates.status === 'Resolved' || updates.status === 'Patch Applied')) {
-                // Fetch the current vulenrability to get the relatedRiskId if not in updates
-                // Or we can query. But since we don't have the full object here comfortably without fetching or prop drilling...
-                // Ideally we should have the full object.
-                // For now, let's try to fetch it to be safe.
-                /* 
-                   Wait, 'updates' might not have 'relatedRiskId'. 
-                   But we can do a query to find the risk that links to this vulnerability?
-                   Or we check if the *current* vulnerability (retrieved from state or snapshot) has it.
-                   But state access inside this async function might be stale or complex.
-                   Better to read the doc we just updated or use a query.
-                */
-
-                // Let's assume we can fetch the risk by matching 'relatedVulnerabilityId'
                 const riskQuery = query(collection(db, 'risks'), where('relatedVulnerabilityId', '==', id));
                 const riskSnap = await import('firebase/firestore').then(mod => mod.getDocs(riskQuery));
 
@@ -136,6 +140,10 @@ export const useVulnerabilities = () => {
     };
 
     const deleteVulnerability = async (id: string) => {
+        if (demoMode) {
+            addToast("Action non disponible en mode démo", "info");
+            return;
+        }
         try {
             await deleteDoc(doc(db, 'vulnerabilities', id));
             logAction(user!, 'DELETE', 'Vulnerabilities', `Deleted Vulnerability ID: ${id}`);
@@ -150,6 +158,10 @@ export const useVulnerabilities = () => {
 
     const createRiskFromVuln = async (vuln: Vulnerability) => {
         if (!user?.organizationId || !vuln.id) return;
+        if (demoMode) {
+            addToast("Action non disponible en mode démo", "info");
+            return;
+        }
         try {
             const riskData = {
                 organizationId: user.organizationId,
@@ -189,6 +201,10 @@ export const useVulnerabilities = () => {
 
     const importVulnerabilities = async (vulns: Partial<Vulnerability>[]) => {
         if (!user?.organizationId) return;
+        if (demoMode) {
+            addToast("Action non disponible en mode démo", "info");
+            return;
+        }
         try {
             const batchPromises = vulns.map(v =>
                 addDoc(collection(db, 'vulnerabilities'), {

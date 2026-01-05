@@ -21,7 +21,7 @@ import { UserProfile } from '../../types';
 import { getDefaultAvatarUrl } from '../../utils/avatarUtils';
 
 export const ProfileSettings: React.FC = () => {
-    const { user, setUser, addToast, t, language, setLanguage } = useStore();
+    const { user, setUser, addToast, t, language, setLanguage, demoMode, toggleDemoMode } = useStore();
     const { updateUser } = useTeamData();
     const [savingProfile, setSavingProfile] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -324,6 +324,34 @@ export const ProfileSettings: React.FC = () => {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+
+                        <div className="border-t border-slate-200 dark:border-white/10 my-6"></div>
+
+                        {/* Application Settings (Demo Mode) */}
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Mode Démo</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    Activez le mode démo pour explorer l'application avec des données fictives complètes.
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                                <Switch
+                                    checked={demoMode}
+                                    onChange={() => {
+                                        toggleDemoMode();
+                                        addToast(demoMode ? "Mode Démo désactivé" : "Mode Démo activé", "info");
+                                    }}
+                                />
+                                <div className="flex-1">
+                                    <h4 className="font-medium text-slate-900 dark:text-white">Activer le Mode Démo</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        Ceci remplacera temporairement vos données par des données de démonstration.
+                                        Aucune donnée réelle ne sera modifiée.
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
