@@ -9,6 +9,7 @@ import { Tooltip as CustomTooltip } from '../ui/Tooltip';
 import { canDeleteResource } from '../../utils/permissions';
 import { motion } from 'framer-motion';
 import { slideUpVariants } from '../ui/animationVariants';
+import { getUserAvatarUrl } from '../../utils/avatarUtils';
 
 import { useStore } from '../../store';
 
@@ -63,14 +64,23 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         {
             accessorKey: 'manager',
             header: t('projects.columns.manager'),
-            cell: ({ row }) => (
-                <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-xs font-bold text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-800">
-                        {row.original.manager.charAt(0)}
+            cell: ({ row }) => {
+                const managerUser = usersList.find(u => u.uid === row.original.managerId);
+                return (
+                    <div className="flex items-center gap-2">
+                        <img
+                            src={getUserAvatarUrl(managerUser?.photoURL, managerUser?.role)}
+                            alt={row.original.manager}
+                            className="w-6 h-6 rounded-full border border-brand-200 dark:border-brand-800 object-cover"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = getUserAvatarUrl(null, managerUser?.role);
+                            }}
+                        />
+                        <span className="text-sm text-slate-700 dark:text-slate-300">{row.original.manager}</span>
                     </div>
-                    <span className="text-sm text-slate-700 dark:text-slate-300">{row.original.manager}</span>
-                </div>
-            )
+                );
+            }
         },
         {
             id: 'members',
@@ -85,9 +95,15 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                     <div className="flex -space-x-2">
                         {displayMembers.map(m => (
                             <CustomTooltip key={m.uid} content={m.displayName || m.email}>
-                                <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-300 cursor-help">
-                                    {m.displayName ? m.displayName.charAt(0) : '?'}
-                                </div>
+                                <img
+                                    src={getUserAvatarUrl(m.photoURL, m.role)}
+                                    alt={m.displayName || 'Membre'}
+                                    className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 object-cover bg-slate-100 dark:bg-slate-800"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = getUserAvatarUrl(null, m.role);
+                                    }}
+                                />
                             </CustomTooltip>
                         ))}
                         {remaining > 0 && (

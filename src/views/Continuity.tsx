@@ -289,6 +289,7 @@ export const Continuity: React.FC = () => {
                     risks={risks}
                     suppliers={suppliers}
                     drills={drills}
+                    users={users}
                 />
             )}
 

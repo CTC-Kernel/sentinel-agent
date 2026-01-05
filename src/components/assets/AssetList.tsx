@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Asset, Criticality, UserProfile } from '../../types';
+import { getUserAvatarUrl } from '../../utils/avatarUtils';
 import { DataTable } from '../ui/DataTable';
 import { Server, Edit, Trash2, Tag } from '../ui/Icons';
 import { CardSkeleton } from '../ui/Skeleton';
@@ -21,6 +22,7 @@ interface AssetListProps {
     canEdit: boolean;
     activeFiltersQuery?: string;
     onBulkDelete?: (ids: string[]) => void;
+    users?: UserProfile[];
 }
 
 const getCriticalityColor = (level: Criticality) => {
@@ -43,7 +45,8 @@ export const AssetList = React.memo<AssetListProps>(({
     activeFiltersQuery,
     canEdit,
     onGenerateLabel,
-    isGeneratingLabels
+    isGeneratingLabels,
+    users
 }) => {
     const { t } = useStore();
     const canDelete = canDeleteResource(user, 'Asset');
@@ -52,7 +55,28 @@ export const AssetList = React.memo<AssetListProps>(({
         { header: t('common.name'), accessorKey: 'name', cell: ({ row }) => <span className="font-bold text-slate-900 dark:text-white">{row.original.name}</span> },
         { header: t('common.type'), accessorKey: 'type' },
         { header: t('common.criticality'), accessorKey: 'confidentiality', cell: ({ row }) => <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm ${getCriticalityColor(row.original.confidentiality)}`}>{row.original.confidentiality}</span> },
-        { header: t('common.owner'), accessorKey: 'owner' },
+        {
+            header: t('common.owner'),
+            accessorKey: 'owner',
+            cell: ({ row }) => {
+                const ownerName = row.original.owner;
+                const ownerUser = users?.find(u => u.displayName === ownerName || u.email === ownerName);
+                return (
+                    <div className="flex items-center gap-2">
+                        <img
+                            src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
+                            alt={ownerName}
+                            className="w-6 h-6 rounded-full border border-slate-200 dark:border-slate-700 object-cover bg-slate-100 dark:bg-slate-800"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = getUserAvatarUrl(null, ownerUser?.role);
+                            }}
+                        />
+                        <span className="font-medium text-slate-700 dark:text-slate-300">{ownerName}</span>
+                    </div>
+                );
+            }
+        },
         {
             header: t('common.status'),
             accessorKey: 'lifecycleStatus',
@@ -107,7 +131,7 @@ export const AssetList = React.memo<AssetListProps>(({
                 </div>
             )
         }
-    ], [canEdit, isGeneratingLabels, onEdit, onDelete, onGenerateLabel, user, t]);
+    ], [canEdit, isGeneratingLabels, onEdit, onDelete, onGenerateLabel, user, t, users]);
 
     if (viewMode === 'list') {
         return (
@@ -209,7 +233,22 @@ export const AssetList = React.memo<AssetListProps>(({
                                     </div>
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{asset.name}</h3>
-                                <p className="text-xs text-slate-600 font-medium mb-4">{asset.type} • {asset.owner}</p>
+                                <div className="flex items-center gap-2 mb-4">
+                                    <span className="text-xs text-slate-600 font-medium">{asset.type}</span>
+                                    <span className="text-slate-400">•</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <img
+                                            src={getUserAvatarUrl(users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.photoURL, users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.role)}
+                                            alt={asset.owner}
+                                            className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.src = getUserAvatarUrl(null, users?.find(u => u.displayName === asset.owner || u.email === asset.owner)?.role);
+                                            }}
+                                        />
+                                        <span className="text-xs text-slate-600 font-medium">{asset.owner}</span>
+                                    </div>
+                                </div>
 
                                 <div className="mt-auto pt-4 border-t border-dashed border-slate-200 dark:border-white/10 flex justify-between items-center">
                                     <div className="flex items-center gap-2">

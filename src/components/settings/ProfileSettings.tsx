@@ -163,13 +163,13 @@ export const ProfileSettings: React.FC = () => {
                     <div className="flex-shrink-0 w-full md:w-auto flex flex-col items-center space-y-4">
                         <div className="relative group mx-auto">
                             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl ring-4 ring-slate-100 dark:ring-white/5">
-                                <img 
-                                    src={getDefaultAvatarUrl()} 
-                                    alt={user?.displayName || 'User'} 
-                                    className="w-full h-full object-cover" 
+                                <img
+                                    src={getDefaultAvatarUrl(user?.role)}
+                                    alt={user?.displayName || 'User'}
+                                    className="w-full h-full object-cover"
                                     onError={(e) => {
                                         const target = e.target as HTMLImageElement;
-                                        target.src = getDefaultAvatarUrl();
+                                        target.src = getDefaultAvatarUrl(user?.role);
                                     }}
                                 />
                                 <div

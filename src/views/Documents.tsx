@@ -3,7 +3,8 @@ import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
 import { useLocation } from 'react-router-dom';
-import { Document } from '../types';
+import { Document, UserProfile } from '../types';
+import { getUserAvatarUrl } from '../utils/avatarUtils';
 import { canEditResource } from '../utils/permissions';
 import { Plus, MoreVertical, FileText, Upload, Bell, History, CheckCircle2, Edit, FileSpreadsheet } from '../components/ui/Icons';
 import { CardSkeleton, ListSkeleton } from '../components/ui/Skeleton';
@@ -481,6 +482,7 @@ export const Documents: React.FC = () => {
                                             doc={doc}
                                             viewMode={viewMode}
                                             onSelect={setSelectedDocument}
+                                            users={effectiveUsers}
                                         />
                                     ))}
                                 </div>
@@ -542,8 +544,9 @@ export const Documents: React.FC = () => {
 };
 
 // Mini-component for rendering card (Internal)
-const MemoizedDocumentCard = React.memo(({ doc, viewMode, onSelect }: { doc: Document; viewMode: string; onSelect: (d: Document) => void }) => {
+const MemoizedDocumentCard = React.memo(({ doc, viewMode, onSelect, users }: { doc: Document; viewMode: string; onSelect: (d: Document) => void; users: UserProfile[] }) => {
     const handleClick = React.useCallback(() => onSelect(doc), [onSelect, doc]);
+    const ownerUser = users.find(u => u.displayName === doc.owner || u.email === doc.owner);
 
     return (
         <div
@@ -552,7 +555,24 @@ const MemoizedDocumentCard = React.memo(({ doc, viewMode, onSelect }: { doc: Doc
         >
             <div className="flex-1">
                 <h4 className="font-bold text-slate-800 dark:text-white truncate">{doc.title}</h4>
-                <p className="text-sm text-slate-500 truncate">{doc.type} • v{doc.version}</p>
+                <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm text-slate-500 truncate">{doc.type}</span>
+                    <span className="text-slate-300 dark:text-slate-600">•</span>
+                    <span className="text-sm text-slate-500">v{doc.version}</span>
+                    <span className="text-slate-300 dark:text-slate-600">•</span>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                        <img
+                            src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
+                            alt={doc.owner}
+                            className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800 flex-shrink-0"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = getUserAvatarUrl(null, ownerUser?.role);
+                            }}
+                        />
+                        <span className="text-sm text-slate-500 truncate">{doc.owner}</span>
+                    </div>
+                </div>
             </div>
             <div>
                 <span className={`px-2 py-1 rounded-full text-xs font-bold ${doc.status === 'Publié' || doc.status === 'Approuvé' ? 'bg-emerald-100 text-emerald-800' :

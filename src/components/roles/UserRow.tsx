@@ -29,9 +29,9 @@ export const UserRow: React.FC<UserRowProps> = ({
         <tr className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
             <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center gap-3">
-                    <img 
+                    <img
                         alt={user.displayName || 'User'}
-                        src={getUserAvatarUrl(user.photoURL)}
+                        src={getUserAvatarUrl(user.photoURL, user.role)}
                         className="h-10 w-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800"
                     />
                     <div>

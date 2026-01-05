@@ -15,6 +15,7 @@ interface DashboardStats {
     highRisks: number;
     openIncidents: number;
     complianceRate: number;
+    compliance: number;
     totalAssets: number;
     activeProjects: number;
 }

@@ -296,12 +296,34 @@ export const useAuditDetails = (
         finally { setIsValidating(false); }
     };
 
+    const updateAuditDetails = async (data: Partial<Audit>) => {
+        if (!selectedAudit || !user?.organizationId) return;
+        try {
+            const cleanData = sanitizeData(data);
+            // Prevent status update from here, use validateAudit for that
+            delete cleanData.status;
+
+            await updateDoc(doc(db, 'audits', selectedAudit.id), {
+                ...cleanData,
+                updatedAt: serverTimestamp(),
+                updatedBy: user.uid
+            });
+            await logAction(user, 'UPDATE', 'Audit', `Audit mis à jour: ${cleanData.name || selectedAudit.name}`);
+            addToast("Audit mis à jour", "success");
+            refreshAudits();
+            return true;
+        } catch (e) {
+            ErrorLogger.handleErrorWithToast(e, 'useAuditDetails.update', 'UPDATE_FAILED');
+            return false;
+        }
+    };
+
     return {
         findings, checklist, fetchDetails,
         handleAddFinding, handleDeleteFinding,
         generateChecklist, handleChecklistAnswer, markAllConform,
         handleEvidenceUploadForFinding,
-        generateAuditReport, handleExportPack, validateAudit,
+        generateAuditReport, handleExportPack, validateAudit, updateAuditDetails,
         isGeneratingReport, isValidating
     };
 };

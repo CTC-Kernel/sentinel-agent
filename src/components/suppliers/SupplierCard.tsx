@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
-import { Supplier, Criticality } from '../../types';
+import { Supplier, Criticality, UserProfile } from '../../types';
 import { Building, Truck, ShieldAlert } from '../ui/Icons';
+import { getUserAvatarUrl } from '../../utils/avatarUtils';
 // Focus indicators: focus-visible:ring-2 applied globally via CSS
 
 const getCriticalityColor = (c: Criticality) => {
@@ -22,9 +23,10 @@ interface SupplierCardProps {
     supplier: Supplier;
     onClick: (supplier: Supplier) => void;
     onDelete?: () => void;
+    users?: UserProfile[]; // Optional to avoid breaking if not passed yet
 }
 
-export const SupplierCard = memo(({ supplier, onClick }: SupplierCardProps) => {
+export const SupplierCard = memo(({ supplier, onClick, users }: SupplierCardProps) => {
     const isExpired = supplier.contractEnd && new Date(supplier.contractEnd) < new Date();
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -81,7 +83,26 @@ export const SupplierCard = memo(({ supplier, onClick }: SupplierCardProps) => {
 
                 <div className="mt-auto pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                     <div className="flex items-center">
-                        {supplier.contactName && <span className="font-medium mr-1">{supplier.contactName}</span>}
+                        {supplier.contactName && (
+                            <div className="flex items-center gap-2">
+                                <img
+                                    src={(() => {
+                                        const contactUser = users?.find(u =>
+                                            (supplier.contactName && u.displayName === supplier.contactName) ||
+                                            (supplier.contactEmail && u.email === supplier.contactEmail)
+                                        );
+                                        return getUserAvatarUrl(contactUser?.photoURL, contactUser?.role || 'user');
+                                    })()}
+                                    alt={supplier.contactName}
+                                    className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = getUserAvatarUrl(null, 'user');
+                                    }}
+                                />
+                                <span className="font-medium mr-1">{supplier.contactName}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

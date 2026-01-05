@@ -4,7 +4,8 @@ import { HeartPulse, LayoutDashboard, Server, ClipboardCheck, Edit, Trash2 } fro
 import { slideUpVariants } from '../ui/animationVariants';
 import { CardSkeleton } from '../ui/Skeleton';
 import { EmptyState } from '../ui/EmptyState';
-import { BusinessProcess } from '../../types';
+import { BusinessProcess, UserProfile } from '../../types';
+import { getUserAvatarUrl } from '../../utils/avatarUtils';
 
 interface ContinuityBIAProps {
     processes: BusinessProcess[];
@@ -13,9 +14,10 @@ interface ContinuityBIAProps {
     onOpenInspector: (proc: BusinessProcess) => void;
     onNewProcess: () => void;
     onDelete?: (id: string) => void;
+    users?: UserProfile[];
 }
 
-export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading, viewMode, onOpenInspector, onNewProcess, onDelete }) => {
+export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading, viewMode, onOpenInspector, onNewProcess, onDelete, users }) => {
     const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
     const handleDelete = async (id: string) => {
@@ -77,6 +79,8 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                             {processes.map(proc => {
                                 const lastTest = proc.lastTestDate ? new Date(proc.lastTestDate) : null;
                                 const isOverdue = lastTest ? (new Date().getTime() - lastTest.getTime() > 31536000000) : true;
+                                const ownerUser = users?.find(u => u.displayName === proc.owner || u.email === proc.owner);
+
                                 return (
                                     <tr
                                         key={proc.id}
@@ -101,7 +105,20 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                                         </td>
                                         <td className="px-6 py-5 font-mono text-slate-600 dark:text-slate-300 font-bold">{proc.rto}</td>
                                         <td className="px-6 py-5 font-mono text-slate-600 dark:text-slate-300 font-bold">{proc.rpo}</td>
-                                        <td className="px-6 py-5 text-slate-600 dark:text-slate-400">{proc.owner}</td>
+                                        <td className="px-6 py-5 text-slate-600 dark:text-slate-400">
+                                            <div className="flex items-center gap-2">
+                                                <img
+                                                    src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
+                                                    alt={proc.owner}
+                                                    className="w-5 h-5 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.src = getUserAvatarUrl(null, ownerUser?.role);
+                                                    }}
+                                                />
+                                                <span>{proc.owner}</span>
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-5">
                                             <span className={`font-bold text-xs px-2 py-1 rounded ${isOverdue ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
                                                 {proc.lastTestDate ? new Date(proc.lastTestDate).toLocaleDateString() : 'Jamais'}
@@ -148,6 +165,7 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
             {processes.map(proc => {
                 const lastTest = proc.lastTestDate ? new Date(proc.lastTestDate) : null;
                 const isOverdue = lastTest ? (new Date().getTime() - lastTest.getTime() > 31536000000) : true; // 1 year
+                const ownerUser = users?.find(u => u.displayName === proc.owner || u.email === proc.owner);
 
                 return (
                     <div
@@ -185,7 +203,18 @@ export const ContinuityBIA: React.FC<ContinuityBIAProps> = ({ processes, loading
                         <div className="space-y-3 pt-4 border-t border-dashed border-gray-200 dark:border-white/10">
                             <div className="flex items-center justify-between text-xs">
                                 <span className="flex items-center font-bold text-slate-500 uppercase tracking-wide"><LayoutDashboard className="h-3 w-3 mr-1.5" /> Responsable</span>
-                                <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[150px]">{proc.owner}</span>
+                                <span className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[150px] flex items-center gap-2">
+                                    <img
+                                        src={getUserAvatarUrl(ownerUser?.photoURL, ownerUser?.role)}
+                                        alt={proc.owner}
+                                        className="w-4 h-4 rounded-full object-cover bg-slate-100 dark:bg-slate-800"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.src = getUserAvatarUrl(null, ownerUser?.role);
+                                        }}
+                                    />
+                                    {proc.owner}
+                                </span>
                             </div>
                             <div className="flex items-center justify-between text-xs">
                                 <span className="flex items-center font-bold text-slate-500 uppercase tracking-wide"><Server className="h-3 w-3 mr-1.5" /> Dépendances</span>

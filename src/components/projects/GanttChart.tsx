@@ -132,7 +132,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({ tasks, viewMode, onViewM
         const user = users.find(u => u.displayName === assigneeName || u.email === assigneeName);
         return (
             <img
-                src={getUserAvatarUrl(user?.photoURL)}
+                src={getUserAvatarUrl(user?.photoURL, user?.role)}
                 alt={assigneeName}
                 className="w-6 h-6 rounded-full border border-white dark:border-slate-700 shadow-sm object-cover"
             />

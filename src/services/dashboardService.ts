@@ -68,14 +68,15 @@ export class DashboardService {
     /**
      * Fetch saved executive summary
      */
-    static async getExecutiveSummary(organizationId: string): Promise<{ summary: string; generatedAt: string } | null> {
+    static async getExecutiveSummary(organizationId: string): Promise<{ summary: string; generatedAt: string; metricsSnapshot?: { compliance: number } } | null> {
         try {
             const docSnap = await getDoc(doc(db, 'dashboard_summaries', organizationId));
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 return {
                     summary: data.summary,
-                    generatedAt: data.generatedAt
+                    generatedAt: data.generatedAt,
+                    metricsSnapshot: data.metricsSnapshot
                 };
             }
             return null;
@@ -87,11 +88,12 @@ export class DashboardService {
     /**
      * Save executive summary
      */
-    static async saveExecutiveSummary(organizationId: string, summary: string, generatedAt: string): Promise<void> {
+    static async saveExecutiveSummary(organizationId: string, summary: string, generatedAt: string, metricsSnapshot?: { compliance: number }): Promise<void> {
         try {
             await setDoc(doc(db, 'dashboard_summaries', organizationId), {
                 summary,
                 generatedAt,
+                metricsSnapshot,
                 updatedAt: new Date().toISOString()
             }, { merge: true });
         } catch (_error) {
