@@ -1,26 +1,29 @@
 import { PdfService } from '../services/PdfService';
 import { BusinessProcess, BcpDrill } from '../types';
 
+/**
+ * Generate a Business Continuity Plan (BCP) Report
+ * Fixed: Proper layout positioning to prevent element overlap
+ */
 export const generateContinuityReport = (processes: BusinessProcess[], drills: BcpDrill[]) => {
     // 1. Calculate Metrics
     const totalProcesses = processes.length;
     const criticalProcesses = processes.filter(p => p.priority === 'Critique').length;
     const protectedProcesses = processes.filter(p => p.rto && p.rpo).length;
 
-    // Fake trend for now
     const successfulDrills = drills.filter(d => d.result === 'Succès').length;
     const drillSuccessRate = drills.length > 0 ? Math.round((successfulDrills / drills.length) * 100) : 0;
 
     const summary = `
-    Synthèse de Continuité d'Activité
-    
-    État de Préparation : ${drillSuccessRate > 80 ? 'Optimisé' : 'En développement'}
-    
-    Vue d'ensemble :
-    L'organisation a identifié ${totalProcesses} processus métier critiques. Parmi eux, ${criticalProcesses} sont classés comme vitaux pour la survie de l'entreprise. À ce jour, ${protectedProcesses} processus disposent de stratégies de continuité définies (RTO/RPO).
-    
-    Résilience Opérationnelle :
-    Le programme d'exercices affiche un taux de succès de ${drillSuccessRate}%. ${drills.length} tests ont été réalisés pour valider les procédures de secours.
+Synthèse de Continuité d'Activité
+
+État de Préparation : ${drillSuccessRate > 80 ? 'Optimisé' : 'En développement'}
+
+Vue d'ensemble :
+L'organisation a identifié ${totalProcesses} processus métier critiques. Parmi eux, ${criticalProcesses} sont classés comme vitaux pour la survie de l'entreprise. À ce jour, ${protectedProcesses} processus disposent de stratégies de continuité définies (RTO/RPO).
+
+Résilience Opérationnelle :
+Le programme d'exercices affiche un taux de succès de ${drillSuccessRate}%. ${drills.length} tests ont été réalisés pour valider les procédures de secours.
     `.trim();
 
     PdfService.generateExecutiveReport(
@@ -29,9 +32,6 @@ export const generateContinuityReport = (processes: BusinessProcess[], drills: B
             subtitle: "Analyse d'Impact Métier (BIA) et Résilience",
             filename: "rapport_continuite_activite.pdf",
             orientation: 'portrait',
-            // We assume Organization Name is passed or hardcoded if missing. 
-            // The original function didn't take organization name. 
-            // We'll use a default or fetch it later if we refactor the call signature.
             organizationName: 'Sentinel GRC',
             summary: summary,
             metrics: [
@@ -45,69 +45,109 @@ export const generateContinuityReport = (processes: BusinessProcess[], drills: B
                 { label: 'Standard', value: processes.filter(p => p.priority === 'Moyenne' || p.priority === 'Faible').length, color: '#3B82F6' },
             ]
         },
-        (doc, y) => {
-            let currentY = y;
+        (doc, startY) => {
+            let currentY = startY;
             const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+            const marginLeft = 14;
+            const marginRight = 14;
+            const contentWidth = pageWidth - marginLeft - marginRight;
+            const bottomMargin = 30;
 
-            // 1. BIA Table
+            // === SECTION 1: BIA Table ===
             doc.setFontSize(14);
             doc.setTextColor('#334155');
             doc.setFont('helvetica', 'bold');
-            doc.text("Analyse d'Impact Métier (BIA)", 14, currentY);
-            currentY += 10;
+            doc.text("Analyse d'Impact Métier (BIA)", marginLeft, currentY);
+            currentY += 8;
 
             const biaData = processes.map(p => [
-                p.name,
-                p.priority,
-                p.rto,
-                p.rpo,
-                p.priority
+                p.name || 'N/A',
+                p.priority || 'N/A',
+                p.rto || 'N/A',
+                p.rpo || 'N/A',
+                p.priority || 'N/A'
             ]);
 
-            doc.autoTable({
-                startY: currentY,
-                head: [['Processus', 'Priorité', 'RTO', 'RPO', 'Niveau']],
-                body: biaData,
-                headStyles: { fillColor: '#0F172A' },
-                theme: 'striped'
-            });
+            if (biaData.length > 0) {
+                doc.autoTable({
+                    startY: currentY,
+                    head: [['Processus', 'Priorité', 'RTO', 'RPO', 'Niveau']],
+                    body: biaData,
+                    headStyles: { fillColor: '#0F172A', textColor: '#FFFFFF' },
+                    theme: 'striped',
+                    styles: { fontSize: 9 },
+                    margin: { left: marginLeft, right: marginRight, bottom: bottomMargin }
+                });
+                currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
+            } else {
+                doc.setFontSize(10);
+                doc.setTextColor('#64748B');
+                doc.setFont('helvetica', 'italic');
+                doc.text("Aucun processus métier défini.", marginLeft, currentY + 5);
+                currentY += 15;
+            }
 
-            currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 20;
+            // === SECTION 2: Drills Section with Donut Chart ===
+            // Check if we need a new page
+            const drillSectionHeight = 80; // Approximate height needed
+            if (currentY + drillSectionHeight > pageHeight - bottomMargin) {
+                doc.addPage();
+                currentY = 35;
+            }
 
-            // 2. Drills Section
             doc.setFontSize(14);
             doc.setTextColor('#334155');
             doc.setFont('helvetica', 'bold');
-            doc.text("Exercices & Tests de Continuité", 14, currentY);
+            doc.text("Exercices & Tests de Continuité", marginLeft, currentY);
+
+            // Draw Donut Chart to the RIGHT of the title (properly positioned)
+            const donutRadius = 18;
+            const donutX = pageWidth - marginRight - donutRadius * 2 - 30; // Position from right edge
+            const donutY = currentY + 5; // Below title line
+
+            if (drills.length > 0) {
+                PdfService.drawDonutChart(
+                    doc,
+                    donutX,
+                    donutY,
+                    donutRadius,
+                    [
+                        { label: 'Succès', value: successfulDrills, color: '#10B981' },
+                        { label: 'Échec', value: drills.length - successfulDrills, color: '#EF4444' }
+                    ],
+                    `${drillSuccessRate}%`,
+                    false
+                );
+            }
+
             currentY += 10;
 
-            // Draw Drill Stats if possible (Pie chart?)
-            PdfService.drawDonutChart(
-                doc,
-                pageWidth - 60,
-                currentY - 20, // Align with title kinda
-                20,
-                [
-                    { label: 'Succès', value: successfulDrills, color: '#10B981' },
-                    { label: 'Échec', value: drills.length - successfulDrills, color: '#EF4444' }
-                ]
-            );
-
+            // Drills Table - positioned below title but with reduced width to not overlap donut
             const drillData = drills.map(d => [
-                new Date(d.date).toLocaleDateString(),
-                d.type,
-                d.notes || '-',
-                d.result,
-                '-' // Duration
+                d.date ? new Date(d.date).toLocaleDateString('fr-FR') : 'N/A',
+                d.type || 'N/A',
+                d.notes ? (d.notes.length > 30 ? d.notes.substring(0, 27) + '...' : d.notes) : '-',
+                d.result || 'N/A'
             ]);
 
-            doc.autoTable({
-                startY: currentY + 10,
-                head: [['Date', 'Type', 'Notes', 'Résultat', 'Durée']],
-                body: drillData,
-                headStyles: { fillColor: '#10B981' },
-                theme: 'striped'
-            });
+            if (drillData.length > 0) {
+                doc.autoTable({
+                    startY: currentY,
+                    head: [['Date', 'Type', 'Notes', 'Résultat']],
+                    body: drillData,
+                    headStyles: { fillColor: '#10B981', textColor: '#FFFFFF' },
+                    theme: 'striped',
+                    styles: { fontSize: 9 },
+                    tableWidth: contentWidth - (donutRadius * 2 + 40), // Reduce width to avoid donut
+                    margin: { left: marginLeft, right: marginRight + donutRadius * 2 + 40, bottom: bottomMargin }
+                });
+            } else {
+                doc.setFontSize(10);
+                doc.setTextColor('#64748B');
+                doc.setFont('helvetica', 'italic');
+                doc.text("Aucun exercice de continuité enregistré.", marginLeft, currentY + 5);
+            }
         }
     );
 };

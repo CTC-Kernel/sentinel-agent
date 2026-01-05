@@ -34,6 +34,15 @@ export class PdfService {
     // Chart Colors
     private static readonly CHART_COLORS = ['#0F172A', '#3B82F6', '#10B981', '#F59E0B', '#EF4444'];
 
+    // Layout Constants - Consistent margins across the entire service
+    private static readonly MARGIN_LEFT = 14;
+    private static readonly MARGIN_RIGHT = 14;
+    private static readonly MARGIN_TOP = 35;
+    private static readonly MARGIN_BOTTOM = 30; // Consistent bottom margin for footer
+    private static readonly FOOTER_HEIGHT = 25; // Footer takes 25mm
+    private static readonly LINE_HEIGHT = 6;
+    private static readonly SECTION_SPACING = 15;
+
     /**
      * Initialize a new PDF document with standard settings
      */
@@ -133,7 +142,7 @@ export class PdfService {
         const pageCount = doc.getNumberOfPages();
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
-        const footerStartY = pageHeight - 25; // Increased footer area from 15mm to 25mm
+        const footerStartY = pageHeight - this.FOOTER_HEIGHT;
 
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
@@ -141,15 +150,15 @@ export class PdfService {
             // Divider Line
             doc.setDrawColor(this.BORDER_COLOR);
             doc.setLineWidth(0.1);
-            doc.line(14, footerStartY, pageWidth - 14, footerStartY);
+            doc.line(this.MARGIN_LEFT, footerStartY, pageWidth - this.MARGIN_RIGHT, footerStartY);
 
             // Footer Text
             doc.setFontSize(8);
             doc.setTextColor(this.TEXT_SECONDARY);
-            doc.text(footerText, 14, footerStartY + 10);
+            doc.text(footerText, this.MARGIN_LEFT, footerStartY + 10);
 
             // Page Number
-            doc.text(`Page ${i} sur ${pageCount}`, pageWidth - 14, footerStartY + 10, { align: 'right' });
+            doc.text(`Page ${i} sur ${pageCount}`, pageWidth - this.MARGIN_RIGHT, footerStartY + 10, { align: 'right' });
 
             // Bottom Accent
             doc.setFillColor(this.BRAND_PRIMARY);
@@ -383,9 +392,7 @@ export class PdfService {
 
     /**
      * Generate a generic Executive Report with Premium Cover Page
-     */
-    /**
-     * Generate a generic Executive Report with Premium Cover Page
+     * Fixed: Proper Y positioning, metrics layout, and page break handling
      */
     static generateExecutiveReport(
         options: ReportOptions & {
@@ -401,6 +408,7 @@ export class PdfService {
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
         const dateStr = format(new Date(), 'dd MMMM yyyy', { locale: fr });
+        const contentWidth = pageWidth - this.MARGIN_LEFT - this.MARGIN_RIGHT;
 
         // --- PREMIUM COVER PAGE ---
         this.addCoverPage(doc, options);
@@ -411,71 +419,95 @@ export class PdfService {
             this.addHeader(doc, options.title, "Synthèse Exécutive");
 
             // Section Title
-            doc.setFontSize(24);
+            doc.setFontSize(20);
             doc.setTextColor(this.BRAND_SECONDARY);
             doc.setFont('helvetica', 'bold');
-            doc.text("Synthèse Exécutive", 14, 45);
+            doc.text("Synthèse Exécutive", this.MARGIN_LEFT, 45);
 
             // Decorative underline
             doc.setDrawColor(this.BRAND_PRIMARY);
             doc.setLineWidth(1);
-            doc.line(14, 50, 40, 50);
+            doc.line(this.MARGIN_LEFT, 50, this.MARGIN_LEFT + 30, 50);
 
             // Summary Content
-            doc.setFontSize(11);
+            doc.setFontSize(10);
             doc.setTextColor(this.TEXT_PRIMARY);
             doc.setFont('helvetica', 'normal');
 
-            let currentY = 70;
+            let currentY = 60;
             currentY = this.addSafeText(
                 doc,
                 options.summary,
-                19,
+                this.MARGIN_LEFT + 5,
                 currentY,
-                pageWidth - 38,
-                5,
+                contentWidth - 10,
+                this.LINE_HEIGHT,
                 pageHeight,
-                20,
+                this.MARGIN_BOTTOM,
                 options
             );
-            currentY += 15;
+            currentY += this.SECTION_SPACING;
 
             // --- METRICS ROW ---
             if (options.metrics && options.metrics.length > 0) {
-                // Check if we need a new page for metrics (approx 35mm needed)
-                currentY = this.checkAndAddPage(doc, 35, currentY, options);
+                const metricCount = Math.min(options.metrics.length, 4); // Max 4 metrics per row
+                const metricCardHeight = 32;
+                const metricRowHeight = metricCardHeight + 10;
 
-                const cardWidth = 45;
-                const cardGap = 10;
-                let cardX = 19;
+                // Check if we need a new page for metrics
+                currentY = this.checkAndAddPage(doc, metricRowHeight, currentY, options);
 
-                options.metrics.forEach(metric => {
-                    if (cardX + cardWidth > pageWidth - 14) return; // Prevent overflow
-                    this.drawMetricCard(doc, cardX, currentY, cardWidth, 25, metric.label, metric.value, metric.subtext);
-                    cardX += cardWidth + cardGap;
+                // Calculate card dimensions dynamically
+                const totalGap = (metricCount - 1) * 8; // 8mm gap between cards
+                const cardWidth = (contentWidth - totalGap) / metricCount;
+                let cardX = this.MARGIN_LEFT;
+
+                options.metrics.slice(0, metricCount).forEach((metric, index) => {
+                    this.drawMetricCard(
+                        doc,
+                        cardX,
+                        currentY,
+                        cardWidth,
+                        metricCardHeight,
+                        metric.label,
+                        metric.value,
+                        metric.subtext
+                    );
+                    cardX += cardWidth + 8;
                 });
-                currentY += 35;
+                currentY += metricRowHeight;
             }
 
             // --- STATS CHART ---
             if (options.stats && options.stats.length > 0) {
-                // Check if we need a new page for stats (approx 70mm needed)
-                currentY = this.checkAndAddPage(doc, 70, currentY, options);
+                const chartHeight = 70;
+                const chartTitleHeight = 15;
+                const totalChartHeight = chartHeight + chartTitleHeight;
+
+                // Check if we need a new page for stats
+                currentY = this.checkAndAddPage(doc, totalChartHeight, currentY, options);
 
                 doc.setFontSize(14);
                 doc.setTextColor(this.BRAND_SECONDARY);
                 doc.setFont('helvetica', 'bold');
-                doc.text("Analyses", 19, currentY);
-                currentY += 10;
+                doc.text("Analyses", this.MARGIN_LEFT, currentY);
+                currentY += chartTitleHeight;
 
-                this.drawBarChart(doc, 19, currentY, pageWidth - 38, 60, options.stats);
+                this.drawBarChart(
+                    doc,
+                    this.MARGIN_LEFT,
+                    currentY,
+                    contentWidth,
+                    chartHeight - 10, // Leave space for labels below
+                    options.stats
+                );
             }
         }
 
         // --- CONTENT PAGES ---
         doc.addPage();
         this.addHeader(doc, options.title, options.subtitle || dateStr, options);
-        renderContent(doc, 35);
+        renderContent(doc, this.MARGIN_TOP);
 
         this.addFooter(doc, options.footerText);
 
@@ -497,6 +529,7 @@ export class PdfService {
 
     /**
      * Draw a modern Bar Chart with enhanced styling
+     * Fixed: Value display positioning to avoid overlap with short bars
      */
     static drawBarChart(
         doc: jsPDF,
@@ -508,11 +541,17 @@ export class PdfService {
         title?: string,
         showTrend: boolean = false
     ) {
+        // Prevent rendering if no data
+        if (!data || data.length === 0) return;
+
+        // Reserve space for title if provided
+        let chartStartY = y;
         if (title) {
             doc.setFontSize(14);
             doc.setTextColor(this.TEXT_PRIMARY);
             doc.setFont('helvetica', 'bold');
-            doc.text(title, x, y - 8);
+            doc.text(title, x, chartStartY);
+            chartStartY += 8;
 
             // Add subtitle with trend indicator
             if (showTrend && data.length > 0) {
@@ -520,93 +559,117 @@ export class PdfService {
                 doc.setFontSize(9);
                 doc.setTextColor(avgTrend > 0 ? '#10B981' : avgTrend < 0 ? '#EF4444' : '#64748B');
                 const trendSymbol = avgTrend > 0 ? '↗' : avgTrend < 0 ? '↘' : '→';
-                doc.text(`${trendSymbol} ${Math.abs(avgTrend).toFixed(1)}% vs période précédente`, x, y - 2);
+                doc.text(`${trendSymbol} ${Math.abs(avgTrend).toFixed(1)}% vs période précédente`, x, chartStartY);
+                chartStartY += 6;
             }
         }
 
-        const maxValue = Math.max(...data.map(d => d.value)) || 100;
-        const barWidth = (width / data.length) * 0.65; // Increased bar width
-        const spacing = (width / data.length) * 0.35;
-        let currentX = x;
+        // Adjust chart height to account for title space used
+        const actualChartHeight = height - (chartStartY - y);
+        const maxValue = Math.max(...data.map(d => d.value), 1); // Ensure at least 1 to avoid division by zero
+        const barWidth = Math.min((width / data.length) * 0.65, 40); // Cap bar width for readability
+        const spacing = (width - (barWidth * data.length)) / (data.length + 1);
+        let currentX = x + spacing;
 
         // Draw enhanced background grid
         doc.setDrawColor(this.BORDER_COLOR);
         doc.setLineWidth(0.05);
         for (let i = 0; i <= 5; i++) {
-            const gridY = y + (height * (1 - i / 5));
+            const gridY = chartStartY + (actualChartHeight * (1 - i / 5));
             doc.line(x, gridY, x + width, gridY);
 
             // Add value labels on Y axis
             doc.setFontSize(7);
             doc.setTextColor(this.TEXT_SECONDARY);
-            doc.text(Math.round(maxValue * (i / 5)).toString(), x - 5, gridY + 1, { align: 'right' });
+            doc.text(Math.round(maxValue * (i / 5)).toString(), x - 3, gridY + 1, { align: 'right' });
         }
 
         // Draw Axis Line
         doc.setDrawColor(this.BRAND_PRIMARY);
         doc.setLineWidth(0.2);
-        doc.line(x, y + height, x + width, y + height);
+        doc.line(x, chartStartY + actualChartHeight, x + width, chartStartY + actualChartHeight);
 
         data.forEach((item, index) => {
-            const barHeight = (item.value / maxValue) * height;
+            const barHeight = Math.max((item.value / maxValue) * actualChartHeight, 2); // Minimum bar height of 2mm
             const color = item.color || this.CHART_COLORS[index % this.CHART_COLORS.length];
 
             // Enhanced Bar Background with gradient effect (simulated)
             doc.setFillColor(this.ACCENT_COLOR);
-            doc.roundedRect(currentX, y, barWidth, height, 1, 1, 'F');
+            doc.roundedRect(currentX, chartStartY, barWidth, actualChartHeight, 1, 1, 'F');
 
             // Actual Bar with gradient effect
             if (barHeight > 0) {
                 // Main bar
                 doc.setFillColor(color);
-                doc.roundedRect(currentX, y + height - barHeight, barWidth, barHeight, 1, 1, 'F');
+                doc.roundedRect(currentX, chartStartY + actualChartHeight - barHeight, barWidth, barHeight, 1, 1, 'F');
 
-                // Add top highlight for 3D effect
-                doc.setFillColor(255, 255, 255, 0.3);
-                doc.roundedRect(currentX + 1, y + height - barHeight, barWidth - 2, 2, 1, 1, 'F');
+                // Add top highlight for 3D effect (only if bar is tall enough)
+                if (barHeight > 4) {
+                    doc.setFillColor(255, 255, 255, 0.3);
+                    doc.roundedRect(currentX + 1, chartStartY + actualChartHeight - barHeight, barWidth - 2, 2, 1, 1, 'F');
+                }
             }
 
-            // Enhanced Label with truncation
+            // Enhanced Label with smart truncation
             doc.setFontSize(8);
             doc.setTextColor(this.TEXT_SECONDARY);
             doc.setFont('helvetica', 'normal');
-            const labelWidth = doc.getTextWidth(item.label);
-            if (labelWidth > barWidth + spacing - 2) {
-                // Smart truncation
-                const truncated = item.label.length > 8 ? item.label.substring(0, 6) + '...' : item.label;
-                doc.text(truncated, currentX + barWidth / 2, y + height + 6, { align: 'center' });
-            } else {
-                doc.text(item.label, currentX + barWidth / 2, y + height + 6, { align: 'center' });
+            const maxLabelWidth = barWidth + spacing - 4;
+            let displayLabel = item.label;
+            if (doc.getTextWidth(item.label) > maxLabelWidth) {
+                // Truncate progressively until it fits
+                const maxChars = Math.max(3, Math.floor(maxLabelWidth / 2));
+                displayLabel = item.label.substring(0, maxChars) + '...';
             }
+            doc.text(displayLabel, currentX + barWidth / 2, chartStartY + actualChartHeight + 6, { align: 'center' });
 
-            // Enhanced Value display
+            // Enhanced Value display - position based on bar height
             doc.setFontSize(8);
             doc.setTextColor(this.TEXT_PRIMARY);
             doc.setFont('helvetica', 'bold');
             const valueText = item.value.toString();
-            const valueY = y + height - barHeight - 3;
-
-            // Add background for value
             const valueBgWidth = doc.getTextWidth(valueText) + 4;
-            doc.setFillColor(255, 255, 255, 0.9);
-            doc.roundedRect(currentX + (barWidth - valueBgWidth) / 2, valueY - 4, valueBgWidth, 6, 1, 1, 'F');
+
+            // Smart positioning: above bar if space, inside bar if tall enough, or below label
+            let valueY: number;
+            const minSpaceAboveBar = 12; // Space needed for value above bar
+            const barTopY = chartStartY + actualChartHeight - barHeight;
+
+            if (barTopY - chartStartY >= minSpaceAboveBar) {
+                // Place above bar
+                valueY = barTopY - 4;
+            } else if (barHeight >= 15) {
+                // Place inside bar (for tall bars)
+                valueY = barTopY + 10;
+                doc.setTextColor('#FFFFFF'); // White text on colored bar
+            } else {
+                // Place below label for very short bars
+                valueY = chartStartY + actualChartHeight + 12;
+                doc.setTextColor(this.TEXT_PRIMARY);
+            }
+
+            // Add background for value (only if not inside bar)
+            if (barTopY - chartStartY >= minSpaceAboveBar || barHeight < 15) {
+                doc.setFillColor(255, 255, 255, 0.9);
+                doc.roundedRect(currentX + (barWidth - valueBgWidth) / 2, valueY - 4, valueBgWidth, 6, 1, 1, 'F');
+            }
 
             doc.text(valueText, currentX + barWidth / 2, valueY, { align: 'center' });
 
-            // Trend indicator
-            if (item.trend !== undefined && showTrend) {
+            // Trend indicator (only if space above bar)
+            if (item.trend !== undefined && showTrend && barTopY - chartStartY >= minSpaceAboveBar + 8) {
                 doc.setFontSize(6);
                 doc.setTextColor(item.trend > 0 ? '#10B981' : item.trend < 0 ? '#EF4444' : '#64748B');
                 const trendSymbol = item.trend > 0 ? '↗' : item.trend < 0 ? '↘' : '→';
-                doc.text(trendSymbol, currentX + barWidth / 2, valueY - 8, { align: 'center' });
+                doc.text(trendSymbol, currentX + barWidth / 2, valueY - 6, { align: 'center' });
             }
 
             currentX += barWidth + spacing;
         });
 
-        // Add legend if needed
+        // Add legend if many items
         if (data.length > 5) {
-            this.drawCompactLegend(doc, x, y + height + 20, width, data.slice(0, 5).map(item => ({ label: item.label, color: item.color || this.CHART_COLORS[0] })));
+            this.drawCompactLegend(doc, x, chartStartY + actualChartHeight + 18, width, data.slice(0, 5).map(item => ({ label: item.label, color: item.color || this.CHART_COLORS[0] })));
         }
     }
 
@@ -648,6 +711,7 @@ export class PdfService {
 
     /**
      * Helper to add text with automatic page breaks
+     * Uses consistent margins from class constants
      */
     static addSafeText(
         doc: jsPDF,
@@ -657,20 +721,20 @@ export class PdfService {
         maxWidth: number,
         lineHeight: number = 7,
         pageHeight: number,
-        bottomMargin: number = 30, // Increased from 20 to 30
+        bottomMargin: number = PdfService.MARGIN_BOTTOM,
         options?: ReportOptions
     ): number {
         const splitText = doc.splitTextToSize(text, maxWidth);
         let currentY = y;
+        const safeBottomY = pageHeight - bottomMargin;
 
         for (const line of splitText) {
-            if (currentY + lineHeight > pageHeight - bottomMargin) {
+            if (currentY + lineHeight > safeBottomY) {
                 doc.addPage();
-                currentY = 35; // Reset to top margin
+                currentY = this.MARGIN_TOP; // Reset to top margin using constant
                 if (options) {
                     this.addHeader(doc, options.title, options.subtitle, options);
                     if (options.watermark) this.addWatermark(doc);
-                    this.addFooter(doc, options.footerText);
                 }
             }
             doc.text(line, x, currentY);
@@ -682,24 +746,39 @@ export class PdfService {
 
     /**
      * Helper to check if new page is needed and add it
+     * Uses consistent margins from class constants
      */
     static checkAndAddPage(
         doc: jsPDF,
         heightNeeded: number,
         currentY: number,
         options: ReportOptions,
-        bottomMargin: number = 30
+        bottomMargin: number = PdfService.MARGIN_BOTTOM
     ): number {
         const pageHeight = doc.internal.pageSize.height;
-        if (currentY + heightNeeded > pageHeight - bottomMargin) {
+        const safeBottomY = pageHeight - bottomMargin;
+
+        if (currentY + heightNeeded > safeBottomY) {
             doc.addPage();
-            // Reset to top margin
-            const newY = 35;
             this.addHeader(doc, options.title, options.subtitle, options);
             // DO NOT add watermark or footer here, they are added globally at the end of generation
-            return newY;
+            return this.MARGIN_TOP;
         }
         return currentY;
+    }
+
+    /**
+     * Get the safe content area height (page height minus margins)
+     */
+    static getContentHeight(doc: jsPDF): number {
+        return doc.internal.pageSize.height - this.MARGIN_TOP - this.MARGIN_BOTTOM;
+    }
+
+    /**
+     * Get the safe content area width (page width minus margins)
+     */
+    static getContentWidth(doc: jsPDF): number {
+        return doc.internal.pageSize.width - this.MARGIN_LEFT - this.MARGIN_RIGHT;
     }
 
     /**
@@ -748,6 +827,7 @@ export class PdfService {
 
     /**
      * Draw a modern Donut Chart with enhanced features
+     * Fixed: Legend positioning, center text overflow, and layout issues
      */
     static drawDonutChart(
         doc: jsPDF,
@@ -758,101 +838,159 @@ export class PdfService {
         centerText?: string,
         showPercentage: boolean = true
     ) {
-        let total = data.reduce((sum, item) => sum + item.value, 0);
+        // Filter out zero values and ensure we have data
+        const filteredData = data.filter(item => item.value > 0);
+        if (filteredData.length === 0) {
+            // Draw empty state
+            doc.setFillColor(this.BORDER_COLOR);
+            doc.circle(x + radius, y + radius, radius, 'F');
+            doc.setFillColor(255, 255, 255);
+            doc.circle(x + radius, y + radius, radius * 0.6, 'F');
+            doc.setFontSize(10);
+            doc.setTextColor(this.TEXT_SECONDARY);
+            doc.text('Pas de données', x + radius, y + radius, { align: 'center', baseline: 'middle' });
+            return;
+        }
+
+        let total = filteredData.reduce((sum, item) => sum + item.value, 0);
         if (total === 0) total = 1;
 
-        let startAngle = 0;
+        let startAngle = -90; // Start from top (12 o'clock position)
         const centerX = x + radius;
         const centerY = y + radius;
+        const pageWidth = doc.internal.pageSize.width;
 
-        // Draw shadow effect
-        doc.setFillColor(0, 0, 0, 0.1);
-        doc.circle(centerX + 2, centerY + 2, radius, 'F');
+        // Draw shadow effect (subtle)
+        doc.setFillColor(0, 0, 0, 0.08);
+        doc.circle(centerX + 1.5, centerY + 1.5, radius, 'F');
 
         // Draw segments with enhanced styling
-        data.forEach((item) => {
-            if (item.value === 0) return;
+        filteredData.forEach((item) => {
             const sliceAngle = (item.value / total) * 360;
             const endAngle = startAngle + sliceAngle;
-
-            // Draw segment shadow
-            doc.setFillColor(0, 0, 0, 0.05);
-            this.drawArc(doc, centerX + 1, centerY + 1, radius, startAngle + 1, endAngle + 1);
 
             // Draw main segment
             doc.setFillColor(item.color);
             this.drawArc(doc, centerX, centerY, radius, startAngle, endAngle);
 
-            // Draw segment border
-            doc.setDrawColor(255, 255, 255, 0.3);
-            doc.setLineWidth(0.5);
+            // Draw segment border for separation
+            doc.setDrawColor(255, 255, 255);
+            doc.setLineWidth(0.8);
             this.drawArcBorder(doc, centerX, centerY, radius, startAngle, endAngle);
 
             startAngle = endAngle;
         });
 
-        // Draw inner circle with gradient effect
+        // Draw inner circle (creates the donut hole)
         doc.setFillColor(255, 255, 255);
-        doc.circle(centerX, centerY, radius * 0.6, 'F');
-
-        // Add inner shadow
-        doc.setFillColor(240, 240, 240, 0.3);
         doc.circle(centerX, centerY, radius * 0.55, 'F');
 
-        // Enhanced Center Text
+        // Enhanced Center Text with overflow protection
         if (centerText) {
-            doc.setFontSize(14);
+            const innerRadius = radius * 0.55;
+            const maxTextWidth = innerRadius * 1.4; // Safe text width inside donut
+
+            // Adjust font size based on available space
+            let fontSize = Math.min(14, radius * 0.4);
+            doc.setFontSize(fontSize);
             doc.setTextColor(this.TEXT_PRIMARY);
             doc.setFont('helvetica', 'bold');
-            doc.text(centerText, centerX, centerY - 3, { align: 'center', baseline: 'middle' });
 
-            // Add subtitle
-            if (showPercentage) {
-                doc.setFontSize(10);
+            // Truncate center text if too long
+            let displayCenterText = centerText;
+            if (doc.getTextWidth(centerText) > maxTextWidth) {
+                // Try shorter version
+                if (centerText.length > 8) {
+                    displayCenterText = centerText.substring(0, 6) + '...';
+                }
+            }
+
+            doc.text(displayCenterText, centerX, centerY - (showPercentage ? 3 : 0), { align: 'center', baseline: 'middle' });
+
+            // Add subtitle with percentage
+            if (showPercentage && filteredData.length > 0) {
+                const subtitleFontSize = Math.min(9, radius * 0.25);
+                doc.setFontSize(subtitleFontSize);
                 doc.setTextColor(this.TEXT_SECONDARY);
                 doc.setFont('helvetica', 'normal');
-                const percentage = Math.round((data[0]?.value || 0) / total * 100);
-                doc.text(`${percentage}% du total`, centerX, centerY + 8, { align: 'center', baseline: 'middle' });
+                const topPercentage = Math.round((filteredData[0].value / total) * 100);
+                doc.text(`${topPercentage}%`, centerX, centerY + 6, { align: 'center', baseline: 'middle' });
             }
         }
 
-        // Enhanced Legend with trend indicators
-        let legendY = y + 5;
-        const legendX = x + (radius * 2) + 15;
-        const legendWidth = 60;
+        // Calculate legend position - either to the right or below based on available space
+        const legendGap = 10;
+        const donutRightEdge = x + (radius * 2);
+        const spaceOnRight = pageWidth - donutRightEdge - this.MARGIN_RIGHT;
+        const legendItemHeight = 10;
+        const legendItemCount = Math.min(filteredData.length, 6); // Max 6 items in legend
+        const legendTotalHeight = legendItemCount * legendItemHeight;
 
-        data.forEach((item) => {
-            if (item.value === 0) return;
+        // Determine legend position
+        let legendX: number;
+        let legendY: number;
+        let legendMaxWidth: number;
+        const legendOnRight = spaceOnRight >= 50; // Need at least 50mm for legend on right
+
+        if (legendOnRight) {
+            legendX = donutRightEdge + legendGap;
+            legendY = y + (radius - legendTotalHeight / 2); // Vertically center legend with donut
+            legendMaxWidth = spaceOnRight - legendGap - 5;
+        } else {
+            // Place legend below the donut
+            legendX = x;
+            legendY = y + (radius * 2) + 8;
+            legendMaxWidth = radius * 2;
+        }
+
+        // Draw legend items
+        filteredData.slice(0, legendItemCount).forEach((item, index) => {
+            const currentLegendY = legendY + (index * legendItemHeight);
 
             // Draw color indicator
             doc.setFillColor(item.color);
-            doc.circle(legendX, legendY, 3, 'F');
+            doc.roundedRect(legendX, currentLegendY - 2, 6, 4, 1, 1, 'F');
 
-            // Draw trend indicator
+            // Draw trend indicator if present
+            const trendOffset = item.trend !== undefined ? 8 : 0;
             if (item.trend !== undefined) {
-                doc.setFontSize(6);
+                doc.setFontSize(7);
                 doc.setTextColor(item.trend > 0 ? '#10B981' : item.trend < 0 ? '#EF4444' : '#64748B');
-                const trendSymbol = item.trend > 0 ? '↗' : item.trend < 0 ? '↘' : '→';
-                doc.text(trendSymbol, legendX + 6, legendY + 1);
+                const trendSymbol = item.trend > 0 ? '↑' : item.trend < 0 ? '↓' : '→';
+                doc.text(trendSymbol, legendX + 8, currentLegendY + 1);
             }
 
             // Draw label with percentage
             doc.setFontSize(8);
-            doc.setTextColor(this.TEXT_SECONDARY);
+            doc.setTextColor(this.TEXT_PRIMARY);
             doc.setFont('helvetica', 'normal');
             const percentage = Math.round((item.value / total) * 100);
-            const label = `${item.label} (${percentage}%)`;
+            let labelText = `${item.label} (${percentage}%)`;
 
-            // Truncate if too long
-            if (doc.getTextWidth(label) > legendWidth) {
-                const truncated = item.label.length > 12 ? item.label.substring(0, 10) + '...' : item.label;
-                doc.text(`${truncated} (${percentage}%)`, legendX + 12, legendY + 1);
-            } else {
-                doc.text(label, legendX + 12, legendY + 1);
+            // Smart truncation based on available width
+            const labelStartX = legendX + 10 + trendOffset;
+            const availableWidth = legendMaxWidth - 10 - trendOffset;
+
+            if (doc.getTextWidth(labelText) > availableWidth) {
+                // Progressive truncation
+                const maxLabelLength = Math.max(5, Math.floor(availableWidth / 2.5));
+                const truncatedLabel = item.label.length > maxLabelLength
+                    ? item.label.substring(0, maxLabelLength - 2) + '..'
+                    : item.label;
+                labelText = `${truncatedLabel} (${percentage}%)`;
             }
 
-            legendY += 8;
+            doc.text(labelText, labelStartX, currentLegendY + 1);
         });
+
+        // Show "and X more..." if truncated
+        if (filteredData.length > legendItemCount) {
+            const moreCount = filteredData.length - legendItemCount;
+            doc.setFontSize(7);
+            doc.setTextColor(this.TEXT_SECONDARY);
+            doc.setFont('helvetica', 'italic');
+            doc.text(`+ ${moreCount} autres...`, legendX, legendY + (legendItemCount * legendItemHeight) + 3);
+        }
     }
 
     /**
@@ -919,6 +1057,8 @@ export class PdfService {
 
     /**
      * Enhanced Risk Matrix with KPIs and analytics
+     * Fixed: Title and KPI positioning, cell sizing, and legend overflow
+     * @returns The total height used by the component (for layout calculations)
      */
     static drawRiskMatrix(
         doc: jsPDF,
@@ -927,119 +1067,170 @@ export class PdfService {
         width: number,
         height: number,
         risks: { probability: number; impact: number; category?: string; trend?: number }[]
-    ) {
-        const cellSize = width / 5;
+    ): number {
+        // Layout constants
+        const titleHeight = 20; // Space for title and KPI
+        const axisLabelSpace = 12; // Space for axis labels
+        const legendHeight = 15; // Space for legend below
+
+        // Calculate grid dimensions
+        const gridStartY = y + titleHeight;
+        const gridHeight = Math.min(height - titleHeight - axisLabelSpace, width); // Keep grid square
+        const cellSize = gridHeight / 5;
+        const gridWidth = cellSize * 5;
+
+        // Risk severity color gradient (row 0 = probability 1, row 4 = probability 5)
         const gridColors = [
-            ['#ecfdf5', '#d1fae5', '#fef3c7', '#fcd34d', '#fca5a5'],
-            ['#d1fae5', '#fef3c7', '#fcd34d', '#fca5a5', '#f87171'],
-            ['#fef3c7', '#fcd34d', '#fca5a5', '#f87171', '#ef4444'],
-            ['#fcd34d', '#fca5a5', '#f87171', '#ef4444', '#dc2626'],
-            ['#fca5a5', '#f87171', '#ef4444', '#dc2626', '#b91c1c']
+            ['#dcfce7', '#d1fae5', '#fef9c3', '#fed7aa', '#fecaca'], // Low probability
+            ['#d1fae5', '#fef9c3', '#fed7aa', '#fecaca', '#fca5a5'],
+            ['#fef9c3', '#fed7aa', '#fecaca', '#fca5a5', '#f87171'],
+            ['#fed7aa', '#fecaca', '#fca5a5', '#f87171', '#ef4444'],
+            ['#fecaca', '#fca5a5', '#f87171', '#ef4444', '#dc2626']  // High probability
         ];
 
-        // Title with KPIs
+        // === TITLE SECTION ===
         doc.setFontSize(12);
         doc.setTextColor(this.BRAND_SECONDARY);
         doc.setFont('helvetica', 'bold');
-        doc.text("Matrice des Risques avec Analyse de Tendance", x, y - 15);
+        doc.text("Matrice des Risques", x, y + 5);
 
-        // Add risk density KPI
+        // Risk density KPI (inline with title)
         const totalRisks = risks.length;
         const highRiskCount = risks.filter(r => r.probability >= 4 && r.impact >= 4).length;
-        const riskDensity = ((highRiskCount / totalRisks) * 100).toFixed(1);
+        const riskDensity = totalRisks > 0 ? ((highRiskCount / totalRisks) * 100).toFixed(0) : '0';
 
         doc.setFontSize(9);
         doc.setTextColor(this.TEXT_SECONDARY);
-        doc.text(`Densité de risque élevé: ${riskDensity}% (${highRiskCount}/${totalRisks})`, x, y - 8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Risques critiques: ${highRiskCount}/${totalRisks} (${riskDensity}%)`, x, y + 12);
 
-        // Axis labels
+        // === AXIS LABELS ===
         doc.setFontSize(8);
         doc.setTextColor(this.TEXT_SECONDARY);
         doc.setFont('helvetica', 'bold');
 
-        doc.text("Probabilité", x - 5, y + height / 2, { angle: 90, align: 'center' });
-        doc.text("Impact (Gravité)", x + width / 2, y + height + 8, { align: 'center' });
+        // Y-axis label (Probability) - rotated
+        const yAxisLabelX = x - 8;
+        const yAxisLabelY = gridStartY + gridHeight / 2;
+        doc.text("Probabilité", yAxisLabelX, yAxisLabelY, { angle: 90, align: 'center' });
 
-        // Enhanced grid with trend indicators
+        // X-axis label (Impact)
+        doc.text("Impact", x + gridWidth / 2, gridStartY + gridHeight + 10, { align: 'center' });
+
+        // === GRID ===
         for (let row = 0; row < 5; row++) {
             for (let col = 0; col < 5; col++) {
                 const cellX = x + (col * cellSize);
-                const cellY = y + ((4 - row) * cellSize);
+                const cellY = gridStartY + ((4 - row) * cellSize); // Invert row for probability (high at top)
 
                 const prob = row + 1;
                 const imp = col + 1;
-                const cellRisks = risks.filter(r => r.probability === prob && r.impact === imp);
+                const cellRisks = risks.filter(r =>
+                    Math.round(r.probability) === prob && Math.round(r.impact) === imp
+                );
                 const count = cellRisks.length;
 
-                // Cell background
+                // Cell background with color gradient
                 doc.setFillColor(gridColors[row][col]);
-                doc.setDrawColor(255, 255, 255);
-                doc.setLineWidth(0.5);
+                doc.setDrawColor('#FFFFFF');
+                doc.setLineWidth(0.8);
                 doc.rect(cellX, cellY, cellSize, cellSize, 'FD');
 
                 if (count > 0) {
-                    // Risk count with background
-                    doc.setFontSize(10);
+                    // Risk count badge
+                    const countText = count.toString();
+                    const fontSize = cellSize > 15 ? 10 : 8;
+                    doc.setFontSize(fontSize);
                     doc.setTextColor(this.TEXT_PRIMARY);
                     doc.setFont('helvetica', 'bold');
 
-                    // Add background for count
-                    const countText = count.toString();
-                    const textWidth = doc.getTextWidth(countText);
-                    doc.setFillColor(255, 255, 255, 0.8);
-                    doc.roundedRect(
-                        cellX + (cellSize - textWidth - 4) / 2,
-                        cellY + (cellSize - 8) / 2,
-                        textWidth + 4,
-                        8,
-                        2,
-                        2,
-                        'F'
-                    );
+                    // White background for count
+                    const badgeSize = Math.min(cellSize * 0.6, 12);
+                    doc.setFillColor(255, 255, 255, 0.9);
+                    doc.circle(cellX + cellSize / 2, cellY + cellSize / 2, badgeSize / 2, 'F');
 
-                    doc.text(countText, cellX + cellSize / 2, cellY + cellSize / 2, { align: 'center', baseline: 'middle' });
+                    doc.text(countText, cellX + cellSize / 2, cellY + cellSize / 2, {
+                        align: 'center',
+                        baseline: 'middle'
+                    });
 
-                    // Add trend indicator if multiple risks
-                    if (count > 1) {
+                    // Trend indicator (only if cell is large enough)
+                    if (cellSize >= 12 && cellRisks.some(r => r.trend !== undefined)) {
                         const avgTrend = cellRisks.reduce((sum, r) => sum + (r.trend || 0), 0) / count;
-                        doc.setFontSize(6);
-                        doc.setTextColor(avgTrend > 0 ? '#10B981' : avgTrend < 0 ? '#EF4444' : '#64748B');
-                        const trendSymbol = avgTrend > 0 ? '↗' : avgTrend < 0 ? '↘' : '→';
-                        doc.text(trendSymbol, cellX + cellSize - 3, cellY + 3);
+                        if (avgTrend !== 0) {
+                            doc.setFontSize(6);
+                            doc.setTextColor(avgTrend > 0 ? '#ef4444' : '#10B981'); // Red for increasing risk
+                            const trendSymbol = avgTrend > 0 ? '↑' : '↓';
+                            doc.text(trendSymbol, cellX + cellSize - 3, cellY + 4);
+                        }
                     }
                 }
             }
         }
 
-        // Enhanced scale labels
+        // === AXIS SCALE LABELS ===
         doc.setFontSize(7);
         doc.setTextColor(this.TEXT_SECONDARY);
-        const labels = ['Faible', 'Moyen', 'Fort', 'Critique', 'Catastrophique'];
+        doc.setFont('helvetica', 'normal');
 
-        labels.forEach((_, i) => {
-            // X-axis labels
-            doc.text((i + 1).toString(), x + (i * cellSize) + cellSize / 2, y + height + 3, { align: 'center' });
-            // Y-axis labels
-            doc.text((i + 1).toString(), x - 2, y + height - (i * cellSize) - cellSize / 2, { align: 'right', baseline: 'middle' });
-        });
-
-        // Add risk categories legend
-        const categories = [...new Set(risks.map(r => r.category).filter(Boolean))];
-        if (categories.length > 0) {
-            doc.setFontSize(8);
-            doc.setTextColor(this.TEXT_SECONDARY);
-            doc.text("Catégories principales:", x, y + height + 15);
-
-            let catX = x + 50;
-            categories.slice(0, 4).forEach(cat => {
-                const catCount = risks.filter(r => r.category === cat).length;
-                doc.setFillColor(this.CHART_COLORS[categories.indexOf(cat) % this.CHART_COLORS.length]);
-                doc.rect(catX, y + height + 12, 3, 3, 'F');
-                doc.setFontSize(7);
-                doc.text(`${cat} (${catCount})`, catX + 5, y + height + 15);
-                catX += doc.getTextWidth(`${cat} (${catCount})`) + 10;
+        for (let i = 0; i < 5; i++) {
+            // X-axis scale (1-5)
+            doc.text((i + 1).toString(), x + (i * cellSize) + cellSize / 2, gridStartY + gridHeight + 4, {
+                align: 'center'
+            });
+            // Y-axis scale (1-5, bottom to top)
+            doc.text((i + 1).toString(), x - 3, gridStartY + gridHeight - (i * cellSize) - cellSize / 2, {
+                align: 'right',
+                baseline: 'middle'
             });
         }
+
+        // === LEGEND (Categories) ===
+        const categories = [...new Set(risks.map(r => r.category).filter(Boolean))] as string[];
+        let totalHeight = gridStartY + gridHeight + axisLabelSpace - y;
+
+        if (categories.length > 0) {
+            const legendY = gridStartY + gridHeight + axisLabelSpace + 2;
+            const pageWidth = doc.internal.pageSize.width;
+            const maxLegendWidth = pageWidth - x - this.MARGIN_RIGHT;
+
+            doc.setFontSize(7);
+            doc.setTextColor(this.TEXT_SECONDARY);
+
+            let catX = x;
+            const visibleCategories = categories.slice(0, 4);
+
+            visibleCategories.forEach((cat, index) => {
+                const catCount = risks.filter(r => r.category === cat).length;
+                const catText = `${cat} (${catCount})`;
+                const textWidth = doc.getTextWidth(catText);
+
+                // Check if this category fits on current line
+                if (catX + 6 + textWidth > x + maxLegendWidth && index > 0) {
+                    return; // Skip if doesn't fit
+                }
+
+                // Color box
+                doc.setFillColor(this.CHART_COLORS[index % this.CHART_COLORS.length]);
+                doc.roundedRect(catX, legendY - 2, 4, 4, 1, 1, 'F');
+
+                // Label
+                doc.text(catText, catX + 6, legendY);
+                catX += textWidth + 12;
+            });
+
+            // Show "+X more" if categories were truncated
+            if (categories.length > visibleCategories.length) {
+                const moreCount = categories.length - visibleCategories.length;
+                doc.setFontSize(6);
+                doc.setTextColor(this.TEXT_SECONDARY);
+                doc.text(`+${moreCount}`, catX, legendY);
+            }
+
+            totalHeight += legendHeight;
+        }
+
+        return totalHeight;
     }
 
     /**
