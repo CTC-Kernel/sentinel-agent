@@ -16,7 +16,7 @@ import { PremiumPageControl } from '../components/ui/PremiumPageControl';
 import { Skeleton, CardSkeleton } from '../components/ui/Skeleton';
 
 import { ErrorLogger } from '../services/errorLogger';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Drawer } from '../components/ui/Drawer';
 import { IncidentKanban } from '../components/incidents/IncidentKanban';
 import { IncidentForm } from '../components/incidents/IncidentForm';
@@ -167,6 +167,30 @@ export const Incidents: React.FC = () => {
     }, [simulateAttack]);
 
     // ... useEffect restored ...
+    // URL Params
+    const [searchParams, setSearchParams] = useSearchParams();
+    const deepLinkIncidentId = searchParams.get('id');
+
+    // Deep Link Effect
+    useEffect(() => {
+        if (!loading && deepLinkIncidentId && incidents.length > 0) {
+            const incident = incidents.find(i => i.id === deepLinkIncidentId);
+            if (incident) {
+                setSelectedIncident(incident);
+            }
+        }
+    }, [loading, deepLinkIncidentId, incidents]);
+
+    // Cleanup Effect
+    useEffect(() => {
+        if (!selectedIncident && deepLinkIncidentId) {
+            setSearchParams(params => {
+                params.delete('id');
+                return params;
+            }, { replace: true });
+        }
+    }, [selectedIncident, deepLinkIncidentId, setSearchParams]);
+
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };
         if (!state.fromVoxel || !state.voxelSelectedId) return;

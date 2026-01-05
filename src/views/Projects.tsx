@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { useStore } from '../store';
 import { Project, ProjectTemplate, UserProfile } from '../types';
@@ -84,6 +85,30 @@ export const Projects: React.FC = () => {
         message: string;
         onConfirm: () => Promise<void> | void;
     }>({ isOpen: false, title: '', message: '', onConfirm: () => { } });
+
+    // URL Params for Deep Linking
+    const [searchParams, setSearchParams] = useSearchParams();
+    const deepLinkProjectId = searchParams.get('id');
+
+    // Deep Linking Effect
+    useEffect(() => {
+        if (!loading && deepLinkProjectId && projects.length > 0) {
+            const project = projects.find(p => p.id === deepLinkProjectId);
+            if (project) {
+                setSelectedProject(project);
+            }
+        }
+    }, [loading, deepLinkProjectId, projects]);
+
+    // Cleanup URL param when closing inspector
+    useEffect(() => {
+        if (!selectedProject && deepLinkProjectId) {
+            setSearchParams(params => {
+                params.delete('id');
+                return params;
+            }, { replace: true });
+        }
+    }, [selectedProject, deepLinkProjectId, setSearchParams]);
 
     // Filter Logic
     const filteredProjects = useMemo(() => projects.filter(p =>

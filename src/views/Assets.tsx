@@ -55,7 +55,7 @@ const Assets: React.FC = () => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     // URL Params for Deep Linking
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkAssetId = searchParams.get('id');
 
     // Delete Modal State
@@ -70,10 +70,18 @@ const Assets: React.FC = () => {
                 setSelectedAsset(asset);
                 setInspectorOpen(true);
             }
-            // Optional: Clean URL after opening? Or keep it to allow sharing?
-            // Keep it for "Masterpiece" feel (refresh stays on item).
         }
     }, [loading, deepLinkAssetId, assets]);
+
+    // Cleanup Effect
+    React.useEffect(() => {
+        if (!inspectorOpen && deepLinkAssetId) {
+            setSearchParams(params => {
+                params.delete('id');
+                return params;
+            }, { replace: true });
+        }
+    }, [inspectorOpen, deepLinkAssetId, setSearchParams]);
 
     // Filtering Logic
     const deferredQuery = useDeferredValue(activeFilters.query);

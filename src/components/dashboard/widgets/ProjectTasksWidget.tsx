@@ -95,7 +95,7 @@ export const ProjectTasksWidget: React.FC<ProjectTasksWidgetProps> = ({ navigate
                             className="group flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
                             onClick={() => {
                                 if (navigate) navigate('/projects');
-                                else routerNavigate('/projects', { state: { voxelSelectedId: project.id, fromVoxel: true } });
+                                else routerNavigate(`/projects?id=${project.id}`);
                             }}
                         >
                             <div className="flex-1 min-w-0">

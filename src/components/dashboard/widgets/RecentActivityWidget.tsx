@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { History, ShieldAlert, Siren, Server, CheckCircle2 } from '../../ui/Icons';
 import { Skeleton } from '../../ui/Skeleton';
 import { SystemLog } from '../../../types';
@@ -15,6 +16,38 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ rece
     const [isExpanded, setIsExpanded] = useState(false);
     type ActivityFilter = 'All' | 'Risk' | 'Incident' | 'Asset';
     const [filter, setFilter] = useState<ActivityFilter>('All');
+
+    const navigate = useNavigate();
+
+    const handleLogClick = (log: SystemLog) => {
+        if (!log.resourceId) return;
+
+        switch (log.resource) {
+            case 'Risk':
+                navigate(`/risks?id=${log.resourceId}`);
+                break;
+            case 'Incident':
+                navigate(`/incidents?id=${log.resourceId}`);
+                break;
+            case 'Asset':
+                navigate(`/assets?id=${log.resourceId}`);
+                break;
+            case 'Project':
+                navigate(`/projects?id=${log.resourceId}`);
+                break;
+            case 'Document':
+                navigate(`/documents?id=${log.resourceId}`);
+                break;
+            case 'BusinessProcess':
+                navigate(`/continuity?id=${log.resourceId}`);
+                break;
+            case 'Supplier':
+                navigate(`/suppliers?id=${log.resourceId}`);
+                break;
+            default:
+                break;
+        }
+    };
 
     const getActivityIcon = (resource: string) => {
         switch (resource) {
@@ -60,11 +93,15 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ rece
                             className="py-8"
                         />
                     ) : displayActivity.map((log, i) => (
-                        <div key={`activity-${i}`} className="relative group">
+                        <div
+                            key={`activity-${i}`}
+                            className={`relative group ${log.resourceId ? 'cursor-pointer' : ''}`}
+                            onClick={() => handleLogClick(log)}
+                        >
                             <span className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full bg-card border border-border shadow-sm group-hover:scale-110 group-hover:border-blue-400 transition-all z-10">
                                 {getActivityIcon(log.resource)}
                             </span>
-                            <div className="flex justify-between items-start bg-card/60 p-3 rounded-xl border border-transparent hover:border-border transition-colors">
+                            <div className="flex justify-between items-start bg-card/60 p-3 rounded-xl border border-transparent hover:border-border transition-colors group-hover:bg-accent/50">
                                 <div>
                                     <p className="text-sm font-bold text-foreground">
                                         {t(`dashboard.actions.${log.action}`) !== `dashboard.actions.${log.action}`

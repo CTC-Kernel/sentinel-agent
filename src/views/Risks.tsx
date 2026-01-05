@@ -146,7 +146,7 @@ export const Risks: React.FC = () => {
     const [initialFormData, setInitialFormData] = useState<Partial<RiskFormData> | undefined>(undefined);
 
     // ... URL Params ...
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const location = useLocation();
     const deepLinkRiskId = searchParams.get('id');
@@ -160,6 +160,16 @@ export const Risks: React.FC = () => {
             }
         }
     }, [loading, deepLinkRiskId, risks]);
+
+    // Cleanup Effect
+    React.useEffect(() => {
+        if (!selectedRisk && deepLinkRiskId) {
+            setSearchParams(params => {
+                params.delete('id');
+                return params;
+            }, { replace: true });
+        }
+    }, [selectedRisk, deepLinkRiskId, setSearchParams]);
 
     // Handle navigation from AssetInspector (Create Risk for Asset)
     React.useEffect(() => {

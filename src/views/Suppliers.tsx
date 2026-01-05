@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { Menu, Transition } from '@headlessui/react';
 import { SEO } from '../components/SEO';
@@ -90,6 +91,29 @@ export const Suppliers: React.FC = () => {
         risksRaw,
         documentsRaw
     } = useSuppliersData(user?.organizationId);
+
+    // URL Params for Deep Linking
+    const [searchParams, setSearchParams] = useSearchParams();
+    const deepLinkSupplierId = searchParams.get('id');
+
+    useEffect(() => {
+        if (!loadingSuppliers && deepLinkSupplierId && suppliersRaw && suppliersRaw.length > 0) {
+            const supplier = suppliersRaw.find(s => s.id === deepLinkSupplierId);
+            if (supplier && selectedSupplier?.id !== supplier.id) {
+                setSelectedSupplier(supplier);
+            }
+        }
+    }, [loadingSuppliers, deepLinkSupplierId, suppliersRaw, selectedSupplier, setSelectedSupplier]);
+
+    // Cleanup Effect
+    useEffect(() => {
+        if (!selectedSupplier && deepLinkSupplierId) {
+            setSearchParams(params => {
+                params.delete('id');
+                return params;
+            }, { replace: true });
+        }
+    }, [selectedSupplier, deepLinkSupplierId, setSearchParams]);
 
     // Filtering & Memoization
     const filteredSuppliers = useMemo(() => {

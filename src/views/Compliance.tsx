@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useStore } from '../store';
 import { Framework } from '../types';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -76,6 +76,30 @@ export const Compliance: React.FC = () => {
     const documentActions = useDocumentActions(usersList);
     const { seedControls } = useComplianceDataSeeder();
     const { handleProjectFormSubmit, isSubmitting: isProjectSubmitting } = useProjectLogic();
+
+    // URL Params for Deep Linking
+    const [searchParams, setSearchParams] = useSearchParams();
+    const deepLinkControlId = searchParams.get('id');
+
+    // Deep Link Effect
+    useEffect(() => {
+        if (!loading && deepLinkControlId && frameworkControls.length > 0) {
+            const control = frameworkControls.find((c: import('../types').Control) => c.id === deepLinkControlId);
+            if (control) {
+                handleSelectControl(control);
+            }
+        }
+    }, [loading, deepLinkControlId, frameworkControls]); // Don't include handleSelectControl to avoid loops if unstable
+
+    // Cleanup Effect
+    useEffect(() => {
+        if (!isDrawerOpen && deepLinkControlId) {
+            setSearchParams(params => {
+                params.delete('id');
+                return params;
+            }, { replace: true });
+        }
+    }, [isDrawerOpen, deepLinkControlId, setSearchParams]);
 
     // Effects
     useEffect(() => {

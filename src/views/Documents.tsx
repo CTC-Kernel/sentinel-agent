@@ -2,7 +2,7 @@ import React, { useDeferredValue, useMemo, useState, useCallback } from 'react';
 import { SEO } from '../components/SEO';
 import { motion } from 'framer-motion';
 import { slideUpVariants, staggerContainerVariants } from '../components/ui/animationVariants';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Document, UserProfile } from '../types';
 import { getUserAvatarUrl } from '../utils/avatarUtils';
 import { canEditResource } from '../utils/permissions';
@@ -124,7 +124,30 @@ export const Documents: React.FC = () => {
     }, [importDocuments]);
 
     // --- Effects ---
-    // Handle Voxel/Link Navigation
+    // URL Params for Deep Linking
+    const [searchParams, setSearchParams] = useSearchParams();
+    const deepLinkDocId = searchParams.get('id');
+
+    React.useEffect(() => {
+        if (!loading && deepLinkDocId && documents.length > 0) {
+            const doc = documents.find(d => d.id === deepLinkDocId);
+            if (doc && selectedDocument?.id !== doc.id) {
+                setSelectedDocument(doc);
+            }
+        }
+    }, [loading, deepLinkDocId, documents, selectedDocument, setSelectedDocument]);
+
+    // Cleanup Effect
+    React.useEffect(() => {
+        if (!selectedDocument && deepLinkDocId) {
+            setSearchParams(params => {
+                params.delete('id');
+                return params;
+            }, { replace: true });
+        }
+    }, [selectedDocument, deepLinkDocId, setSearchParams]);
+
+    // Handle Voxel/Link Navigation (Legacy/State based)
     React.useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string };
         if (!state.fromVoxel || !state.voxelSelectedId) return;

@@ -60,7 +60,7 @@ export const Audits: React.FC = () => {
     const [typeFilter, setTypeFilter] = useState('');
 
     // URL Params for Deep Linking
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkAuditId = searchParams.get('id');
 
     // Deep Linking Effect
@@ -72,6 +72,16 @@ export const Audits: React.FC = () => {
             }
         }
     }, [loading, deepLinkAuditId, audits]);
+
+    // Cleanup Effect
+    React.useEffect(() => {
+        if (!selectedAudit && deepLinkAuditId) {
+            setSearchParams(params => {
+                params.delete('id');
+                return params;
+            }, { replace: true });
+        }
+    }, [selectedAudit, deepLinkAuditId, setSearchParams]);
 
     const tabs = [
         { id: 'overview', label: t('audits.dashboard'), icon: LayoutDashboard },
