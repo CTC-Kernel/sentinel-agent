@@ -59,17 +59,17 @@ export const useIncidentsData = (organizationId?: string) => {
     // Derived Data
     const sortedIncidents = useMemo(() => {
         const source = demoMode ? mockData.incidents : rawIncidents;
-        return [...source].sort((a: any, b: any) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime());
+        return [...source].sort((a: Incident, b: Incident) => new Date(b.dateReported).getTime() - new Date(a.dateReported).getTime());
     }, [rawIncidents, demoMode, mockData.incidents]);
 
     const assets = useMemo(() => {
         const source = demoMode ? mockData.assets : rawAssets;
-        return [...source].sort((a: any, b: any) => a.name.localeCompare(b.name));
+        return [...source].sort((a: Asset, b: Asset) => a.name.localeCompare(b.name));
     }, [rawAssets, demoMode, mockData.assets]);
 
     const risks = useMemo(() => {
         const source = demoMode ? mockData.risks : rawRisks;
-        return [...source].sort((a: any, b: any) => a.threat.localeCompare(b.threat));
+        return [...source].sort((a: Risk, b: Risk) => a.threat.localeCompare(b.threat));
     }, [rawRisks, demoMode, mockData.risks]);
 
     // FIX: Ensure usersList is never empty if logged in logic is handled in view or here?

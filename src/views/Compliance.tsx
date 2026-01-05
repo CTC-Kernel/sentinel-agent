@@ -103,13 +103,16 @@ export const Compliance: React.FC = () => {
 
     // Cleanup Effect
     useEffect(() => {
+        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
+        if (loading) return;
+
         if (!isDrawerOpen && deepLinkControlId) {
             setSearchParams(params => {
                 params.delete('id');
                 return params;
             }, { replace: true });
         }
-    }, [isDrawerOpen, deepLinkControlId, setSearchParams]);
+    }, [isDrawerOpen, deepLinkControlId, setSearchParams, loading]);
 
     // Effects
     useEffect(() => {

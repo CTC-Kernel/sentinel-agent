@@ -104,13 +104,16 @@ export const Projects: React.FC = () => {
 
     // Cleanup URL param when closing inspector
     useEffect(() => {
+        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
+        if (loading) return;
+
         if (!selectedProject && deepLinkProjectId) {
             setSearchParams(params => {
                 params.delete('id');
                 return params;
             }, { replace: true });
         }
-    }, [selectedProject, deepLinkProjectId, setSearchParams]);
+    }, [selectedProject, deepLinkProjectId, setSearchParams, loading]);
 
     // Filter Logic
     const filteredProjects = useMemo(() => projects.filter(p =>

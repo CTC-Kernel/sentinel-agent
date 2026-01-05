@@ -39,7 +39,7 @@ export const useRiskData = () => {
 
     const risks = React.useMemo(() => {
         const source = demoMode ? mockData.risks : (rawRisks || []);
-        return source.map((r: any) => ({
+        return source.map((r: Risk) => ({
             ...r,
             probability: Number(r.probability) as Risk['probability'],
             impact: Number(r.impact) as Risk['impact'],

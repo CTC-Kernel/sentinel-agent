@@ -9,16 +9,20 @@ interface MaturityRadarWidgetProps {
     t: (key: string) => string;
     navigate: (path: string) => void;
     theme: string;
+    referential?: string; // e.g. "ISO 27001", "DORA", etc.
 }
 
-export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarData, t, navigate }) => {
+export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarData, t, navigate, referential = "ISO 27001" }) => {
     const radarGradientId = React.useId();
+    const totalScore = Math.round(radarData.reduce((acc, curr) => acc + curr.A, 0) / radarData.length);
 
     return (
-        <div className="relative group/chart flex justify-center pt-1 w-full h-full min-h-[320px]">
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-purple-500/5 rounded-full blur-2xl opacity-0 group-hover/chart:opacity-100 transition-opacity duration-700"></div>
+        <div className="relative group/chart flex flex-col items-center pt-2 w-full h-full min-h-[380px]">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-purple-500/5 rounded-full blur-2xl opacity-0 group-hover/chart:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+
+            {/* Radar Chart Section */}
             <div
-                className="relative w-[260px] h-[260px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-500 hover:scale-[1.02] bg-card/40 backdrop-blur-sm rounded-full border border-border shadow-inner p-4 flex items-center justify-center overflow-hidden"
+                className="relative w-[260px] h-[260px] sm:w-[280px] sm:h-[280px] md:w-[320px] md:h-[320px] shrink-0 cursor-pointer transition-all duration-500 hover:scale-[1.02] bg-card/40 backdrop-blur-sm rounded-full border border-border shadow-inner p-4 flex items-center justify-center overflow-hidden mb-6"
                 onClick={() => navigate('/compliance')}
             >
                 {/* Radar Sweep Effect */}
@@ -62,6 +66,8 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                                     fill={`url(#${radarGradientId})`}
                                     fillOpacity={1}
                                     isAnimationActive={true}
+                                    animationDuration={1500}
+                                    animationEasing="ease-out"
                                 />
                                 <Tooltip
                                     content={<ChartTooltip />}
@@ -78,6 +84,49 @@ export const MaturityRadarWidget: React.FC<MaturityRadarWidgetProps> = ({ radarD
                         </span>
                     </div>
                 )}
+            </div>
+
+            {/* Premium Goal Gauge */}
+            <div className="w-[85%] max-w-[280px] relative mt-2 group/gauge">
+                <div className="flex justify-between items-end mb-2">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Objectif Conformité {referential}</span>
+                    <span className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-500 to-purple-500">
+                        {totalScore}%
+                    </span>
+                </div>
+
+                <div className="h-3 w-full bg-secondary/50 rounded-full overflow-hidden backdrop-blur-sm border border-border/50 shadow-inner relative">
+                    {/* Background Grid Pattern */}
+                    <div className="absolute inset-0 opacity-10 bg-[linear-gradient(90deg,transparent_90%,#000_90%)] bg-[length:10px_100%] dark:bg-[linear-gradient(90deg,transparent_90%,#fff_90%)]"></div>
+
+                    {/* Progress Bar with Gradient and Glow */}
+                    <div
+                        className="h-full rounded-full relative transition-all duration-1000 ease-out flex items-center justify-end"
+                        style={{ width: `${totalScore}%` }}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-brand-500 via-purple-500 to-pink-500 animate-gradient-x"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+
+                        {/* Glow effect at the tip */}
+                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-8 bg-white/40 blur-md rounded-full transform translate-x-1/2"></div>
+
+                        {/* Shimmer effect */}
+                        <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent w-[50%] animate-shimmer" style={{ animationDuration: '2s' }}></div>
+                    </div>
+                </div>
+
+                {/* Target Marker */}
+                <div className="absolute top-[22px] right-0 flex flex-col items-center transform translate-x-1/2">
+                    <div className="w-0.5 h-4 bg-muted-foreground/30 mb-0.5"></div>
+                    <span className="text-[10px] font-medium text-muted-foreground/50">100%</span>
+                </div>
+
+                {/* Motivation Text based on score */}
+                <div className="mt-2 text-center h-4">
+                    <span className="text-[10px] sm:text-[11px] font-medium text-brand-500/80 animate-pulse tracking-wide">
+                        {totalScore < 100 ? "Atteignez l'excellence opérationnelle" : "Conformité maximale atteinte !"}
+                    </span>
+                </div>
             </div>
         </div>
     );

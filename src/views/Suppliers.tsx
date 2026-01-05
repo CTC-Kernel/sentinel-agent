@@ -107,13 +107,16 @@ export const Suppliers: React.FC = () => {
 
     // Cleanup Effect
     useEffect(() => {
+        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
+        if (loadingSuppliers) return;
+
         if (!selectedSupplier && deepLinkSupplierId) {
             setSearchParams(params => {
                 params.delete('id');
                 return params;
             }, { replace: true });
         }
-    }, [selectedSupplier, deepLinkSupplierId, setSearchParams]);
+    }, [selectedSupplier, deepLinkSupplierId, setSearchParams, loadingSuppliers]);
 
     // Filtering & Memoization
     const filteredSuppliers = useMemo(() => {

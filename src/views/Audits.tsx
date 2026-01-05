@@ -75,13 +75,16 @@ export const Audits: React.FC = () => {
 
     // Cleanup Effect
     React.useEffect(() => {
+        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
+        if (loading) return;
+
         if (!selectedAudit && deepLinkAuditId) {
             setSearchParams(params => {
                 params.delete('id');
                 return params;
             }, { replace: true });
         }
-    }, [selectedAudit, deepLinkAuditId, setSearchParams]);
+    }, [selectedAudit, deepLinkAuditId, setSearchParams, loading]);
 
     const tabs = [
         { id: 'overview', label: t('audits.dashboard'), icon: LayoutDashboard },

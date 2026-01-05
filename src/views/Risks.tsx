@@ -182,7 +182,9 @@ export const Risks: React.FC = () => {
 
     // Cleanup Effect
     React.useEffect(() => {
-        // If neither inspector nor creation modal is open, clean URL
+        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
+        if (loading) return;
+
         if (!selectedRisk && !creationMode && (deepLinkRiskId || deepLinkAction || deepLinkAssetId)) {
             setSearchParams(params => {
                 params.delete('id');
@@ -191,7 +193,7 @@ export const Risks: React.FC = () => {
                 return params;
             }, { replace: true });
         }
-    }, [selectedRisk, creationMode, deepLinkRiskId, deepLinkAction, deepLinkAssetId, setSearchParams]);
+    }, [selectedRisk, creationMode, deepLinkRiskId, deepLinkAction, deepLinkAssetId, setSearchParams, loading]);
 
     // Handle navigation from AssetInspector (Legacy State Support)
     React.useEffect(() => {

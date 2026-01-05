@@ -148,7 +148,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onCopy, copie
                     return { text: json.text, action: json.action };
                 }
             }
-        } catch (e) {
+        } catch (_e) {
             // Ignore parse errors, treat as text
         }
         return { text: content, action: null };

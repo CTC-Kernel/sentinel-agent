@@ -85,13 +85,16 @@ export const Vulnerabilities: React.FC = () => {
 
     // Cleanup Effect
     useEffect(() => {
+        // CRITICAL FIX: Do not clean up while loading, otherwise we strip params before using them
+        if (loading) return;
+
         if (!selectedVulnerability && deepLinkVulnId) {
             setSearchParams(params => {
                 params.delete('id');
                 return params;
             }, { replace: true });
         }
-    }, [selectedVulnerability, deepLinkVulnId, setSearchParams]);
+    }, [selectedVulnerability, deepLinkVulnId, setSearchParams, loading]);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string };
