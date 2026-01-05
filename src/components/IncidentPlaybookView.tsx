@@ -106,7 +106,9 @@ export const IncidentPlaybookView: React.FC<IncidentPlaybookViewProps> = ({ inci
         stepId,
         true,
         evidence,
-        notes
+        notes,
+        user?.uid,
+        user?.displayName
       );
 
       await loadResponse();
