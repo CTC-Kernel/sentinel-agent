@@ -379,6 +379,7 @@ export const VoxelMesh: React.FC<{
     const safeLabel = safeRender(label);
 
     // @ts-expect-error: react-spring types might be missing group proxy
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const AnimatedGroup = animated.group as any;
 
     return (
