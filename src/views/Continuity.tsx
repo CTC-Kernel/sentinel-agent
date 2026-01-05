@@ -189,9 +189,9 @@ export const Continuity: React.FC = () => {
         });
     }, [deleteDrill]);
 
-    const handleGenerateReport = useCallback(() => {
+    const handleGenerateReport = useCallback(async () => {
         try {
-            generateContinuityReport(processes, drills);
+            await generateContinuityReport(processes, drills);
         } catch (error) {
             ErrorLogger.handleErrorWithToast(error, 'Continuity.generateReport');
         }

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import 'jspdf-autotable';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { PdfService } from '../../services/PdfService';
 import { aiService } from '../../services/aiService';
 import { ErrorLogger } from '../../services/errorLogger';
 import { useStore } from '../../store';
@@ -81,6 +80,8 @@ export const useDashboardReports = () => {
                 value: d.A,
                 color: ['#0F172A', '#334155', '#475569', '#64748B'][i % 4] || '#334155'
             }));
+
+            const { PdfService } = await import('../../services/PdfService');
 
             PdfService.generateExecutiveReport(
                 {

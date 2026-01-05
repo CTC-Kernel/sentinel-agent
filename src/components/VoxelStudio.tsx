@@ -263,7 +263,8 @@ const FocusController: React.FC<{ target: VoxelNode | null; controlsRef: React.R
         if (camera.position.distanceTo(defaultPos.current) < 0.5) isResetting.current = false;
       }
     }
-    controls.update();
+    // controls.update() is handled automatically by @react-three/drei's OrbitControls
+    // Removing it prevents potential conflicts and "undefined is not an object" errors during hot reloads or unmounts
   });
 
   return null;
