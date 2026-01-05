@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -6,7 +7,6 @@ import { useStore } from '../store';
 import { ErrorLogger } from '../services/errorLogger';
 
 // Optimized Helper to convert Firestore Timestamps to ISO strings
-// Moved outside component to prevent recreation
 const convertTimestamps = (obj: unknown): unknown => {
     if (!obj || typeof obj !== 'object') return obj;
 
@@ -22,7 +22,6 @@ const convertTimestamps = (obj: unknown): unknown => {
     }
 
     // Handle objects recursively
-    // We only traverse plain objects
     if (obj.constructor === Object) {
         const converted: Record<string, unknown> = {};
         for (const key in obj) {
@@ -64,42 +63,55 @@ export const useVoxels = () => {
         }
 
         setLoading(true);
-        try {
-            const orgId = user.organizationId;
+        const orgId = user.organizationId;
 
+        // Resilient fetch helper
+        const fetchCollection = async <T>(collectionName: string): Promise<T[]> => {
+            try {
+                const q = query(collection(db, collectionName), where('organizationId', '==', orgId));
+                const snap = await getDocs(q);
+                return snap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as T[];
+            } catch (error) {
+                // Log silently to avoid spamming user, but ensure we return empty array
+                console.warn(`[useVoxels] Failed to fetch ${collectionName}`, error);
+                ErrorLogger.error(error as Error, `useVoxels.fetchCollection.${collectionName}`);
+                return [];
+            }
+        };
+
+        try {
             const [
-                assetsSnap,
-                risksSnap,
-                projectsSnap,
-                auditsSnap,
-                incidentsSnap,
-                suppliersSnap,
-                controlsSnap
+                assets,
+                risks,
+                projects,
+                audits,
+                incidents,
+                suppliers,
+                controls
             ] = await Promise.all([
-                getDocs(query(collection(db, 'assets'), where('organizationId', '==', orgId))),
-                getDocs(query(collection(db, 'risks'), where('organizationId', '==', orgId))),
-                getDocs(query(collection(db, 'projects'), where('organizationId', '==', orgId))),
-                getDocs(query(collection(db, 'audits'), where('organizationId', '==', orgId))),
-                getDocs(query(collection(db, 'incidents'), where('organizationId', '==', orgId))),
-                getDocs(query(collection(db, 'suppliers'), where('organizationId', '==', orgId))),
-                getDocs(query(collection(db, 'controls'), where('organizationId', '==', orgId)))
+                fetchCollection<Asset>('assets'),
+                fetchCollection<Risk>('risks'),
+                fetchCollection<Project>('projects'),
+                fetchCollection<Audit>('audits'),
+                fetchCollection<Incident>('incidents'),
+                fetchCollection<Supplier>('suppliers'),
+                fetchCollection<Control>('controls')
             ]);
 
-            // Batch update to prevent multiple re-renders
             setData({
-                assets: assetsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Asset[],
-                risks: risksSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Risk[],
-                projects: projectsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Project[],
-                audits: auditsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Audit[],
-                incidents: incidentsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Incident[],
-                suppliers: suppliersSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Supplier[],
-                controls: controlsSnap.docs.map(doc => convertTimestamps({ id: doc.id, ...doc.data() })) as Control[]
+                assets,
+                risks,
+                projects,
+                audits,
+                incidents,
+                suppliers,
+                controls
             });
 
         } catch (error) {
+            // This catch block might not be reached due to internal catches, 
+            // but good for unexpected sync errors
             ErrorLogger.handleErrorWithToast(error, 'useVoxels.fetchData', 'FETCH_FAILED');
-            // Reset to empty on error to avoid stale state issues, or keep previous state? 
-            // Better to keep previous state but log error in this context.
         } finally {
             setLoading(false);
         }

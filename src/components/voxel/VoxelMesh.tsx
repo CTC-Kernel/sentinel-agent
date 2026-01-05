@@ -2,7 +2,8 @@
 import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Html, Text, Line } from '@react-three/drei';
-import { Group, Mesh, MeshPhysicalMaterial, Material, DoubleSide, AdditiveBlending } from 'three';
+import { Group, Mesh, MeshPhysicalMaterial, DoubleSide, AdditiveBlending } from 'three';
+import { animated, useSpring, config } from '@react-spring/three';
 import { VoxelNode, Risk, Project, Incident } from '../../types';
 import { VoxelDetailOverlay } from '../VoxelDetailOverlay';
 import { useModelLibrary } from '../../hooks/useModelLibrary';
@@ -256,10 +257,6 @@ export const VoxelMesh: React.FC<{
     const modelLibrary = useModelLibrary();
     const meshRef = useRef<Group>(null);
     const [hovered, setHovered] = useState(false);
-    const currentScale = useRef(1);
-    const currentGlow = useRef(0);
-    const SCALE_THRESHOLD = 0.001;
-    const GLOW_THRESHOLD = 0.001;
 
     const isCritical = useMemo(() => {
         if (node.type === 'risk') {
@@ -277,38 +274,17 @@ export const VoxelMesh: React.FC<{
     const usesLibraryModel = Boolean(MODEL_LIBRARY_CONFIG[node.type]);
     const labelVisible = hovered || isSelected || isHighlighted;
     const targetScale = isSelected ? 1.3 : (hovered || isHighlighted || isImpacted) ? 1.15 : 1;
-    const targetGlow = (isCritical && highlightCritical) || isImpacted ? 0.8 : 0;
+
+    // Spring animation for smooth scale transitions without managing state manually in useFrame
+    const { scale } = useSpring({
+        scale: targetScale,
+        config: config.wobbly
+    });
 
     useFrame(() => {
-        if (meshRef.current) {
-            if (node.type !== 'asset') {
-                // Assets don't rotate to keep stability feeling
-                meshRef.current.rotation.y += 0.005;
-            }
-
-            // Optimization: Only update scale if significant change
-            if (Math.abs(targetScale - currentScale.current) > SCALE_THRESHOLD) {
-                currentScale.current += (targetScale - currentScale.current) * 0.1;
-                meshRef.current.scale.setScalar(currentScale.current);
-            }
-
-            // Optimization: Only update glow if significant change
-            if (Math.abs(targetGlow - currentGlow.current) > GLOW_THRESHOLD) {
-                currentGlow.current += (targetGlow - currentGlow.current) * 0.1;
-
-                // Update material emissive intensity directly
-                meshRef.current.traverse((child) => {
-                    if ((child as Mesh).isMesh) {
-                        const mesh = child as Mesh;
-                        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-                        materials.forEach((mat: Material) => {
-                            if (mat && 'emissiveIntensity' in mat) {
-                                (mat as MeshPhysicalMaterial).emissiveIntensity = 0.35 + currentGlow.current * 0.4;
-                            }
-                        });
-                    }
-                });
-            }
+        // Only keep rotation for non-assets
+        if (meshRef.current && node.type !== 'asset') {
+            meshRef.current.rotation.y += 0.005;
         }
     });
 
@@ -316,6 +292,12 @@ export const VoxelMesh: React.FC<{
         e.stopPropagation();
         onClick(node);
     };
+
+    const handlePointerOver = useCallback((e: ThreeEvent<MouseEvent>) => {
+        e.stopPropagation();
+        setHovered(true);
+    }, []);
+    const handlePointerOut = useCallback(() => setHovered(false), []);
 
     let baseColor = isSelected ? '#fde047' : hovered ? '#4ecdc4' : node.color;
     let emissiveColor = isSelected ? '#fbbf24' : hovered ? '#4ecdc4' : node.color;
@@ -332,7 +314,7 @@ export const VoxelMesh: React.FC<{
 
     const baseOpacity = isDimmed ? 0.4 : highlightCritical && !isCritical ? 0.7 : 0.95;
     const calculatedOpacity = usesLibraryModel ? Math.max(baseOpacity, 0.85) : baseOpacity;
-    const emissiveIntensity = 0.35;
+    const emissiveIntensity = (isCritical && highlightCritical) || isImpacted ? 1.2 : 0.35;
 
     const sharedMaterialProps = useMemo(() => ({
         color: baseColor,
@@ -345,7 +327,7 @@ export const VoxelMesh: React.FC<{
         wireframe: Boolean(xRayMode),
         isHighlighted,
         isDimmed
-    }), [baseColor, emissiveColor, opacity, calculatedOpacity, xRayMode, isHighlighted, isDimmed]);
+    }), [baseColor, emissiveColor, emissiveIntensity, opacity, calculatedOpacity, xRayMode, isHighlighted, isDimmed]);
 
     const libraryPrimitive = useMemo(() => {
         const config = MODEL_LIBRARY_CONFIG[node.type];
@@ -392,20 +374,21 @@ export const VoxelMesh: React.FC<{
         return 'Élément';
     }, []);
 
-    const handlePointerOver = useCallback(() => setHovered(true), []);
-    const handlePointerOut = useCallback(() => setHovered(false), []);
-
     const rawLabel = getDataLabel(node.data) || 'Élément';
     const label = rawLabel.length > 24 ? `${rawLabel.slice(0, 21)}…` : rawLabel;
     const safeLabel = safeRender(label);
 
+    // @ts-expect-error: react-spring types might be missing group proxy
+    const AnimatedGroup = animated.group as any;
+
     return (
         <group position={node.position}>
-            <group
+            <AnimatedGroup
                 ref={meshRef}
                 onClick={handleClick}
                 onPointerOver={handlePointerOver}
                 onPointerOut={handlePointerOut}
+                scale={scale}
             >
                 <VoxelModelGeometry
                     node={node}
@@ -415,7 +398,7 @@ export const VoxelMesh: React.FC<{
                     opacity={opacity !== undefined ? opacity : calculatedOpacity}
                     xRayMode={Boolean(xRayMode)}
                 />
-            </group>
+            </AnimatedGroup>
 
             {(hovered || isSelected || isHighlighted) && (
                 <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -node.size / 2, 0]}>
@@ -423,29 +406,29 @@ export const VoxelMesh: React.FC<{
                     <meshBasicMaterial
                         color={node.color}
                         transparent
-                        opacity={isSelected ? 0.5 : 0.25}
+                        opacity={isSelected ? 0.8 : 0.4}
                         blending={AdditiveBlending}
                     />
                 </mesh>
             )}
 
-            {/* Label */
-                labelVisible && (
-                    <Text
-                        position={[0, node.size + 0.8, 0]}
-                        fontSize={0.55}
-                        color="white"
-                        anchorX="center"
-                        anchorY="middle"
-                        outlineWidth={0.08}
-                        outlineColor="black"
-                        maxWidth={3.5}
-                        lineHeight={1.1}
-                        font="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
-                    >
-                        {safeLabel}
-                    </Text>
-                )}
+            {/* Label */}
+            {labelVisible && (
+                <Text
+                    position={[0, node.size + 0.8, 0]}
+                    fontSize={0.55}
+                    color="white"
+                    anchorX="center"
+                    anchorY="middle"
+                    outlineWidth={0.08}
+                    outlineColor="black"
+                    maxWidth={3.5}
+                    lineHeight={1.1}
+                    font="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff"
+                >
+                    {safeLabel}
+                </Text>
+            )}
 
             {isSelected && overlayProps && (
                 <group>
