@@ -170,26 +170,36 @@ export const Incidents: React.FC = () => {
     // URL Params
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkIncidentId = searchParams.get('id');
+    const deepLinkAction = searchParams.get('action');
 
     // Deep Link Effect
     useEffect(() => {
-        if (!loading && deepLinkIncidentId && incidents.length > 0) {
+        if (loading) return;
+
+        // 1. Open Inspector
+        if (deepLinkIncidentId && incidents.length > 0) {
             const incident = incidents.find(i => i.id === deepLinkIncidentId);
-            if (incident) {
+            if (incident && selectedIncident?.id !== incident.id) {
                 setSelectedIncident(incident);
             }
         }
-    }, [loading, deepLinkIncidentId, incidents]);
+
+        // 2. Open Creation Mode
+        if (deepLinkAction === 'create' && !creationMode) {
+            setCreationMode(true);
+        }
+    }, [loading, deepLinkIncidentId, deepLinkAction, incidents, creationMode, selectedIncident]);
 
     // Cleanup Effect
     useEffect(() => {
-        if (!selectedIncident && deepLinkIncidentId) {
+        if (!selectedIncident && !creationMode && (deepLinkIncidentId || deepLinkAction)) {
             setSearchParams(params => {
                 params.delete('id');
+                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [selectedIncident, deepLinkIncidentId, setSearchParams]);
+    }, [selectedIncident, creationMode, deepLinkIncidentId, deepLinkAction, setSearchParams]);
 
     useEffect(() => {
         const state = (location.state || {}) as { fromVoxel?: boolean; voxelSelectedId?: string; voxelSelectedType?: string };

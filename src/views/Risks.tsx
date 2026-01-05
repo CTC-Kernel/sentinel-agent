@@ -150,28 +150,50 @@ export const Risks: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const deepLinkRiskId = searchParams.get('id');
+    const deepLinkAction = searchParams.get('action');
+    const deepLinkAssetId = searchParams.get('createForAsset');
 
-    // ... Deep Linking Effect ...
+    // Deep Linking Effect
     React.useEffect(() => {
-        if (!loading && deepLinkRiskId && risks.length > 0) {
+        if (loading) return;
+
+        // 1. Open Risk Inspector
+        if (deepLinkRiskId && risks.length > 0) {
             const risk = risks.find(r => r.id === deepLinkRiskId);
-            if (risk) {
+            if (risk && selectedRisk?.id !== risk.id) {
                 setSelectedRisk(risk);
             }
         }
-    }, [loading, deepLinkRiskId, risks]);
+
+        // 2. Open Creation Modal (Generic)
+        if (deepLinkAction === 'create' && !creationMode) {
+            setInitialFormData(undefined);
+            setCreationMode(true);
+        }
+
+        // 3. Open Creation Modal (Pre-filled Asset)
+        if (deepLinkAssetId && !creationMode) {
+            setInitialFormData({
+                assetId: deepLinkAssetId
+            });
+            setCreationMode(true);
+        }
+    }, [loading, deepLinkRiskId, deepLinkAction, deepLinkAssetId, risks, creationMode, selectedRisk]);
 
     // Cleanup Effect
     React.useEffect(() => {
-        if (!selectedRisk && deepLinkRiskId) {
+        // If neither inspector nor creation modal is open, clean URL
+        if (!selectedRisk && !creationMode && (deepLinkRiskId || deepLinkAction || deepLinkAssetId)) {
             setSearchParams(params => {
                 params.delete('id');
+                params.delete('action');
+                params.delete('createForAsset');
                 return params;
             }, { replace: true });
         }
-    }, [selectedRisk, deepLinkRiskId, setSearchParams]);
+    }, [selectedRisk, creationMode, deepLinkRiskId, deepLinkAction, deepLinkAssetId, setSearchParams]);
 
-    // Handle navigation from AssetInspector (Create Risk for Asset)
+    // Handle navigation from AssetInspector (Legacy State Support)
     React.useEffect(() => {
         const state = location.state as { createForAsset?: string; assetName?: string } | null;
         if (state?.createForAsset && !creationMode) {
@@ -179,7 +201,7 @@ export const Risks: React.FC = () => {
                 assetId: state.createForAsset
             });
             setCreationMode(true);
-            // Clear state to prevent reopening on refresh (optional, but good practice)
+            // Clear state to prevent reopening on refresh
             window.history.replaceState({}, document.title);
         }
     }, [location.state, creationMode]);

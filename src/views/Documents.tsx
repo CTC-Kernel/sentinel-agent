@@ -125,27 +125,38 @@ export const Documents: React.FC = () => {
 
     // --- Effects ---
     // URL Params for Deep Linking
+    // URL Params for Deep Linking
     const [searchParams, setSearchParams] = useSearchParams();
     const deepLinkDocId = searchParams.get('id');
+    const deepLinkAction = searchParams.get('action');
 
     React.useEffect(() => {
-        if (!loading && deepLinkDocId && documents.length > 0) {
+        if (loading) return;
+
+        // 1. Open Inspector
+        if (deepLinkDocId && documents.length > 0) {
             const doc = documents.find(d => d.id === deepLinkDocId);
             if (doc && selectedDocument?.id !== doc.id) {
                 setSelectedDocument(doc);
             }
         }
-    }, [loading, deepLinkDocId, documents, selectedDocument, setSelectedDocument]);
+
+        // 2. Open Create Modal
+        if (deepLinkAction === 'create' && !showCreateModal) {
+            setShowCreateModal(true);
+        }
+    }, [loading, deepLinkDocId, deepLinkAction, documents, selectedDocument, setSelectedDocument, showCreateModal]);
 
     // Cleanup Effect
     React.useEffect(() => {
-        if (!selectedDocument && deepLinkDocId) {
+        if (!selectedDocument && !showCreateModal && (deepLinkDocId || deepLinkAction)) {
             setSearchParams(params => {
                 params.delete('id');
+                params.delete('action');
                 return params;
             }, { replace: true });
         }
-    }, [selectedDocument, deepLinkDocId, setSearchParams]);
+    }, [selectedDocument, showCreateModal, deepLinkDocId, deepLinkAction, setSearchParams]);
 
     // Handle Voxel/Link Navigation (Legacy/State based)
     React.useEffect(() => {
