@@ -987,13 +987,21 @@ export const translations = {
             stepControls: 'Select controls (SoA)',
             stepPolicies: 'Write policies',
             stepAudit: 'Plan an audit',
-            gettingStartedTitle: 'Welcome to Sentinel GRC! 🚀',
-            gettingStartedSubtitle: 'Follow these steps to configure your workspace and ensure compliance.',
-            gettingStarted: 'Welcome to Sentinel',
-            setupProgress: 'Configuration Progress',
-            progression: 'Progress',
-
-            reportFilename: 'executive-report.pdf'
+            frameworks: {
+            ISO27001: 'ISO 27001 (Sécurité SI)',
+            ISO22301: 'ISO 22301 (Continuité)',
+            NIS2: 'NIS 2 (Cyber UE)',
+            DORA: 'DORA (Résilience Fin.)',
+            GDPR: 'RGPD (Données Personnelles)',
+            SOC2: 'SOC 2 (Trust Services)',
+            HDS: 'HDS (Données de Santé)',
+            PCI_DSS: 'PCI DSS (Paiement)',
+            NIST_CSF: 'NIST CSF',
+            OWASP: 'OWASP Top 10',
+            EBIOS: 'EBIOS RM',
+            COBIT: 'COBIT (Gouvernance)',
+            ITIL: 'ITIL (Gestion de Services)'
+        },
         },
         reports: {
             title: 'Rapports',

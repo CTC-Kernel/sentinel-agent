@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { ErrorLogger } from '../../services/errorLogger';
 
 /**
  * Composant Button avec protection double-submit intégrée
@@ -29,7 +30,7 @@ export const ProtectedButton: React.FC<ProtectedButtonProps> = ({
         // Ignorer les clics multiples rapides (< 500ms)
         if (timeSinceLastClick < 500 && clickCount > 0) {
             e.preventDefault();
-            console.warn('Rapid multiple clicks prevented');
+            ErrorLogger.warn('Rapid multiple clicks prevented', 'ProtectedButton');
             return;
         }
 

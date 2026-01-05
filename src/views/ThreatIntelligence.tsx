@@ -168,24 +168,24 @@ export const ThreatIntelligence: React.FC = () => {
 
     // UI Handlers
     const handleViewChange = React.useCallback((view: string) => setActiveTab(view as 'overview' | 'map' | 'feed' | 'community'), [setActiveTab]);
-    const handleSettingsOpen = React.useCallback(() => setIsSettingsOpen(true), []);
-    const handleSubmitModalOpen = React.useCallback(() => setIsSubmitModalOpen(true), []);
-    const handleSearchChange = React.useCallback((q: string) => setSearchTerm(q), []);
-    const handleTypeFilterChange = React.useCallback((f: string) => setActiveTypeFilter(f), []);
-    const handleCommunitySettingsClose = React.useCallback(() => setIsSettingsOpen(false), []);
-    const handleDiscussionClose = React.useCallback(() => setSelectedThreatId(null), []);
-    const handleSubmitModalClose = React.useCallback(() => setIsSubmitModalOpen(false), []);
+    const handleSettingsOpen = React.useCallback(() => setIsSettingsOpen(true), [setIsSettingsOpen]);
+    const handleSubmitModalOpen = React.useCallback(() => setIsSubmitModalOpen(true), [setIsSubmitModalOpen]);
+    const handleSearchChange = React.useCallback((q: string) => setSearchTerm(q), [setSearchTerm]);
+    const handleTypeFilterChange = React.useCallback((f: string) => setActiveTypeFilter(f), [setActiveTypeFilter]);
+    const handleCommunitySettingsClose = React.useCallback(() => setIsSettingsOpen(false), [setIsSettingsOpen]);
+    const handleDiscussionClose = React.useCallback(() => setSelectedThreatId(null), [setSelectedThreatId]);
+    const handleSubmitModalClose = React.useCallback(() => setIsSubmitModalOpen(false), [setIsSubmitModalOpen]);
     const handleSubmitSuccess = React.useCallback(() => {
         addToast("Menace signalée !", "success");
         logAction(user, 'SIGNAL_THREAT', 'ThreatIntelligence', 'User signaled a new community threat');
     }, [addToast, user]);
-    const handleRiskModalClose = React.useCallback(() => setIsRiskModalOpen(false), []);
-    const handleToggleViewMode = React.useCallback(() => setViewMode(prev => prev === '2d' ? '3d' : '2d'), []);
+    const handleRiskModalClose = React.useCallback(() => setIsRiskModalOpen(false), [setIsRiskModalOpen]);
+    const handleToggleViewMode = React.useCallback(() => setViewMode(prev => prev === '2d' ? '3d' : '2d'), [setViewMode]);
 
     const handleThreatSelect = React.useCallback((t: Threat) => {
         setSelectedThreatId(t.id);
         setSelectedThreatTitle(t.title);
-    }, []);
+    }, [setSelectedThreatId, setSelectedThreatTitle]);
 
     const handleConfirmSighting = React.useCallback((id: string) => {
         confirmSighting(id);

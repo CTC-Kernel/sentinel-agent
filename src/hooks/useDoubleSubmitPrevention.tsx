@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { ErrorLogger } from '../services/errorLogger';
 
 /**
  * Hook pour prévenir les double-soumissions dans les formulaires
@@ -18,7 +19,7 @@ export const useDoubleSubmitPrevention = () => {
   ) => {
     // Prévenir le double-submit
     if (isSubmitting) {
-      console.warn('Double submit prevented');
+      ErrorLogger.warn('Double submit prevented', 'useDoubleSubmitPrevention');
       return;
     }
 
@@ -34,7 +35,7 @@ export const useDoubleSubmitPrevention = () => {
 
     // Timeout de sécurité
     const timeoutId = setTimeout(() => {
-      console.error('Submit timeout - resetting submitting state');
+      ErrorLogger.error('Submit timeout - resetting submitting state', 'useDoubleSubmitPrevention');
       setIsSubmitting(false);
     }, timeout);
 

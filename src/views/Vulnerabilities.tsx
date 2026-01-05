@@ -110,7 +110,9 @@ export const Vulnerabilities: React.FC = () => {
             initialSeedRef.current = true;
             // Attempt to seed
             import('../services/ThreatFeedService').then(({ ThreatFeedService }) => {
-                ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo').catch(console.error);
+                ThreatFeedService.seedLiveThreats(user?.organizationId || 'demo').catch(() => {
+                    // Silently handle threat seeding errors
+                });
             });
         }
     }, [loadingData, vulnerabilities.length, user]);

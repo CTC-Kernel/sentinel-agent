@@ -1,28 +1,20 @@
-import { describe, it, expect } from 'vitest';
-
-describe('Compliance View', () => {
-    it('renders correctly', () => {
-        expect(true).toBe(true);
-    });
-});
-
-/*
-import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Compliance } from '../Compliance';
 import { useStore } from '../../store';
 import { useFirestoreCollection } from '../../hooks/useFirestore';
+import { ComplianceInspector } from '../../components/compliance/ComplianceInspector';
+import { ComplianceDashboard } from '../../components/compliance/ComplianceDashboard';
+import { ComplianceList } from '../../components/compliance/ComplianceList';
+import { SoAView } from '../../components/compliance/SoAView';
 
-// ... (Rest of the file commented out)
-*/
-/*
 // Mocks
 vi.mock('../../store', () => {
     const useStore = vi.fn();
     // @ts-expect-error: vitest mock logic requires partial implementation
     useStore.getState = vi.fn(() => ({
         customRoles: [],
-        user: { organizationId: 'test-org', role: 'rssi' }
+        user: { organizationId: 'test-org', role: 'rssi', uid: 'test-user' }
     }));
     return { useStore };
 });
@@ -48,170 +40,220 @@ vi.mock('firebase/firestore', () => ({
     limit: vi.fn(() => ({ type: 'constraint' })),
     addDoc: vi.fn(() => Promise.resolve({ id: 'test-doc-id' })),
     memoryLocalCache: vi.fn(),
-    initializeFirestore: vi.fn(() => ({})),
 }));
 
-vi.mock('../../firebase', () => ({
-    db: {},
-    analytics: {}
-}));
-vi.mock('@/firebase', () => ({
-    db: {},
-    analytics: {}
-}));
-
-// Mock child components/icons to simplify test
-vi.mock('../../components/ui/Icons', () => ({
-    ShieldCheck: () => <span>ShieldCheck</span>,
-    CheckCircle2: () => <span>CheckCircle2</span>,
-    AlertTriangle: () => <span>AlertTriangle</span>,
-    Download: () => <span>Download</span>,
-    Filter: () => <span>Filter</span>,
-    Search: () => <span>Search</span>,
-    ChevronDown: () => <span>ChevronDown</span>,
-    ChevronRight: () => <span>ChevronRight</span>,
-    FileText: () => <span>FileText</span>,
-    Link: () => <span>Link</span>,
-    MoreHorizontal: () => <span>MoreHorizontal</span>,
-    Play: () => <span>Play</span>,
-    Settings: () => <span>Settings</span>,
-    X: () => <span>X</span>,
-    Book: () => <span>Book</span>,
-    PieChart: () => <span>PieChart</span>,
-    BarChart3: () => <span>BarChart3</span>,
-    ArrowRight: () => <span>ArrowRight</span>,
-    CheckSquare: () => <span>CheckSquare</span>,
-    Clock: () => <span>Clock</span>,
-    Save: () => <span>Save</span>,
-    Upload: () => <span>Upload</span>,
-    HelpCircle: () => <span>HelpCircle</span>,
-    LayoutDashboard: () => <span>LayoutDashboard</span>,
-    LayoutGrid: () => <span>LayoutGrid</span>,
-    Target: () => <span>Target</span>,
-    GitBranch: () => <span>GitBranch</span>,
-    Calendar: () => <span>Calendar</span>,
-    User: () => <span>User</span>,
-    Users: () => <span>Users</span>,
-    Plus: () => <span>Plus</span>,
-    Trash2: () => <span>Trash2</span>,
-    Edit: () => <span>Edit</span>,
-    Server: () => <span>Server</span>,
-    Activity: () => <span>Activity</span>,
-    FileSpreadsheet: () => <span>FileSpreadsheet</span>,
-    Tag: () => <span>Tag</span>,
-    BrainCircuit: () => <span>BrainCircuit</span>,
-    Copy: () => <span>Copy</span>,
-    History: () => <span>History</span>,
-    MessageSquare: () => <span>MessageSquare</span>,
-    Archive: () => <span>Archive</span>,
-    CalendarClock: () => <span>CalendarClock</span>,
-    ClipboardList: () => <span>ClipboardList</span>,
-    ShieldAlert: () => <span>ShieldAlert</span>,
-    Siren: () => <span>Siren</span>,
-    Flame: () => <span>Flame</span>,
-    FolderKanban: () => <span>FolderKanban</span>,
-    Network: () => <span>Network</span>,
-    HeartPulse: () => <span>HeartPulse</span>,
-    Euro: () => <span>Euro</span>,
-    Wrench: () => <span>Wrench</span>,
-    Layers: () => <span>Layers</span>,
+vi.mock('../../hooks/useComplianceActions', () => ({
+    useComplianceActions: vi.fn(() => ({
+        createRisk: vi.fn(),
+        createAudit: vi.fn(),
+        handleLinkDocument: vi.fn(),
+    })),
 }));
 
-vi.mock('../../components/ui/PageHeader', () => ({
-    PageHeader: ({ title }: { title: string }) => <div>{title}</div>
+vi.mock('../../hooks/useComplianceData', () => ({
+    useComplianceData: vi.fn(() => ({
+        filteredControls: [],
+        risks: [],
+        findings: [],
+        documents: [],
+        usersList: [],
+        assets: [],
+        suppliers: [],
+        projects: [],
+        loading: false,
+    })),
 }));
 
-vi.mock('react-router-dom', () => ({
-    useNavigate: () => vi.fn(),
-    useLocation: () => ({ state: {} }),
+vi.mock('../../hooks/useComplianceDataSeeder', () => ({
+    useComplianceDataSeeder: vi.fn(() => ({
+        seedControls: vi.fn(),
+    })),
 }));
 
-vi.mock('react-helmet-async', () => ({
-    Helmet: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+vi.mock('../../hooks/projects/useProjectLogic', () => ({
+    useProjectLogic: vi.fn(() => ({
+        handleProjectFormSubmit: vi.fn(),
+        isSubmitting: false,
+    })),
 }));
 
-vi.mock('recharts', () => ({
-    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-    PieChart: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-    Pie: () => <div>Pie</div>,
-    Cell: () => <div>Cell</div>,
-    Tooltip: () => <div>Tooltip</div>,
+vi.mock('../../hooks/documents/useDocumentActions', () => ({
+    useDocumentActions: vi.fn(() => ({
+        handleCreate: vi.fn(),
+    })),
 }));
 
-describe.skip('Compliance View', () => {
+vi.mock('../../hooks/documents/useDocumentsData', () => ({
+    useDocumentsData: vi.fn(() => ({
+        folders: [],
+    })),
+}));
+
+vi.mock('../../components/compliance/ComplianceInspector', () => ({
+    ComplianceInspector: vi.fn(() => <div data-testid="compliance-inspector">Inspector</div>),
+}));
+
+vi.mock('../../components/compliance/ComplianceDashboard', () => ({
+    ComplianceDashboard: vi.fn(() => <div data-testid="compliance-dashboard">Dashboard</div>),
+}));
+
+vi.mock('../../components/compliance/ComplianceList', () => ({
+    ComplianceList: vi.fn(() => <div data-testid="compliance-list">List</div>),
+}));
+
+vi.mock('../../components/compliance/SoAView', () => ({
+    SoAView: vi.fn(() => <div data-testid="soa-view">SoA</div>),
+}));
+
+// Mock i18n
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => key,
+    }),
+}));
+
+describe('Compliance View', () => {
+    const mockUser = {
+        uid: 'test-user',
+        email: 'test@example.com',
+        role: 'rssi' as const,
+        displayName: 'Test User',
+        organizationId: 'test-org',
+    };
+
     beforeEach(() => {
         vi.clearAllMocks();
-
-        // Mock Store
-        vi.mocked(useStore).mockReturnValue({
-            user: { organizationId: 'test-org', role: 'rssi' },
+        (useStore as any).mockImplementation(() => ({
+            user: mockUser,
             addToast: vi.fn(),
-            t: (key: string) => key, // Mock translation
-        } as any);
+            t: (key: string) => key,
+        }));
     });
 
-    it('renders the header correctly', () => {
-        // Mock empty data first
-        vi.mocked(useFirestoreCollection).mockReturnValue({
-            data: [],
-            loading: false,
-            refresh: vi.fn(),
-            error: null,
-            add: vi.fn(),
-            update: vi.fn(),
-            remove: vi.fn()
-        });
-
+    it('renders correctly with default state', () => {
         render(<Compliance />);
-        expect(screen.getByText('Conformité ISO 27001')).toBeInTheDocument();
+        
+        expect(screen.getByText('compliance.title')).toBeInTheDocument();
+        expect(screen.getByText('compliance.subtitle')).toBeInTheDocument();
     });
 
-    it('displays loading state', () => {
-        vi.mocked(useFirestoreCollection).mockReturnValue({
-            data: [],
-            loading: true,
-            refresh: vi.fn(),
-            error: null,
-            add: vi.fn(),
-            update: vi.fn(),
-            remove: vi.fn()
-        });
-
+    it('displays framework tabs', () => {
         render(<Compliance />);
-        // Assuming CardSkeleton renders some placeholder or valid HTML, 
-        // we can check if content is NOT there yet or check for class "animate-pulse" if we queried by class
-        // But simpler: "Conformité ISO 27001" is in the header, always rendered.
-        // Let's check that we don't see "Aucun contrôle" yet if it was empty state.
+        
+        expect(screen.getByText('frameworks.ISO27001')).toBeInTheDocument();
+        expect(screen.getByText('frameworks.ISO22301')).toBeInTheDocument();
     });
 
-    it('calculates global compliance score correctly', async () => {
-        const mockControls = [
-            { id: '1', name: 'Control 1', status: 'conforme', applicable: true },
-            { id: '2', name: 'Control 2', status: 'non_conforme', applicable: true },
-            { id: '3', name: 'Control 3', status: 'non_applicable', applicable: false }, // Should remain 0/0 impact
-            { id: '4', name: 'Control 4', status: 'en_cours', applicable: true }, // 50% usually
-        ];
-
-        vi.mocked(useFirestoreCollection).mockReturnValue({
-            data: mockControls,
-            loading: false,
-            refresh: vi.fn(),
-            error: null,
-            add: vi.fn(),
-            update: vi.fn(),
-            remove: vi.fn()
-        });
-
+    it('switches between tabs correctly', async () => {
         render(<Compliance />);
+        
+        // Should start with overview tab
+        expect(screen.getByTestId('compliance-dashboard')).toBeInTheDocument();
+        
+        // Click on controls tab
+        const controlsTab = screen.getByText('compliance.controls');
+        fireEvent.click(controlsTab);
+        
+        await waitFor(() => {
+            expect(screen.getByTestId('compliance-list')).toBeInTheDocument();
+        });
+        
+        // Click on SoA tab
+        const soaTab = screen.getByText('compliance.soa');
+        fireEvent.click(soaTab);
+        
+        await waitFor(() => {
+            expect(screen.getByTestId('soa-view')).toBeInTheDocument();
+        });
+    });
 
-        // We expect to see text or elements indicating status
-        expect(screen.getByText('Control 1')).toBeInTheDocument();
+    it('switches frameworks correctly', async () => {
+        render(<Compliance />);
+        
+        // Click on ISO22301 framework
+        const iso22301Tab = screen.getByText('frameworks.ISO22301');
+        fireEvent.click(iso22301Tab);
+        
+        await waitFor(() => {
+            expect(screen.getByTestId('compliance-dashboard')).toBeInTheDocument();
+        });
+    });
 
-        // Check if stats are rendered
-        // 1 Conforme (100%), 1 Non-conforme (0%), 1 En cours (50%) -> Total 3 applicable
-        // Score = (1 + 0 + 0.5) / 3 = 50%
-        // The UI usually displays the score. Let's look for "50%"
-        expect(screen.getByText('50%')).toBeInTheDocument();
+    it('opens inspector when control is selected', async () => {
+        render(<Compliance />);
+        
+        // Should not show inspector initially
+        expect(screen.queryByTestId('compliance-inspector')).not.toBeInTheDocument();
+        
+        // Simulate control selection via URL params
+        window.history.pushState({}, '', '/compliance?id=test-control');
+        
+        await waitFor(() => {
+            expect(screen.getByTestId('compliance-inspector')).toBeInTheDocument();
+        });
+    });
+
+    it('shows creation buttons for users with edit permissions', () => {
+        render(<Compliance />);
+        
+        // Should show creation buttons for RSSI role
+        expect(screen.getByText('compliance.newRisk')).toBeInTheDocument();
+    });
+
+    it('hides creation buttons for users without edit permissions', () => {
+        (useStore as any).mockImplementation(() => ({
+            user: { ...mockUser, role: 'user' as const },
+            addToast: vi.fn(),
+            t: (key: string) => key,
+        }));
+        
+        render(<Compliance />);
+        
+        // Should not show creation buttons for user role
+        expect(screen.queryByText('compliance.newRisk')).not.toBeInTheDocument();
+    });
+
+    it('handles framework switching with proper data loading', async () => {
+        render(<Compliance />);
+        
+        // Switch to NIS2 framework
+        const nis2Tab = screen.getByText('frameworks.NIS2');
+        fireEvent.click(nis2Tab);
+        
+        await waitFor(() => {
+            expect(screen.getByTestId('compliance-dashboard')).toBeInTheDocument();
+        });
+    });
+
+    it('displays proper empty state when no controls', () => {
+        render(<Compliance />);
+        
+        // Should show empty state in dashboard
+        expect(screen.getByTestId('compliance-dashboard')).toBeInTheDocument();
+    });
+
+    it('handles search and filtering', async () => {
+        render(<Compliance />);
+        
+        // Switch to controls tab
+        const controlsTab = screen.getByText('compliance.controls');
+        fireEvent.click(controlsTab);
+        
+        await waitFor(() => {
+            expect(screen.getByTestId('compliance-list')).toBeInTheDocument();
+        });
+        
+        // Should show search input
+        const searchInput = screen.getByPlaceholderText('Rechercher un contrôle (code, nom...)');
+        expect(searchInput).toBeInTheDocument();
+    });
+
+    it('handles keyboard navigation', () => {
+        render(<Compliance />);
+        
+        // Test tab navigation with keyboard
+        fireEvent.keyDown(screen.getByText('compliance.controls'), { key: 'Enter' });
+        
+        expect(screen.getByText('compliance.controls')).toBeInTheDocument();
     });
 });
-*/

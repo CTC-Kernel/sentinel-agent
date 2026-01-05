@@ -1,5 +1,6 @@
 import { User } from 'firebase/auth';
 import { UserProfile, Organization } from '../types';
+import { SecureStorage } from './secureStorage';
 import { ErrorLogger } from './errorLogger';
 
 /**
@@ -10,15 +11,15 @@ export class E2EAuthService {
   private static readonly E2E_USER_KEY = 'E2E_TEST_USER';
   
   static isE2EMode(): boolean {
-    return import.meta.env.DEV && localStorage.getItem(this.E2E_USER_KEY) !== null;
+    return import.meta.env.DEV && SecureStorage.getSecureItem(this.E2E_USER_KEY) !== null;
   }
 
   static getE2EUser(): UserProfile | null {
     if (!this.isE2EMode()) return null;
     
     try {
-      const e2eUserStr = localStorage.getItem(this.E2E_USER_KEY);
-      return e2eUserStr ? JSON.parse(e2eUserStr) : null;
+      const e2eUser = SecureStorage.getSecureItem<UserProfile>(this.E2E_USER_KEY);
+      return e2eUser;
     } catch (error) {
       ErrorLogger.error(error, 'E2EAuthService.getE2EUser');
       return null;
@@ -67,7 +68,7 @@ export class E2EAuthService {
 
   static cleanup(): void {
     if (this.isE2EMode()) {
-      localStorage.removeItem(this.E2E_USER_KEY);
+      SecureStorage.removeSecureItem(this.E2E_USER_KEY);
     }
   }
 }
