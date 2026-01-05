@@ -462,7 +462,7 @@ export class PdfService {
                 const cardWidth = (contentWidth - totalGap) / metricCount;
                 let cardX = this.MARGIN_LEFT;
 
-                options.metrics.slice(0, metricCount).forEach((metric, index) => {
+                options.metrics.slice(0, metricCount).forEach((metric) => {
                     this.drawMetricCard(
                         doc,
                         cardX,
@@ -891,7 +891,7 @@ export class PdfService {
             const maxTextWidth = innerRadius * 1.4; // Safe text width inside donut
 
             // Adjust font size based on available space
-            let fontSize = Math.min(14, radius * 0.4);
+            const fontSize = Math.min(14, radius * 0.4);
             doc.setFontSize(fontSize);
             doc.setTextColor(this.TEXT_PRIMARY);
             doc.setFont('helvetica', 'bold');
