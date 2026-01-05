@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { UserProfile, Organization, CustomRole } from './types';
 import { toast } from 'sonner';
+import { SecureStorage } from './services/secureStorage';
 
 export interface ToastMessage {
   id: string;
@@ -87,19 +88,19 @@ export const useStore = create<AppState>((set) => ({
   },
   removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 
-  demoMode: (import.meta.env.DEV || !!localStorage.getItem('E2E_TEST_USER')) && localStorage.getItem('demoMode') === 'true',
+  demoMode: (import.meta.env.DEV || !!SecureStorage.getSecureItem('E2E_TEST_USER')) && SecureStorage.getSecureItem('demoMode') === 'true',
   toggleDemoMode: () => set((state) => {
     if (!import.meta.env.DEV) {
       if (state.demoMode) {
-        localStorage.removeItem('demoMode');
+        SecureStorage.removeSecureItem('demoMode');
       }
       return { demoMode: false };
     }
     const next = !state.demoMode;
     if (next) {
-      localStorage.setItem('demoMode', 'true');
+      SecureStorage.setSecureItem('demoMode', next);
     } else {
-      localStorage.removeItem('demoMode');
+      SecureStorage.removeSecureItem('demoMode');
     }
     return { demoMode: next };
   }),

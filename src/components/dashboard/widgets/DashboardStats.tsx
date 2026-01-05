@@ -72,7 +72,7 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, topRisks =
                     // Optional: Check if cache is too old? For now, just show it.
                     if (!summary) setSummary(parsed.summary);
                 } catch (e) {
-                    console.error('Error parsing local summary', e);
+                    ErrorLogger.warn('Error parsing local summary', 'DashboardStats', { metadata: { error: e } });
                 }
             }
 
@@ -88,18 +88,18 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, topRisks =
         if (!user?.organizationId) return;
 
         try {
-            console.log('[DashboardStats] Fetching saved summary...');
+            ErrorLogger.info('[DashboardStats] Fetching saved summary...', 'DashboardStats');
             const saved = await DashboardService.getExecutiveSummary(user.organizationId);
 
             if (saved) {
-                console.log('[DashboardStats] Found saved summary, timestamp:', saved.generatedAt);
+                ErrorLogger.info('[DashboardStats] Found saved summary, timestamp:', 'DashboardStats', { metadata: { timestamp: saved.generatedAt } });
 
                 // Drift detection: Check if compliance has changed significantly (> 10%)
                 const lastCompliance = saved.metricsSnapshot?.compliance;
                 const currentCompliance = stats.compliance;
 
                 if (lastCompliance !== undefined && Math.abs(lastCompliance - currentCompliance) > 10) {
-                    console.log('[DashboardStats] Data drift detected (Compliance changed > 10%). Forcing refresh...');
+                    ErrorLogger.info('[DashboardStats] Data drift detected (Compliance changed > 10%). Forcing refresh...', 'DashboardStats');
                     generateSummary();
                     return;
                 }
@@ -115,17 +115,17 @@ export const DashboardStats: React.FC<StatsOverviewProps> = ({ stats, topRisks =
 
                 checkAutoRefresh(saved.generatedAt);
             } else {
-                console.log('[DashboardStats] No saved summary found.');
+                ErrorLogger.info('[DashboardStats] No saved summary found.', 'DashboardStats');
                 // Only generate if we have meaningful stats
                 if (stats && stats.compliance > 0) {
-                    console.log('[DashboardStats] Stats available, generating new summary...');
+                    ErrorLogger.info('[DashboardStats] Stats available, generating new summary...', 'DashboardStats');
                     generateSummary();
                 } else {
                     setSummary("Analyse en attente des données de conformité...");
                 }
             }
         } catch (error) {
-            console.error('[DashboardStats] Error fetching summary:', error);
+            ErrorLogger.error('[DashboardStats] Error fetching summary:', 'DashboardStats', { metadata: { error } });
         }
     }
 

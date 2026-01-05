@@ -170,9 +170,15 @@ export const Reports: React.FC = () => {
         } catch (error) {
             // Enhanced error logging for debugging
             if (error instanceof Error) {
-                console.error('PDF Generation Error:', {
-                    message: error.message,
-                    stack: error.stack
+                ErrorLogger.error('PDF Generation Error', 'Reports.generatePDF', {
+                    metadata: {
+                        message: error.message,
+                        stack: error.stack
+                    }
+                });
+            } else {
+                ErrorLogger.error('Unknown PDF Generation Error', 'Reports.generatePDF', {
+                    metadata: { error }
                 });
             }
             // Log to console for user to provide if needed

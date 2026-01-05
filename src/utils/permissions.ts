@@ -1,5 +1,6 @@
 import { UserProfile, ResourceType } from '../types';
 export type { ResourceType };
+import { ErrorLogger } from '../services/errorLogger';
 
 export type ActionType = 'create' | 'read' | 'update' | 'delete' | 'manage';
 export type Role = 'admin' | 'rssi' | 'auditor' | 'project_manager' | 'direction' | 'user';
@@ -204,9 +205,37 @@ export const PERMISSIONS = ROLE_PERMISSIONS;
 
 const isResourceOwner = (user: UserProfile, ownerId?: string): boolean => {
     if (!ownerId) return false;
-    // SECURITY FIX: Only allow ownership verification via immutable UID.
-    // Removed displayName and email to prevent impersonation attacks via profile updates.
-    return ownerId === user.uid;
+    // SECURITY FIX: Multiple layers of ownership verification
+    // 1. Primary check via immutable UID
+    const uidMatch = ownerId === user.uid;
+    
+    // 2. Additional verification for critical resources
+    if (!uidMatch) {
+        // Log suspicious ownership attempts
+        ErrorLogger.warn('Ownership verification failed', 'permissions.isResourceOwner', {
+            metadata: {
+                userId: user.uid,
+                requestedOwnerId: ownerId,
+                userRole: user.role,
+                timestamp: new Date().toISOString()
+            }
+        });
+        return false;
+    }
+    
+    // 3. Verify user is active (check isPending flag)
+    if (user.isPending) {
+        ErrorLogger.warn('Pending user attempted ownership verification', 'permissions.isResourceOwner', {
+            metadata: {
+                userId: user.uid,
+                isPending: user.isPending,
+                resourceOwnerId: ownerId
+            }
+        });
+        return false;
+    }
+    
+    return true;
 };
 
 import { PLANS, PlanConfig } from '../config/plans';
